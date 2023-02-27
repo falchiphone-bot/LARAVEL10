@@ -14,5 +14,10 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
+    return redirect("/Testes");
+});
+Route::get('/pedro', function () {
     return view('welcome');
 });
+
+Route::resource('Testes',\App\Http\Controllers\TesteController::class);
