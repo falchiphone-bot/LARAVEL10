@@ -11,6 +11,8 @@
         <tr>
             <th>Nome</th>
             <th>Email</th>
+            <th>Criação</th>
+            <th>Atualização</th>
         </tr>
         @foreach ($cadastros as $cadastro)
             <tr>
@@ -19,6 +21,12 @@
                 </td>
                 <td>
                     {{ $cadastro->email }}
+                </td>
+                <td>
+                    {{ $cadastro->created_at }}
+                </td>
+                <td>
+                    {{ $cadastro->updated_at }}
                 </td>
                 <td>
                     <div class="row mt-2">
