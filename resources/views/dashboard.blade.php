@@ -18,18 +18,25 @@
         <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6 text-gray-900 dark:text-gray-100">
 
-<nav class="navbar navbar-dark bg-dark">
+<nav class="navbar navbar-red bg-red">
     <!-- Navbar content -->
-    <a class="nav-link" href="/Empresas">Cadastro de empresas</a>
+    {{-- <a class="nav-link" href="/Empresas">Cadastro de empresas</a> --}}
+    {{-- <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+          <a class="navbar-brand" href="/Empresas">Empresas</a>
+        </nav>
   </nav>
 
   <nav class="navbar navbar-dark bg-primary">
     <!-- Navbar content -->
+    <a class="navbar-brand" href="/Empresas">Empresas</a>
+  </nav> --}}
+
+  <nav class="navbar navbar-light" style="background-color: hsla(235, 86%, 49%, 0.226);">
+    <!-- Navbar content -->
+    <a class="navbar-brand" href="/Empresas">Empresas</a>
   </nav>
 
-  <nav class="navbar navbar-light" style="background-color: #e3f2fd;">
-    <!-- Navbar content -->
-  </nav>
 
 
 </div>
