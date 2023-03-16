@@ -78,6 +78,21 @@ return [
             'sslmode' => 'prefer',
         ],
 
+        'sqlsrv_clube' => [
+            'driver' => 'sqlsrv',
+            'url' => env('DATABASE_URL'),
+            'host' => env('DB_HOST', 'localhost'),
+            'port' => env('DB_PORT', '1433'),
+            'database' => env('DB_DATABASE_CLUBE', 'forge'),
+            'username' => env('DB_USERNAME_CLUBE', 'forge'),
+            'password' => env('DB_PASSWORD_CLUBE', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            // 'encrypt' => env('DB_ENCRYPT', 'yes'),
+             'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'true'),
+        ],
+
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DATABASE_URL'),
@@ -93,20 +108,7 @@ return [
              'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'true'),
         ],
 
-        'sqlsrv_clube' => [
-            'driver' => 'sqlsrv',
-            'url' => env('DATABASE_URL'),
-            'host' => env('DB_HOST', 'localhost'),
-            'port' => env('DB_PORT', '1433'),
-            'database' => env('DB_DATABASE_CLUBE', 'forge'),
-            'username' => env('DB_USERNAME_CLUBE', 'forge'),
-            'password' => env('DB_PASSWORD_CLUBE', ''),
-            'charset' => 'utf8',
-            'prefix' => '',
-            'prefix_indexes' => true,
-            // 'encrypt' => env('DB_ENCRYPT', 'yes'),
-             'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'true'),
-        ],
+
 
     ],
 

@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect('/dashboard');
 });
 
 Route::get('/dashboard', function () {
@@ -28,7 +28,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::resource('Testes',App\Http\Controllers\TesteController::class);
 Route::resource('Empresas',App\Http\Controllers\EmpresaController::class);
+Route::resource('Teste',App\Http\Controllers\TesteController::class);
 
 require __DIR__.'/auth.php';
