@@ -27,14 +27,16 @@
                 </td>
 
                 <td>
-                        <?php
+
+
+                    @php
                         $Altera = DateTime::createFromFormat("Y-m-d", $cadastro->Bloqueiodataanterior);
                         if ($Altera instanceof DateTime) {
                             echo $Altera->format('d-m-Y');
                         } else {
                             echo " ";
                         }
-                        ?>
+                    @endphp
                 </td>
 
                 <td>

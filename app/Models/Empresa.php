@@ -23,7 +23,10 @@ class Empresa extends Model
         'Bloqueio',
     ];
 
-
+    // protected $casts = [
+    //     'Bloqueiodataanterior' => 'datetime:d/m/Y',
+    // ];
 
     public $timestamps = false;
+
 }
