@@ -39,6 +39,9 @@
                             <nav class="navbar navbar-red" style="background-color: hsla(235, 86%, 89%, 0.226);">
                                 <a class="navbar-brand" href="/TemFuncoes">Funções que tem permissões</a>
                             </nav>
+                            <nav class="navbar navbar-red" style="background-color: hsla(235, 86%, 89%, 0.226);">
+                                <a class="navbar-brand" href="/PlanoContas">Plano de contas padrão</a>
+                            </nav>
                           <nav class="navbar navbar-light" style="background-color: hsla(235, 86%, 79%, 0.226);">
                             <a class="navbar-brand" href="/Empresas">Empresas</a>
                           </nav>

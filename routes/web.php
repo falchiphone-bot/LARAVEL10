@@ -35,5 +35,5 @@ Route::resource('Permissoes',App\Http\Controllers\PermissionController::class);
 Route::resource('TemPermissoes',App\Http\Controllers\Model_has_PermissionController::class);
 Route::resource('TemFuncoes',App\Http\Controllers\Role_has_PermissionController::class);
 Route::resource('ModelodeFuncoes',App\Http\Controllers\Model_has_RoleController::class);
-
+Route::resource('PlanoContas',App\Http\Controllers\PlanoContaController::class);
 require __DIR__.'/auth.php';
