@@ -30,5 +30,10 @@ Route::middleware('auth')->group(function () {
 
 Route::resource('Empresas',App\Http\Controllers\EmpresaController::class);
 Route::resource('Teste',App\Http\Controllers\TesteController::class);
+Route::resource('Usuarios',App\Http\Controllers\UserController::class);
+Route::resource('Permissoes',App\Http\Controllers\PermissionController::class);
+Route::resource('TemPermissoes',App\Http\Controllers\Model_has_PermissionController::class);
+Route::resource('TemFuncoes',App\Http\Controllers\Role_has_PermissionController::class);
+Route::resource('ModelodeFuncoes',App\Http\Controllers\Model_has_RoleController::class);
 
 require __DIR__.'/auth.php';

@@ -1,0 +1,96 @@
+
+<x-app-layout>
+@extends('Layout.Padrao')
+{{-- @section('content') --}}
+    <h1 class="text-center">Modelo de funções</h1>
+    <hr>
+
+    <a href="{{ route('ModelodeFuncoes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
+        aria-disabled="true">Incluir funções</a>
+
+    <table class="table">
+        <tr>
+            <th>Função</th>
+            <th>Model permissão</th>
+            <th>Model</th>
+        </tr>
+        @foreach ($cadastros as $cadastro)
+            <tr>
+                <td>
+                    {{ $cadastro->role_id }}
+                </td>
+                <td>
+                    {{ $cadastro->model_type }}
+                </td>
+                <td>
+                    {{ $cadastro->model_id }}
+                </td>
+
+
+                <td>
+                    <div class="row mt-2">
+                        <div class="col-6">
+
+                            <a href="{{ route('TemPermissoes.edit', $cadastro->role_id) }}" class="btn btn-secondary btn-sm enabled"
+                               tabindex="-1" role="button" aria-disabled="true">Editar</a>
+
+                            <a href="{{ route('TemPermissoes.edit', $cadastro->role_id) }}" class="btn btn-info btn-sm enabled"
+                               tabindex="-1" role="button" aria-disabled="true">2-Editar</a>
+
+                            <form method="POST" action="{{ route('TemPermissoes.destroy', $cadastro->role_id) }}">
+                                @csrf
+                                <input type="hidden" name="_method" value="DELETE">
+                                <button class="btn btn-danger btn-sm enabled" tabindex="-1" role="button"
+                                        aria-disabled="true">Excluir</button>
+                            </form>
+
+                            <a href="{{ route('TemFuncoes.show', $cadastro->role_id) }}" class="btn btn-info btn-sm enabled"
+                               tabindex="-1" role="button" aria-disabled="true">Ver</a>
+                        </div>
+                    </div>
+                </td>
+
+            </tr>
+        @endforeach
+    </table>
+{{-- @endsection --}}
+</x-app-layout>
+@push('scripts')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
+
+    <script>
+        $('form').submit(function(e) {
+            e.preventDefault();
+            $.confirm({
+                title: 'Confirmar!',
+                content: 'Confirma a exclusão? Não terá retorno.',
+                buttons: {
+                    confirmar: function() {
+                        // $.alert('Confirmar!');
+                        $.confirm({
+                            title: 'Confirmar!',
+                            content: 'Deseja realmente continuar com a exclusão? Não terá retorno.',
+                            buttons: {
+                                confirmar: function() {
+                                    // $.alert('Confirmar!');
+                                    e.currentTarget.submit()
+                                },
+                                cancelar: function() {
+                                    // $.alert('Cancelar!');
+                                },
+
+                            }
+                        });
+
+                    },
+                    cancelar: function() {
+                        // $.alert('Cancelar!');
+                    },
+
+                }
+            });
+        });
+    </script>
+@endpush
+
