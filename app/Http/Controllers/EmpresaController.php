@@ -12,7 +12,10 @@ class EmpresaController extends Controller
 
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware( ["permission:EMPRESAS - LISTAR"])->only("index");
+        $this->middleware( ["permission:EMPRESAS - INCLUIR"])->only(["create","store"]);
+        $this->middleware( ["permission:EMPRESAS - EDITAR"])->only(["edit","update"]);
+        $this->middleware( ["permission:EMPRESAS - EXCLUIR"])->only("destroy");
     }
 
     /**

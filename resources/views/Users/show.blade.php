@@ -22,13 +22,20 @@
 
                             <form method="post" action="/Usuarios/salvarpermissao/{{$cadastro->id}}" class="mt-6 space-y-6">
                                 @csrf
-                                <div class="col-span-6 sm:col-span-3">
+                                <div class="col-span-12 sm:col-span-12">
                                     <label for="permissao" class="block text-sm font-medium leading-6 text-gray-900"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Permissões</font></font></label>
-                                    <select id="permissao" name="permissao" autocomplete="permissao-name" class="mt-2 block w-full rounded-md border-0 bg-white py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
-                                        <option><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Selecionar uma permissão</font></font></option>
+                                    <select multiple id="permissao" name="permissao[]" autocomplete="permissao-name"
+                                            class="select2 mt-2 block w-full rounded-md border-0 bg-white py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2
+                                            focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+
 
                                         @foreach($permissoes as $id=>$name)
-                                                <option value={{$id}}><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">{{$name}}</font></font></option>
+                                                <option
+                                                    @if($cadastro->hasPermissionTo($name))
+                                                            selected
+                                                    @endif
+                                                value={{$id}}><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">{{$name}}</font></font>
+                                            </option>
 
                                             @endforeach
                                     </select>
@@ -44,7 +51,9 @@
                     </div>
                 </div>
 
-                <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
+               {{-- para lembrar de algo.... pode apagar no futuro - 20.03.2022 - 13:02
+
+               <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
                     <div class="max-w-xl">
                         <section>
                             <header>
@@ -103,6 +112,7 @@
 
             </div>
         </div>
+        --}}
 
 
 @endsection
@@ -110,7 +120,12 @@
 @push('scripts')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
+        $(document).ready(function() {
+            $('.select2').select2();
+        });
         $('form').submit(function(e) {
             e.preventDefault();
             $.confirm({
