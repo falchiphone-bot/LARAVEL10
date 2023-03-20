@@ -12,7 +12,10 @@ class Model_has_RoleController extends Controller
 
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware( ["permission:FUNCOES - LISTAR"])->only("index");
+        $this->middleware( ["permission:FUNCOES - INCLUIR"])->only("create");
+        $this->middleware( ["permission:FUNCOES - EDITAR"])->only(["edit","update"]);
+        $this->middleware( ["permission:FUNCOES - EXCLUIR"])->only("destroy");
     }
 
     /**

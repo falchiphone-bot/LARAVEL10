@@ -7,22 +7,30 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
-
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware( ["permission:USUARIOS - LISTAR"])->only("index");
+        $this->middleware( ["permission:USUARIOS - INCLUIR"])->only(["create","store"]);
+        $this->middleware( ["permission:USUARIOS - EDITAR"])->only(["edit","update"]);
+        $this->middleware( ["permission:USUARIOS - EXCLUIR"])->only("destroy");
     }
+    /**public function __construct()
+    {
+        $this->middleware('auth');
+    }**/
 
-    public function RevogarPermissao(Request $request, $idusuario)
+
+    public function salvarfuncao(Request $request, $idusuario)
     {
         $usuario = User::find($idusuario);
-        $usuario->revokePermissionTo($request->RevogaPermissao);
-        //$user->syncPermissions(['edit articles', 'delete articles']);
+        $usuario->syncRoles($request->funcao);
         return redirect("/Usuarios/".$idusuario);
     }
+
     public function salvarpermissao(Request $request, $idusuario)
     {
         $usuario = User::find($idusuario);
@@ -72,9 +80,9 @@ class UserController extends Controller
     {
         $cadastro = User::find($id);
         $permissoes = Permission::pluck('name','id');
+        $funcoes = Role::pluck('name','id');
 
-
-        return view('Users.show',compact('cadastro', 'permissoes'));
+        return view('Users.show',compact('cadastro', 'permissoes','funcoes'));
     }
 
     /**

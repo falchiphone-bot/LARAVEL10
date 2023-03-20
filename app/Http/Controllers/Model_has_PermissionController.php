@@ -12,9 +12,8 @@ class Model_has_PermissionController extends Controller
 
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware( ["permission:TEM PERMISSOES - LISTAR"])->only("index");
     }
-
     /**
      * Display a listing of the resource.
      */

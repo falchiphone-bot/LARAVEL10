@@ -10,11 +10,6 @@ use Illuminate\Support\Facades\Validator;
 class Role_has_PermissionController extends Controller
 {
 
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
-
     /**
      * Display a listing of the resource.
      */

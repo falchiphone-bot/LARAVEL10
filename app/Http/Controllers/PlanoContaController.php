@@ -10,11 +10,17 @@ use Illuminate\Support\Facades\DB;
 
 class PlanoContaController extends Controller
 {
-
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware( ["permission:PLANO DE CONTAS - LISTAR"])->only("index");
+        $this->middleware( ["permission:PLANO DE CONTAS - INCLUIR"])->only(["create","store"]);
+        $this->middleware( ["permission:PLANO DE CONTAS - EDITAR"])->only(["edit","update"]);
+        $this->middleware( ["permission:PLANO DE CONTAS - EXCLUIR"])->only("destroy");
     }
+    /**public function __construct()
+    {
+        $this->middleware('auth');
+    }*/
 
     /**
      * Display a listing of the resource.

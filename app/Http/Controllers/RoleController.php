@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\PermissionCreateRequest;
+use App\Http\Requests\RoleCreateRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
-class PermissionController extends Controller
+class RoleController extends Controller
 {
-
     public function __construct()
     {
         $this->middleware('auth');
@@ -18,12 +18,21 @@ class PermissionController extends Controller
     /**
      * Display a listing of the resource.
      */
+    public function salvarpermissao(Request $request, $idFuncao)
+    {
+        $funcao = Role::find($idFuncao);
+        $funcao->syncPermissions($request->permissao);
+        //$user->syncPermissions(['edit articles', 'delete articles']);
+        return redirect("/Funcoes/".$idFuncao);
+    }
+
+
     public function index()
     {
-       $cadastros = Permission::get();
+       $cadastros = Role::get();
 
 
-        return view('Permissions.index',compact('cadastros'));
+        return view('Roles.index',compact('cadastros'));
     }
 
     /**
@@ -31,20 +40,20 @@ class PermissionController extends Controller
      */
     public function create()
     {
-        return view('Permissions.create');
+        return view('Roles.create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(PermissionCreateRequest $request)
+    public function store(RoleCreateRequest $request)
     {
         $dados = $request->all();
         //dd($dados);
 
-        Permission::create($dados);
+        Role::create($dados);
 
-        return redirect(route('Permissoes.index'));
+        return redirect(route('Funcoes.index'));
 
     }
 
@@ -53,9 +62,9 @@ class PermissionController extends Controller
      */
     public function show(string $id)
     {
-        $cadastro = Permission::find($id);
-
-        return view('Permissoes.show',compact('cadastro'));
+        $cadastro = Role::find($id);
+        $permissoes = Permission::orderBy('name')->pluck('name','id');
+        return view('Roles.show',compact('cadastro','permissoes'));
     }
 
     /**
@@ -63,10 +72,10 @@ class PermissionController extends Controller
      */
     public function edit(string $id)
     {
-        $cadastro = Permission::find($id);
+        $cadastro = Role::find($id);
         // dd($cadastro);
 
-        return view('Permissions.edit',compact('cadastro'));
+        return view('Roles.edit',compact('cadastro'));
     }
 
     /**
@@ -75,7 +84,7 @@ class PermissionController extends Controller
     public function update(Request $request, string $id)
     {
 
-        $cadastro = Permission::find($id);
+        $cadastro = Role::find($id);
 
         $cadastro->fill($request->all()) ;
         //dd($cadastro);
@@ -83,7 +92,7 @@ class PermissionController extends Controller
         $cadastro->save();
         //dd($cadastro->save());
 
-        return redirect(route('Permissoes.index'));
+        return redirect(route('Funcoes.index'));
     }
 
     /**
@@ -91,9 +100,9 @@ class PermissionController extends Controller
      */
     public function destroy(string $id)
     {
-        $cadastro = Permission::find($id);
+        $cadastro = Role::find($id);
         $cadastro->delete();
-        return redirect(route('Permissoes.index'));
+        return redirect(route('Funcoes.index'));
 
     }
 }

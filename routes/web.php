@@ -33,7 +33,8 @@ Route::resource('Teste',App\Http\Controllers\TesteController::class);
 Route::resource('Usuarios',App\Http\Controllers\UserController::class);
 
 Route::post('Usuarios/salvarpermissao/{id}',[App\Http\Controllers\UserController::class, 'salvarpermissao']);
-Route::post('Usuarios/revogarpermissao/{id}',[App\Http\Controllers\UserController::class, 'revogarpermissao']);
+Route::post('Usuarios/salvarfuncao/{id}',[App\Http\Controllers\UserController::class, 'salvarfuncao']);
+
 
 
 Route::resource('Permissoes',App\Http\Controllers\PermissionController::class);
@@ -42,5 +43,8 @@ Route::resource('TemFuncoes',App\Http\Controllers\Role_has_PermissionController:
 Route::resource('ModelodeFuncoes',App\Http\Controllers\Model_has_RoleController::class);
 Route::resource('PlanoContas',App\Http\Controllers\PlanoContaController::class);
 
+
+Route::resource('Funcoes',App\Http\Controllers\RoleController::class);
+Route::post('Funcoes/salvarpermissao/{id}',[App\Http\Controllers\RoleController::class, 'salvarpermissao']);
 
 require __DIR__.'/auth.php';
