@@ -8,11 +8,12 @@
     <a href="{{ route('PlanoContas.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
         aria-disabled="true">Incluir contas no plano de contas padrão</a>
 
-    <p>Total de contas: {{ $num_rows }}</p>
+    <p>Total de contas: {{ $linhas}}</p>
 
     <table class="table">
         <tr>
             <th>Descrição</th>
+            <th>Tipo</th>
             <th>Código</th>
             <th>Grau</th>
             <th>Bloqueio</th>
@@ -20,8 +21,39 @@
         </tr>
         @foreach ($cadastros as $cadastro)
             <tr>
+
+                        @if($cadastro->Grau == "1")
+                            <td style="padding-left: 10px; Color:red; font-size: 30px;">
+                                |{{ $cadastro->Descricao }}
+                            </td>
+                        @endif
+
+
+                        @if($cadastro->Grau == "2")
+                            <td style="padding-left: 60px;">
+                                |{{ $cadastro->Descricao }}
+                            </td>
+                        @endif
+                        @if($cadastro->Grau == "3")
+                            <td style="padding-left: 90px;">
+                                |{{ $cadastro->Descricao }}
+                            </td>
+                        @endif
+                        @if($cadastro->Grau == "4")
+                            <td style="padding-left: 120px;">
+                                |{{ $cadastro->Descricao }}
+                            </td>
+                        @endif
+                        @if($cadastro->Grau == "5")
+                            <td style="padding-left: 150px; color:Blue;; font-size: 20px;">
+                                {{ $cadastro->Descricao }}
+                            </td>
+                        @endif
+
+
+
                 <td>
-                    {{ $cadastro->Descricao }}
+                    {{ $cadastro->Tipo }}
                 </td>
                 <td>
                     {{ $cadastro->Codigo }}
@@ -32,6 +64,7 @@
                 <td>
                     {{ $cadastro->Bloqueio }}
                 </td>
+
 
                 <td>
                     @php
@@ -64,6 +97,8 @@
                 </td>
 
             </tr>
+
+
         @endforeach
     </table>
 {{-- @endsection --}}

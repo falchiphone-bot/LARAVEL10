@@ -21,15 +21,15 @@ class PlanoContaController extends Controller
      */
     public function index()
     {
-       $cadastros = PlanoConta::get();
+       $cadastros = PlanoConta::orderBy('codigo', 'asc')->get();
        //$cadastros = DB::table('PlanoConta')->get();        $num_rows = count($cadastros);
 
-        $num_rows = count($cadastros);
+        $linhas = count($cadastros);
 
 
         //  return view('PlanoContas.index',compact('cadastros'));
 
-        return view('PlanoContas.index', compact('cadastros', 'num_rows'));
+        return view('PlanoContas.index', compact('cadastros', 'linhas'));
 
     }
 

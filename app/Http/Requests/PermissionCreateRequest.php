@@ -23,7 +23,7 @@ class PermissionCreateRequest extends FormRequest
     {
         return [
             'name' =>'required',
-            'guard_name' =>'required',
+
         ];
     }
 }

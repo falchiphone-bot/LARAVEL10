@@ -31,9 +31,16 @@ Route::middleware('auth')->group(function () {
 Route::resource('Empresas',App\Http\Controllers\EmpresaController::class);
 Route::resource('Teste',App\Http\Controllers\TesteController::class);
 Route::resource('Usuarios',App\Http\Controllers\UserController::class);
+
+Route::post('Usuarios/salvarpermissao/{id}',[App\Http\Controllers\UserController::class, 'salvarpermissao']);
+Route::post('Usuarios/revogarpermissao/{id}',[App\Http\Controllers\UserController::class, 'revogarpermissao']);
+
+
 Route::resource('Permissoes',App\Http\Controllers\PermissionController::class);
 Route::resource('TemPermissoes',App\Http\Controllers\Model_has_PermissionController::class);
 Route::resource('TemFuncoes',App\Http\Controllers\Role_has_PermissionController::class);
 Route::resource('ModelodeFuncoes',App\Http\Controllers\Model_has_RoleController::class);
 Route::resource('PlanoContas',App\Http\Controllers\PlanoContaController::class);
+
+
 require __DIR__.'/auth.php';

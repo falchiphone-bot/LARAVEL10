@@ -6,6 +6,7 @@ use App\Http\Requests\UserCreateRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Spatie\Permission\Models\Permission;
 
 class UserController extends Controller
 {
@@ -15,9 +16,23 @@ class UserController extends Controller
         $this->middleware('auth');
     }
 
-    /**
-     * Display a listing of the resource.
-     */
+    public function RevogarPermissao(Request $request, $idusuario)
+    {
+        $usuario = User::find($idusuario);
+        $usuario->revokePermissionTo($request->RevogaPermissao);
+        //$user->syncPermissions(['edit articles', 'delete articles']);
+        return redirect("/Usuarios/".$idusuario);
+    }
+    public function salvarpermissao(Request $request, $idusuario)
+    {
+        $usuario = User::find($idusuario);
+        $usuario->syncPermissions($request->permissao);
+        //$user->syncPermissions(['edit articles', 'delete articles']);
+        return redirect("/Usuarios/".$idusuario);
+    }
+
+
+
     public function index()
     {
         $cadastros = User::get();
@@ -56,8 +71,10 @@ class UserController extends Controller
     public function show(string $id)
     {
         $cadastro = User::find($id);
+        $permissoes = Permission::pluck('name','id');
 
-        return view('Users.show',compact('cadastro'));
+
+        return view('Users.show',compact('cadastro', 'permissoes'));
     }
 
     /**

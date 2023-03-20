@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\PermissionCreateRequest;
-use App\Models\Permissions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Spatie\Permission\Models\Permission;
 
 class PermissionController extends Controller
 {
@@ -20,7 +20,7 @@ class PermissionController extends Controller
      */
     public function index()
     {
-       $cadastros = Permissions::get();
+       $cadastros = Permission::get();
 
 
         return view('Permissions.index',compact('cadastros'));
@@ -42,7 +42,7 @@ class PermissionController extends Controller
         $dados = $request->all();
         //dd($dados);
 
-        Permissions::create($dados);
+        Permission::create($dados);
 
         return redirect(route('Permissoes.index'));
 
