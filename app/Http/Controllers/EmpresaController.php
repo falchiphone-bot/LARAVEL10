@@ -24,9 +24,9 @@ class EmpresaController extends Controller
     public function index()
     {
        $cadastros = Empresa::get();
+       $linhas = count($cadastros);
 
-
-        return view('Empresas.index',compact('cadastros'));
+        return view('Empresas.index',compact('cadastros','linhas'));
     }
 
     /**

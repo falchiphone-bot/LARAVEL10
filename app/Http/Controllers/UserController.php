@@ -110,7 +110,7 @@ class UserController extends Controller
         $cadastro->save();
         //dd($cadastro->save());
 
-        return redirect(route('Users.index'));
+        return redirect(route('Usuarios.index'));
     }
 
     /**
