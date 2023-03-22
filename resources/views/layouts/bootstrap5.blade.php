@@ -11,14 +11,14 @@
     <link rel="stylesheet" href="https://getbootstrap.com/docs/5.3/examples/features/features.css" crossorigin="anonymous">
 
 
-    <title>Iniciação em Laravel 10.0!</title>
+    <title>Sistema administrativo e contábil</title>
   </head>
 
   <body>
 
     <main>
         <header>
-            <div class="px-3 py-2 text-bg-dark">
+            <div class="px-3 py-2 text-bg-primary">
               <div class="container">
                 <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
                   <a href="/" class="d-flex align-items-center my-2 my-lg-0 me-lg-auto text-white text-decoration-none">
@@ -27,51 +27,51 @@
 
                   <ul class="nav col-12 col-lg-auto my-2 justify-content-center my-md-0 text-small">
                     <li>
-                      <a href="/dashboard" class="nav-link text-secondary">
-                        Home
+                      <a href="/dashboard" class="nav-link text-light">
+                        Início do sistema
                         <i class="fa-solid fa-house"></i>
                       </a>
                     </li>
-                    <li>
+                    {{-- <li>
                       <a href="#" class="nav-link text-white">
                         <i class="fa-solid fa-dashboard"></i>
-                        Dashboard
+                        .
                       </a>
                     </li>
                     <li>
                       <a href="#" class="nav-link text-white">
                         <i class="fa-solid fa-dashboard"></i>
-                        Orders
+                        .
                       </a>
                     </li>
                     <li>
                       <a href="#" class="nav-link text-white">
                         <i class="fa-solid fa-dashboard"></i>
-                        Products
+                        .
                       </a>
                     </li>
                     <li>
                       <a href="#" class="nav-link text-white">
                         <i class="fa-solid fa-dashboard"></i>
-                        Customers
+                        .
                       </a>
-                    </li>
+                    </li> --}}
                   </ul>
                 </div>
               </div>
             </div>
-            <div class="px-3 py-2 border-bottom mb-3">
+            {{-- <div class="px-3 py-2 border-bottom mb-3">
               <div class="container d-flex flex-wrap justify-content-center">
                 <form class="col-12 col-lg-auto mb-2 mb-lg-0 me-lg-auto" role="search">
                   <input type="search" class="form-control" placeholder="Buscar..." aria-label="Search">
                 </form>
 
-                {{-- <div class="text-end">
+                <div class="text-end">
                   <button type="button" class="btn btn-light text-dark me-2">Login</button>
                   <button type="button" class="btn btn-primary">Sign-up</button>
-                </div> --}}
+                </div>
               </div>
-            </div>
+            </div> --}}
           </header>
 
       @yield('content')
@@ -81,10 +81,10 @@
     <footer class="text-muted py-5">
       <div class="container">
         <p class="float-end mb-1">
-          <a href="#">Back to top</a>
+          <a href="#">Ir para o top da página.</a>
         </p>
-        <p class="mb-1">Texto para editar</p>
-        <p class="mb-0">New to Bootstrap? <a href="/">Visit the homepage</a> or read our <a href="/docs/5.3/getting-started/introduction/">getting started guide</a>.</p>
+        {{-- <p class="mb-1">Texto para editar</p>
+        <p class="mb-0">New to Bootstrap? <a href="/">Visit the homepage</a> or read our <a href="/docs/5.3/getting-started/introduction/">getting started guide</a>.</p> --}}
       </div>
     </footer>
 

@@ -6,37 +6,63 @@
 
         <div class="card">
             <div class="card-header">
-                Menu Principal
+                Menu Principal do sistema administrativo e contábil
             </div>
             <div class="card-body">
-                @can('USUARIOS - LISTAR')
-                                <nav class="navbar navbar-red" style="background-color: hsla(235, 86%, 89%, 0.226);">
-                                    <a class="btn btn-secondary" href="/Usuarios">Usuários</a>
-                                </nav>
-                            @endcan
+                <table class="table table-success table-striped">
+                    <thead class="table-light">
+                       Opções para o sistema
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th>
+                                 @can('USUARIOS - LISTAR')
+                                    <nav class="navbar navbar-red" style="background-color: hsla(235, 86%, 79%, 0.226);">
+                                        <a class="btn btn-secondary" href="/Usuarios">Usuários</a>
+                                    </nav>
+                                    @endcan
+                            </th>
 
-                            @can('PERMISSOES - LISTAR')
-                                <nav class="navbar navbar-red" style="background-color: hsla(235, 86%, 89%, 0.226);">
-                                    <a class="btn btn-secondary" href="/Permissoes">Permissões</a>
-                                </nav>
-                            @endcan
-
+                        </tr>
+                        <tr>
+                            <th>
+                                @can('PERMISSOES - LISTAR')
+                                    <nav class="navbar navbar-red" style="background-color: hsla(235, 86%, 89%, 0.226);">
+                                        <a class="btn btn-secondary" href="/Permissoes">Permissões</a>
+                                    </nav>
+                                @endcan
+                           </th>
+                        </tr>
+                        <tr>
+                            <th>
                             @can('FUNCOES - LISTAR')
-                                <nav class="navbar navbar-red" style="background-color: hsla(235, 86%, 89%, 0.226);">
-                                    <a class="btn btn-secondary" href="/Funcoes">Funcões</a>
-                                </nav>
-                            @endcan
-
-                            @can('PLANO DE CONTAS - LISTAR')
-                                <nav class="navbar navbar-red" style="background-color: hsla(235, 86%, 89%, 0.226);">
-                                    <a class="btn btn-secondary" href="/PlanoContas">Plano de contas padrão</a>
-                                </nav>
-                            @endcan
+                                <nav class="navbar navbar-red" style="background-color: hsla(235, 86%, 79%, 0.226);">
+                                <a class="btn btn-secondary" href="/Funcoes">Funcões</a>
+                                @endcan
+                            </th>
+                        </tr>
+                        <tr>
+                            <th>
+                                @can('PLANO DE CONTAS - LISTAR')
+                                    <nav class="navbar navbar-red" style="background-color: hsla(235, 86%, 89%, 0.226);">
+                                        <a class="btn btn-secondary" href="/PlanoContas">Plano de contas padrão</a>
+                                    </nav>
+                                @endcan
+                                </th>
+                            </tr>
+                         <tr>
+                         <th>
                             @can('EMPRESAS - LISTAR')
                                 <nav class="navbar navbar-light" style="background-color: hsla(235, 86%, 79%, 0.226);">
                                     <a class="btn btn-secondary" href="/Empresas">Empresas</a>
                                 </nav>
-                            @endcan
+                                @endcan
+                         </th>
+
+                        </tr>
+
+                    </tbody>
+                  </table>
             </div>
         </div>
 
