@@ -1,18 +1,26 @@
 
-<x-app-layout>
-@extends('Layout.Padrao')
-{{-- @section('content') --}}
-    <h1 class="text-center">Funções</h1>
-    <hr>
 
-    <a href="{{ route('Funcoes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
+<x-app-layout>
+
+@section('content')
+
+  @extends('Layout.Padrao')
+   <h1 class="text-center">Funções</h1>
+    <hr>
+       <a href="{{ route('Funcoes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
         aria-disabled="true">Incluir funções</a>
 
-    <table class="table">
-        <tr>
-            <th>Nome</th>
-            <th>Guarda</th>
-         </tr>
+        <table class="table table-dark"  >
+
+            <tbody>
+
+              <tr>
+                <td >NOME</td>
+                <td >GUARDA</td>
+                <td></td>
+              </tr>
+
+
         @foreach ($cadastros as $cadastro)
             <tr>
                 <td>
@@ -58,7 +66,9 @@
             </tr>
         @endforeach
     </table>
-{{-- @endsection --}}
+    </tbody>
+
+@endsection
 </x-app-layout>
 @push('scripts')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">

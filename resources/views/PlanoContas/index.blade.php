@@ -10,7 +10,8 @@
 
     <p>Total de contas: {{ $linhas}}</p>
 
-    <table class="table">
+    <table class="table table-bordered">
+ 
         <tr>
             <th>Descrição</th>
             <th>Tipo</th>
