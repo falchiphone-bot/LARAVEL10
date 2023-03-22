@@ -2,7 +2,7 @@ version: '3.6'
 
 services:
    app:
-    image: iniciacaolaravel-10
+    build: .
     ports:
       - 80:80
     volumes:

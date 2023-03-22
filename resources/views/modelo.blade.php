@@ -4,39 +4,19 @@
 <div class="py-5 bg-light">
     <div class="container">
 
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item"><a href="#">Pagina 1</a></li>
+              <li class="breadcrumb-item active" aria-current="page">Pagina 2</li>
+            </ol>
+          </nav>
+
         <div class="card">
             <div class="card-header">
-                Menu Principal
+                Titulo da Pagina
             </div>
             <div class="card-body">
-                @can('USUARIOS - LISTAR')
-                                <nav class="navbar navbar-red" style="background-color: hsla(235, 86%, 89%, 0.226);">
-                                    <a class="btn btn-secondary" href="/Usuarios">Usuários</a>
-                                </nav>
-                            @endcan
-
-                            @can('PERMISSOES - LISTAR')
-                                <nav class="navbar navbar-red" style="background-color: hsla(235, 86%, 89%, 0.226);">
-                                    <a class="btn btn-secondary href="/Permissoes">Permissões</a>
-                                </nav>
-                            @endcan
-
-                            @can('FUNCOES - LISTAR')
-                                <nav class="navbar navbar-red" style="background-color: hsla(235, 86%, 89%, 0.226);">
-                                    <a class="btn btn-secondary href="/Funcoes">Funcões</a>
-                                </nav>
-                            @endcan
-
-                            @can('PLANO DE CONTAS - LISTAR')
-                                <nav class="navbar navbar-red" style="background-color: hsla(235, 86%, 89%, 0.226);">
-                                    <a class="btn btn-secondary href="/PlanoContas">Plano de contas padrão</a>
-                                </nav>
-                            @endcan
-                            @can('EMPRESAS - LISTAR')
-                                <nav class="navbar navbar-light" style="background-color: hsla(235, 86%, 79%, 0.226);">
-                                    <a class="btn btn-secondary href="/Empresas">Empresas</a>
-                                </nav>
-                            @endcan
+                conteudo body aqui
             </div>
         </div>
 
