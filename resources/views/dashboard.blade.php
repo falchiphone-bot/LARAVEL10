@@ -17,24 +17,24 @@
 
                             @can('PERMISSOES - LISTAR')
                                 <nav class="navbar navbar-red" style="background-color: hsla(235, 86%, 89%, 0.226);">
-                                    <a class="btn btn-secondary href="/Permissoes">Permissões</a>
+                                    <a class="btn btn-secondary" href="/Permissoes">Permissões</a>
                                 </nav>
                             @endcan
 
                             @can('FUNCOES - LISTAR')
                                 <nav class="navbar navbar-red" style="background-color: hsla(235, 86%, 89%, 0.226);">
-                                    <a class="btn btn-secondary href="/Funcoes">Funcões</a>
+                                    <a class="btn btn-secondary" href="/Funcoes">Funcões</a>
                                 </nav>
                             @endcan
 
                             @can('PLANO DE CONTAS - LISTAR')
                                 <nav class="navbar navbar-red" style="background-color: hsla(235, 86%, 89%, 0.226);">
-                                    <a class="btn btn-secondary href="/PlanoContas">Plano de contas padrão</a>
+                                    <a class="btn btn-secondary" href="/PlanoContas">Plano de contas padrão</a>
                                 </nav>
                             @endcan
                             @can('EMPRESAS - LISTAR')
                                 <nav class="navbar navbar-light" style="background-color: hsla(235, 86%, 79%, 0.226);">
-                                    <a class="btn btn-secondary href="/Empresas">Empresas</a>
+                                    <a class="btn btn-secondary" href="/Empresas">Empresas</a>
                                 </nav>
                             @endcan
             </div>
