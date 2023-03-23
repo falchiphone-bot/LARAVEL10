@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\UserCreateRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -13,10 +14,13 @@ class UserController extends Controller
 {
     public function __construct()
     {
+
+
         $this->middleware( ["permission:USUARIOS - LISTAR"])->only("index");
         $this->middleware( ["permission:USUARIOS - INCLUIR"])->only(["create","store"]);
         $this->middleware( ["permission:USUARIOS - EDITAR"])->only(["edit","update"]);
         $this->middleware( ["permission:USUARIOS - EXCLUIR"])->only("destroy");
+
     }
     /**public function __construct()
     {
@@ -45,7 +49,7 @@ class UserController extends Controller
     {
         $cadastros = User::get();
         $linhas = count($cadastros);
-
+     
         return view('Users.index',compact('cadastros', 'linhas'));
     }
 
@@ -69,7 +73,7 @@ class UserController extends Controller
 
         User::create($dados);
 
-        return redirect(route('Ususario.index'));
+        return redirect(route('Usuarios.index'));
 
     }
 
@@ -120,7 +124,7 @@ class UserController extends Controller
     {
         $cadastro = User::find($id);
         $cadastro->delete();
-        return redirect(route('Users.index'));
+        return redirect(route('Usuarios.index'));
 
     }
 }

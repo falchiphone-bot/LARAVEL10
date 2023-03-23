@@ -23,21 +23,12 @@
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-6">
-                    <label for="email">Senha</label>
-                    <input class="form-control @error('password') is-invalid @else is-valid @enderror" name="password"
-                        type="text" id="password" value="{{$cadastro->password??null}}">
-                        @error('password')
-                        <div class="alert alert-danger">{{ $message }}</div>
-                    @enderror
-                </div>
-            </div>
+            
 
             <div class="row mt-2">
                 <div class="col-6">
                     <button class="btn btn-primary">Salvar</button>
-                    <a href="{{route('Usuarios.index')}}" class="btn btn-secondary">Retornar para lista</a>
+                    <a href="{{route('Usuarios.index')}}" class="btn btn-warning">Retornar para lista</a>
                 </div>
             </div>
         </div>

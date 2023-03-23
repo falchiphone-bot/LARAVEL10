@@ -16,8 +16,8 @@
             </div>
 
 
-<form method="POST" action="/Usuario" accept-charset="UTF-8">
+<form method="POST" action="/Usuarios" accept-charset="UTF-8">
     @include('Users.campos')
 </form>
-
+ 
 @endsection

@@ -12,6 +12,11 @@
 
 
     <title>Sistema administrativo e contábil</title>
+    <style>
+                .custom-tooltip {
+        --bs-tooltip-bg: var(--bs-danger);
+        }
+    </style>
   </head>
 
   <body>
@@ -32,25 +37,30 @@
                         <i class="fa-solid fa-house"></i>
                       </a>
                     </li>
+                    <li>
+                      <a href="/profile" data-bs-toggle="tooltip" data-bs-placement="top"
+                      data-bs-custom-class="custom-tooltip"
+                      data-bs-title="Email: {{ Auth::user()->email}} Clique para efetuar um logout, alterar senha, alterar email." class="nav-link text-white">
+                        <i class="fa-solid fa-user"></i>
+
+                        Perfil do usuário: {{ Auth::user()->name}}
+
+                      </a>
+                    </li>
+
                     {{-- <li>
                       <a href="#" class="nav-link text-white">
                         <i class="fa-solid fa-dashboard"></i>
                         .
                       </a>
-                    </li>
-                    <li>
+                    </li> --}}
+                    {{-- <li>
                       <a href="#" class="nav-link text-white">
                         <i class="fa-solid fa-dashboard"></i>
                         .
                       </a>
-                    </li>
-                    <li>
-                      <a href="#" class="nav-link text-white">
-                        <i class="fa-solid fa-dashboard"></i>
-                        .
-                      </a>
-                    </li>
-                    <li>
+                    </li> --}}
+                    {{-- <li>
                       <a href="#" class="nav-link text-white">
                         <i class="fa-solid fa-dashboard"></i>
                         .
@@ -87,12 +97,18 @@
         <p class="mb-0">New to Bootstrap? <a href="/">Visit the homepage</a> or read our <a href="/docs/5.3/getting-started/introduction/">getting started guide</a>.</p> --}}
       </div>
     </footer>
-
-
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
         <script src="https://getbootstrap.com/docs/5.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" crossorigin="anonymous"></script>
+        <script>
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+            const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+        </script>
 
         <script src="https://kit.fontawesome.com/941fc38062.js" crossorigin="anonymous"></script>
+
+        {{-- LINK PARA PEGAR NOME DE ICONES --}}
+        {{-- https://fontawesome.com/search?q=money&o=r&m=free --}}
 
 
     </body>

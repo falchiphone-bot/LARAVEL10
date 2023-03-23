@@ -36,7 +36,7 @@
                             <form method="post" action="/Usuarios/salvarpermissao/{{$cadastro->id}}" class="mt-6 space-y-6">
                                 @csrf
                                 <div class="col-span-12 sm:col-span-12">
-                                        
+
                                     <select multiple id="permissao" name="permissao[]" autocomplete="permissao-name"
                                             class="select2 mt-2 block w-full rounded-md border-0 bg-white py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2
                                             focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
@@ -100,6 +100,7 @@
 
                                 <div class="flex items-center gap-4">
                                         <button type="submite" class="btn btn-success">Salvar</button>
+                                        <a href="{{route('Usuarios.index')}}" class="btn btn-warning">Retornar para lista</a>
                                 </div>
                             </form>
                         </div>
