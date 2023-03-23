@@ -44,9 +44,9 @@ class UserController extends Controller
     public function index()
     {
         $cadastros = User::get();
+        $linhas = count($cadastros);
 
-
-        return view('Users.index',compact('cadastros'));
+        return view('Users.index',compact('cadastros', 'linhas'));
     }
 
     /**

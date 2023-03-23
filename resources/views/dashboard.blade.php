@@ -17,8 +17,8 @@
                         <tr>
                             <th>
                                  @can('USUARIOS - LISTAR')
-                                    <nav class="navbar navbar-red" style="background-color: hsla(235, 86%, 79%, 0.226);">
-                                        <a class="btn btn-secondary" href="/Usuarios">Usuários</a>
+                                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="/Usuarios">Usuários</a>
                                     </nav>
                                     @endcan
                             </th>
@@ -27,8 +27,8 @@
                         <tr>
                             <th>
                                 @can('PERMISSOES - LISTAR')
-                                    <nav class="navbar navbar-red" style="background-color: hsla(235, 86%, 89%, 0.226);">
-                                        <a class="btn btn-secondary" href="/Permissoes">Permissões</a>
+                                <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="/Permissoes">Permissões</a>
                                     </nav>
                                 @endcan
                            </th>
@@ -36,16 +36,16 @@
                         <tr>
                             <th>
                             @can('FUNCOES - LISTAR')
-                                <nav class="navbar navbar-red" style="background-color: hsla(235, 86%, 79%, 0.226);">
-                                <a class="btn btn-secondary" href="/Funcoes">Funcões</a>
+                            <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                <a class="btn btn-primary" href="/Funcoes">Funcões</a>
                                 @endcan
                             </th>
                         </tr>
                         <tr>
                             <th>
                                 @can('PLANO DE CONTAS - LISTAR')
-                                    <nav class="navbar navbar-red" style="background-color: hsla(235, 86%, 89%, 0.226);">
-                                        <a class="btn btn-secondary" href="/PlanoContas">Plano de contas padrão</a>
+                                <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="/PlanoContas">Plano de contas padrão</a>
                                     </nav>
                                 @endcan
                                 </th>
@@ -53,8 +53,8 @@
                          <tr>
                          <th>
                             @can('EMPRESAS - LISTAR')
-                                <nav class="navbar navbar-light" style="background-color: hsla(235, 86%, 79%, 0.226);">
-                                    <a class="btn btn-secondary" href="/Empresas">Empresas</a>
+                            <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                    <a class="btn btn-primary" href="/Empresas">Empresas</a>
                                 </nav>
                                 @endcan
                          </th>

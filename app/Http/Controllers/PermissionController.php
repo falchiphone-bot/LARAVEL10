@@ -21,9 +21,9 @@ class PermissionController extends Controller
     public function index()
     {
        $cadastros = Permission::get();
+       $linhas = count($cadastros);
 
-
-        return view('Permissions.index',compact('cadastros'));
+       return view('Permissions.index',compact('cadastros', 'linhas'));
     }
 
     /**

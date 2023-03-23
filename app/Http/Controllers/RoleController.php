@@ -30,9 +30,9 @@ class RoleController extends Controller
     public function index()
     {
        $cadastros = Role::get();
+       $linhas = count($cadastros);
 
-
-        return view('Roles.index',compact('cadastros'));
+        return view('Roles.index',compact('cadastros', 'linhas'));
     }
 
     /**

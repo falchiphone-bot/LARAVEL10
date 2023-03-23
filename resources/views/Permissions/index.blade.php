@@ -1,13 +1,24 @@
 
-<x-app-layout>
-@extends('Layout.Padrao')
-{{-- @section('content') --}}
-    <h1 class="text-center">Permissões</h1>
-    <hr>
+@extends('layouts.bootstrap5')
+@section('content')
+<div class="py-5 bg-light">
+    <div class="container">
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item"><a href="#">Funcao</a></li>
+              <li class="breadcrumb-item active" aria-current="page">Index</li>
+            </ol>
+          </nav>
 
-    <a href="{{ route('Permissoes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
+
+        <div class="card">
+            <div class="card-header">
+                Usuários para o sistema administrativo e contábil
+            </div>
+            <a href="{{ route('Permissoes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
         aria-disabled="true">Incluir permissões</a>
-
+            <div class="card-body">
+                <p>Total de usuários: {{ $linhas}}</p>
     <table class="table">
         <tr>
             <th>Nome</th>
@@ -59,8 +70,8 @@
             </tr>
         @endforeach
     </table>
-{{-- @endsection --}}
-</x-app-layout>
+@endsection
+
 @push('scripts')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
