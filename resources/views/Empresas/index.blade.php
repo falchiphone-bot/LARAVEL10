@@ -15,6 +15,7 @@
                 Empresas
             </div>
             <div class="card-body">
+                <p>Total de usuários: {{ $linhas}}</p>
                 <table class="table">
 
                     <thead>

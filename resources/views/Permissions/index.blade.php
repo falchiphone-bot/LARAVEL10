@@ -5,8 +5,8 @@
     <div class="container">
           <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-              <li class="breadcrumb-item"><a href="#">Funcao</a></li>
-              <li class="breadcrumb-item active" aria-current="page">Index</li>
+              <li class="breadcrumb-item"><a href="#">Permissions</a></li>
+              <li class="breadcrumb-item active" aria-current="page">index</li>
             </ol>
           </nav>
 
@@ -61,8 +61,8 @@
                                     aria-disabled="true">Excluir</button>
                             </form>
 
-                            <a href="{{ route('Permissoes.show', $cadastro->id) }}" class="btn btn-info btn-sm enabled"
-                                tabindex="-1" role="button" aria-disabled="true">Ver</a>
+                            {{-- <a href="{{ route('Permissoes.show', $cadastro->id) }}" class="btn btn-info btn-sm enabled"
+                                tabindex="-1" role="button" aria-disabled="true">Ver</a> --}}
                         </div>
                     </div>
                 </td>

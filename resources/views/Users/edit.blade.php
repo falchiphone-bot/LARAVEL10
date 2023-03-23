@@ -1,4 +1,18 @@
-@include('Layout.Padrao')
+@extends('layouts.bootstrap5')
+@section('content')
+<div class="py-5 bg-light">
+    <div class="container">
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item"><a href="#">Users</a></li>
+              <li class="breadcrumb-item active" aria-current="page">edit</li>
+            </ol>
+          </nav>
+
+        <div class="card">
+            <div class="card-header">
+                Inclusão de usuários]
+            </div>
 
 <h1 class="text-center">Edição</h1>
 <hr>
@@ -16,3 +30,4 @@
     @include('Users.campos')
 </form>
 
+@endsection

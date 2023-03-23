@@ -1,6 +1,17 @@
-<x-app-layout>
-
+@extends('layouts.bootstrap5')
 @section('content')
+<div class="py-5 bg-light">
+    <div class="container">
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item"><a href="#">Users</a></li>
+              <li class="breadcrumb-item active" aria-current="page">show</li>
+            </ol>
+          </nav>
+
+        <div class="card">
+
+
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
                 <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
@@ -15,15 +26,17 @@
                                     Email : {{$cadastro->email}}
                                 </p>
                             </header>
+                            <header>
+                                <div class="card">
+                                <a class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
+                                aria-disabled="true">Permissões</a>
+                            </header>
 
-
-
-
-
+                            <div class="card">
                             <form method="post" action="/Usuarios/salvarpermissao/{{$cadastro->id}}" class="mt-6 space-y-6">
                                 @csrf
                                 <div class="col-span-12 sm:col-span-12">
-                                    <label for="permissao" class="block text-sm font-medium leading-6 text-gray-900"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Permissões</font></font></label>
+                                        
                                     <select multiple id="permissao" name="permissao[]" autocomplete="permissao-name"
                                             class="select2 mt-2 block w-full rounded-md border-0 bg-white py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2
                                             focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
@@ -42,11 +55,14 @@
                                 </div>
 
                                 <div class="flex items-center gap-4">
-                                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
-                                        Salvar
-                                    </button>
+                                    <div class="flex items-center gap-4">
+                                        <button type="submite" class="btn btn-success">Salvar</button>
                                 </div>
+                                </div>
+                            </div>
+
                             </form>
+
                         </section>
                     </div>
                 </div>
@@ -55,19 +71,18 @@
                     <div class="max-w-xl">
                         <section>
                             <header>
-                                <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                                    Funções
-                                </h2>
+                                <div class="card">
+                                <a class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
+                                aria-disabled="true">Função</a>
                             </header>
 
                             <form method="post" action="/Usuarios/salvarfuncao/{{$cadastro->id}}" class="mt-6 space-y-6">
                                 @csrf
                                 <div class="col-span-12 sm:col-span-12">
-                                    <label for="permissao" class="block text-sm font-medium leading-6 text-gray-900">
-                                        <font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Funções</font></font>
-                                    </label>
+
+
                                     <select multiple id="funcao" name="funcao[]" autocomplete="funcao-name"
-                                            class="select2 mt-2 block w-full rounded-md border-0 bg-white py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2
+                                            class="select2 mt-2 block w-full rounded-md border-0 bg-gray py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2
                                             focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
 
 
@@ -84,11 +99,10 @@
                                 </div>
 
                                 <div class="flex items-center gap-4">
-                                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
-                                        Salvar
-                                    </button>
+                                        <button type="submite" class="btn btn-success">Salvar</button>
                                 </div>
                             </form>
+                        </div>
                         </section>
                     </div>
                 </div>
@@ -202,4 +216,4 @@
         });
     </script>
 @endpush
-</x-app-layout>
+

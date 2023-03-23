@@ -1,7 +1,16 @@
 
-<x-app-layout>
-@extends('Layout.Padrao')
-{{-- @section('content') --}}
+@extends('layouts.bootstrap5')
+@section('content')
+<div class="py-5 bg-light">
+    <div class="container">
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item"><a href="#">Permissions</a></li>
+              <li class="breadcrumb-item active" aria-current="page">edit</li>
+            </ol>
+          </nav>
+
+        <div class="card">
     <h1 class="text-center">Plano de contas padrão para contabilidade</h1>
     <hr>
 
@@ -11,7 +20,7 @@
     <p>Total de contas: {{ $linhas}}</p>
 
     <table class="table table-bordered">
- 
+
         <tr>
             <th>Descrição</th>
             <th>Tipo</th>
@@ -25,7 +34,7 @@
 
                         @if($cadastro->Grau == "1")
                             <td style="padding-left: 10px; Color:red; font-size: 30px;">
-                                |{{ $cadastro->Descricao }}
+                                {{ $cadastro->Descricao }}
                             </td>
                         @endif
 
@@ -102,8 +111,8 @@
 
         @endforeach
     </table>
-{{-- @endsection --}}
-</x-app-layout>
+@endsection
+
 @push('scripts')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
