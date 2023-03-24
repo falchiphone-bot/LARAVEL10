@@ -40,11 +40,11 @@
                     <li>
                       <a href="/profile" data-bs-toggle="tooltip" data-bs-placement="top"
                       data-bs-custom-class="custom-tooltip"
-                      data-bs-title="Email: {{ Auth::user()->email}} Clique para efetuar um logout, alterar senha, alterar email." class="nav-link text-white">
+                      data-bs-title="Email: {{ Auth::user()->email}} Clique para efetuar logout, alterar nome, senha, alterar email(atualizar o cadastro)." class="nav-link text-white">
                         <i class="fa-solid fa-user"></i>
 
                         Perfil do usuário: {{ Auth::user()->name}}
-
+                        
                       </a>
                     </li>
 

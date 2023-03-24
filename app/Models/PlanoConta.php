@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class PlanoConta extends Model
 {
-    protected $connection = 'sqlsrv_clube';
+    // protected $connection = 'sqlsrv_clube';
 
 
     protected $primaryKey = "ID";

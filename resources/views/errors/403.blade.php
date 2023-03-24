@@ -1,4 +1,5 @@
-<x-app-layout>
+@extends('layouts.bootstrap5')
+@section('content')
 
     @section('content')
         <div class="py-6">

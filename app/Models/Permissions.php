@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Permissions extends Model
 {
-    protected $connection = 'sqlsrv';
+    // protected $connection = 'sqlsrv';
     public $timestamps = false;
 
     protected $fillable = [

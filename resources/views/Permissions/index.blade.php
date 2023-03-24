@@ -5,7 +5,7 @@
     <div class="container">
           <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-              <li class="breadcrumb-item"><a href="#">Permissions</a></li>
+              <li class="breadcrumb-item"><a href="/Permissoes">Permissions</a></li>
               <li class="breadcrumb-item active" aria-current="page">index</li>
             </ol>
           </nav>

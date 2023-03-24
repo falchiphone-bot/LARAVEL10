@@ -16,10 +16,10 @@ class UserController extends Controller
     {
 
 
-        $this->middleware( ["permission:USUARIOS - LISTAR"])->only("index");
-        $this->middleware( ["permission:USUARIOS - INCLUIR"])->only(["create","store"]);
-        $this->middleware( ["permission:USUARIOS - EDITAR"])->only(["edit","update"]);
-        $this->middleware( ["permission:USUARIOS - EXCLUIR"])->only("destroy");
+        // $this->middleware( ["permission:USUARIOS - LISTAR"])->only("index");
+        // $this->middleware( ["permission:USUARIOS - INCLUIR"])->only(["create","store"]);
+        // $this->middleware( ["permission:USUARIOS - EDITAR"])->only(["edit","update"]);
+        // $this->middleware( ["permission:USUARIOS - EXCLUIR"])->only("destroy");
 
     }
     /**public function __construct()
@@ -49,7 +49,7 @@ class UserController extends Controller
     {
         $cadastros = User::get();
         $linhas = count($cadastros);
-     
+
         return view('Users.index',compact('cadastros', 'linhas'));
     }
 
@@ -84,6 +84,8 @@ class UserController extends Controller
     {
         $cadastro = User::find($id);
         $permissoes = Permission::pluck('name','id');
+
+   
         $funcoes = Role::pluck('name','id');
 
         return view('Users.show',compact('cadastro', 'permissoes','funcoes'));

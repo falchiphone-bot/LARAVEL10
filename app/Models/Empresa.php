@@ -7,9 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Empresa extends Model
 {
-    protected $connection = 'sqlsrv_clube';
-
-
     protected $primaryKey = "ID";
     protected $table = 'Contabilidade.Empresas';
 

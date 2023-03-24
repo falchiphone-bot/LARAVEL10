@@ -1,3 +1,5 @@
+@extends('layouts.bootstrap5')
+@section('content')
 @extends('errors::minimal')
 
 @section('title', __('Payment Required'))
