@@ -31,12 +31,16 @@
                   </a>
 
                   <ul class="nav col-12 col-lg-auto my-2 justify-content-center my-md-0 text-small">
-                    <li>
-                      <a href="/dashboard" class="nav-link text-light">
+
+                <li>
+                  <a href="/dashboard" data-bs-toggle="tooltip" data-bs-placement="top" . . .
+                   data-bs-custom-class="custom-tooltip"
+                      data-bs-title="Ir para o início do sistema com as opções disponíveis" class="nav-link text-white">
+                 <i class="fa-solid fa-house"></i>
                         Início do sistema
-                        <i class="fa-solid fa-house"></i>
-                      </a>
-                    </li>
+                        </a>
+                 </li>
+
                     <li>
                       <a href="/profile" data-bs-toggle="tooltip" data-bs-placement="top"
                       data-bs-custom-class="custom-tooltip"
@@ -44,7 +48,7 @@
                         <i class="fa-solid fa-user"></i>
 
                         Perfil do usuário: {{ Auth::user()->name}}
-                        
+
                       </a>
                     </li>
 
