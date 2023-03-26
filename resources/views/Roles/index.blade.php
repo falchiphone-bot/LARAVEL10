@@ -42,16 +42,23 @@
                         <td class="whitespace-nowrap px-6 py-0">{{ $cadastro->guard_name }}</td>
 
                                 <td>
+                                     @can('FUNCOES - EXCLUIR')
                                         <a href="{{ route('Funcoes.edit', $cadastro->id) }}" class="btn btn-success"
                                         tabindex="-1" role="button" aria-disabled="true">Editar</a>
+                                    @endcan
                                 </td>
 
                                 <td>
+                                    @can('FUNCOES - VER')
                                     <a href="{{ route('Funcoes.show', $cadastro->id) }}" class="btn btn-info"
                                     tabindex="-1" role="button" aria-disabled="true">Ver</a>
+                                    @endcan
                                 </td>
 
+
+                                
                                 <td>
+                                    @can('FUNCOES - EXCLUIR')
                                     <form method="POST" action="{{ route('Funcoes.destroy', $cadastro->id) }}">
                                         @csrf
                                         <input type="hidden" name="_method" value="DELETE">
@@ -60,6 +67,7 @@
                                         </button>
                                         </form>
                                     </button>
+                                    @endcan
                                 </td>
 
                       </tr>
