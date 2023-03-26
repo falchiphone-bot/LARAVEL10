@@ -3,22 +3,22 @@
 @section('content')
 <div class="py-5 bg-light">
     <div class="container">
-          <nav aria-label="breadcrumb">
+          {{-- <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
               <li class="breadcrumb-item"><a href="/Permissoes">Permissions</a></li>
               <li class="breadcrumb-item active" aria-current="page">index</li>
             </ol>
-          </nav>
+          </nav> --}}
 
 
         <div class="card">
             <div class="card-header">
-                Usuários para o sistema administrativo e contábil
+                Permissões para o sistema administrativo e contábil
             </div>
             <a href="{{ route('Permissoes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
-        aria-disabled="true">Incluir permissões</a>
+        aria-disabled="true">Incluir permissão</a>
             <div class="card-body">
-                <p>Total de usuários: {{ $linhas}}</p>
+                <p>Total de permissões: {{ $linhas}}</p>
     <table class="table">
         <tr>
             <th>Nome</th>
@@ -52,8 +52,10 @@
                     <div class="row mt-2">
                         <div class="col-6">
 
-                            <a href="{{ route('Permissoes.edit', $cadastro->id) }}" class="btn btn-secondary btn-sm enabled"
-                                tabindex="-1" role="button" aria-disabled="true">Editar</a>
+                            <a href="{{ route('Permissoes.edit', $cadastro->id) }}" class="btn btn-success btn-sm enabled"
+                                tabindex="-1" role="button" aria-disabled="true">Editar
+                            </a>
+                            
                             <form method="POST" action="{{ route('Permissoes.destroy', $cadastro->id) }}">
                                 @csrf
                                 <input type="hidden" name="_method" value="DELETE">

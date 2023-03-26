@@ -3,12 +3,12 @@
 @section('content')
 <div class="py-5 bg-light">
     <div class="container">
-          <nav aria-label="breadcrumb">
+          {{-- <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
               <li class="breadcrumb-item"><a href="#">Permissions</a></li>
               <li class="breadcrumb-item active" aria-current="page">edit</li>
             </ol>
-          </nav>
+          </nav> --}}
 
         <div class="card">
     <h1 class="text-center">Plano de contas padrão para contabilidade</h1>
@@ -41,17 +41,17 @@
 
                         @if($cadastro->Grau == "2")
                             <td style="padding-left: 60px;">
-                                |{{ $cadastro->Descricao }}
+                                {{ $cadastro->Descricao }}
                             </td>
                         @endif
                         @if($cadastro->Grau == "3")
                             <td style="padding-left: 90px;">
-                                |{{ $cadastro->Descricao }}
+                                {{ $cadastro->Descricao }}
                             </td>
                         @endif
                         @if($cadastro->Grau == "4")
                             <td style="padding-left: 120px;">
-                                |{{ $cadastro->Descricao }}
+                                {{ $cadastro->Descricao }}
                             </td>
                         @endif
                         @if($cadastro->Grau == "5")
@@ -91,7 +91,7 @@
                     <div class="row mt-2">
                         <div class="col-6">
 
-                            <a href="{{ route('PlanoContas.edit', $cadastro->ID) }}" class="btn btn-secondary btn-sm enabled"
+                            <a href="{{ route('PlanoContas.edit', $cadastro->ID) }}" class="btn btn-success btn-sm enabled"
                                 tabindex="-1" role="button" aria-disabled="true">Editar</a>
                             <form method="POST" action="{{ route('PlanoContas.destroy', $cadastro->ID) }}">
                                 @csrf

@@ -3,12 +3,12 @@
 @section('content')
 <div class="py-5 bg-light">
     <div class="container">
-          <nav aria-label="breadcrumb">
+          {{-- <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
               <li class="breadcrumb-item"><a href="#">Funcao</a></li>
               <li class="breadcrumb-item active" aria-current="page">Index</li>
             </ol>
-          </nav>
+          </nav> --}}
 
 
         <div class="card">
@@ -24,17 +24,43 @@
                     <thead>
 
                       <tr>
-
-                        <th scope="col" class="px-6 py-4">NOME</th>
-                        <th scope="col" class="px-6 py-4">GUARDA
+                        <th scope="col" class="px-6 py-4">
+                            NOME
+                        </th>
+                        <th scope="col" class="px-6 py-4">
+                            GUARDA
+                        </th>
                       </tr>
                     </thead>
+
+
                     <tbody>
                     @foreach($cadastros as $cadastro)
                       <tr>
 
                         <td class="whitespace-nowrap px-6 py-0">  {{ $cadastro->name }}</td>
                         <td class="whitespace-nowrap px-6 py-0">{{ $cadastro->guard_name }}</td>
+
+                                <td>
+                                        <a href="{{ route('Funcoes.edit', $cadastro->id) }}" class="btn btn-success"
+                                        tabindex="-1" role="button" aria-disabled="true">Editar</a>
+                                </td>
+
+                                <td>
+                                    <a href="{{ route('Funcoes.show', $cadastro->id) }}" class="btn btn-info"
+                                    tabindex="-1" role="button" aria-disabled="true">Ver</a>
+                                </td>
+
+                                <td>
+                                    <form method="POST" action="{{ route('Funcoes.destroy', $cadastro->id) }}">
+                                        @csrf
+                                        <input type="hidden" name="_method" value="DELETE">
+                                        <button type="submit" class="btn btn-danger">
+                                            Excluir
+                                        </button>
+                                        </form>
+                                    </button>
+                                </td>
 
                       </tr>
                       @endforeach

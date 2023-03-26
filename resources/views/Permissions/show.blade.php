@@ -1,7 +1,7 @@
 @extends('Layout.Padrao')
 
 @section('content')
-    <h1 class="text-center">Testes iniciais de Laravel</h1>
+    <h1 class="text-center">sistema administrativo e contábil</h1>
     <hr>
 
     <a href="{{ route('Testes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"

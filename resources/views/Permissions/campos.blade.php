@@ -3,7 +3,7 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-6">
-                    <label for="nome">Nome</label>
+                    <label for="nome">Nome da permissão</label>
                     <input class="form-control @error('name') is-invalid @else is-valid @enderror" name="name"
                         type="text" id="name" value="{{$cadastro->name??null}}">
                     @error('name')
@@ -16,7 +16,7 @@
             <div class="row mt-2">
                 <div class="col-6">
                     <button class="btn btn-primary">Salvar</button>
-                    <a href="{{route('Permissoes.index')}}" class="btn btn-secondary">Retornar para lista</a>
+                    <a href="{{route('Permissoes.index')}}" class="btn btn-warning">Retornar para lista de permissões</a>
                 </div>
             </div>
         </div>

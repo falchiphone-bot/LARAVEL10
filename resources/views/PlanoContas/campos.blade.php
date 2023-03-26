@@ -25,7 +25,7 @@
             <div class="row mt-2">
                 <div class="col-6">
                     <button class="btn btn-primary">Salvar</button>
-                    <a href="{{route('PlanoContas.index')}}" class="btn btn-secondary">Retornar para lista</a>
+                    <a href="{{route('PlanoContas.index')}}" class="btn btn-warning">Retornar para lista do plano de contas</a>
                 </div>
             </div>
         </div>

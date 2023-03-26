@@ -1,20 +1,17 @@
 @extends('layouts.bootstrap5')
 @section('content')
-        <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-                <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                    <div class="max-w-xl">
-                        <section>
-                            <header>
-                                <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                                    Permissão para : {{$cadastro->name}}
-                                </h2>
-                            </header>
+<div class="py-5 bg-light">
+    <div class="container">
+          {{-- <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item"><a href="#">Permissions</a></li>
+              <li class="breadcrumb-item active" aria-current="page">create</li>
+            </ol>
+          </nav> --}}
 
-
-
-
-
+        <div class="card">
+<h1 class="text-center">Inclusão de permissões na função</h1>
+<hr>
                             <form method="post" action="/Funcoes/salvarpermissao/{{$cadastro->id}}" class="mt-6 space-y-6">
                                 @csrf
                                 <div class="col-span-12 sm:col-span-12">
@@ -36,19 +33,27 @@
                                     </select>
                                 </div>
 
-                                <div class="flex items-center gap-4">
+                                {{-- <div class="flex items-center gap-4">
                                     <button type="submit" class="inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
                                         Salvar
                                     </button>
+                                </div --}}
+                                <div class="row mt-2">
+                                    <div class="col-6">
+                                        <button type="submit" class="btn btn-primary">Salvar</button>
+                                        <a href="{{route('Funcoes.index')}}" class="btn btn-warning">Retornar para lista de funções</a>
+                                    </div>
                                 </div>
+
+
                             </form>
+                        </div>
                         </section>
                     </div>
                 </div>
-
-
-
-            @endsection
+            </div>
+        </div>
+@endsection
 
                 @push('scripts')
                     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">

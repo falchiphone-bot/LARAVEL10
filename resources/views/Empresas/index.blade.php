@@ -3,12 +3,12 @@
 @section('content')
 <div class="py-5 bg-light">
     <div class="container">
-          <nav aria-label="breadcrumb">
+          {{-- <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
               <li class="breadcrumb-item"><a href="#">Empresa</a></li>
               <li class="breadcrumb-item active" aria-current="page">Index</li>
             </ol>
-          </nav>
+          </nav> --}}
 
         <div class="card">
             <div class="card-header">
@@ -16,12 +16,10 @@
             </div>
             <div class="card-body">
                 <p>Total de usuários: {{ $linhas}}</p>
+
                 <table class="table">
-
                     <thead>
-
                       <tr>
-
                         <th scope="col" class="px-6 py-4">DESCRIÇÃO</th>
                         <th scope="col" class="px-6 py-4">CNPJ</th>
                         <th scope="col" class="px-6 py-4">BLOQUEIO</th>
@@ -31,28 +29,34 @@
                         <th scope="col" class="px-6 py-4"></th>
                       </tr>
                     </thead>
+
                     <tbody>
                     @foreach($cadastros as $cadastro)
                       <tr>
-
-                        <td class="whitespace-nowrap px-6 py-0">  {{ $cadastro->Descricao }}</td>
-                        <td class="whitespace-nowrap px-6 py-0">{{ $cadastro->Cnpj }}</td>
-                        <td class="whitespace-nowrap px-6 py-0"> {{ $cadastro->Bloqueio }}</td>
                         <td class="whitespace-nowrap px-6 py-0">
-
+                              {{ $cadastro->Descricao }}
                         </td>
-
+                        <td class="whitespace-nowrap px-6 py-0">
+                            {{ $cadastro->Cnpj }}
+                        </td>
+                        <td class="whitespace-nowrap px-6 py-0">
+                            {{ $cadastro->Bloqueio }}
+                        </td>
+                        <td class="whitespace-nowrap px-6 py-0">
+                            {{ $cadastro->Bloqueiodataanteriores }}
+                        </td>
+                                @can('EMPRESAS - EDITAR')
                                  <td>
-
                                             <a href="{{ route('Empresas.edit', $cadastro->ID) }}" class="btn btn-success"
                                             tabindex="-1" role="button" aria-disabled="true">Editar</a>
                                 </td>
-                            </td>
-                            <td>
+                                @endcan
 
+                                {{-- <td>
                                 <a href="{{ route('Empresas.show', $cadastro->ID) }}" class="btn btn-info"
                                 tabindex="-1" role="button" aria-disabled="true">Ver</a>
-                        </td>
+                                </td>
+
                                 <td>
                                     <form method="POST" action="{{ route('Empresas.destroy', $cadastro->ID) }}">
                                         @csrf
@@ -60,9 +64,9 @@
                                         <button type="submit" class="btn btn-danger">
                                         Excluir
                                         </button>
-                                        </form>
-                                    </button>
-                                </td>
+                                    </form>
+
+                                </td> --}}
                       </tr>
                       @endforeach
                     </tbody>

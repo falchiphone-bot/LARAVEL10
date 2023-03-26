@@ -2,12 +2,12 @@
 @section('content')
 <div class="py-5 bg-light">
     <div class="container">
-          <nav aria-label="breadcrumb">
+          {{-- <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
               <li class="breadcrumb-item"><a href="#">Permissions</a></li>
               <li class="breadcrumb-item active" aria-current="page">create</li>
             </ol>
-          </nav>
+          </nav> --}}
 
         <div class="card">
 <h1 class="text-center">Inclusão de permissões</h1>

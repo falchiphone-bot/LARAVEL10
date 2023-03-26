@@ -95,7 +95,7 @@ class PlanoContaController extends Controller
         $cadastro->save();
         //dd($cadastro->save());
 
-        return redirect(route('PlanoContasd.index'));
+        return redirect(route('PlanoContas.index'));
     }
 
     /**
