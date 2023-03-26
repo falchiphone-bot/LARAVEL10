@@ -15,8 +15,12 @@
             <div class="card-header">
                 Funções para o sistema administrativo e contábil
             </div>
+
+            @can('FUNCOES - INCLUIR')
             <a href="{{ route('Funcoes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
             aria-disabled="true">Incluir função</a>
+            @endcan
+
             <div class="card-body">
                 <p>Total de funções: {{ $linhas}}</p>
                 <table class="table">
@@ -42,7 +46,7 @@
                         <td class="whitespace-nowrap px-6 py-0">{{ $cadastro->guard_name }}</td>
 
                                 <td>
-                                     @can('FUNCOES - EXCLUIR')
+                                     @can('FUNCOES - EDITAR')
                                         <a href="{{ route('Funcoes.edit', $cadastro->id) }}" class="btn btn-success"
                                         tabindex="-1" role="button" aria-disabled="true">Editar</a>
                                     @endcan
@@ -56,7 +60,7 @@
                                 </td>
 
 
-                                
+
                                 <td>
                                     @can('FUNCOES - EXCLUIR')
                                     <form method="POST" action="{{ route('Funcoes.destroy', $cadastro->id) }}">
