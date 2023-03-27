@@ -23,7 +23,7 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
-  
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -34,6 +34,7 @@ Route::middleware('auth')->group(function () {
 
     Route::post('Usuarios/salvarpermissao/{id}',[App\Http\Controllers\UserController::class, 'salvarpermissao']);
     Route::post('Usuarios/salvarfuncao/{id}',[App\Http\Controllers\UserController::class, 'salvarfuncao']);
+    Route::post('Usuarios/salvar-empresa/{id}',[App\Http\Controllers\UserController::class, 'salvarEmpresa']);
 
 
     Route::resource('Permissoes',App\Http\Controllers\PermissionController::class);
