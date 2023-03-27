@@ -14,10 +14,9 @@ class TesteController extends Controller
      */
     public function index()
     {
-       $cadastros = Teste::get();
+        $cadastros = Teste::get();
 
-
-        return view('Testes.index',compact('cadastros'));
+        return view('Testes.index', compact('cadastros'));
     }
 
     /**
@@ -41,7 +40,6 @@ class TesteController extends Controller
         Teste::create($dados);
 
         return redirect(route('Testes.index'));
-
     }
 
     /**
@@ -51,7 +49,7 @@ class TesteController extends Controller
     {
         $cadastro = Teste::find($id);
 
-        return view('Testes.show',compact('cadastro'));
+        return view('Testes.show', compact('cadastro'));
     }
 
     /**
@@ -62,7 +60,7 @@ class TesteController extends Controller
         $cadastro = Teste::find($id);
         // dd($cadastro);
 
-        return view('Testes.edit',compact('cadastro'));
+        return view('Testes.edit', compact('cadastro'));
     }
 
     /**
@@ -73,7 +71,7 @@ class TesteController extends Controller
 
         $cadastro = Teste::find($id);
 
-        $cadastro ->fill($request->all()) ;
+        $cadastro->fill($request->all());
         //dd($dados);
 
         $cadastro->save();
@@ -89,6 +87,5 @@ class TesteController extends Controller
         $cadastro = Teste::find($id);
         $cadastro->delete();
         return redirect(route('Testes.index'));
-
     }
 }

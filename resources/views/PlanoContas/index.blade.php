@@ -14,6 +14,8 @@
     <h1 class="text-center">Plano de contas padrão para contabilidade</h1>
     <hr>
 
+
+
     <a href="{{ route('PlanoContas.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
         aria-disabled="true">Incluir contas no plano de contas padrão</a>
 
