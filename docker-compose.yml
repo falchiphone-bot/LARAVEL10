@@ -2,6 +2,7 @@ version: '3.6'
 
 services:
    app:
+    container_name: laravel10
     build: .
     ports:
       - 80:80

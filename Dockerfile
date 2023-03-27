@@ -60,8 +60,9 @@ RUN cp docker/nginx.conf /etc/nginx/sites-enabled/default
 RUN mkdir /var/log/php
 RUN touch /var/log/php/errors.log && chmod 777 /var/log/php/errors.log
 
-# Deployment steps
-RUN composer install --optimize-autoloader --no-dev
+# Deployment steps - quando for pra produção, inverter as linhas
+RUN composer install --optimize-autoloader
+# RUN composer install --optimize-autoloader --no-dev
 RUN chmod +x /var/www/docker/run.sh
 
 #correcao do nodejs

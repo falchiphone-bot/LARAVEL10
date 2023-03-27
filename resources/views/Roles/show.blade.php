@@ -1,99 +1,97 @@
 @extends('layouts.bootstrap5')
 @section('content')
-<div class="py-5 bg-light">
-    <div class="container">
-          {{-- <nav aria-label="breadcrumb">
+    <div class="py-5 bg-light">
+        <div class="container">
+            {{-- <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
               <li class="breadcrumb-item"><a href="#">Permissions</a></li>
               <li class="breadcrumb-item active" aria-current="page">create</li>
             </ol>
           </nav> --}}
 
-        <div class="card">
-<h1 class="text-center">Inclusão de permissões na função</h1>
-<hr>
-                            <form method="post" action="/Funcoes/salvarpermissao/{{$cadastro->id}}" class="mt-6 space-y-6">
-                                @csrf
-                                <div class="col-span-12 sm:col-span-12">
-                                    <label for="permissao" class="block text-sm font-medium leading-6 text-gray-900"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Permissões</font></font></label>
+            <div class="card">
+                <h1 class="text-center">Inclusão de permissões na função</h1>
+                <hr>
+                <form method="post" action="/Funcoes/salvarpermissao/{{ $cadastro->id }}" class="mt-6 space-y-6">
+                    @csrf
+                    <div class="card">
+                        <div class="card-header">
+                            Selecione as permissões da função: <strong>{{ $cadastro->name }}</strong>
+                            <h6>
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-12">
                                     <select multiple id="permissao" name="permissao[]" autocomplete="permissao-name"
-                                            class="select2 mt-2 block w-full rounded-md border-0 bg-white py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2
-                                            focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
-
-
-                                        @foreach($permissoes as $id=>$name)
-                                            <option
-                                                @if($cadastro->hasPermissionTo($name))
-                                                    selected
-                                                @endif
-                                                value={{$id}}><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">{{$name}}</font></font>
+                                        class="select2 form-control">
+                                        @foreach ($permissoes as $id => $name)
+                                            <option @if ($cadastro->hasPermissionTo($name)) selected @endif
+                                                value={{ $id }}>{{ $name }}
                                             </option>
-
                                         @endforeach
                                     </select>
                                 </div>
-
-                                {{-- <div class="flex items-center gap-4">
-                                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150">
-                                        Salvar
-                                    </button>
-                                </div --}}
-                                <div class="row mt-2">
-                                    <div class="col-6">
-                                        <button type="submit" class="btn btn-primary">Salvar</button>
-                                        <a href="{{route('Funcoes.index')}}" class="btn btn-warning">Retornar para lista de funções</a>
-                                    </div>
-                                </div>
-
-
-                            </form>
+                            </div>
                         </div>
-                        </section>
+                        <div class="card-footer">
+                            <div class="row mt-2">
+                                <div class="col-6">
+                                    <button type="submit" class="btn btn-primary">Salvar</button>
+                                    <a href="{{ route('Funcoes.index') }}" class="btn btn-warning">Retornar para lista de
+                                        funções</a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </form>
             </div>
+            </section>
         </div>
+    </div>
+    </div>
+    </div>
 @endsection
 
-                @push('scripts')
-                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
-                    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
-                    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-                    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-                    <script>
-                        $(document).ready(function() {
-                            $('.select2').select2();
+@push('scripts')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.select2').select2();
+        });
+        $('form').submit(function(e) {
+            e.preventDefault();
+            $.confirm({
+                title: 'Confirmar!',
+                content: 'Confirma?',
+                buttons: {
+                    confirmar: function() {
+                        // $.alert('Confirmar!');
+                        $.confirm({
+                            title: 'Confirmar!',
+                            content: 'Deseja realmente continuar?',
+                            buttons: {
+                                confirmar: function() {
+                                    // $.alert('Confirmar!');
+                                    e.currentTarget.submit()
+                                },
+                                cancelar: function() {
+                                    // $.alert('Cancelar!');
+                                },
+
+                            }
                         });
-                        $('form').submit(function(e) {
-                            e.preventDefault();
-                            $.confirm({
-                                title: 'Confirmar!',
-                                content: 'Confirma?',
-                                buttons: {
-                                    confirmar: function() {
-                                        // $.alert('Confirmar!');
-                                        $.confirm({
-                                            title: 'Confirmar!',
-                                            content: 'Deseja realmente continuar?',
-                                            buttons: {
-                                                confirmar: function() {
-                                                    // $.alert('Confirmar!');
-                                                    e.currentTarget.submit()
-                                                },
-                                                cancelar: function() {
-                                                    // $.alert('Cancelar!');
-                                                },
 
-                                            }
-                                        });
+                    },
+                    cancelar: function() {
+                        // $.alert('Cancelar!');
+                    },
 
-                                    },
-                                    cancelar: function() {
-                                        // $.alert('Cancelar!');
-                                    },
-
-                                }
-                            });
-                        });
-                    </script>
-        @endpush
+                }
+            });
+        });
+    </script>
+@endpush
