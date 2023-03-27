@@ -10,13 +10,18 @@ use Illuminate\Support\Facades\Validator;
 
 class EmpresaController extends Controller
 {
-
     public function __construct()
     {
-        $this->middleware( ["permission:EMPRESAS - LISTAR"])->only("index");
-        $this->middleware( ["permission:EMPRESAS - INCLUIR"])->only(["create","store"]);
-        $this->middleware( ["permission:EMPRESAS - EDITAR"])->only(["edit","update"]);
-        $this->middleware( ["permission:EMPRESAS - EXCLUIR"])->only("destroy");
+        $this->middleware(['permission:EMPRESAS - LISTAR'])->only('index');
+        $this->middleware(['permission:EMPRESAS - INCLUIR'])->only(['create', 'store']);
+        $this->middleware(['permission:EMPRESAS - EDITAR'])->only(['edit', 'update']);
+        $this->middleware(['permission:EMPRESAS - EXCLUIR'])->only('destroy');
+    }
+
+    public function autenticar($empresaID)
+    {
+        session(['EmpresaID' => $empresaID]);
+        return redirect('/PlanoContas/dashboard');
     }
 
     /**
@@ -24,11 +29,13 @@ class EmpresaController extends Controller
      */
     public function index()
     {
-       $cadastros = Empresa::join("Contabilidade.EmpresasUsuarios","EmpresasUsuarios.EmpresaID","=","Empresas.ID")->where("EmpresasUsuarios.UsuarioID",Auth()->user()->id)->get();
+        $cadastros = Empresa::join('Contabilidade.EmpresasUsuarios', 'EmpresasUsuarios.EmpresaID', '=', 'Empresas.ID')
+            ->where('EmpresasUsuarios.UsuarioID', Auth()->user()->id)
+            ->get();
 
-       $linhas = count($cadastros);
+        $linhas = count($cadastros);
 
-        return view('Empresas.index',compact('cadastros','linhas'));
+        return view('Empresas.index', compact('cadastros', 'linhas'));
     }
 
     /**
@@ -44,15 +51,12 @@ class EmpresaController extends Controller
      */
     public function store(EmpresaCreateRequest $request)
     {
-
-
         $dados = $request->all();
         //dd($dados);
 
         Empresa::create($dados);
 
         return redirect(route('Empresas.index'));
-
     }
 
     /**
@@ -62,7 +66,7 @@ class EmpresaController extends Controller
     {
         $cadastro = Empresa::find($id);
 
-        return view('Empresas.show',compact('cadastro'));
+        return view('Empresas.show', compact('cadastro'));
     }
 
     /**
@@ -73,7 +77,7 @@ class EmpresaController extends Controller
         $cadastro = Empresa::find($id);
         // dd($cadastro);
 
-        return view('Empresas.edit',compact('cadastro'));
+        return view('Empresas.edit', compact('cadastro'));
     }
 
     /**
@@ -81,10 +85,9 @@ class EmpresaController extends Controller
      */
     public function update(Request $request, string $id)
     {
-
         $cadastro = Empresa::find($id);
 
-        $cadastro->fill($request->all()) ;
+        $cadastro->fill($request->all());
         //dd($cadastro);
 
         $cadastro->save();
@@ -101,6 +104,5 @@ class EmpresaController extends Controller
         $cadastro = Empresa::find($id);
         $cadastro->delete();
         return redirect(route('Empresas.index'));
-
     }
 }

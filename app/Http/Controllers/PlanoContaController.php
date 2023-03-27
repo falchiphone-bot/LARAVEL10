@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\PlanoContasCreateRequest;
+use App\Models\Conta;
 use App\Models\PlanoConta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -12,10 +13,10 @@ class PlanoContaController extends Controller
 {
     public function __construct()
     {
-        $this->middleware( ["permission:PLANO DE CONTAS - LISTAR"])->only("index");
-        $this->middleware( ["permission:PLANO DE CONTAS - INCLUIR"])->only(["create","store"]);
-        $this->middleware( ["permission:PLANO DE CONTAS - EDITAR"])->only(["edit","update"]);
-        $this->middleware( ["permission:PLANO DE CONTAS - EXCLUIR"])->only("destroy");
+        $this->middleware(['permission:PLANO DE CONTAS - LISTAR'])->only('index');
+        $this->middleware(['permission:PLANO DE CONTAS - INCLUIR'])->only(['create', 'store']);
+        $this->middleware(['permission:PLANO DE CONTAS - EDITAR'])->only(['edit', 'update']);
+        $this->middleware(['permission:PLANO DE CONTAS - EXCLUIR'])->only('destroy');
     }
     /**public function __construct()
     {
@@ -25,18 +26,30 @@ class PlanoContaController extends Controller
     /**
      * Display a listing of the resource.
      */
+    public function dashboard()
+    {
+        if (!session('EmpresaID')) {
+            return redirect('/Empresas')->with('error','Necesserário selecionar uma empresa');
+        }else{
+            $contasEmpresa = Conta::where('EmpresaID',session('EmpresaID'))
+            ->join('Contabilidade.PlanoContas','PlanoContas.ID','=','Contas.ID')
+            ->orderBy('PlanoContas.Codigo')->get();
+
+            return view('PlanoContas.contas',compact('contasEmpresa'));
+        }
+    }
+
+
     public function index()
     {
-       $cadastros = PlanoConta::orderBy('codigo', 'asc')->get();
-       //$cadastros = DB::table('PlanoConta')->get();        $num_rows = count($cadastros);
+        $cadastros = PlanoConta::orderBy('codigo', 'asc')->get();
+        //$cadastros = DB::table('PlanoConta')->get();        $num_rows = count($cadastros);
 
         $linhas = count($cadastros);
-
 
         //  return view('PlanoContas.index',compact('cadastros'));
 
         return view('PlanoContas.index', compact('cadastros', 'linhas'));
-
     }
 
     /**
@@ -57,7 +70,6 @@ class PlanoContaController extends Controller
 
         PlanoConta::create($dados);
         return redirect(route('PlanoContas.index'));
-
     }
 
     /**
@@ -67,7 +79,7 @@ class PlanoContaController extends Controller
     {
         $cadastro = Empresa::find($id);
 
-        return view('PlanoContas.show',compact('cadastro'));
+        return view('PlanoContas.show', compact('cadastro'));
     }
 
     /**
@@ -78,7 +90,7 @@ class PlanoContaController extends Controller
         $cadastro = PlanoConta::find($id);
         // dd($cadastro);
 
-        return view('PlanoContas.edit',compact('cadastro'));
+        return view('PlanoContas.edit', compact('cadastro'));
     }
 
     /**
@@ -86,10 +98,9 @@ class PlanoContaController extends Controller
      */
     public function update(Request $request, string $id)
     {
-
         $cadastro = PlanoConta::find($id);
 
-        $cadastro->fill($request->all()) ;
+        $cadastro->fill($request->all());
         //dd($cadastro);
 
         $cadastro->save();
@@ -106,6 +117,5 @@ class PlanoContaController extends Controller
         $cadastro = PlanoConta::find($id);
         $cadastro->delete();
         return redirect(route('PlanoContas.index'));
-
     }
 }

@@ -39,6 +39,9 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('Permissoes',App\Http\Controllers\PermissionController::class);
     Route::resource('ModelodeFuncoes',App\Http\Controllers\Model_has_RoleController::class);
+
+    Route::get('PlanoContas/autenticar/{EmpresaID}',[App\Http\Controllers\EmpresaController::class,'autenticar'])->name('planocontas.autenticar');
+    Route::get('PlanoContas/dashboard',[App\Http\Controllers\PlanoContaController::class,'dashboard'])->name('planocontas.dashboard');
     Route::resource('PlanoContas',App\Http\Controllers\PlanoContaController::class);
 
 
