@@ -33,7 +33,11 @@ class PlanoContaController extends Controller
         }else{
             $contasEmpresa = Conta::where('EmpresaID',session('EmpresaID'))
             ->join('Contabilidade.PlanoContas','PlanoContas.ID','=','Contas.ID')
-            ->orderBy('PlanoContas.Codigo')->get();
+            ->orderBy('PlanoContas.codigo',"asc")->get();
+
+
+
+            // $contasEmpresa = $contasEmpresaP::orderBy('PlanoContas.codigo', 'asc')->get();
 
             return view('PlanoContas.contas',compact('contasEmpresa'));
         }

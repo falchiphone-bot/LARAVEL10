@@ -36,6 +36,9 @@
 
                     <tr>
                         <th>Descrição</th>
+                        <th>Classificação</th>
+                        <th>Grau</th>
+
                     </tr>
                     @foreach ($contasEmpresa as $conta)
                         <tr>
@@ -43,40 +46,69 @@
                                 <td style="padding-left: 10px; Color:red; font-size: 30px;">
                                     {{ $conta->PlanoConta->Descricao }}
                                 </td>
+
+                                <td>
+                                    {{ $conta->PlanoConta->Codigo }}
+                                </td>
+                                <td>
+                                    {{ $conta->PlanoConta->Grau }}
+                                </td>
                             @endif
 
                             @if ($conta->PlanoConta->Grau == '2')
                                 <td style="padding-left: 60px;">
                                     {{ $conta->PlanoConta->Descricao }}
                                 </td>
+                                <td>
+                                    {{ $conta->PlanoConta->Codigo }}
+                                </td>
+                                <td>
+                                    {{ $conta->PlanoConta->Grau }}
+                                </td>
                             @endif
                             @if ($conta->PlanoConta->Grau == '3')
                                 <td style="padding-left: 90px;">
                                     {{ $conta->PlanoConta->Descricao }}
+                                </td>
+                                <td>
+                                    {{ $conta->PlanoConta->Codigo }}
+                                </td>
+                                <td>
+                                    {{ $conta->PlanoConta->Grau }}
                                 </td>
                             @endif
                             @if ($conta->PlanoConta->Grau == '4')
                                 <td style="padding-left: 120px;">
                                     {{ $conta->PlanoConta->Descricao }}
                                 </td>
+                                <td>
+                                    {{ $conta->PlanoConta->Codigo }}
+                                </td>
+                                <td>
+                                    {{ $conta->PlanoConta->Grau }}
+                                </td>
                             @endif
                             @if ($conta->PlanoConta->Grau == '5')
                                 <td style="padding-left: 150px; color:Blue;; font-size: 20px;">
                                     {{ $conta->PlanoConta->Descricao }}
                                 </td>
+                                <td>
+                                    {{ $conta->PlanoConta->Codigo }}
+                                </td>
+                                <td>
+                                    {{ $conta->PlanoConta->Grau }}
+                                </td>
                             @endif
 
 
-{{--
+                            {{--
                             <td>
                                 {{ $conta->Tipo }}
                             </td>
                             <td>
                                 {{ $conta->Codigo }}
                             </td>
-                            <td>
-                                {{ $conta->Grau }}
-                            </td>
+
                             <td>
                                 {{ $conta->Bloqueio }}
                             </td>
