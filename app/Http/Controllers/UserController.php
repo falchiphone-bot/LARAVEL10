@@ -54,13 +54,13 @@ class UserController extends Controller
             }
             $novo->save();
         }
-        return redirect('/Usuarios/' . $idusuario)->with('success', 'Empresas Atualizadas');
+        return redirect('/Usuarios/' . $idusuario)->with('success', 'Empresas atualizadas');
     }
     public function salvarfuncao(Request $request, $idusuario)
     {
         $usuario = User::find($idusuario);
         $usuario->syncRoles($request->funcao);
-        return redirect('/Usuarios/' . $idusuario);
+        return redirect('/Usuarios/' . $idusuario)->with('success', 'Função atualizada');
     }
 
     public function salvarpermissao(Request $request, $idusuario)
@@ -68,7 +68,7 @@ class UserController extends Controller
         $usuario = User::find($idusuario);
         $usuario->syncPermissions($request->permissao);
         //$user->syncPermissions(['edit articles', 'delete articles']);
-        return redirect('/Usuarios/' . $idusuario);
+        return redirect('/Usuarios/' . $idusuario)->with('success', 'Permissão atualizadas');
     }
 
     public function index()
@@ -97,7 +97,7 @@ class UserController extends Controller
 
         User::create($dados);
 
-        return redirect(route('Usuarios.index'));
+        return redirect(route('Usuarios.index'))->with('success', 'Salvo com sucesso!');
     }
 
     /**
@@ -138,7 +138,7 @@ class UserController extends Controller
         $cadastro->save();
         //dd($cadastro->save());
 
-        return redirect(route('Usuarios.index'));
+        return redirect(route('Usuarios.index'))->with('success', 'Atualizado com sucesso!');
     }
 
     /**
@@ -155,6 +155,6 @@ class UserController extends Controller
         $user->delete();
         return back()->with('status', "Usuário {$user->name} EXCLUÍDO.");
 
-        return redirect(route('Usuarios.index'));
+        return redirect(route('Usuarios.index'))->with('success', 'Excluído com sucesso!');
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\EmpresaCreateRequest;
 use App\Models\Empresa;
+use App\Models\EmpresaUsuario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -23,7 +24,8 @@ class EmpresaController extends Controller
      */
     public function index()
     {
-       $cadastros = Empresa::get();
+       $cadastros = Empresa::join("Contabilidade.EmpresasUsuarios","EmpresasUsuarios.EmpresaID","=","Empresas.ID")->where("EmpresasUsuarios.UsuarioID",Auth()->user()->id)->get();
+
        $linhas = count($cadastros);
 
         return view('Empresas.index',compact('cadastros','linhas'));
