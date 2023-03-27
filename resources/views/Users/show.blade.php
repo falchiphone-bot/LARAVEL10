@@ -84,32 +84,6 @@
                 </form>
             </div>
 
-            <div class="card mt-3">
-                <div class="card-header">
-                    <header>
-                        <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                            Empresas
-                        </h2>
-                    </header>
-                </div>
-                <form method="post" action="/Usuarios/salvar-empresa/{{ $cadastro->id }}" class="mt-6 space-y-6">
-                    <div class="card-body">
-                        @csrf
-                        <select multiple id="empresa" name="empresa[]" class="select2 form-control">
-                            @foreach ($empresas as $id => $descricao)
-                                <option @if ($empresaUsuarios->where('EmpresaID',$id)->first()) selected @endif value={{ $id }}>
-                                    {{ $descricao }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="card-footer">
-                        <button type="submite" class="btn btn-success">Salvar</button>
-                        <a href="{{ route('Usuarios.index') }}" class="btn btn-warning">Retornar para
-                            lista</a>
-                    </div>
-                </form>
-            </div>
 
             <div class="card mt-3">
                 <div class="card-header">
