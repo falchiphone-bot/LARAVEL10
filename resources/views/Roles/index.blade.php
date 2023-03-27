@@ -16,13 +16,31 @@
                 Funções para o sistema administrativo e contábil
             </div>
 
+             @cannot('FUNCOES - LISTAR')
+             <li>
+                <a href="/dashboard" data-bs-toggle="tooltip" data-bs-placement="center"
+                 data-bs-custom-class="custom-tooltip"
+                    data-bs-title="Clique e vá para o início do sistema" class="botton-link text-black">
+               <i class="fa-solid fa-house"></i>
+                              <a href="{{ route('dashboard') }}" class="btn btn-danger btn-lg enabled" tabindex="-1" role="button"
+                             aria-disabled="true">SEM PERMISSÃO PARA ESTE SERVIÇO. CONSULTE O ADMINISTRADOR. Clique e vá para o início do sistema</a>
+                      </a>
+               </li>
+
+             {{-- <a href="{{ route('dashboard') }}" class="btn btn-danger btn-lg enabled" tabindex="-1" role="button"
+             aria-disabled="true">SEM PERMISSÃO PARA ESTE SERVIÇO. CONSULTE O ADMINISTRADOR</a> --}}
+
+              @endcan
+
+        @can('FUNCOES - LISTAR')
             @can('FUNCOES - INCLUIR')
-            <a href="{{ route('Funcoes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
-            aria-disabled="true">Incluir função</a>
+                <a href="{{ route('Funcoes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
+                aria-disabled="true">Incluir função</a>
             @endcan
 
             <div class="card-body">
                 <p>Total de funções: {{ $linhas}}</p>
+
                 <table class="table">
 
                     <thead>
@@ -78,8 +96,10 @@
                       @endforeach
                     </tbody>
                   </table>
-            </div>
+
+                </div>
         </div>
+        @endcan
 
     </div>
     <div class="b-example-divider"></div>
