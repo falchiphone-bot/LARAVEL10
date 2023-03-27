@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\PermissionCreateRequest;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class PermissionController extends Controller
 {
@@ -91,8 +93,19 @@ class PermissionController extends Controller
      */
     public function destroy(string $id)
     {
-        $cadastro = Permission::find($id);
-        $cadastro->delete();
+        $permission = Permission::find($id);
+        $users = User::permission($permission->name)->get();
+        if ($users->count() > 0) {
+            return back()->with('status','Permissão em uso por '.$users->count().' usuarios.');
+        }
+        $roles = Role::whereHas('permissions', function ($query) use ($permission) {
+            $query->where('id', $permission->id);
+        })->get();
+        if ($roles->count() > 0) {
+            return back()->with('status','Permissão em uso por '.$roles->count().' funções.');
+        }
+
+        $permission->delete();
         return redirect(route('Permissoes.index'));
 
     }

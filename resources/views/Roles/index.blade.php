@@ -1,152 +1,156 @@
-
 @extends('layouts.bootstrap5')
 @section('content')
-<div class="py-5 bg-light">
-    <div class="container">
-          {{-- <nav aria-label="breadcrumb">
+    <div class="py-5 bg-light">
+        <div class="container">
+            {{-- <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
               <li class="breadcrumb-item"><a href="#">Funcao</a></li>
               <li class="breadcrumb-item active" aria-current="page">Index</li>
             </ol>
           </nav> --}}
+            @if (session('status'))
+                <div class="alert alert-danger">
+                    {{ session('status') }}
+                </div>
+            @endif
 
+            <div class="card">
+                <div class="card-header">
+                    Funções para o sistema administrativo e contábil
+                </div>
 
-        <div class="card">
-            <div class="card-header">
-                Funções para o sistema administrativo e contábil
-            </div>
+                @cannot('FUNCOES - LISTAR')
+                    <li>
+                        <a href="/dashboard" data-bs-toggle="tooltip" data-bs-placement="center"
+                            data-bs-custom-class="custom-tooltip" data-bs-title="Clique e vá para o início do sistema"
+                            class="botton-link text-black">
+                            <i class="fa-solid fa-house"></i>
+                            <a href="{{ route('dashboard') }}" class="btn btn-danger btn-lg enabled" tabindex="-1"
+                                role="button" aria-disabled="true">SEM PERMISSÃO PARA ESTE SERVIÇO. CONSULTE O ADMINISTRADOR.
+                                Clique e vá para o início do sistema</a>
+                        </a>
+                    </li>
 
-             @cannot('FUNCOES - LISTAR')
-             <li>
-                <a href="/dashboard" data-bs-toggle="tooltip" data-bs-placement="center"
-                 data-bs-custom-class="custom-tooltip"
-                    data-bs-title="Clique e vá para o início do sistema" class="botton-link text-black">
-               <i class="fa-solid fa-house"></i>
-                              <a href="{{ route('dashboard') }}" class="btn btn-danger btn-lg enabled" tabindex="-1" role="button"
-                             aria-disabled="true">SEM PERMISSÃO PARA ESTE SERVIÇO. CONSULTE O ADMINISTRADOR. Clique e vá para o início do sistema</a>
-                      </a>
-               </li>
-
-             {{-- <a href="{{ route('dashboard') }}" class="btn btn-danger btn-lg enabled" tabindex="-1" role="button"
+                    {{-- <a href="{{ route('dashboard') }}" class="btn btn-danger btn-lg enabled" tabindex="-1" role="button"
              aria-disabled="true">SEM PERMISSÃO PARA ESTE SERVIÇO. CONSULTE O ADMINISTRADOR</a> --}}
 
-              @endcan
+                @endcan
 
-        @can('FUNCOES - LISTAR')
-            @can('FUNCOES - INCLUIR')
-                <a href="{{ route('Funcoes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
-                aria-disabled="true">Incluir função</a>
+                @can('FUNCOES - LISTAR')
+                    @can('FUNCOES - INCLUIR')
+                        <a href="{{ route('Funcoes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
+                            aria-disabled="true">Incluir função</a>
+                    @endcan
+
+                    <div class="card-body">
+                        <p>Total de funções: {{ $linhas }}</p>
+
+                        <table class="table">
+
+                            <thead>
+
+                                <tr>
+                                    <th scope="col" class="px-6 py-4">
+                                        NOME
+                                    </th>
+                                    <th scope="col" class="px-6 py-4">
+                                        GUARDA
+                                    </th>
+                                </tr>
+                            </thead>
+
+
+                            <tbody>
+                                @foreach ($cadastros as $cadastro)
+                                    <tr>
+
+                                        <td class="whitespace-nowrap px-6 py-0"> {{ $cadastro->name }}</td>
+                                        <td class="whitespace-nowrap px-6 py-0">{{ $cadastro->guard_name }}</td>
+
+                                        <td>
+                                            @can('FUNCOES - EDITAR')
+                                                <a href="{{ route('Funcoes.edit', $cadastro->id) }}" class="btn btn-success"
+                                                    tabindex="-1" role="button" aria-disabled="true">Editar</a>
+                                            @endcan
+                                        </td>
+
+                                        <td>
+                                            @can('FUNCOES - VER')
+                                                <a href="{{ route('Funcoes.show', $cadastro->id) }}" class="btn btn-info"
+                                                    tabindex="-1" role="button" aria-disabled="true">Ver</a>
+                                            @endcan
+                                        </td>
+
+
+
+                                        <td>
+                                            @can('FUNCOES - EXCLUIR')
+                                                <form method="POST" action="{{ route('Funcoes.destroy', $cadastro->id) }}">
+                                                    @csrf
+                                                    <input type="hidden" name="_method" value="DELETE">
+                                                    <button type="submit" class="btn btn-danger">
+                                                        Excluir
+                                                    </button>
+                                                </form>
+                                                </button>
+                                            @endcan
+                                        </td>
+
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
             @endcan
 
-            <div class="card-body">
-                <p>Total de funções: {{ $linhas}}</p>
-
-                <table class="table">
-
-                    <thead>
-
-                      <tr>
-                        <th scope="col" class="px-6 py-4">
-                            NOME
-                        </th>
-                        <th scope="col" class="px-6 py-4">
-                            GUARDA
-                        </th>
-                      </tr>
-                    </thead>
-
-
-                    <tbody>
-                    @foreach($cadastros as $cadastro)
-                      <tr>
-
-                        <td class="whitespace-nowrap px-6 py-0">  {{ $cadastro->name }}</td>
-                        <td class="whitespace-nowrap px-6 py-0">{{ $cadastro->guard_name }}</td>
-
-                                <td>
-                                     @can('FUNCOES - EDITAR')
-                                        <a href="{{ route('Funcoes.edit', $cadastro->id) }}" class="btn btn-success"
-                                        tabindex="-1" role="button" aria-disabled="true">Editar</a>
-                                    @endcan
-                                </td>
-
-                                <td>
-                                    @can('FUNCOES - VER')
-                                    <a href="{{ route('Funcoes.show', $cadastro->id) }}" class="btn btn-info"
-                                    tabindex="-1" role="button" aria-disabled="true">Ver</a>
-                                    @endcan
-                                </td>
-
-
-
-                                <td>
-                                    @can('FUNCOES - EXCLUIR')
-                                    <form method="POST" action="{{ route('Funcoes.destroy', $cadastro->id) }}">
-                                        @csrf
-                                        <input type="hidden" name="_method" value="DELETE">
-                                        <button type="submit" class="btn btn-danger">
-                                            Excluir
-                                        </button>
-                                        </form>
-                                    </button>
-                                    @endcan
-                                </td>
-
-                      </tr>
-                      @endforeach
-                    </tbody>
-                  </table>
-
-                </div>
         </div>
-        @endcan
-
+        <div class="b-example-divider"></div>
     </div>
-    <div class="b-example-divider"></div>
-  </div>
 
 @endsection
 
-    @push('scripts')
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
-            <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-            <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-        <script>
-            $(document).ready(function() {
-                $('.select2').select2();
+@push('scripts')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.select2').select2();
+        });
+
+        $('form').submit(function(e) {
+            e.preventDefault();
+            $.confirm({
+                title: 'Confirmar!',
+                content: 'Confirma?',
+                buttons: {
+                    confirmar: function() {
+                        // $.alert('Confirmar!');
+                        $.confirm({
+                            title: 'Confirmar!',
+                            content: 'Deseja realmente continuar?',
+                            buttons: {
+                                confirmar: function() {
+                                    // $.alert('Confirmar!');
+                                    e.currentTarget.submit()
+                                },
+                                cancelar: function() {
+                                    // $.alert('Cancelar!');
+                                },
+
+                            }
+                        });
+
+                    },
+                    cancelar: function() {
+                        // $.alert('Cancelar!');
+                    },
+
+                }
             });
-
-            $('form').submit(function(e) {
-                e.preventDefault();
-                $.confirm({
-                    title: 'Confirmar!',
-                    content: 'Confirma?',
-                    buttons: {
-                        confirmar: function() {
-                            // $.alert('Confirmar!');
-                            $.confirm({
-                                title: 'Confirmar!',
-                                content: 'Deseja realmente continuar?',
-                                buttons: {
-                                    confirmar: function() {
-                                        // $.alert('Confirmar!');
-                                        e.currentTarget.submit()
-                                    },
-                                    cancelar: function() {
-                                        // $.alert('Cancelar!');
-                                    },
-
-                                }
-                            });
-
-                        },
-                        cancelar: function() {
-                            // $.alert('Cancelar!');
-                        },
-
-                    }
-                });
-            });
-        </script>
-    @endpush
+        });
+    </script>
+@endpush

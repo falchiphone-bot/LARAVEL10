@@ -100,8 +100,15 @@ class RoleController extends Controller
      */
     public function destroy(string $id)
     {
-        $cadastro = Role::find($id);
-        $cadastro->delete();
+        $role = Role::find($id);
+        if ($role->permissions->count() > 0) {
+            return back()->with('status','Essa funão tem permissões vinculadas.');
+        }
+        if ($role->users->count() > 0) {
+            return back()->with('status','Essa funão tem usuários vinculados.');
+        }
+
+        $role->delete();
         return redirect(route('Funcoes.index'));
 
     }
