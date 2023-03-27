@@ -33,25 +33,11 @@ class UserController extends Controller
     public function salvarEmpresa(Request $request, $idusuario)
     {
         $empresaUsuarioAntigo = EmpresaUsuario::where('UsuarioID', $idusuario)->get();
-        foreach ($empresaUsuarioAntigo as $item) {
-            $empresaUsuarioArray[$item->EmpresaID] = $item->toArray();
-        }
         EmpresaUsuario::where('UsuarioID', $idusuario)->delete();
         foreach ($request->empresa as $empresaID) {
             $novo = new EmpresaUsuario();
             $novo->UsuarioID = $idusuario;
             $novo->EmpresaID = $empresaID;
-            if ($empresaUsuarioAntigo->count() > 0) {
-                if (array_key_exists($empresaID,$empresaUsuarioArray)) {
-                    if ($empresaUsuarioArray[$empresaID]) {
-                        $novo->Criar = $empresaUsuarioArray[$empresaID]['Criar'];
-                        $novo->Ler = $empresaUsuarioArray[$empresaID]['Ler'];
-                        $novo->Alterar = $empresaUsuarioArray[$empresaID]['Alterar'];
-                        $novo->Excluir = $empresaUsuarioArray[$empresaID]['Excluir'];
-                        $novo->Administrador = $empresaUsuarioArray[$empresaID]['Administrador'];
-                    }
-                }
-            }
             $novo->save();
         }
         return redirect('/Usuarios/' . $idusuario)->with('success', 'Empresas atualizadas');
