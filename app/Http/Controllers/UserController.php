@@ -32,7 +32,6 @@ class UserController extends Controller
 
     public function salvarEmpresa(Request $request, $idusuario)
     {
-        $empresaUsuarioAntigo = EmpresaUsuario::where('UsuarioID', $idusuario)->get();
         EmpresaUsuario::where('UsuarioID', $idusuario)->delete();
         foreach ($request->empresa as $empresaID) {
             $novo = new EmpresaUsuario();

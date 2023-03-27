@@ -10,7 +10,7 @@
           </nav> --}}
 
             <div class="card">
-                <h1 class="text-center">Contas</h1>
+                <h1 class="text-center">Contas de {{ session('Empresa')->Descricao }}</h1>
                 <hr>
                 {{-- @cannot('PLANO DE CONTAS - LISTAR')
                     <li>
@@ -42,116 +42,20 @@
                     </tr>
                     @foreach ($contasEmpresa as $conta)
                         <tr>
-                            @if ($conta->PlanoConta->Grau == '1')
-                                <td style="padding-left: 10px; Color:red; font-size: 30px;">
-                                    {{ $conta->PlanoConta->Descricao }}
-                                </td>
-
-                                <td>
-                                    {{ $conta->PlanoConta->Codigo }}
-                                </td>
-                                <td>
-                                    {{ $conta->PlanoConta->Grau }}
-                                </td>
-                            @endif
-
-                            @if ($conta->PlanoConta->Grau == '2')
-                                <td style="padding-left: 60px;">
-                                    {{ $conta->PlanoConta->Descricao }}
-                                </td>
-                                <td>
-                                    {{ $conta->PlanoConta->Codigo }}
-                                </td>
-                                <td>
-                                    {{ $conta->PlanoConta->Grau }}
-                                </td>
-                            @endif
-                            @if ($conta->PlanoConta->Grau == '3')
-                                <td style="padding-left: 90px;">
-                                    {{ $conta->PlanoConta->Descricao }}
-                                </td>
-                                <td>
-                                    {{ $conta->PlanoConta->Codigo }}
-                                </td>
-                                <td>
-                                    {{ $conta->PlanoConta->Grau }}
-                                </td>
-                            @endif
-                            @if ($conta->PlanoConta->Grau == '4')
-                                <td style="padding-left: 120px;">
-                                    {{ $conta->PlanoConta->Descricao }}
-                                </td>
-                                <td>
-                                    {{ $conta->PlanoConta->Codigo }}
-                                </td>
-                                <td>
-                                    {{ $conta->PlanoConta->Grau }}
-                                </td>
-                            @endif
-                            @if ($conta->PlanoConta->Grau == '5')
-                                <td style="padding-left: 150px; color:Blue;; font-size: 20px;">
-                                    {{ $conta->PlanoConta->Descricao }}
-                                </td>
-                                <td>
-                                    {{ $conta->PlanoConta->Codigo }}
-                                </td>
-                                <td>
-                                    {{ $conta->PlanoConta->Grau }}
-                                </td>
-                            @endif
-
-
-                            {{--
                             <td>
-                                {{ $conta->Tipo }}
+                                @php($c = 0)
+                                @while ($c < substr_count($conta->Codigo, '.'))
+                                    &nbsp;&nbsp;
+                                    @php($c++)
+                                @endwhile
+                                {{ $conta->Descricao }}
                             </td>
                             <td>
                                 {{ $conta->Codigo }}
                             </td>
-
                             <td>
-                                {{ $conta->Bloqueio }}
+                                {{ $conta->Grau }}
                             </td>
-
-
-                            <td>
-                                @php
-                                    $Altera = DateTime::createFromFormat('Y-m-d', $conta->Bloqueiodataanterior);
-                                    if ($Altera instanceof DateTime) {
-                                        echo $Altera->format('d-m-Y');
-                                    } else {
-                                        echo ' ';
-                                    }
-                                @endphp
-                            </td>
-
-                            <td>
-                                <div class="row mt-2">
-                                    <div class="col-6">
-                                        @can('PLANO DE CONTAS - EDITAR')
-                                            <a href="{{ route('PlanoContas.edit', $conta->ID) }}"
-                                                class="btn btn-success btn-sm enabled" tabindex="-1" role="button"
-                                                aria-disabled="true">Editar</a>
-                                        @endcan
-
-                                        @can('PLANO DE CONTAS - EXCLUIR')
-                                            <form method="POST" action="{{ route('PlanoContas.destroy', $conta->ID) }}">
-                                                @csrf
-                                                <input type="hidden" name="_method" value="DELETE">
-                                                <button class="btn btn-danger btn-sm enabled" tabindex="-1" role="button"
-                                                    aria-disabled="true">Excluir</button>
-                                            </form>
-                                        @endcan
-
-                                        @can('PLANO DE CONTAS - VER')
-                                            <a href="{{ route('PlanoContas.show', $conta->ID) }}"
-                                                class="btn btn-info btn-sm enabled" tabindex="-1" role="button"
-                                                aria-disabled="true">Ver</a>
-                                        @endcan
-                                    </div>
-                                </div>
-                            </td> --}}
-
                         </tr>
                     @endforeach
                 </table>

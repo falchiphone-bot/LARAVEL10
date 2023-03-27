@@ -20,8 +20,13 @@ class EmpresaController extends Controller
 
     public function autenticar($empresaID)
     {
-        session(['EmpresaID' => $empresaID]);
-        return redirect('/PlanoContas/dashboard');
+        $empresa = Empresa::find($empresaID);
+        if ($empresa) {
+            session(['Empresa' => $empresa]);
+            return redirect('/PlanoContas/dashboard');
+        }else {
+            return redirect(route('Empresas.index'))->with('error','Emprese não localizada');
+        }
     }
 
     /**
