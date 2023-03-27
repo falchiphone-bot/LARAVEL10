@@ -102,10 +102,10 @@ class RoleController extends Controller
     {
         $role = Role::find($id);
         if ($role->permissions->count() > 0) {
-            return back()->with('status','Essa funão tem permissões vinculadas.');
+            return back()->with('status','Essa função tem permissões vinculadas.');
         }
         if ($role->users->count() > 0) {
-            return back()->with('status','Essa funão tem usuários vinculados.');
+            return back()->with('status','Essa função tem usuários vinculados.');
         }
 
         $role->delete();

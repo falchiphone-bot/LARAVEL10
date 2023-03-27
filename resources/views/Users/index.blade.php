@@ -9,8 +9,12 @@
               <li class="breadcrumb-item active" aria-current="page">Index</li>
             </ol>
           </nav> --}}
-
-
+          @if (session('status'))
+          <div class="alert alert-danger">
+              {{ session('status') }}
+          </div>
+      @endif
+          
         <div class="card">
             <div class="card-header">
                 Usuários para o sistema administrativo e contábil

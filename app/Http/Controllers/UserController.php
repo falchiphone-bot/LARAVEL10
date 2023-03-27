@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Model_has_PermissionCreateRequest;
+use App\Http\Requests\Model_has_RoleCreateRequest;
 use App\Http\Requests\UserCreateRequest;
 use App\Models\User;
+use Faker\Guesser\Name;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Spatie\Permission\Contracts\Permission as ContractsPermission;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -85,7 +89,7 @@ class UserController extends Controller
         $cadastro = User::find($id);
         $permissoes = Permission::pluck('name','id');
 
-   
+
         $funcoes = Role::pluck('name','id');
 
         return view('Users.show',compact('cadastro', 'permissoes','funcoes'));
@@ -124,8 +128,19 @@ class UserController extends Controller
      */
     public function destroy(string $id)
     {
-        $cadastro = User::find($id);
-        $cadastro->delete();
+        $user = User::find($id);
+
+            if ($user->permissions->count() > 0)
+            {
+                      return back()->with('status', "Usuário {$user->name} tem permissão em uso.");
+            }
+
+            $user->delete();
+            return back()->with('status', "Usuário {$user->name} EXCLUÍDO.");
+
+
+
+
         return redirect(route('Usuarios.index'));
 
     }
