@@ -10,7 +10,12 @@
           </nav> --}}
 
             <div class="card">
-                <h1 class="text-center">Contas de {{ session('Empresa')->Descricao }}</h1>
+
+
+                <div class="badge bg-success text-wrap" style="width: 100%;">
+                    Contas de {{ session('Empresa')->Descricao }}
+                </div>
+
                 <hr>
                 {{-- @cannot('PLANO DE CONTAS - LISTAR')
                     <li>
@@ -43,18 +48,29 @@
                     @foreach ($contasEmpresa as $conta)
                         <tr>
                             <td>
+
                                 @php($c = 0)
                                 @while ($c < substr_count($conta->Codigo, '.'))
                                     &nbsp;&nbsp;
                                     @php($c++)
                                 @endwhile
-                                {{ $conta->Descricao }}
+
+
+                                 {{ $conta->Descricao }}
+                           
+
                             </td>
+
                             <td>
+                                <div class="badge bg-success text-wrap" style="width: 100%;">
                                 {{ $conta->Codigo }}
+                                 </div>
                             </td>
+
                             <td>
-                                {{ $conta->Grau }}
+                                <div class="badge bg-danger text-wrap" style="width: 100%;">
+                                 {{ $conta->Grau }}
+                              </div>
                             </td>
                         </tr>
                     @endforeach

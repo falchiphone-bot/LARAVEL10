@@ -23,6 +23,7 @@ class EmpresaController extends Controller
         $empresa = Empresa::find($empresaID);
         if ($empresa) {
             session(['Empresa' => $empresa]);
+            
             return redirect('/PlanoContas/dashboard');
         }else {
             return redirect(route('Empresas.index'))->with('error','Emprese não localizada');
