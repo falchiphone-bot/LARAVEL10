@@ -38,7 +38,7 @@
                                         <form method="POST" action="{{ route('Empresas.DesbloquearEmpresas') }}"
                                             accept-charset="UTF-8">
                                             <input type="hidden" name="_method" value="PUT">
-                                            @include('Empresas.BloquearDesbloquearEmpresas')
+                                            @include('Empresas.desbloquearEmpresas')
                                         </form>
                                     </th>
                                 @endcan
@@ -48,7 +48,7 @@
                                         <form method="POST" action="{{ route('Empresas.BloquearEmpresas') }}"
                                             accept-charset="UTF-8">
                                             <input type="hidden" name="_method" value="PUT">
-                                            @include('Empresas.BloquearEmpresas')
+                                            @include('Empresas.bloquearempresas')
                                         </form>
                                     </th>
                                 @endcan
