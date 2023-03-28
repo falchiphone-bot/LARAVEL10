@@ -28,10 +28,10 @@ class PlanoContaController extends Controller
      */
     public function dashboard()
     {
-        if (!session('EmpresaID')) {
+        if (!session('Empresa')) {
             return redirect('/Empresas')->with('error','Necesserário selecionar uma empresa');
         }else{
-            $contasEmpresa = Conta::where('EmpresaID',session('EmpresaID'))
+            $contasEmpresa = Conta::where('EmpresaID',session('Empresa')->ID)
             ->join('Contabilidade.PlanoContas','PlanoContas.ID','=','Contas.planocontas_id')
             ->orderBy('Codigo', 'asc')
             ->get(['Descricao','Codigo','Grau']);
