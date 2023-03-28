@@ -12,6 +12,7 @@ use Faker\Guesser\Name;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Testing\Constraints\SeeInOrder;
 use Spatie\Permission\Contracts\Permission as ContractsPermission;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -93,7 +94,7 @@ class UserController extends Controller
         $cadastro = User::find($id);
         $permissoes = Permission::pluck('name', 'id');
         $funcoes = Role::pluck('name', 'id');
-        $empresas = Empresa::pluck('Descricao', 'ID');
+        $empresas = Empresa::orderBy('Descricao')->pluck('Descricao', 'ID');
         $empresaUsuarios = EmpresaUsuario::where('UsuarioID', $id)->get();
 
         return view('Users.show', compact('cadastro', 'permissoes', 'funcoes', 'empresas', 'empresaUsuarios'));
