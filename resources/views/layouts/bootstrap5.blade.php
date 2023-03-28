@@ -17,6 +17,7 @@
         --bs-tooltip-bg: var(--bs-danger);
         }
     </style>
+    @livewireStyles
   </head>
 
   <body>
@@ -114,7 +115,7 @@
         {{-- LINK PARA PEGAR NOME DE ICONES --}}
         {{-- https://fontawesome.com/search?q=money&o=r&m=free --}}
 
-
+        @livewireScripts
     </body>
     @stack('scripts')
 </html>

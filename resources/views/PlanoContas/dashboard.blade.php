@@ -1,6 +1,6 @@
 @extends('layouts.bootstrap5')
 @section('content')
-    <div class="py-5 bg-light">
+    <div class="py-2 bg-light">
         <div class="container">
             {{-- <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
@@ -70,7 +70,9 @@
                                  {{ $conta->Descricao }}
                                 @endif
                                 @if ($conta->Grau == '5')
-                                 {{ $conta->Descricao }}
+                                 <a href="/Contas/Extrato/{{ $conta->ID }}" class="btn btn-link">
+                                    {{ $conta->Descricao }}
+                                </a>
                                 @endif
 
                             </td>
