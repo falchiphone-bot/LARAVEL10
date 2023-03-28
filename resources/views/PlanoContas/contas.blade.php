@@ -55,9 +55,23 @@
                                     @php($c++)
                                 @endwhile
 
-
+                                @if ($conta->Grau == '1')
+                                <div class="badge bg-primary text-wrap" style="width: 100%;">
                                  {{ $conta->Descricao }}
-                           
+                                </div>
+                                @endif
+                                @if ($conta->Grau == '2')
+                                {{ $conta->Descricao }}
+                               @endif
+                               @if ($conta->Grau == '3')
+                                 {{ $conta->Descricao }}
+                                @endif
+                                @if ($conta->Grau == '4')
+                                 {{ $conta->Descricao }}
+                                @endif
+                                @if ($conta->Grau == '5')
+                                 {{ $conta->Descricao }}
+                                @endif
 
                             </td>
 
@@ -68,7 +82,7 @@
                             </td>
 
                             <td>
-                                <div class="badge bg-danger text-wrap" style="width: 100%;">
+                                <div class="badge bg-warning text-wrap" style="width: 100%;">
                                  {{ $conta->Grau }}
                               </div>
                             </td>
