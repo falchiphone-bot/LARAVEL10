@@ -19,6 +19,10 @@
                         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
                             Email : {{ $cadastro->email }}
                         </p>
+                        <div class="card-footer">
+                            <a href="{{ route('Usuarios.index') }}" class="btn btn-warning">Retornar para
+                                lista de usuários</a>
+                        </div>
                     </header>
                 </div>
                 <form method="post" action="/Usuarios/salvarpermissao/{{ $cadastro->id }}">
@@ -78,8 +82,7 @@
                     </div>
                     <div class="card-footer">
                         <button type="submite" class="btn btn-success">Salvar</button>
-                        <a href="{{ route('Usuarios.index') }}" class="btn btn-warning">Retornar para
-                            lista</a>
+
                     </div>
                 </form>
             </div>
@@ -105,10 +108,15 @@
                     </div>
                     <div class="card-footer">
                         <button type="submite" class="btn btn-success">Salvar</button>
-                        <a href="{{ route('Usuarios.index') }}" class="btn btn-warning">Retornar para
-                            lista</a>
+
                     </div>
                 </form>
+
+                <div class="card-footer">
+
+                    <a href="{{ route('Usuarios.index') }}" class="btn btn-warning">Retornar para
+                        lista de usuários</a>
+                </div>
             </div>
 
 
