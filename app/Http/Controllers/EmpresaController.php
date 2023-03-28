@@ -14,10 +14,13 @@ class EmpresaController extends Controller
 {
     public function __construct()
     {
+
         $this->middleware(['permission:EMPRESAS - LISTAR'])->only('index');
         $this->middleware(['permission:EMPRESAS - INCLUIR'])->only(['create', 'store']);
         $this->middleware(['permission:EMPRESAS - EDITAR'])->only(['edit', 'update']);
         $this->middleware(['permission:EMPRESAS - EXCLUIR'])->only('destroy');
+        $this->middleware(['permission:EMPRESAS - BLOQUEAR TODAS'])->only('bloquearempresas');
+        $this->middleware(['permission:EMPRESAS - DESBLOQUEAR TODAS'])->only('desbloquearempresas');
     }
 
     public function desbloquearempresas()
@@ -26,9 +29,7 @@ class EmpresaController extends Controller
         $affected = DB::table('Contabilidade.Empresas')
                ->update(['Bloqueiodataanterior' => null ]);
 
-
-
-        return redirect(route('Empresas.index'))->with("success","Debloqueado todas empresas com sucesso!");
+        return redirect(route('Empresas.index'))->with("success","Desbloqueado todas empresas com sucesso!");
     }
     public function bloquearempresas(Request $request)
     {

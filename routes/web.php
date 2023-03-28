@@ -31,7 +31,7 @@ Route::middleware('auth')->group(function () {
 
     #Empresas
     Route::put('Empresas/desbloquearempresas' ,[App\Http\Controllers\EmpresaController::class, 'desbloquearempresas'])->name('Empresas.DesbloquearEmpresas');
-    Route::put('Empresas/bloquearempresas' ,[App\Http\Controllers\EmpresaController::class, 'Bloquearempresas'])->name('Empresas.BloquearEmpresas');
+    Route::put('Empresas/bloquearempresas' ,[App\Http\Controllers\EmpresaController::class, 'bloquearempresas'])->name('Empresas.BloquearEmpresas');
     Route::resource('Empresas'                , App\Http\Controllers\EmpresaController::class);
 
 

@@ -31,22 +31,27 @@
                     </div>
                     <table class="table">
                         <thead>
-                            <tr>
-                                <th>
-                                    <form method="POST" action="{{ route('Empresas.DesbloquearEmpresas') }}"
-                                        accept-charset="UTF-8">
-                                        <input type="hidden" name="_method" value="PUT">
-                                        @include('Empresas.BloquearDesbloquearEmpresas')
-                                    </form>
-                                </th>
-                                <th>
-                                    <form method="POST" action="{{ route('Empresas.BloquearEmpresas') }}"
-                                        accept-charset="UTF-8">
-                                        <input type="hidden" name="_method" value="PUT">
-                                        @include('Empresas.BloquearEmpresas')
-                                    </form>
-                                </th>
 
+                            <tr>
+                                @can('EMPRESAS - DESBLOQUEAR TODAS')
+                                    <th>
+                                        <form method="POST" action="{{ route('Empresas.DesbloquearEmpresas') }}"
+                                            accept-charset="UTF-8">
+                                            <input type="hidden" name="_method" value="PUT">
+                                            @include('Empresas.BloquearDesbloquearEmpresas')
+                                        </form>
+                                    </th>
+                                @endcan
+
+                                @can('EMPRESAS - BLOQUEAR TODAS')
+                                    <th>
+                                        <form method="POST" action="{{ route('Empresas.BloquearEmpresas') }}"
+                                            accept-charset="UTF-8">
+                                            <input type="hidden" name="_method" value="PUT">
+                                            @include('Empresas.BloquearEmpresas')
+                                        </form>
+                                    </th>
+                                @endcan
                             </tr>
                         </thead>
 
