@@ -10,6 +10,8 @@
 
     <link rel="stylesheet" href="https://getbootstrap.com/docs/5.3/examples/features/features.css" crossorigin="anonymous">
 
+    {{-- LINK PARA PEGAR NOME DE ICONES --}}
+        {{-- https://fontawesome.com/search?q=money&o=r&m=free --}}
 
     <title>Sistema administrativo e contábil</title>
     <style>

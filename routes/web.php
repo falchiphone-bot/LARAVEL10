@@ -30,7 +30,11 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     #Empresas
-    Route::resource('Empresas',App\Http\Controllers\EmpresaController::class);
+    Route::put('Empresas/desbloquearempresas' ,[App\Http\Controllers\EmpresaController::class, 'desbloquearempresas'])->name('Empresas.DesbloquearEmpresas');
+    Route::put('Empresas/bloquearempresas' ,[App\Http\Controllers\EmpresaController::class, 'Bloquearempresas'])->name('Empresas.BloquearEmpresas');
+    Route::resource('Empresas'                , App\Http\Controllers\EmpresaController::class);
+
+
     Route::resource('Teste',App\Http\Controllers\TesteController::class);
 
     #Gerenciamento de Usuários

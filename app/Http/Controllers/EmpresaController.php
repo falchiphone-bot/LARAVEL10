@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\EmpresaCreateRequest;
 use App\Models\Empresa;
 use App\Models\EmpresaUsuario;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class EmpresaController extends Controller
@@ -18,12 +20,31 @@ class EmpresaController extends Controller
         $this->middleware(['permission:EMPRESAS - EXCLUIR'])->only('destroy');
     }
 
+    public function desbloquearempresas()
+    {
+
+        $affected = DB::table('Contabilidade.Empresas')
+               ->update(['Bloqueiodataanterior' => null ]);
+
+
+
+        return redirect(route('Empresas.index'))->with("success","Debloqueado todas empresas com sucesso!");
+    }
+    public function bloquearempresas(Request $request)
+    {
+        $DataConvertida = Carbon::createFromFormat("Y-m-d", $request->Bloqueardataanterior)->format("d/m/Y");
+        $affected = DB::table('Contabilidade.Empresas')
+               ->update(['Bloqueiodataanterior' => $DataConvertida]);
+
+        return redirect(route('Empresas.index'))->with("success","Bloqueado todas empresas com sucesso!");
+    }
+
     public function autenticar($empresaID)
     {
         $empresa = Empresa::find($empresaID);
         if ($empresa) {
             session(['Empresa' => $empresa]);
-            
+
             return redirect('/PlanoContas/dashboard');
         }else {
             return redirect(route('Empresas.index'))->with('error','Emprese não localizada');
