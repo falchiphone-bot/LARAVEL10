@@ -30,4 +30,8 @@ class Lancamento extends Model
         'Notificacao',
         'DiasNotificacaoAntesVencimento',
     ];
+
+    protected $casts = [
+        'DataContabilidade' => 'date',
+    ];
 }

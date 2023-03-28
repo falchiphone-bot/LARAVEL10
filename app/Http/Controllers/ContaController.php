@@ -15,7 +15,7 @@ class ContaController extends Controller
 
     public function extrato($contaID)
     {
-        return view('Contas.extrato', compact('contaID'));
+        return view('Contas.extrato')->with(['contaID'=>$contaID]);
     }
 
     public function index()

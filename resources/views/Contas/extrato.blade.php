@@ -9,7 +9,7 @@
             </ol>
           </nav> --}}
 
-            @livewire('conta.extrato',['contaID',$contaID])
+            @livewire('conta.extrato',[$contaID])
 
         </div>
     </div>
