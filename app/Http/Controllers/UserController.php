@@ -134,6 +134,7 @@ class UserController extends Controller
     {
         $user = User::find($id);
 
+        //PROTEGIDO PARA NÃO EXCLUIR CASO TIVER SENDO USADO EM ALGUMA MODEL.
         if ($user->permissions->count() > 0) {
             return back()->with('status', "Usuário {$user->name} tem permissão em uso.");
         }
