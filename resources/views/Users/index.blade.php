@@ -27,55 +27,84 @@
                 <div class="card-header">
                     Usuários para o sistema administrativo e contábil
                 </div>
-                <a href="{{ route('Usuarios.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
-                    aria-disabled="true">Incluir usuário</a>
-                <div class="card-body">
-                    <p>Total de usuários: {{ $linhas }}</p>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th scope="col" class="px-6 py-4">NOME</th>
-                                <th scope="col" class="px-6 py-4">EMAIL
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($cadastros as $cadastro)
+
+                @cannot('USUARIOS - LISTAR')
+                    <li>
+                        <a href="/dashboard" data-bs-toggle="tooltip" data-bs-placement="center"
+                            data-bs-custom-class="custom-tooltip" data-bs-title="Clique e vá para o início do sistema"
+                            class="botton-link text-black">
+                            <i class="fa-solid fa-house"></i>
+                            <a href="{{ route('dashboard') }}" class="btn btn-danger btn-lg enabled" tabindex="-1"
+                                role="button" aria-disabled="true">SEM PERMISSÃO PARA ESTE SERVIÇO. CONSULTE O ADMINISTRADOR.
+                                Clique e vá para o início do sistema</a>
+                        </a>
+                    </li>
+
+
+                @endcan
+
+
+                @can('USUARIOS - LISTAR')
+                    @can('USUARIOS - INCLUIR')
+                        <a href="{{ route('Usuarios.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1"
+                            role="button" aria-disabled="true">Incluir usuário pelo administrador</a>
+                    @endcan
+                    <div class="card-body">
+                        <p>Total de usuários: {{ $linhas }}</p>
+                        <table class="table">
+                            <thead>
                                 <tr>
-
-                                    <td class="whitespace-nowrap px-6 py-0"> {{ $cadastro->name }}</td>
-                                    <td class="whitespace-nowrap px-6 py-0">{{ $cadastro->email }}</td>
-                                    <td>
-                                        <div class="row mt-2">
-                                            <div class="col-6">
-
-                                                <a href="{{ route('Usuarios.edit', $cadastro->id) }}"
-                                                    class="btn btn-secondary btn-sm enabled" tabindex="-1" role="button"
-                                                    aria-disabled="true">Editar</a>
-
-                                                <form method="POST"
-                                                    action="{{ route('Usuarios.destroy', $cadastro->id) }}">
-                                                    @csrf
-                                                    <input type="hidden" name="_method" value="DELETE">
-                                                    <button class="btn btn-danger btn-sm enabled" tabindex="-1"
-                                                        role="button" aria-disabled="true">Excluir</button>
-                                                </form>
-
-                                                <a href="{{ route('Usuarios.show', $cadastro->id) }}"
-                                                    class="btn btn-info btn-sm enabled" tabindex="-1" role="button"
-                                                    aria-disabled="true">Ver</a>
-                                            </div>
-                                        </div>
-                                    </td>
+                                    <th scope="col" class="px-6 py-4">NOME</th>
+                                    <th scope="col" class="px-6 py-4">EMAIL
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                @foreach ($cadastros as $cadastro)
+                                    <tr>
+
+                                        <td class="whitespace-nowrap px-6 py-0"> {{ $cadastro->name }}</td>
+                                        <td class="whitespace-nowrap px-6 py-0">{{ $cadastro->email }}</td>
+                                        <td>
+                                            <div class="row mt-2">
+                                                <div class="col-6">
+                                                    @can('USUARIOS - EDITAR')
+                                                        <a href="{{ route('Usuarios.edit', $cadastro->id) }}"
+                                                            class="btn btn-success btn-sm enabled" tabindex="-1" role="button"
+                                                            aria-disabled="true">Editar</a>
+                                                    @endcan
+
+                                                    @can('USUARIOS - EXCLUIR')
+
+                                                    {{-- PROTEGIDO NA CONTROLLER PARA NÃO EXCLUIR CASO TIVER SENDO USADO EM ALGUMA MODEL. --}}
+                                                        <form method="POST"
+                                                            action="{{ route('Usuarios.destroy', $cadastro->id) }}">
+                                                            @csrf
+                                                            <input type="hidden" name="_method" value="DELETE">
+                                                            <button class="btn btn-danger btn-sm enabled" tabindex="-1"
+                                                                role="button" aria-disabled="true">Excluir</button>
+                                                        </form>
+                                                    @endcan
+
+                                                    @can('USUARIOS - PERMISSOES')
+                                                        <a href="{{ route('Usuarios.show', $cadastro->id) }}"
+                                                            class="btn btn-info btn-sm enabled" tabindex="-1" role="button"
+                                                            aria-disabled="true">Permissões</a>
+                                                    @endcan
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endcan
             </div>
 
         </div>
         <div class="b-example-divider"></div>
     </div>
+
 @endsection
 
 @push('scripts')
