@@ -10,8 +10,11 @@
           </nav> --}}
 
             <div class="card">
-                <h1 class="text-center">Pesquisa avançada para contabilidade</h1>
-                <hr>
+
+                <div class="badge bg-warning text-wrap" style="width: 100%; color: blue;">
+                    PESQUISA AVANÇADA EM LANÇAMENTOS CONTÁBEIS
+                </div>
+
                 {{-- @cannot('PLANO DE CONTAS - LISTAR')
                     <li>
                         <a href="/dashboard" data-bs-toggle="tooltip" data-bs-placement="center"
@@ -68,7 +71,7 @@
 
                 <p>Total de lançamentos encontrados: {{ $pesquisa->count() }}</p>
 
-                <table class="table table-bordered">
+                <table class="table" style="background-color: rgb(247, 247, 213);">
 
                     <tr>
 
@@ -85,13 +88,26 @@
                             <td style="padding-left: 10px; Color:red; font-size: 18px;">
                                 {{ $cadastro->Descricao }}
                             </td>
-                            <td style="padding-left: 10px; Color:red; font-size: 18px;">
-                                {{ $cadastro->Valor }}
+                            <td style="padding-left: 10px; Color:blue; font-size: 18px;" align="right">
+
+                                {{ number_format($cadastro->Valor, 2, ',', '.') }}
+
                             </td>
-
-
                         </tr>
+
+
                     @endforeach
+                </table>
+
+                <table class="table" style="background-color: rgb(213, 247, 224);">
+                    <tr>
+                        <td colspan="2" style="padding-right: 10px; Color:rgb(255, 0, 0); font-size: 20px;" align="right" >
+                           TOTAL GERAL
+                        </td>
+                        <td colspan="3" style="padding-right: 10px; Color:rgb(255, 0, 0); font-size: 20px;" align="right">
+                            {{ number_format($pesquisa->sum('Valor'), 2, ',', '.') }}
+                        </td>
+                    </tr>
                 </table>
             @endsection
 
@@ -105,24 +121,25 @@
                         e.preventDefault();
                         $.confirm({
                             title: 'Confirmar!',
-                            content: 'Confirma a exclusão? Não terá retorno.',
+                            content: 'Confirma a consulta?',
                             buttons: {
                                 confirmar: function() {
                                     // $.alert('Confirmar!');
-                                    $.confirm({
-                                        title: 'Confirmar!',
-                                        content: 'Deseja realmente continuar com a exclusão? Não terá retorno.',
-                                        buttons: {
-                                            confirmar: function() {
-                                                // $.alert('Confirmar!');
-                                                e.currentTarget.submit()
-                                            },
-                                            cancelar: function() {
-                                                // $.alert('Cancelar!');
-                                            },
+                                    // $.confirm({
+                                    //     title: 'Confirmar!',
+                                    //     content: 'Deseja realmente continuar com a exclusão? Não terá retorno.',
+                                    //     buttons: {
+                                    //         confirmar: function() {
+                                    //             // $.alert('Confirmar!');
+                                    //             e.currentTarget.submit()
+                                    //         },
+                                    //         cancelar: function() {
+                                    //             // $.alert('Cancelar!');
+                                    //         },
 
-                                        }
-                                    });
+                                    //     }
+                                    // });
+                                    e.currentTarget.submit()
 
                                 },
                                 cancelar: function() {

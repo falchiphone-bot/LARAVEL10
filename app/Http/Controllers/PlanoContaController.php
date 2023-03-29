@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests\PlanoContasCreateRequest;
 use App\Models\Conta;
 use App\Models\Empresa;
+use App\Models\EmpresaUsuario;
 use App\Models\Lancamento;
 use App\Models\PlanoConta;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 
@@ -32,9 +34,12 @@ class PlanoContaController extends Controller
     public function pesquisaavancada()
     {
 
-        $pesquisa = Lancamento::Limit(100)->orderBy("ID", 'desc')->get();
+        $pesquisa = Lancamento::Limit(100)
+        ->join('Contabilidade.EmpresasUsuarios','Lancamentos.EmpresaID','=','EmpresasUsuarios.EmpresaID')
+        ->Where("EmpresasUsuarios.UsuarioID", Auth::user()->id)
+        ->orderBy("Lancamentos.ID", 'desc')->get();
 
-        return view('PlanoContas.pesquisaavancada', compact('pesquisa', 'linhas'));
+        return view('PlanoContas.pesquisaavancada', compact('pesquisa'));
     }
 
     public function pesquisaavancadapost(Request $Request)
@@ -42,7 +47,10 @@ class PlanoContaController extends Controller
 
         $retorno = $Request->all();
 
-        $pesquisa = Lancamento::Limit(100)->orderBy("ID", 'desc');
+        $pesquisa = Lancamento::Limit(100)
+        ->join('Contabilidade.EmpresasUsuarios','Lancamentos.EmpresaID','=','EmpresasUsuarios.EmpresaID')
+        ->Where("EmpresasUsuarios.UsuarioID", Auth::user()->id)
+        ->orderBy("Lancamentos.ID", 'desc');
 
         if($Request->Texto)
         {
