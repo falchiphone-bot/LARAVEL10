@@ -8,10 +8,12 @@ use App\Models\Empresa;
 use App\Models\EmpresaUsuario;
 use App\Models\Lancamento;
 use App\Models\PlanoConta;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Nette\Utils\Strings;
 
 class PlanoContaController extends Controller
 {
@@ -33,58 +35,65 @@ class PlanoContaController extends Controller
      */
     public function pesquisaavancada()
     {
-
         $pesquisa = Lancamento::Limit(100)
-        ->join('Contabilidade.EmpresasUsuarios','Lancamentos.EmpresaID','=','EmpresasUsuarios.EmpresaID')
-        ->Where("EmpresasUsuarios.UsuarioID", Auth::user()->id)
-        ->orderBy("Lancamentos.ID", 'desc')->get();
+            ->join('Contabilidade.EmpresasUsuarios', 'Lancamentos.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
+            ->Where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+            ->orderBy('Lancamentos.ID', 'desc')
+            ->get();
 
         return view('PlanoContas.pesquisaavancada', compact('pesquisa'));
     }
 
     public function pesquisaavancadapost(Request $Request)
     {
+        $DataConvertidaDataApos = Carbon::createFromFormat('Y-m-d', $Request->DataApos)->format('d/m/Y');
+        $DataConvertidaDataAntes = Carbon::createFromFormat('Y-m-d', $Request->DataAntes)->format('d/m/Y');
 
         $retorno = $Request->all();
 
-        $pesquisa = Lancamento::Limit(100)
-        ->join('Contabilidade.EmpresasUsuarios','Lancamentos.EmpresaID','=','EmpresasUsuarios.EmpresaID')
-        ->Where("EmpresasUsuarios.UsuarioID", Auth::user()->id)
-        ->orderBy("Lancamentos.ID", 'desc');
+        // if ($DataConvertidaDataAntes > $DataConvertidaDataApos)
+        // {
+        //     $pesquisa = Lancamento::Limit(1)->get();
+        //     return view('PlanoContas.pesquisaavancada', compact('pesquisa', 'retorno'))->with('error', 'Data de início menor que a final. VERIFIQUE!');
+        // }
 
-        if($Request->Texto)
-        {
-            $pesquisa->where('Descricao',"like","%".$Request->Texto."%");
+        $pesquisa = Lancamento::Limit($Request->Limite)
+            ->join('Contabilidade.EmpresasUsuarios', 'Lancamentos.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
+            ->Where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+            ->orderBy('Lancamentos.ID', 'desc');
 
+        if ($Request->Texto) {
+            $pesquisa->where('Descricao', 'like', '%' . $Request->Texto . '%');
         }
-        if($Request->Valor)
-        {
-            $pesquisa->where('Valor',"=",$Request->Valor);
+        if ($Request->Valor) {
+            $pesquisa->where('Valor', '=', $Request->Valor);
+        }
+        if ($Request->DataApos) {
+            $pesquisa->where('DataContabilidade', '>=', $DataConvertidaDataApos);
+        }
+        if ($Request->DataAntes) {
+            $pesquisa->where('DataContabilidade', '<=', $DataConvertidaDataAntes);
         }
 
         $pesquisa = $pesquisa->get();
 
-
-        return view('PlanoContas.pesquisaavancada', compact('pesquisa', "retorno"));
+        return view('PlanoContas.pesquisaavancada', compact('pesquisa', 'retorno'));
     }
-
-
 
     public function dashboard()
     {
         if (!session('Empresa')) {
-            return redirect('/Empresas')->with('error','Necessário selecionar uma empresa');
-        }else{
-            $contasEmpresa = Conta::where('EmpresaID',session('Empresa')->ID)
-            ->join('Contabilidade.PlanoContas','PlanoContas.ID','=','Contas.planocontas_id')
-            ->orderBy('Codigo', 'asc')
-            ->get(['Contas.ID','Descricao','Codigo','Grau']);
+            return redirect('/Empresas')->with('error', 'Necessário selecionar uma empresa');
+        } else {
+            $contasEmpresa = Conta::where('EmpresaID', session('Empresa')->ID)
+                ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.planocontas_id')
+                ->orderBy('Codigo', 'asc')
+                ->get(['Contas.ID', 'Descricao', 'Codigo', 'Grau']);
             // dd($contasEmpresa->first());
 
-            return view('PlanoContas.dashboard',compact('contasEmpresa'));
+            return view('PlanoContas.dashboard', compact('contasEmpresa'));
         }
     }
-
 
     public function index()
     {

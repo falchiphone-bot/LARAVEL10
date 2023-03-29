@@ -9,8 +9,17 @@
             </ol>
           </nav> --}}
 
-            <div class="card">
 
+            <div class="card">
+                @if (session('success'))
+                    <div class="alert alert-success">
+                        {{ session('success') }}
+                    </div>
+                @elseif (session('error'))
+                    <div class="alert alert-danger">
+                        {{ session('error') }}
+                    </div>
+                @endif
                 <div class="badge bg-warning text-wrap" style="width: 100%; color: blue;">
                     PESQUISA AVANÇADA EM LANÇAMENTOS CONTÁBEIS
                 </div>
@@ -41,17 +50,40 @@
                             <div class="row">
                                 <div class="col-6">
 
-                                    <label for="Texto" style="color: white;">Texto a pesquisar
+                                    <label for="Texto" style="color: black;">Texto a pesquisar
                                         <input class="form-control @error('Descricao') is-invalid @else is-valid @enderror"
                                             name="Texto" size="70" type="text" id="Texto"
                                             value="{{ $retorno['Texto'] ?? null }}">
                                 </div>
                                 <div class="col-6">
 
-                                    <label for="Valor" style="color: white;">Valor a pesquisar
+                                    <label for="Valor" style="color: black;">Valor a pesquisar
                                         <input class="form-control @error('Valor') is-invalid @else is-valid @enderror"
                                             name="Valor" size="70" type="number" step="0.01" id="Valor"
                                             value="{{ $retorno['Valor'] ?? null }}">
+                                </div>
+
+                                <div class="col-6">
+
+                                    <label for="DataApos" style="color: black;">Consulta após a data
+                                        <input class="form-control @error('DataApoos') is-invalid @else is-valid @enderror"
+                                            name="DataApos" size="70" type="date" step="1" id="DataApos"
+                                            value="{{ $retorno['DataApos'] ?? null }}">
+                                </div>
+                                <div class="col-6">
+
+                                    <label for="DataAntes" style="color: black;">Consulta antes da data
+                                        <input class="form-control @error('DataAntes') is-invalid @else is-valid @enderror"
+                                            name="DataAntes" size="70" type="date" step="1" id="DataAntes"
+                                            value="{{ $retorno['DataAntes'] ?? null }}">
+                                </div>
+
+                                <div class="col-6">
+
+                                    <label for="Limite" style="color: black;">Limite de registros para retorno
+                                        <input class="form-control @error('limite') is-invalid @else is-valid @enderror"
+                                            name="Limite" size="70" type="number" step="1" id="Limite"
+                                            value="{{ $retorno['Limite'] ?? null }}">
                                 </div>
                             </div>
                             <div class="row mt-2">
@@ -85,7 +117,7 @@
                                 {{ $cadastro->DataContabilidade->format('d/m/Y') }}
                             </td>
 
-                            <td style="padding-left: 10px; Color:red; font-size: 18px;">
+                            <td style="padding-left: 10px; Color:black; font-size: 18px;">
                                 {{ $cadastro->Descricao }}
                             </td>
                             <td style="padding-left: 10px; Color:blue; font-size: 18px;" align="right">
@@ -94,17 +126,17 @@
 
                             </td>
                         </tr>
-
-
                     @endforeach
                 </table>
 
                 <table class="table" style="background-color: rgb(213, 247, 224);">
                     <tr>
-                        <td colspan="2" style="padding-right: 10px; Color:rgb(255, 0, 0); font-size: 20px;" align="right" >
-                           TOTAL GERAL
+                        <td colspan="2" style="padding-right: 10px; Color:rgb(255, 0, 0); font-size: 20px;"
+                            align="right">
+                            TOTAL GERAL
                         </td>
-                        <td colspan="3" style="padding-right: 10px; Color:rgb(255, 0, 0); font-size: 20px;" align="right">
+                        <td colspan="3" style="padding-right: 10px; Color:rgb(255, 0, 0); font-size: 20px;"
+                            align="right">
                             {{ number_format($pesquisa->sum('Valor'), 2, ',', '.') }}
                         </td>
                     </tr>
