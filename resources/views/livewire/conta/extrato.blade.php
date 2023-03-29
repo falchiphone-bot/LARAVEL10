@@ -54,8 +54,7 @@
                 <div class="row">
                     <div class="form-group col-sm-12 col-md-3">
                         <label for="de" class="pr-1  form-control-label">De</label>
-                        <input type="date" value="" id="de" name="De" wire:model.lazy='De'
-                            placeholder="Buscar a partir de" class="required form-control " autocomplete="off">
+                        <input type="date" value="" id="de" name="De" wire:model='De' class="required form-control " autocomplete="off">
                     </div>
                     <div class="form-group col-sm-12 col-md-3">
                         <label for="ate" class="px-1  form-control-label">Até</label>
@@ -82,8 +81,7 @@
                 <div class="row">
                     <div class="form-group col-sm-12 col-md-3">
                         <label for="de" class="pr-1  form-control-label">Buscar Descrição</label>
-                        <input type="text" value="" id="descricao" placeholder="Digite algo"
-                            class="form-control" autocomplete="off" wire:model.lazy='Descricao'>
+                        <input type="text" value="" id="descricao" class="form-control" autocomplete="off" wire:model.defer='Descricao'>
                     </div>
                     <div class="form-group col-sm-12 col-md-3">
                         <label for="de" class="pr-1  form-control-label">A partir De:</label>
