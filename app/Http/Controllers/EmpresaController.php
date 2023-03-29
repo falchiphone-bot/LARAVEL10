@@ -103,7 +103,6 @@ class EmpresaController extends Controller
     public function edit(string $id)
     {
         $cadastro = Empresa::find($id);
-        // dd($cadastro);
 
         return view('Empresas.edit', compact('cadastro'));
     }
@@ -116,10 +115,10 @@ class EmpresaController extends Controller
         $cadastro = Empresa::find($id);
 
         $cadastro->fill($request->all());
-        //dd($cadastro);
+        // dd($cadastro);
 
         $cadastro->save();
-        //dd($cadastro->save());
+
 
         return redirect(route('Empresas.index'));
     }

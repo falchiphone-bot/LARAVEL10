@@ -14,7 +14,7 @@
             </div>
             <div class="row">
                 <div class="col-6">
-                    <label for="email">CNPJ</label>
+                    <label for="cnpj">CNPJ</label>
                     <input class="form-control @error('Cnpj') is-invalid @else is-valid @enderror" name="Cnpj"
                         type="text" id="Cnpj" value="{{$cadastro->Cnpj??null}}">
                         @error('Cnpj')
@@ -22,6 +22,24 @@
                     @enderror
                 </div>
             </div>
+
+            <div class="row">
+                <div class="col-6">
+                    <label for="ie">INSCRIÇÃO ESTADUAL</label>
+                    <input class="form-control" name="Ie"
+                        type="text" id="Ie" value="{{$cadastro->Ie??null}}">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6">
+                    <label for="ie">BLOQUEADA</label>
+                    <input class="form-control" name="Bloqueio"
+                        type="checkbox" id="Ie" value="{{$cadastro->Bloqueio??null}}">
+                </div>
+            </div>
+
+
+
             <div class="row mt-2">
                 <div class="col-6">
                     <button class="btn btn-primary">Salvar</button>
