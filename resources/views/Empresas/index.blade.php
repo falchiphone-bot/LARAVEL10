@@ -76,7 +76,7 @@
                                 <tbody>
                                     @foreach ($cadastros as $cadastro)
                                         <tr>
-                                            <td class="">
+                                           <td class="">
                                                 <a href="{{ route('planocontas.autenticar', $cadastro->EmpresaID) }}">
                                                     {{ $cadastro->Descricao }}
                                                 </a>
@@ -84,15 +84,17 @@
                                             <td class="">
                                                 {{ $cadastro->Cnpj }}
                                             </td>
+
                                             <td class="">
                                                 {{ $cadastro->Bloqueio }}
                                             </td>
                                             <td class="">
                                                 {{ $cadastro->Bloqueiodataanterior?->format('d/m/Y') }}
                                             </td>
+
                                             @can('EMPRESAS - EDITAR')
                                                 <td>
-                                                    <a href="{{ route('Empresas.edit', $cadastro->ID) }}"
+                                                    <a href="{{ route('Empresas.edit', $cadastro->EmpresaID) }}"
                                                         class="btn btn-success" tabindex="-1" role="button"
                                                         aria-disabled="true">Editar</a>
                                                 </td>
