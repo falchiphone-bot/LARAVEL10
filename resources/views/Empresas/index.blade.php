@@ -65,6 +65,7 @@
                                     <tr>
                                         <th scope="col" class="px-6 py-4">DESCRIÇÃO</th>
                                         <th scope="col" class="px-6 py-4">CNPJ</th>
+                                        <th scope="col" class="px-6 py-4">CRIADO EM</th>
                                         <th scope="col" class="px-6 py-4">BLOQUEIO</th>
                                         <th scope="col" class="px-6 py-4">BLOQUEIO DE DATAS ANTERIORES</th>
                                         <th scope="col" class="px-6 py-4"></th>
@@ -83,6 +84,10 @@
                                             </td>
                                             <td class="">
                                                 {{ $cadastro->Cnpj }}
+                                            </td>
+
+                                            <td class="">
+                                             {{ $cadastro->Created   }}
                                             </td>
 
                                             <td class="">
