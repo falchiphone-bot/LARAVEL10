@@ -11,6 +11,11 @@
 
 
             <div class="card">
+
+                <div class="badge bg-warning text-wrap" style="width: 100%; color: blue;">
+                    PESQUISA AVANÇADA EM LANÇAMENTOS CONTÁBEIS
+                </div>
+
                 @if (session('success'))
                     <div class="alert alert-success">
                         {{ session('success') }}
@@ -20,9 +25,7 @@
                         {{ session('error') }}
                     </div>
                 @endif
-                <div class="badge bg-warning text-wrap" style="width: 100%; color: blue;">
-                    PESQUISA AVANÇADA EM LANÇAMENTOS CONTÁBEIS
-                </div>
+
 
                 {{-- @cannot('PLANO DE CONTAS - LISTAR')
                     <li>

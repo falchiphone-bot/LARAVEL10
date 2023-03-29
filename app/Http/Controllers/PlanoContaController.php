@@ -51,11 +51,13 @@ class PlanoContaController extends Controller
 
         $retorno = $Request->all();
 
-        // if ($DataConvertidaDataAntes > $DataConvertidaDataApos)
-        // {
-        //     $pesquisa = Lancamento::Limit(1)->get();
-        //     return view('PlanoContas.pesquisaavancada', compact('pesquisa', 'retorno'))->with('error', 'Data de início menor que a final. VERIFIQUE!');
-        // }
+        if ($DataConvertidaDataAntes > $DataConvertidaDataApos)
+        {
+            $pesquisa = Lancamento::Limit(1)
+            ->orderBy('Lancamentos.ID', 'desc')
+            ->get();
+            return view('PlanoContas.pesquisaavancada', compact('pesquisa', 'retorno'))->with('error', 'Data de início menor que a final. VERIFIQUE!');
+        }
 
         $pesquisa = Lancamento::Limit($Request->Limite)
             ->join('Contabilidade.EmpresasUsuarios', 'Lancamentos.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
