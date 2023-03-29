@@ -48,9 +48,12 @@ Route::middleware('auth')->group(function () {
     Route::resource('ModelodeFuncoes',App\Http\Controllers\Model_has_RoleController::class);
 
     #PlanoContas
+    Route::get('PlanoContas/pesquisaavancada',[App\Http\Controllers\PlanoContaController::class,'pesquisaavancada'])->name('planocontas.pesquisaavancada');
+    Route::post('PlanoContas/pesquisaavancada',[App\Http\Controllers\PlanoContaController::class,'pesquisaavancadapost'])->name('planocontas.pesquisaavancada.post');
     Route::get('PlanoContas/autenticar/{EmpresaID}',[App\Http\Controllers\EmpresaController::class,'autenticar'])->name('planocontas.autenticar');
     Route::get('PlanoContas/dashboard',[App\Http\Controllers\PlanoContaController::class,'dashboard'])->name('planocontas.dashboard');
     Route::resource('PlanoContas',App\Http\Controllers\PlanoContaController::class);
+
 
     #Contas
     Route::get('Contas/Extrato/{contaID}',[App\Http\Controllers\ContaController::class,'extrato']);

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\PlanoContasCreateRequest;
 use App\Models\Conta;
+use App\Models\Empresa;
+use App\Models\Lancamento;
 use App\Models\PlanoConta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -17,6 +19,7 @@ class PlanoContaController extends Controller
         $this->middleware(['permission:PLANO DE CONTAS - INCLUIR'])->only(['create', 'store']);
         $this->middleware(['permission:PLANO DE CONTAS - EDITAR'])->only(['edit', 'update']);
         $this->middleware(['permission:PLANO DE CONTAS - EXCLUIR'])->only('destroy');
+        $this->middleware(['permission:PESQUISA AVANCADA'])->only('pesquisaavancada');
     }
     /**public function __construct()
     {
@@ -26,10 +29,43 @@ class PlanoContaController extends Controller
     /**
      * Display a listing of the resource.
      */
+    public function pesquisaavancada()
+    {
+
+        $pesquisa = Lancamento::Limit(100)->orderBy("ID", 'desc')->get();
+
+        return view('PlanoContas.pesquisaavancada', compact('pesquisa', 'linhas'));
+    }
+
+    public function pesquisaavancadapost(Request $Request)
+    {
+
+        $retorno = $Request->all();
+
+        $pesquisa = Lancamento::Limit(100)->orderBy("ID", 'desc');
+
+        if($Request->Texto)
+        {
+            $pesquisa->where('Descricao',"like","%".$Request->Texto."%");
+
+        }
+        if($Request->Valor)
+        {
+            $pesquisa->where('Valor',"=",$Request->Valor);
+        }
+
+        $pesquisa = $pesquisa->get();
+
+
+        return view('PlanoContas.pesquisaavancada', compact('pesquisa', "retorno"));
+    }
+
+
+
     public function dashboard()
     {
         if (!session('Empresa')) {
-            return redirect('/Empresas')->with('error','Necesserário selecionar uma empresa');
+            return redirect('/Empresas')->with('error','Necessário selecionar uma empresa');
         }else{
             $contasEmpresa = Conta::where('EmpresaID',session('Empresa')->ID)
             ->join('Contabilidade.PlanoContas','PlanoContas.ID','=','Contas.planocontas_id')
@@ -48,8 +84,6 @@ class PlanoContaController extends Controller
         //$cadastros = DB::table('PlanoConta')->get();        $num_rows = count($cadastros);
 
         $linhas = count($cadastros);
-
-        //  return view('PlanoContas.index',compact('cadastros'));
 
         return view('PlanoContas.index', compact('cadastros', 'linhas'));
     }
