@@ -1,6 +1,6 @@
    @csrf
     <div class="card">
-        <div class="card-body">
+        <div class="card-body" style="background-color: green">
             <div class="row">
                 <div class="col-6">
                     <label for="nome">DESCRIÇÃO</label>
@@ -32,9 +32,13 @@
             </div>
             <div class="row">
                 <div class="col-6">
-                    <label for="ie">BLOQUEADA</label>
-                    <input class="form-control" name="Bloqueio"
-                        type="checkbox" id="Ie" value="{{$cadastro->Bloqueio??null}}">
+                    <div class="form-check">
+                        <label class="form-check-label" for="flexCheckDefault">
+                          BLOQUEADA
+                        </label>
+                        <input type="hidden" name="Bloqueio" value="0">
+                        <input class="form-check-input" name="Bloqueio" type="checkbox" @if($cadastro->Bloqueio) checked @endif value="1" id="flexCheckDefault">
+                    </div>
                 </div>
             </div>
 

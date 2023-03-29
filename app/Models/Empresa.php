@@ -22,6 +22,7 @@ class Empresa extends Model
 
     protected $casts = [
         'Bloqueiodataanterior' => 'date',
+        'Created' => 'datetime',
     ];
 
     public $timestamps = false;

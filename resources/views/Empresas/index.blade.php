@@ -87,11 +87,15 @@
                                             </td>
 
                                             <td class="">
-                                             {{ $cadastro->Created   }}
+                                             {{ $cadastro->Created->format('d/m/Y H:i:s')   }}
                                             </td>
 
                                             <td class="">
-                                                {{ $cadastro->Bloqueio }}
+                                                @if ($cadastro->Bloqueio)
+                                                Sim
+                                                @else
+                                                Não
+                                                @endif
                                             </td>
                                             <td class="">
                                                 {{ $cadastro->Bloqueiodataanterior?->format('d/m/Y') }}
