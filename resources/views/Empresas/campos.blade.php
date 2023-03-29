@@ -1,10 +1,12 @@
    @csrf
     <div class="card">
-        <div class="card-body" style="background-color: green">
+        <div class="card-body" style="background-color: rgb(33, 244, 33)">
             <div class="row">
                 <div class="col-6">
-                    <label for="nome">DESCRIÇÃO</label>
-                    <input class="form-control @error('Descricao') is-invalid @else is-valid @enderror" name="Descricao"
+
+                    <label for="nome" style="color: white;">DESCRIÇÃO
+
+                    <input class="form-control @error('Descricao') is-invalid @else is-valid @enderror" name="Descricao" size="70"
                         type="text" id="Descricao" value="{{$cadastro->Descricao??null}}">
                     @error('nome')
                         <div class="alert alert-danger">{{ $message }}</div>
@@ -14,8 +16,9 @@
             </div>
             <div class="row">
                 <div class="col-6">
-                    <label for="cnpj">CNPJ</label>
-                    <input class="form-control @error('Cnpj') is-invalid @else is-valid @enderror" name="Cnpj"
+                    <label for="nome" style="color: white;">CNPJ
+
+                    <input class="form-control @error('Cnpj') is-invalid @else is-valid @enderror" name="Cnpj" size="30"
                         type="text" id="Cnpj" value="{{$cadastro->Cnpj??null}}">
                         @error('Cnpj')
                         <div class="alert alert-danger">{{ $message }}</div>
@@ -25,15 +28,17 @@
 
             <div class="row">
                 <div class="col-6">
-                    <label for="ie">INSCRIÇÃO ESTADUAL</label>
-                    <input class="form-control" name="Ie"
+
+                    <label for="nome" style="color: white;">INSCRIÇÃO ESTADUAL
+
+                    <input class="form-control" name="Ie" size="30"
                         type="text" id="Ie" value="{{$cadastro->Ie??null}}">
                 </div>
             </div>
             <div class="row">
                 <div class="col-6">
                     <div class="form-check">
-                        <label class="form-check-label" for="flexCheckDefault">
+                        <label class="form-check-label"  style="color: white" for="flexCheckDefault">
                           BLOQUEADA
                         </label>
                         <input type="hidden" name="Bloqueio" value="0">

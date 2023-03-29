@@ -8,9 +8,13 @@
               <li class="breadcrumb-item active" aria-current="page">edit</li>
             </ol>
           </nav> --}}
-  
-        <div class="card">
-        <h1 class="text-center">Edição da empresa</h1>
+
+          <div class="card-body" style="background-color: yellow">
+
+            <div class="badge bg-warning text-wrap" style="width: 100%; color: blue;">
+
+            EDIÇÃO DO CADASTRO DA EMPRESA: {{ $cadastro->Descricao }}
+        </div>
 <hr>
 @if ($errors->any())
     <div class="alert alert-danger">

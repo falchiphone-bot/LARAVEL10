@@ -10,8 +10,8 @@
           </nav> --}}
 
             <div class="card">
-                <div class="card-header">
-                    Empresas
+                <div class="badge bg-primary text-wrap" style="width: 100%;">
+                    EMPRESAS DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
                 </div>
 
 
@@ -27,9 +27,13 @@
                     @endif
 
                     <div class="card-header">
-                        <p>Total de empresas: {{ $linhas }}</p>
+                        <p>Total de empresas cadastradas no sistema de gerenciamento administrativo e contábil:
+                            {{ $linhas }}</p>
                     </div>
-                    <table class="table">
+
+
+                    <table class="table" style="background-color: yellow;">
+
                         <thead>
 
                             <tr>
@@ -55,61 +59,62 @@
                             </tr>
                         </thead>
 
-                        <tbody>
+            </div>
+
+            <tbody>
 
 
 
 
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th scope="col" class="px-6 py-4">DESCRIÇÃO</th>
-                                        <th scope="col" class="px-6 py-4">CNPJ</th>
-                                        <th scope="col" class="px-6 py-4">CRIADO EM</th>
-                                        <th scope="col" class="px-6 py-4">BLOQUEIO</th>
-                                        <th scope="col" class="px-6 py-4">BLOQUEIO DE DATAS ANTERIORES</th>
-                                        <th scope="col" class="px-6 py-4"></th>
-                                        <th scope="col" class="px-6 py-4"></th>
-                                        <th scope="col" class="px-6 py-4"></th>
-                                    </tr>
-                                </thead>
+                <table class="table" style="background-color: rgb(247, 247, 213);">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="px-6 py-4">DESCRIÇÃO</th>
+                            <th scope="col" class="px-6 py-4">CNPJ</th>
+                            <th scope="col" class="px-6 py-4">CRIADO EM</th>
+                            <th scope="col" class="px-6 py-4">BLOQUEIO</th>
+                            <th scope="col" class="px-6 py-4">BLOQUEIO DE DATAS ANTERIORES</th>
+                            <th scope="col" class="px-6 py-4"></th>
+                            <th scope="col" class="px-6 py-4"></th>
+                            <th scope="col" class="px-6 py-4"></th>
+                        </tr>
+                    </thead>
 
-                                <tbody>
-                                    @foreach ($cadastros as $cadastro)
-                                        <tr>
-                                           <td class="">
-                                                <a href="{{ route('planocontas.autenticar', $cadastro->EmpresaID) }}">
-                                                    {{ $cadastro->Descricao }}
-                                                </a>
-                                            </td>
-                                            <td class="">
-                                                {{ $cadastro->Cnpj }}
-                                            </td>
+                    <tbody>
+                        @foreach ($cadastros as $cadastro)
+                            <tr>
+                                <td class="">
+                                    <a href="{{ route('planocontas.autenticar', $cadastro->EmpresaID) }}">
+                                        {{ $cadastro->Descricao }}
+                                    </a>
+                                </td>
+                                <td class="">
+                                    {{ $cadastro->Cnpj }}
+                                </td>
 
-                                            <td class="">
-                                             {{ $cadastro->Created->format('d/m/Y H:i:s')   }}
-                                            </td>
+                                <td class="">
+                                    {{ $cadastro->Created->format('d/m/Y H:i:s') }}
+                                </td>
 
-                                            <td class="">
-                                                @if ($cadastro->Bloqueio)
-                                                Sim
-                                                @else
-                                                Não
-                                                @endif
-                                            </td>
-                                            <td class="">
-                                                {{ $cadastro->Bloqueiodataanterior?->format('d/m/Y') }}
-                                            </td>
+                                <td class="">
+                                    @if ($cadastro->Bloqueio)
+                                        Sim
+                                    @else
+                                        Não
+                                    @endif
+                                </td>
+                                <td class="">
+                                    {{ $cadastro->Bloqueiodataanterior?->format('d/m/Y') }}
+                                </td>
 
-                                            @can('EMPRESAS - EDITAR')
-                                                <td>
-                                                    <a href="{{ route('Empresas.edit', $cadastro->EmpresaID) }}"
-                                                        class="btn btn-success" tabindex="-1" role="button"
-                                                        aria-disabled="true">Editar</a>
-                                                </td>
-                                            @endcan
+                                @can('EMPRESAS - EDITAR')
+                                    <td>
+                                        <a href="{{ route('Empresas.edit', $cadastro->EmpresaID) }}" class="btn btn-success"
+                                            tabindex="-1" role="button" aria-disabled="true">Editar</a>
+                                    </td>
+                                @endcan
 
-                                            {{-- <td>
+                                {{-- <td>
                                 <a href="{{ route('Empresas.show', $cadastro->ID) }}" class="btn btn-info"
                                 tabindex="-1" role="button" aria-disabled="true">Ver</a>
                                 </td>
@@ -124,15 +129,15 @@
                                     </form>
 
                                 </td> --}}
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                </div>
-            </div>
-
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
         </div>
-        <div class="b-example-divider"></div>
+    </div>
+
+    </div>
+    <div class="b-example-divider"></div>
     </div>
 @endsection
 
