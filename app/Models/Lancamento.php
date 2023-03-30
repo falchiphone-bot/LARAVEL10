@@ -34,4 +34,14 @@ class Lancamento extends Model
     protected $casts = [
         'DataContabilidade' => 'date',
     ];
+
+    /**
+     * Get the Empresa associated with the Lancamento
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function Empresa(): HasOne
+    {
+        return $this->hasOne(Empresa::class, 'ID', 'EmpresaID');
+    }
 }

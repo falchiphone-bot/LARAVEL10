@@ -16,18 +16,12 @@
                     PESQUISA AVANÇADA EM LANÇAMENTOS CONTÁBEIS
                 </div>
 
-                @if (session('success'))
-                    <div class="alert alert-danger">
 
-                        {{ session('success') }}
-                    </div> --}}
-                @endif
-                {{-- @if (session('error'))
+                @if (session('error'))
                     <div class="alert alert-danger">
-
                         {{ session('error') }}
                     </div>
-                @endif --}}
+                @endif
 
 
                 {{-- @cannot('PLANO DE CONTAS - LISTAR')
@@ -51,16 +45,6 @@
 
                 <form method="POST" action="{{ route('planocontas.pesquisaavancada.post') }}" accept-charset="UTF-8">
                     @csrf
-                    <div class="card">
-                        <div class="card-body" style="background-color: red">
-                        <div class="col-12">
-                            <label for="DataInicialFinal" style="color: red;">
-                                <input class="form-control "
-                                    name="DataInicialFinal" size="100" type="text" step="1"
-                                    id="DataInicialFinal" value="{{ $retorno['0'] ?? '' }}">
-                        </div>
-                    </div>
-                    </div>
 
                         <div class="card">
                             <div class="card-body" style="background-color: rgb(33, 244, 33)">
@@ -87,13 +71,8 @@
                                             <input
                                                 class="form-control @error('DataInicial') is-invalid @else is-valid @enderror"
                                                 name="DataInicial" size="70" type="date" step="1"
-                                                id="DataInicial" value="{{ $retorno['DataInicial'] ?? null }}">
+                                                id="DataInicial" value="{{ $retorno['DataInicial'] ?? null  }}">
                                     </div>
-
-
-
-
-
 
                                     <div class="col-6">
 
@@ -101,7 +80,7 @@
                                             <input
                                                 class="form-control @error('DataFinal') is-invalid @else is-valid @enderror"
                                                 name="DataFinal" size="70" type="date" step="1" id="DataFinal"
-                                                value="{{ $retorno['DataFinal'] ?? 'null' }}">
+                                                value="{{ $retorno['DataFinal'] ?? null }}">
                                     </div>
 
                                     <div class="col-6">
@@ -137,6 +116,7 @@
                         <th>DATA</th>
                         <th>LANCAMENTO</th>
                         <th>VALOR</th>
+                        <th>EMPRESA</th>
                     </tr>
                     @foreach ($pesquisa as $cadastro)
                         <tr>
@@ -151,6 +131,9 @@
 
                                 {{ number_format($cadastro->Valor, 2, ',', '.') }}
 
+                            </td>
+                            <td style="padding-left: 10px; Color:black; font-size: 18px;">
+                                {{ $cadastro->Empresa->Descricao }}
                             </td>
                         </tr>
                     @endforeach
