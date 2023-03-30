@@ -17,14 +17,17 @@
                 </div>
 
                 @if (session('success'))
-                    <div class="alert alert-success">
-                        {{ session('success') }}
-                    </div>
-                @elseif (session('error'))
                     <div class="alert alert-danger">
+
+                        {{ session('success') }}
+                    </div> --}}
+                @endif
+                {{-- @if (session('error'))
+                    <div class="alert alert-danger">
+
                         {{ session('error') }}
                     </div>
-                @endif
+                @endif --}}
 
 
                 {{-- @cannot('PLANO DE CONTAS - LISTAR')
@@ -49,55 +52,76 @@
                 <form method="POST" action="{{ route('planocontas.pesquisaavancada.post') }}" accept-charset="UTF-8">
                     @csrf
                     <div class="card">
-                        <div class="card-body" style="background-color: rgb(33, 244, 33)">
-                            <div class="row">
-                                <div class="col-6">
-
-                                    <label for="Texto" style="color: black;">Texto a pesquisar
-                                        <input class="form-control @error('Descricao') is-invalid @else is-valid @enderror"
-                                            name="Texto" size="70" type="text" id="Texto"
-                                            value="{{ $retorno['Texto'] ?? null }}">
-                                </div>
-                                <div class="col-6">
-
-                                    <label for="Valor" style="color: black;">Valor a pesquisar
-                                        <input class="form-control @error('Valor') is-invalid @else is-valid @enderror"
-                                            name="Valor" size="70" type="number" step="0.01" id="Valor"
-                                            value="{{ $retorno['Valor'] ?? null }}">
-                                </div>
-
-                                <div class="col-6">
-
-                                    <label for="DataApos" style="color: black;">Consulta após a data
-                                        <input class="form-control @error('DataApoos') is-invalid @else is-valid @enderror"
-                                            name="DataApos" size="70" type="date" step="1" id="DataApos"
-                                            value="{{ $retorno['DataApos'] ?? null }}">
-                                </div>
-                                <div class="col-6">
-
-                                    <label for="DataAntes" style="color: black;">Consulta antes da data
-                                        <input class="form-control @error('DataAntes') is-invalid @else is-valid @enderror"
-                                            name="DataAntes" size="70" type="date" step="1" id="DataAntes"
-                                            value="{{ $retorno['DataAntes'] ?? null }}">
-                                </div>
-
-                                <div class="col-6">
-
-                                    <label for="Limite" style="color: black;">Limite de registros para retorno
-                                        <input class="form-control @error('limite') is-invalid @else is-valid @enderror"
-                                            name="Limite" size="70" type="number" step="1" id="Limite"
-                                            value="{{ $retorno['Limite'] ?? null }}">
-                                </div>
-                            </div>
-                            <div class="row mt-2">
-                                <div class="col-6">
-                                    <button class="btn btn-primary">Pesquisar</button>
-
-                                </div>
-                            </div>
+                        <div class="card-body" style="background-color: red">
+                        <div class="col-12">
+                            <label for="DataInicialFinal" style="color: red;">
+                                <input class="form-control "
+                                    name="DataInicialFinal" size="100" type="text" step="1"
+                                    id="DataInicialFinal" value="{{ $retorno['0'] ?? '' }}">
                         </div>
-
                     </div>
+                    </div>
+
+                        <div class="card">
+                            <div class="card-body" style="background-color: rgb(33, 244, 33)">
+                                <div class="row">
+                                    <div class="col-6">
+
+                                        <label for="Texto" style="color: black;">Texto a pesquisar
+                                            <input
+                                                class="form-control @error('Descricao') is-invalid @else is-valid @enderror"
+                                                name="Texto" size="70" type="text" id="Texto"
+                                                value="{{ $retorno['Texto'] ?? null }}">
+                                    </div>
+                                    <div class="col-6">
+
+                                        <label for="Valor" style="color: black;">Valor a pesquisar
+                                            <input class="form-control @error('Valor') is-invalid @else is-valid @enderror"
+                                                name="Valor" size="70" type="number" step="0.01" id="Valor"
+                                                value="{{ $retorno['Valor'] ?? null }}">
+                                    </div>
+
+                                    <div class="col-6">
+
+                                        <label for="DataInicial" style="color: black;">Consulta após a data inicial
+                                            <input
+                                                class="form-control @error('DataInicial') is-invalid @else is-valid @enderror"
+                                                name="DataInicial" size="70" type="date" step="1"
+                                                id="DataInicial" value="{{ $retorno['DataInicial'] ?? null }}">
+                                    </div>
+
+
+
+
+
+
+                                    <div class="col-6">
+
+                                        <label for="DataFinal" style="color: black;">Consulta antes da data final
+                                            <input
+                                                class="form-control @error('DataFinal') is-invalid @else is-valid @enderror"
+                                                name="DataFinal" size="70" type="date" step="1" id="DataFinal"
+                                                value="{{ $retorno['DataFinal'] ?? 'null' }}">
+                                    </div>
+
+                                    <div class="col-6">
+
+                                        <label for="Limite" style="color: black;">Limite de registros para retorno
+                                            <input class="form-control @error('limite') is-invalid @else is-valid @enderror"
+                                                name="Limite" size="70" type="number" step="1" id="Limite"
+                                                value="{{ $retorno['Limite'] ?? null }}">
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-6">
+                                        <button class="btn btn-primary">Pesquisar conforme informações constantes do
+                                            formulário</button>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
 
 
 

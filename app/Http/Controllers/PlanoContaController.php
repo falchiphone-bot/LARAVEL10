@@ -40,23 +40,38 @@ class PlanoContaController extends Controller
             ->Where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
             ->orderBy('Lancamentos.ID', 'desc')
             ->get();
-
+        // $retorno[0] = "";
         return view('PlanoContas.pesquisaavancada', compact('pesquisa'));
     }
 
     public function pesquisaavancadapost(Request $Request)
     {
-        $DataConvertidaDataApos = Carbon::createFromFormat('Y-m-d', $Request->DataApos)->format('d/m/Y');
-        $DataConvertidaDataAntes = Carbon::createFromFormat('Y-m-d', $Request->DataAntes)->format('d/m/Y');
+        $CompararDataInicial = $Request->DataInicial;
+        $DataInicial = Carbon::createFromFormat('Y-m-d', $Request->DataInicial)->format('d/m/Y');
+        $CompararDataFinal = $Request->DataFinal;
+        $DataFinal = Carbon::createFromFormat('Y-m-d', $Request->DataFinal)->format('d/m/Y');
 
         $retorno = $Request->all();
+        $DataInicialFinal = $Request->DataInicialFinal;
 
-        if ($DataConvertidaDataAntes > $DataConvertidaDataApos)
-        {
+        // $validator = Validator::make($Request->all(), [
+        //     'DataConvertidaDataApos' => 'required|date',
+        //     'DataConvertidaDataAntes' => 'required|date|after_or_equal:DataConvertidaDataApos',
+        // ]);
+
+        // $retorno[0]= null;
+
+        if ($CompararDataInicial > $CompararDataFinal) {
             $pesquisa = Lancamento::Limit(1)
-            ->orderBy('Lancamentos.ID', 'desc')
-            ->get();
-            return view('PlanoContas.pesquisaavancada', compact('pesquisa', 'retorno'))->with('error', 'Data de início menor que a final. VERIFIQUE!');
+                ->orderBy('Lancamentos.ID', 'desc')
+                ->get();
+            // return back()->with('status', "Data de início menor que a final. VERIFIQUE!");
+
+            $DataInicialFinal = 'Data de início MAIOR que a final. VERIFIQUE!';
+            $retorno[0] = $DataInicialFinal;
+
+            return view('PlanoContas.pesquisaavancada', compact('pesquisa', 'retorno'))->with('success', 'Data de início MAIOR que a final. VERIFIQUE!');;
+            // ->with('error', 'Data de início menor que a final. VERIFIQUE!');
         }
 
         $pesquisa = Lancamento::Limit($Request->Limite)
@@ -70,11 +85,11 @@ class PlanoContaController extends Controller
         if ($Request->Valor) {
             $pesquisa->where('Valor', '=', $Request->Valor);
         }
-        if ($Request->DataApos) {
-            $pesquisa->where('DataContabilidade', '>=', $DataConvertidaDataApos);
+        if ($Request->DataInicial) {
+            $pesquisa->where('DataContabilidade', '>=', $DataInicial);
         }
-        if ($Request->DataAntes) {
-            $pesquisa->where('DataContabilidade', '<=', $DataConvertidaDataAntes);
+        if ($Request->DataFinal) {
+            $pesquisa->where('DataContabilidade', '<=', $DataFinal);
         }
 
         $pesquisa = $pesquisa->get();
