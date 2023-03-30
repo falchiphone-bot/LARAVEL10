@@ -19,6 +19,7 @@ class PlanoContaController extends Controller
 {
     public function __construct()
     {
+        $this->middleware('auth');
         $this->middleware(['permission:PLANO DE CONTAS - LISTAR'])->only('index');
         $this->middleware(['permission:PLANO DE CONTAS - INCLUIR'])->only(['create', 'store']);
         $this->middleware(['permission:PLANO DE CONTAS - EDITAR'])->only(['edit', 'update']);
@@ -59,7 +60,7 @@ class PlanoContaController extends Controller
             ->join('Contabilidade.EmpresasUsuarios', 'Lancamentos.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
             ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', '=', 'Lancamentos.HistoricoID')
             ->Where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
-            ->select(["Lancamentos.ID","DataContabilidade","Lancamentos.Descricao","Lancamentos.EmpresaID","Lancamentos.Valor","Historicos.Descricao as DescricaoHistorico"])
+            ->select(["Lancamentos.ID","DataContabilidade","Lancamentos.Descricao","Lancamentos.EmpresaID","Contabilidade.Lancamentos.Valor","Historicos.Descricao as DescricaoHistorico"])
             ->orderBy('Lancamentos.ID', 'desc');
 
         if ($Request->Texto) {
@@ -70,7 +71,8 @@ class PlanoContaController extends Controller
         }
 
         if ($Request->Valor) {
-            $pesquisa->where('Valor', '=', $Request->Valor);
+            $pesquisa->where('Lancamentos.Valor', '=', $Request->Valor);
+          
         }
 
         if ($Request->DataInicial) {

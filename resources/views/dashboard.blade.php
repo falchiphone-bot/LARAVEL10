@@ -13,61 +13,82 @@
                             Opções para o sistema
                         </thead>
                         <tbody>
-                            <tr>
-                                <th>
-                                    @can('USUARIOS - LISTAR')
+
+                            @can('USUARIOS - LISTAR')
+                                <tr>
+                                    <th>
+
                                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                                             <a class="btn btn-primary" href="/Usuarios">Usuários</a>
                                         </nav>
-                                    @endcan
-                                </th>
 
-                            </tr>
-                            <tr>
-                                <th>
-                                    @can('PERMISSOES - LISTAR')
+                                    </th>
+
+                                </tr>
+                            @endcan
+
+                            
+                            @can('PERMISSOES - LISTAR')
+                                <tr>
+                                    <th>
+
                                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                                             <a class="btn btn-primary" href="/Permissoes">Permissões</a>
                                         </nav>
-                                    @endcan
-                                </th>
-                            </tr>
-                            <tr>
-                                <th>
-                                    @can('FUNCOES - LISTAR')
+
+                                    </th>
+                                </tr>
+                            @endcan
+
+
+                            @can('FUNCOES - LISTAR')
+                                <tr>
+                                    <th>
+
                                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                                             <a class="btn btn-primary" href="/Funcoes">Funcões</a>
-                                        @endcan
-                                </th>
-                            </tr>
-                            <tr>
-                                <th>
-                                    @can('PLANO DE CONTAS - LISTAR')
+
+                                    </th>
+                                </tr>
+                            @endcan
+
+
+                            @can('PLANO DE CONTAS - LISTAR')
+                                <tr>
+                                    <th>
+
                                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                                             <a class="btn btn-primary" href="/PlanoContas">Plano de contas padrão</a>
                                         </nav>
-                                    @endcan
-                                </th>
-                            </tr>
-                            <tr>
-                                <th>
-                                    @can('EMPRESAS - LISTAR')
+
+                                    </th>
+                                </tr>
+                            @endcan
+
+                            @can('EMPRESAS - LISTAR')
+                                <tr>
+                                    <th>
+
                                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                                             <a class="btn btn-primary" href="/Empresas">Empresas</a>
                                         </nav>
-                                    @endcan
-                                </th>
-                            <tr>
-                                <th>
-                                    @can('super-admin|PESQUISA AVANCADA')
+
+                                    </th>
+                                @endcan
+
+                                @can('PESQUISA AVANCADA')
+                                <tr>
+                                    <th>
+
                                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-primary" href="/PlanoContas/pesquisaavancada">Pesquisa avançada em lançamentos
+                                            <a class="btn btn-primary" href="/PlanoContas/pesquisaavancada">Pesquisa avançada em
+                                                lançamentos
                                                 contábeis</a>
                                         </nav>
-                                    @endcan
-                                </th>
-                            </tr>
 
+                                    </th>
+                                </tr>
+                            @endcan
 
                         </tbody>
                     </table>
