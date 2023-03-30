@@ -54,12 +54,13 @@
                 <div class="row">
                     <div class="form-group col-sm-12 col-md-3">
                         <label for="de" class="pr-1  form-control-label">De</label>
-                        <input type="date" value="" id="de" name="De" wire:model='De' class="required form-control " autocomplete="off">
+                        <input type="date" value="" id="de" name="De"
+                        wire:model='De' class="required form-control " autocomplete="off">
                     </div>
                     <div class="form-group col-sm-12 col-md-3">
                         <label for="ate" class="px-1  form-control-label">Até</label>
                         <input type="date" value="" id="ate" name="Ate" placeholder="Buscar até"
-                            wire:model.lazy='Ate' class="required form-control " autocomplete="off">
+                            wire:model='Ate' class="required form-control " autocomplete="off">
                     </div>
                     <div class="form-group col-sm-12 col-md-3">
                         <label for="ate" class="px-1  form-control-label">Conferido</label>
@@ -81,7 +82,7 @@
                 <div class="row">
                     <div class="form-group col-sm-12 col-md-3">
                         <label for="de" class="pr-1  form-control-label">Buscar Descrição</label>
-                        <input type="text" value="" id="descricao" class="form-control" autocomplete="off" wire:model.defer='Descricao'>
+                        <input type="text" value="" id="descricao" class="form-control" autocomplete="off" wire:model.debounce.800ms='Descricao'>
                     </div>
                     <div class="form-group col-sm-12 col-md-3">
                         <label for="de" class="pr-1  form-control-label">A partir De:</label>
@@ -144,7 +145,7 @@
         </div>
         <div class="card-header">
             <div class="form-group col md-12">
-                <h3 class="content">Resultado de {{ $De }} até {{ $Ate }}</h3>
+                <h3 class="content"> {{ $exibicao_pesquisa }}</h3>
             </div>
         </div>
         <div class="card-body result">
@@ -169,7 +170,10 @@
                     </tr>
                 </thead>
                 <tbody>
-
+                    @php
+                    $totalDebito = 0;
+                    $totalCredito = 0;
+                    @endphp
                     @foreach ($Lancamentos as $lancamento)
                         <tr data-tipo="+">
                             <td class="td-alterar-data"> {{ $lancamento->DataContabilidade->format('d/m/Y') }} </td>
@@ -187,11 +191,13 @@
                             <td>
                                 @if ($Conta->ID == $lancamento->ContaDebitoID)
                                     {{ $lancamento->Valor }}
+                                    @php($totalDebito += $lancamento->Valor)
                                 @endif
                             </td>
-                            <td>R
+                            <td>
                                 @if ($Conta->ID == $lancamento->ContaCreditoID)
                                     {{ $lancamento->Valor }}
+                                    @php($totalCredito += $lancamento->Valor)
                                 @endif
                             </td>
                             <td class="actions">
@@ -240,10 +246,10 @@
                         <th></th>
                         <th></th>
                         <th></th>
-                        <th id="totaldebito">R$ 24.072,77</th>
-                        <th id="totalcredito">R$ 13.617,02</th>
+                        <th id="totaldebito">R$ {{ $totalDebito}}</th>
+                        <th id="totalcredito">R$ {{ $totalCredito }}</th>
                         <th>=</th>
-                        <th id="total">R$ -14.832,50</th>
+                        <th id="total">R$ {{ $total = $totalDebito - $totalCredito }}</th>
                     </tr>
                 </thead>
 

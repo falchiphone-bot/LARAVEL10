@@ -44,4 +44,24 @@ class Lancamento extends Model
     {
         return $this->hasOne(Empresa::class, 'ID', 'EmpresaID');
     }
+
+    /**
+     * Get the ContaDebito associated with the Lancamento
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function ContaDebito(): HasOne
+    {
+        return $this->hasOne(Conta::class, 'ID', 'ContaDebitoID');
+    }
+
+    /**
+     * Get the ContaCredito associated with the Lancamento
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function ContaCredito(): HasOne
+    {
+        return $this->hasOne(Conta::class, 'ID', 'ContaCreditoID');
+    }
 }

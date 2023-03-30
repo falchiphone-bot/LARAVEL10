@@ -20,25 +20,28 @@ class Extrato extends Component
     public $Conferido;
     public $Notificacao;
     public $DataBloqueio;
+    public $exibicao_pesquisa;
 
 
     public function mount($contaID)
     {
+        $this->De = date('Y-m-d');
+        $this->Ate = date('Y-m-d');
         $this->Conta = Conta::find($contaID);
 
         $lancamentos = Lancamento::where(function ($query) use ($contaID) {
             return $query->where('ContaDebitoID',$contaID)->orWhere('ContaCreditoID',$contaID);
         })->where('DataContabilidade',date('d/m/Y'));
 
-        $this->Lancamentos = $lancamentos->get();
+        $this->Lancamentos = $lancamentos->orderBy('DataContabilidade')->get();
     }
 
-    public function hydrate()
+    public function updated()
     {
         $contaID = $this->Conta->ID;
         $lancamentos = Lancamento::where(function ($query) use ($contaID) {
             return $query->where('ContaDebitoID',$contaID)->orWhere('ContaCreditoID',$contaID);
-        })->where('DataContabilidade',date('d/m/Y'));
+        });
 
         if($this->De){
             $de = Carbon::createFromFormat('Y-m-d',$this->De)->format('d/m/Y');
@@ -48,8 +51,12 @@ class Extrato extends Component
             $ate = Carbon::createFromFormat('Y-m-d',$this->Ate)->format('d/m/Y');
             $lancamentos->where('DataContabilidade','<=',$ate);
         }
-        $this->Lancamentos = $lancamentos->get();
+        if($this->Descricao){
+            $lancamentos->where('Descricao','like',"%$this->Descricao%");
+        }
+        $this->Lancamentos = $lancamentos->orderBy('DataContabilidade')->get();
     }
+
 
     public function render()
     {
