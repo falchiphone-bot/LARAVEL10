@@ -136,6 +136,14 @@
                                 {{ $cadastro->Empresa->Descricao }}
                             </td>
                         </tr>
+                        <tr>
+                            <td style="padding-left: 10px; Color:blue; font-size: 18px;" align="right">
+
+                                {{ $cadastro->Lancamentos->ContaDebitoID->Conta->ID->PlanoConta->Descricao ?? "" }}
+
+                            </td>
+                        </tr>
+
                     @endforeach
                 </table>
 
