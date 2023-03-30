@@ -139,7 +139,7 @@
                         <tr>
                             <td style="padding-left: 10px; Color:blue; font-size: 18px;" align="right">
 
-                                {{ $cadastro->Lancamentos->ContaDebitoID->Conta->ID->PlanoConta->Descricao ?? "" }}
+                                {{ $cadastro->ContaDebito->PlanoConta->Descricao ?? "" }}
 
                             </td>
                         </tr>
