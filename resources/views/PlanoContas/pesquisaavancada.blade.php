@@ -46,61 +46,78 @@
                 <form method="POST" action="{{ route('planocontas.pesquisaavancada.post') }}" accept-charset="UTF-8">
                     @csrf
 
-                        <div class="card">
-                            <div class="card-body" style="background-color: rgb(33, 244, 33)">
-                                <div class="row">
-                                    <div class="col-6">
+                    <div class="card">
+                        <div class="card-body" style="background-color: rgb(33, 244, 33)">
+                            <div class="row">
+                                <div class="col-6">
 
-                                        <label for="Texto" style="color: black;">Texto a pesquisar
-                                            <input
-                                                class="form-control @error('Descricao') is-invalid @else is-valid @enderror"
-                                                name="Texto" size="70" type="text" id="Texto"
-                                                value="{{ $retorno['Texto'] ?? null }}">
-                                    </div>
-                                    <div class="col-6">
-
-                                        <label for="Valor" style="color: black;">Valor a pesquisar
-                                            <input class="form-control @error('Valor') is-invalid @else is-valid @enderror"
-                                                name="Valor" size="30" type="number" step="0.01" id="Valor"
-                                                value="{{ $retorno['Valor'] ?? null }}">
-                                    </div>
-
-                                    <div class="col-6">
-
-                                        <label for="DataInicial" style="color: black;">Consulta após a data inicial
-                                            <input
-                                                class="form-control @error('DataInicial') is-invalid @else is-valid @enderror"
-                                                name="DataInicial" size="70" type="date" step="1"
-                                                id="DataInicial" value="{{ $retorno['DataInicial'] ?? null  }}">
-                                    </div>
-
-                                    <div class="col-6">
-
-                                        <label for="DataFinal" style="color: black;">Consulta antes da data final
-                                            <input
-                                                class="form-control @error('DataFinal') is-invalid @else is-valid @enderror"
-                                                name="DataFinal" size="70" type="date" step="1" id="DataFinal"
-                                                value="{{ $retorno['DataFinal'] ?? null }}">
-                                    </div>
-
-                                    <div class="col-6">
-
-                                        <label for="Limite" style="color: black;">Limite de registros para retorno
-                                            <input class="form-control @error('limite') is-invalid @else is-valid @enderror"
-                                                name="Limite" size="70" type="number" step="1" id="Limite"
-                                                value="{{ $retorno['Limite'] ?? null }}">
-                                    </div>
+                                    <label for="Texto" style="color: black;">Texto a pesquisar</label>
+                                    <input class="form-control @error('Descricao') is-invalid @else is-valid @enderror"
+                                        name="Texto" size="70" type="text" id="Texto"
+                                        value="{{ $retorno['Texto'] ?? null }}">
                                 </div>
-                                <div class="row mt-2">
-                                    <div class="col-6">
-                                        <button class="btn btn-primary">Pesquisar conforme informações constantes do
-                                            formulário</button>
+                                <div class="col-6">
 
-                                    </div>
+                                    <label for="Valor" style="color: black;">Valor a pesquisar</label>
+                                    <input class="form-control @error('Valor') is-invalid @else is-valid @enderror"
+                                        name="Valor" size="30" type="number" step="0.01" id="Valor"
+                                        value="{{ $retorno['Valor'] ?? null }}">
+                                </div>
+
+                                <div class="col-6">
+
+                                    <label for="DataInicial" style="color: black;">Consulta após a data inicial</label>
+                                    <input class="form-control @error('DataInicial') is-invalid @else is-valid @enderror"
+                                        name="DataInicial" size="70" type="date" step="1" id="DataInicial"
+                                        value="{{ $retorno['DataInicial'] ?? null }}">
+                                </div>
+
+                                <div class="col-6">
+
+                                    <label for="DataFinal" style="color: black;">Consulta antes da data final</label>
+                                    <input class="form-control @error('DataFinal') is-invalid @else is-valid @enderror"
+                                        name="DataFinal" size="70" type="date" step="1" id="DataFinal"
+                                        value="{{ $retorno['DataFinal'] ?? null }}">
+                                </div>
+
+                                <div class="col-6">
+
+                                    <label for="Limite" style="color: black;">Limite de registros para retorno</label>
+                                    <input class="form-control @error('limite') is-invalid @else is-valid @enderror"
+                                        name="Limite" size="70" type="number" step="1" id="Limite"
+                                        value="{{ $retorno['Limite'] ?? null }}">
+                                </div>
+
+
+                                <div class="col-6">
+                                    <label for="Limite" style="color: black;">Empresas permitidas para o usuário</label>
+                                    <select class="form-control select2" id="selEmpresa" name="EmpresaSelecionada">
+                                        <option value="">
+                                            Selecionar empresa
+                                        </option>
+                                        @foreach ($Empresas as $Empresa)
+                                            <option @if ($retorno['EmpresaSelecionada']  == $Empresa->ID) selected @endif
+                                                value="{{ $Empresa->ID }}">
+
+                                                {{ $Empresa->Descricao }}
+                                            </option>
+                                        @endforeach
+
+
+                                    </select>
+                                </div>
+
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-6">
+                                    <button class="btn btn-primary">Pesquisar conforme informações constantes do
+                                        formulário</button>
+
                                 </div>
                             </div>
-
                         </div>
+
+                    </div>
 
 
 
@@ -114,36 +131,48 @@
                     <tr>
 
                         <th>DATA</th>
-                        <th>LANCAMENTO</th>
+                        <th>DÉBITO</th>
+                        <th>CRÉDITO</th>
                         <th>VALOR</th>
+                        <th>LANCAMENTO</th>
                         <th>EMPRESA</th>
+
+
                     </tr>
-                    @foreach ($pesquisa as $cadastro)
+                    @foreach ($pesquisa as $lancamentos)
                         <tr>
                             <td>
-                                {{ $cadastro->DataContabilidade->format('d/m/Y') }}
+                                {{ $lancamentos->DataContabilidade->format('d/m/Y') }}
+                            </td>
+                            <td align="left">
+
+                                <a style="padding-left: 10px; Color:rgb(255, 0, 13); font-size: 18px;" href="/Contas/Extrato/{{ $lancamentos->ContaDebito->ID }}">
+                                    {{ $lancamentos->ContaDebito->PlanoConta->Descricao }}
+                                </a>
+                            </td>
+                            <td align="left">
+
+                                <a style="padding-left: 10px; Color:blue; font-size: 18px;" href="/Contas/Extrato/{{ $lancamentos->ContaCredito->ID }}">
+                                    {{ $lancamentos->ContaCredito->PlanoConta->Descricao }}
+                                </a>
+
                             </td>
 
+                            <td style="padding-left: 10px; Color:green; font-size: 18px;" align="right">
+
+                                {{ number_format($lancamentos->Valor, 2, ',', '.') }}
+
+                            </td>
                             <td style="padding-left: 10px; Color:black; font-size: 18px;">
-                                {{ $cadastro->DescricaoHistorico."  ".$cadastro->Descricao }}
-                            </td>
-                            <td style="padding-left: 10px; Color:blue; font-size: 18px;" align="right">
-
-                                {{ number_format($cadastro->Valor, 2, ',', '.') }}
-
+                                {{ $lancamentos->DescricaoHistorico . '  ' . $lancamentos->Descricao }}
                             </td>
                             <td style="padding-left: 10px; Color:black; font-size: 18px;">
-                                {{ $cadastro->Empresa->Descricao }}
+                                {{ $lancamentos->Empresa->Descricao }}
                             </td>
+
+
+
                         </tr>
-                        <tr>
-                            <td style="padding-left: 10px; Color:blue; font-size: 18px;" align="right">
-
-                                {{ $cadastro->ContaDebito->PlanoConta->Descricao ?? "" }}
-
-                            </td>
-                        </tr>
-
                     @endforeach
                 </table>
 

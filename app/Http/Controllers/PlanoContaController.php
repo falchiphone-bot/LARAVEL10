@@ -41,15 +41,21 @@ class PlanoContaController extends Controller
             ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', '=', 'Lancamentos.HistoricoID')
             ->Where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
             ->orderBy('Lancamentos.ID', 'desc')
-            ->select(["Lancamentos.ID","DataContabilidade","Lancamentos.Descricao","Lancamentos.EmpresaID","Lancamentos.Valor","Historicos.Descricao as DescricaoHistorico"])
+            ->select(["Lancamentos.ID","DataContabilidade","Lancamentos.Descricao","Lancamentos.EmpresaID","Lancamentos.Valor","Historicos.Descricao as DescricaoHistorico","Lancamentos.ContaDebitoID","Lancamentos.ContaCreditoID"])
             ->get();
             // dd($pesquisa->first());?
 
         session(['error' => '']);
         $retorno["DataInicial"] = date("Y-m-d");
         $retorno["DataFinal"] = date("Y-m-d");
+        $retorno['EmpresaSelecionada'] = null;
 
-        return view('PlanoContas.pesquisaavancada', compact('pesquisa',"retorno"));
+        $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+        ->where("EmpresasUsuarios.UsuarioID", Auth::user()->id)->OrderBy("Descricao")->select(["Empresas.ID","Empresas.Descricao"])->get();
+
+        return view('PlanoContas.pesquisaavancada', compact('pesquisa',"retorno","Empresas"));
+
+
     }
 
     public function pesquisaavancadapost(Request $Request)
@@ -60,7 +66,7 @@ class PlanoContaController extends Controller
             ->join('Contabilidade.EmpresasUsuarios', 'Lancamentos.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
             ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', '=', 'Lancamentos.HistoricoID')
             ->Where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
-            ->select(["Lancamentos.ID","DataContabilidade","Lancamentos.Descricao","Lancamentos.EmpresaID","Contabilidade.Lancamentos.Valor","Historicos.Descricao as DescricaoHistorico"])
+            ->select(["Lancamentos.ID","DataContabilidade","Lancamentos.Descricao","Lancamentos.EmpresaID","Contabilidade.Lancamentos.Valor","Historicos.Descricao as DescricaoHistorico","Lancamentos.ContaDebitoID","Lancamentos.ContaCreditoID"])
             ->orderBy('Lancamentos.ID', 'desc');
 
         if ($Request->Texto) {
@@ -72,7 +78,7 @@ class PlanoContaController extends Controller
 
         if ($Request->Valor) {
             $pesquisa->where('Lancamentos.Valor', '=', $Request->Valor);
-          
+
         }
 
         if ($Request->DataInicial) {
@@ -85,17 +91,29 @@ class PlanoContaController extends Controller
             $pesquisa->where('DataContabilidade', '<=', $DataFinal->format('d/m/Y'));
         }
 
+        $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+        ->where("EmpresasUsuarios.UsuarioID", Auth::user()->id)->OrderBy("Descricao")->select(["Empresas.ID","Empresas.Descricao"])->get();
+
         $retorno = $Request->all();
         session(['error' => '']);
         if ($Request->DataInicial && $Request->DataFinal) {
             if ($DataInicial > $DataFinal) {
                 session(['error' => 'Data de início MAIOR que a final. VERIFIQUE!']);
-                return view('PlanoContas.pesquisaavancada', compact('pesquisa', 'retorno'));
+                return view('PlanoContas.pesquisaavancada', compact('pesquisa', 'retorno','Empresas'));
             }
         }
 
+        if ($Request->EmpresaSelecionada)
+        {
+            $pesquisa->where('Lancamentos.EmpresaID', $Request->EmpresaSelecionada);
+        }
+
+
         $pesquisa = $pesquisa->get();
-        return view('PlanoContas.pesquisaavancada', compact('pesquisa', 'retorno'));
+
+
+        // dd($pesquisa->first()->ContaDebito->PlanoConta);
+        return view('PlanoContas.pesquisaavancada', compact('pesquisa', 'retorno','Empresas'));
     }
 
     public function dashboard()
