@@ -59,7 +59,7 @@
                                 </th>
                             <tr>
                                 <th>
-                                    @can('PESQUISA AVANCADA')
+                                    @can('super-admin|PESQUISA AVANCADA')
                                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                                             <a class="btn btn-primary" href="/PlanoContas/pesquisaavancada">Pesquisa avançada em lançamentos
                                                 contábeis</a>

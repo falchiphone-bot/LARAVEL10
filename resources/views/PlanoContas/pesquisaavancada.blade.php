@@ -125,7 +125,7 @@
                             </td>
 
                             <td style="padding-left: 10px; Color:black; font-size: 18px;">
-                                {{ $cadastro->Descricao }}
+                                {{ $cadastro->DescricaoHistorico."  ".$cadastro->Descricao }}
                             </td>
                             <td style="padding-left: 10px; Color:blue; font-size: 18px;" align="right">
 

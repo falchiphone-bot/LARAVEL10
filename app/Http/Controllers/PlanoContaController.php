@@ -37,9 +37,12 @@ class PlanoContaController extends Controller
     {
         $pesquisa = Lancamento::Limit(100)
             ->join('Contabilidade.EmpresasUsuarios', 'Lancamentos.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
+            ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', '=', 'Lancamentos.HistoricoID')
             ->Where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
             ->orderBy('Lancamentos.ID', 'desc')
+            ->select(["Lancamentos.ID","DataContabilidade","Lancamentos.Descricao","Lancamentos.EmpresaID","Lancamentos.Valor","Historicos.Descricao as DescricaoHistorico"])
             ->get();
+            // dd($pesquisa->first());?
 
         session(['error' => '']);
         $retorno["DataInicial"] = date("Y-m-d");
@@ -54,12 +57,18 @@ class PlanoContaController extends Controller
 
         $pesquisa = Lancamento::Limit($Request->Limite??100)
             ->join('Contabilidade.EmpresasUsuarios', 'Lancamentos.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
+            ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', '=', 'Lancamentos.HistoricoID')
             ->Where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+            ->select(["Lancamentos.ID","DataContabilidade","Lancamentos.Descricao","Lancamentos.EmpresaID","Lancamentos.Valor","Historicos.Descricao as DescricaoHistorico"])
             ->orderBy('Lancamentos.ID', 'desc');
 
         if ($Request->Texto) {
-            $pesquisa->where('Descricao', 'like', '%' . $Request->Texto . '%');
+            $texto = $Request->Texto;
+            $pesquisa->where(function ($query) use ($texto) {
+                return $query->where('Lancamentos.Descricao', 'like', '%' . $texto . '%')->orWhere('Historicos.Descricao', 'like', '%' . $texto . '%');
+            });
         }
+
         if ($Request->Valor) {
             $pesquisa->where('Valor', '=', $Request->Valor);
         }
