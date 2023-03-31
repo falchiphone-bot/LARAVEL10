@@ -24,7 +24,7 @@
                     <div class="alert alert-danger">
                         {{ session('error') }}
                     </div>
-                    @elseif (session('entrada'))
+                @elseif (session('entrada'))
                     <div class="alert alert-danger">
                         {{ session('entrada') }}
                     </div>
@@ -62,7 +62,9 @@
                                         name="Texto" size="70" type="text" id="Texto"
                                         value="{{ $retorno['Texto'] ?? null }}">
                                 </div>
-                                <div class="col-6">
+                            {{-- </div>
+                            <div class="row"> --}}
+                                <div class="col-2">
 
                                     <label for="Valor" style="color: black;">Valor a pesquisar</label>
                                     <input class="form-control @error('Valor') is-invalid @else is-valid @enderror"
@@ -70,7 +72,7 @@
                                         value="{{ $retorno['Valor'] ?? null }}">
                                 </div>
 
-                                <div class="col-6">
+                                <div class="col-2">
 
                                     <label for="DataInicial" style="color: black;">Consulta após a data inicial</label>
                                     <input class="form-control @error('DataInicial') is-invalid @else is-valid @enderror"
@@ -78,7 +80,7 @@
                                         value="{{ $retorno['DataInicial'] ?? null }}">
                                 </div>
 
-                                <div class="col-6">
+                                <div class="col-2">
 
                                     <label for="DataFinal" style="color: black;">Consulta antes da data final</label>
                                     <input class="form-control @error('DataFinal') is-invalid @else is-valid @enderror"
@@ -86,7 +88,7 @@
                                         value="{{ $retorno['DataFinal'] ?? null }}">
                                 </div>
 
-                                <div class="col-6">
+                                <div class="col-2">
 
                                     <label for="Limite" style="color: black;">Limite de registros para retorno</label>
                                     <input class="form-control @error('limite') is-invalid @else is-valid @enderror"
@@ -95,9 +97,9 @@
                                 </div>
 
 
-                                <div class="col-6">
+                                <div class="col-3">
                                     <label for="Limite" style="color: black;">Empresas permitidas para o usuário</label>
-                                    <select class="form-control select2" id="selEmpresa" name="EmpresaSelecionada">
+                                    <select class="form-control select2" id="EmpresaSelecionada" name="EmpresaSelecionada">
                                         <option value="">
                                             Selecionar empresa
                                         </option>
@@ -175,9 +177,11 @@
                                 {{ $lancamentos->DescricaoHistorico . '  ' . $lancamentos->Descricao }}
                             </td>
 
-                            <td style="padding-left: 10px; Color:black; font-size: 18px;"
-                            href="/Contas/Extrato/{{ $lancamentos->Empresa->ID }}">
-                                {{ $lancamentos->Empresa->Descricao}}
+                            <td style="padding-left: 10px; Color:black; font-size: 18px;">
+                                <button class="btn btn-link btn-selecionar-empresa"
+                                    data-empresaID="{{ $lancamentos->Empresa->ID }}">
+                                    {{ $lancamentos->Empresa->Descricao }}
+                                </button>
                             </td>
 
 
@@ -206,6 +210,10 @@
                 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
 
                 <script>
+                    $('.btn-selecionar-empresa').click(function() {
+                        $("#EmpresaSelecionada").val($(this).attr('data-empresaID'));
+                    });
+
                     $('form').submit(function(e) {
                         e.preventDefault();
                         $.confirm({
