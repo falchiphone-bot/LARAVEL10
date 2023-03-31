@@ -24,7 +24,8 @@
                         {{ session('error') }}
                     </div>
                 @endif
-                <div class="card-header">
+
+                <div class="badge bg-warning text-wrap" style="width: 100%; color: blue;">
                     Usuários para o sistema administrativo e contábil
                 </div>
 
@@ -50,8 +51,10 @@
                             role="button" aria-disabled="true">Incluir usuário pelo administrador</a>
                     @endcan
                     <div class="card-body">
+                        <div class="badge bg-success text-wrap" style="width: 100%; color: white;">
                         <p>Total de usuários: {{ $linhas }}</p>
-                        <table class="table">
+                        </div>
+                        <table class="table" style="background-color: rgb(247, 247, 213);">
                             <thead>
                                 <tr>
                                     <th scope="col" class="px-6 py-4">NOME</th>

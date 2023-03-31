@@ -16,13 +16,19 @@
                     PESQUISA AVANÇADA EM LANÇAMENTOS CONTÁBEIS
                 </div>
 
-
-                @if (session('error'))
+                @if (session('success'))
+                    <div class="alert alert-success">
+                        {{ session('success') }}
+                    </div>
+                @elseif (session('error'))
                     <div class="alert alert-danger">
                         {{ session('error') }}
                     </div>
+                    @elseif (session('entrada'))
+                    <div class="alert alert-danger">
+                        {{ session('entrada') }}
+                    </div>
                 @endif
-
 
                 {{-- @cannot('PLANO DE CONTAS - LISTAR')
                     <li>
@@ -68,7 +74,7 @@
 
                                     <label for="DataInicial" style="color: black;">Consulta após a data inicial</label>
                                     <input class="form-control @error('DataInicial') is-invalid @else is-valid @enderror"
-                                        name="DataInicial" size="70" type="date" step="1" id="DataInicial"
+                                        name="DataInicial" size="30" type="date" step="1" id="DataInicial"
                                         value="{{ $retorno['DataInicial'] ?? null }}">
                                 </div>
 
@@ -76,7 +82,7 @@
 
                                     <label for="DataFinal" style="color: black;">Consulta antes da data final</label>
                                     <input class="form-control @error('DataFinal') is-invalid @else is-valid @enderror"
-                                        name="DataFinal" size="70" type="date" step="1" id="DataFinal"
+                                        name="DataFinal" size="30" type="date" step="1" id="DataFinal"
                                         value="{{ $retorno['DataFinal'] ?? null }}">
                                 </div>
 
@@ -84,7 +90,7 @@
 
                                     <label for="Limite" style="color: black;">Limite de registros para retorno</label>
                                     <input class="form-control @error('limite') is-invalid @else is-valid @enderror"
-                                        name="Limite" size="70" type="number" step="1" id="Limite"
+                                        name="Limite" size="30" type="number" step="1" id="Limite"
                                         value="{{ $retorno['Limite'] ?? null }}">
                                 </div>
 
@@ -96,7 +102,7 @@
                                             Selecionar empresa
                                         </option>
                                         @foreach ($Empresas as $Empresa)
-                                            <option @if ($retorno['EmpresaSelecionada']  == $Empresa->ID) selected @endif
+                                            <option @if ($retorno['EmpresaSelecionada'] == $Empresa->ID) selected @endif
                                                 value="{{ $Empresa->ID }}">
 
                                                 {{ $Empresa->Descricao }}
@@ -146,13 +152,15 @@
                             </td>
                             <td align="left">
 
-                                <a style="padding-left: 10px; Color:rgb(255, 0, 13); font-size: 18px;" href="/Contas/Extrato/{{ $lancamentos->ContaDebito->ID }}">
+                                <a style="padding-left: 10px; Color:rgb(255, 0, 13); font-size: 18px;"
+                                    href="/Contas/Extrato/{{ $lancamentos->ContaDebito->ID }}">
                                     {{ $lancamentos->ContaDebito->PlanoConta->Descricao }}
                                 </a>
                             </td>
                             <td align="left">
 
-                                <a style="padding-left: 10px; Color:blue; font-size: 18px;" href="/Contas/Extrato/{{ $lancamentos->ContaCredito->ID }}">
+                                <a style="padding-left: 10px; Color:blue; font-size: 18px;"
+                                    href="/Contas/Extrato/{{ $lancamentos->ContaCredito->ID }}">
                                     {{ $lancamentos->ContaCredito->PlanoConta->Descricao }}
                                 </a>
 
@@ -166,8 +174,10 @@
                             <td style="padding-left: 10px; Color:black; font-size: 18px;">
                                 {{ $lancamentos->DescricaoHistorico . '  ' . $lancamentos->Descricao }}
                             </td>
-                            <td style="padding-left: 10px; Color:black; font-size: 18px;">
-                                {{ $lancamentos->Empresa->Descricao }}
+
+                            <td style="padding-left: 10px; Color:black; font-size: 18px;"
+                            href="/Contas/Extrato/{{ $lancamentos->Empresa->ID }}">
+                                {{ $lancamentos->Empresa->Descricao}}
                             </td>
 
 

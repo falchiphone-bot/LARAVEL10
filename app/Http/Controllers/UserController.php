@@ -61,7 +61,7 @@ class UserController extends Controller
     {
         $cadastros = User::get();
         $linhas = count($cadastros);
-
+        session(['error' => '']);
         return view('Users.index', compact('cadastros', 'linhas'));
     }
 

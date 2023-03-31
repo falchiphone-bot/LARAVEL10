@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Nette\Utils\Strings;
+use PHPUnit\Framework\Constraint\Count;
 
 class PlanoContaController extends Controller
 {
@@ -41,32 +42,42 @@ class PlanoContaController extends Controller
             ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', '=', 'Lancamentos.HistoricoID')
             ->Where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
             ->orderBy('Lancamentos.ID', 'desc')
-            ->select(["Lancamentos.ID","DataContabilidade","Lancamentos.Descricao","Lancamentos.EmpresaID","Lancamentos.Valor","Historicos.Descricao as DescricaoHistorico","Lancamentos.ContaDebitoID","Lancamentos.ContaCreditoID"])
+            ->select(['Lancamentos.ID', 'DataContabilidade', 'Lancamentos.Descricao', 'Lancamentos.EmpresaID', 'Lancamentos.Valor', 'Historicos.Descricao as DescricaoHistorico', 'Lancamentos.ContaDebitoID', 'Lancamentos.ContaCreditoID'])
             ->get();
-            // dd($pesquisa->first());?
+        // dd($pesquisa->first());?
 
-        session(['error' => '']);
-        $retorno["DataInicial"] = date("Y-m-d");
-        $retorno["DataFinal"] = date("Y-m-d");
+        if ($pesquisa->count() > 0) {
+            session(['entrada' => 'A pesquisa abaixo mostra os 100 últimos lançamentos de todas as empresas autorizadas!']);
+            session(['success' => '']);
+            session(['error' => '']);
+        }
+        else
+        {
+            session(['error' => 'Nenhum lançamento encontrado para as empresas autorizadas!']);
+        }
+
+        $retorno['DataInicial'] = date('Y-m-d');
+        $retorno['DataFinal'] = date('Y-m-d');
         $retorno['EmpresaSelecionada'] = null;
 
         $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
-        ->where("EmpresasUsuarios.UsuarioID", Auth::user()->id)->OrderBy("Descricao")->select(["Empresas.ID","Empresas.Descricao"])->get();
+            ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+            ->OrderBy('Descricao')
+            ->select(['Empresas.ID', 'Empresas.Descricao'])
+            ->get();
 
-        return view('PlanoContas.pesquisaavancada', compact('pesquisa',"retorno","Empresas"));
-
-
+        return view('PlanoContas.pesquisaavancada', compact('pesquisa', 'retorno', 'Empresas'));
     }
 
     public function pesquisaavancadapost(Request $Request)
     {
         $CompararDataInicial = $Request->DataInicial;
 
-        $pesquisa = Lancamento::Limit($Request->Limite??100)
+        $pesquisa = Lancamento::Limit($Request->Limite ?? 100)
             ->join('Contabilidade.EmpresasUsuarios', 'Lancamentos.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
             ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', '=', 'Lancamentos.HistoricoID')
             ->Where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
-            ->select(["Lancamentos.ID","DataContabilidade","Lancamentos.Descricao","Lancamentos.EmpresaID","Contabilidade.Lancamentos.Valor","Historicos.Descricao as DescricaoHistorico","Lancamentos.ContaDebitoID","Lancamentos.ContaCreditoID"])
+            ->select(['Lancamentos.ID', 'DataContabilidade', 'Lancamentos.Descricao', 'Lancamentos.EmpresaID', 'Contabilidade.Lancamentos.Valor', 'Historicos.Descricao as DescricaoHistorico', 'Lancamentos.ContaDebitoID', 'Lancamentos.ContaCreditoID'])
             ->orderBy('Lancamentos.ID', 'desc');
 
         if ($Request->Texto) {
@@ -78,7 +89,6 @@ class PlanoContaController extends Controller
 
         if ($Request->Valor) {
             $pesquisa->where('Lancamentos.Valor', '=', $Request->Valor);
-
         }
 
         if ($Request->DataInicial) {
@@ -92,28 +102,36 @@ class PlanoContaController extends Controller
         }
 
         $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
-        ->where("EmpresasUsuarios.UsuarioID", Auth::user()->id)->OrderBy("Descricao")->select(["Empresas.ID","Empresas.Descricao"])->get();
+            ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+            ->OrderBy('Descricao')
+            ->select(['Empresas.ID', 'Empresas.Descricao'])
+            ->get();
 
         $retorno = $Request->all();
-        session(['error' => '']);
+
+        if ($pesquisa->count() > 0) {
+            session(['success' => 'A pesquisa abaixo mostra os lançamentos de todas as empresas autorizadas conforme a pesquisa proposta!']);
+        }
+        else
+        {
+            session(['error' => 'Nenhum lançamento encontrado para as empresas autorizadas!']);
+        }
+
         if ($Request->DataInicial && $Request->DataFinal) {
             if ($DataInicial > $DataFinal) {
                 session(['error' => 'Data de início MAIOR que a final. VERIFIQUE!']);
-                return view('PlanoContas.pesquisaavancada', compact('pesquisa', 'retorno','Empresas'));
+                return view('PlanoContas.pesquisaavancada', compact('pesquisa', 'retorno', 'Empresas'));
             }
         }
 
-        if ($Request->EmpresaSelecionada)
-        {
+        if ($Request->EmpresaSelecionada) {
             $pesquisa->where('Lancamentos.EmpresaID', $Request->EmpresaSelecionada);
         }
 
-
         $pesquisa = $pesquisa->get();
 
-
         // dd($pesquisa->first()->ContaDebito->PlanoConta);
-        return view('PlanoContas.pesquisaavancada', compact('pesquisa', 'retorno','Empresas'));
+        return view('PlanoContas.pesquisaavancada', compact('pesquisa', 'retorno', 'Empresas'));
     }
 
     public function dashboard()
