@@ -62,8 +62,9 @@
                                         name="Texto" size="70" type="text" id="Texto"
                                         value="{{ $retorno['Texto'] ?? null }}">
                                 </div>
-                            {{-- </div>
-                            <div class="row"> --}}
+                            </div>
+
+                            <div class="row">
                                 <div class="col-2">
 
                                     <label for="Valor" style="color: black;">Valor a pesquisar</label>
@@ -74,7 +75,7 @@
 
                                 <div class="col-2">
 
-                                    <label for="DataInicial" style="color: black;">Consulta após a data inicial</label>
+                                    <label for="DataInicial" style="color: black;">Data inicial</label>
                                     <input class="form-control @error('DataInicial') is-invalid @else is-valid @enderror"
                                         name="DataInicial" size="30" type="date" step="1" id="DataInicial"
                                         value="{{ $retorno['DataInicial'] ?? null }}">
@@ -82,13 +83,13 @@
 
                                 <div class="col-2">
 
-                                    <label for="DataFinal" style="color: black;">Consulta antes da data final</label>
+                                    <label for="DataFinal" style="color: black;">Data final</label>
                                     <input class="form-control @error('DataFinal') is-invalid @else is-valid @enderror"
                                         name="DataFinal" size="30" type="date" step="1" id="DataFinal"
                                         value="{{ $retorno['DataFinal'] ?? null }}">
                                 </div>
 
-                                <div class="col-2">
+                                <div class="col-3">
 
                                     <label for="Limite" style="color: black;">Limite de registros para retorno</label>
                                     <input class="form-control @error('limite') is-invalid @else is-valid @enderror"
@@ -131,8 +132,10 @@
 
                 </form>
 
+                <div class="badge bg-warning text-wrap" style="width: 100%; color: white;">
+                    Total de lançamentos encontrados: {{ $pesquisa->count() }}
+                </div>
 
-                <p>Total de lançamentos encontrados: {{ $pesquisa->count() }}</p>
 
                 <table class="table" style="background-color: rgb(247, 247, 213);">
 

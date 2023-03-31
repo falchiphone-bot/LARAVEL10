@@ -62,6 +62,8 @@ class EmpresaController extends Controller
             ->get();
 
         $linhas = count($cadastros);
+        session(['error' => '' ]);
+        session(['success' => '']);
 
         return view('Empresas.index', compact('cadastros', 'linhas'));
     }

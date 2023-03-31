@@ -15,9 +15,11 @@
                 </div>
             @endif
             <div class="card">
-                <div class="card-header">
+                 
+                <div class="badge bg-primary text-wrap" style="width: 100%;">
                     Permissões para o sistema administrativo e contábil
                 </div>
+
                 <a href="{{ route('Permissoes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
                     aria-disabled="true">Incluir permissão</a>
                 <div class="card-body">

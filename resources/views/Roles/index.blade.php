@@ -15,7 +15,8 @@
             @endif
 
             <div class="card">
-                <div class="card-header">
+                
+                <div class="badge bg-primary text-wrap" style="width: 100%;">
                     Funções para o sistema administrativo e contábil
                 </div>
 
