@@ -91,17 +91,24 @@
                                 </tr>
                             @endcan
 
-                            @can('MOEDAS - LISTAS')
-                            <tr>
-                                <th>
+                            @can('MOEDAS - LISTAR')
+                                <tr>
 
-                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                        <a class="btn btn-primary" href="/Moedas">Moedas</a>
-                                    </nav>
+                                    <th>
 
-                                </th>
-                            </tr>
-                        @endcan
+                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                            <a class="btn btn-primary" href="/Moedas">Moedas</a>
+                                        </nav>
+
+                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                            <a class="btn btn-primary" href="/MoedasValores">Moedas e valores</a>
+                                        </nav>
+                                    
+                                    </th>
+
+
+                                </tr>
+                            @endcan
 
                         </tbody>
                     </table>

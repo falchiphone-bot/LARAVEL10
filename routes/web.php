@@ -65,8 +65,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('Funcoes',App\Http\Controllers\RoleController::class);
     Route::post('Funcoes/salvarpermissao/{id}',[App\Http\Controllers\RoleController::class, 'salvarpermissao']);
 
-    #Moedas
+    #Moedas e valores
     Route::resource('Moedas',App\Http\Controllers\MoedaController::class);
-
+    Route::resource('MoedasValores',App\Http\Controllers\MoedaValoresController::class);
 });
 require __DIR__.'/auth.php';

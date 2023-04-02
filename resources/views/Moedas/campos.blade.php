@@ -10,7 +10,7 @@
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
             </div>
-            div class="col-6">
+             
             <label for="nome">Observação</label>
             <input class="form-control @error('observacao') is-invalid @else is-valid @enderror" name="observacao"
                 type="text" id="observacao" value="{{$moedas->observacao??null}}">

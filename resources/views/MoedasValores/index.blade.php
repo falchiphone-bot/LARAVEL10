@@ -5,7 +5,7 @@
 
             <div class="card">
                 <div class="badge bg-primary text-wrap" style="width: 100%;">
-                    MOEDAS DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
+                    MOEDAS E VALORES DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
                 </div>
 
 
@@ -19,14 +19,14 @@
                             {{ session('error') }}
                         </div>
                     @endif
-                    @can('MOEDAS- INCLUIR')
-                        <a href="{{ route('Moedas.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1"
-                            role="button" aria-disabled="true">Incluir nome de moedas</a>
+                    @can('MOEDASVALORES- INCLUIR')
+                        <a href="{{ route('MoedasValores.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1"
+                            role="button" aria-disabled="true">Incluir valor de moedas</a>
                     @endcan
                     <div class="card-header">
                         <div class="badge bg-secondary text-wrap" style="width: 100%;">
-                        <p>Total de moedas cadastradas no sistema de gerenciamento administrativo e contábil:
-                            {{ $moedas->count() ?? 0 }}</p>
+                        <p>Total de moedas com valores cadastradas no sistema de gerenciamento administrativo e contábil:
+                            {{ $moedasvalores->count() ?? 0 }}</p>
                         </div>
                     </div>
 
@@ -38,44 +38,46 @@
                     <table class="table" style="background-color: rgb(247, 247, 213);">
                         <thead>
                             <tr>
-                                <th scope="col" class="px-6 py-4">NOME</th>
-                                <th scope="col" class="px-6 py-4">OBSERVAÇÃO</th>
-                                <th scope="col" class="px-6 py-4"></th>
+                                <th scope="col" class="px-6 py-4">DATA</th>
+                                <th scope="col" class="px-6 py-4">VALOR</th>
+                                <th scope="col" class="px-6 py-4">MOEDA</th>
                                 <th scope="col" class="px-6 py-4"></th>
                                 <th scope="col" class="px-6 py-4"></th>
                             </tr>
                         </thead>
 
                         <tbody>
-                            @foreach ($moedas as $moeda)
+                            @foreach ($moedasvalores as $moedavalores)
                                 <tr>
                                     <td class="">
-                                        {{ $moeda->nome }}
+                                        {{ $moedavalores->data }}
                                         </a>
                                     </td>
                                     <td class="">
-                                        {{ $moeda->observacao }}
+                                        {{ $moedavalores->valor }}
+                                    </td>
+                                    <td class="">
+                                        {{ $moedavalores->idmoeda }}
                                     </td>
 
 
-
-                                    @can('MOEDAS- EDITAR')
+                                    @can('MOEDASVALORES- EDITAR')
                                         <td>
                                             <a href="{{ route('Moedas.edit', $moeda->id) }}" class="btn btn-success"
                                                 tabindex="-1" role="button" aria-disabled="true">Editar</a>
                                         </td>
                                     @endcan
 
-                                    @can('MOEDAS- VER')
+                                    @can('MOEDASVALORES- VER')
                                     <td>
                                         <a href="{{ route('Moedas.show', $moeda->id) }}" class="btn btn-info"
                                             tabindex="-1" role="button" aria-disabled="true">Ver</a>
                                     </td>
                                     @endcan
 
-                                    @can('MOEDAS- EXCLUIR')
+                                    @can('MOEDASVALORES- EXCLUIR')
                                     <td>
-                                        <form method="POST" action="{{ route('Moedas.destroy', $moeda->id) }}">
+                                        <form method="POST" action="{{ route('MoedasValores.destroy', $moeda->id) }}">
                                             @csrf
                                             <input type="hidden" name="_method" value="DELETE">
                                             <button type="submit" class="btn btn-danger">
