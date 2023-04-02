@@ -27,7 +27,7 @@
                                 </tr>
                             @endcan
 
-                            
+
                             @can('PERMISSOES - LISTAR')
                                 <tr>
                                     <th>
@@ -74,9 +74,10 @@
                                         </nav>
 
                                     </th>
-                                @endcan
+                                </tr>
+                            @endcan
 
-                                @can('PESQUISA AVANCADA')
+                            @can('PESQUISA AVANCADA')
                                 <tr>
                                     <th>
 
@@ -89,6 +90,18 @@
                                     </th>
                                 </tr>
                             @endcan
+
+                            @can('MOEDAS - LISTAS')
+                            <tr>
+                                <th>
+
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="/Moedas">Moedas</a>
+                                    </nav>
+
+                                </th>
+                            </tr>
+                        @endcan
 
                         </tbody>
                     </table>

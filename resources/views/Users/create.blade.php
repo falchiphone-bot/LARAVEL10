@@ -14,8 +14,8 @@
             <div class="card-header">
                 Inclusão de usuários
             </div>
-
-
+        </div>
+    </div>
 <form method="POST" action="/Usuarios" accept-charset="UTF-8">
     @include('Users.campos')
 </form>

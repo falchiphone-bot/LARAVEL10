@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\PermissionCreateRequest;
+use App\Models\Permissions;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -22,7 +23,7 @@ class PermissionController extends Controller
      */
     public function index()
     {
-       $cadastros = Permission::get();
+       $cadastros = Permission::OrderBy('name')->get();
        $linhas = count($cadastros);
 
        return view('Permissions.index',compact('cadastros', 'linhas'));

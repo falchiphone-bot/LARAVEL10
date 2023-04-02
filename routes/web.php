@@ -29,6 +29,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+
+
     #Empresas
     Route::put('Empresas/desbloquearempresas' ,[App\Http\Controllers\EmpresaController::class, 'desbloquearempresas'])->name('Empresas.DesbloquearEmpresas');
     Route::put('Empresas/bloquearempresas' ,[App\Http\Controllers\EmpresaController::class, 'bloquearempresas'])->name('Empresas.BloquearEmpresas');
@@ -62,5 +64,9 @@ Route::middleware('auth')->group(function () {
     #Funções
     Route::resource('Funcoes',App\Http\Controllers\RoleController::class);
     Route::post('Funcoes/salvarpermissao/{id}',[App\Http\Controllers\RoleController::class, 'salvarpermissao']);
+
+    #Moedas
+    Route::resource('Moedas',App\Http\Controllers\MoedaController::class);
+
 });
 require __DIR__.'/auth.php';
