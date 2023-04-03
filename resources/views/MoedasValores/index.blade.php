@@ -50,7 +50,7 @@
                             @foreach ($moedasvalores as $moedavalores)
                                 <tr>
                                     <td class="">
-                                        {{ $moedavalores->data  }}
+                                        {{ $moedavalores->data->format('d/m/Y')  }}
 
                                         </a>
                                     </td>
@@ -58,7 +58,7 @@
                                         {{ $moedavalores->valor }}
                                     </td>
                                     <td class="">
-                                        {{ $moedavalores->idmoeda }}
+                                        {{ $moedavalores->ValoresComMoeda->nome }}
                                     </td>
 
 

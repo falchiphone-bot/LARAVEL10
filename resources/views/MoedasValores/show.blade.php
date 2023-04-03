@@ -23,7 +23,7 @@
                                 Valor: {{ $moedasvalores->valor }}
                             </p>
                             <p>
-                                Moeda {{ $moedasvalores->idmoeda }}
+                                Moeda {{ $moedasvalores->ValoresComMoeda->nome }}
                             </p>
                         </div>
                         <div class="card-footer">

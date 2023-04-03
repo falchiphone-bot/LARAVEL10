@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\MoedaValoresCreateRequest;
+use App\Models\Moeda;
 use App\Models\MoedasValores;
 use App\Models\MoedaValores;
 use Illuminate\Http\Request;
@@ -31,8 +32,7 @@ class MoedaValoresController extends Controller
 
     public function index()
     {
-       $moedasvalores= MoedasValores::get();
-
+       $moedasvalores= MoedasValores::OrderBy('data')->get();
 
         return view('MoedasValores.index',compact('moedasvalores'));
     }
@@ -42,7 +42,9 @@ class MoedaValoresController extends Controller
      */
     public function create()
     {
-        return view('MoedasValores.create');
+        $Moedas = Moeda::get();
+
+        return view('MoedasValores.create',  compact('Moedas'));
     }
 
     /**
@@ -65,7 +67,9 @@ class MoedaValoresController extends Controller
     public function show(string $id)
     {
         $moedasvalores = MoedasValores::find($id);
-        return view('MoedasValores.show',compact('moedasvalores'));
+
+        $Moedas = Moeda::get();
+        return view('MoedasValores.show',compact('moedasvalores', 'Moedas'));
     }
 
     /**
@@ -74,9 +78,9 @@ class MoedaValoresController extends Controller
     public function edit(string $id)
     {
         $moedasvalores= MoedasValores::find($id);
-        // dd($cadastro);
 
-        return view('MoedasValores.edit',compact('moedasvalores'));
+        $Moedas = Moeda::get();
+        return view('MoedasValores.edit',compact('moedasvalores', 'Moedas'));
     }
 
     /**
