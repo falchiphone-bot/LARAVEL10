@@ -100,10 +100,10 @@ class MoedaController extends Controller
      */
     public function destroy(string $id)
     {
-        $role = Moeda::find($id);
+        $moedas = Moeda::find($id);
 
 
-        $role->delete();
+        $moedas->delete();
         return redirect(route('Moedas.index'));
 
     }

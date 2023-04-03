@@ -50,7 +50,8 @@
                             @foreach ($moedasvalores as $moedavalores)
                                 <tr>
                                     <td class="">
-                                        {{ $moedavalores->data }}
+                                        {{ $moedavalores->data  }}
+
                                         </a>
                                     </td>
                                     <td class="">
@@ -63,21 +64,21 @@
 
                                     @can('MOEDASVALORES- EDITAR')
                                         <td>
-                                            <a href="{{ route('Moedas.edit', $moeda->id) }}" class="btn btn-success"
+                                            <a href="{{ route('MoedasValores.edit', $moedavalores->id) }}" class="btn btn-success"
                                                 tabindex="-1" role="button" aria-disabled="true">Editar</a>
                                         </td>
                                     @endcan
 
                                     @can('MOEDASVALORES- VER')
                                     <td>
-                                        <a href="{{ route('Moedas.show', $moeda->id) }}" class="btn btn-info"
+                                        <a href="{{ route('MoedasValores.show', $moedavalores->id) }}" class="btn btn-info"
                                             tabindex="-1" role="button" aria-disabled="true">Ver</a>
                                     </td>
                                     @endcan
 
                                     @can('MOEDASVALORES- EXCLUIR')
                                     <td>
-                                        <form method="POST" action="{{ route('MoedasValores.destroy', $moeda->id) }}">
+                                        <form method="POST" action="{{ route('MoedasValores.destroy', $moedavalores->id) }}">
                                             @csrf
                                             <input type="hidden" name="_method" value="DELETE">
                                             <button type="submit" class="btn btn-danger">

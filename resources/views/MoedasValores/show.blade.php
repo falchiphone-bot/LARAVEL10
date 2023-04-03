@@ -17,14 +17,17 @@
                         </div>
                         <div class="card-body">
                             <p>
-                                Nome: {{ $cadastro->nome }}
+                                Data: {{ $moedasvalores->data}}
                             </p>
                             <p>
-                                Nome: {{ $cadastro->observacao }}
+                                Valor: {{ $moedasvalores->valor }}
+                            </p>
+                            <p>
+                                Moeda {{ $moedasvalores->idmoeda }}
                             </p>
                         </div>
                         <div class="card-footer">
-                            <a href="{{ route('Moedas.index') }}">Retornar para a lista</a>
+                            <a href="{{ route('MoedasValores.index') }}">Retornar para a lista</a>
                         </div>
                     </div>
                 </div>

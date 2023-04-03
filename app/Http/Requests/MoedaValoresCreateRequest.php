@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class MoedaCreateRequest extends FormRequest
+class MoedaValoresCreateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

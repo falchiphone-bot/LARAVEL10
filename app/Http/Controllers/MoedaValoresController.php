@@ -42,20 +42,20 @@ class MoedaValoresController extends Controller
      */
     public function create()
     {
-        return view('Moedas.create');
+        return view('MoedasValores.create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(MoedaCreateRequest $request)
+    public function store(MoedaValoresCreateRequest $request)
     {
-        $moedas= $request->all();
+        $moedasvalores= $request->all();
         //dd($dados);
 
-        Moeda::create($moedas);
+        MoedasValores::create($moedasvalores);
 
-        return redirect(route('Moedas.index'));
+        return redirect(route('MoedasValores.index'));
 
     }
 
@@ -64,8 +64,8 @@ class MoedaValoresController extends Controller
      */
     public function show(string $id)
     {
-        $cadastro = Moeda::find($id);
-        return view('Moedas.show',compact('cadastro'));
+        $moedasvalores = MoedasValores::find($id);
+        return view('MoedasValores.show',compact('moedasvalores'));
     }
 
     /**
@@ -73,10 +73,10 @@ class MoedaValoresController extends Controller
      */
     public function edit(string $id)
     {
-        $moedas= Moeda::find($id);
+        $moedasvalores= MoedasValores::find($id);
         // dd($cadastro);
 
-        return view('Moedas.edit',compact('moedas'));
+        return view('MoedasValores.edit',compact('moedasvalores'));
     }
 
     /**
@@ -85,15 +85,15 @@ class MoedaValoresController extends Controller
     public function update(Request $request, string $id)
     {
 
-        $cadastro = Moeda::find($id);
+        $moedasvalores = MoedasValores::find($id);
 
-        $cadastro->fill($request->all()) ;
-
-
-        $cadastro->save();
+        $moedasvalores->fill($request->all()) ;
 
 
-        return redirect(route('Moedas.index'));
+        $moedasvalores->save();
+
+
+        return redirect(route('MoedasValores.index'));
     }
 
     /**
@@ -101,11 +101,11 @@ class MoedaValoresController extends Controller
      */
     public function destroy(string $id)
     {
-        $role = Moeda::find($id);
+        $moedasvalores = MoedasValores::find($id);
 
 
-        $role->delete();
-        return redirect(route('Moedas.index'));
+        $moedasvalores->delete();
+        return redirect(route('MoedasValores.index'));
 
     }
 }

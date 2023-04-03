@@ -3,9 +3,9 @@
     <div class="card-body">
         <div class="row">
             <div class="col-6">
-                <label for="nome">Data</label>
+                <label for="data">Data</label>
                 <input class="form-control @error('data') is-invalid @else is-valid @enderror" name="data"
-                    type="text" id="data" value="{{$moedasvalores->data??null}}">
+                    type="date" id="data" value="{{$moedasvalores->data??null}}">
                 @error('data')
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
@@ -13,14 +13,14 @@
 
             <label for="idmoeda">Moeda</label>
             <input class="form-control @error('idmoeda') is-invalid @else is-valid @enderror" name="idmoeda"
-                type="text" id="idmoeda" value="{{$moedasvalores->idmoeda??null}}">
+                type="number" id="idmoeda" value="{{$moedasvalores->idmoeda??null}}">
             @error('idmoeda')
                 <div class="alert alert-danger">{{ $message }}</div>
             @enderror
 
             <label for="valor">Valor</label>
             <input class="form-control @error('valor') is-invalid @else is-valid @enderror" name="valor"
-                type="text" id="valor" value="{{$moedasvalores->valor??null}}">
+                type="decimal" id="valor" value="{{$moedasvalores->valor??null}}">
             @error('valor')
                 <div class="alert alert-danger">{{ $message }}</div>
             @enderror
