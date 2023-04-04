@@ -2,7 +2,7 @@
 @section('content')
     <div class="py-5 bg-light">
         <div class="container">
-            
+
 
             <div class="card">
                 <div class="badge bg-primary text-wrap" style="width: 100%;">
@@ -47,7 +47,7 @@
                                         <form method="POST" action="{{ route('Empresas.BloquearEmpresas') }}"
                                             accept-charset="UTF-8">
                                             <input type="hidden" name="_method" value="PUT">
-                                            @include('Empresas.bloquearempresas')
+                                            @include('Empresas.BloquearEmpresas')
                                         </form>
                                     </th>
                                 @endcan

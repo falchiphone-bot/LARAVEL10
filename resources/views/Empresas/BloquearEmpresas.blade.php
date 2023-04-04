@@ -6,7 +6,7 @@
                 <div class="col-6">
                     <label for="nome">Data para bloquear</label>
                     <input class="form-control"
-                        type="date" name="Bloqueardataanterior"}">
+                        type="date" name="Bloqueardataanterior">
                     @error('nome')
                         <div class="alert alert-danger">{{ $message }}</div>
                     @enderror

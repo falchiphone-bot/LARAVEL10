@@ -31,4 +31,11 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'sicred' => [
+        'client_id' => env('SICRED_CLIENT_ID'),
+        'secret_id' => env('SICRED_SICRET_ID'),
+        'token' => env('SICRED_TOKEN'),
+        'url' => env('SICRED_URL'),
+    ],
+
 ];

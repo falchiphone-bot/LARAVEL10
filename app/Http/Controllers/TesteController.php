@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\SicredApiHelper;
 use App\Http\Requests\TesteCreateRequest;
 use App\Models\Teste;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 
 class TesteController extends Controller
@@ -14,9 +16,32 @@ class TesteController extends Controller
      */
     public function index()
     {
-        $cadastros = Teste::get();
+        $consulta = SicredApiHelper::boletoLiquidadoDia('12345','04/04/2023');
 
-        return view('Testes.index', compact('cadastros'));
+        if ($consulta['error']??null) {
+            return $consulta['message'];
+        }
+        foreach ($consulta['items'] as $item) {
+            echo "<p>";
+            echo "cooperativa: ".$item["cooperativa"]."<br>";
+            echo "codigoBeneficiario: ".$item["codigoBeneficiario"]."<br>";
+            echo "cooperativaPostoBeneficiario: ".$item["cooperativaPostoBeneficiario"]."<br>";
+            echo "nossoNumero: ".$item["nossoNumero"]."<br>";
+            echo "seuNumero: ".$item["seuNumero"]."<br>";
+            echo "tipoCarteira: ".$item["tipoCarteira"]."<br>";
+            echo "dataPagamento: ".$item["dataPagamento"]."<br>";
+            echo "valor: ".$item["valor"]."<br>";
+            echo "valorLiquidado: ".$item["valorLiquidado"]."<br>";
+            echo "jurosLiquido: ".$item["jurosLiquido"]."<br>";
+            echo "descontoLiquido: ".$item["descontoLiquido"]."<br>";
+            echo "multaLiquida: ".$item["multaLiquida"]."<br>";
+            echo "abatimentoLiquido: ".$item["abatimentoLiquido"]."<br>";
+            echo "tipoLiquidacao: ".$item["tipoLiquidacao"]."<br>";
+            echo "</p>";
+            echo "<br>";
+        }
+
+
     }
 
     /**

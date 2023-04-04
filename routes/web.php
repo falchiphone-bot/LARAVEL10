@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::resource('teste',App\Http\Controllers\TesteController::class);
+
 Route::get('/', function () {
     return redirect('/dashboard');
 });
