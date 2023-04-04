@@ -36,8 +36,7 @@ class SicredApiHelper
                     'scope' => 'cobranca',
                 ])
                 ->json();
-            $auth['data_criacao'] = Carbon::now();
-            Request::session()->put('auth_sicred', $auth);
+            // $auth['data_criacao'] = Carbon::now();
         }
 
         return $auth;
@@ -46,27 +45,33 @@ class SicredApiHelper
     public static function boletoLiquidadoDia($codigoBeneficiario, $codigocooperativa, $posto, $dia)
     {
 
-        dd(Request::session()->get('auth_sicred'));
-        if (session('auth_sicred')) {
-            session('auth_sicred')['data_criacao'] = 1;
-            $horaAtual = Carbon::now();
-            dd(session('auth_sicred')['data_criacao']->format('d/m/Y H:i:s'), $horaAtual->format('d/m/Y H:i:s'));
-            $fimToken = session('auth_sicred')['data_criacao']->addSecond(session('auth_sicred')['expires_in']);
-            $fimTokenRefresh = session('auth_sicred')['data_criacao']->addSecond(session('auth_sicred')['refresh_expires_in']);
-            $tempoSessaoToken = $horaAtual->diffInSeconds($fimToken);
-            $tempoSessaoTokenRefresh = $horaAtual->diffInSeconds($fimTokenRefresh);
-            if ($tempoSessaoToken < session('auth_sicred')['expires_in']) {
-                $auth = session('auth_sicred');
-            } elseif ($tempoSessaoTokenRefresh < session('auth_sicred')['refresh_expires_in']) {
-                dd($tempoSessaoToken);
-                $auth = SicredApiHelper::auth($codigoBeneficiario, $codigocooperativa, session('auth_sicred')['refresh_token']);
-                dd($auth, 'Passou no de 1 hora');
-            } else {
-                $auth = SicredApiHelper::auth($codigoBeneficiario, $codigocooperativa);
-            }
-        } else {
-            $auth = SicredApiHelper::auth($codigoBeneficiario, $codigocooperativa);
-        }
+        dd(session('teste'));
+        $auth = SicredApiHelper::auth($codigoBeneficiario, $codigocooperativa);
+        // dd(session()->all());
+        // $horaAtual = Carbon::now();
+        // $fimToken = session('auth_sicred')['data_criacao']->addSecond(session('auth_sicred')['expires_in']);
+        // $fimTokenRefresh = session('auth_sicred')['data_criacao']->addSecond(session('auth_sicred')['refresh_expires_in']);
+        // $tempoSessaoToken = $horaAtual->diffInSeconds($fimToken);
+
+
+        // if (session('auth_sicred')) {
+        //     session('auth_sicred')['data_criacao'] = 1;
+        //     $horaAtual = Carbon::now();
+        //     dd(session('auth_sicred')['data_criacao']->format('d/m/Y H:i:s'), $horaAtual->format('d/m/Y H:i:s'));
+        //
+        //     $tempoSessaoTokenRefresh = $horaAtual->diffInSeconds($fimTokenRefresh);
+        //     if ($tempoSessaoToken < session('auth_sicred')['expires_in']) {
+        //         $auth = session('auth_sicred');
+        //     } elseif ($tempoSessaoTokenRefresh < session('auth_sicred')['refresh_expires_in']) {
+        //         dd($tempoSessaoToken);
+        //         $auth = SicredApiHelper::auth($codigoBeneficiario, $codigocooperativa, session('auth_sicred')['refresh_token']);
+        //         dd($auth, 'Passou no de 1 hora');
+        //     } else {
+        //         $auth = SicredApiHelper::auth($codigoBeneficiario, $codigocooperativa);
+        //     }
+        // } else {
+        //     $auth = SicredApiHelper::auth($codigoBeneficiario, $codigocooperativa);
+        // }
 
         $consulta = Http::asForm()
             ->withHeaders([
