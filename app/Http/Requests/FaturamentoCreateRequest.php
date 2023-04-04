@@ -25,11 +25,6 @@ class FaturamentoCreateRequest extends FormRequest
             'data'  =>'required',
             'ValorFaturamento'  =>'required',
             'ValorImposto'  =>'required',
-            'ValorBaseLucroLiquido' =>'required',
-            'ValorFaturamento' =>'required',
-            'PercentualLucroLiquido' =>'required',
-            'LucroLiquido' =>'required',
-            'LancadoPor',
         ];
     }
 }

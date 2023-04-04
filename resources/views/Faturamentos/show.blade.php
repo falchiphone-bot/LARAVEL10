@@ -18,25 +18,27 @@
                         <div class="card-body">
                             <p>
                                 Empresa: {{$faturamentos->empresarelacionada->Descricao}}
-                                {{-- Empresa {{ $moedasvalores->ValoresComMoeda->nome }} --}}
                             </p>
                             <p>
                                 Data: {{ $faturamentos->data->format('d/m/Y')}}
                             </p>
+
                             <p>
-                                Valor do faturamento: {{ $faturamentos->ValorFaturamento }}
+                                Valor do faturamento: {{ number_format($faturamentos->ValorFaturamento,2,",", ".") }}
+                            </p>
+
+                            <p>
+                                 Valor do imposto: {{ number_format($faturamentos->ValorImposto,2,",", ".") }}
+                            </p>
+
+                            <p>
+                                Valor base para lucro líquido: {{ number_format($faturamentos->ValorBaseLucroLiquido,2,",", ".") }}
                             </p>
                             <p>
-                                Valor do imposto: {{ $faturamentos->ValorImposto }}
+                                Percentual para lucro líquido: {{ number_format($faturamentos->PercentualLucroLiquido,2,",", ".") }}
                             </p>
                             <p>
-                                Valor base para lucro líquido: {{ $faturamentos->ValorBaseLucroLiquido }}
-                            </p>
-                            <p>
-                                Percentual para lucro líquido: {{ $faturamentos->PercentualLucroLiquido }}
-                            </p>
-                            <p>
-                                Lucro líquido: {{ $faturamentos->LucroLiquido }}
+                                Lucro líquido: {{ number_format($faturamentos->LucroLiquido,2,",", ".") }}
                             </p>
                             <p>
                                 Lançado por: {{ $faturamentos->LancadoPor }}

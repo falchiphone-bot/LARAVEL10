@@ -19,7 +19,7 @@
                             {{ session('error') }}
                         </div>
                     @endif
-                    @can('FATURAMENTOS- INCLUIR')
+                    @can('FATURAMENTOS - INCLUIR')
                         <a href="{{ route('Faturamentos.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1"
                             role="button" aria-disabled="true">Incluir faturamento</a>
                     @endcan
@@ -54,34 +54,37 @@
                         <tbody>
                             @foreach ($faturamentos as $Fatura)
                                 <tr>
-                                    <td class="">
-                                         
+                                    <td style='text-align:right'>
+
                                         {{$Fatura->empresarelacionada->Descricao}}
                                         </a>
                                     </td>
-                                    <td class="">
+                                    <td style='text-align:right'>
                                         {{ $Fatura->data->format('d/m/Y')  }}
                                     </td>
-                                    <td class="">
-                                        {{ $Fatura->ValorFaturamento}}
+                                    <td style='text-align:right'>
+                                        {{ number_format($Fatura->ValorFaturamento,2,",", ".")}}
                                     </td>
-                                    <td class="">
-                                        {{ $Fatura->ValorImposto}}
+                                    <td style='text-align:right'>
+                                        {{    number_format( $Fatura->ValorImposto,2,",", ".")}}
                                     </td>
-                                    <td class="">
-                                        {{ $Fatura->ValorBaseLucroLiquido}}
+                                    <td style='text-align:right'>
+                                        {{  number_format($Fatura->ValorBaseLucroLiquido,2,",", ".")}}
                                     </td>
 
-                                    <td class="">
-                                        {{ $Fatura->PercentualLucroLiquido}}
+                                    <td style='text-align:right'>
+                                        {{  number_format($Fatura->PercentualLucroLiquido,2,",", ".")}}
+
                                     </td>
-                                    <td class="">
-                                        {{ $Fatura->LucroLiquido}}
+                                    <td style='text-align:right'>
+                                        {{  number_format($Fatura->LucroLiquido,2,",", ".")}}
                                     </td>
-                                    <td class="">
+                                    <td style='text-align:right'>
                                         {{ $Fatura->LancadoPor}}
                                     </td>
-                                    @can('FATURAMENTOS EDITAR')
+
+                                    
+                                    @can('FATURAMENTOS - EDITAR')
                                         <td>
                                             <a href="{{ route('Faturamentos.edit', $Fatura->id) }}" class="btn btn-success"
                                                 tabindex="-1" role="button" aria-disabled="true">Editar</a>

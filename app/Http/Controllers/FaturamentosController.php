@@ -8,6 +8,7 @@ use App\Models;
 use App\Models\Empresa;
 use App\Models\Faturamentos;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 
@@ -50,9 +51,21 @@ class FaturamentosController extends Controller
      */
     public function store(FaturamentoCreateRequest $request)
     {
+ 
         $faturamentos= $request->all();
+        $faturamentos['ValorFaturamento'] = str_replace(",",".",str_replace('.','',$faturamentos['ValorFaturamento']));
+        $faturamentos['ValorImposto'] = str_replace(",",".",str_replace('.','',$faturamentos['ValorImposto']));
 
-// dd($faturamentos);
+        $faturamentos['PercentualLucroLiquido'] = 32.00;
+
+        $faturamentos['PercentualImposto'] = ($faturamentos['ValorImposto']/$faturamentos['ValorFaturamento'])*100;
+
+        $faturamentos['ValorBaseLucroLiquido'] = ($faturamentos['ValorFaturamento'] - $faturamentos['ValorImposto']);
+        $faturamentos['LucroLiquido'] = ($faturamentos['ValorBaseLucroLiquido'] *  $faturamentos['PercentualLucroLiquido'] )/100;
+
+
+        $faturamentos['LancadoPor'] = Auth()->user()->email;
+
         faturamentos::create($faturamentos);
 
 
