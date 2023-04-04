@@ -3,11 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\SicredApiHelper;
-// use App\Http\Requests\TesteCreateRequest;
-// use App\Models\Teste;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Validator;
+use Carbon\Carbon;
+
 
 class SicrediController extends Controller
 {
@@ -16,32 +14,22 @@ class SicrediController extends Controller
      */
     public function index()
     {
-        $consulta = SicredApiHelper::boletoLiquidadoDia('72334','0703','16','03/04/2023');
+        $dia = Carbon::now()->subDay(1)->format('d/m/Y');
+        $consulta = SicredApiHelper::boletoLiquidadoDia('72334','703','16',$dia);
         if ($consulta['error']??null) {
             return $consulta['message'];
         }
-        foreach ($consulta['items'] as $item) {
-            echo "<p>";
-            echo "cooperativa: ".$item["cooperativa"]."<br>";
-            echo "codigoBeneficiario: ".$item["codigoBeneficiario"]."<br>";
-            echo "cooperativaPostoBeneficiario: ".$item["cooperativaPostoBeneficiario"]."<br>";
-            echo "nossoNumero: ".$item["nossoNumero"]."<br>";
-            echo "seuNumero: ".$item["seuNumero"]."<br>";
-            echo "tipoCarteira: ".$item["tipoCarteira"]."<br>";
-            echo "dataPagamento: ".$item["dataPagamento"]."<br>";
-            echo "valor: ".$item["valor"]."<br>";
-            echo "valorLiquidado: ".$item["valorLiquidado"]."<br>";
-            echo "jurosLiquido: ".$item["jurosLiquido"]."<br>";
-            echo "descontoLiquido: ".$item["descontoLiquido"]."<br>";
-            echo "multaLiquida: ".$item["multaLiquida"]."<br>";
-            echo "abatimentoLiquido: ".$item["abatimentoLiquido"]."<br>";
-            echo "tipoLiquidacao: ".$item["tipoLiquidacao"]."<br>";
-            echo "</p>";
-            echo "<br>";
-        }
 
+        return view('Sicredi.index',compact('consulta','dia'));
 
     }
+
+    public function salvarLiquidacaoDia($dia)
+    {
+        $lista = SicredApiHelper::boletoLiquidadoDia('72334','0703','16','03/04/2023');
+        dd(count($lista));
+    }
+
 
     /**
      * Show the form for creating a new resource.
