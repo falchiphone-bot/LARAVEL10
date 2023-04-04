@@ -7,44 +7,43 @@ use Illuminate\Support\Facades\Http;
  class SicredApiHelper
 {
 
-    public static function auth()
+    public static function auth($codigoBeneficiario,$codigocooperativa)
     {
+
         $auth = Http::asForm()
-        ->withBasicAuth(config('services.sicred.client_id'),config('services.sicred.secret_id'))
+        ->withBasicAuth(config('services.sicredi.client_id'),config('services.sicredi.secret_id'))
         ->withHeaders([
-            'x-api-key' => config('services.sicred.token'),
+            'x-api-key' => config('services.sicredi.token'),
             'context' => 'COBRANCA',
         ])
-        ->post('https://api-parceiro.sicredi.com.br/sb/auth/openapi/token',
+        ->post('https://api-parceiro.sicredi.com.br/auth/openapi/token',
         [
-            'username' => '123456789',
-            'password' => 'teste123',
+            'username' => $codigoBeneficiario.$codigocooperativa,
+            'password' => 'DB48A4120D058F35EBD28158500FC9349E51A923C48FF464F3A93FAE1D2E35AF',
             'grant_type' => 'password',
             'scope' => 'cobranca',
 
         ])->json();
-
         return $auth;
     }
 
-    public static function boletoLiquidadoDia($codigoBeneficiario,$dia)
+    public static function boletoLiquidadoDia($codigoBeneficiario,$codigocooperativa,$posto,$dia)
     {
-        $auth = SicredApiHelper::auth();
+        $auth = SicredApiHelper::auth($codigoBeneficiario,$codigocooperativa);
 
         return Http::asForm()
-        // ->withBasicAuth('6c393213-778d-4b72-b49f-6347c1e8c5aa','2591f57e-97b1-48d8-a639-7f200b09c03d')
         ->withHeaders([
-            'x-api-key' => '2dd4c03d-c692-4852-9e2e-f98d207c62e4',
-            'Authorization' => 'bearer '.$auth['id_token'],
-            'cooperativa' => '6789',
-            'posto' => '03',
+            'x-api-key' => config('services.sicredi.token'),
+            'Authorization' => 'bearer '.$auth['access_token'],
+            'cooperativa' => $codigocooperativa,
+            'posto' => $posto,
         ])
-        ->get('https://api-parceiro.sicredi.com.br/sb/cobranca/boleto/v1/boletos/liquidados/dia',
+        ->get('https://api-parceiro.sicredi.com.br/cobranca/boleto/v1/boletos/liquidados/dia',
         [
             'codigoBeneficiario' => $codigoBeneficiario,
             'dia' => $dia,
-            'cpfCnpjBeneficiarioFinal' => '1234567891225',
-            'pagina' => 1,
+            // 'cpfCnpjBeneficiarioFinal' => '36585615000174',
+            // 'pagina' => 1,
 
         ])->json();
     }

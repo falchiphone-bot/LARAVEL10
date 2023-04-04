@@ -73,5 +73,8 @@ Route::middleware('auth')->group(function () {
 
     #Faturamentos
     Route::resource('Faturamentos',App\Http\Controllers\FaturamentosController::class);
+
+    #Faturamentos
+    Route::resource('Sicredi',App\Http\Controllers\SicrediController::class);
 });
 require __DIR__.'/auth.php';
