@@ -91,6 +91,18 @@
                                 </tr>
                             @endcan
 
+                            @can('FATURAMENTOS - LISTAR')
+                            <tr>
+                                <th>
+
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="/Faturamentos">Faturamentos registrados</a>
+                                    </nav>
+
+                                </th>
+                            </tr>
+                        @endcan
+
                             @can('MOEDAS - LISTAR')
                                 <tr>
 
@@ -103,7 +115,7 @@
                                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                                             <a class="btn btn-primary" href="/MoedasValores">Moedas e valores</a>
                                         </nav>
-                                    
+
                                     </th>
 
 

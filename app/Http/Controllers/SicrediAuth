@@ -1,0 +1,67 @@
+<?php
+
+namespace App\Http\Controllers;
+use Illuminate\Http\Request;
+
+class SicrediController extends Controller
+{
+    public function sicrediAuth(Request $request)
+    {
+        $provider = new GenericProvider
+        ([
+            'clientId' => config('sicredi.client_id'),
+            'clientSecret' => config('sicredi.client_secret'),
+            'redirectUri' => config('sicredi.redirect_uri'),
+            'urlAuthorize' => config('sicredi.base_url') . 'authorize',
+            'urlAccessToken' => config('sicredi.token_url'),
+            'urlResourceOwnerDetails' => config('sicredi.base_url') . 'userinfo',
+        ]);
+
+        if (!$request->has('code')) {
+            $authorizationUrl = $provider->getAuthorizationUrl([
+                'scope' => 'openid profile email offline_access',
+                'state' => 'some_state',
+            ]);
+
+            return redirect($authorizationUrl);
+        } else {
+            $accessToken = $provider->getAccessToken('authorization_code', [
+                'code' => $request->input('code'),
+            ]);
+
+            $refreshToken = $accessToken->getRefreshToken();
+            $expires = $accessToken->getExpires();
+
+            // Armazene o token de acesso e de atualização para uso futuro
+
+            return redirect('/home');
+        }
+    }
+
+    public function someApiRequest()
+    {
+        $provider = new \League\OAuth2\Client\Provider\GenericProvider([
+            'clientId' => config('sicredi.client_id'),
+            'clientSecret' => config('sicredi.client_secret'),
+            'redirectUri' => config('sicredi.redirect_uri'),
+            'urlAuthorize' => config('sicredi.base_url') . 'authorize',
+            'urlAccessToken' => config('sicredi.token_url'),
+            'urlResourceOwnerDetails' => config('sicredi.base_url') . 'userinfo',
+        ]);
+
+        $accessToken = new \League\OAuth2\Client\Token\AccessToken([
+            'access_token' => 'seu_token_de_acesso',
+        ]);
+
+        $client = new \GuzzleHttp\Client();
+        $response = $client->request('GET', config('sicredi.base_url') . 'algum_endpoint', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $accessToken->getToken(),
+            ],
+        ]);
+
+        $responseData = json_decode($response->getBody()->getContents());
+
+        return $responseData;
+    }
+}

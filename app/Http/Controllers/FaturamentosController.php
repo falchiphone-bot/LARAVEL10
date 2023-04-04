@@ -1,0 +1,115 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\FaturamentoCreateRequest;
+use App\Http\Requests\FaturamentosCreateRequest;
+use App\Models;
+use App\Models\Empresa;
+use App\Models\Faturamentos;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+
+
+class FaturamentosController extends Controller
+{
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware(['permission:FATURAMENTOS - LISTAR'])->only('index');
+        $this->middleware(['permission:FATURAMENTOS - INCLUIR'])->only(['create', 'store']);
+        $this->middleware(['permission:FATURAMENTOS - EDITAR'])->only(['edit', 'update']);
+        $this->middleware(['permission:FATURAMENTOS - VER'])->only(['edit', 'update']);
+        $this->middleware(['permission:FATURAMENTOS - EXCLUIR'])->only('destroy');
+    }
+    /**
+     * Display a listing of the resource.
+     */
+
+
+    public function index()
+    {
+       $faturamentos= Faturamentos::OrderBy('data')->get();
+
+        return view('Faturamentos.index',compact('faturamentos'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        $empresas = Empresa::get();
+
+
+        return view('Faturamentos.create',  compact('empresas'));
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(FaturamentoCreateRequest $request)
+    {
+        $faturamentos= $request->all();
+
+// dd($faturamentos);
+        faturamentos::create($faturamentos);
+
+
+        return redirect(route('Faturamentos.index'));
+
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        $faturamentos = faturamentos::find($id);
+
+        $empresas = Empresa::get();
+        // dd($empresas->first());
+        return view('Faturamentos.show',compact('faturamentos',"empresas"));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(string $id)
+    {
+        $faturamentos= faturamentos::find($id);
+
+        $empresas = Empresa::get();
+        return view('Faturamentos.edit',compact('faturamentos','empresas'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+
+        $faturamentos = faturamentos::find($id);
+
+        $faturamentos->fill($request->all()) ;
+
+
+        $faturamentos->save();
+
+
+        return redirect(route('Faturamentos.index'));
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        $faturamentos = faturamentos::find($id);
+
+
+        $faturamentos->delete();
+        return redirect(route('Faturamentos.index'));
+
+    }
+}

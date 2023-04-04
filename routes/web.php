@@ -68,5 +68,8 @@ Route::middleware('auth')->group(function () {
     #Moedas e valores
     Route::resource('Moedas',App\Http\Controllers\MoedaController::class);
     Route::resource('MoedasValores',App\Http\Controllers\MoedaValoresController::class);
+
+    #Faturamentos
+    Route::resource('Faturamentos',App\Http\Controllers\FaturamentosController::class);
 });
 require __DIR__.'/auth.php';

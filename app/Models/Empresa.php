@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Empresa extends Model
 {
@@ -26,5 +27,12 @@ class Empresa extends Model
     ];
 
     public $timestamps = false;
+
+    // public function  RelacionadaNaEmpresa(): HasOne
+    // {
+    //     return $this->hasOne(Faturamentos::class, 'EmpresaID', 'ID');
+    // }
+
+
 
 }
