@@ -29,7 +29,7 @@
                 <label for="data">Data</label>
                 <input required class="form-control @error('data') is-invalid @else is-valid @enderror" name="data"
                     type="date" id="data"
-                    value="@if ($faturamentos ?? null){{$faturamentos->data->format('Y-m-d')}}@endif">
+                    value="@if($faturamentos??null){{$faturamentos->data->format('Y-m-d')}}@endif">
                 @error('data')
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
