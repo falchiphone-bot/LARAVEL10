@@ -17,12 +17,10 @@ class SicrediController extends Controller
     public function index()
     {
         $consulta = SicredApiHelper::boletoLiquidadoDia('72334','0703','16','03/04/2023');
-
         if ($consulta['error']??null) {
             return $consulta['message'];
         }
         foreach ($consulta['items'] as $item) {
-            foreach();
             echo "<p>";
             echo "cooperativa: ".$item["cooperativa"]."<br>";
             echo "codigoBeneficiario: ".$item["codigoBeneficiario"]."<br>";
@@ -41,6 +39,8 @@ class SicrediController extends Controller
             echo "</p>";
             echo "<br>";
         }
+
+
     }
 
     /**
