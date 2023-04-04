@@ -75,6 +75,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('Faturamentos',App\Http\Controllers\FaturamentosController::class);
 
     #Faturamentos
+    Route::get('Sicredi/SalvarLiquidcacaoDia',[App\Http\Controllers\SicrediController::class,'salvarLiquidacaoDia']);
     Route::resource('Sicredi',App\Http\Controllers\SicrediController::class);
 
 });

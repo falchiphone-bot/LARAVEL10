@@ -25,8 +25,8 @@
                     @endcan
                     <div class="card-header">
                         <div class="badge bg-secondary text-wrap" style="width: 100%;">
-                        <p>Total de moedas cadastradas no sistema de gerenciamento administrativo e contábil:
-                            {{ count($consulta??null) }}</p>
+                            <p>Total de moedas cadastradas no sistema de gerenciamento administrativo e contábil:
+                                {{ count($consulta ?? null) }}</p>
                         </div>
                     </div>
 
@@ -35,47 +35,49 @@
                 </div>
 
                 <tbody>
-                    <table class="table" style="background-color: rgb(247, 247, 213);">
-                        <thead>
-                            <tr>
-                                <th scope="col" class="px-6 py-4">cooperativa</th>
-                                <th scope="col" class="px-6 py-4">codigoBeneficiario</th>
-                                <th scope="col" class="px-6 py-4">cooperativaPostoBeneficiario</th>
-                                <th scope="col" class="px-6 py-4">nossoNumero</th>
-                                <th scope="col" class="px-6 py-4">seuNumero</th>
-                                <th scope="col" class="px-6 py-4">tipoCarteira</th>
-                                <th scope="col" class="px-6 py-4">dataPagamento</th>
-                                <th scope="col" class="px-6 py-4">valor</th>
-                                <th scope="col" class="px-6 py-4">valorLiquidado</th>
-                                <th scope="col" class="px-6 py-4">jurosLiquido</th>
-                                <th scope="col" class="px-6 py-4">descontoLiquido</th>
-                                <th scope="col" class="px-6 py-4">multaLiquida</th>
-                                <th scope="col" class="px-6 py-4">abatimentoLiquido</th>
-                                <th scope="col" class="px-6 py-4">tipoLiquidacao</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            @foreach ($consulta as $item)
+                    <div class="table-responsive">
+                        <table class="table" style="background-color: rgb(247, 247, 213);">
+                            <thead>
                                 <tr>
-                                    <td>{{ $item['cooperativa'] }}</td>
-                                    <td>{{ $item['codigoBeneficiario'] }}</td>
-                                    <td>{{ $item['cooperativaPostoBeneficiario'] }}</td>
-                                    <td>{{ $item['nossoNumero'] }}</td>
-                                    <td>{{ $item['seuNumero'] }}</td>
-                                    <td>{{ $item['tipoCarteira'] }}</td>
-                                    <td>{{ $item['dataPagamento'] }}</td>
-                                    <td>{{ $item['valor'] }}</td>
-                                    <td>{{ $item['valorLiquidado'] }}</td>
-                                    <td>{{ $item['jurosLiquido'] }}</td>
-                                    <td>{{ $item['descontoLiquido'] }}</td>
-                                    <td>{{ $item['multaLiquida'] }}</td>
-                                    <td>{{ $item['abatimentoLiquido'] }}</td>
-                                    <td>{{ $item['tipoLiquidacao'] }}</td>
+                                    <th scope="col" class="px-6 py-4">cooperativa</th>
+                                    <th scope="col" class="px-6 py-4">codigoBeneficiario</th>
+                                    <th scope="col" class="px-6 py-4">cooperativaPostoBeneficiario</th>
+                                    <th scope="col" class="px-6 py-4">nossoNumero</th>
+                                    <th scope="col" class="px-6 py-4">seuNumero</th>
+                                    <th scope="col" class="px-6 py-4">tipoCarteira</th>
+                                    <th scope="col" class="px-6 py-4">dataPagamento</th>
+                                    <th scope="col" class="px-6 py-4">valor</th>
+                                    <th scope="col" class="px-6 py-4">valorLiquidado</th>
+                                    <th scope="col" class="px-6 py-4">jurosLiquido</th>
+                                    <th scope="col" class="px-6 py-4">descontoLiquido</th>
+                                    <th scope="col" class="px-6 py-4">multaLiquida</th>
+                                    <th scope="col" class="px-6 py-4">abatimentoLiquido</th>
+                                    <th scope="col" class="px-6 py-4">tipoLiquidacao</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+
+                            <tbody>
+                                @foreach ($consulta['items'] as $item)
+                                    <tr>
+                                        <td>{{ $item['cooperativa'] }}</td>
+                                        <td>{{ $item['codigoBeneficiario'] }}</td>
+                                        <td>{{ $item['cooperativaPostoBeneficiario'] }}</td>
+                                        <td>{{ $item['nossoNumero'] }}</td>
+                                        <td>{{ $item['seuNumero'] }}</td>
+                                        <td>{{ $item['tipoCarteira'] }}</td>
+                                        <td>{{ $item['dataPagamento'] }}</td>
+                                        <td>{{ $item['valor'] }}</td>
+                                        <td>{{ $item['valorLiquidado'] }}</td>
+                                        <td>{{ $item['jurosLiquido'] }}</td>
+                                        <td>{{ $item['descontoLiquido'] }}</td>
+                                        <td>{{ $item['multaLiquida'] }}</td>
+                                        <td>{{ $item['abatimentoLiquido'] }}</td>
+                                        <td>{{ $item['tipoLiquidacao'] }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
             </div>
         </div>
 

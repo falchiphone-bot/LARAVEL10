@@ -11,7 +11,10 @@ class CobrancaSicredi extends Model
     protected $table = 'CobrancaSicredi';
     protected $primaryKey = "NossoNumero";
 
+    public $timestamps = false;
+
     protected $fillable = [
+        'NossoNumero',
         'Carteira',
         'NumeroDocumento',
         'Pagador',
