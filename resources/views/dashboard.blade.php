@@ -18,6 +18,7 @@
                                         Opções para o sistema
                                     </div>
                             </div>
+                        </div>
 
                             @can('USUARIOS - LISTAR')
                                 <tr>
@@ -143,6 +144,8 @@
 
                             </tbody>
                     </table>
+                    <div class="badge bg-warning text-wrap" style="width: 100%;align=˜Center˜ ">
+                    <div class="badge bg-success text-wrap" style="width: 100%;align=˜Center˜ ">              .  .
                 </div>
             </div>
 
