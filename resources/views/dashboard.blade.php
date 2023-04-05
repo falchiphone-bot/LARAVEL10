@@ -5,14 +5,19 @@
 
             <div class="card">
                 <div class="card-header">
-                    Menu Principal do sistema administrativo e contábil
+                    <div class="badge bg-warning text-wrap" style="width: 100%;align=˜Center˜ ">
+                        Menu Principal do sistema administrativo e contábil
+                    </div>
                 </div>
                 <div class="card-body">
                     <table class="table table-success table-striped">
-                        <thead class="table-light">
-                            Opções para o sistema
-                        </thead>
-                        <tbody>
+                        <div class="badge bg-warning text-wrap" style="width: 100%;align=˜Center˜ ">
+                            <div class="badge bg-success text-wrap" style="width: 100%;align=˜Center˜ ">
+                                <thead class="table-light">
+                                    <div class="badge bg-success text-wrap" style="width: 100%;align=˜Center˜ ">
+                                        Opções para o sistema
+                                    </div>
+                            </div>
 
                             @can('USUARIOS - LISTAR')
                                 <tr>
@@ -136,7 +141,7 @@
                                 </tr>
                             @endcan
 
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
             </div>
