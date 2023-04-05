@@ -18,83 +18,91 @@
 
 
             <div class="card-body">
-                <section>
-                    <div class="row mt-2">
+                <div class="row mt-2">
 
-                        <div class="col-8">
-                            <div class="card">
-                                <div class="card-header">
-                                    <label for="contaCobranca">Carteira de Cobrança</label>
-                                </div>
-                                <div class="card-body">
-                                    <select class="form-control" id="contaCobranca" wire:model='contaCobranca'
-                                        wire:model.debounce.700ms='contaCobranca'>
-                                        <option value="">Selecione uma conta</option>
-                                        @foreach ($contasCobrancas as $idContaCobranca => $conta)
-                                            <option value="{{ $idContaCobranca }}">{{ $conta }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                    <div class="col-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <label for="contaCobranca">Carteira de Cobrança</label>
                             </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="card">
-                                <div class="card-header">
-                                    <label for="consultaDia">Consultar do Dia</label>
-                                </div>
-                                <div class="card-body">
-                                    <input type="date" class="form-control" value="{{ $consultaDia }}"
-                                        id="consultaDia" wire:model='consultaDia'>
-                                </div>
+                            <div class="card-body">
+                                <select class="form-control" id="contaCobranca" wire:model='contaCobranca'
+                                    wire:model.debounce.700ms='contaCobranca'>
+                                    <option value="">Selecione uma conta</option>
+                                    @foreach ($contasCobrancas as $idContaCobranca => $conta)
+                                        <option value="{{ $idContaCobranca }}">{{ $conta }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
                     </div>
-                    <div class="row mt-3">
-
-                        <div class="col-3">
-                            <div class="card">
-                                <div class="card-header">
-                                    <label for="consultaDia">Quantidade Liquidado</label>
-                                </div>
-                                <div class="card-body">
-                                    <p>
-                                        @if ($consulta['status'])
-                                            {{ count($consulta['dados']['items'] ?? null) }}
-                                        @else
-                                            {{ $consulta['dados'] }}
-                                        @endif
-                                    </p>
-                                </div>
+                    <div class="col-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <label for="consultaDia">Consultar do Dia</label>
+                            </div>
+                            <div class="card-body">
+                                <input type="date" class="form-control" value="{{ $consultaDia }}" id="consultaDia"
+                                    wire:model='consultaDia'>
                             </div>
                         </div>
-                        <div class="col-3">
-                            <div class="card">
-                                <div class="card-header">
-                                    <label for="consultaDia">Total Liquidado</label>
-                                </div>
-                                <div class="card-body">
+                    </div>
+                </div>
+                <div class="row mt-3">
+
+                    <div class="col-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <label for="consultaDia">Quantidade Liquidado</label>
+                            </div>
+                            <div class="card-body">
+                                <p>
                                     @if ($consulta['status'])
-                                        @php
-                                            $totalLiquidado = 0;
-                                            foreach ($consulta['dados']['items'] as $soma) {
-                                                $totalLiquidado += $soma['valorLiquidado'];
-                                            }
-                                        @endphp
-                                        <p>
-                                            {{ number_format($totalLiquidado, 2, ',', '.') }}
-                                        </p>
+                                        {{ count($consulta['dados']['items'] ?? null) }}
                                     @else
                                         {{ $consulta['dados'] }}
                                     @endif
-                                </div>
+                                </p>
                             </div>
                         </div>
-                        <div class="col-3" wire:loading>
-                            <span class="badge rounded-pill bg-info text-dark">Buscando dados via API ...</span>
+                    </div>
+                    <div class="col-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <label for="consultaDia">Total Liquidado</label>
+                            </div>
+                            <div class="card-body">
+                                @if ($consulta['status'])
+                                    @php
+                                        $totalLiquidado = 0;
+                                        foreach ($consulta['dados']['items'] as $soma) {
+                                            $totalLiquidado += $soma['valorLiquidado'];
+                                        }
+                                    @endphp
+                                    <p>
+                                        {{ number_format($totalLiquidado, 2, ',', '.') }}
+                                    </p>
+                                @else
+                                    {{ $consulta['dados'] }}
+                                @endif
+                            </div>
                         </div>
+                    </div>
+                    <div class="col-3">
+                        <button type="button" class="btn btn-warning" wire:click="salvarRecebimentos">Salvar Dados</button>
+                        <br>
+                        <span class="badge text-dark">{{ $msgSalvarRecebimentos }}</span>
 
                     </div>
-                </section>
+                    <div class="col-3" wire:loading>
+                        <span class="badge rounded-pill bg-info text-dark">Processando requisição ...</span>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <button type="button" class="btn btn-primary" wire:click="render()">Buscar</button>
+                    </div>
+                </div>
 
                 <div class="table-responsive mt-2">
                     <table class="table" style="background-color: rgb(247, 247, 213);">
