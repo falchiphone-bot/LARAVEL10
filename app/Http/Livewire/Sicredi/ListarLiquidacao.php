@@ -26,7 +26,7 @@ class ListarLiquidacao extends Component
             $contaCobranca->posto,
             $contaCobranca->token_conta,
             $contaCobranca->devSicredi->SICREDI_CLIENT_ID,
-            $contaCobranca->devSicredi->SICREDI_CLIENT_SECRET_ID,
+            $contaCobranca->devSicredi->SICREDI_CLIENT_SECRET,
             $contaCobranca->devSicredi->SICREDI_TOKEN,
             $consulta->format('d/m/Y')
         );
@@ -36,6 +36,7 @@ class ListarLiquidacao extends Component
     public function mount()
     {
         $contaCobranca = ContaCobranca::first();
+        $this->contaCobranca = $contaCobranca->id;
 
         $now = Carbon::now()->subDay(1);
         $this->consultaDiaDisplay = $now->format('d/m/Y');
@@ -46,7 +47,7 @@ class ListarLiquidacao extends Component
             $contaCobranca->posto,
             $contaCobranca->token_conta,
             $contaCobranca->devSicredi->SICREDI_CLIENT_ID,
-            $contaCobranca->devSicredi->SICREDI_CLIENT_SECRET_ID,
+            $contaCobranca->devSicredi->SICREDI_CLIENT_SECRET,
             $contaCobranca->devSicredi->SICREDI_TOKEN,
             $now->format('d/m/Y'));
     }

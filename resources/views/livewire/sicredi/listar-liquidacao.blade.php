@@ -21,13 +21,14 @@
                 <section>
                     <div class="row mt-2">
 
-                        <div class="col-3">
+                        <div class="col-8">
                             <div class="card">
                                 <div class="card-header">
                                     <label for="contaCobranca">Carteira de Cobrança</label>
                                 </div>
                                 <div class="card-body">
-                                    <select class="form-control" id="contaCobranca" wire:model='contaCobranca' wire:model='contaCobranca'>
+                                    <select class="form-control" id="contaCobranca" wire:model='contaCobranca'
+                                        wire:model.debounce.700ms='contaCobranca'>
                                         <option value="">Selecione uma conta</option>
                                         @foreach ($contasCobrancas as $idContaCobranca => $conta)
                                             <option value="{{ $idContaCobranca }}">{{ $conta }}</option>
@@ -36,8 +37,7 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div class="col-3">
+                        <div class="col-4">
                             <div class="card">
                                 <div class="card-header">
                                     <label for="consultaDia">Consultar do Dia</label>
@@ -48,6 +48,8 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                    <div class="row mt-3">
 
                         <div class="col-3">
                             <div class="card">
@@ -56,30 +58,41 @@
                                 </div>
                                 <div class="card-body">
                                     <p>
-                                        {{ count($consulta['items'] ?? null) }}
+                                        @if ($consulta['status'])
+                                            {{ count($consulta['dados']['items'] ?? null) }}
+                                        @else
+                                            {{ $consulta['dados'] }}
+                                        @endif
                                     </p>
                                 </div>
                             </div>
                         </div>
-
                         <div class="col-3">
                             <div class="card">
                                 <div class="card-header">
                                     <label for="consultaDia">Total Liquidado</label>
                                 </div>
                                 <div class="card-body">
-                                    @php
-                                        $totalLiquidado = 0;
-                                        foreach ($consulta['items'] as $soma) {
-                                            $totalLiquidado += $soma['valorLiquidado'];
-                                        }
-                                    @endphp
-                                    <p>
-                                        {{ number_format($totalLiquidado, 2, ',', '.') }}
-                                    </p>
+                                    @if ($consulta['status'])
+                                        @php
+                                            $totalLiquidado = 0;
+                                            foreach ($consulta['dados']['items'] as $soma) {
+                                                $totalLiquidado += $soma['valorLiquidado'];
+                                            }
+                                        @endphp
+                                        <p>
+                                            {{ number_format($totalLiquidado, 2, ',', '.') }}
+                                        </p>
+                                    @else
+                                        {{ $consulta['dados'] }}
+                                    @endif
                                 </div>
                             </div>
                         </div>
+                        <div class="col-3" wire:loading>
+                            <span class="badge rounded-pill bg-info text-dark">Buscando dados via API ...</span>
+                        </div>
+
                     </div>
                 </section>
 
@@ -105,8 +118,8 @@
                         </thead>
 
                         <tbody>
-                            @if ($consulta)
-                                @foreach ($consulta['items'] as $item)
+                            @if ($consulta['status'])
+                                @foreach ($consulta['dados']['items'] as $item)
                                     <tr>
                                         {{-- <td>{{ $item['cooperativa'] }}</td> --}}
                                         <td>{{ $item['nossoNumero'] }}</td>
