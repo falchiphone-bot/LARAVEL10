@@ -28,7 +28,7 @@ class SicrediController extends Controller
     public function salvarLiquidacaoDia()
     {
         $consulta = SicredApiHelper::boletoLiquidadoDia('72334','0703','16','03/04/2023');
-
+//  dd($consulta);
         $nossonumero = 0;
         foreach($consulta['items'] as $item)
         {

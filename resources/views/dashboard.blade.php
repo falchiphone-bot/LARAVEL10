@@ -92,16 +92,30 @@
                             @endcan
 
                             @can('FATURAMENTOS - LISTAR')
-                            <tr>
-                                <th>
+                                <tr>
+                                    <th>
 
-                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                        <a class="btn btn-primary" href="/Faturamentos">Faturamentos registrados</a>
-                                    </nav>
+                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                            <a class="btn btn-primary" href="/Faturamentos">Faturamentos registrados</a>
+                                        </nav>
 
-                                </th>
-                            </tr>
-                        @endcan
+                                    </th>
+                                </tr>
+                            @endcan
+
+                            @can('COBRANCA - LISTAR')
+                                <tr>
+                                    <th>
+
+                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                            <a class="btn btn-primary" href="/Cobranca">Cobrança</a>
+                                        </nav>
+
+                                    </th>
+                                </tr>
+                            @endcan
+
+                      
 
                             @can('MOEDAS - LISTAR')
                                 <tr>
