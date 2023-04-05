@@ -81,5 +81,15 @@ Route::middleware('auth')->group(function () {
 
      #Sicredi
     Route::resource('DevSicredi',App\Http\Controllers\DevSicrediController::class);
+
+    #Cobrança
+    Route::resource('Cobranca',App\Http\Controllers\CobrancaController::class);
+
+    Route::get('/Cobranca', function () {
+        return view('Cobranca/dashboard');
+    })->middleware(['auth', 'verified'])->name('dashboard');
+
+
+
 });
 require __DIR__.'/auth.php';

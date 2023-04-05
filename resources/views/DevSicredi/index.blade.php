@@ -94,6 +94,18 @@
                                     @endcan
                                 </tr>
                             @endforeach
+
+                            @can('COBRANCA - LISTAR')
+                                <tr>
+                                    <th>
+
+
+                                            <a class="btn btn-warning" href="/Cobranca">Opções de obrança</a>
+                                    
+
+                                    </th>
+                                </tr>
+                            @endcan
                         </tbody>
                     </table>
             </div>
