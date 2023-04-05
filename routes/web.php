@@ -62,6 +62,7 @@ Route::middleware('auth')->group(function () {
     #Contas
     Route::get('Contas/Extrato/{contaID}',[App\Http\Controllers\ContaController::class,'extrato']);
     Route::resource('Contas',App\Http\Controllers\ContaController::class);
+    Route::resource('ContasCobranca',App\Http\Controllers\ContaCobrancaController::class);
 
     #Funções
     Route::resource('Funcoes',App\Http\Controllers\RoleController::class);
@@ -76,6 +77,7 @@ Route::middleware('auth')->group(function () {
 
     #Faturamentos
     Route::get('Sicredi/SalvarLiquidcacaoDia',[App\Http\Controllers\SicrediController::class,'salvarLiquidacaoDia']);
+    Route::resource('Sicredi',App\Http\Controllers\SicrediController::class);
 
      #Sicredi
     Route::resource('DevSicredi',App\Http\Controllers\DevSicrediController::class);
