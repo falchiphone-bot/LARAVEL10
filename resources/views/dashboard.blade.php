@@ -115,7 +115,7 @@
                                 </tr>
                             @endcan
 
-                      
+
 
                             @can('MOEDAS - LISTAR')
                                 <tr>

@@ -5,12 +5,19 @@
 
             <div class="card">
                 <div class="card-header">
-                    Menu Principal do sistema administrativo e contábil - COBRANÇA
+                    <div class="badge bg-primary text-wrap" style="width: 100%;">
+                        Menu Principal do sistema administrativo e contábil - COBRANÇA
+
+                    </div>
+
+
                 </div>
                 <div class="card-body">
                     <table class="table table-success table-striped">
                         <thead class="table-light">
-                            Opções para o sistema de cobrança
+                            . <div class="badge bg-warning text-wrap" style="width: 100%;align=˜Center˜ ">
+                                Opções para o sistema de cobrança
+                            </div>
                         </thead>
                         <tbody>
 
@@ -21,11 +28,11 @@
                                     <th>
 
                                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-primary" href="/DevSicredi">Desenvolvedores do portal Sicredi</a>
+                                            <a class="btn btn-success" href="/DevSicredi">Desenvolvedores do portal Sicredi</a>
                                         </nav>
 
                                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-primary" href="/Sicredi">Cobrança Sicredi - acesso via API</a>
+                                            <a class="btn btn-success" href="/Sicredi">Cobrança Sicredi - acesso via API</a>
                                         </nav>
 
                                     </th>
