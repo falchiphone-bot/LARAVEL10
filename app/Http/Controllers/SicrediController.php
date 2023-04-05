@@ -15,14 +15,7 @@ class SicrediController extends Controller
      */
     public function index()
     {
-        $dia = Carbon::now()->subDay(1)->format('d/m/Y');
-        $consulta = SicredApiHelper::boletoLiquidadoDia('72334','0703','16',$dia);
-        if ($consulta['error']??null) {
-            return $consulta['message'];
-        }
-
-        return view('Sicredi.index',compact('consulta','dia'));
-
+        return view('Sicredi.index');
     }
 
     public function salvarLiquidacaoDia()
