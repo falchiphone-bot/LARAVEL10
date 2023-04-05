@@ -76,7 +76,8 @@ Route::middleware('auth')->group(function () {
 
     #Faturamentos
     Route::get('Sicredi/SalvarLiquidcacaoDia',[App\Http\Controllers\SicrediController::class,'salvarLiquidacaoDia']);
-    Route::resource('Sicredi',App\Http\Controllers\SicrediController::class);
 
+     #Sicredi
+    Route::resource('DevSicredi',App\Http\Controllers\DevSicrediController::class);
 });
 require __DIR__.'/auth.php';
