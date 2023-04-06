@@ -5,6 +5,8 @@ namespace App\Http\Livewire\Sicredi;
 use App\Helpers\SicredApiHelper;
 use App\Models\Atletas\CobrancaSicredi;
 use App\Models\ContaCobranca;
+use App\Models\Historicos;
+use App\Models\Lancamento;
 use App\Models\LogConsultaSicred;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -16,12 +18,15 @@ class ListarLiquidacao extends Component
     public $consultaDia;
     public $consultaDiaDisplay;
     public $contaCobranca;
+    public $contaCobrancaID;
+
     public $msgSalvarRecebimentos;
     public $cache;
-    
+
     public function updated()
     {
-        $contaCobranca = ContaCobranca::find($this->contaCobranca);
+        $this->contaCobranca = ContaCobranca::find($this->contaCobrancaID);
+        $contaCobranca = $this->contaCobranca;
         $consultaDia = Carbon::createFromFormat('Y-m-d', $this->consultaDia);
         $this->consultaDiaDisplay = $consultaDia->format('d/m/Y');
         $this->consultaDia = $consultaDia->format('Y-m-d');
@@ -42,7 +47,8 @@ class ListarLiquidacao extends Component
     public function mount()
     {
         $contaCobranca = ContaCobranca::first();
-        $this->contaCobranca = $contaCobranca->id;
+        $this->contaCobranca = $contaCobranca;
+        $this->contaCobrancaID = $contaCobranca->id;
 
         $now = Carbon::now()->subDay(1);
         $this->consultaDiaDisplay = $now->format('d/m/Y');
@@ -65,6 +71,54 @@ class ListarLiquidacao extends Component
     {
         Cache::pull($key);
         $this->cache = false;
+    }
+
+    public function criarLancamento($valorLiquido)
+    {
+        $contaCobranca = $this->contaCobranca;
+        if (isset($contaCobranca->d_cobranca) && isset($contaCobranca->d_tarifa)) {
+            $dataContabilidade = Carbon::createFromFormat('Y-m-d',$this->consultaDia);
+            $dataContabilidade = $dataContabilidade->addDay($contaCobranca->d_cobanca)->format('Y-m-d');
+
+            $lancamentoCobranca = Lancamento::where('DataContabilidade',$dataContabilidade)->where('HistoricoID',$contaCobranca->Credito_Cobranca)->first();
+            if ($lancamentoCobranca) {
+                $this->msgSalvarRecebimentos = 'Lançamento de Liquidação ja criado para esse dia';
+            }else {
+                $historico = Historicos::find($contaCobranca->Credito_Cobranca);
+
+                Lancamento::create([
+                    'Valor' => $valorLiquido,
+                    'EmpresaID' => $contaCobranca->EmpresaID,
+                    'ContaDebitoID' => $historico->ContaDebitoID,
+                    'ContaCreditoID' => $historico->ContaCreditoID,
+                    'Usuarios_id' => auth()->user()->id,
+                    'DataContabilidade' => $dataContabilidade,
+                    'Created' => date('Y-m-d H:i:s'),
+                    'HistoricoID' => $historico->ID,
+                ]);
+            }
+
+            $lancamentoTarifa = Lancamento::where('DataContabilidade',$this->consultaDia)->where('HistoricoID',$contaCobranca->Tarifa_Cobranca)->first();
+            if ($lancamentoTarifa) {
+                $this->msgSalvarRecebimentos = 'Lançamento de Liquidação ja criado para esse dia';
+            }else {
+                $historico = Historicos::find($contaCobranca->Tarifa_Cobranca);
+
+                Lancamento::create([
+                    'Valor' => $valorLiquido,
+                    'EmpresaID' => $contaCobranca->EmpresaID,
+                    'ContaDebitoID' => $historico->ContaDebitoID,
+                    'ContaCreditoID' => $historico->ContaCreditoID,
+                    'Usuarios_id' => auth()->user()->id,
+                    'DataContabilidade' => $this->consultaDia,
+                    'Created' => date('Y-m-d H:i:s'),
+                    'HistoricoID' => $historico->ID,
+                ]);
+                $this->msgSalvarRecebimentos = 'Lançamentos criado';
+            }
+        }else {
+            $this->msgSalvarRecebimentos = 'Conta sem D de dias cadastrado';
+        }
     }
 
     public function salvarRecebimentos()

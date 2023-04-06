@@ -23,6 +23,8 @@ class ContaCobranca extends Model
         'ValorTarifaCobranca',
         'Credito_Cobranca',
         'Tarifa_Cobranca',
+        'd_tarifa',
+        'd_cobranca',
     ];
 
     /**

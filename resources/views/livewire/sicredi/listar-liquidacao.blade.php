@@ -26,8 +26,8 @@
                                 <label for="contaCobranca">Carteira de Cobrança</label>
                             </div>
                             <div class="card-body">
-                                <select class="form-control" id="contaCobranca"
-                                    wire:model.debounce.700ms='contaCobranca'>
+                                <select class="form-control" id="contaCobrancaID"
+                                    wire:model.debounce.700ms='contaCobrancaID'>
                                     <option value="">Selecione uma conta</option>
                                     @foreach ($contasCobrancas as $idContaCobranca => $conta)
                                         <option value="{{ $idContaCobranca }}">{{ $conta }}</option>
@@ -93,15 +93,18 @@
                             Dados</button>
                         <br>
                         <span class="badge text-dark">{{ $msgSalvarRecebimentos }}</span>
+                        <button type="button" class="btn btn-success mt-2" wire:click="criarLancamento({{ $totalLiquidado??0}})">
+                            Criar Lançamento
+                        </button>
+                        <br>
 
                     </div>
                     @if ($cache)
                     <div class="col-3">
-                        <button type="button" class="btn btn-danger" wire:click="limparCache('{{ 'carteira_id_'.$contaCobranca.'_'.$consultaDiaDisplay }}')">
+                        <button type="button" class="btn btn-danger" wire:click="limparCache('{{ 'carteira_id_'.$contaCobrancaID.'_'.$consultaDiaDisplay }}')">
                             Limpar Cache
                         </button>
                         <br>
-                        <span class="badge text-dark">{{ $msgSalvarRecebimentos }}</span>
                     </div>
                     @endif
                 </div>

@@ -10,9 +10,12 @@ use Livewire\Component;
 class ContaCobrancaCampos extends Component
 {
     public $contaCobranca;
+    public $contaCobrancaID;
     public $historicoCredito;
     public $historicoDebito;
     public $empresa;
+    public $d_tarifa;
+    public $d_cobranca;
 
     public $historicoCreditoContaDebito;
     public $historicoCreditoContaCredito;
@@ -56,6 +59,8 @@ class ContaCobrancaCampos extends Component
         $this->contaCobranca = $contaCobranca;
         $this->historicoCredito = $contaCobranca->Tarifa_Cobranca;
         $this->historicoDebito = $contaCobranca->Credito_Cobranca;
+        $this->d_cobranca = $contaCobranca->d_cobranca;
+        $this->d_tarifa = $contaCobranca->d_tarifa;
 
         $this->empresa = $contaCobranca->Empresa->Descricao;
     }
