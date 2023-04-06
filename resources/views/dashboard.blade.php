@@ -59,7 +59,7 @@
                             @endcan
 
 
-                            @can('PLANO DE CONTAS - LISTAR')
+                            {{-- @can('PLANO DE CONTAS - LISTAR')
                                 <tr>
                                     <th>
 
@@ -69,7 +69,7 @@
 
                                     </th>
                                 </tr>
-                            @endcan
+                            @endcan --}}
 
                             @can('EMPRESAS - LISTAR')
                                 <tr>
@@ -103,6 +103,18 @@
 
                                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                                             <a class="btn btn-primary" href="/Faturamentos">Faturamentos registrados</a>
+                                        </nav>
+
+                                    </th>
+                                </tr>
+                            @endcan
+
+                            @can('CONTABILIDADE - LISTAR')
+                                <tr>
+                                    <th>
+
+                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                            <a class="btn btn-primary" href="/Contabilidade">Contabilidade</a>
                                         </nav>
 
                                     </th>
