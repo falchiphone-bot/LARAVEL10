@@ -30,7 +30,7 @@ class Historicos extends Model
      */
     public function ContaDebito(): HasOne
     {
-        return $this->hasOne(Historicos::class, 'ID', 'ContaDebitoID');
+        return $this->hasOne(Conta::class, 'ID', 'ContaDebitoID');
     }
 
     /**
@@ -40,8 +40,7 @@ class Historicos extends Model
      */
     public function ContaCredito(): HasOne
     {
-        return $this->hasOne(Historicos::class, 'ID', 'ContaCreditoID');
+        return $this->hasOne(Conta::class, 'ID', 'ContaCreditoID');
     }
-
-
+ 
 }

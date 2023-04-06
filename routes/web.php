@@ -82,12 +82,15 @@ Route::middleware('auth')->group(function () {
     Route::resource('DevSicredi',App\Http\Controllers\DevSicrediController::class);
 
      #Historicos
+     Route::post('Historicos/pesquisapost',[App\Http\Controllers\HistoricoController::class, 'pesquisapost'])->name('pesquisapost');
      Route::resource('Historicos',App\Http\Controllers\HistoricoController::class);
 
     #Contabilidade
+
      Route::get('/Contabilidade', function () {
         return view('Contabilidade/dashboard');
     })->middleware(['auth', 'verified'])->name('dashboard');
+
 
     #Cobrança
     Route::resource('Cobranca',App\Http\Controllers\CobrancaController::class);

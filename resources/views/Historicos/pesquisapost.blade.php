@@ -44,14 +44,14 @@
                     <div class="card">
                         <div class="card-body" style="background-color: rgb(33, 244, 33)">
                             <div class="row">
-                                <div class="col-3">
+                                <div class="col-6">
                                     <label for="Limite" style="color: black;">Empresas permitidas para o usuário</label>
                                     <select class="form-control select2" id="EmpresaSelecionada" name="EmpresaSelecionada">
                                         <option value="">
                                             Selecionar empresa
                                         </option>
                                         @foreach ($Empresas as $Empresa)
-                                            <option  selected
+                                            <option  @selected($retorno["EmpresaSelecionada"] == $Empresa->ID)
                                                 value="{{ $Empresa->ID }}">
 
                                                 {{ $Empresa->Descricao }}
@@ -62,15 +62,11 @@
 
                                 <div class="col-3">
                                     <label for="Pesquisa" style="color: black;">Pesquisar texto no histórico</label>
-                                   <input type="text" name='PesquisaTexto' class="form-control">
+                                   <input value= "{{$retorno["PesquisaTexto"]}}" type="text" name='PesquisaTexto' class="form-control">
                                 </div>
-
 
                             </div>
                         </div>
-
-
-
                         <div class="row mt-2">
                             <div class="col-6">
                                 <button class="btn btn-primary">Pesquisar</button>
@@ -81,6 +77,71 @@
 
                 </form>
 
+
+
+
+
+                <tbody>
+                    <table class="table" style="background-color: rgb(247, 247, 213);">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="px-6 py-4">EMPRESA</th>
+                                <th scope="col" class="px-6 py-4">NOME</th>
+                                <th scope="col" class="px-6 py-4">CONTA DÉBITO</th>
+                                <th scope="col" class="px-6 py-4">CONTA CRÉDITO</th>
+                                <th scope="col" class="px-6 py-4"></th>
+                                <th scope="col" class="px-6 py-4"></th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach ($pesquisa as $Historico)
+                                <tr>
+                                    <td class="">
+                                        {{ $Historico->empresa->Descricao }}
+                                        </a>
+                                    </td>
+                                    <td class="">
+                                        {{ $Historico->Descricao }}
+                                        </a>
+                                    </td>
+                                    <td class="">
+                                        {{ $Historico->ContaDebito->PlanoConta->Descricao }}
+                                    </td>
+                                    <td class="">
+                                        {{ $Historico->ContaCredito->PlanoConta->Descricao }}
+                                    </td>
+
+
+                                    @can('HISTORICOS - EDITAR')
+                                        <td>
+                                            <a href="{{ route('Historicos.edit', $Historico->ID) }}" class="btn btn-success"
+                                                tabindex="-1" role="button" aria-disabled="true">Editar</a>
+                                        </td>
+                                    @endcan
+
+                                    @can('HISTORICOS - VER')
+                                        <td>
+                                            <a href="{{ route('Historicos.show', $Historico->ID) }}" class="btn btn-info"
+                                                tabindex="-1" role="button" aria-disabled="true">Ver</a>
+                                        </td>
+                                    @endcan
+
+                                    @can('HISTORICOS - EXCLUIR')
+                                        <td>
+                                            <form method="POST" action="{{ route('Historicos.destroy', $Historico->ID) }}">
+                                                @csrf
+                                                <input type="hidden" name="_method" value="DELETE">
+                                                <button type="submit" class="btn btn-danger">
+                                                    Excluir
+                                                </button>
+                                            </form>
+                                        </td>
+                                    @endcan
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
             </div>
         </div>
 
@@ -107,7 +168,20 @@
                 buttons: {
                     confirmar: function() {
                         // $.alert('Confirmar!');
-                        e.currentTarget.submit()
+                        $.confirm({
+                            title: 'Confirmar!',
+                            content: 'Deseja realmente continuar?',
+                            buttons: {
+                                confirmar: function() {
+                                    // $.alert('Confirmar!');
+                                    e.currentTarget.submit()
+                                },
+                                cancelar: function() {
+                                    // $.alert('Cancelar!');
+                                },
+
+                            }
+                        });
 
                     },
                     cancelar: function() {

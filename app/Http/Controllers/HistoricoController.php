@@ -8,8 +8,8 @@ use App\Models\Empresa;
 use App\Models\Historico;
 use App\Models\Historicos;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-
 
 class HistoricoController extends Controller
 {
@@ -23,23 +23,37 @@ class HistoricoController extends Controller
         $this->middleware(['permission:HISTORICOS - EXCLUIR'])->only('destroy');
     }
 
-
-
-
     /**
      * Display a listing of the resource.
      */
 
-
     public function index()
     {
+        $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+            ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+            ->OrderBy('Descricao')
+            ->select(['Empresas.ID', 'Empresas.Descricao'])
+            ->get();
 
-        $empresas = Empresa::get();
+              return view('Historicos.index', compact('Empresas'));
+    }
 
-        $Historicos = Historicos::OrderBy('Descricao')->get();
+    public function pesquisapost(Request $Request)
+    {
+        $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+            ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+            ->OrderBy('Descricao')
+            ->select(['Empresas.ID', 'Empresas.Descricao'])
+            ->get();
 
+        $pesquisa = Historicos::where('EmpresaID', $Request->EmpresaSelecionada)->where('Descricao','like', "%".$Request->PesquisaTexto."%")->get();
 
-        return view('Historicos.index',compact('Historicos','empresas'));
+// DD($pesquisa->first()->ContaCredito);
+
+        $retorno["EmpresaSelecionada"] = $Request->EmpresaSelecionada;
+        $retorno["PesquisaTexto"] = $Request->PesquisaTexto;
+
+        return view('Historicos.pesquisapost', compact('pesquisa','Empresas',"retorno"));
     }
 
     /**
@@ -55,13 +69,12 @@ class HistoricoController extends Controller
      */
     public function store(HistoricosCreateRequest $request)
     {
-        $Historicos= $request->all();
+        $Historicos = $request->all();
         //dd($dados);
 
         Historicos::create($Historicos);
 
         return redirect(route('Historicos.index'));
-
     }
 
     /**
@@ -70,7 +83,7 @@ class HistoricoController extends Controller
     public function show(string $id)
     {
         $cadastro = Historicos::find($id);
-        return view('Historicos.show',compact('cadastro'));
+        return view('Historicos.show', compact('cadastro'));
     }
 
     /**
@@ -78,10 +91,10 @@ class HistoricoController extends Controller
      */
     public function edit(string $id)
     {
-        $Historicos= Historicos::find($id);
+        $Historicos = Historicos::find($id);
         // dd($cadastro);
 
-        return view('Historicos.edit',compact('Historicos'));
+        return view('Historicos.edit', compact('Historicos'));
     }
 
     /**
@@ -89,14 +102,11 @@ class HistoricoController extends Controller
      */
     public function update(Request $request, string $id)
     {
-
         $cadastro = Historicos::find($id);
 
-        $cadastro->fill($request->all()) ;
-
+        $cadastro->fill($request->all());
 
         $cadastro->save();
-
 
         return redirect(route('Historicos.index'));
     }
@@ -108,9 +118,7 @@ class HistoricoController extends Controller
     {
         $Historicos = Historicos::find($id);
 
-
         $Historicos->delete();
         return redirect(route('Historicos.index'));
-
     }
 }
