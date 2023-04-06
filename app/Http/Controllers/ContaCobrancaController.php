@@ -61,10 +61,8 @@ class ContaCobrancaController extends Controller
     public function edit(string $id)
     {
         $contaCobranca = ContaCobranca::find($id);
-        $empresas = Empresa::orderBy('Descricao')->pluck('Descricao','ID');
-        $contasDev = DevSicredi::orderBy('DESENVOLVEDOR')->pluck('DESENVOLVEDOR','id');
 
-        return view('ContasCobranca.edit', compact('empresas','contasDev','contaCobranca'));
+        return view('ContasCobranca.edit', compact('contaCobranca'));
     }
 
     /**

@@ -23,7 +23,7 @@
                 @endif
                 <form method="POST" action="{{ route('ContasCobranca.update', $contaCobranca->id) }}" accept-charset="UTF-8">
                     <input type="hidden" name="_method" value="PUT">
-                    @include('ContasCobranca.campos')
+                    @livewire('conta-cobranca.conta-cobranca-campos',['contaCobranca' => $contaCobranca])
                 </form>
 
             @endsection

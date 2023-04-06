@@ -7,7 +7,7 @@
                    <select name="EmpresaID" id="EmpresaID" class="form-control" required>
                        <option value="">Selecione a Empresa</option>
                        @foreach ($empresas as $ID => $Descricao)
-                           <option @if ($contaCobranca??null) @selected($contaCobranca->EmpresaID==$ID) @endif
+                           <option @if ($contaCobranca ?? null) @selected($contaCobranca->EmpresaID==$ID) @endif
                                value="{{ $ID }}">{{ $Descricao }}</option>
                        @endforeach
                    </select>
@@ -67,7 +67,8 @@
                    <select name="idDevSicredi" id="idDevSicredi" class="form-control" required>
                        <option value="">Selecione a conta do Desenvolvedor</option>
                        @foreach ($contasDev as $idDev => $DESENVOLVEDOR)
-                           <option @if ($contaCobranca??null) @selected($contaCobranca->idDevSicredi==$idDev) @endif
+                           <option
+                               @if ($contaCobranca ?? null) @selected($contaCobranca->idDevSicredi==$idDev) @endif
                                value="{{ $idDev }}">{{ $DESENVOLVEDOR }}</option>
                        @endforeach
                    </select>
@@ -75,11 +76,53 @@
                        <div class="alert alert-danger">{{ $message }}</div>
                    @enderror
                </div>
+
+               <div class="col-12">
+                   <label for="selectContaCredito">Histórico para Conta Credito</label>
+                   <select name="selectContaCredito" id="selectContaCredito" class="form-control" required>
+                       <option value="">Selecione a conta do Desenvolvedor</option>
+                       @foreach ($historicos as $historicoID => $descricao)
+                           <option value="{{ $historicoID }}">{{ $descricao }}</option>
+                       @endforeach
+                   </select>
+                   @error('selectContaCredito')
+                       <div class="alert alert-danger">{{ $message }}</div>
+                   @enderror
+               </div>
+
+               @if ($historicoContaID)
+                   <div class="col-6">
+                       <label for="selectContaCredito">Histórico para Conta Credito</label>
+                       <select name="selectContaCredito" id="selectContaCredito" class="form-control" required>
+                           <option value="">Selecione a conta do Desenvolvedor</option>
+                           @foreach ($historicos as $historicoID => $descricao)
+                               <option value="{{ $historicoID }}">{{ $descricao }}</option>
+                           @endforeach
+                       </select>
+                       @error('selectContaCredito')
+                           <div class="alert alert-danger">{{ $message }}</div>
+                       @enderror
+                   </div>
+                   <div class="col-6">
+                       <label for="selectContaCredito">Histórico para Conta Credito</label>
+                       <select name="selectContaCredito" id="selectContaCredito" class="form-control" required>
+                           <option value="">Selecione a conta do Desenvolvedor</option>
+                           @foreach ($historicos as $historicoID => $descricao)
+                               <option value="{{ $historicoID }}">{{ $descricao }}</option>
+                           @endforeach
+                       </select>
+                       @error('selectContaCredito')
+                           <div class="alert alert-danger">{{ $message }}</div>
+                       @enderror
+                   </div>
+               @endif
+
            </div>
            <div class="row mt-2">
                <div class="col-6">
                    <button class="btn btn-primary">Salvar</button>
-                   <a href="{{ route('ContasCobranca.index') }}" class="btn btn-warning">Retornar para lista de contas</a>
+                   <a href="{{ route('ContasCobranca.index') }}" class="btn btn-warning">Retornar para lista de
+                       contas</a>
                </div>
            </div>
        </div>

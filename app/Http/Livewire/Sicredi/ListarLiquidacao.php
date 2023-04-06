@@ -18,8 +18,7 @@ class ListarLiquidacao extends Component
     public $contaCobranca;
     public $msgSalvarRecebimentos;
     public $cache;
-
-    protected $listeners = ['refreshComponent' => '$refresh'];
+    
     public function updated()
     {
         $contaCobranca = ContaCobranca::find($this->contaCobranca);

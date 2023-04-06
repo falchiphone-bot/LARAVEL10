@@ -102,7 +102,6 @@
                         </button>
                         <br>
                         <span class="badge text-dark">{{ $msgSalvarRecebimentos }}</span>
-
                     </div>
                     @endif
                 </div>
@@ -111,7 +110,7 @@
                         <span class="badge rounded-pill bg-info text-dark">Processando requisição ...</span>
                     </div>
                     <div class="col-12">
-                        <button type="button" class="btn btn-primary" wire:click="$emit('refreshComponent')">Buscar</button>
+                        <button type="button" class="btn btn-primary" wire:click="$refresh">Buscar</button>
                     </div>
                 </div>
 
@@ -161,7 +160,6 @@
                     </table>
                 </div>
             </div>
-
         </div>
     </div>
 </div>
