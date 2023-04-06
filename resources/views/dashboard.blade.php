@@ -5,14 +5,20 @@
 
             <div class="card">
                 <div class="card-header">
-                    Menu Principal do sistema administrativo e contábil
+                    <div class="badge bg-warning text-wrap" style="width: 100%;align=˜Center˜ ">
+                        Menu Principal do sistema administrativo e contábil
+                    </div>
                 </div>
                 <div class="card-body">
                     <table class="table table-success table-striped">
-                        <thead class="table-light">
-                            Opções para o sistema
-                        </thead>
-                        <tbody>
+                        <div class="badge bg-warning text-wrap" style="width: 100%;align=˜Center˜ ">
+                            <div class="badge bg-success text-wrap" style="width: 100%;align=˜Center˜ ">
+                                <thead class="table-light">
+                                    <div class="badge bg-success text-wrap" style="width: 100%;align=˜Center˜ ">
+                                        Opções para o sistema
+                                    </div>
+                            </div>
+                        </div>
 
                             @can('USUARIOS - LISTAR')
                                 <tr>
@@ -53,7 +59,7 @@
                             @endcan
 
 
-                            @can('PLANO DE CONTAS - LISTAR')
+                            {{-- @can('PLANO DE CONTAS - LISTAR')
                                 <tr>
                                     <th>
 
@@ -63,7 +69,7 @@
 
                                     </th>
                                 </tr>
-                            @endcan
+                            @endcan --}}
 
                             @can('EMPRESAS - LISTAR')
                                 <tr>
@@ -103,6 +109,18 @@
                                 </tr>
                             @endcan
 
+                            @can('CONTABILIDADE - LISTAR')
+                                <tr>
+                                    <th>
+
+                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                            <a class="btn btn-primary" href="/Contabilidade">Contabilidade</a>
+                                        </nav>
+
+                                    </th>
+                                </tr>
+                            @endcan
+
                             @can('COBRANCA - LISTAR')
                                 <tr>
                                     <th>
@@ -136,8 +154,10 @@
                                 </tr>
                             @endcan
 
-                        </tbody>
+                            </tbody>
                     </table>
+                    <div class="badge bg-warning text-wrap" style="width: 100%;align=˜Center˜ ">
+                    <div class="badge bg-success text-wrap" style="width: 100%;align=˜Center˜ ">              .  .
                 </div>
             </div>
 

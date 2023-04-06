@@ -6,7 +6,7 @@
             <div class="card">
                 <div class="card-header">
                     <div class="badge bg-primary text-wrap" style="width: 100%;">
-                        Menu Principal do sistema administrativo e contábil - COBRANÇA
+                        Menu Principal do sistema administrativo e contábil - CONTABILIDADE
 
                     </div>
 
@@ -16,27 +16,23 @@
                     <table class="table table-success table-striped">
                         <thead class="table-light">
                             . <div class="badge bg-warning text-wrap" style="width: 100%;align=˜Center˜ ">
-                                Opções para o sistema de cobrança
+                                Opções para o sistema de contabilidade
                             </div>
                         </thead>
                         <tbody>
 
 
-                            @can('COBRANCA - LISTAR')
+                            @can('CONTABILIDADE - LISTAR')
                                 <tr>
 
                                     <th>
 
                                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-success" href="/ContasCobranca">Contas correntes</a>
+                                            <a class="btn btn-success" href="/Historicos">Históricos para lançamentos contábeis</a>
                                         </nav>
 
                                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-success" href="/DevSicredi">Desenvolvedores do portal Sicredi</a>
-                                        </nav>
-
-                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-success" href="/Sicredi">Cobrança Sicredi - acesso via API</a>
+                                            <a class="btn btn-success" href="/PlanoContas">Plano de Contas</a>
                                         </nav>
 
                                     </th>

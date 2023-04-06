@@ -20,6 +20,9 @@ class ContaCobranca extends Model
         'associadobeneficiario',
         'token_conta',
         'idDevSicredi',
+        'ValorTarifaCobranca',
+        'Credito_Cobranca',
+        'Tarifa_Cobranca',
     ];
 
     /**
