@@ -29,12 +29,7 @@
                         <a class="btn btn-primary" href="/Contabilidade">Contabilidade</a>
                     </nav>
 
-                    {{-- <div class="card-header">
-                        <div class="badge bg-secondary text-wrap" style="width: 100%;">
-                            <p>Total de historicos cadastradas no sistema de gerenciamento administrativo e contábil:
-                                {{ $Historicos->count() ?? 0 }}</p>
-                        </div>
-                    </div> --}}
+
                 </div>
 
 
@@ -51,8 +46,7 @@
                                             Selecionar empresa
                                         </option>
                                         @foreach ($Empresas as $Empresa)
-                                            <option  selected
-                                                value="{{ $Empresa->ID }}">
+                                            <option selected value="{{ $Empresa->ID }}">
 
                                                 {{ $Empresa->Descricao }}
                                             </option>
@@ -62,21 +56,21 @@
 
                                 <div class="col-3">
                                     <label for="Pesquisa" style="color: black;">Pesquisar texto no histórico</label>
-                                   <input type="text" name='PesquisaTexto' class="form-control">
+                                    <input type="text" name='PesquisaTexto' class="form-control">
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-6">
+                                        <button class="btn btn-info">Pesquisar</button>
+
+                                    </div>
                                 </div>
 
-
                             </div>
                         </div>
 
 
 
-                        <div class="row mt-2">
-                            <div class="col-6">
-                                <button class="btn btn-primary">Pesquisar</button>
 
-                            </div>
-                        </div>
                     </div>
 
                 </form>
@@ -102,8 +96,8 @@
         $('form').submit(function(e) {
             e.preventDefault();
             $.confirm({
-                title: 'Confirmar!',
-                content: 'Confirma?',
+                title: 'Confirmar a',
+                content: 'pesquisa?',
                 buttons: {
                     confirmar: function() {
                         // $.alert('Confirmar!');

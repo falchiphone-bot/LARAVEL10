@@ -29,12 +29,12 @@
                         <a class="btn btn-primary" href="/Contabilidade">Contabilidade</a>
                     </nav>
 
-                    {{-- <div class="card-header">
+                    <div class="card-header">
                         <div class="badge bg-secondary text-wrap" style="width: 100%;">
                             <p>Total de historicos cadastradas no sistema de gerenciamento administrativo e contábil:
-                                {{ $Historicos->count() ?? 0 }}</p>
+                                {{ $pesquisa->count() ?? 0 }}</p>
                         </div>
-                    </div> --}}
+                    </div>
                 </div>
 
 
@@ -44,15 +44,14 @@
                     <div class="card">
                         <div class="card-body" style="background-color: rgb(33, 244, 33)">
                             <div class="row">
-                                <div class="col-6">
+                                <div class="col-sm-6">
                                     <label for="Limite" style="color: black;">Empresas permitidas para o usuário</label>
                                     <select class="form-control select2" id="EmpresaSelecionada" name="EmpresaSelecionada">
                                         <option value="">
                                             Selecionar empresa
                                         </option>
                                         @foreach ($Empresas as $Empresa)
-                                            <option  @selected($retorno["EmpresaSelecionada"] == $Empresa->ID)
-                                                value="{{ $Empresa->ID }}">
+                                            <option @selected($retorno['EmpresaSelecionada'] == $Empresa->ID) value="{{ $Empresa->ID }}">
 
                                                 {{ $Empresa->Descricao }}
                                             </option>
@@ -60,17 +59,19 @@
                                     </select>
                                 </div>
 
-                                <div class="col-3">
+                                <div class="col-sm-3">
                                     <label for="Pesquisa" style="color: black;">Pesquisar texto no histórico</label>
-                                   <input value= "{{$retorno["PesquisaTexto"]}}" type="text" name='PesquisaTexto' class="form-control">
+                                    <input value="{{ $retorno['PesquisaTexto'] }}" type="text" name='PesquisaTexto'
+                                        class="form-control">
                                 </div>
 
                             </div>
-                        </div>
-                        <div class="row mt-2">
-                            <div class="col-6">
-                                <button class="btn btn-primary">Pesquisar</button>
 
+                            <div class="row mt-2">
+                                <div class="col-sm-6">
+                                    <button class="btn btn-warning">Pesquisar</button>
+
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -106,10 +107,10 @@
                                         </a>
                                     </td>
                                     <td class="">
-                                        {{ $Historico->ContaDebito->PlanoConta->Descricao }}
+                                        {{ $Historico->ContaDebito->PlanoConta->Descricao ?? null }}
                                     </td>
                                     <td class="">
-                                        {{ $Historico->ContaCredito->PlanoConta->Descricao }}
+                                        {{ $Historico->ContaCredito->PlanoConta->Descricao ?? null }}
                                     </td>
 
 
@@ -163,25 +164,12 @@
         $('form').submit(function(e) {
             e.preventDefault();
             $.confirm({
-                title: 'Confirmar!',
-                content: 'Confirma?',
+                title: 'Confirmar a',
+                content: 'pesquisa?',
                 buttons: {
                     confirmar: function() {
                         // $.alert('Confirmar!');
-                        $.confirm({
-                            title: 'Confirmar!',
-                            content: 'Deseja realmente continuar?',
-                            buttons: {
-                                confirmar: function() {
-                                    // $.alert('Confirmar!');
-                                    e.currentTarget.submit()
-                                },
-                                cancelar: function() {
-                                    // $.alert('Cancelar!');
-                                },
-
-                            }
-                        });
+                        e.currentTarget.submit()
 
                     },
                     cancelar: function() {
