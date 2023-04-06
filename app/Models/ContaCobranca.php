@@ -34,4 +34,9 @@ class ContaCobranca extends Model
     {
         return $this->hasOne(DevSicredi::class, 'id', 'idDevSicredi');
     }
+
+    public function Empresa(): HasOne
+    {
+        return $this->hasOne(Empresa::class, 'id', 'EmpresaID');
+    }
 }

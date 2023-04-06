@@ -48,7 +48,7 @@
                             @foreach ($contasCobrancas as $conta)
                                 <tr>
                                     <td class="">
-                                        {{ $conta->EmpresaID }}
+                                        {{ $conta->Empresa->Descricao }}
                                     </td>
                                     <td class="">
                                         {{ $conta->conta }}
