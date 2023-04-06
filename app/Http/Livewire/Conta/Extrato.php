@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Conta;
 
 use App\Models\Conta;
+use App\Models\Empresa;
 use App\Models\Lancamento;
 use Carbon\Carbon;
 use Livewire\Component;
@@ -60,6 +61,7 @@ class Extrato extends Component
 
     public function render()
     {
-        return view('livewire.conta.extrato');
+        $empresas = Empresa::orderBy('Descricao')->pluck('Descricao','ID');
+        return view('livewire.conta.extrato',compact($empresas));
     }
 }

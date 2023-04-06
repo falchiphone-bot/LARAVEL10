@@ -6,25 +6,9 @@
             <div class="row">
                 <div class="col-6">
                     <select class="form-control select2" id="selEmpresa">
-                        <option data-cnpj="18644127000109" data-ie="718082228119" value="4">FIBRA NET
-                            RUBI
-                            INTERNET LTDA.</option>
-                        <option data-cnpj="17448764000147" data-ie="INFRANET" selected="" value="5">
-                            INFRANET
-                            INTERNET LTDA.</option>
-                        <option data-cnpj="00519483000135" data-ie="NET RUBI LTDA." value="1">NET RUBI
-                            LTDA.
-                        </option>
-                        <option data-cnpj="36585615000174" data-ie="36585615000174" value="1021">PRF
-                            PROVEDOR DE
-                            INTERNET LTDA.</option>
-                        <option data-cnpj="13795421000106" data-ie="718061763115" value="3">STTARMAAKE
-                            INTERNET
-                            LTDA.</option>
-                        <option data-cnpj="123654789" data-ie="1" value="12">TESTE M 1</option>
-                        <option data-cnpj="3698521478910111213134" data-ie="232121213231" value="16">
-                            TESTE M 2
-                        </option>
+                        @foreach ($empresas as $empresa_id => $empresa_descricao)
+                        <option value="{{$empresa_id}}">{{ $empresa_descricao }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="col-6">

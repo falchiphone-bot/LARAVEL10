@@ -57,8 +57,8 @@ class SicredApiHelper
             Cache::put('access_token' . $conta . $agencia, $auth['access_token'], $seconds = $auth['expires_in']);
             Cache::put('refresh_token' . $conta . $agencia, $auth['refresh_token'], $seconds = $auth['refresh_expires_in']);
         }
-
-        $consulta = Http::asForm()
+        if ($access_token) {
+            $consulta = Http::asForm()
             ->withHeaders([
                 'x-api-key' => config('services.sicredi.token'),
                 // 'Authorization' => 'bearer ' . ,
@@ -72,6 +72,7 @@ class SicredApiHelper
                 // 'cpfCnpjBeneficiarioFinal' => '36585615000174',
                 // 'pagina' => 1,
             ]);
+
             if($consulta->successful())
             {
                 return ['status'=> true,'dados' => $consulta->json()];
@@ -79,5 +80,8 @@ class SicredApiHelper
             else {
                 return ['status'=> false,'dados' => "Erro ao consultar dados no banco"];
             }
+        }else {
+            return ['status'=> false,'dados' => "Falha ao obter token de autenticação"];
+        }
     }
 }

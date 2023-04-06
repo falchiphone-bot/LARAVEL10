@@ -26,7 +26,7 @@
                                 <label for="contaCobranca">Carteira de Cobrança</label>
                             </div>
                             <div class="card-body">
-                                <select class="form-control" id="contaCobranca" wire:model='contaCobranca'
+                                <select class="form-control" id="contaCobranca"
                                     wire:model.debounce.700ms='contaCobranca'>
                                     <option value="">Selecione uma conta</option>
                                     @foreach ($contasCobrancas as $idContaCobranca => $conta)
@@ -43,7 +43,7 @@
                             </div>
                             <div class="card-body">
                                 <input type="date" class="form-control" value="{{ $consultaDia }}" id="consultaDia"
-                                    wire:model='consultaDia'>
+                                    wire:model.debounce.700ms='consultaDia'>
                             </div>
                         </div>
                     </div>
@@ -89,18 +89,29 @@
                         </div>
                     </div>
                     <div class="col-3">
-                        <button type="button" class="btn btn-warning" wire:click="salvarRecebimentos">Salvar Dados</button>
+                        <button type="button" class="btn btn-warning" wire:click="salvarRecebimentos">Salvar
+                            Dados</button>
                         <br>
                         <span class="badge text-dark">{{ $msgSalvarRecebimentos }}</span>
 
                     </div>
+                    @if ($cache)
+                    <div class="col-3">
+                        <button type="button" class="btn btn-danger" wire:click="limparCache('{{ 'carteira_id_'.$contaCobranca.'_'.$consultaDiaDisplay }}')">
+                            Limpar Cache
+                        </button>
+                        <br>
+                        <span class="badge text-dark">{{ $msgSalvarRecebimentos }}</span>
+
+                    </div>
+                    @endif
+                </div>
+                <div class="row mt-2">
                     <div class="col-3" wire:loading>
                         <span class="badge rounded-pill bg-info text-dark">Processando requisição ...</span>
                     </div>
-                </div>
-                <div class="row mt-2">
                     <div class="col-12">
-                        <button type="button" class="btn btn-primary" wire:click="render()">Buscar</button>
+                        <button type="button" class="btn btn-primary" wire:click="$emit('refreshComponent')">Buscar</button>
                     </div>
                 </div>
 

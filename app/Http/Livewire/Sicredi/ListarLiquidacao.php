@@ -5,7 +5,9 @@ namespace App\Http\Livewire\Sicredi;
 use App\Helpers\SicredApiHelper;
 use App\Models\Atletas\CobrancaSicredi;
 use App\Models\ContaCobranca;
+use App\Models\LogConsultaSicred;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
 
 class ListarLiquidacao extends Component
@@ -15,14 +17,26 @@ class ListarLiquidacao extends Component
     public $consultaDiaDisplay;
     public $contaCobranca;
     public $msgSalvarRecebimentos;
+    public $cache;
 
+    protected $listeners = ['refreshComponent' => '$refresh'];
     public function updated()
     {
         $contaCobranca = ContaCobranca::find($this->contaCobranca);
-        $consulta = Carbon::createFromFormat('Y-m-d', $this->consultaDia);
-        $this->consultaDiaDisplay = $consulta->format('d/m/Y');
-        $this->consultaDia = $consulta->format('Y-m-d');
-        $this->consulta = SicredApiHelper::boletoLiquidadoDia($contaCobranca->conta, $contaCobranca->agencia, $contaCobranca->posto, $contaCobranca->token_conta, $contaCobranca->devSicredi->SICREDI_CLIENT_ID, $contaCobranca->devSicredi->SICREDI_CLIENT_SECRET, $contaCobranca->devSicredi->SICREDI_TOKEN, $consulta->format('d/m/Y'));
+        $consultaDia = Carbon::createFromFormat('Y-m-d', $this->consultaDia);
+        $this->consultaDiaDisplay = $consultaDia->format('d/m/Y');
+        $this->consultaDia = $consultaDia->format('Y-m-d');
+        $cache = Cache::get('carteira_id_'.$contaCobranca->id.'_'.$this->consultaDiaDisplay);
+        if ($cache) {
+            $this->consulta = $cache;
+            $this->cache = true;
+        }else {
+            $this->cache = false;
+            $this->consulta = SicredApiHelper::boletoLiquidadoDia($contaCobranca->conta, $contaCobranca->agencia, $contaCobranca->posto, $contaCobranca->token_conta, $contaCobranca->devSicredi->SICREDI_CLIENT_ID, $contaCobranca->devSicredi->SICREDI_CLIENT_SECRET, $contaCobranca->devSicredi->SICREDI_TOKEN, $consultaDia->format('d/m/Y'));
+            if ($this->consulta['status']) {
+                Cache::put('carteira_id_'.$contaCobranca->id.'_'.$this->consultaDiaDisplay,$this->consulta,20000);
+            }
+        }
         $this->msgSalvarRecebimentos = '';
     }
 
@@ -34,7 +48,24 @@ class ListarLiquidacao extends Component
         $now = Carbon::now()->subDay(1);
         $this->consultaDiaDisplay = $now->format('d/m/Y');
         $this->consultaDia = $now->format('Y-m-d');
-        $this->consulta = SicredApiHelper::boletoLiquidadoDia($contaCobranca->conta, $contaCobranca->agencia, $contaCobranca->posto, $contaCobranca->token_conta, $contaCobranca->devSicredi->SICREDI_CLIENT_ID, $contaCobranca->devSicredi->SICREDI_CLIENT_SECRET, $contaCobranca->devSicredi->SICREDI_TOKEN, $now->format('d/m/Y'));
+        $cache = Cache::get('carteira_id_'.$contaCobranca->id.'_'.$this->consultaDiaDisplay);
+        if ($cache) {
+            $this->consulta = $cache;
+            $this->cache = true;
+        } else {
+            $this->cache = false;
+            $consulta = SicredApiHelper::boletoLiquidadoDia($contaCobranca->conta, $contaCobranca->agencia, $contaCobranca->posto, $contaCobranca->token_conta, $contaCobranca->devSicredi->SICREDI_CLIENT_ID, $contaCobranca->devSicredi->SICREDI_CLIENT_SECRET, $contaCobranca->devSicredi->SICREDI_TOKEN, $now->format('d/m/Y'));
+            if ($consulta['status']) {
+                $cache = Cache::put('carteira_id_'.$contaCobranca->id.'_'.$this->consultaDiaDisplay,$consulta,20000);
+            }
+            $this->consulta = $consulta;
+        }
+    }
+
+    public function limparCache($key)
+    {
+        Cache::pull($key);
+        $this->cache = false;
     }
 
     public function salvarRecebimentos()
@@ -60,21 +91,21 @@ class ListarLiquidacao extends Component
                         'DataVencimento' => '',
                         'Valor' => $item['valor'],
                         'Liquidacao' => $item['valorLiquidado'],
-                        'DataLiquidacao' => $item['dataPagamento'],
+                        'DataLiquidacao' => explode(' ', $item['dataPagamento'])[0],
                         'SituacaoTitulo' => 'LIQUIDADO',
                         'Motivo' => date('d/m/Y H:i:s'),
                         'Associado' => $conta->associadobeneficiario,
                         'Conta' => $conta->conta,
                         'Beneficiario' => $conta->associadobeneficiario,
-                        'Cobrando' => null,
-                        'CobrandoEm' => null,
-                        'PrevisaoPgto' => null,
-                        'MovimentoPorUser' => null,
-                        'MovimentoEm' => null,
+                        'Cobrando' => '',
+                        'CobrandoEm' => '',
+                        'PrevisaoPgto' => '',
+                        'MovimentoPorUser' => '',
+                        'MovimentoEm' => '',
                         'Atualizado' => date('d/m/Y H:i:s'),
-                        'QuitadoIXC' => null,
-                        'status_internet' => null,
-                        'BaixarBanco' => 0,
+                        'QuitadoIXC' => '',
+                        'status_internet' => '',
+                        'BaixarBanco' => '0',
                     ]);
                 }
             }
