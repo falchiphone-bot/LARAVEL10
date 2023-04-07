@@ -2,7 +2,7 @@
 <div class="card">
     <div class="card-body">
         <div class="row">
-            <div class="col-12">
+            <div class="col-sm-12">
                 <label for="Descricao">Nome</label>
                 <input class="form-control @error('Descricao') is-invalid @else is-valid @enderror" name="Descricao"
                     type="text" id="Descricao" value="{{ $Historicos->Descricao ?? null }}">
@@ -23,9 +23,12 @@
                 @enderror
             </div>
         </div>
+       
+        {{-- {{ $Historico->ContaDebito->PlanoConta->Descricao ?? null }} --}}
+
 
         <div class="row">
-            <div class="col-12">
+            <div class="col-sm-12">
                 <label for="ContaCreditoID">Conta crédito</label>
                 <input class="form-control @error('ContaCreditoID') is-invalid @else is-valid @enderror"
                     name="ContaCreditoID" type="text" id="ContaCreditoID"
@@ -38,7 +41,7 @@
     </div>
 
     <div class="row mt-2">
-        <div class="col-6">
+        <div class="col-sm-6">
             <button class="btn btn-primary">Salvar</button>
             <a href="{{ route('Historicos.index') }}" class="btn btn-warning">Retornar para lista</a>
         </div>

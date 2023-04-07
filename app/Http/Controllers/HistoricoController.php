@@ -92,8 +92,7 @@ class HistoricoController extends Controller
     public function edit(string $id)
     {
         $Historicos = Historicos::find($id);
-        // dd($cadastro);
-
+        // dd($Historicos);
         return view('Historicos.edit', compact('Historicos'));
     }
 

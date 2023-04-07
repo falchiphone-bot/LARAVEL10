@@ -5,7 +5,8 @@
 
             <div class="card">
                 <div class="card-header">
-                    <div class="badge bg-warning text-wrap" style="width: 100%;align=˜Center˜ ">
+                    <div class="badge bg-warning text-wrap" style="width: 100%; height: 50px;
+                    ; font-size: 24px;align=˜Center˜ ">
                         Menu Principal do sistema administrativo e contábil
                     </div>
                 </div>
@@ -14,7 +15,8 @@
                         <div class="badge bg-warning text-wrap" style="width: 100%;align=˜Center˜ ">
                             <div class="badge bg-success text-wrap" style="width: 100%;align=˜Center˜ ">
                                 <thead class="table-light">
-                                    <div class="badge bg-success text-wrap" style="width: 100%;align=˜Center˜ ">
+                                    <div class="badge bg-success text-wrap" style="width: 100%;
+                                    ; font-size: 16px;align=˜Center˜ ">
                                         Opções para o sistema
                                     </div>
                             </div>
@@ -83,19 +85,7 @@
                                 </tr>
                             @endcan
 
-                            @can('PESQUISA AVANCADA')
-                                <tr>
-                                    <th>
-
-                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-primary" href="/PlanoContas/pesquisaavancada">Pesquisa avançada em
-                                                lançamentos
-                                                contábeis</a>
-                                        </nav>
-
-                                    </th>
-                                </tr>
-                            @endcan
+                            
 
                             @can('FATURAMENTOS - LISTAR')
                                 <tr>

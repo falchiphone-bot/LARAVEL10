@@ -25,7 +25,9 @@
                     </li>
                 @endcan --}}
 
-
+                <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                    <a class="btn btn-warning" href="/Contabilidade">Retornar e ou ir para Contabilidade</a>
+                </nav>
                 @can('PLANO DE CONTAS - INCLUIR')
                     <a href="{{ route('PlanoContas.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1"
                         role="button" aria-disabled="true">Incluir contas no plano de contas padrão</a>
