@@ -6,13 +6,9 @@
 
 
         <div class="card-body">
-            @if (session('success'))
+            @if (session('message'))
                 <div class="alert alert-success">
-                    {{ session('success') }}
-                </div>
-            @elseif (session('error'))
-                <div class="alert alert-danger">
-                    {!! session('error') !!}
+                    {{ session('message') }}
                 </div>
             @endif
 

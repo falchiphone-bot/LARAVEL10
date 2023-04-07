@@ -120,7 +120,7 @@ class ListarLiquidacao extends Component
                     'Created' => date('d/m/Y H:i:s'),
                     'HistoricoID' => $historicoTarifa->ID,
                 ]);
-                $this->msgSalvarRecebimentos = 'Lançamentos criado';
+                session()->flash('message', 'Lançamentos criado.');
             }
         }else {
             $this->addError('diasD', 'Conta de Cobrança sem dias D especificado.');
@@ -130,16 +130,16 @@ class ListarLiquidacao extends Component
     public function salvarRecebimentos()
     {
         $conta = $this->contaCobranca;
-        $nossonumero = 0;
+        $nossonumeroCadastrado = 0;
         if (count($this->consulta['dados']['items']) == 0) {
-            $this->msgSalvarRecebimentos = 'Lista vazia';
+            $this->addError('lista', 'Lista vazia.');
         } else {
             foreach ($this->consulta['dados']['items'] as $item) {
                 $verificar = CobrancaSicredi::orderBy('DataLiquidacao', 'DESC')
                     ->where('NossoNumero', $item['nossoNumero'])
                     ->first();
                 if ($verificar) {
-                    $nossonumero++;
+                    $nossonumeroCadastrado++;
                 } else {
                     $cs = CobrancaSicredi::create([
                         'NossoNumero' => $item['nossoNumero'],
@@ -168,7 +168,10 @@ class ListarLiquidacao extends Component
                     ]);
                 }
             }
-            $this->msgSalvarRecebimentos = 'Econtrado ' . $nossonumero . ' Nosso Numero ja cadastrado e não cadastardo no banco de dados';
+            if ($nossonumeroCadastrado > 0) {
+                $this->addError('salvarRecebimentos', $nossonumeroCadastrado.' registros já cadastrados.');
+            }
+            session()->flash('message', 'Rotina executada com sucesso.');
         }
     }
 
