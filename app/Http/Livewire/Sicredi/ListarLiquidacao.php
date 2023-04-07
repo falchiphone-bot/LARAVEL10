@@ -129,7 +129,7 @@ class ListarLiquidacao extends Component
 
     public function salvarRecebimentos()
     {
-        $conta = ContaCobranca::find($this->contaCobranca);
+        $conta = $this->contaCobranca;
         $nossonumero = 0;
         if (count($this->consulta['dados']['items']) == 0) {
             $this->msgSalvarRecebimentos = 'Lista vazia';
