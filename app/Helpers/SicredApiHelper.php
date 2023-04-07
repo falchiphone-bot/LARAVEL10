@@ -39,12 +39,16 @@ class SicredApiHelper
                 'scope' => 'cobranca',
             ])
             ->json();
+            if (empty($auth['access_token'])) {
+                dd($conta, $agencia, $update_token = false, $token_conta_sicred, $client_id, $secret_id, $token_desenvolvedor);
+            }
 
         return $auth;
     }
 
     public static function boletoLiquidadoDia($conta, $agencia, $posto, $token_conta, $client_id, $secret_id, $token_desenvolvedor, $dia)
     {
+
         if (Cache::get('access_token' . $conta . $agencia)) {
             $access_token = Cache::get('access_token' . $conta . $agencia);
         } elseif (Cache::get('refresh_token' . $conta . $agencia)) {
@@ -53,7 +57,7 @@ class SicredApiHelper
             $access_token = Cache::get('access_token' . $conta . $agencia);
         } else {
             $auth = SicredApiHelper::auth($conta, $agencia, false, $token_conta, $client_id, $secret_id, $token_desenvolvedor);
-            $access_token = Cache::get('access_token' . $conta . $agencia);
+            $access_token = $auth['access_token'];
             Cache::put('access_token' . $conta . $agencia, $auth['access_token'], $seconds = $auth['expires_in']);
             Cache::put('refresh_token' . $conta . $agencia, $auth['refresh_token'], $seconds = $auth['refresh_expires_in']);
         }

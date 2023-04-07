@@ -81,6 +81,7 @@ class ListarLiquidacao extends Component
             $dataContabilidade = $dataContabilidade->addDay($contaCobranca->d_cobranca);
 
             $lancamentoCobranca = Lancamento::whereDate('DataContabilidade',$dataContabilidade->format('Y-m-d'))
+            ->where('EmpresaID',$contaCobranca->EmpresaID)
             ->where('HistoricoID',$contaCobranca->Credito_Cobranca)->first('ID');
             if ($lancamentoCobranca) {
                 $this->addError('lancamentoCobranca', 'Liquidação de cobrança já lançado no dia <strong>'.$dataContabilidade->format('d/m/Y').'</strong>.');
@@ -100,7 +101,10 @@ class ListarLiquidacao extends Component
                 ]);
             }
 
-            $lancamentoTarifa = Lancamento::whereDate('DataContabilidade',$this->consultaDia)->where('HistoricoID',$contaCobranca->Tarifa_Cobranca)->first();
+            $lancamentoTarifa = Lancamento::whereDate('DataContabilidade',$this->consultaDia)
+            ->where('HistoricoID',$contaCobranca->Tarifa_Cobranca)
+            ->where('EmpresaID',$contaCobranca->EmpresaID)
+            ->first();
             if ($lancamentoTarifa) {
                 $this->addError('taxaCobranca', "Taxa de cobrança já lançado no dia <strong>$this->consultaDiaDisplay</strong>.");
             }else {
