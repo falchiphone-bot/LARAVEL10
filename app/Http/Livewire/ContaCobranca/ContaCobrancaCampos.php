@@ -57,8 +57,8 @@ class ContaCobrancaCampos extends Component
     public function mount($contaCobranca)
     {
         $this->contaCobranca = $contaCobranca;
-        $this->historicoCredito = $contaCobranca->Tarifa_Cobranca;
-        $this->historicoDebito = $contaCobranca->Credito_Cobranca;
+        $this->historicoCredito = $contaCobranca->Credito_Cobranca;
+        $this->historicoDebito = $contaCobranca->Tarifa_Cobranca;
         $this->d_cobranca = $contaCobranca->d_cobranca;
         $this->d_tarifa = $contaCobranca->d_tarifa;
 
