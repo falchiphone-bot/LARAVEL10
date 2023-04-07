@@ -85,7 +85,7 @@
                                 </tr>
                             @endcan
 
-                            
+
 
                             @can('FATURAMENTOS - LISTAR')
                                 <tr>
@@ -133,13 +133,7 @@
                                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                                             <a class="btn btn-primary" href="/Moedas">Moedas</a>
                                         </nav>
-
-                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-primary" href="/MoedasValores">Moedas e valores</a>
-                                        </nav>
-
                                     </th>
-
 
                                 </tr>
                             @endcan

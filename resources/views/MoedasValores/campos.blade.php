@@ -4,7 +4,7 @@
         <div class="row">
             <div class="col-2">
                 <label for="data">Data</label>
-                <input class="form-control @error('data') is-invalid @else is-valid @enderror" name="data"
+                <input required class="form-control @error('data') is-invalid @else is-valid @enderror" name="data"
                     type="date" id="data" value="@if($moedasvalores??null){{ $moedasvalores->data->format('Y-m-d') }}@endif">
                 @error('data')
                     <div class="alert alert-danger">{{ $message }}</div>
@@ -13,7 +13,7 @@
 
             <div class="col-6">
                 <label for="idmoeda" style="color: black;">Moedas disponíveis</label>
-                <select class="form-control select2" id="idmoeda" name="idmoeda">
+                <select required class="form-control select2" id="idmoeda" name="idmoeda">
                     <option value="">
                         Selecionar moeda
                     </option>
@@ -31,7 +31,7 @@
 
             <div class="col-2">
                 <label for="valor">Valor</label>
-                <input class="form-control @error('valor') is-invalid @else is-valid @enderror" name="valor"
+                <input required class="form-control @error('valor') is-invalid @else is-valid @enderror" name="valor"
                     type="decimal" id="valor" value="{{ $moedasvalores->valor ?? null }}">
                 @error('valor')
                     <div class="alert alert-danger">{{ $message }}</div>

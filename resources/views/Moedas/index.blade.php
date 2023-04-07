@@ -4,76 +4,77 @@
         <div class="container">
 
             <div class="card">
-                <div class="badge bg-primary text-wrap" style="width: 100%;">
+                <div class="badge bg-primary text-wrap" style="width: 100%;font-size: 24px;lign=˜Center˜">
                     MOEDAS DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
                 </div>
+            </div>
 
 
-                <div class="card-body">
-                    @if (session('success'))
-                        <div class="alert alert-success">
-                            {{ session('success') }}
-                        </div>
-                    @elseif (session('error'))
-                        <div class="alert alert-danger">
-                            {{ session('error') }}
-                        </div>
-                    @endif
-                    @can('MOEDAS- INCLUIR')
-                        <a href="{{ route('Moedas.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1"
-                            role="button" aria-disabled="true">Incluir nome de moedas</a>
-                    @endcan
-                    <div class="card-header">
-                        <div class="badge bg-secondary text-wrap" style="width: 100%;">
+            <div class="card-body">
+                @if (session('success'))
+                    <div class="alert alert-success">
+                        {{ session('success') }}
+                    </div>
+                @elseif (session('error'))
+                    <div class="alert alert-danger">
+                        {{ session('error') }}
+                    </div>
+                @endif
+                @can('MOEDAS- INCLUIR')
+                    <a href="{{ route('Moedas.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
+                        aria-disabled="true">Incluir nome de moedas</a>
+                @endcan
+                <div class="card-header">
+                    <div class="badge bg-info text-wrap" style="width: 100%;font-size: 24px">
                         <p>Total de moedas cadastradas no sistema de gerenciamento administrativo e contábil:
                             {{ $moedas->count() ?? 0 }}</p>
-                        </div>
                     </div>
-
-
-
                 </div>
 
-                <tbody>
-                    <table class="table" style="background-color: rgb(247, 247, 213);">
-                        <thead>
+
+
+            </div>
+
+            <tbody>
+                <table class="table" style="background-color: rgb(247, 247, 213);">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="px-6 py-4">NOME</th>
+                            <th scope="col" class="px-6 py-4">OBSERVAÇÃO</th>
+                            <th scope="col" class="px-6 py-4"></th>
+                            <th scope="col" class="px-6 py-4"></th>
+                            <th scope="col" class="px-6 py-4"></th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach ($moedas as $moeda)
                             <tr>
-                                <th scope="col" class="px-6 py-4">NOME</th>
-                                <th scope="col" class="px-6 py-4">OBSERVAÇÃO</th>
-                                <th scope="col" class="px-6 py-4"></th>
-                                <th scope="col" class="px-6 py-4"></th>
-                                <th scope="col" class="px-6 py-4"></th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            @foreach ($moedas as $moeda)
-                                <tr>
-                                    <td class="">
-                                        {{ $moeda->nome }}
-                                        </a>
-                                    </td>
-                                    <td class="">
-                                        {{ $moeda->observacao }}
-                                    </td>
+                                <td class="">
+                                    {{ $moeda->nome }}
+                                    </a>
+                                </td>
+                                <td class="">
+                                    {{ $moeda->observacao }}
+                                </td>
 
 
 
-                                    @can('MOEDAS- EDITAR')
-                                        <td>
-                                            <a href="{{ route('Moedas.edit', $moeda->id) }}" class="btn btn-success"
-                                                tabindex="-1" role="button" aria-disabled="true">Editar</a>
-                                        </td>
-                                    @endcan
-
-                                    @can('MOEDAS- VER')
+                                @can('MOEDAS- EDITAR')
                                     <td>
-                                        <a href="{{ route('Moedas.show', $moeda->id) }}" class="btn btn-info"
-                                            tabindex="-1" role="button" aria-disabled="true">Ver</a>
+                                        <a href="{{ route('Moedas.edit', $moeda->id) }}" class="btn btn-success" tabindex="-1"
+                                            role="button" aria-disabled="true">Editar</a>
                                     </td>
-                                    @endcan
+                                @endcan
 
-                                    @can('MOEDAS- EXCLUIR')
+                                @can('MOEDAS- VER')
+                                    <td>
+                                        <a href="{{ route('Moedas.show', $moeda->id) }}" class="btn btn-info" tabindex="-1"
+                                            role="button" aria-disabled="true">Ver</a>
+                                    </td>
+                                @endcan
+
+                                @can('MOEDAS- EXCLUIR')
                                     <td>
                                         <form method="POST" action="{{ route('Moedas.destroy', $moeda->id) }}">
                                             @csrf
@@ -83,13 +84,14 @@
                                             </button>
                                         </form>
                                     </td>
-                                    @endcan
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-            </div>
+                                @endcan
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                                <div class="badge bg-primary text-wrap" style="width: 100%;">
         </div>
+    </div>
 
     </div>
     <div class="b-example-divider"></div>

@@ -19,6 +19,10 @@
                             {{ session('error') }}
                         </div>
                     @endif
+
+                     <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                     <a class="btn btn-warning" href="/Moedas">Retornar a lista de opções</a> </nav>
+
                     @can('MOEDASVALORES- INCLUIR')
                         <a href="{{ route('MoedasValores.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1"
                             role="button" aria-disabled="true">Incluir valor de moedas</a>
