@@ -79,7 +79,7 @@
                         <div class="row">
                             <div class="col-sm-10">
                                 <label for="selectContaCredito">Histórico Cobrança</label>
-                                <select name="Tarifa_Cobranca" id="selectContaCredito" class="form-control" required wire:model="historicoCredito">
+                                <select name="Credito_Cobranca" id="selectContaCredito" class="form-control" required wire:model="historicoCredito">
                                     <option value="">Selecione o Histórico</option>
                                     @foreach ($historicos as $historicoID => $descricao)
                                         <option value="{{ $historicoID }}">{{ $descricao }}</option>
@@ -116,7 +116,7 @@
                         <div class="row">
                             <div class="col-sm-10">
                                 <label for="selectContaDebito">Histórico de Tarifa</label>
-                                <select name="Credito_Cobranca" id="selectContaDebito" class="form-control" required wire:model="historicoDebito">
+                                <select name="Tarifa_Cobranca" id="selectContaDebito" class="form-control" required wire:model="historicoDebito">
                                     <option value="">Selecione o Histórico</option>
                                     @foreach ($historicos as $historicoID => $descricao)
                                         <option value="{{ $historicoID }}">{{ $descricao }}</option>

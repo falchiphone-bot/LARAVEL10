@@ -20,6 +20,7 @@
                 {{-- @endcan --}}
 
                 <div class="card-body">
+                    <a href="/Cobranca" class="btn btn-secondary">Voltar</a>
                     @if (session('success'))
                         <div class="alert alert-success">
                             {{ session('success') }}

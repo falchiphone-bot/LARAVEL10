@@ -3,6 +3,7 @@
     <div class="py-5 bg-light">
         <div class="container">
 
+            <a href="/Cobranca" class="btn btn-secondary">Voltar</a>
             @livewire('sicredi.listar-liquidacao')
         </div>
 
