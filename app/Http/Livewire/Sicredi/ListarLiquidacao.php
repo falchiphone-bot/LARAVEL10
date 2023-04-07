@@ -83,12 +83,12 @@ class ListarLiquidacao extends Component
             $lancamentoCobranca = Lancamento::whereDate('DataContabilidade',$dataContabilidade->format('Y-m-d'))
             ->where('HistoricoID',$contaCobranca->Credito_Cobranca)->first('ID');
             if ($lancamentoCobranca) {
-                $this->msgSalvarRecebimentos = 'Lançamento de Liquidação ja criado para esse dia';
+                $this->addError('lancamentoCobranca', 'Liquidação de cobrança já lançado no dia <strong>'.$dataContabilidade->format('d/m/Y').'</strong>.');
             }else {
                 // dd($contaCobranca->Credito_Cobranca,$contaCobranca->Tarifa_Cobranca);
                 $historico = Historicos::find($contaCobranca->Credito_Cobranca);
 
-                Lancamento::create([
+                $lc = Lancamento::create([
                     'Valor' => $valorLiquido,
                     'EmpresaID' => $contaCobranca->EmpresaID,
                     'ContaDebitoID' => $historico->ContaDebitoID,
@@ -102,7 +102,7 @@ class ListarLiquidacao extends Component
 
             $lancamentoTarifa = Lancamento::whereDate('DataContabilidade',$this->consultaDia)->where('HistoricoID',$contaCobranca->Tarifa_Cobranca)->first();
             if ($lancamentoTarifa) {
-                $this->msgSalvarRecebimentos = 'Lançamento de Liquidação ja criado para esse dia';
+                $this->addError('taxaCobranca', "Taxa de cobrança já lançado no dia <strong>$this->consultaDiaDisplay</strong>.");
             }else {
                 $historicoTarifa = Historicos::find($contaCobranca->Tarifa_Cobranca);
 
@@ -119,7 +119,7 @@ class ListarLiquidacao extends Component
                 $this->msgSalvarRecebimentos = 'Lançamentos criado';
             }
         }else {
-            $this->msgSalvarRecebimentos = 'Conta sem D de dias cadastrado';
+            $this->addError('diasD', 'Conta de Cobrança sem dias D especificado.');
         }
     }
 

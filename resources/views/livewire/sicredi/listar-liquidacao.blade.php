@@ -12,13 +12,22 @@
                 </div>
             @elseif (session('error'))
                 <div class="alert alert-danger">
-                    {{ session('error') }}
+                    {!! session('error') !!}
                 </div>
             @endif
 
 
             <div class="card-body">
                 <div class="row mt-2">
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                    <li>{!! $error !!}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
 
                     <div class="col-8">
                         <div class="card">
@@ -93,19 +102,21 @@
                             Dados</button>
                         <br>
                         <span class="badge text-dark">{{ $msgSalvarRecebimentos }}</span>
-                        <button type="button" class="btn btn-success mt-2" wire:click="criarLancamento({{ $totalLiquidado??0}})">
+                        <button type="button" class="btn btn-success mt-2"
+                            wire:click="criarLancamento({{ $totalLiquidado ?? 0 }})">
                             Criar Lançamento
                         </button>
                         <br>
 
                     </div>
                     @if ($cache)
-                    <div class="col-3">
-                        <button type="button" class="btn btn-danger" wire:click="limparCache('{{ 'carteira_id_'.$contaCobrancaID.'_'.$consultaDiaDisplay }}')">
-                            Limpar Cache
-                        </button>
-                        <br>
-                    </div>
+                        <div class="col-3">
+                            <button type="button" class="btn btn-danger"
+                                wire:click="limparCache('{{ 'carteira_id_' . $contaCobrancaID . '_' . $consultaDiaDisplay }}')">
+                                Limpar Cache
+                            </button>
+                            <br>
+                        </div>
                     @endif
                 </div>
                 <div class="row mt-2">
