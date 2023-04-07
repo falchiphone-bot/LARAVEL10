@@ -37,6 +37,17 @@
                                             <a class="btn btn-success" href="/PlanoContas">Plano de Contas</a>
                                         </nav>
 
+                                        @can('FATURAMENTOS - LISTAR')
+                                        <tr>
+                                            <th>
+
+                                                <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                                    <a class="btn btn-primary" href="/Faturamentos">Faturamentos registrados</a>
+                                                </nav>
+
+                                            </th>
+                                        </tr>
+                                    @endcan
                                         {{-- @can('PESQUISA AVANCADA')
                                         <tr>
                                             <th> --}}

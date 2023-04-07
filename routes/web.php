@@ -32,7 +32,6 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
 
-
     #Empresas
     Route::put('Empresas/desbloquearempresas' ,[App\Http\Controllers\EmpresaController::class, 'desbloquearempresas'])->name('Empresas.DesbloquearEmpresas');
     Route::put('Empresas/bloquearempresas' ,[App\Http\Controllers\EmpresaController::class, 'bloquearempresas'])->name('Empresas.BloquearEmpresas');
@@ -69,13 +68,18 @@ Route::middleware('auth')->group(function () {
     Route::post('Funcoes/salvarpermissao/{id}',[App\Http\Controllers\RoleController::class, 'salvarpermissao']);
 
     #Moedas e valores
+    Route::get('Moedas/dashboard',[App\Http\Controllers\MoedaController::class,'dashboard'])->name('moedas.dashboard');
     Route::resource('Moedas',App\Http\Controllers\MoedaController::class);
+
+
+
+
     Route::resource('MoedasValores',App\Http\Controllers\MoedaValoresController::class);
 
     #Faturamentos
     Route::resource('Faturamentos',App\Http\Controllers\FaturamentosController::class);
 
-    #Faturamentos
+    #Faturamentos Sicredi
     Route::resource('Sicredi',App\Http\Controllers\SicrediController::class);
 
      #Sicredi
@@ -86,10 +90,9 @@ Route::middleware('auth')->group(function () {
      Route::resource('Historicos',App\Http\Controllers\HistoricoController::class);
 
     #Contabilidade
-
      Route::get('/Contabilidade', function () {
         return view('Contabilidade/dashboard');
-    })->middleware(['auth', 'verified'])->name('dashboard');
+    })->middleware(['auth', 'verified'])->name('dashboardContabilidade');
 
 
     #Cobrança

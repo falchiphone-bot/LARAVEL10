@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\MoedaCreateRequest;
+use App\Http\Requests\MoedaValoresCreateRequest;
 use App\Models\Moeda;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -20,12 +21,13 @@ class MoedaController extends Controller
         $this->middleware(['permission:MOEDAS - EXCLUIR'])->only('destroy');
     }
 
-
-
-
     /**
      * Display a listing of the resource.
      */
+    public function dashboard()
+    {
+        return view('Moedas.dashboard');
+    }
 
 
     public function index()
@@ -47,7 +49,7 @@ class MoedaController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(MoedaCreateRequest $request)
+    public function store(MoedaValoresCreateRequest $request)
     {
         $moedas= $request->all();
         //dd($dados);
