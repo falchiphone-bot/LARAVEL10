@@ -10,7 +10,10 @@
 
 
                 <div class="card-body">
-                    <a href="/Cobranca" class="btn btn-secondary">Voltar</a>
+                    @can('COBRANCA - LISTAR')
+                      <a href="/Cobranca" class="btn btn-warning">Retornar para opções anteriores</a>
+                    @endcan
+
                     @if (session('success'))
                         <div class="alert alert-success">
                             {{ session('success') }}
@@ -20,6 +23,8 @@
                             {{ session('error') }}
                         </div>
                     @endif
+
+
                     @can('DevSicredi- INCLUIR')
                         <a href="{{ route('DevSicredi.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1"
                             role="button" aria-disabled="true">Incluir nome de DevSicredi</a>
@@ -96,7 +101,7 @@
                                 </tr>
                             @endforeach
 
-                            @can('COBRANCA - LISTAR')
+                            {{-- @can('COBRANCA - LISTAR')
                                 <tr>
                                     <th>
 
@@ -107,7 +112,7 @@
                                     </th>
                                 </tr>
                             @endcan
-                        </tbody>
+                        </tbody> --}}
                     </table>
             </div>
         </div>

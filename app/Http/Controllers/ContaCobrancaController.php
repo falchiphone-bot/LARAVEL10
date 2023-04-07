@@ -14,6 +14,13 @@ class ContaCobrancaController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
+        $this->middleware(['permission:CONTASCOBRANCA - LISTAR'])->only('index');
+        $this->middleware(['permission:CONTASCOBRANCA - INCLUIR'])->only(['create', 'store']);
+        $this->middleware(['permission:CONTASCOBRANCA - EDITAR'])->only(['edit', 'update']);
+        $this->middleware(['permission:CONTASCOBRANCA - EXCLUIR'])->only('destroy');
+        // $this->middleware(['permission:CONTASCOBRANCA - BLOQUEAR TODAS'])->only('bloquearempresas');
+
+
     }
 
     public function index()

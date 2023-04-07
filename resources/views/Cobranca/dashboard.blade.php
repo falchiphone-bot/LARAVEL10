@@ -3,19 +3,17 @@
     <div class="py-5 bg-light">
         <div class="container">
 
+
             <div class="card">
                 <div class="card-header">
                     <div class="badge bg-primary text-wrap" style="width: 100%;">
                         Menu Principal do sistema administrativo e contábil - COBRANÇA
-
                     </div>
-
-
                 </div>
                 <div class="card-body">
                     <table class="table table-success table-striped">
                         <thead class="table-light">
-                            . <div class="badge bg-warning text-wrap" style="width: 100%;align=˜Center˜ ">
+                            <div class="badge bg-warning text-wrap" style="width: 100%; height: 100px,align=˜Center˜ ">
                                 Opções para o sistema de cobrança
                             </div>
                         </thead>
@@ -40,13 +38,20 @@
                                         </nav>
 
                                     </th>
-
-
                                 </tr>
                             @endcan
 
+                            @cannot('COBRANCA - LISTAR')
+                            <div class="badge bg-danger text-wrap" style="width: 100%;  height: 50px ;align=˜Center˜ ">
+                              COBRANCA - LISTAR não autorizado!
+                            </div>
+                            @endcannot
+
                         </tbody>
                     </table>
+                    <div class="badge bg-warning text-wrap" style="width: 100%; height: 100px,align=˜Center˜ ">
+                         
+                    </div>
                 </div>
             </div>
 

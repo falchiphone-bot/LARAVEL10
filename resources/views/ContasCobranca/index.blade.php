@@ -2,25 +2,23 @@
 @section('content')
     <div class="py-5 bg-light">
         <div class="container">
-            {{-- <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-              <li class="breadcrumb-item"><a href="#">Conta</a></li>
-              <li class="breadcrumb-item active" aria-current="page">Index</li>
-            </ol>
-          </nav> --}}
+
 
             <div class="card">
                 <div class="card-header">
-                    Contas
+                    <div class="badge bg-success text-wrap" style="width: 100%;">
+                        CONTAS COBRANCA PARA O SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
+                    </div>
                 </div>
 
-                {{-- @can('MOEDAS- INCLUIR') --}}
+                @can('CONTASCOBRANCA - INCLUIR')
                     <a href="{{ route('ContasCobranca.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
                         aria-disabled="true">Incluir Conta de Cobrança</a>
-                {{-- @endcan --}}
+                @endcan
 
                 <div class="card-body">
-                    <a href="/Cobranca" class="btn btn-secondary">Voltar</a>
+                    <a href="/Cobranca" class="btn btn-warning">Retornar para opções anteriores</a>
+
                     @if (session('success'))
                         <div class="alert alert-success">
                             {{ session('success') }}
@@ -30,9 +28,14 @@
                             {{ session('error') }}
                         </div>
                     @endif
+                    <div class="card-header mix-blend-color-burn">
+                    <p>Total de Contas cobrança: {{ $contasCobrancas->count() }}</p>
+                </div>
+                    <div class="card-header">
+                    <div class="badge bg-warning text-wrap" style="width: 100%;">
 
-                    <p>Total de Contas: {{ $contasCobrancas->count() }}</p>
-
+                    </div>
+                </div>
                     <table class="table">
                         <thead>
                             <tr>
@@ -64,7 +67,7 @@
                                         {{ $conta->associadobeneficiario }}
                                     </td>
                                     <td>
-                                        @can('CONTAS - EDITAR')
+                                        @can('CONTASCOBRANCA - EDITAR')
                                             <a href="{{ route('ContasCobranca.edit', $conta->id) }}" class="btn btn-success"
                                                 tabindex="-1" role="button" aria-disabled="true">Editar</a>
                                         @endcan
@@ -73,6 +76,11 @@
                             @endforeach
                         </tbody>
                     </table>
+                </div>
+                <div class="card-header">
+                    <div class="badge bg-success text-wrap" style="width: 100%;">
+
+                    </div>
                 </div>
             </div>
 
