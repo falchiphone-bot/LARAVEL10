@@ -12,10 +12,13 @@
 
             <div class="card">
 
-                <div class="badge bg-warning text-wrap" style="width: 100%; color: blue;">
+                <div class="badge bg-info text-wrap" style="width: 100%; color: blue;
+                ;font-size: 24px;">
                     PESQUISA AVANÇADA EM LANÇAMENTOS CONTÁBEIS
                 </div>
-
+                <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                    <a class="btn btn-warning" href="/Contabilidade">Retornar e ou ir para Contabilidade</a>
+                </nav>
                 @if (session('success'))
                     <div class="alert alert-success">
                         {{ session('success') }}

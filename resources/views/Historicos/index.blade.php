@@ -4,7 +4,8 @@
         <div class="container">
 
             <div class="card">
-                <div class="badge bg-primary text-wrap" style="width: 100%;">
+                <div class="badge bg-primary text-wrap" style="width: 100%;
+                ;font-size: 24px; lign=˜Center˜">
                     HISTÓRICOS DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
                 </div>
 
@@ -26,7 +27,7 @@
 
 
                     <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                        <a class="btn btn-primary" href="/Contabilidade">Contabilidade</a>
+                        <a class="btn btn-warning" href="/Contabilidade">Retornar e ou ir para Contabilidade</a>
                     </nav>
 
 
@@ -40,7 +41,7 @@
                         <div class="card-body" style="background-color: rgb(33, 244, 33)">
                             <div class="row">
                                 <div class="col-3">
-                                    <label for="Limite" style="color: black;">Empresas permitidas para o usuário</label>
+                                    <label for="EmpresaSelecionada" style="color: black;">Empresas permitidas para o usuário</label>
                                     <select class="form-control select2" id="EmpresaSelecionada" name="EmpresaSelecionada">
                                         <option value="">
                                             Selecionar empresa

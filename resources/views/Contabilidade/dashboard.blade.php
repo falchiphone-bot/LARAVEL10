@@ -5,7 +5,8 @@
 
             <div class="card">
                 <div class="card-header">
-                    <div class="badge bg-primary text-wrap" style="width: 100%;">
+                    <div class="badge bg-primary text-wrap" style="width: 100%;
+                    ;font-size: 24px;lign=˜Center˜">
                         Menu Principal do sistema administrativo e contábil - CONTABILIDADE
 
                     </div>
@@ -15,7 +16,8 @@
                 <div class="card-body">
                     <table class="table table-success table-striped">
                         <thead class="table-light">
-                            . <div class="badge bg-warning text-wrap" style="width: 100%;align=˜Center˜ ">
+                            <div class="badge bg-warning text-wrap" style="width: 100%;
+                            ; font-size: 16px;a lign=˜Center˜ ">
                                 Opções para o sistema de contabilidade
                             </div>
                         </thead>
@@ -35,6 +37,19 @@
                                             <a class="btn btn-success" href="/PlanoContas">Plano de Contas</a>
                                         </nav>
 
+                                        {{-- @can('PESQUISA AVANCADA')
+                                        <tr>
+                                            <th> --}}
+
+                                                <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                                    <a class="btn btn-success" href="/PlanoContas/pesquisaavancada">Pesquisa avançada em
+                                                        lançamentos
+                                                        contábeis</a>
+                                                </nav>
+
+                                            {{-- </th>
+                                        </tr>
+                                    @endcan --}}
                                     </th>
 
 
@@ -45,7 +60,8 @@
                     </table>
                 </div>
             </div>
-
+            <div class="badge bg-warning text-wrap" style="width: 100%;
+            ; font-size: 16px;a lign=˜Center˜ ">
         </div>
         <div class="b-example-divider"></div>
     </div>
