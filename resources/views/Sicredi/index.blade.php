@@ -1,9 +1,10 @@
 @extends('layouts.bootstrap5')
 @section('content')
     <div class="py-5 bg-light">
+
         <div class="container">
 
-            <a href="/Cobranca" class="btn btn-secondary">Voltar</a>
+            <a href="/Cobranca" class="btn btn-warning">Retornar para opções anteriores</a>
             @livewire('sicredi.listar-liquidacao')
         </div>
 
