@@ -20,15 +20,17 @@
                             {{ session('error') }}
                         </div>
                     @endif
+                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                        <a class="btn btn-warning" href="/Contabilidade">Retornar e ou ir para Contabilidade</a>
+                    </nav>
+
                     @can('HISTORICO - INCLUIR')
                         <a href="{{ route('Historicos.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1"
                             role="button" aria-disabled="true">Incluir nome de históricos</a>
                     @endcan
 
 
-                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                        <a class="btn btn-warning" href="/Contabilidade">Retornar e ou ir para Contabilidade</a>
-                    </nav>
+
 
 
                 </div>

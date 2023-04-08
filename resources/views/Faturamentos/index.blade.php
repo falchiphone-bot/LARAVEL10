@@ -19,6 +19,12 @@
                             {{ session('error') }}
                         </div>
                     @endif
+                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                        <a class="btn btn-warning" href="/Contabilidade">Retornar a lista de opções</a> </nav>
+
+
+
+
                     @can('FATURAMENTOS - INCLUIR')
                         <a href="{{ route('Faturamentos.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1"
                             role="button" aria-disabled="true">Incluir faturamento</a>
@@ -83,7 +89,7 @@
                                         {{ $Fatura->LancadoPor}}
                                     </td>
 
-                                    
+
                                     @can('FATURAMENTOS - EDITAR')
                                         <td>
                                             <a href="{{ route('Faturamentos.edit', $Fatura->id) }}" class="btn btn-success"
