@@ -4,7 +4,8 @@
         <div class="container">
 
             <div class="card">
-                <div class="badge bg-primary text-wrap" style="width: 100%;">
+                 <div class="badge bg-primary text-wrap" style="width: 100%;
+                ;font-size: 24px; lign=˜Center˜">
                     MOEDAS E VALORES DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
                 </div>
 
@@ -28,7 +29,8 @@
                             role="button" aria-disabled="true">Incluir valor de moedas</a>
                     @endcan
                     <div class="card-header">
-                        <div class="badge bg-secondary text-wrap" style="width: 100%;">
+                        <div class="badge bg-primary text-wrap" style="width: 100%;
+                ;font-size: 16px; lign=˜Center˜">
                         <p>Total de moedas com valores cadastradas no sistema de gerenciamento administrativo e contábil:
                             {{ $moedasvalores->count() ?? 0 }}</p>
                         </div>
@@ -95,6 +97,7 @@
                             @endforeach
                         </tbody>
                     </table>
+                    <div class="badge bg-info text-wrap" style="width: 100%;">
             </div>
         </div>
 

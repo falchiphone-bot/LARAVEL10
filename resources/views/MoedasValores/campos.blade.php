@@ -6,7 +6,7 @@
                 <label for="data">Data</label>
                 <input required class="form-control @error('data') is-invalid @else is-valid @enderror" name="data"
                     type="date" id="data"
-                    value="@if ($moedasvalores ?? null) {{ $moedasvalores->data->format('Y-m-d') }} @endif">
+                    value="@if ($moedasvalores??null){{ $moedasvalores->data->format('Y-m-d') }}@endif">
                 @error('data')
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
@@ -32,8 +32,8 @@
 
             <div class="col-sm-2">
                 <label for="valor">Valor</label>
-                <input required class="form-control @error('valor') is-invalid @else is-valid @enderror" name="valor"
-                    type="number" step="0.01" id="valor" value="{{ $moedasvalores->valor ?? null }}">
+                <input required class="form-control money @error('valor') is-invalid @else is-valid @enderror" name="valor"
+                    type="decimal" step="0.01" id="valor" value="{{ $moedasvalores->valor ?? null }}">
                 @error('valor')
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
@@ -66,6 +66,15 @@
                     },
                 }
             });
+        });
+    </script>
+@endpush
+@push('scripts')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.js"></script>
+    <script>
+
+        $(document).ready(function() {
+            $('.money').mask('000.000.000.000.000,0000', {reverse: true});
         });
     </script>
 @endpush

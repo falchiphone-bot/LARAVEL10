@@ -52,9 +52,10 @@ class MoedaValoresController extends Controller
      */
     public function store(MoedaValoresCreateRequest $request)
     {
-        $moedasvalores= $request->all();
-        //dd($dados);
+        $moedasvalores = $request->all();
 
+        $moedasvalores['valor'] = str_replace(",",".",str_replace('.','',$moedasvalores ['valor']));
+//  dd($moedasvalores);
         MoedasValores::create($moedasvalores);
 
         return redirect(route('MoedasValores.index'));
@@ -93,6 +94,7 @@ class MoedaValoresController extends Controller
 
         $moedasvalores->fill($request->all()) ;
 
+        $moedasvalores['valor'] = str_replace(",",".",str_replace('.','',$moedasvalores ['valor']));
 
         $moedasvalores->save();
 
