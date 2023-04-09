@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -32,8 +33,15 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
 
+#
+Route::get('PlanoContas/pesquisaavancada',[App\Http\Controllers\GoogleCalendarController::class,'pesquisaavancada'])->name('planocontas.pesquisaavancada');
+
+#GoogleCalendar
+   Route::get('Google/AuthGoogleCalendar',[App\Http\Controllers\GoogleCalendarController::class,'Calendario'])->name('Google.Calendario');
+
+
     #Empresas
-    Route::put('Empresas/desbloquearempresas' ,[App\Http\Controllers\EmpresaController::class, 'desbloquearempresas'])->name('Empresas.DesbloquearEmpresas');
+
     Route::put('Empresas/bloquearempresas' ,[App\Http\Controllers\EmpresaController::class, 'bloquearempresas'])->name('Empresas.BloquearEmpresas');
     Route::resource('Empresas'                , App\Http\Controllers\EmpresaController::class);
 
