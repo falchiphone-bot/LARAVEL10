@@ -37,9 +37,9 @@ Route::middleware('auth')->group(function () {
 Route::get('PlanoContas/pesquisaavancada',[App\Http\Controllers\GoogleCalendarController::class,'pesquisaavancada'])->name('planocontas.pesquisaavancada');
 
 #GoogleCalendar
-   Route::get('Google/AuthGoogleCalendar',[App\Http\Controllers\GoogleCalendarController::class,'Calendario'])->name('Google.Calendario');
-
-
+   Route::get('Google/ConsultarCalendario',[App\Http\Controllers\GoogleCalendarController::class,'Calendario'])->name('Google.Calendario');
+   Route::get('/Google/InserirCalendario', 'App\Http\Controllers\GoogleCalendarController@inserirCalendario');
+   Route::get('Google/dashboard',[App\Http\Controllers\GoogleCalendarController::class,'dashboard'])->name('google.dashboard');
     #Empresas
 
     Route::put('Empresas/bloquearempresas' ,[App\Http\Controllers\EmpresaController::class, 'bloquearempresas'])->name('Empresas.BloquearEmpresas');

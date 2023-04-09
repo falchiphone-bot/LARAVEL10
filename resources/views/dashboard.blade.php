@@ -87,7 +87,7 @@
 
 
 
-                           
+
 
                             @can('CONTABILIDADE - LISTAR')
                                 <tr>
@@ -129,6 +129,21 @@
 
                                 </tr>
                             @endcan
+
+                            @can('CALENDARIO- LISTAR')
+                            <tr>
+
+                                <th>
+
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary"
+                                        <a href="Google/dashboard">Calendário Dashboard</a>
+
+                                    </nav>
+                                </th>
+
+                            </tr>
+                        @endcan
 
                             </tbody>
                     </table>
