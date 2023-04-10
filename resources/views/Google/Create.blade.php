@@ -18,11 +18,16 @@
                 </div>
                 <form action="{{ route('Agenda.store')}}" method="POST">
                     @csrf
-                    <div class="card">
-                        <div class="card-header">
-                            INCLUIR EVENTO
-                        </div>
 
+
+
+                    <div class="badge bg-warning text-wrap" style="width: 100%; font-size: 24px; color: black; text-align: center;">
+                        <div class="card">
+                            <nav class="navbar navbar-success" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                  INCLUIR EVENTO
+                            </nav>
+                      </div>
+                </div>
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-sm-12">
