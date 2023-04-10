@@ -8,7 +8,8 @@ use Google_Service;
 use Google_Service_Calendar;
 use Google_Service_Calendar_Event;
 use Google_Client;
-
+use Carbon\Carbon;
+use Spatie\GoogleCalendar\Event;
 
 // Inclua o autoload do Composer
 // require __DIR__ . '/../../../Users/pedrorobertofalchi/Projetos/IniciacaoLaravel-10/vendor/autoload.php';
@@ -36,129 +37,77 @@ class GoogleCalendarController extends Controller
         return view('Google.dashboard');
     }
 
-
-
-    public function Calendario()
-    {
-        // Crie um objeto cliente Google API
-        $client = new Google_Client();
-        // $client->setAuthConfig('path/to/credentials.json');
-        $client->setDeveloperKey('AIzaSyDI7EoB-HXEURqRec-XIUo2t5EmXxi5HEM');
-        $client->addScope(Google_Service_Calendar::CALENDAR_EVENTS);
-
-        $service = new Google_Service_Calendar($client);
-
-        $event = new Google_Service_Calendar_Event(($client));
-        // Autentique o cliente com as credenciais de API
-        $service = new Google_Service_Calendar($client);
-
-        // Faça uma chamada para a API do Google Calendar para obter eventos do calendário
-        // $calendarId = 'pedroroberto@falchi.com.br';
-
-        // $results = $service->events->listEvents($calendarId);
-
-        // dd(['eventos' => $results->getItems()]);
-
-        // $calendarId = 'pedroroberto@falchi.com.br';
-        // $params = array(
-        //     'orderBy' => 'updated',
-        //     'maxResults' => 1000000000
-        // );
-        // $results = $service->events->listEvents($calendarId, $params);
-
-        $calendarId = 'pedroroberto@falchi.com.br';
-        $params = [
-            'timeMin' => '2023-04-01T00:00:00.000Z',
-            'timeMax' => '2023-04-09T23:59:59.999Z',
-        ];
-        $results = $service->events->listEvents($calendarId, $params);
-        // dd($results[3]);
-        // Renderize os resultados no Blade
-        // return view('/Google.Calendario', ['eventos' => $results->getItems()]);
-        return view('/Google.Calendario', ['eventos' => $results]);
-    }
-
-    public function InserirCalendario()
-    {
-        $client = new Google_Client();
-        $service = new Google_Service_Calendar($client);
-        $client->setApplicationName('calendar-pedro-r-falchi');
-        $client->setAuthConfig('../client_secret_netrubifibra.json');
-
-
-        $client->addScope(Google_Service_Calendar::CALENDAR_EVENTS);
-        $client->setAccessType('offline');
-        $client->setPrompt('select_account consent');
-
-        $client->useApplicationDefaultCredentials();
-
-        // Autentica o cliente
-        $authUrl = $client->createAuthUrl();
-
-
-
-
-
-        $event = new Google_Service_Calendar_Event([
-            'summary' => 'Título do evento',
-            'location' => 'Localização do evento',
-            'description' => 'Descrição do evento',
-            'start' => [
-                'dateTime' => '2023-04-09T10:00:00-03:00',
-                'timeZone' => 'America/Sao_Paulo',
-            ],
-            'end' => [
-                'dateTime' => '2023-04-09T12:00:00-03:00',
-                'timeZone' => 'America/Sao_Paulo',
-            ],
-        ]);
-
-        $calendarId = 'pedroroberto@falchi.com.br';
-        // dd($service);
-        // $event = $service->events->insert($calendarId, $event);
-
-        echo 'Ainda não funcionando para criar evento. Precisa autenticar. PENDENTE! : $event = $service->events->insert($calendarId, $event); ' . $event->htmlLink;
-
-
-    }
-
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
-    }
+        $eventos = new Event();
+        $eventos = $eventos->get();
 
-    /**
-     * Store a newly created resource in storage.
-     */
+        // dd($eventos->first());
+
+        return view('/Google.index', compact('eventos'));
+    }
+    public function create()
+    {
+        return view('Google.create');
+    }
     public function store(Request $request)
     {
-        //
+        // dd($request->all());
+        $inicio = Carbon::createFromFormat('Y-m-d\TH:i', $request->inicio);
+        $fim = Carbon::createFromFormat('Y-m-d\TH:i', $request->fim);
+        Event::create([
+            'name' => $request->name,
+            'startDateTime' => $inicio,
+            'endDateTime' => $fim,
+            'description' => $request->descricao,
+        ]);
+
+        return redirect(route('Agenda.index'));
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    public function edit($id)
+    {
+        $evento = new Event();
+        $evento = $evento->find($id);
+
+        return view('Google.edit', compact('evento'));
+    }
     public function update(Request $request, string $id)
     {
-        //
+        $inicio = Carbon::createFromFormat('Y-m-d\TH:i', $request->inicio);
+        $fim = Carbon::createFromFormat('Y-m-d\TH:i', $request->fim);
+
+        $evento = new Event();
+        $evento = $evento->find($id);
+        if (empty($evento)) {
+            return redirect(route('Agenda.index'))->with('error', 'EVENTOS NÃO ENCONTRADOS!');
+        }
+        $evento->name = $request->name;
+        $evento->startDateTime = $inicio;
+        $evento->endDateTime = $fim;
+        $evento->description = $request->descricao;
+
+        $evento->save();
+
+        return redirect(route('Agenda.index'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
-        //
+        $evento = new Event();
+        $evento = $evento->find(intval($id));
+
+        if (empty($evento)) {
+            return redirect(route('Agenda.index'))->with('error', 'Evento não encontrado!');
+        }
+
+        $evento->delete();
+
+        return redirect(route('Agenda.index'))->with('success', 'Evento excluído com sucesso!');
     }
 }

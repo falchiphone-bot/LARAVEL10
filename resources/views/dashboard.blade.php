@@ -137,7 +137,7 @@
 
                                     <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                                         <a class="btn btn-primary"
-                                        <a href="Google/dashboard">Calendário Dashboard</a>
+                                        <a href="Agenda/dashboard">Calendário Dashboard</a>
 
                                     </nav>
                                 </th>
