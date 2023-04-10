@@ -6,12 +6,32 @@ use App\Helpers\SicredApiHelper;
 use App\Http\Requests\TesteCreateRequest;
 use App\Models\Atletas\CobrancaSicredi;
 use App\Models\Teste;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
+use Spatie\GoogleCalendar\Event;
 
 class TesteController extends Controller
 {
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function googleAgenda()
+    {
+        $startDateTime = Carbon::now()->subMonth(2);
+        $endDateTime = Carbon::now()->addMonth(2);
+
+        // create a new event
+        Event::create([
+            'name' => 'A new event',
+            'startDateTime' => Carbon::now(),
+            'endDateTime' => Carbon::now()->addHour(),
+        ]);
+        $events = new Event;
+        dd($events->get());
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -33,8 +53,6 @@ class TesteController extends Controller
      */
     public function store(TesteCreateRequest $request)
     {
-
-
         $dados = $request->all();
         //dd($dados);
 
@@ -69,7 +87,6 @@ class TesteController extends Controller
      */
     public function update(Request $request, string $id)
     {
-
         $cadastro = Teste::find($id);
 
         $cadastro->fill($request->all());
