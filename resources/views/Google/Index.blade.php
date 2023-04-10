@@ -8,8 +8,10 @@
                 ;font-size: 24px; lign=˜Center˜">
                     CALENDÁRIO GOOGLE PARA O SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
                 </div>
-
-
+                <div class="badge bg-info text-wrap" style="width: 100%;
+                ;font-size: 24px; lign=˜Center˜">
+                    Quantidade de eventos: {{ $eventos->Count()}}
+                  </div>
                 <div class="card-body">
                     @if (session('success'))
                         <div class="alert alert-success">
@@ -64,15 +66,28 @@
 
 
 
-                            <div class="badge bg-success text-wrap"
-                                style="width: 20%;
-                                  ;font-size: 24px; lign=˜Center˜">
+                            <div class="badge bg-primary text-wrap"
+                                style="width: 100%;
+                                  ;font-size: 24px; align=˜left˜">
+                                   <div>
                                 <a href="{{ route('Agenda.edit', $evento->id) }}" class="btn btn-success" tabindex="-1"
                                     role="button" aria-disabled="true">Editar</a>
 
-                                    <a href="{{ route('Agenda.destroy', $evento->id) }}" class="btn btn-danger" tabindex="-1"
-                                        role="button" aria-disabled="true">Excluir</a>
 
+
+                                    <form method="POST" action="{{ route('Agenda.destroy', $evento->id) }}">
+                                        @csrf
+                                        <input type="hidden" name="_method" value="DELETE">
+                                        <button type="submit" class="btn btn-danger">
+                                            Excluir
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <div class="badge bg-warning text-wrap"
+                                style="width: 100%;
+                            ;font-size: 24px; lign=˜Center˜">
+                                 </div>
                             </div>
                         @endif
                     @endforeach

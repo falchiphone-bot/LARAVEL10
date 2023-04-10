@@ -100,7 +100,7 @@ class GoogleCalendarController extends Controller
     public function destroy(string $id)
     {
         $evento = new Event();
-        $evento = $evento->find(intval($id));
+        $evento = $evento->find( $id);
 
         if (empty($evento)) {
             return redirect(route('Agenda.index'))->with('error', 'Evento não encontrado!');
