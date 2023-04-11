@@ -11,6 +11,8 @@ use Google_Client;
 use Carbon\Carbon;
 use Spatie\GoogleCalendar\Event;
 
+// addAttendee   - para incluir participante no evento
+
 // Inclua o autoload do Composer
 // require __DIR__ . '/../../../Users/pedrorobertofalchi/Projetos/IniciacaoLaravel-10/vendor/autoload.php';
 require '../vendor/autoload.php';
@@ -67,7 +69,41 @@ class GoogleCalendarController extends Controller
 
     public function show(string $id)
     {
-        //
+        $evento = new Event();
+        $evento = $evento->find($id);
+
+        $participantes = $evento->attendees;
+        // $participantes = [];
+
+        // foreach ($participantesatuais as $key => $participante) {
+        //     $participantes[$key]['email'] = $participante->email;
+        //     $participantes[$key]['name'] = $participante->name;
+        //     $participantes[$key]['comment'] = $participante->comment;
+        // }
+
+        // array_push($participantes, [
+        //     'email' => 'mauriciomgp5@gmail.com',
+        //     'name' => 'Mauricio ',
+        //     'comment' => 'NRaa',
+        // ]);
+
+
+        // foreach ($participantes as $inserir) {
+        //     $evento->addAttendee([
+        //         'email' => $inserir['email'],
+        //         'name' => $inserir['name'],
+        //         'comment' => $inserir['comment'],
+        //     ]);
+        //   $evento->save();
+   
+
+        // $evento->addAttendee(['email' => 'pedroroberto@falchi.com.br']);
+        // $evento->addAttendee(['email' => 'admin@falchi.com.br']);
+        // $evento->addAttendee(['email' => 'sem@falchi.com.br']);
+
+        // $participantes = $evento->attendees;
+
+        return view('Google.show', compact('evento', 'participantes'));
     }
 
     public function edit($id)
@@ -100,7 +136,7 @@ class GoogleCalendarController extends Controller
     public function destroy(string $id)
     {
         $evento = new Event();
-        $evento = $evento->find( $id);
+        $evento = $evento->find($id);
 
         if (empty($evento)) {
             return redirect(route('Agenda.index'))->with('error', 'Evento não encontrado!');

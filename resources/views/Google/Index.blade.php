@@ -99,6 +99,14 @@
                                                     </th>
                                                 @endcan
 
+                                                @can('AGENDA - VER')
+                                                    <th scope="col" class="px-6 py-4">
+                                                        <a href="{{ route('Agenda.show', $evento->id) }}"
+                                                            class="btn btn-info" tabindex="-1" role="button"
+                                                            aria-disabled="true">VER</a>
+                                                    </th>
+                                                @endcan
+
                                                 @can('AGENDA - EXCLUIR')
                                                     <th scope="col" class="px-6 py-4">
                                                         <form method="POST"
