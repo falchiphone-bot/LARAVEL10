@@ -78,20 +78,40 @@
 
                         </div>
                 </form>
-                @foreach ($participantes as $participante)
 
-                        <div class="col-sm-6">
-                            <p>Nome: {{ $participante->displayName}}</p>
+                @if ($participantes != null)
+                <div class="badge bg-info text-wrap"
+                    style="width: 100%;
+                               ;font-size: 16px; lign=˜Center˜">
+                    PARTICIPANTES DO EVENTO
+                </div>
+                <div class="card-body" style="background-color: #e6ffff;">
+                    <div class="row-sm-12">
+                        <div class="card-header">
+                            <table class="table-style mx-auto w-100">
+                                <tr>
+                                    <th style="background-color: #eee;">Nome</th>
+                                    <th style="background-color: #eee;">Email</th>
+                                </tr>
+                                @foreach ($participantes as $participante)
+                                    <trtyle="background-color: #e6ffff>
+                                        <td style="color: blue;">
+                                            {{ $participante->displayName }}
+                                        </td>
+                                        <td style="color: red;">
+                                            {{ $participante->email }}</p>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </table>
+
+
                         </div>
-                        <div class="col-sm-6">
-                            <p>Email: {{ $participante->email  }}</p>
-
-                        </div>
-                
-                @endforeach
-
-
+                    </div>
+                </div>
+                @endif
             </div>
+
         </div>
 
     </div>

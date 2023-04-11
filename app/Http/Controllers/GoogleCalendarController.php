@@ -73,6 +73,9 @@ class GoogleCalendarController extends Controller
         $evento = $evento->find($id);
 
         $participantes = $evento->attendees;
+
+
+    //   dd($participantes);
         // $participantes = [];
 
         // foreach ($participantesatuais as $key => $participante) {
@@ -87,7 +90,6 @@ class GoogleCalendarController extends Controller
         //     'comment' => 'NRaa',
         // ]);
 
-
         // foreach ($participantes as $inserir) {
         //     $evento->addAttendee([
         //         'email' => $inserir['email'],
@@ -95,15 +97,20 @@ class GoogleCalendarController extends Controller
         //         'comment' => $inserir['comment'],
         //     ]);
         //   $evento->save();
-   
 
         // $evento->addAttendee(['email' => 'pedroroberto@falchi.com.br']);
         // $evento->addAttendee(['email' => 'admin@falchi.com.br']);
         // $evento->addAttendee(['email' => 'sem@falchi.com.br']);
 
         // $participantes = $evento->attendees;
+        // if ($evento->attendees == null) {
+        //     return view('Google.show', compact('evento'));
+        // } else {
+
+        // }
 
         return view('Google.show', compact('evento', 'participantes'));
+
     }
 
     public function edit($id)
