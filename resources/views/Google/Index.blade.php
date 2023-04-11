@@ -33,16 +33,17 @@
                         </nav>
                     </div>
 
-
-                    <div class="badge bg-success text-wrap"
-                        style="width: 20%;
+                    @can('AGENDA - INCLUIR')
+                        <div class="badge bg-success text-wrap"
+                            style="width: 20%;
                     ;font-size: 24px; align=˜center˜">
+                            <nav class="navbar navbar-success" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                <a class="btn btn-success" <a href="Agenda/create">Novo evento para calendário</a>
+                            </nav>
+                        </div>
+                    @endcan
 
 
-                        <nav class="navbar navbar-success" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                            <a class="btn btn-success" <a href="Agenda/create">Novo evento para calendário</a>
-                        </nav>
-                    </div>
                     @foreach ($eventos as $evento)
                         <p>
 
@@ -87,18 +88,33 @@
                                 style="width: 100%;
                                   ;font-size: 24px; align=˜left˜">
                                 <div>
-                                    <a href="{{ route('Agenda.edit', $evento->id) }}" class="btn btn-success"
-                                        tabindex="-1" role="button" aria-disabled="true">Editar</a>
+                                    <table class="table" style="background-color: rgb(247, 247, 213);">
+                                        <thead>
+                                            <tr>
+                                                @can('AGENDA - EDITAR')
+                                                    <th scope="col" class="px-6 py-4">
+                                                        <a href="{{ route('Agenda.edit', $evento->id) }}"
+                                                            class="btn btn-success" tabindex="-1" role="button"
+                                                            aria-disabled="true">Editar</a>
+                                                    </th>
+                                                @endcan
 
+                                                @can('AGENDA - EXCLUIR')
+                                                    <th scope="col" class="px-6 py-4">
+                                                        <form method="POST"
+                                                            action="{{ route('Agenda.destroy', $evento->id) }}">
+                                                            @csrf
+                                                            <input type="hidden" name="_method" value="DELETE">
+                                                            <button type="submit" class="btn btn-danger">
+                                                                Excluir
+                                                            </button>
+                                                        </form>
+                                                    </th>
+                                                @endcan
+                                            </tr>
+                                        </thead>
 
-
-                                    <form method="POST" action="{{ route('Agenda.destroy', $evento->id) }}">
-                                        @csrf
-                                        <input type="hidden" name="_method" value="DELETE">
-                                        <button type="submit" class="btn btn-danger">
-                                            Excluir
-                                        </button>
-                                    </form>
+                                    </table>
                                 </div>
 
                                 <div class="badge bg-warning text-wrap"
@@ -117,3 +133,47 @@
     <div class="b-example-divider"></div>
     </div>
 @endsection
+
+@push('scripts')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.select2').select2();
+        });
+
+        $('form').submit(function(e) {
+            e.preventDefault();
+            $.confirm({
+                title: 'Confirmar!',
+                content: 'Confirma?',
+                buttons: {
+                    confirmar: function() {
+                        // $.alert('Confirmar!');
+                        $.confirm({
+                            title: 'Confirmar!',
+                            content: 'Deseja realmente continuar?',
+                            buttons: {
+                                confirmar: function() {
+                                    // $.alert('Confirmar!');
+                                    e.currentTarget.submit()
+                                },
+                                cancelar: function() {
+                                    // $.alert('Cancelar!');
+                                },
+
+                            }
+                        });
+
+                    },
+                    cancelar: function() {
+                        // $.alert('Cancelar!');
+                    },
+
+                }
+            });
+        });
+    </script>
+@endpush

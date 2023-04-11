@@ -22,11 +22,11 @@ class GoogleCalendarController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware(['permission:CALENDARIO - LISTAR'])->only('index');
-        // $this->middleware(['permission:MOEDAS - INCLUIR'])->only(['create', 'store']);
-        // $this->middleware(['permission:MOEDAS - EDITAR'])->only(['edit', 'update']);
-        // $this->middleware(['permission:MOEDAS - VER'])->only(['edit', 'update']);
-        // $this->middleware(['permission:MOEDAS - EXCLUIR'])->only('destroy');
+        $this->middleware(['permission:AGENDA - LISTAR'])->only('index');
+        $this->middleware(['permission:AGENDA - INCLUIR'])->only(['create', 'store']);
+        $this->middleware(['permission:AGENDA - EDITAR'])->only(['edit', 'update']);
+        // $this->middleware(['permission:AGENDA - VER'])->only(['edit', 'update']);
+        $this->middleware(['permission:AGENDA - EXCLUIR'])->only('destroy');
     }
 
     /**

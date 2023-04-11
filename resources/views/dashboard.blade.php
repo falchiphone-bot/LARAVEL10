@@ -130,7 +130,7 @@
                                 </tr>
                             @endcan
 
-                            @can('CALENDARIO- LISTAR')
+                            @can('AGENDA - LISTAR')
                             <tr>
 
                                 <th>
