@@ -43,8 +43,10 @@ Route::middleware('auth')->group(function () {
 
    Route::get('Agenda/dashboard', [App\Http\Controllers\GoogleCalendarController::class, 'dashboard'])->name('google.dashboard');
     Route::resource('Agenda', App\Http\Controllers\GoogleCalendarController::class);
-     #Empresas
+     
+    #Empresas
 
+    Route::put('Empresas/desbloquearempresas' ,[App\Http\Controllers\EmpresaController::class, 'desbloquearempresas'])->name('Empresas.DesbloquearEmpresas');
     Route::put('Empresas/bloquearempresas', [App\Http\Controllers\EmpresaController::class, 'bloquearempresas'])->name('Empresas.BloquearEmpresas');
     Route::put('Empresas/desbloquearempresas', [App\Http\Controllers\EmpresaController::class, 'desbloquearempresas'])->name('Empresas.DesbloquearEmpresas');
     Route::resource('Empresas', App\Http\Controllers\EmpresaController::class);
