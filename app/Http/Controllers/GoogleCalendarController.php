@@ -72,38 +72,36 @@ class GoogleCalendarController extends Controller
         $evento = new Event();
         $evento = $evento->find($id);
 
-        $participantesatuais = $evento->attendees;
-        $participantes = [];
+        $participantes = $evento->attendees;
+        // $participantes = [];
 
-        foreach ($participantesatuais as $key => $participante) {
-            $participantes[$key]['email'] = $participante->email;
-            $participantes[$key]['name'] = $participante->name;
-            $participantes[$key]['comment'] = $participante->comment;
-        }
+        // foreach ($participantesatuais as $key => $participante) {
+        //     $participantes[$key]['email'] = $participante->email;
+        //     $participantes[$key]['name'] = $participante->name;
+        //     $participantes[$key]['comment'] = $participante->comment;
+        // }
 
-        array_push($participantes, [
-            'email' => 'mauriciomgp5@gmail.com',
-            'name' => 'Mauricio ',
-            'comment' => 'NRaa',
-        ]);
-
-// dd($participantes);
-        foreach ($participantes as $inserir) {
-            $evento->addAttendee([
-                'email' => $inserir['email'],
-                'name' => $inserir['name'],
-                'comment' => $inserir['comment'],
-            ]);
-        $evento->save();
-    }
+        // array_push($participantes, [
+        //     'email' => 'mauriciomgp5@gmail.com',
+        //     'name' => 'Mauricio ',
+        //     'comment' => 'NRaa',
+        // ]);
 
 
+        // foreach ($participantes as $inserir) {
+        //     $evento->addAttendee([
+        //         'email' => $inserir['email'],
+        //         'name' => $inserir['name'],
+        //         'comment' => $inserir['comment'],
+        //     ]);
+        //   $evento->save();
+   
 
         // $evento->addAttendee(['email' => 'pedroroberto@falchi.com.br']);
         // $evento->addAttendee(['email' => 'admin@falchi.com.br']);
         // $evento->addAttendee(['email' => 'sem@falchi.com.br']);
 
-        $participantes = $evento->attendees;
+        // $participantes = $evento->attendees;
 
         return view('Google.show', compact('evento', 'participantes'));
     }
