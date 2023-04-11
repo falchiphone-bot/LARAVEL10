@@ -11,6 +11,8 @@ use Google_Client;
 use Carbon\Carbon;
 use Spatie\GoogleCalendar\Event;
 
+// addAttendee   - para incluir participante no evento
+
 // Inclua o autoload do Composer
 // require __DIR__ . '/../../../Users/pedrorobertofalchi/Projetos/IniciacaoLaravel-10/vendor/autoload.php';
 require '../vendor/autoload.php';
@@ -67,7 +69,14 @@ class GoogleCalendarController extends Controller
 
     public function show(string $id)
     {
-        //
+        $evento = new Event();
+        $evento = $evento->find($id);
+
+        $participantes = $evento->attendees[0];
+//   dd($participantes);
+
+
+        return view('Google.show', compact('evento','participantes'));
     }
 
     public function edit($id)
