@@ -72,11 +72,40 @@ class GoogleCalendarController extends Controller
         $evento = new Event();
         $evento = $evento->find($id);
 
-        $participantes = $evento->attendees[0];
-//   dd($participantes);
+        $participantesatuais = $evento->attendees;
+        $participantes = [];
+
+        foreach ($participantesatuais as $key => $participante) {
+            $participantes[$key]['email'] = $participante->email;
+            $participantes[$key]['name'] = $participante->name;
+            $participantes[$key]['comment'] = $participante->comment;
+        }
+
+        array_push($participantes, [
+            'email' => 'mauriciomgp5@gmail.com',
+            'name' => 'Mauricio ',
+            'comment' => 'NRaa',
+        ]);
+
+// dd($participantes);
+        foreach ($participantes as $inserir) {
+            $evento->addAttendee([
+                'email' => $inserir['email'],
+                'name' => $inserir['name'],
+                'comment' => $inserir['comment'],
+            ]);
+        $evento->save();
+    }
 
 
-        return view('Google.show', compact('evento','participantes'));
+
+        // $evento->addAttendee(['email' => 'pedroroberto@falchi.com.br']);
+        // $evento->addAttendee(['email' => 'admin@falchi.com.br']);
+        // $evento->addAttendee(['email' => 'sem@falchi.com.br']);
+
+        $participantes = $evento->attendees;
+
+        return view('Google.show', compact('evento', 'participantes'));
     }
 
     public function edit($id)
@@ -109,7 +138,7 @@ class GoogleCalendarController extends Controller
     public function destroy(string $id)
     {
         $evento = new Event();
-        $evento = $evento->find( $id);
+        $evento = $evento->find($id);
 
         if (empty($evento)) {
             return redirect(route('Agenda.index'))->with('error', 'Evento não encontrado!');

@@ -79,20 +79,15 @@
                         </div>
                 </form>
                 @foreach ($participantes as $participante)
-                <div class="card-header">
-                    <div class="badge bg-primary text-wrap"
-                        style="width: 100%;
-                         ;font-size: 16px; lign=˜Center˜">
-                        <div class="col-sm-6">
 
+                        <div class="col-sm-6">
                             <p>Nome: {{ $participante->displayName}}</p>
                         </div>
                         <div class="col-sm-6">
                             <p>Email: {{ $participante->email  }}</p>
 
                         </div>
-                    </div>
-                </div>
+                
                 @endforeach
 
 
