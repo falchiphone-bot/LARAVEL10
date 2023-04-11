@@ -5,19 +5,18 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-6">
-                    <select class="form-control select2" id="selEmpresa">
+                    <select class="form-control select2" id="selEmpresa" wire:model="selEmpresa">
                         @foreach ($empresas as $empresa_id => $empresa_descricao)
-                        <option value="{{$empresa_id}}">{{ $empresa_descricao }}</option>
+                            <option value="{{ $empresa_id }}">{{ $empresa_descricao }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="col-6">
-                    <select class="form-control select2" id="selConta" tabindex="-1" aria-hidden="true">
+                    <select class="form-control select2" id="selConta" wire:model='selConta' aria-hidden="true">
                         <option value="0">Escolha uma conta</option>
-                        <option value="19198"> NET RUBI SERVICOS DE TECNOLOGIA LTDA TRANSFERENCIA ENTRE
-                            CONTAS
-                            11382- 9 - AGENCIA 0703- SICREDI E CONTA 1129-3 - AGENCIA 0001 - MODOBANK
-                        </option>
+                        @foreach ($contas as $conta_id => $conta_descricao)
+                            <option value="{{ $conta_id }}">{{ $conta_descricao }}</option>
+                        @endforeach
                     </select>
                 </div>
             </div>
@@ -38,18 +37,18 @@
                 <div class="row">
                     <div class="form-group col-sm-12 col-md-3">
                         <label for="de" class="pr-1  form-control-label">De</label>
-                        <input type="date" value="" id="de" name="De"
-                        wire:model='De' class="required form-control " autocomplete="off">
+                        <input type="date" value="" id="de" name="De" wire:model.lazy='De'
+                            class="required form-control " autocomplete="off">
                     </div>
                     <div class="form-group col-sm-12 col-md-3">
                         <label for="ate" class="px-1  form-control-label">Até</label>
                         <input type="date" value="" id="ate" name="Ate" placeholder="Buscar até"
-                            wire:model='Ate' class="required form-control " autocomplete="off">
+                            wire:model.lazy='Ate' class="required form-control " autocomplete="off">
                     </div>
                     <div class="form-group col-sm-12 col-md-3">
                         <label for="ate" class="px-1  form-control-label">Conferido</label>
                         <select name="Conferido" id="Conferido" class="form-control" wire:model.lazy='Conferido'>
-                            <option selected="" value="todos">Todos</option>
+                            <option value="">Todos</option>
                             <option value="1">Conferido</option>
                             <option value="0">Não conferido</option>
                         </select>
@@ -66,7 +65,8 @@
                 <div class="row">
                     <div class="form-group col-sm-12 col-md-3">
                         <label for="de" class="pr-1  form-control-label">Buscar Descrição</label>
-                        <input type="text" value="" id="descricao" class="form-control" autocomplete="off" wire:model.debounce.800ms='Descricao'>
+                        <input type="text" value="" id="descricao" class="form-control" autocomplete="off"
+                            wire:model.debounce.800ms='Descricao'>
                     </div>
                     <div class="form-group col-sm-12 col-md-3">
                         <label for="de" class="pr-1  form-control-label">A partir De:</label>
@@ -75,8 +75,8 @@
                     </div>
                     <div class="form-group col-sm-12 col-md-3">
                         <label for="data_bloqueio" class="pr-1  form-control-label">Data Bloqueio:</label>
-                        <input type="date" value="" id="data_bloqueio" class="form-control"
-                            autocomplete="off" wire:model.lazy='DataBloqueio'>
+                        <input type="date" value="" id="data_bloqueio" class="form-control" autocomplete="off"
+                            wire:model.lazy='data_bloqueio' wire:change='updateBloqueiodataanterior()'>
                     </div>
                 </div>
             </form>
@@ -133,106 +133,121 @@
             </div>
         </div>
         <div class="card-body result">
-            <table class="table">
+            <table class="table table-bordered">
                 <thead class="thead" style="background-color: #00008B; color: white">
-                    <tr>
-                        <th>Data</th>
-                        <th>Descrição</th>
-                        <th>Conferido</th>
-                        <th>Conta Partida</th>
-                        <th style="width: 120px">Débito</th>
-                        <th style="width: 120px">Crédito</th>
-                        <th style="width: 120px">Saldo</th>
-                        <th style="width: 250px"></th>
-                    </tr>
                     <tr>
                         <td></td>
                         <td></td>
                         <td></td>
                         <td>Saldo Anterior</td>
-                        <td id="saldoanterior">R$ -25.288,25</td>
+                        <td>R$ -25.288,25</td>
+                    </tr>
+                    <tr>
+                        <th>Data</th>
+                        <th>Débito</th>
+                        <th>Crédito</th>
+                        <th>Saldo</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     @php
-                    $totalDebito = 0;
-                    $totalCredito = 0;
+                        $totalDebito = 0;
+                        $totalCredito = 0;
                     @endphp
-                    @foreach ($Lancamentos as $lancamento)
-                        <tr data-tipo="+">
-                            <td class="td-alterar-data"> {{ $lancamento->DataContabilidade->format('d/m/Y') }} </td>
-                            <td data-id="84264" class="td-descricao"> {{ $lancamento->Descricao }}</td>
-                            <td>
-                                <button title="Aguardando Confimação" data-id="84264" data-situacao="0"
-                                    type="button" class="btn-sm btn btn-outline-info confirmar-lancamento">
-                                    <i class="fa fa-square-o"></i>&nbsp;
-                                </button>
-                            </td>
-                            <td title="{{ $lancamento->ContaDebitoID }}">
-                                {{ $lancamento->ContaDebitoID }}
-                            </td>
-                            <td>{{ $lancamento->ContaCreditoID }}</td>
-                            <td>
-                                @if ($Conta->ID == $lancamento->ContaDebitoID)
-                                    {{ $lancamento->Valor }}
-                                    @php($totalDebito += $lancamento->Valor)
-                                @endif
-                            </td>
-                            <td>
-                                @if ($Conta->ID == $lancamento->ContaCreditoID)
-                                    {{ $lancamento->Valor }}
-                                    @php($totalCredito += $lancamento->Valor)
-                                @endif
-                            </td>
-                            <td class="actions">
+                    @if ($Lancamentos)
+                        @foreach ($Lancamentos as $lancamento)
+                            <tr>
+                                <td>
+                                    {{ $lancamento->DataContabilidade->format('d/m/Y') }}
+                                </td>
+                                <td>
+                                    @if ($Conta->ID == $lancamento->ContaDebitoID)
+                                        {{ $lancamento->Valor }}
+                                        @php($totalDebito += $lancamento->Valor)
+                                    @endif
+                                </td>
+                                <td>
+                                    @if ($Conta->ID == $lancamento->ContaCreditoID)
+                                        {{ $lancamento->Valor }}
+                                        @php($totalCredito += $lancamento->Valor)
+                                    @endif
+                                </td>
+                                <td>
 
-                                <button title="Sem notificação" data-id="84264" data-dias="" type="button"
-                                    class="btn-sm btn btn-outline-info ligar-notificacao">
-                                    <i class="fa fa-bell-slash"></i>&nbsp;
-                                </button>
+                                </td>
+                                <td>
 
-                                <a title="Editar" href="/financeiro/lancamentos/edit/84264/5860"
-                                    class="btn btn-outline-secondary btn-sm btn-editar">
-                                    <i class="fa fa-edit"></i>
-                                </a>
-                                <button title="Somar Valor" data-valor="1" value="84264" type="button"
-                                    class="btn-sm btn btn-outline-success autalizar-saldo"><i
-                                        class="fa fa-check-square-o"></i>&nbsp;</button>
-                                <button name="excluirlacamento[]" data-valor="0" title="Excluir Lançamento"
-                                    value="84264" type="button"
-                                    class="btn-sm btn btn-outline-danger excluir-lancamento">
-                                    <i class="fa fa-square-o"></i>&nbsp;
-                                </button>
-                                <button data-valor="anterior" data-id="84264"
-                                    title="Alterar data processamento para Ontem" type="button"
-                                    class="btn-sm btn btn-outline-danger btn-atualizar-data-processamento">
-                                    <i class="fa fa-arrow-left"></i>&nbsp;
-                                </button>
-                                <button data-valor="atual" data-id="84264" title="Alterar para dia Atual"
-                                    type="button"
-                                    class="btn-sm btn btn-outline-danger btn-atualizar-data-processamento">
-                                    <i class="fa fa-calendar-minus-o"></i>&nbsp;
-                                </button>
-                                <button data-valor="posterior" data-id="84264"
-                                    title="Alterar data processamento para Amanhã" type="button"
-                                    class="btn-sm btn btn-outline-danger btn-atualizar-data-processamento">
-                                    <i class="fa fa-arrow-right"></i>&nbsp;
-                                </button>
-                            </td>
-                        </tr>
-                    @endforeach
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="5">
+                                    {{ $lancamento->Descricao }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="3">
+                                    <strong>Conta Partida: </strong>
+                                    @if ($lancamento->ContaCreditoID != $Conta->ID)
+                                        {{ $lancamento->ContaCredito->PlanoConta->Descricao }}
+                                    @else
+                                        {{ $lancamento->ContaDebito->PlanoConta->Descricao }}
+                                    @endif
+                                </td>
+                                <td>
+
+                                </td>
+                                <td class="text-right">
+                                    <button title="Aguardando Confimação" data-id="84264" data-situacao="0"
+                                        type="button" class="btn-sm btn btn-outline-info confirmar-lancamento mx-auto">
+                                        <i class="fa fa-square-o"></i>
+                                    </button>
+
+                                    <button title="Sem notificação" data-id="84264" data-dias="" type="button"
+                                        class="btn-sm btn btn-outline-info ligar-notificacao">
+                                        <i class="fa fa-bell-slash"></i>
+                                    </button>
+
+                                    <a title="Editar" href="/financeiro/lancamentos/edit/84264/5860"
+                                        class="btn btn-outline-secondary btn-sm btn-editar">
+                                        <i class="fa fa-edit"></i>
+                                    </a>
+                                    <button title="Somar Valor" data-valor="1" value="84264" type="button"
+                                        class="btn-sm btn btn-outline-success autalizar-saldo"><i
+                                            class="fa fa-check-square-o"></i></button>
+                                    <button name="excluirlacamento[]" data-valor="0" title="Excluir Lançamento"
+                                        value="84264" type="button"
+                                        class="btn-sm btn btn-outline-danger excluir-lancamento">
+                                        <i class="fa fa-square-o"></i>
+                                    </button>
+                                    <button data-valor="anterior" data-id="84264"
+                                        title="Alterar data processamento para Ontem" type="button"
+                                        class="btn-sm btn btn-outline-danger btn-atualizar-data-processamento">
+                                        <i class="fa fa-arrow-left"></i>
+                                    </button>
+                                    <button data-valor="atual" data-id="84264" title="Alterar para dia Atual"
+                                        type="button"
+                                        class="btn-sm btn btn-outline-danger btn-atualizar-data-processamento">
+                                        <i class="fa fa-calendar-minus-o"></i>
+                                    </button>
+                                    <button data-valor="posterior" data-id="84264"
+                                        title="Alterar data processamento para Amanhã" type="button"
+                                        class="btn-sm btn btn-outline-danger btn-atualizar-data-processamento mx-auto">
+                                        <i class="fa fa-arrow-right"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        @endforeach
+                    @endif
 
 
                 </tbody>
                 <thead class="thead">
                     <tr>
+                        <th></th>
                         <th>Total</th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                        <th id="totaldebito">R$ {{ $totalDebito}}</th>
+                        <th id="totaldebito">R$ {{ $totalDebito }}</th>
                         <th id="totalcredito">R$ {{ $totalCredito }}</th>
-                        <th>=</th>
                         <th id="total">R$ {{ $total = $totalDebito - $totalCredito }}</th>
                     </tr>
                 </thead>
@@ -247,14 +262,49 @@
     </div>
 
 </div>
+@push('styles')
+    <!-- Styles -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" />
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+@endpush
 @push('scripts')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.full.min.js"></script>
     <script>
         $(document).ready(function() {
-            $('.select2').select2();
+            //inicio-empresas
+            window.initselEmpresaDrop = () => {
+                $('#selEmpresa').select2({
+                    theme: 'bootstrap-5'
+                });
+            }
+            initselEmpresaDrop();
+            $('#selEmpresa').on('change', function(e) {
+                livewire.emit('selectedSelEmpresaItem', e.target.value);
+            });
+            window.livewire.on('select2', () => {
+                initselEmpresaDrop();
+            });
+            //fim-empresa
+            //inicio-contas
+            window.initselContaDrop = () => {
+                $('#selConta').select2({
+                    theme: 'bootstrap-5'
+                });
+            }
+            initselContaDrop();
+            $('#selConta').on('change', function(e) {
+                livewire.emit('selectedSelContaItem', e.target.value);
+            });
+            window.livewire.on('select2', () => {
+                initselContaDrop();
+            });
+            //fim-contas
         });
 
         $('form').submit(function(e) {

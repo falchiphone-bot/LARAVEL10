@@ -38,7 +38,7 @@ class Conta extends Model
         'Modified' => 'integer',
         'Planocontas_id' => 'integer',
         'Usuarios_id' => 'integer',
-        'Bloqueiodataanterior' => 'datetime',
+        'Bloqueiodataanterior' => 'date',
         'Contapagamento' => 'integer',
         'BalancoEncerrado' => 'integer',
         'ContaPublica' => 'integer',

@@ -11,6 +11,10 @@ use Livewire\Component;
 
 class Extrato extends Component
 {
+    //mudança de empresas e contas
+    public $selEmpresa;
+    public $selConta;
+
     public $Conta;
     public $Lancamentos;
 
@@ -22,56 +26,109 @@ class Extrato extends Component
     public $Conferido;
     public $Notificacao;
     public $DataBloqueio;
+    public $data_bloqueio;
+
     public $exibicao_pesquisa;
 
+    protected $listeners = ['selectedSelEmpresaItem','selectedSelContaItem'];
+    //gerenciamento select2
+    public function selectedSelEmpresaItem($item)
+    {
+        if ($item) {
+            $this->selEmpresa = $item;
+            $this->selConta = null;
+        } else {
+            $this->selEmpresa = null;
+            $this->selConta = null;
+        }
+        $this->updated();
+    }
+    public function selectedSelContaItem($item)
+    {
+        if ($item) {
+            $this->selConta = $item;
+        } else {
+            $this->selConta = null;
+        }
+        $this->updated();
+    }
+
+    public function hydrate()
+    {
+        $this->emit('select2');
+        $this->resetErrorBag();
+        $this->resetValidation();
+    }
 
     public function mount($contaID)
     {
-        $this->De = date('Y-m-d');
-        $this->Ate = date('Y-m-d');
+        $this->De = cache('Extrato_De') ?? date('Y-m-d');
+        $this->Ate = cache('Extrato_Ate') ?? date('Y-m-d');
         $this->Conta = Conta::find($contaID);
+        $this->data_bloqueio = $this->Conta->Bloqueiodataanterior?->format('Y-m-d');
+        $this->selEmpresa = $this->Conta->EmpresaID;
+        $this->selConta = $this->Conta->ID;
+
+        $de = Carbon::createFromDate($this->De)->format('d/m/Y');
+        $ate = Carbon::createFromDate($this->Ate)->format('d/m/Y');
 
         $lancamentos = Lancamento::where(function ($query) use ($contaID) {
-            return $query->where('ContaDebitoID',$contaID)->orWhere('ContaCreditoID',$contaID);
-        })->where('DataContabilidade',date('d/m/Y'));
+            return $query->where('ContaDebitoID', $contaID)->orWhere('ContaCreditoID', $contaID);
+        })->whereBetween('DataContabilidade',[$de,$ate]);
 
         $this->Lancamentos = $lancamentos->orderBy('DataContabilidade')->get();
     }
 
-    public function updated()
+    public function updateBloqueiodataanterior()
     {
-        $contaID = $this->Conta->ID;
-        $lancamentos = Lancamento::where(function ($query) use ($contaID) {
-            return $query->where('ContaDebitoID',$contaID)->orWhere('ContaCreditoID',$contaID);
-        });
-
-        if($this->De){
-            $de = Carbon::createFromFormat('Y-m-d',$this->De)->format('d/m/Y');
-            $lancamentos->where('DataContabilidade','>=',$de);
+        if (empty($this->data_bloqueio)) {
+            $this->data_bloqueio = null;
         }
-        if($this->Ate){
-            $ate = Carbon::createFromFormat('Y-m-d',$this->Ate)->format('d/m/Y');
-            $lancamentos->where('DataContabilidade','<=',$ate);
-        }
-        if($this->Descricao){
-            $lancamentos->where('Descricao','like',"%$this->Descricao%");
-        }
-        if($this->Conferido != ""){
-            $lancamentos->where('conferido',$this->Conferido);
-        }
-        if($this->Notificacao != ""){
-            $lancamentos->where('notificacao',$this->Notificacao);
-        }
-        $this->Lancamentos = $lancamentos->orderBy('DataContabilidade')->dd();
+        $this->Conta->Bloqueiodataanterior = $this->data_bloqueio;
+        $this->Conta->save();
     }
 
+    public function updated()
+    {
+        $contaID = $this->selConta;
+        if ($contaID) {
+            $lancamentos = Lancamento::where(function ($query) use ($contaID) {
+                return $query->where('ContaDebitoID', $contaID)->orWhere('ContaCreditoID', $contaID);
+            });
+
+            if ($this->De) {
+                $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y');
+                $lancamentos->where('DataContabilidade', '>=', $de);
+                cache(['Extrato_De'=>$this->De]);
+            }
+            if ($this->Ate) {
+                $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y');
+                $lancamentos->where('DataContabilidade', '<=', $ate);
+                cache(['Extrato_Ate'=>$this->Ate]);
+            }
+            if ($this->Descricao) {
+                $lancamentos->where('Descricao', 'like', "%$this->Descricao%");
+            }
+            if ($this->Conferido != '') {
+                $lancamentos->where('conferido', $this->Conferido);
+            }
+            if ($this->Notificacao != '') {
+                $lancamentos->where('notificacao', $this->Notificacao);
+            }
+            $this->Lancamentos = $lancamentos->orderBy('DataContabilidade')->get();
+        }else {
+            $this->Lancamentos = null;
+        }
+    }
 
     public function render()
     {
-        $empresas = Empresa::whereHas('EmpresaUsuario',function ($query){
-            return $query->where('UsuarioID',Auth::user()->id);
+        $empresas = Empresa::whereHas('EmpresaUsuario', function ($query) {
+            return $query->where('UsuarioID', Auth::user()->id);
         })
-        ->orderBy('Descricao')->pluck('Descricao','ID');
-        return view('livewire.conta.extrato',compact('empresas'));
+            ->orderBy('Descricao')
+            ->pluck('Descricao', 'ID');
+        $contas = Conta::where('EmpresaID',$this->selEmpresa)->where('Grau',5)->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')->pluck('PlanoContas.Descricao','Contas.ID');
+        return view('livewire.conta.extrato', compact('empresas','contas'));
     }
 }
