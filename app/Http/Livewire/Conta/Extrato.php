@@ -6,6 +6,7 @@ use App\Models\Conta;
 use App\Models\Empresa;
 use App\Models\Lancamento;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class Extrato extends Component
@@ -55,13 +56,22 @@ class Extrato extends Component
         if($this->Descricao){
             $lancamentos->where('Descricao','like',"%$this->Descricao%");
         }
-        $this->Lancamentos = $lancamentos->orderBy('DataContabilidade')->get();
+        if($this->Conferido != ""){
+            $lancamentos->where('conferido',$this->Conferido);
+        }
+        if($this->Notificacao != ""){
+            $lancamentos->where('notificacao',$this->Notificacao);
+        }
+        $this->Lancamentos = $lancamentos->orderBy('DataContabilidade')->dd();
     }
 
 
     public function render()
     {
-        $empresas = Empresa::orderBy('Descricao')->pluck('Descricao','ID');
-        return view('livewire.conta.extrato',compact($empresas));
+        $empresas = Empresa::whereHas('EmpresaUsuario',function ($query){
+            return $query->where('UsuarioID',Auth::user()->id);
+        })
+        ->orderBy('Descricao')->pluck('Descricao','ID');
+        return view('livewire.conta.extrato',compact('empresas'));
     }
 }

@@ -33,6 +33,14 @@ class Empresa extends Model
     //     return $this->hasOne(Faturamentos::class, 'EmpresaID', 'ID');
     // }
 
-
+    /**
+     * The EmpresaUsuario that belong to the Empresa
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function EmpresaUsuario()
+    {
+        return $this->belongsToMany(User::class, 'Contabilidade.EmpresasUsuarios', 'EmpresaID', 'UsuarioID');
+    }
 
 }
