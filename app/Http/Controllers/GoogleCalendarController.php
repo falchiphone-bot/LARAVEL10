@@ -239,20 +239,41 @@ class GoogleCalendarController extends Controller
         // dd($usuario->hasPermissionTo('AGENDA - RECEBER EMAIL'));
         $Enviado = '';
         $NaoEnviado = '';
+        // dd(env('MAIL_PASSWORD'));
+
         foreach ($usuario as $user) {
             if ($user->hasPermissionTo('AGENDA - RECEBER EMAIL')) {
 
 
             // Criar uma nova instância do SwiftMailer
-            $mailer = new Swift_Mailer(new Swift_SmtpTransport('smtp.gmail.com', 587, 'tls'));
-            $mailer->getTransport()->setUsername('pedroroberto@falchi.com.br');
-            $mailer->getTransport()->setPassword('/Breno2610');
+            $mailer = new Swift_Mailer(new Swift_SmtpTransport(env('MAIL_HOST'), env('MAIL_PORT'), env('MAIL_ENCRYPTION')));
+            $mailer->getTransport()->setUsername(env('MAIL_USERNAME'));
+            $mailer->getTransport()->setPassword(env('MAIL_PASSWORD'));
+
+            $html = '<!DOCTYPE html>
+            <html>
+            <head>
+                <title>Alteração na Agenda</title>
+            </head>
+            <body>
+                <h1>Alteração na Agenda</h1>
+
+
+
+                <p>Olá, ' . $user->name . ',</p>
+                <p>Este e-mail é para informá-lo(a) de que um evento na Agenda contabilidadeprf foi alterado. Por favor, verifique seus compromissos e certifique-se de estar ciente das mudanças.</p>
+                <p>Obrigado!</p>
+                <p>Equipe de Agenda contabilidadeprf</p>
+            </body>
+            </html>';
+
 
             // Criar a mensagem de e-mail
-            $message = (new Swift_Message('Alterado evento na agenda'))
-                ->setFrom(['pedroroberto@falchi.com.br' => 'Agenda contabilidadeprf'])
+            $message = (new Swift_Message('Alterado evento na agenda via API. = '.$evento->name))
+                ->setFrom([env('MAIL_FROM_ADDRESS') => 'Agenda contabilidadeprf - EVENTO ALTERADO'])
                 ->setTo([$user->email => $user->name])
-                ->setBody('Alterado dados na agenda');
+                ->setBody('Titulo da agenda: '.$evento->name.' <-///-> Link para a agenda: '.$evento->htmlLink.$html,'text/html');
+
 
             // Enviar a mensagem de e-mail
             $result = $mailer->send($message);
