@@ -18,6 +18,9 @@ class Extrato extends Component
     public $Conta;
     public $Lancamentos;
 
+    //criando lista de exclusão
+    public $listaExclusao = [];
+
     //configurações de pesquisa
     public $De;
     public $Ate;
@@ -121,14 +124,74 @@ class Extrato extends Component
         }
     }
 
+    public function confirmarLancamento($lancamento_id)
+    {
+        $lancamento = Lancamento::find($lancamento_id);
+        if ($lancamento->Conferido) {
+            $lancamento->Conferido = 0;
+        } else {
+            $lancamento->Conferido = 1;
+        }
+        $lancamento->save();
+        $this->updated();
+    }
+    public function alterarDataVencidoRapido($lancamento_id,$acao)
+    {
+        $lancamento = Lancamento::find($lancamento_id);
+        $hoje = Carbon::now();
+        if ($acao == 'ontem') {
+            $lancamento->DataContabilidade = $hoje->subDay()->format('d/m/Y');
+        }elseif ($acao == 'hoje') {
+            $lancamento->DataContabilidade = $hoje->format('d/m/Y');
+        }elseif ($acao == 'amanha') {
+            $lancamento->DataContabilidade = $hoje->addDay()->format('d/m/Y');
+        }else{
+            $this->addError('alteraDataVencimenotRapido','Nenhuma ação selecionada');
+        }
+        $lancamento->save();
+        $this->updated();
+    }
+
+    public function incluirExclusao($lancamento_id)
+    {
+
+        if (in_array($lancamento_id, $this->listaExclusao)) {
+            // Remove o ID do lançamento se ele já estiver na lista
+            $this->listaExclusao = array_diff($this->listaExclusao, [$lancamento_id]);
+        } else {
+            // Adiciona o ID do lançamento à lista se ele ainda não estiver presente
+            $this->listaExclusao[] = $lancamento_id;
+        }
+        $this->emit('$refresh');
+
+        // $this->dispatchBrowserEvent('update-button-delete', ['lancamento_id' => $lancamento_id,'array' => $this->listaExclusao]);
+    }
+    public function checkExclusao($lancamento_id)
+    {
+        return in_array($lancamento_id, $this->listaExclusao);
+    }
+    public function processarExclussao()
+    {
+        dd('Falta Criar Regra');
+    }
+    public function editarLancamento()
+    {
+        dd('Falta Criar Regra');
+    }
+
     public function render()
     {
+        $contaID = $this->Conta->ID;
+        $saldoAnterior = Lancamento::where(function ($query) use ($contaID) {
+            return $query->where('ContaDebitoID', $contaID)->orWhere('ContaCreditoID', $contaID);
+        })->where('DataContabilidade','<',$this->De)->sum('valor');
+
         $empresas = Empresa::whereHas('EmpresaUsuario', function ($query) {
             return $query->where('UsuarioID', Auth::user()->id);
         })
             ->orderBy('Descricao')
             ->pluck('Descricao', 'ID');
         $contas = Conta::where('EmpresaID',$this->selEmpresa)->where('Grau',5)->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')->pluck('PlanoContas.Descricao','Contas.ID');
-        return view('livewire.conta.extrato', compact('empresas','contas'));
+        return view('livewire.conta.extrato', compact('empresas','contas','saldoAnterior'));
     }
 }

@@ -138,16 +138,15 @@
                     <tr>
                         <td></td>
                         <td></td>
-                        <td></td>
-                        <td>Saldo Anterior</td>
-                        <td>R$ -25.288,25</td>
+                        <td colspan="2">Saldo Anterior</td>
+                        <td>R$ {{number_format($saldoAnterior,2,',','.')}}</td>
                     </tr>
                     <tr>
                         <th>Data</th>
+                        <th></th>
                         <th>Débito</th>
                         <th>Crédito</th>
                         <th>Saldo</th>
-                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -157,25 +156,26 @@
                     @endphp
                     @if ($Lancamentos)
                         @foreach ($Lancamentos as $lancamento)
-                            <tr>
+                            <tr class="border-bottom-5 border-start-5">
                                 <td>
                                     {{ $lancamento->DataContabilidade->format('d/m/Y') }}
                                 </td>
                                 <td>
+
+                                </td>
+                                <td>
                                     @if ($Conta->ID == $lancamento->ContaDebitoID)
-                                        {{ $lancamento->Valor }}
+                                        {{ number_format($lancamento->Valor, 2, ',', '.') }}
                                         @php($totalDebito += $lancamento->Valor)
                                     @endif
                                 </td>
                                 <td>
                                     @if ($Conta->ID == $lancamento->ContaCreditoID)
-                                        {{ $lancamento->Valor }}
+                                        {{ number_format($lancamento->Valor, 2, ',', '.') }}
                                         @php($totalCredito += $lancamento->Valor)
                                     @endif
                                 </td>
-                                <td>
 
-                                </td>
                                 <td>
 
                                 </td>
@@ -185,7 +185,7 @@
                                     {{ $lancamento->Descricao }}
                                 </td>
                             </tr>
-                            <tr>
+                            <tr class="border-bottom-5">
                                 <td colspan="3">
                                     <strong>Conta Partida: </strong>
                                     @if ($lancamento->ContaCreditoID != $Conta->ID)
@@ -198,41 +198,47 @@
 
                                 </td>
                                 <td class="text-right">
-                                    <button title="Aguardando Confimação" data-id="84264" data-situacao="0"
-                                        type="button" class="btn-sm btn btn-outline-info confirmar-lancamento mx-auto">
-                                        <i class="fa fa-square-o"></i>
+                                    <button title="Botão de Conferência" type="button"
+                                        class="btn-sm btn btn-outline-info mx-auto"
+                                        wire:click='confirmarLancamento({{ $lancamento->ID }})'>
+                                        @if ($lancamento->Conferido)
+                                            <i class="fa fa-check-square-o"></i>
+                                        @else
+                                            <i class="fa fa-square-o"></i>
+                                        @endif
                                     </button>
 
-                                    <button title="Sem notificação" data-id="84264" data-dias="" type="button"
+                                    {{-- <button title="Sem notificação" data-id="84264" data-dias="" type="button"
                                         class="btn-sm btn btn-outline-info ligar-notificacao">
                                         <i class="fa fa-bell-slash"></i>
-                                    </button>
+                                    </button> --}}
 
-                                    <a title="Editar" href="/financeiro/lancamentos/edit/84264/5860"
+                                    <button title="Editar" wire:click='editarLancamento()'
                                         class="btn btn-outline-secondary btn-sm btn-editar">
                                         <i class="fa fa-edit"></i>
-                                    </a>
+                                    </button>
                                     <button title="Somar Valor" data-valor="1" value="84264" type="button"
                                         class="btn-sm btn btn-outline-success autalizar-saldo"><i
                                             class="fa fa-check-square-o"></i></button>
-                                    <button name="excluirlacamento[]" data-valor="0" title="Excluir Lançamento"
-                                        value="84264" type="button"
-                                        class="btn-sm btn btn-outline-danger excluir-lancamento">
-                                        <i class="fa fa-square-o"></i>
+                                    <button title="Excluir Lançamento" type="button"
+                                        wire:click='incluirExclusao({{ $lancamento->ID }})'
+                                        class="btn-sm btn btn-outline-danger">
+                                        <i
+                                            class="fa {{ in_array($lancamento->ID, $listaExclusao) ? 'fa-check-square-o' : 'fa-square-o' }}"></i>
                                     </button>
-                                    <button data-valor="anterior" data-id="84264"
+                                    <button wire:click="alterarDataVencidoRapido({{ $lancamento->ID }},'ontem')"
                                         title="Alterar data processamento para Ontem" type="button"
-                                        class="btn-sm btn btn-outline-danger btn-atualizar-data-processamento">
+                                        class="btn-sm btn btn-outline-danger">
                                         <i class="fa fa-arrow-left"></i>
                                     </button>
-                                    <button data-valor="atual" data-id="84264" title="Alterar para dia Atual"
-                                        type="button"
-                                        class="btn-sm btn btn-outline-danger btn-atualizar-data-processamento">
+                                    <button wire:click="alterarDataVencidoRapido({{ $lancamento->ID }},'hoje')"
+                                        title="Alterar para dia Atual" type="button"
+                                        class="btn-sm btn btn-outline-danger">
                                         <i class="fa fa-calendar-minus-o"></i>
                                     </button>
-                                    <button data-valor="posterior" data-id="84264"
+                                    <button wire:click="alterarDataVencidoRapido({{ $lancamento->ID }},'amanha')"
                                         title="Alterar data processamento para Amanhã" type="button"
-                                        class="btn-sm btn btn-outline-danger btn-atualizar-data-processamento mx-auto">
+                                        class="btn-sm btn btn-outline-danger">
                                         <i class="fa fa-arrow-right"></i>
                                     </button>
                                 </td>
@@ -246,18 +252,20 @@
                     <tr>
                         <th></th>
                         <th>Total</th>
-                        <th id="totaldebito">R$ {{ $totalDebito }}</th>
-                        <th id="totalcredito">R$ {{ $totalCredito }}</th>
-                        <th id="total">R$ {{ $total = $totalDebito - $totalCredito }}</th>
+                        <th id="totaldebito">R$ {{ number_format($totalDebito,2,',','.') }}</th>
+                        <th id="totalcredito">R$ {{ number_format($totalCredito,2,',','.') }}</th>
+                        <th id="total">R$ {{ number_format($total = $totalDebito - $totalCredito,2,',','.') }}</th>
                     </tr>
                 </thead>
 
             </table>
         </div>
         <div class="card-footer">
-            <button id="processar-exclusao" type="button" class="btn btn-danger btn-sm">
-                <i class="fa fa-trush"></i>Processar exclusão
-            </button>
+            @if ($listaExclusao)
+                <button id="processar-exclusao" type="button" class="btn btn-danger btn-sm" wire:click='processarExclussao()'>
+                    <i class="fa fa-trush"></i>Processar exclusão
+                </button>
+            @endif
         </div>
     </div>
 
@@ -338,5 +346,10 @@
                 }
             });
         });
+
+        //ouvindo evetnos do livewire
+        // window.addEventListener('update-button-delete', event => {
+        //     console.log(event.detail.array);
+        // })
     </script>
 @endpush
