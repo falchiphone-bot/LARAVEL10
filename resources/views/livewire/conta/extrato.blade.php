@@ -136,17 +136,17 @@
             <table class="table table-bordered">
                 <thead class="thead" style="background-color: #00008B; color: white">
                     <tr>
-                        <td></td>
-                        <td></td>
-                        <td colspan="2">Saldo Anterior</td>
-                        <td>R$ {{number_format($saldoAnterior,2,',','.')}}</td>
+                        <th></th>
+                        <th></th>
+                        <th colspan="2">Saldo Anterior</th>
+                        <th>R$ {{number_format($saldoAnterior,2,',','.')}}</th>
                     </tr>
                     <tr>
                         <th>Data</th>
                         <th></th>
-                        <th>Débito</th>
+                        <th style="width: 10%">Débito</th>
                         <th>Crédito</th>
-                        <th>Saldo</th>
+                        <th style="width: 15%">Saldo</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -194,12 +194,10 @@
                                         {{ $lancamento->ContaDebito->PlanoConta->Descricao }}
                                     @endif
                                 </td>
-                                <td>
+                                <td colspan="2" align="right">
 
-                                </td>
-                                <td class="text-right">
                                     <button title="Botão de Conferência" type="button"
-                                        class="btn-sm btn btn-outline-info mx-auto"
+                                        class="btn-sm btn btn-outline-info"
                                         wire:click='confirmarLancamento({{ $lancamento->ID }})'>
                                         @if ($lancamento->Conferido)
                                             <i class="fa fa-check-square-o"></i>
@@ -238,7 +236,7 @@
                                     </button>
                                     <button wire:click="alterarDataVencidoRapido({{ $lancamento->ID }},'amanha')"
                                         title="Alterar data processamento para Amanhã" type="button"
-                                        class="btn-sm btn btn-outline-danger">
+                                        class="btn-sm btn btn-outline-danger bd-highlight">
                                         <i class="fa fa-arrow-right"></i>
                                     </button>
                                 </td>

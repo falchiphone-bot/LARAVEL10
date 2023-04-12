@@ -7,6 +7,7 @@ use App\Models\Empresa;
 use App\Models\Lancamento;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class Extrato extends Component
@@ -50,6 +51,7 @@ class Extrato extends Component
     {
         if ($item) {
             $this->selConta = $item;
+            cache(['extrato_ContaID'=>$item]);
         } else {
             $this->selConta = null;
         }
@@ -93,8 +95,9 @@ class Extrato extends Component
 
     public function updated()
     {
-        $contaID = $this->selConta;
+        $contaID = cache('extrato_ContaID')??$this->selConta;
         if ($contaID) {
+            // dd($contaID);
             $lancamentos = Lancamento::where(function ($query) use ($contaID) {
                 return $query->where('ContaDebitoID', $contaID)->orWhere('ContaCreditoID', $contaID);
             });
@@ -118,7 +121,7 @@ class Extrato extends Component
             if ($this->Notificacao != '') {
                 $lancamentos->where('notificacao', $this->Notificacao);
             }
-            $this->Lancamentos = $lancamentos->orderBy('DataContabilidade')->get();
+            $this->Lancamentos = $lancamentos->orderBy('DataContabilidade','DESC')->get();
         }else {
             $this->Lancamentos = null;
         }
@@ -181,17 +184,34 @@ class Extrato extends Component
 
     public function render()
     {
-        $contaID = $this->Conta->ID;
-        $saldoAnterior = Lancamento::where(function ($query) use ($contaID) {
-            return $query->where('ContaDebitoID', $contaID)->orWhere('ContaCreditoID', $contaID);
-        })->where('DataContabilidade','<',$this->De)->sum('valor');
+        $de = Carbon::createFromDate($this->De)->format('d/m/Y');
+        $contaID = $this->selConta;
+        $totalCredito = Lancamento::
+        where(function($q) use ($de){
+            return $q->where('ContaCreditoID',5860)->where('EmpresaID',$this->selEmpresa)->where('DataContabilidade','<',$de);
+        })
+        ->whereDoesntHave('SolicitacaoExclusao')
+        ->sum('Lancamentos.Valor');
+
+        $totalDebito = Lancamento::
+        where(function($q) use ($de){
+            return $q->where('ContaDebitoID',5860)->where('EmpresaID',$this->selEmpresa)->where('DataContabilidade','<',$de);
+        })
+        ->whereDoesntHave('SolicitacaoExclusao')
+        ->sum('Lancamentos.Valor');
+
+        $saldoAnterior = $totalDebito - $totalCredito;
 
         $empresas = Empresa::whereHas('EmpresaUsuario', function ($query) {
             return $query->where('UsuarioID', Auth::user()->id);
         })
             ->orderBy('Descricao')
             ->pluck('Descricao', 'ID');
-        $contas = Conta::where('EmpresaID',$this->selEmpresa)->where('Grau',5)->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')->pluck('PlanoContas.Descricao','Contas.ID');
+        $contas = Conta::where('EmpresaID',$this->selEmpresa)->where('Grau',5)
+        ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+        ->orderBy('PlanoContas.Descricao')
+        ->pluck('PlanoContas.Descricao','Contas.ID');
+
         return view('livewire.conta.extrato', compact('empresas','contas','saldoAnterior'));
     }
 }

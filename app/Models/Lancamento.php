@@ -64,4 +64,14 @@ class Lancamento extends Model
     {
         return $this->hasOne(Conta::class, 'ID', 'ContaCreditoID');
     }
+
+    /**
+     * Get the SolicitacaoExclusao associated with the Lancamento
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function SolicitacaoExclusao(): HasOne
+    {
+        return $this->hasOne(SolicitacaoExclusao::class, 'TableID', 'ID');
+    }
 }
