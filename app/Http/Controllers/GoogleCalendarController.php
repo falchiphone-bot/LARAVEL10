@@ -11,6 +11,9 @@ use Google_Client;
 use Carbon\Carbon;
 use Spatie\GoogleCalendar\Event;
 use Google_Service_Calendar_EventDateTime;
+use Swift_Mailer;
+use Swift_Message;
+use Swift_SmtpTransport;
 
 // addAttendee   - para incluir participante no evento
 
@@ -96,11 +99,9 @@ class GoogleCalendarController extends Controller
 
     public function starthoje()
     {
-
         $data_atual = Carbon::today(); // data atual é a data de hoje
 
         $eventos = new Event();
-
 
         $eventos = $eventos->get();
 
@@ -226,8 +227,25 @@ class GoogleCalendarController extends Controller
         $evento->startDateTime = $inicio;
         $evento->endDateTime = $fim;
         $evento->description = $request->descricao;
+        $evento->sendUpdates = 'all';
+        $evento->sendUpdates = 'externalOnly';
 
+        // dd($evento);
         $evento->save();
+
+        // Criar uma nova instância do SwiftMailer
+        $mailer = new Swift_Mailer(new Swift_SmtpTransport('smtp.gmail.com', 587, 'tls'));
+        $mailer->getTransport()->setUsername('pedroroberto@falchi.com.br');
+        $mailer->getTransport()->setPassword('/Breno2610');
+
+        // Criar a mensagem de e-mail
+        $message = (new Swift_Message('Alterado evento na agenda'))
+            ->setFrom(['pedroroberto@falchi.com.br' => 'Agenda contabilidadeprf'])
+            ->setTo(['sem@falchi.com.br' => 'Sandra'])
+            ->setBody('Alterado agenda');
+
+        // Enviar a mensagem de e-mail
+        $result = $mailer->send($message);
 
         return redirect(route('Agenda.index'));
     }
