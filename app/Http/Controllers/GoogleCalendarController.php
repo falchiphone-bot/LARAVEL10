@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Models\User;
 use Google\Service\AnalyticsData\OrderBy;
 use Illuminate\Http\Request;
 use Google_Service;
@@ -213,6 +213,7 @@ class GoogleCalendarController extends Controller
 
         return view('Google.edit', compact('evento'));
     }
+
     public function update(Request $request, string $id)
     {
         $inicio = Carbon::createFromFormat('Y-m-d\TH:i', $request->inicio);
@@ -227,27 +228,47 @@ class GoogleCalendarController extends Controller
         $evento->startDateTime = $inicio;
         $evento->endDateTime = $fim;
         $evento->description = $request->descricao;
-        $evento->sendUpdates = 'all';
-        $evento->sendUpdates = 'externalOnly';
+        $evento->sendUpdates = 'all'; //// depende de configurações
+        $evento->sendUpdates = 'externalOnly';  /// depende de configurações
 
         // dd($evento);
         $evento->save();
 
-        // Criar uma nova instância do SwiftMailer
-        $mailer = new Swift_Mailer(new Swift_SmtpTransport('smtp.gmail.com', 587, 'tls'));
-        $mailer->getTransport()->setUsername('pedroroberto@falchi.com.br');
-        $mailer->getTransport()->setPassword('/Breno2610');
+        $usuario = User::get();
 
-        // Criar a mensagem de e-mail
-        $message = (new Swift_Message('Alterado evento na agenda'))
-            ->setFrom(['pedroroberto@falchi.com.br' => 'Agenda contabilidadeprf'])
-            ->setTo(['sem@falchi.com.br' => 'Sandra'])
-            ->setBody('Alterado agenda');
+        // dd($usuario->hasPermissionTo('AGENDA - RECEBER EMAIL'));
+        $Enviado = '';
+        $NaoEnviado = '';
+        foreach ($usuario as $user) {
+            if ($user->hasPermissionTo('AGENDA - RECEBER EMAIL')) {
 
-        // Enviar a mensagem de e-mail
-        $result = $mailer->send($message);
 
-        return redirect(route('Agenda.index'));
+            // Criar uma nova instância do SwiftMailer
+            $mailer = new Swift_Mailer(new Swift_SmtpTransport('smtp.gmail.com', 587, 'tls'));
+            $mailer->getTransport()->setUsername('pedroroberto@falchi.com.br');
+            $mailer->getTransport()->setPassword('/Breno2610');
+
+            // Criar a mensagem de e-mail
+            $message = (new Swift_Message('Alterado evento na agenda'))
+                ->setFrom(['pedroroberto@falchi.com.br' => 'Agenda contabilidadeprf'])
+                ->setTo([$user->email => $user->name])
+                ->setBody('Alterado dados na agenda');
+
+            // Enviar a mensagem de e-mail
+            $result = $mailer->send($message);
+
+            // verifica se o e-mail foi enviado com sucesso
+            if ($result) {
+                $Enviado .= $user->name. ', ';
+            } else {
+                $NaoEnviado .= $user->name. ', ';
+            }
+        }
+        }
+
+
+
+        return redirect(route('Agenda.index'))->with('success',"Email enviados com sucesso para ".$Enviado)->with('error',"Não foram enviados para ".$NaoEnviado);
     }
 
     public function destroy(string $id)
