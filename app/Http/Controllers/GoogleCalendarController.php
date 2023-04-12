@@ -10,6 +10,7 @@ use Google_Service_Calendar_Event;
 use Google_Client;
 use Carbon\Carbon;
 use Spatie\GoogleCalendar\Event;
+use Google_Service_Calendar_EventDateTime;
 
 // addAttendee   - para incluir participante no evento
 
@@ -39,15 +40,108 @@ class GoogleCalendarController extends Controller
         return view('Google.dashboard');
     }
 
-    public function index()
+    // public function index()
+    // {
+    //     $eventos = new Event();
+    //     $eventos = $eventos->get();
+
+    //     // dd($eventos->first());
+
+    //     return view('/Google.index', compact('eventos'));
+    // }
+    public function startanterior()
     {
+        $eventos = new Event();
+
+        //Todas anteriores
+        $eventos = $eventos->get();
+
+        $eventos_filtrados = [];
+
+        foreach ($eventos as $evento) {
+            $startDateTime = $evento->start->dateTime ?? $evento->start->date;
+            $data_inicio = new Carbon($startDateTime);
+            if ($data_inicio->lt(Carbon::today())) {
+                // eventos anteriores a hoje
+                $eventos_filtrados[] = $evento;
+            }
+            $eventos = $eventos_filtrados;
+
+            return view('/Google.index', compact('eventos'));
+        }
+    }
+
+    public function startposterior()
+    {
+        //Todas posteriores
+        $data_posterior = Carbon::now(); // data posterior é a data atual
+
         $eventos = new Event();
         $eventos = $eventos->get();
 
-        // dd($eventos->first());
+        $eventos_filtrados = [];
+
+        foreach ($eventos as $evento) {
+            $startDateTime = $evento->start->dateTime ?? $evento->start->date;
+            $data_inicio = new Carbon($startDateTime);
+            if ($data_inicio->gt($data_posterior)) {
+                // eventos com data de início posterior
+                $eventos_filtrados[] = $evento;
+            }
+        }
+        $eventos = $eventos_filtrados;
 
         return view('/Google.index', compact('eventos'));
     }
+
+    public function starthoje()
+    {
+
+        $data_atual = Carbon::today(); // data atual é a data de hoje
+
+        $eventos = new Event();
+
+
+        $eventos = $eventos->get();
+
+        $eventos_filtrados = [];
+
+        foreach ($eventos as $evento) {
+            $startDateTime = $evento->start->dateTime ?? $evento->start->date;
+            $data_inicio = new Carbon($startDateTime);
+            if ($data_inicio->isSameDay($data_atual)) {
+                // eventos com data de início igual a data de hoje
+                $eventos_filtrados[] = $evento;
+            }
+        }
+        $eventos = $eventos_filtrados;
+
+        return view('/Google.index', compact('eventos'));
+    }
+
+    public function index()
+    {
+        $data_inicial = Carbon::now()->startOfMonth(); // data inicial é o primeiro dia do mês atual
+        $data_final = Carbon::now()->endOfMonth(); // data final é o último dia do mês atual
+
+        $eventos = new Event();
+        $eventos = $eventos->get();
+
+        $eventos_filtrados = [];
+
+        foreach ($eventos as $evento) {
+            $startDateTime = $evento->start->dateTime ?? $evento->start->date;
+            $data_inicio = new Carbon($startDateTime);
+            if ($data_inicio->between($data_inicial, $data_final)) {
+                // eventos na faixa de datas
+                $eventos_filtrados[] = $evento;
+            }
+        }
+        $eventos = $eventos_filtrados;
+
+        return view('/Google.index', compact('eventos'));
+    }
+
     public function create()
     {
         return view('Google.create');
@@ -74,8 +168,7 @@ class GoogleCalendarController extends Controller
 
         $participantes = $evento->attendees;
 
-
-    //   dd($participantes);
+        //   dd($participantes);
         // $participantes = [];
 
         // foreach ($participantesatuais as $key => $participante) {
@@ -110,7 +203,6 @@ class GoogleCalendarController extends Controller
         // }
 
         return view('Google.show', compact('evento', 'participantes'));
-
     }
 
     public function edit($id)

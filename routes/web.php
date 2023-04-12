@@ -40,10 +40,12 @@ Route::middleware('auth')->group(function () {
     Route::get('Agenda',[\App\Http\Controllers\TesteController::class,'googleAgenda']);
 
     #GoogleCalendar
-
-   Route::get('Agenda/dashboard', [App\Http\Controllers\GoogleCalendarController::class, 'dashboard'])->name('google.dashboard');
+    Route::get('Agenda/starthoje', [App\Http\Controllers\GoogleCalendarController::class, 'starthoje'])->name('Agenda.starthoje');
+    Route::get('Agenda/startanterior', [App\Http\Controllers\GoogleCalendarController::class, 'startanterior'])->name('Agenda.startanterior');
+    Route::get('Agenda/startposterior', [App\Http\Controllers\GoogleCalendarController::class, 'startposterior'])->name('Agenda.startposterior');
+    Route::get('Agenda/dashboard', [App\Http\Controllers\GoogleCalendarController::class, 'dashboard'])->name('google.dashboard');
     Route::resource('Agenda', App\Http\Controllers\GoogleCalendarController::class);
-     
+
     #Empresas
 
     Route::put('Empresas/desbloquearempresas' ,[App\Http\Controllers\EmpresaController::class, 'desbloquearempresas'])->name('Empresas.DesbloquearEmpresas');

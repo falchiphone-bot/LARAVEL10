@@ -10,7 +10,7 @@
                 </div>
                 <div class="badge bg-info text-wrap" style="width: 100%;
                     ;font-size: 24px; lign=˜Center˜">
-                    Quantidade de eventos: {{ $eventos->Count() }}
+                    {{-- Quantidade de eventos: {{ $eventos->Count() }} --}}
                 </div>
 
 
@@ -33,12 +33,54 @@
                         </nav>
                     </div>
 
+                    <table class="table" style="background-color: rgb(247, 247, 213);">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="px-6 py-4">
+                                    <a href="{{ route('Agenda.startanterior' )}}"
+                                        class="btn btn-info" tabindex="-1" role="button"
+                                        aria-disabled="true">Dias anteriores</a>
+                                </th>
+
+                                <th scope="col" class="px-6 py-4">
+                                    <a href="{{ route('Agenda.starthoje' )}}"
+                                        class="btn btn-success" tabindex="-1" role="button"
+                                        aria-disabled="true">Início hoje</a>
+                                </th>
+
+                                    <th scope="col" class="px-6 py-4">
+                                        <a href="{{ route('Agenda.index' )}}"
+                                            class="btn btn-info" tabindex="-1" role="button"
+                                            aria-disabled="true">Dentro do mês atual</a>
+                                    </th>
+
+
+
+                                    <th scope="col" class="px-6 py-4">
+                                        <a href="{{ route('Agenda.startposterior') }}"
+                                            class="btn btn-info" tabindex="-1" role="button"
+                                            aria-disabled="true">Todas posteriores</a>
+                                    </th>
+
+
+
+
+
+                            </tr>
+                        </thead>
+
+                    </table>
+
+
+
+
+
                     @can('AGENDA - INCLUIR')
                         <div class="badge bg-success text-wrap"
                             style="width: 20%;
                     ;font-size: 24px; align=˜center˜">
                             <nav class="navbar navbar-success" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                <a class="btn btn-success" <a href="Agenda/create">Novo evento para calendário</a>
+                                <a class="btn btn-success" <a href="{{ route('Agenda.create' )}}">Novo evento para calendário</a>
                             </nav>
                         </div>
                     @endcan
