@@ -32,8 +32,8 @@ class Lancamento extends Model
     ];
 
     protected $casts = [
-        // 'DataContabilidade' => 'date',
-        // 'Created' => 'date',
+        'DataContabilidade' => 'date',
+        'Created' => 'date',
     ];
 
     /**
