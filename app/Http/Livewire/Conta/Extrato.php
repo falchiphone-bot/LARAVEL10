@@ -143,11 +143,11 @@ class Extrato extends Component
         $lancamento = Lancamento::find($lancamento_id);
         $hoje = Carbon::now();
         if ($acao == 'ontem') {
-            $lancamento->DataContabilidade = $hoje->subDay()->format('d/m/Y');
+            $lancamento->DataContabilidade = $hoje->subDay()->format('Y-m-d');
         }elseif ($acao == 'hoje') {
-            $lancamento->DataContabilidade = $hoje->format('d/m/Y');
+            $lancamento->DataContabilidade = $hoje->format('Y-m-d');
         }elseif ($acao == 'amanha') {
-            $lancamento->DataContabilidade = $hoje->addDay()->format('d/m/Y');
+            $lancamento->DataContabilidade = $hoje->addDay()->format('Y-m-d');
         }else{
             $this->addError('alteraDataVencimenotRapido','Nenhuma ação selecionada');
         }

@@ -11,6 +11,8 @@ use App\Models\LogConsultaSicred;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
+use DateTime;
+use Illuminate\Support\Facades\Date;
 
 class ListarLiquidacao extends Component
 {
@@ -83,11 +85,16 @@ class ListarLiquidacao extends Component
             $lancamentoCobranca = Lancamento::whereDate('DataContabilidade',$dataContabilidade->format('Y-m-d'))
             ->where('EmpresaID',$contaCobranca->EmpresaID)
             ->where('HistoricoID',$contaCobranca->Credito_Cobranca)->first('ID');
+
+
+
             if ($lancamentoCobranca) {
                 $this->addError('lancamentoCobranca', 'Liquidação de cobrança já lançado no dia <strong>'.$dataContabilidade->format('d/m/Y').'</strong>.');
             }else {
                 // dd($contaCobranca->Credito_Cobranca,$contaCobranca->Tarifa_Cobranca);
                 $historico = Historicos::find($contaCobranca->Credito_Cobranca);
+
+
 
                 $lc = Lancamento::create([
                     'Valor' => $valorLiquido,
@@ -95,10 +102,12 @@ class ListarLiquidacao extends Component
                     'ContaDebitoID' => $historico->ContaDebitoID,
                     'ContaCreditoID' => $historico->ContaCreditoID,
                     'Usuarios_id' => auth()->user()->id,
-                    'DataContabilidade' => $dataContabilidade->format('d/m/Y'),
+                    'DataContabilidade' => date('d/m/Y H:i:s'),
                     'Created' => date('d/m/Y H:i:s'),
                     'HistoricoID' => $historico->ID,
+
                 ]);
+                
             }
 
             $lancamentoTarifa = Lancamento::whereDate('DataContabilidade',$this->consultaDia)
