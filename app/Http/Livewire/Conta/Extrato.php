@@ -7,7 +7,6 @@ use App\Models\Empresa;
 use App\Models\Lancamento;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class Extrato extends Component
@@ -16,8 +15,10 @@ class Extrato extends Component
     public $selEmpresa;
     public $selConta;
 
+    //models carregadas
     public $Conta;
     public $Lancamentos;
+    public $Empresa;
 
     //criando lista de exclusão
     public $listaExclusao = [];
@@ -30,11 +31,12 @@ class Extrato extends Component
     public $Conferido;
     public $Notificacao;
     public $DataBloqueio;
-    public $data_bloqueio;
+    public $data_bloqueio_conta;
+    public $data_bloqueio_empresa;
 
     public $exibicao_pesquisa;
 
-    protected $listeners = ['selectedSelEmpresaItem','selectedSelContaItem'];
+    protected $listeners = ['selectedSelEmpresaItem', 'selectedSelContaItem'];
     //gerenciamento select2
     public function selectedSelEmpresaItem($item)
     {
@@ -51,13 +53,13 @@ class Extrato extends Component
     {
         if ($item) {
             $this->selConta = $item;
-            cache(['extrato_ContaID'=>$item]);
+            cache(['extrato_ContaID' => $item]);
+            $this->Conta = Conta::find($item);
         } else {
             $this->selConta = null;
         }
         $this->updated();
     }
-
     public function hydrate()
     {
         $this->emit('select2');
@@ -67,53 +69,104 @@ class Extrato extends Component
 
     public function mount($contaID)
     {
+        cache(['extrato_ContaID' => $contaID]);
         $this->De = cache('Extrato_De') ?? date('Y-m-d');
         $this->Ate = cache('Extrato_Ate') ?? date('Y-m-d');
+
         $this->Conta = Conta::find($contaID);
-        $this->data_bloqueio = $this->Conta->Bloqueiodataanterior?->format('Y-m-d');
         $this->selEmpresa = $this->Conta->EmpresaID;
+        $this->Empresa = Empresa::find($this->selEmpresa);
+        $this->data_bloqueio_conta = $this->Conta->Bloqueiodataanterior?->format('Y-m-d');
+        $this->data_bloqueio_empresa = $this->Empresa->Bloqueiodataanterior?->format('Y-m-d');
         $this->selConta = $this->Conta->ID;
 
-        $de = Carbon::createFromDate($this->De)->format('d/m/Y');
-        $ate = Carbon::createFromDate($this->Ate)->format('d/m/Y');
+        $de = Carbon::createFromDate($this->De)->format('d/m/Y 00:00:00');
+        $ate = Carbon::createFromDate($this->Ate)->format('d/m/Y 23:59:59');
 
         $lancamentos = Lancamento::where(function ($query) use ($contaID) {
             return $query->where('ContaDebitoID', $contaID)->orWhere('ContaCreditoID', $contaID);
-        })->whereBetween('DataContabilidade',[$de,$ate]);
+        })
+        ->whereDoesntHave('SolicitacaoExclusao')
+        ->where(function ($where) use ($de,$ate) {
+            return $where->where('DataContabilidade','>=',$de)->where('DataContabilidade','<=',$ate);
+        });
 
         $this->Lancamentos = $lancamentos->orderBy('DataContabilidade')->get();
     }
 
-    public function updateBloqueiodataanterior()
+    public function updateDataBloqueioConta()
     {
-        if (empty($this->data_bloqueio)) {
-            $this->data_bloqueio = null;
+        if (empty($this->data_bloqueio_conta)) {
+            $this->data_bloqueio_conta = null;
         }
-        $this->Conta->Bloqueiodataanterior = $this->data_bloqueio;
+        $this->Conta->Bloqueiodataanterior = $this->data_bloqueio_conta;
         $this->Conta->save();
     }
-
-    public function updated()
+    public function updateDataBloqueioEmpresa()
     {
-        $contaID = cache('extrato_ContaID')??$this->selConta;
+        if (empty($this->data_bloqueio_empresa)) {
+            $this->data_bloqueio_empresa = null;
+        }
+        $this->Empresa->Bloqueiodataanterior = $this->data_bloqueio_empresa;
+        $this->Empresa->save();
+    }
+    public function temBloqueio($lancamento_id, $dataLancamento)
+    {
+        $dataLancamento = Carbon::createFromDate($dataLancamento);
+        $data_conta = $this->Conta->Bloqueiodataanterior;
+
+        if ($data_conta) {
+            if ($data_conta->greaterThanOrEqualTo($dataLancamento)) {
+                $this->addError('data_bloqueio', 'Não é possivel alterar esse lançamento para essa data, pois há um bloqueio de data na Conta - ID: '.$lancamento_id);
+                return true;
+            }
+        }
+        $data_empresa = $this->Empresa->Bloqueiodataanterior;
+        if ($data_empresa) {
+            if (Carbon::createFromDate($data_empresa)->greaterThanOrEqualTo($dataLancamento)) {
+                $this->addError('data_bloqueio', 'Não é possivel alterar esse lançamento para essa data, pois há um bloqueio de data na Empresa - ID: '.$lancamento_id);
+                return true;
+            }
+        }
+        $lancamento = Lancamento::find($lancamento_id);
+        if ($lancamento->ContaCreditoID == $this->Conta->ID) {
+            $data_conta_partida = $lancamento->ContaDebito->Bloqueiodataanterior;
+        } else {
+            $data_conta_partida = $lancamento->ContaCredito->Bloqueiodataanterior;
+        }
+        if ($data_conta_partida) {
+            if (Carbon::createFromDate($data_conta_partida)->greaterThanOrEqualTo($dataLancamento)) {
+                $this->addError('data_bloqueio', 'Não é possivel alterar esse lançamento para essa data, pois há um bloqueio de data na Conta Partida - ID: '.$lancamento_id);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function search()
+    {
+        $contaID = cache('extrato_ContaID') ?? $this->selConta;
         if ($contaID) {
-            // dd($contaID);
             $lancamentos = Lancamento::where(function ($query) use ($contaID) {
-                return $query->where('ContaDebitoID', $contaID)->orWhere('ContaCreditoID', $contaID);
+                return $query->where('Lancamentos.ContaDebitoID', $contaID)->orWhere('Lancamentos.ContaCreditoID', $contaID);
             });
 
             if ($this->De) {
-                $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y');
+                $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
                 $lancamentos->where('DataContabilidade', '>=', $de);
-                cache(['Extrato_De'=>$this->De]);
+                cache(['Extrato_De' => $this->De]);
             }
             if ($this->Ate) {
-                $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y');
+                $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
                 $lancamentos->where('DataContabilidade', '<=', $ate);
-                cache(['Extrato_Ate'=>$this->Ate]);
+                cache(['Extrato_Ate' => $this->Ate]);
             }
             if ($this->Descricao) {
-                $lancamentos->where('Descricao', 'like', "%$this->Descricao%");
+                $lancamentos
+                ->where(function ($q){
+                    return $q->where('Lancamentos.Descricao', 'like', "%$this->Descricao%")
+                    ->orWhere('Historicos.Descricao', 'like', "%$this->Descricao%");
+                });
             }
             if ($this->Conferido != '') {
                 $lancamentos->where('conferido', $this->Conferido);
@@ -121,8 +174,13 @@ class Extrato extends Component
             if ($this->Notificacao != '') {
                 $lancamentos->where('notificacao', $this->Notificacao);
             }
-            $this->Lancamentos = $lancamentos->orderBy('DataContabilidade','DESC')->get();
-        }else {
+            $this->Lancamentos = $lancamentos->orderBy('DataContabilidade')
+            ->whereDoesntHave('SolicitacaoExclusao')
+            ->join('Contabilidade.Historicos','Historicos.ID','HistoricoID')
+            ->get(["Lancamentos.ID",'Lancamentos.Valor','DataContabilidade',
+            'Lancamentos.ContaCreditoID','Lancamentos.ContaDebitoID','Lancamentos.Descricao','Historicos.Descricao as HistoricoDescricao']);
+
+        } else {
             $this->Lancamentos = null;
         }
     }
@@ -138,25 +196,34 @@ class Extrato extends Component
         $lancamento->save();
         $this->updated();
     }
-    public function alterarDataVencidoRapido($lancamento_id,$acao)
+    public function alterarDataVencidoRapido($lancamento_id, $acao)
     {
         $lancamento = Lancamento::find($lancamento_id);
+
+        if ($this->temBloqueio($lancamento_id,$lancamento->DataContabilidade)) {
+            return false;
+        }
         $hoje = Carbon::now();
         if ($acao == 'ontem') {
-            $lancamento->DataContabilidade = $hoje->subDay()->format('d/m/Y');
-        }elseif ($acao == 'hoje') {
-            $lancamento->DataContabilidade = $hoje->format('d/m/Y');
-        }elseif ($acao == 'amanha') {
-            $lancamento->DataContabilidade = $hoje->addDay()->format('d/m/Y');
-        }else{
-            $this->addError('alteraDataVencimenotRapido','Nenhuma ação selecionada');
+            $novaData = $hoje->subDay();
+        } elseif ($acao == 'hoje') {
+            $novaData = $hoje;
+        } elseif ($acao == 'amanha') {
+            $novaData = $hoje->addDay();
+        } else {
+            $this->addError('alteraDataVencimenotRapido', 'Nenhuma ação selecionada');
         }
+
+        $lancamento->DataContabilidade = $novaData->format('d/m/Y');
         $lancamento->save();
-        $this->updated();
+        $this->search();
     }
 
-    public function incluirExclusao($lancamento_id)
+    public function incluirExclusao($lancamento_id,$data)
     {
+        if ($this->temBloqueio($lancamento_id,$data)) {
+            return false;
+        }
 
         if (in_array($lancamento_id, $this->listaExclusao)) {
             // Remove o ID do lançamento se ele já estiver na lista
@@ -186,19 +253,23 @@ class Extrato extends Component
     {
         $de = Carbon::createFromDate($this->De)->format('d/m/Y');
         $contaID = $this->selConta;
-        $totalCredito = Lancamento::
-        where(function($q) use ($de){
-            return $q->where('ContaCreditoID',5860)->where('EmpresaID',$this->selEmpresa)->where('DataContabilidade','<',$de);
+        $totalCredito = Lancamento::where(function ($q) use ($de,$contaID) {
+            return $q
+                ->where('ContaCreditoID', $contaID)
+                ->where('EmpresaID', $this->selEmpresa)
+                ->where('DataContabilidade', '<', $de);
         })
-        ->whereDoesntHave('SolicitacaoExclusao')
-        ->sum('Lancamentos.Valor');
+            ->whereDoesntHave('SolicitacaoExclusao')
+            ->sum('Lancamentos.Valor');
 
-        $totalDebito = Lancamento::
-        where(function($q) use ($de){
-            return $q->where('ContaDebitoID',5860)->where('EmpresaID',$this->selEmpresa)->where('DataContabilidade','<',$de);
+        $totalDebito = Lancamento::where(function ($q) use ($de,$contaID) {
+            return $q
+                ->where('ContaDebitoID', $contaID)
+                ->where('EmpresaID', $this->selEmpresa)
+                ->where('DataContabilidade', '<', $de);
         })
-        ->whereDoesntHave('SolicitacaoExclusao')
-        ->sum('Lancamentos.Valor');
+            ->whereDoesntHave('SolicitacaoExclusao')
+            ->sum('Lancamentos.Valor');
 
         $saldoAnterior = $totalDebito - $totalCredito;
 
@@ -207,11 +278,12 @@ class Extrato extends Component
         })
             ->orderBy('Descricao')
             ->pluck('Descricao', 'ID');
-        $contas = Conta::where('EmpresaID',$this->selEmpresa)->where('Grau',5)
-        ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
-        ->orderBy('PlanoContas.Descricao')
-        ->pluck('PlanoContas.Descricao','Contas.ID');
+        $contas = Conta::where('EmpresaID', $this->selEmpresa)
+            ->where('Grau', 5)
+            ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', 'Planocontas_id')
+            ->orderBy('PlanoContas.Descricao')
+            ->pluck('PlanoContas.Descricao', 'Contas.ID');
 
-        return view('livewire.conta.extrato', compact('empresas','contas','saldoAnterior'));
+        return view('livewire.conta.extrato', compact('empresas', 'contas', 'saldoAnterior'));
     }
 }

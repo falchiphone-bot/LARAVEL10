@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -32,7 +33,7 @@ class Lancamento extends Model
     ];
 
     protected $casts = [
-        'DataContabilidade' => 'date',
+        // 'DataContabilidade' => 'datetime:Y-m-d',
     ];
 
     /**
@@ -73,5 +74,11 @@ class Lancamento extends Model
     public function SolicitacaoExclusao(): HasOne
     {
         return $this->hasOne(SolicitacaoExclusao::class, 'TableID', 'ID');
+    }
+
+
+    public function getDataContabilidadeAttribute($value)
+    {
+        return Carbon::createFromDate($value);
     }
 }

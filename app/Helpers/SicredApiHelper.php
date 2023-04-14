@@ -39,16 +39,15 @@ class SicredApiHelper
                 'scope' => 'cobranca',
             ])
             ->json();
-            if (empty($auth['access_token'])) {
-                dd($conta, $agencia, $update_token = false, $token_conta_sicred, $client_id, $secret_id, $token_desenvolvedor);
-            }
+        if (empty($auth['access_token'])) {
+            dd($conta, $agencia, $update_token = false, $token_conta_sicred, $client_id, $secret_id, $token_desenvolvedor);
+        }
 
         return $auth;
     }
 
     public static function boletoLiquidadoDia($conta, $agencia, $posto, $token_conta, $client_id, $secret_id, $token_desenvolvedor, $dia)
     {
-
         if (Cache::get('access_token' . $conta . $agencia)) {
             $access_token = Cache::get('access_token' . $conta . $agencia);
         } elseif (Cache::get('refresh_token' . $conta . $agencia)) {
@@ -62,30 +61,37 @@ class SicredApiHelper
             Cache::put('refresh_token' . $conta . $agencia, $auth['refresh_token'], $seconds = $auth['refresh_expires_in']);
         }
         if ($access_token) {
-            $consulta = Http::asForm()
-            ->withHeaders([
-                'x-api-key' => config('services.sicredi.token'),
-                // 'Authorization' => 'bearer ' . ,
-                'cooperativa' => $agencia,
-                'posto' => $posto,
-            ])
-            ->withToken($access_token)
-            ->get('https://api-parceiro.sicredi.com.br/cobranca/boleto/v1/boletos/liquidados/dia', [
-                'codigoBeneficiario' => $conta,
-                'dia' => $dia,
-                // 'cpfCnpjBeneficiarioFinal' => '36585615000174',
-                // 'pagina' => 1,
-            ]);
+            $dados = [];
+            for ($pagina = 0; $pagina < 100; $pagina++) {
+                $consulta = Http::asForm()
+                    ->withHeaders([
+                        'x-api-key' => config('services.sicredi.token'),
+                        // 'Authorization' => 'bearer ' . ,
+                        'cooperativa' => $agencia,
+                        'posto' => $posto,
+                    ])
+                    ->withToken($access_token)
+                    ->get('https://api-parceiro.sicredi.com.br/cobranca/boleto/v1/boletos/liquidados/dia', [
+                        'codigoBeneficiario' => $conta,
+                        'dia' => $dia,
+                        // 'cpfCnpjBeneficiarioFinal' => '36585615000174',
+                        'pagina' => $pagina,
+                    ]);
 
-            if($consulta->successful())
-            {
-                return ['status'=> true,'dados' => $consulta->json()];
+
+                if ($consulta->successful()) {
+                    if ($consulta->json()['hasNext']) {
+                        $dados = array_merge($dados,$consulta->json()['items']);
+                    } else {
+                        $dados = array_merge($dados,$consulta->json()['items']);
+                        return ['status' => true, 'dados' => $dados];
+                    }
+                } else {
+                    return ['status' => false, 'dados' => 'Erro ao consultar dados no banco'];
+                }
             }
-            else {
-                return ['status'=> false,'dados' => "Erro ao consultar dados no banco"];
-            }
-        }else {
-            return ['status'=> false,'dados' => "Falha ao obter token de autenticação"];
+        } else {
+            return ['status' => false, 'dados' => 'Falha ao obter token de autenticação'];
         }
     }
 }

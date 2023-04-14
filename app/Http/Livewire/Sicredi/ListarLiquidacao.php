@@ -23,24 +23,29 @@ class ListarLiquidacao extends Component
     public $msgSalvarRecebimentos;
     public $cache;
 
-    public function updated()
+    public function buscar()
     {
         $this->contaCobranca = ContaCobranca::find($this->contaCobrancaID);
         $contaCobranca = $this->contaCobranca;
         $consultaDia = Carbon::createFromFormat('Y-m-d', $this->consultaDia);
+
         $this->consultaDiaDisplay = $consultaDia->format('d/m/Y');
         $this->consultaDia = $consultaDia->format('Y-m-d');
-        $cache = Cache::get('carteira_id_'.$contaCobranca->id.'_'.$this->consultaDiaDisplay);
-        if ($cache) {
-            $this->consulta = $cache;
-            $this->cache = true;
-        }else {
-            $this->cache = false;
-            $this->consulta = SicredApiHelper::boletoLiquidadoDia($contaCobranca->conta, $contaCobranca->agencia, $contaCobranca->posto, $contaCobranca->token_conta, $contaCobranca->devSicredi->SICREDI_CLIENT_ID, $contaCobranca->devSicredi->SICREDI_CLIENT_SECRET, $contaCobranca->devSicredi->SICREDI_TOKEN, $consultaDia->format('d/m/Y'));
-            if ($this->consulta['status']) {
-                Cache::put('carteira_id_'.$contaCobranca->id.'_'.$this->consultaDiaDisplay,$this->consulta,20000);
-            }
-        }
+        $cache = Cache::get('carteira_id_' . $contaCobranca->id . '_' . $this->consultaDiaDisplay);
+
+        // dd($this->consulta);
+
+        // if ($cache) {
+        //     $this->consulta = $cache;
+        //     $this->cache = true;
+        // }else {
+        //     $this->cache = false;
+        $this->consulta = SicredApiHelper::boletoLiquidadoDia($contaCobranca->conta, $contaCobranca->agencia, $contaCobranca->posto, $contaCobranca->token_conta, $contaCobranca->devSicredi->SICREDI_CLIENT_ID, $contaCobranca->devSicredi->SICREDI_CLIENT_SECRET, $contaCobranca->devSicredi->SICREDI_TOKEN, $consultaDia->format('d/m/Y'));
+
+        // if ($this->consulta['status']) {
+        //     Cache::put('carteira_id_'.$contaCobranca->id.'_'.$this->consultaDiaDisplay,$this->consulta,20000);
+        // }
+        // }
         $this->msgSalvarRecebimentos = '';
     }
 
@@ -53,18 +58,18 @@ class ListarLiquidacao extends Component
         $now = Carbon::now()->subDay(1);
         $this->consultaDiaDisplay = $now->format('d/m/Y');
         $this->consultaDia = $now->format('Y-m-d');
-        $cache = Cache::get('carteira_id_'.$contaCobranca->id.'_'.$this->consultaDiaDisplay);
-        if ($cache) {
-            $this->consulta = $cache;
-            $this->cache = true;
-        } else {
-            $this->cache = false;
-            $consulta = SicredApiHelper::boletoLiquidadoDia($contaCobranca->conta, $contaCobranca->agencia, $contaCobranca->posto, $contaCobranca->token_conta, $contaCobranca->devSicredi->SICREDI_CLIENT_ID, $contaCobranca->devSicredi->SICREDI_CLIENT_SECRET, $contaCobranca->devSicredi->SICREDI_TOKEN, $now->format('d/m/Y'));
-            if ($consulta['status']) {
-                $cache = Cache::put('carteira_id_'.$contaCobranca->id.'_'.$this->consultaDiaDisplay,$consulta,20000);
-            }
-            $this->consulta = $consulta;
-        }
+        // $cache = Cache::get('carteira_id_'.$contaCobranca->id.'_'.$this->consultaDiaDisplay);
+        // if ($cache) {
+        //     $this->consulta = $cache;
+        //     $this->cache = true;
+        // } else {
+        //     $this->cache = false;
+        $consulta = SicredApiHelper::boletoLiquidadoDia($contaCobranca->conta, $contaCobranca->agencia, $contaCobranca->posto, $contaCobranca->token_conta, $contaCobranca->devSicredi->SICREDI_CLIENT_ID, $contaCobranca->devSicredi->SICREDI_CLIENT_SECRET, $contaCobranca->devSicredi->SICREDI_TOKEN, $now->format('d/m/Y'));
+        // if ($consulta['status']) {
+        //     $cache = Cache::put('carteira_id_'.$contaCobranca->id.'_'.$this->consultaDiaDisplay,$consulta,20000);
+        // }
+        $this->consulta = $consulta;
+        // }
     }
 
     public function limparCache($key)
@@ -77,15 +82,17 @@ class ListarLiquidacao extends Component
     {
         $contaCobranca = $this->contaCobranca;
         if (isset($contaCobranca->d_cobranca) && isset($contaCobranca->d_tarifa)) {
-            $dataContabilidade = Carbon::createFromFormat('Y-m-d',$this->consultaDia);
+            $dataContabilidade = Carbon::createFromFormat('Y-m-d', $this->consultaDia);
             $dataContabilidade = $dataContabilidade->addDay($contaCobranca->d_cobranca);
 
-            $lancamentoCobranca = Lancamento::whereDate('DataContabilidade',$dataContabilidade->format('Y-m-d'))
-            ->where('EmpresaID',$contaCobranca->EmpresaID)
-            ->where('HistoricoID',$contaCobranca->Credito_Cobranca)->first('ID');
+            $lancamentoCobranca = Lancamento::whereDate('DataContabilidade', $dataContabilidade->format('Y-m-d'))
+                ->where('EmpresaID', $contaCobranca->EmpresaID)
+                ->where('HistoricoID', $contaCobranca->Credito_Cobranca)
+                ->first('ID');
+
             if ($lancamentoCobranca) {
-                $this->addError('lancamentoCobranca', 'Liquidação de cobrança já lançado no dia <strong>'.$dataContabilidade->format('d/m/Y').'</strong>.');
-            }else {
+                $this->addError('lancamentoCobranca', 'Liquidação de cobrança já lançado no dia <strong>' . $dataContabilidade->format('d/m/Y') . '</strong>.');
+            } else {
                 // dd($contaCobranca->Credito_Cobranca,$contaCobranca->Tarifa_Cobranca);
                 $historico = Historicos::find($contaCobranca->Credito_Cobranca);
 
@@ -101,17 +108,17 @@ class ListarLiquidacao extends Component
                 ]);
             }
 
-            $lancamentoTarifa = Lancamento::whereDate('DataContabilidade',$this->consultaDia)
-            ->where('HistoricoID',$contaCobranca->Tarifa_Cobranca)
-            ->where('EmpresaID',$contaCobranca->EmpresaID)
-            ->first();
+            $lancamentoTarifa = Lancamento::whereDate('DataContabilidade', $this->consultaDia)
+                ->where('HistoricoID', $contaCobranca->Tarifa_Cobranca)
+                ->where('EmpresaID', $contaCobranca->EmpresaID)
+                ->first();
             if ($lancamentoTarifa) {
                 $this->addError('taxaCobranca', "Taxa de cobrança já lançado no dia <strong>$this->consultaDiaDisplay</strong>.");
-            }else {
+            } else {
                 $historicoTarifa = Historicos::find($contaCobranca->Tarifa_Cobranca);
 
                 Lancamento::create([
-                    'Valor' => count($this->consulta['dados']['items']),
+                    'Valor' => count($this->consulta['dados']),
                     'EmpresaID' => $contaCobranca->EmpresaID,
                     'ContaDebitoID' => $historicoTarifa->ContaDebitoID,
                     'ContaCreditoID' => $historicoTarifa->ContaCreditoID,
@@ -122,7 +129,7 @@ class ListarLiquidacao extends Component
                 ]);
                 session()->flash('message', 'Lançamentos criado.');
             }
-        }else {
+        } else {
             $this->addError('diasD', 'Conta de Cobrança sem dias D especificado.');
         }
     }
@@ -131,10 +138,11 @@ class ListarLiquidacao extends Component
     {
         $conta = $this->contaCobranca;
         $nossonumeroCadastrado = 0;
-        if (count($this->consulta['dados']['items']) == 0) {
+        
+        if (count($this->consulta['dados']) == 0) {
             $this->addError('lista', 'Lista vazia.');
         } else {
-            foreach ($this->consulta['dados']['items'] as $item) {
+            foreach ($this->consulta['dados'] as $item) {
                 $verificar = CobrancaSicredi::orderBy('DataLiquidacao', 'DESC')
                     ->where('NossoNumero', $item['nossoNumero'])
                     ->first();
@@ -150,7 +158,7 @@ class ListarLiquidacao extends Component
                         'DataVencimento' => '',
                         'Valor' => $item['valor'],
                         'Liquidacao' => $item['valorLiquidado'],
-                        'DataLiquidacao' => explode(' ', $item['dataPagamento'])[0],
+                        'DataLiquidacao' => Carbon::createFromDate(explode(' ', $item['dataPagamento'])[0])->format('d/m/Y'),
                         'SituacaoTitulo' => 'LIQUIDADO',
                         'Motivo' => date('d/m/Y H:i:s'),
                         'Associado' => $conta->associadobeneficiario,
@@ -169,7 +177,7 @@ class ListarLiquidacao extends Component
                 }
             }
             if ($nossonumeroCadastrado > 0) {
-                $this->addError('salvarRecebimentos', $nossonumeroCadastrado.' registros já cadastrados.');
+                $this->addError('salvarRecebimentos', $nossonumeroCadastrado . ' registros já cadastrados.');
             }
             session()->flash('message', 'Rotina executada com sucesso.');
         }

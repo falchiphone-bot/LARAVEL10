@@ -28,6 +28,17 @@
         </div>
     </div>
 
+    @if ($errors->any())
+        <div class="alert alert-danger mt-3">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{!! $error !!}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <span>Conta Sel: {{ $Conta->ID }}</span>
     <div class="card mt-3">
         <div class="card-header">
             Busca por periodo
@@ -37,17 +48,17 @@
                 <div class="row">
                     <div class="form-group col-sm-12 col-md-3">
                         <label for="de" class="pr-1  form-control-label">De</label>
-                        <input type="date" value="" id="de" name="De" wire:model.lazy='De'
+                        <input type="date" value="" id="de" name="De" wire:model.defer='De'
                             class="required form-control " autocomplete="off">
                     </div>
                     <div class="form-group col-sm-12 col-md-3">
                         <label for="ate" class="px-1  form-control-label">Até</label>
                         <input type="date" value="" id="ate" name="Ate" placeholder="Buscar até"
-                            wire:model.lazy='Ate' class="required form-control " autocomplete="off">
+                            wire:model.defer='Ate' class="required form-control " autocomplete="off">
                     </div>
                     <div class="form-group col-sm-12 col-md-3">
                         <label for="ate" class="px-1  form-control-label">Conferido</label>
-                        <select name="Conferido" id="Conferido" class="form-control" wire:model.lazy='Conferido'>
+                        <select name="Conferido" id="Conferido" class="form-control" wire:model.defer='Conferido'>
                             <option value="">Todos</option>
                             <option value="1">Conferido</option>
                             <option value="0">Não conferido</option>
@@ -55,7 +66,7 @@
                     </div>
                     <div class="form-group col-sm-12 col-md-3">
                         <label for="Notificacao" class="px-1  form-control-label">Notificação</label>
-                        <select name="Notificacao" id="Notificacao" class="form-control" wire:model.lazy='Notificacao'>
+                        <select name="Notificacao" id="Notificacao" class="form-control" wire:model.defer='Notificacao'>
                             <option selected="" value="todos">Todos</option>
                             <option value="1">Notificar</option>
                             <option value="0">Não notificar</option>
@@ -71,32 +82,30 @@
                     <div class="form-group col-sm-12 col-md-3">
                         <label for="de" class="pr-1  form-control-label">A partir De:</label>
                         <input type="date" value="" id="a_partir_de" class="form-control" autocomplete="off"
-                            wire:model.lazy='DescricaoApartirDe'>
+                            wire:model.defer='DescricaoApartirDe'>
                     </div>
                     <div class="form-group col-sm-12 col-md-3">
-                        <label for="data_bloqueio" class="pr-1  form-control-label">Data Bloqueio:</label>
-                        <input type="date" value="" id="data_bloqueio" class="form-control" autocomplete="off"
-                            wire:model.lazy='data_bloqueio' wire:change='updateBloqueiodataanterior()'>
+                        <label for="data_bloqueio_conta" class="pr-1  form-control-label">Data Bloqueio Conta:</label>
+                        <input type="date" value="" id="data_bloqueio_conta" class="form-control"
+                            autocomplete="off" wire:model.defer='data_bloqueio_conta'
+                            wire:change='updateDataBloqueioConta()'>
+                    </div>
+                    <div class="form-group col-sm-12 col-md-3">
+                        <label for="data_bloqueio_empresa" class="pr-1  form-control-label">Data Bloqueio
+                            Empresa:</label>
+                        <input type="date" value="" id="data_bloqueio_empresa" class="form-control"
+                            autocomplete="off" wire:model.defer='data_bloqueio_empresa'
+                            wire:change='updateDataBloqueioEmpresa()'>
                     </div>
                 </div>
             </form>
         </div>
 
-        {{-- <div class="card-footer">
-            <button id="buscar" type="button" class="btn btn-secondary btn-sm">
+        <div class="card-footer">
+            <button id="buscar" wire:click='search()' type="button" class="btn btn-secondary btn-sm">
                 <i class="fa fa-dot-circle-o"></i>Buscar
             </button>
-            <button id="btn-desbloquear" type="button" class="btn btn-warning btn-sm">
-                Desbloquear
-            </button>
-            <button id="btn-bloqueio" type="button" class="btn btn-warning btn-sm" style="display: none;">
-                Bloquear
-            </button>
-            <span>Data bloqueio: 27/03/2023</span>
-            <button id="btn-alterar-datas" type="button" class="btn btn-primary btn-sm ">
-                Alterar Datas
-            </button>
-        </div> --}}
+        </div>
 
 
         <div class="div-data-bloqueio form-group col-4" style="display: none;">
@@ -133,13 +142,13 @@
             </div>
         </div>
         <div class="card-body result">
-            <table class="table table-bordered">
+            <table class="table">
                 <thead class="thead" style="background-color: #00008B; color: white">
                     <tr>
                         <th></th>
                         <th></th>
                         <th colspan="2">Saldo Anterior</th>
-                        <th>R$ {{number_format($saldoAnterior,2,',','.')}}</th>
+                        <th>R$ {{ number_format($saldoAnterior, 2, ',', '.') }}</th>
                     </tr>
                     <tr>
                         <th>Data</th>
@@ -182,7 +191,7 @@
                             </tr>
                             <tr>
                                 <td colspan="5">
-                                    {{ $lancamento->Descricao }}
+                                    {{ $lancamento->Descricao. '  '.$lancamento->HistoricoDescricao}}
                                 </td>
                             </tr>
                             <tr class="border-bottom-5">
@@ -219,10 +228,9 @@
                                         class="btn-sm btn btn-outline-success autalizar-saldo"><i
                                             class="fa fa-check-square-o"></i></button>
                                     <button title="Excluir Lançamento" type="button"
-                                        wire:click='incluirExclusao({{ $lancamento->ID }})'
+                                        wire:click="incluirExclusao({{ $lancamento->ID }},'{{ $lancamento->DataContabilidade->format('Y-m-d') }}')"
                                         class="btn-sm btn btn-outline-danger">
-                                        <i
-                                            class="fa {{ in_array($lancamento->ID, $listaExclusao) ? 'fa-check-square-o' : 'fa-square-o' }}"></i>
+                                        <i class="fa {{ in_array($lancamento->ID, $listaExclusao) ? 'fa-check-square-o' : 'fa-square-o' }}"></i>
                                     </button>
                                     <button wire:click="alterarDataVencidoRapido({{ $lancamento->ID }},'ontem')"
                                         title="Alterar data processamento para Ontem" type="button"
@@ -241,6 +249,9 @@
                                     </button>
                                 </td>
                             </tr>
+                            <tr>
+                                <td colspan="5" style="background-color: #000000"></td>
+                            </tr>
                         @endforeach
                     @endif
 
@@ -250,9 +261,10 @@
                     <tr>
                         <th></th>
                         <th>Total</th>
-                        <th id="totaldebito">R$ {{ number_format($totalDebito,2,',','.') }}</th>
-                        <th id="totalcredito">R$ {{ number_format($totalCredito,2,',','.') }}</th>
-                        <th id="total">R$ {{ number_format($total = $totalDebito - $totalCredito,2,',','.') }}</th>
+                        <th id="totaldebito">R$ {{ number_format($totalDebito, 2, ',', '.') }}</th>
+                        <th id="totalcredito">R$ {{ number_format($totalCredito, 2, ',', '.') }}</th>
+                        <th id="total">R$ {{ number_format($total = $totalDebito - $totalCredito, 2, ',', '.') }}
+                        </th>
                     </tr>
                 </thead>
 
@@ -260,7 +272,8 @@
         </div>
         <div class="card-footer">
             @if ($listaExclusao)
-                <button id="processar-exclusao" type="button" class="btn btn-danger btn-sm" wire:click='processarExclussao()'>
+                <button id="processar-exclusao" type="button" class="btn btn-danger btn-sm"
+                    wire:click='processarExclussao()'>
                     <i class="fa fa-trush"></i>Processar exclusão
                 </button>
             @endif

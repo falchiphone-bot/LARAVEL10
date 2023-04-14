@@ -63,7 +63,8 @@
                             <div class="card-body">
                                 <p>
                                     @if ($consulta['status'])
-                                        {{ count($consulta['dados']['items'] ?? null) }}
+                                    {{-- @dd($consulta) --}}
+                                        {{ count($consulta['dados'] ?? null) }}
                                     @else
                                         {{ $consulta['dados'] }}
                                     @endif
@@ -80,7 +81,7 @@
                                 @if ($consulta['status'])
                                     @php
                                         $totalLiquidado = 0;
-                                        foreach ($consulta['dados']['items'] as $soma) {
+                                        foreach ($consulta['dados'] as $soma) {
                                             $totalLiquidado += $soma['valorLiquidado'];
                                         }
                                     @endphp
@@ -105,7 +106,7 @@
                         <br>
 
                     </div>
-                    @if ($cache)
+                    {{-- @if ($cache)
                         <div class="col-3">
                             <button type="button" class="btn btn-danger"
                                 wire:click="limparCache('{{ 'carteira_id_' . $contaCobrancaID . '_' . $consultaDiaDisplay }}')">
@@ -113,14 +114,14 @@
                             </button>
                             <br>
                         </div>
-                    @endif
+                    @endif --}}
                 </div>
                 <div class="row mt-2">
                     <div class="col-3" wire:loading>
                         <span class="badge rounded-pill bg-info text-dark">Processando requisição ...</span>
                     </div>
                     <div class="col-12">
-                        <button type="button" class="btn btn-primary" wire:click="$refresh">Buscar</button>
+                        <button type="button" class="btn btn-primary" wire:click="buscar()">Buscar</button>
                     </div>
                 </div>
 
@@ -146,8 +147,8 @@
                         </thead>
 
                         <tbody>
-                            @if ($consulta['status'])
-                                @foreach ($consulta['dados']['items'] as $item)
+                            @if ($consulta['dados'])
+                                @foreach ($consulta['dados'] as $item)
                                     <tr>
                                         {{-- <td>{{ $item['cooperativa'] }}</td> --}}
                                         <td>{{ $item['nossoNumero'] }}</td>
