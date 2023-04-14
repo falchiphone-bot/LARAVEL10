@@ -167,7 +167,7 @@
                     @endphp
                     @if ($Lancamentos)
                         @foreach ($Lancamentos as $lancamento)
-                            <tr class="border-bottom-5 border-start-5">
+                            <tr class="tr-{{$lancamento->ID}} border-bottom-5 border-start-5">
                                 <td>
                                     {{ $lancamento->DataContabilidade->format('d/m/Y') }}
                                 </td>
@@ -201,12 +201,12 @@
                                     {{ number_format($saldo, 2, ',', '.') }}
                                 </td>
                             </tr>
-                            <tr>
+                            <tr class="tr-{{$lancamento->ID}}">
                                 <td colspan="5">
                                     {{ $lancamento->Descricao . '  ' . $lancamento->HistoricoDescricao }}
                                 </td>
                             </tr>
-                            <tr class="border-bottom-5">
+                            <tr class="tr-{{$lancamento->ID}} border-bottom-5">
                                 <td colspan="3">
                                     <strong>Conta Partida: </strong>
                                     @if ($lancamento->ContaCreditoID != $Conta->ID)
@@ -266,7 +266,7 @@
                                     </button>
                                 </td>
                             </tr>
-                            <tr>
+                            <tr class="tr-{{$lancamento->ID}}">
                                 <td colspan="5" style="background-color: #000000"></td>
                             </tr>
                         @endforeach
@@ -375,9 +375,10 @@
             });
         });
 
-        //ouvindo evetnos do livewire
-        // window.addEventListener('update-button-delete', event => {
-        //     console.log(event.detail.array);
-        // })
+        // ouvindo evetnos do livewire
+        window.addEventListener('remove-line-exclusao', event => {
+            $('.tr-'+event.detail.lancamento_id).remove();
+            console.log(event.detail.lancamento_id);
+        })
     </script>
 @endpush

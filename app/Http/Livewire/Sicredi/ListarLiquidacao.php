@@ -98,8 +98,6 @@ class ListarLiquidacao extends Component
                 // dd($contaCobranca->Credito_Cobranca,$contaCobranca->Tarifa_Cobranca);
                 $historico = Historicos::find($contaCobranca->Credito_Cobranca);
 
-
-
                 $lc = Lancamento::create([
                     'Valor' => $valorLiquido,
                     'EmpresaID' => $contaCobranca->EmpresaID,

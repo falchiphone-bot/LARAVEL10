@@ -5,6 +5,7 @@ namespace App\Http\Livewire\Conta;
 use App\Models\Conta;
 use App\Models\Empresa;
 use App\Models\Lancamento;
+use App\Models\SolicitacaoExclusao;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -44,7 +45,7 @@ class Extrato extends Component
         if ($item) {
             $this->selEmpresa = $item;
             $this->Empresa = Empresa::find($item);
-            $this->data_bloqueio_empresa = $this->Empresa->Databloqueioanterior->format('Y-m-d');
+            $this->data_bloqueio_empresa = $this->Empresa->Bloqueiodataanterior?->format('Y-m-d');
             $this->selConta = null;
         } else {
             $this->selEmpresa = null;
@@ -58,7 +59,7 @@ class Extrato extends Component
             $this->selConta = $item;
             cache(['extrato_ContaID' => $item]);
             $this->Conta = Conta::find($item);
-            $this->data_bloqueio_conta = $this->Conta->Databloqueioanterior->format('Y-m-d');
+            $this->data_bloqueio_conta = $this->Conta->Bloqueiodataanterior?->format('Y-m-d');
         } else {
             $this->selConta = null;
         }
@@ -135,12 +136,14 @@ class Extrato extends Component
         $lancamento = Lancamento::find($lancamento_id);
         if ($lancamento->ContaCreditoID == $this->Conta->ID) {
             $data_conta_partida = $lancamento->ContaDebito->Bloqueiodataanterior;
+            $descricao = $lancamento->ContaDebito->PlanoConta->Descricao;
         } else {
             $data_conta_partida = $lancamento->ContaCredito->Bloqueiodataanterior;
+            $descricao = $lancamento->ContaCredito->PlanoConta->Descricao;
         }
         if ($data_conta_partida) {
             if (Carbon::createFromDate($data_conta_partida)->greaterThanOrEqualTo($dataLancamento)) {
-                $this->addError('data_bloqueio', 'Não é possivel alterar esse lançamento para essa data, pois há um bloqueio de data na Conta Partida - ID: '.$lancamento_id);
+                $this->addError('data_bloqueio', 'Não é possivel alterar esse lançamento para essa data, pois há um bloqueio de data na Conta Partida: '.$descricao);
                 return true;
             }
         }
@@ -239,7 +242,7 @@ class Extrato extends Component
         }
         $this->emit('$refresh');
 
-        // $this->dispatchBrowserEvent('update-button-delete', ['lancamento_id' => $lancamento_id,'array' => $this->listaExclusao]);
+        // $this->dispatchBrowserEvent('update-button-delete', ['lancamento_id' => $lancamento_id,'array' => $this->listaExclusao])
     }
 
     public function somarLancamento($lancamento_id)
@@ -260,7 +263,20 @@ class Extrato extends Component
     }
     public function processarExclussao()
     {
-        dd('Falta Criar Regra');
+        foreach ($this->listaExclusao as $lancamento_id) {
+            SolicitacaoExclusao::create([
+                'Tipo' => 2,
+                'Descricao' => 'Lançamento',
+                'UsuarioID' => Auth::user()->id,
+                'Status' => '0',
+                'Created' => date('d/m/Y H:i:s'),
+                'Table' => 'lancamentos',
+                'TableID' => $lancamento_id,
+            ]);
+            $this->listaExclusao = array_diff($this->listaExclusao, [$lancamento_id]);
+            // $this->dispatchBrowserEvent('remove-line-exclusao', ['lancamento_id' => $lancamento_id]);
+        }
+        $this->search();
     }
     public function editarLancamento()
     {
