@@ -160,6 +160,8 @@
                 </thead>
                 <tbody>
                     @php
+                        $saldo = $saldoAnterior;
+                        $somatoria = $saldoAnterior;
                         $totalDebito = 0;
                         $totalCredito = 0;
                     @endphp
@@ -176,22 +178,32 @@
                                     @if ($Conta->ID == $lancamento->ContaDebitoID)
                                         {{ number_format($lancamento->Valor, 2, ',', '.') }}
                                         @php($totalDebito += $lancamento->Valor)
+                                        @php($saldo += $lancamento->Valor)
+
+                                        @if (!in_array($lancamento->ID, $listaSoma))
+                                            @php($somatoria += $lancamento->Valor)
+                                        @endif
                                     @endif
                                 </td>
                                 <td>
                                     @if ($Conta->ID == $lancamento->ContaCreditoID)
                                         {{ number_format($lancamento->Valor, 2, ',', '.') }}
                                         @php($totalCredito += $lancamento->Valor)
+                                        @php($saldo -= $lancamento->Valor)
+
+                                        @if (!in_array($lancamento->ID, $listaSoma))
+                                            @php($somatoria += $lancamento->Valor)
+                                        @endif
                                     @endif
                                 </td>
 
                                 <td>
-
+                                    {{ number_format($saldo, 2, ',', '.') }}
                                 </td>
                             </tr>
                             <tr>
                                 <td colspan="5">
-                                    {{ $lancamento->Descricao. '  '.$lancamento->HistoricoDescricao}}
+                                    {{ $lancamento->Descricao . '  ' . $lancamento->HistoricoDescricao }}
                                 </td>
                             </tr>
                             <tr class="border-bottom-5">
@@ -224,24 +236,29 @@
                                         class="btn btn-outline-secondary btn-sm btn-editar">
                                         <i class="fa fa-edit"></i>
                                     </button>
-                                    <button title="Somar Valor" data-valor="1" value="84264" type="button"
+                                    <button title="Somar Valor" type="button"
+                                        wire:click="somarLancamento({{ $lancamento->ID }})"
                                         class="btn-sm btn btn-outline-success autalizar-saldo"><i
-                                            class="fa fa-check-square-o"></i></button>
+                                            class="fa {{ !in_array($lancamento->ID, $listaSoma) ? 'fa-check-square-o' : 'fa-square-o' }}"></i></button>
+
                                     <button title="Excluir Lançamento" type="button"
                                         wire:click="incluirExclusao({{ $lancamento->ID }},'{{ $lancamento->DataContabilidade->format('Y-m-d') }}')"
                                         class="btn-sm btn btn-outline-danger">
-                                        <i class="fa {{ in_array($lancamento->ID, $listaExclusao) ? 'fa-check-square-o' : 'fa-square-o' }}"></i>
+                                        <i
+                                            class="fa {{ in_array($lancamento->ID, $listaExclusao) ? 'fa-check-square-o' : 'fa-square-o' }}"></i>
                                     </button>
                                     <button wire:click="alterarDataVencidoRapido({{ $lancamento->ID }},'ontem')"
                                         title="Alterar data processamento para Ontem" type="button"
                                         class="btn-sm btn btn-outline-danger">
                                         <i class="fa fa-arrow-left"></i>
                                     </button>
+
                                     <button wire:click="alterarDataVencidoRapido({{ $lancamento->ID }},'hoje')"
                                         title="Alterar para dia Atual" type="button"
                                         class="btn-sm btn btn-outline-danger">
                                         <i class="fa fa-calendar-minus-o"></i>
                                     </button>
+
                                     <button wire:click="alterarDataVencidoRapido({{ $lancamento->ID }},'amanha')"
                                         title="Alterar data processamento para Amanhã" type="button"
                                         class="btn-sm btn btn-outline-danger bd-highlight">
@@ -263,7 +280,7 @@
                         <th>Total</th>
                         <th id="totaldebito">R$ {{ number_format($totalDebito, 2, ',', '.') }}</th>
                         <th id="totalcredito">R$ {{ number_format($totalCredito, 2, ',', '.') }}</th>
-                        <th id="total">R$ {{ number_format($total = $totalDebito - $totalCredito, 2, ',', '.') }}
+                        <th id="total">R$ {{ number_format($somatoria, 2, ',', '.') }}
                         </th>
                     </tr>
                 </thead>

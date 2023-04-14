@@ -22,6 +22,7 @@ class Extrato extends Component
 
     //criando lista de exclusão
     public $listaExclusao = [];
+    public $listaSoma = [];
 
     //configurações de pesquisa
     public $De;
@@ -42,6 +43,8 @@ class Extrato extends Component
     {
         if ($item) {
             $this->selEmpresa = $item;
+            $this->Empresa = Empresa::find($item);
+            $this->data_bloqueio_empresa = $this->Empresa->Databloqueioanterior->format('Y-m-d');
             $this->selConta = null;
         } else {
             $this->selEmpresa = null;
@@ -55,6 +58,7 @@ class Extrato extends Component
             $this->selConta = $item;
             cache(['extrato_ContaID' => $item]);
             $this->Conta = Conta::find($item);
+            $this->data_bloqueio_conta = $this->Conta->Databloqueioanterior->format('Y-m-d');
         } else {
             $this->selConta = null;
         }
@@ -196,6 +200,7 @@ class Extrato extends Component
         $lancamento->save();
         $this->updated();
     }
+
     public function alterarDataVencidoRapido($lancamento_id, $acao)
     {
         $lancamento = Lancamento::find($lancamento_id);
@@ -236,6 +241,19 @@ class Extrato extends Component
 
         // $this->dispatchBrowserEvent('update-button-delete', ['lancamento_id' => $lancamento_id,'array' => $this->listaExclusao]);
     }
+
+    public function somarLancamento($lancamento_id)
+    {
+        if (in_array($lancamento_id, $this->listaSoma)) {
+            // Remove o ID do lançamento se ele já estiver na lista
+            $this->listaSoma = array_diff($this->listaSoma, [$lancamento_id]);
+        } else {
+            // Adiciona o ID do lançamento à lista se ele ainda não estiver presente
+            $this->listaSoma[] = $lancamento_id;
+        }
+        $this->emit('$refresh');
+    }
+
     public function checkExclusao($lancamento_id)
     {
         return in_array($lancamento_id, $this->listaExclusao);
