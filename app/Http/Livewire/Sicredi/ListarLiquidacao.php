@@ -82,12 +82,6 @@ class ListarLiquidacao extends Component
 
     public function criarLancamento($valorLiquido)
     {
-
-       ////////// DEVE SER VERIFICADO SE AS CONTAS DEBITO E CONTAS CREDITO TANTO DE LIQUIDACAO COMO TARIFAS ESTAO BLOQUEADAS OU AINDA SE A EMPRESA ESTÁ BLOQUEADA PARA LANCAMENTOS NAS DATAS AQUI
-       //// PRECISA CORRIGIR O FORMATO DA DATA PARA SALVAR POIS O  protected $casts = [ 'DataContabilidade' => 'date','Created' => 'date', NA TABELA LANCAMENTOS É O QUE CAUSA OS PROBLEMAS..
-       //// VAMOS ANALISAR.... AFETOU OUTRAS SITUAÇÕES
-    ];
-
         $contaCobranca = $this->contaCobranca;
         if (isset($contaCobranca->d_cobranca) && isset($contaCobranca->d_tarifa)) {
             $dataContabilidade = Carbon::createFromFormat('Y-m-d', $this->consultaDia);
@@ -150,7 +144,7 @@ class ListarLiquidacao extends Component
     {
         $conta = $this->contaCobranca;
         $nossonumeroCadastrado = 0;
-        
+
         if (count($this->consulta['dados']) == 0) {
             $this->addError('lista', 'Lista vazia.');
         } else {
