@@ -11,6 +11,8 @@ use App\Models\LogConsultaSicred;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
+use DateTime;
+use Illuminate\Support\Facades\Date;
 
 class ListarLiquidacao extends Component
 {
@@ -80,6 +82,12 @@ class ListarLiquidacao extends Component
 
     public function criarLancamento($valorLiquido)
     {
+
+       ////////// DEVE SER VERIFICADO SE AS CONTAS DEBITO E CONTAS CREDITO TANTO DE LIQUIDACAO COMO TARIFAS ESTAO BLOQUEADAS OU AINDA SE A EMPRESA ESTÁ BLOQUEADA PARA LANCAMENTOS NAS DATAS AQUI
+       //// PRECISA CORRIGIR O FORMATO DA DATA PARA SALVAR POIS O  protected $casts = [ 'DataContabilidade' => 'date','Created' => 'date', NA TABELA LANCAMENTOS É O QUE CAUSA OS PROBLEMAS..
+       //// VAMOS ANALISAR.... AFETOU OUTRAS SITUAÇÕES
+    ];
+
         $contaCobranca = $this->contaCobranca;
         if (isset($contaCobranca->d_cobranca) && isset($contaCobranca->d_tarifa)) {
             $dataContabilidade = Carbon::createFromFormat('Y-m-d', $this->consultaDia);
@@ -96,16 +104,20 @@ class ListarLiquidacao extends Component
                 // dd($contaCobranca->Credito_Cobranca,$contaCobranca->Tarifa_Cobranca);
                 $historico = Historicos::find($contaCobranca->Credito_Cobranca);
 
+
+
                 $lc = Lancamento::create([
                     'Valor' => $valorLiquido,
                     'EmpresaID' => $contaCobranca->EmpresaID,
                     'ContaDebitoID' => $historico->ContaDebitoID,
                     'ContaCreditoID' => $historico->ContaCreditoID,
                     'Usuarios_id' => auth()->user()->id,
-                    'DataContabilidade' => $dataContabilidade->format('d/m/Y'),
+                    'DataContabilidade' => date('d/m/Y H:i:s'),
                     'Created' => date('d/m/Y H:i:s'),
                     'HistoricoID' => $historico->ID,
+
                 ]);
+
             }
 
             $lancamentoTarifa = Lancamento::whereDate('DataContabilidade', $this->consultaDia)

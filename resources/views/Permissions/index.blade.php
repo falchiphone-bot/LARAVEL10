@@ -15,8 +15,10 @@
                 </div>
             @endif
             <div class="card">
-                 
-                <div class="badge bg-primary text-wrap" style="width: 100%;">
+
+                <div class="badge bg-warning text-wrap"
+                style="width: 100%;
+            ;font-size: 24px; lign=˜Center˜">
                     Permissões para o sistema administrativo e contábil
                 </div>
 

@@ -156,7 +156,7 @@
                     @foreach ($pesquisa as $lancamentos)
                         <tr>
                             <td>
-                                {{ $lancamentos->DataContabilidade->format('d/m/Y') }}
+                                {{ $lancamentos->DataContabilidade }}
                             </td>
                             <td align="left">
 
