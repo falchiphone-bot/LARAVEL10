@@ -21,15 +21,17 @@ class TesteController extends Controller
     {
         $startDateTime = Carbon::now()->subMonth(2);
         $endDateTime = Carbon::now()->addMonth(2);
+        $events = new Event;
 
-        // create a new event
         Event::create([
-            'name' => 'A new event',
+            'name' => 'NOVO EVENTO DE HOJE',
             'startDateTime' => Carbon::now(),
             'endDateTime' => Carbon::now()->addHour(),
         ]);
         $events = new Event;
+
         dd($events->get());
+
     }
 
     /**

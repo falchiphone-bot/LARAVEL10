@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "email-383716",
+  "private_key_id": "1ae2ce05481ea069478995bfcfe4b1dce8319457",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCt5Xw8uzP6mXF7\nOWykCTQu26Dzr4clxl/BGIMTlmwMronYkaqgCBZhfVFOZJLDEZrAJPnCsx7u03Rw\nxEaKZHW07d5ttwL8a+kjMPoUCYMcnQiyT8CfIveNNwGAjfZQ6dvO8zxBjaX4Fots\nzk4BGXCY7fSajWjJQ4rO96CCD7BdWHP3/z1POb0RS9e3b+1hlUMHCCFvjXxMkCk5\neon4r03wCZBnkja3ksWkxkjUY7Js6O9b+OVXCLAxwcNcNHVVYx5q15IMzRIDpSuq\nkmw2jwbRAueEk7Hmpf8PTzJ8zkN7IzHlBHt1ld3s3PHD8qqqdPbk31EKbRCRgrom\nzEmHUUuFAgMBAAECggEABNxtZKU3BsJTUcaBKvS26Lhq/2TgukWZV6R/xYRm8NPQ\nNqWbx21ycrc2FqLpF1reoJBoCvFG5BY1IxHZhvTX9X7QwPBkvPmnQryTwQujBqG9\nJH7mO4yWrvPirt1JDWn8IwTZolt7UDwRGbGKrK0xYJUGSWu6iiXBM5fofLpDi9hp\nWM08hDGNx/4L083VAMVEsQV5w2+3tRYqFd8Bq0TYnfOmzfsAS/Uu8vbSXd9KbZRk\n0yHlHXrmJtA87f9PoxVEiHjvCzLMwmdQEaDAe9hCotbSOUi5vuc5mSxdhf79oIoz\nE1CkB8bcO9206MwGfKGm6FUG/BSERMNaUX+S2v9oAQKBgQDYHeau3WqI+1bqxjQm\nQNMzF9EARo4Gw/ozAQZL5OcIDQ7RIETbaI7UvYWcYv5aaEdAw1dm1vlk73a7UjEJ\nH12+kWFbUeCqeFHxyMjqQ/5B7mQR6UMcJKzXjJrI4rngj0Awh92vHTc1Hcyiwqif\nAgAiTeHkGEXcxbTrVS5oFz1kRQKBgQDN/PLsJg/EFE3S+NOzM3HthLYucpKVSAt1\nGQALdCEpjE3s4nBAn9tKUKWobu2vpuRrlpLtQpKy/BcVs1eYl7YOjuqLHQqYAUD+\ngGow0OymRMrX0+purtVPsw8lFGsTnahef0mLcsunT1n7XxADva1ZV9Zk90DdieaH\ntoXL1pveQQKBgBVPLXXEg0KqdbGEhZPYBHsfOA5s5ogoPr1Utog5M8aJcxKPufpg\nXuT/IvN+l1HWwl/SYwXS4JhhPDXQLuGVZCrsLstQUXS9lGbgw17GAYYCuX9Cnslh\nnGFMjd6M7IMF3PBsFSG1IcJtA8Zwpyu2iMjZIRLaidjw7ZvetEqzL+x5AoGAHNDV\n6tMoQXXVrT3B37/CoEeAdN7yQo/hinAE4ZVNTlKiVBEZQvEZ7Dt78SQTfA8MxUA7\nLZWyj/dUA2UjS+VtQnwbs3pMkRcb0H6GXG3drSTSe37ZvMIYdR3HcJh6ojPb6dxE\nnY1hj/Y50EBsLRnLtkPjahxsppEz/qg571oGVAECgYEAzEOXBmvM/8pWywwHiqFv\nrUYioC81wKfqNhnJNWWoQC79OQjgBX7jm4aN2r4qdkk99i2tZwA06He4hRdhvDuP\nZVuWpAXhUEy4gKxa4aXMYrv2aXSII3CkQ0gXL1gHkcU+4tbszyq/fQC+ik1pTNyR\nUlsm5pThos1YPhsUbUoNR9U=\n-----END PRIVATE KEY-----\n",
+  "client_email": "email-falchi@email-383716.iam.gserviceaccount.com",
+  "client_id": "105302279320279283035",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/email-falchi%40email-383716.iam.gserviceaccount.com"
+}
