@@ -3,6 +3,10 @@
 
     <div class="card">
         <div class="card-body">
+            <div class="badge bg-success text-wrap"
+            style="width: 100%;
+             ;font-size: 16px; lign=˜Center˜">
+
             <div class="row">
                 <div class="col-6">
                     <select class="form-control select2" id="selEmpresa" wire:model="selEmpresa">
@@ -22,11 +26,14 @@
             </div>
             <div class="row py-2">
                 <div class="col-2">
-                    <a href="/PlanoContas/dashboard" class="btn btn-warning">Voltar</a>
+                    <a href="/PlanoContas/dashboard" class="btn btn-warning">Retornar para plano de contas</a>
                 </div>
             </div>
         </div>
     </div>
+    <div class="badge bg-success text-wrap"
+    style="width: 100%;
+     ;font-size: 16px; lign=˜Center˜">
 
     @if ($errors->any())
         <div class="alert alert-danger mt-3">
@@ -37,11 +44,18 @@
             </ul>
         </div>
     @endif
+     </div>
 
     <span>Conta Sel: {{ $Conta->ID }}</span>
     <div class="card mt-3">
         <div class="card-header">
+            <div class="badge bg-success text-wrap"
+            style="width: 100%;
+             ;font-size: 16px; lign=˜Center˜">
+
             Busca por periodo
+                         </div>
+
         </div>
         <div class="card-body card-block">
             <form id="idform" method="post" class="form">
@@ -102,8 +116,13 @@
         </div>
 
         <div class="card-footer">
-            <button id="buscar" wire:click='search()' type="button" class="btn btn-secondary btn-sm">
-                <i class="fa fa-dot-circle-o"></i>Buscar
+            <div class="badge bg-warning text-wrap"
+            style="width: 100%;
+             ;font-size: 16px; lign=˜Center˜">
+
+
+            <button id="buscar" wire:click='search()' type="button" class="btn btn-primary btn-sm">
+                <i class="fa fa-dot-circle-o"></i>Buscar informações e atualizar visualização
             </button>
         </div>
 
@@ -130,6 +149,11 @@
         </div>
     @endif
 
+<div class="badge bg-success text-wrap"
+            style="width: 100%;
+             ;font-size: 16px; lign=˜Center˜">
+
+             </div>
     <div class="card mt-4">
         <div class="row text-center" wire:loading>
             <div class="spinner-border mx-auto mt-2" role="status">
@@ -267,26 +291,41 @@
                                 </td>
                             </tr>
                             <tr class="tr-{{$lancamento->ID}}">
-                                <td colspan="5" style="background-color: #000000"></td>
+                                <td colspan="5" style="background-color: #1146d8"></td>
                             </tr>
+
                         @endforeach
                     @endif
 
 
                 </tbody>
+                <div class="card">
+                <div class="badge bg-success text-wrap"
+                style="width: 100%;
+                 ;font-size: 16px; lign=˜Center˜">
+                INFORMAÇÕES DETALHADAS DA CONTA SELECIONADA
+
                 <thead class="thead">
                     <tr>
                         <th></th>
                         <th>Total</th>
+
                         <th id="totaldebito">R$ {{ number_format($totalDebito, 2, ',', '.') }}</th>
                         <th id="totalcredito">R$ {{ number_format($totalCredito, 2, ',', '.') }}</th>
                         <th id="total">R$ {{ number_format($somatoria, 2, ',', '.') }}
                         </th>
                     </tr>
                 </thead>
+            </div>
 
+             </div>
             </table>
-        </div>
+            <div class="badge bg-success text-wrap"
+            style="width: 100%;
+             ;font-size: 16px; lign=˜Center˜">
+
+             </div>
+
         <div class="card-footer">
             @if ($listaExclusao)
                 <button id="processar-exclusao" type="button" class="btn btn-danger btn-sm"
