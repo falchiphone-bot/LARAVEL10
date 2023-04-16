@@ -24,7 +24,8 @@ RUN apt-get update && apt-get install -y \
     curl \
     lua-zlib-dev \
     libmemcached-dev \
-    nginx
+    nginx \
+    nano
 
 # Install supervisor
 RUN apt-get install -y supervisor

@@ -10,8 +10,10 @@ class SolicitacaoExclusao extends Model
     protected $primaryKey = "ID";
     protected $table = 'Contabilidade.Solicitacoes';
 
+    public $timestamps = false;
 
-    public $fillables = [
+
+    public $fillable = [
         "ID",
         "Tipo",
         "Descricao",
@@ -25,5 +27,5 @@ class SolicitacaoExclusao extends Model
     ];
 
 
-    
+
 }
