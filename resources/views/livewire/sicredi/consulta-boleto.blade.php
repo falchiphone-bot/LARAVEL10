@@ -78,27 +78,40 @@
                                             <div class="card-body">
                                                 <div class="row">
                                                     <div class="col-sm-6">
-                                                        Linha Digitavel: {{ $resultado['dados']['linhaDigitavel'] }}<br>
-                                                        Codigo de Barras: {{ $resultado['dados']['codigoBarras'] }}<br>
-                                                        Carteira: {{ $resultado['dados']['carteira'] }}<br>
-                                                        SeuNumero: {{ $resultado['dados']['seuNumero'] }}<br>
-                                                        NossoNumero: {{ $resultado['dados']['nossoNumero'] }}<br>
-                                                        Pagador: {{ $resultado['dados']['pagador']['nome'] }}<br>
-                                                        DataEmissao: {{ $resultado['dados']['dataEmissao'] }}<br>
-                                                        Data Vencimento: {{ $resultado['dados']['dataVencimento'] }}<br>
-                                                        Data Baixa: {{ $resultado['dados']['dataBaixa'] }}<br>
-                                                        Valor Nominal: {{ $resultado['dados']['valorNominal'] }}<br>
-                                                        Situacao: {{ $resultado['dados']['situacao'] }}<br>
-                                                        Multa: {{ $resultado['dados']['multa'] }}<br>
-                                                        Abatimento: {{ $resultado['dados']['abatimento'] }}<br>
-                                                        Tipo de Juros: {{ $resultado['dados']['tipoJuros'] }}<br>
-                                                        Juros: {{ $resultado['dados']['juros'] }}<br>
-                                                        Dias Protesto: {{ $resultado['dados']['diasProtesto'] }}<br>
-                                                        Validade Apos Vencimento: {{ $resultado['dados']['validadeAposVencimento'] }}<br>
-                                                        Dias Negativacao: {{ $resultado['dados']['diasNegativacao'] }}<br>
-                                                        Tipo Desconto: {{ $resultado['dados']['tipoDesconto'] }}<br>
-                                                        Desconto Antecipacao: {{ $resultado['dados']['descontoAntecipacao'] }}<br>
+                                                        Linha Digitavel: {{ $resultado['dados']['linhaDigitavel']??null }}<br>
+                                                        Codigo de Barras: {{ $resultado['dados']['codigoBarras']??null }}<br>
+                                                        Carteira: {{ $resultado['dados']['carteira']??null }}<br>
+                                                        SeuNumero: {{ $resultado['dados']['seuNumero']??null }}<br>
+                                                        NossoNumero: {{ $resultado['dados']['nossoNumero']??null }}<br>
+                                                        Pagador: {{ $resultado['dados']['pagador']['nome']??null }}<br>
+                                                        DataEmissao: {{ $resultado['dados']['dataEmissao']??null }}<br>
+                                                        Data Vencimento: {{ $resultado['dados']['dataVencimento']??null }}<br>
+                                                        Data Baixa: {{ $resultado['dados']['dataBaixa']??null }}<br>
+                                                        Valor Nominal: {{ $resultado['dados']['valorNominal']??null }}<br>
+                                                        Situacao: {{ $resultado['dados']['situacao']??null }}<br>
+                                                        Multa: {{ $resultado['dados']['multa']??null }}<br>
+                                                        Abatimento: {{ $resultado['dados']['abatimento']??null }}<br>
+                                                        Tipo de Juros: {{ $resultado['dados']['tipoJuros']??null }}<br>
+                                                        Juros: {{ $resultado['dados']['juros']??null }}<br>
+                                                        Dias Protesto: {{ $resultado['dados']['diasProtesto']??null }}<br>
+                                                        Validade Apos Vencimento: {{ $resultado['dados']['validadeAposVencimento']??null }}<br>
+                                                        Dias Negativacao: {{ $resultado['dados']['diasNegativacao']??null }}<br>
+                                                        Tipo Desconto: {{ $resultado['dados']['tipoDesconto']??null }}<br>
+                                                        Desconto Antecipacao: {{ $resultado['dados']['descontoAntecipacao']??null }}<br>
                                                     </div>
+                                                    @if ($resultado['dados']['dadosLiquidacao'])
+                                                    <div class="col-sm-6">
+                                                        Dados de Liquidação
+                                                        <p>
+                                                            Data: {{ $resultado['dados']['dadosLiquidacao']['data'] }}<br/>
+                                                            Valor: {{ $resultado['dados']['dadosLiquidacao']['valor'] }}<br/>
+                                                            Multa: {{ $resultado['dados']['dadosLiquidacao']['multa'] }}<br/>
+                                                            Abatimento: {{ $resultado['dados']['dadosLiquidacao']['abatimento'] }}<br/>
+                                                            Juros: {{ $resultado['dados']['dadosLiquidacao']['juros'] }}<br/>
+                                                            Desconto: {{ $resultado['dados']['dadosLiquidacao']['desconto'] }}<br/>
+                                                        </p>
+                                                    </div>
+                                                    @endif
                                                 </div>
                                             </div>
                                         </div>
