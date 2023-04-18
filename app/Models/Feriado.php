@@ -7,4 +7,9 @@ class Feriado extends Model
     protected $table = 'feriados';
     public $timestamps = false;
     protected $fillable = ['nome', 'data'];
+
+    protected $casts = [
+        'nome' => 'string',
+        'data' => 'date'
+    ];
 }

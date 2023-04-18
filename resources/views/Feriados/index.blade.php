@@ -56,7 +56,7 @@
                         @foreach ($feriados as $feriado)
                             <tr>
                                 <td class="">
-                                    {{ $feriado->data }}
+                                    {{ $feriado->data->format('d/m/Y') }}
                                     </a>
                                 </td>
                                 <td class="">

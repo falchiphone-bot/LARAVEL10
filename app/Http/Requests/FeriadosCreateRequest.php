@@ -22,7 +22,7 @@ class FeriadosCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'data' =>'required',
+            'data' =>'required|unique:feriados',
             'nome' =>'required',
         ];
     }

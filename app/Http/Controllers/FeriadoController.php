@@ -52,9 +52,6 @@ class FeriadoController extends Controller
         $Feriados= $request->all();
 
 
-        $Feriados["data"] = Carbon::createFromFormat('Y-m-d', $request->data)->format('d/m/Y');
-        // dd($Feriados["data"]);
-
         Feriado::create($Feriados);
 
         return redirect(route('Feriados.index'));

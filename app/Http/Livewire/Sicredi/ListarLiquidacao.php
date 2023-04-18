@@ -5,6 +5,7 @@ namespace App\Http\Livewire\Sicredi;
 use App\Helpers\SicredApiHelper;
 use App\Models\Atletas\CobrancaSicredi;
 use App\Models\ContaCobranca;
+use App\Models\Feriado;
 use App\Models\Historicos;
 use App\Models\Lancamento;
 use App\Models\LogConsultaSicred;
@@ -34,21 +35,9 @@ class ListarLiquidacao extends Component
 
         $this->consultaDiaDisplay = $consultaDia->format('d/m/Y');
         $this->consultaDia = $consultaDia->format('Y-m-d');
-        $cache = Cache::get('carteira_id_' . $contaCobranca->id . '_' . $this->consultaDiaDisplay);
 
-        // dd($this->consulta);
-
-        // if ($cache) {
-        //     $this->consulta = $cache;
-        //     $this->cache = true;
-        // }else {
-        //     $this->cache = false;
         $this->consulta = SicredApiHelper::boletoLiquidadoDia($contaCobranca->conta, $contaCobranca->agencia, $contaCobranca->posto, $contaCobranca->token_conta, $contaCobranca->devSicredi->SICREDI_CLIENT_ID, $contaCobranca->devSicredi->SICREDI_CLIENT_SECRET, $contaCobranca->devSicredi->SICREDI_TOKEN, $consultaDia->format('d/m/Y'));
 
-        // if ($this->consulta['status']) {
-        //     Cache::put('carteira_id_'.$contaCobranca->id.'_'.$this->consultaDiaDisplay,$this->consulta,20000);
-        // }
-        // }
         $this->msgSalvarRecebimentos = '';
     }
 
@@ -61,18 +50,9 @@ class ListarLiquidacao extends Component
         $now = Carbon::now()->subDay(1);
         $this->consultaDiaDisplay = $now->format('d/m/Y');
         $this->consultaDia = $now->format('Y-m-d');
-        // $cache = Cache::get('carteira_id_'.$contaCobranca->id.'_'.$this->consultaDiaDisplay);
-        // if ($cache) {
-        //     $this->consulta = $cache;
-        //     $this->cache = true;
-        // } else {
-        //     $this->cache = false;
+
         $consulta = SicredApiHelper::boletoLiquidadoDia($contaCobranca->conta, $contaCobranca->agencia, $contaCobranca->posto, $contaCobranca->token_conta, $contaCobranca->devSicredi->SICREDI_CLIENT_ID, $contaCobranca->devSicredi->SICREDI_CLIENT_SECRET, $contaCobranca->devSicredi->SICREDI_TOKEN, $now->format('d/m/Y'));
-        // if ($consulta['status']) {
-        //     $cache = Cache::put('carteira_id_'.$contaCobranca->id.'_'.$this->consultaDiaDisplay,$consulta,20000);
-        // }
         $this->consulta = $consulta;
-        // }
     }
 
     public function limparCache($key)
@@ -84,27 +64,29 @@ class ListarLiquidacao extends Component
     public function criarLancamento($valorLiquido)
     {
         $contaCobranca = $this->contaCobranca;
+
         if (isset($contaCobranca->d_cobranca) && isset($contaCobranca->d_tarifa)) {
-            $dataContabilidade = Carbon::createFromFormat('Y-m-d', $this->consultaDia);
-            $dataContabilidade = $dataContabilidade->addDay($contaCobranca->d_cobranca);
-            $DiaSemana = date('D', strtotime($dataContabilidade));
+            $dataTarifa = Carbon::createFromFormat('Y-m-d', $this->consultaDia);
+            $dataLiquidacao = $dataTarifa->addDay($contaCobranca->d_cobranca);
 
-            $dataContabilidadeSatSun = $dataContabilidade;
-            if ($DiaSemana == 'Sat') {
-                $dataContabilidadeSatSun = $dataContabilidade->addDay(2);
-            } elseif ($DiaSemana == 'Sun') {
-                $dataContabilidadeSatSun = $dataContabilidade->addDay(1);
+            $feriado = Feriado::where('data', $dataLiquidacao->format('Y-m-d'))->first();
+            while ($feriado) {
+                $dataLiquidacao->addDay();
+                if ($dataLiquidacao->weekDay() == 6) {
+                    $dataLiquidacao->addDay(2);
+                } elseif ($dataLiquidacao->weekday() == 7) {
+                    $dataLiquidacao->addDay(1);
+                }
+                $feriado = Feriado::where('data', $dataLiquidacao->format('Y-m-d'))->first();
             }
-            $dataContabil = $dataContabilidadeSatSun->format('d/m/Y');
 
-            //  dd($dataContabilidade);
-            $lancamentoCobranca = Lancamento::whereDate('DataContabilidade', $dataContabilidade->format('Y-m-d'))
+            $lancamentoCobranca = Lancamento::whereDate('DataContabilidade', $dataLiquidacao->format('Y-m-d'))
                 ->where('EmpresaID', $contaCobranca->EmpresaID)
                 ->where('HistoricoID', $contaCobranca->Credito_Cobranca)
                 ->first('ID');
 
             if ($lancamentoCobranca) {
-                $this->addError('lancamentoCobranca', 'Liquidação de cobrança já lançado no dia <strong>' . $dataContabilidade->format('d/m/Y') . '</strong>.');
+                $this->addError('lancamentoCobranca', 'Liquidação de cobrança já lançado no dia <strong>' . $dataLiquidacao->format('d/m/Y') . '</strong>.');
             } else {
                 // dd($contaCobranca->Credito_Cobranca,$contaCobranca->Tarifa_Cobranca);
                 $historico = Historicos::find($contaCobranca->Credito_Cobranca);
@@ -115,7 +97,7 @@ class ListarLiquidacao extends Component
                     'ContaDebitoID' => $historico->ContaDebitoID,
                     'ContaCreditoID' => $historico->ContaCreditoID,
                     'Usuarios_id' => auth()->user()->id,
-                    'DataContabilidade' => $dataContabilidade->format('d/m/Y'),
+                    'DataContabilidade' => $dataLiquidacao->format('d/m/Y'),
                     'Created' => date('d/m/Y H:i:s'),
                     'HistoricoID' => $historico->ID,
                 ]);
