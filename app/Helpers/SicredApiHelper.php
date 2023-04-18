@@ -3,9 +3,7 @@
 namespace App\Helpers;
 
 use Illuminate\Support\Facades\Http;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Request;
 
 class SicredApiHelper
 {
@@ -46,19 +44,19 @@ class SicredApiHelper
         return $auth;
     }
 
-    public static function boletoLiquidadoDia($conta, $agencia, $posto, $token_conta, $client_id, $secret_id, $token_desenvolvedor, $dia)
+    public static function boletoLiquidadoDia($cb, $dia)
     {
-        if (Cache::get('access_token' . $conta . $agencia)) {
-            $access_token = Cache::get('access_token' . $conta . $agencia);
-        } elseif (Cache::get('refresh_token' . $conta . $agencia)) {
-            $auth = SicredApiHelper::auth($conta, $agencia, Cache::get('refresh_token' . $conta . $agencia), $token_conta, $client_id, $secret_id, $token_desenvolvedor);
-            Cache::put('access_token' . $conta . $agencia, $auth['access_token'], $seconds = $auth['expires_in']);
-            $access_token = Cache::get('access_token' . $conta . $agencia);
+        if (Cache::get('access_token' . $cb->conta . $cb->agencia)) {
+            $access_token = Cache::get('access_token' . $cb->conta . $cb->agencia);
+        } elseif (Cache::get('refresh_token' . $cb->conta . $cb->agencia)) {
+            $auth = SicredApiHelper::auth($cb->conta, $cb->agencia, Cache::get('refresh_token' . $cb->conta . $cb->agencia), $cb->token_conta, $cb->devSicredi->SICREDI_CLIENT_ID, $cb->devSicredi->SICREDI_CLIENT_SECRET, $cb->devSicredi->SICREDI_TOKEN);
+            Cache::put('access_token' . $cb->conta . $cb->agencia, $auth['access_token'], $seconds = $auth['expires_in']);
+            $access_token = Cache::get('access_token' . $cb->conta . $cb->agencia);
         } else {
-            $auth = SicredApiHelper::auth($conta, $agencia, false, $token_conta, $client_id, $secret_id, $token_desenvolvedor);
+            $auth = SicredApiHelper::auth($cb->conta, $cb->agencia, false, $cb->token_conta, $cb->devSicredi->SICREDI_CLIENT_ID, $cb->devSicredi->SICREDI_CLIENT_SECRET, $cb->devSicredi->SICREDI_TOKEN);
             $access_token = $auth['access_token'];
-            Cache::put('access_token' . $conta . $agencia, $auth['access_token'], $seconds = $auth['expires_in']);
-            Cache::put('refresh_token' . $conta . $agencia, $auth['refresh_token'], $seconds = $auth['refresh_expires_in']);
+            Cache::put('access_token' . $cb->conta . $cb->agencia, $auth['access_token'], $seconds = $auth['expires_in']);
+            Cache::put('refresh_token' . $cb->conta . $cb->agencia, $auth['refresh_token'], $seconds = $auth['refresh_expires_in']);
         }
         if ($access_token) {
             $dados = [];
@@ -67,28 +65,66 @@ class SicredApiHelper
                     ->withHeaders([
                         'x-api-key' => config('services.sicredi.token'),
                         // 'Authorization' => 'bearer ' . ,
-                        'cooperativa' => $agencia,
-                        'posto' => $posto,
+                        'cooperativa' => $cb->agencia,
+                        'posto' => $cb->posto,
                     ])
                     ->withToken($access_token)
                     ->get('https://api-parceiro.sicredi.com.br/cobranca/boleto/v1/boletos/liquidados/dia', [
-                        'codigoBeneficiario' => $conta,
+                        'codigoBeneficiario' => $cb->conta,
                         'dia' => $dia,
                         // 'cpfCnpjBeneficiarioFinal' => '36585615000174',
                         'pagina' => $pagina,
                     ]);
 
-
                 if ($consulta->successful()) {
                     if ($consulta->json()['hasNext']) {
-                        $dados = array_merge($dados,$consulta->json()['items']);
+                        $dados = array_merge($dados, $consulta->json()['items']);
                     } else {
-                        $dados = array_merge($dados,$consulta->json()['items']);
+                        $dados = array_merge($dados, $consulta->json()['items']);
                         return ['status' => true, 'dados' => $dados];
                     }
                 } else {
                     return ['status' => false, 'dados' => 'Erro ao consultar dados no banco'];
                 }
+            }
+        } else {
+            return ['status' => false, 'dados' => 'Falha ao obter token de autenticação'];
+        }
+    }
+
+    public static function consultaBoleto($cb, $nosso_numero)
+    {
+        if (Cache::get('access_token' . $cb->conta . $cb->agencia)) {
+            $access_token = Cache::get('access_token' . $cb->conta . $cb->agencia);
+        } elseif (Cache::get('refresh_token' . $cb->conta . $cb->agencia)) {
+            $auth = SicredApiHelper::auth($cb->conta, $cb->agencia, Cache::get('refresh_token' . $cb->conta . $cb->agencia), $cb->token_conta, $cb->devSicredi->SICREDI_CLIENT_ID, $cb->devSicredi->SICREDI_CLIENT_SECRET, $cb->devSicredi->SICREDI_TOKEN);
+            Cache::put('access_token' . $cb->conta . $cb->agencia, $auth['access_token'], $seconds = $auth['expires_in']);
+            $access_token = Cache::get('access_token' . $cb->conta . $cb->agencia);
+        } else {
+            $auth = SicredApiHelper::auth($cb->conta, $cb->agencia, false, $cb->token_conta, $cb->devSicredi->SICREDI_CLIENT_ID, $cb->devSicredi->SICREDI_CLIENT_SECRET, $cb->devSicredi->SICREDI_TOKEN);
+            $access_token = $auth['access_token'];
+            Cache::put('access_token' . $cb->conta . $cb->agencia, $auth['access_token'], $seconds = $auth['expires_in']);
+            Cache::put('refresh_token' . $cb->conta . $cb->agencia, $auth['refresh_token'], $seconds = $auth['refresh_expires_in']);
+        }
+
+        if ($access_token) {
+            $dados = [];
+            $consulta = Http::asForm()
+                ->withHeaders([
+                    'x-api-key' => config('services.sicredi.token'),
+                    // 'Authorization' => 'bearer ' . ,
+                    'cooperativa' => $cb->agencia,
+                    'posto' => $cb->posto,
+                ])
+                ->withToken($access_token)
+                ->get('https://api-parceiro.sicredi.com.br/cobranca/boleto/v1/boletos', [
+                    'codigoBeneficiario' => $cb->conta,
+                    'nossoNumero' => $nosso_numero,
+                ]);
+            if ($consulta->successful()) {
+                return ['status' => true, 'dados' => $consulta->json()];
+            } else {
+                return ['status' => false, 'dados' => 'Erro ao consultar dados no banco'];
             }
         } else {
             return ['status' => false, 'dados' => 'Falha ao obter token de autenticação'];

@@ -36,7 +36,7 @@ class ListarLiquidacao extends Component
         $this->consultaDiaDisplay = $consultaDia->format('d/m/Y');
         $this->consultaDia = $consultaDia->format('Y-m-d');
 
-        $this->consulta = SicredApiHelper::boletoLiquidadoDia($contaCobranca->conta, $contaCobranca->agencia, $contaCobranca->posto, $contaCobranca->token_conta, $contaCobranca->devSicredi->SICREDI_CLIENT_ID, $contaCobranca->devSicredi->SICREDI_CLIENT_SECRET, $contaCobranca->devSicredi->SICREDI_TOKEN, $consultaDia->format('d/m/Y'));
+        $this->consulta = SicredApiHelper::boletoLiquidadoDia($contaCobranca, $consultaDia->format('d/m/Y'));
 
         $this->msgSalvarRecebimentos = '';
     }
@@ -51,7 +51,7 @@ class ListarLiquidacao extends Component
         $this->consultaDiaDisplay = $now->format('d/m/Y');
         $this->consultaDia = $now->format('Y-m-d');
 
-        $consulta = SicredApiHelper::boletoLiquidadoDia($contaCobranca->conta, $contaCobranca->agencia, $contaCobranca->posto, $contaCobranca->token_conta, $contaCobranca->devSicredi->SICREDI_CLIENT_ID, $contaCobranca->devSicredi->SICREDI_CLIENT_SECRET, $contaCobranca->devSicredi->SICREDI_TOKEN, $now->format('d/m/Y'));
+        $consulta = SicredApiHelper::boletoLiquidadoDia($contaCobranca, $now->format('d/m/Y'));
         $this->consulta = $consulta;
     }
 

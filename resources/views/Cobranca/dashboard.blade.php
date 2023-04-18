@@ -37,6 +37,10 @@
                                             <a class="btn btn-success" href="/Sicredi">Cobrança Sicredi - acesso via API</a>
                                         </nav>
 
+                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                            <a class="btn btn-success" href="/Sicredi/ConsultaBoleto">Cobrança Sicredi - Consultar Boleto</a>
+                                        </nav>
+
                                     </th>
                                 </tr>
                             @endcan
@@ -50,7 +54,7 @@
                         </tbody>
                     </table>
                     <div class="badge bg-warning text-wrap" style="width: 100%; height: 100px,align=˜Center˜ ">
-                         
+
                     </div>
                 </div>
             </div>

@@ -104,11 +104,12 @@ Route::middleware('auth')->group(function () {
     #Faturamentos
     Route::resource('Faturamentos', App\Http\Controllers\FaturamentosController::class);
 
-    #Faturamentos Sicredi
-    Route::resource('Sicredi', App\Http\Controllers\SicrediController::class);
 
     #Sicredi
+    Route::get('Sicredi/ConsultaBoleto', App\Http\Livewire\Sicredi\ConsultaBoleto::class);
     Route::resource('DevSicredi', App\Http\Controllers\DevSicrediController::class);
+    #Faturamentos Sicredi
+    Route::resource('Sicredi', App\Http\Controllers\SicrediController::class);
 
     #Historicos
     Route::post('Historicos/pesquisapost', [App\Http\Controllers\HistoricoController::class, 'pesquisapost'])->name('pesquisapost');
