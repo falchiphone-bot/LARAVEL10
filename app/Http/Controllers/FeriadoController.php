@@ -30,7 +30,7 @@ class FeriadoController extends Controller
 
     public function index()
     {
-       $feriados= Feriado::get();
+       $feriados= Feriado::OrderBy('data')->get();
 
 
         return view('Feriados.index',compact('feriados'));
