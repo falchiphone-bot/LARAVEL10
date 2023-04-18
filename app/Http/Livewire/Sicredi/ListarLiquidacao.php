@@ -87,9 +87,17 @@ class ListarLiquidacao extends Component
         if (isset($contaCobranca->d_cobranca) && isset($contaCobranca->d_tarifa)) {
             $dataContabilidade = Carbon::createFromFormat('Y-m-d', $this->consultaDia);
             $dataContabilidade = $dataContabilidade->addDay($contaCobranca->d_cobranca);
-            $dataContabil  = $dataContabilidade->format('d/m/Y');
- 
+            $DiaSemana = date('D', strtotime($dataContabilidade));
 
+            $dataContabilidadeSatSun = $dataContabilidade;
+            if ($DiaSemana == 'Sat') {
+                $dataContabilidadeSatSun = $dataContabilidade->addDay(2);
+            } elseif ($DiaSemana == 'Sun') {
+                $dataContabilidadeSatSun = $dataContabilidade->addDay(1);
+            }
+            $dataContabil = $dataContabilidadeSatSun->format('d/m/Y');
+
+            //  dd($dataContabilidade);
             $lancamentoCobranca = Lancamento::whereDate('DataContabilidade', $dataContabilidade->format('Y-m-d'))
                 ->where('EmpresaID', $contaCobranca->EmpresaID)
                 ->where('HistoricoID', $contaCobranca->Credito_Cobranca)
@@ -107,12 +115,10 @@ class ListarLiquidacao extends Component
                     'ContaDebitoID' => $historico->ContaDebitoID,
                     'ContaCreditoID' => $historico->ContaCreditoID,
                     'Usuarios_id' => auth()->user()->id,
-                    'DataContabilidade' =>  $dataContabilidade->format('d/m/Y'),
+                    'DataContabilidade' => $dataContabilidade->format('d/m/Y'),
                     'Created' => date('d/m/Y H:i:s'),
                     'HistoricoID' => $historico->ID,
-
                 ]);
-
             }
 
             $lancamentoTarifa = Lancamento::whereDate('DataContabilidade', $this->consultaDia)
