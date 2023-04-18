@@ -144,6 +144,20 @@
 
                             </tr>
                         @endcan
+                        @can('FERIADOS - LISTAR')
+                        <tr>
+
+                            <th>
+
+                                <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                    <a class="btn btn-primary"
+                                    <a href="Feriados">Feriados</a>
+
+                                </nav>
+                            </th>
+
+                        </tr>
+                    @endcan
 
                             </tbody>
                     </table>
