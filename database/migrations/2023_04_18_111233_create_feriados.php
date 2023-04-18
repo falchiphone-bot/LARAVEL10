@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('feriados', function (Blueprint $table) {
+        Schema::create('Feriados', function (Blueprint $table) {
             $table->id();
             $table->string('nome');
             $table->date('data');
@@ -25,8 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-         
+        //
     }
 };
-
-

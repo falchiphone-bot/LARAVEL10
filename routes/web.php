@@ -43,6 +43,10 @@ Route::middleware('auth')->group(function () {
     Route::get('EnviarEmail', [App\Http\Controllers\EnviaEmailController::class, 'enviaremail'])->name('gmail.enviaremail');
     Route::get('GoogleLogin', [App\Http\Controllers\EnviaEmailController::class, 'googlelogin'])->name('google.login');
 
+    # Feriados
+    // Route::get('/feriados', 'FeriadoController@index');
+    Route::resource('Feriados', App\Http\Controllers\FeriadoController::class);
+
     # PLANO DE CONTAS
     Route::get('PlanoContas/pesquisaavancada', [App\Http\Controllers\GoogleCalendarController::class, 'pesquisaavancada'])->name('planocontas.pesquisaavancada');
 
