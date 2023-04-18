@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
 use DateTime;
+use Google\Service\PolyService\Format;
 use Illuminate\Support\Facades\Date;
 
 class ListarLiquidacao extends Component
@@ -86,6 +87,8 @@ class ListarLiquidacao extends Component
         if (isset($contaCobranca->d_cobranca) && isset($contaCobranca->d_tarifa)) {
             $dataContabilidade = Carbon::createFromFormat('Y-m-d', $this->consultaDia);
             $dataContabilidade = $dataContabilidade->addDay($contaCobranca->d_cobranca);
+            $dataContabil  = $dataContabilidade->format('d/m/Y');
+ 
 
             $lancamentoCobranca = Lancamento::whereDate('DataContabilidade', $dataContabilidade->format('Y-m-d'))
                 ->where('EmpresaID', $contaCobranca->EmpresaID)
@@ -104,7 +107,7 @@ class ListarLiquidacao extends Component
                     'ContaDebitoID' => $historico->ContaDebitoID,
                     'ContaCreditoID' => $historico->ContaCreditoID,
                     'Usuarios_id' => auth()->user()->id,
-                    'DataContabilidade' => $this->consultaDiaDisplay,
+                    'DataContabilidade' =>  $dataContabilidade->format('d/m/Y'),
                     'Created' => date('d/m/Y H:i:s'),
                     'HistoricoID' => $historico->ID,
 
