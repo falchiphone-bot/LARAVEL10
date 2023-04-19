@@ -198,6 +198,13 @@ return [
 
     ],
 
+    'openssl' => [
+        'cert' => env('SSL_CERTIFICATE'),
+        'key' => env('SSL_KEY'),
+        'verify_peer' => false,
+    ],
+
+
     /*
     |--------------------------------------------------------------------------
     | Class Aliases
