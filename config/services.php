@@ -36,7 +36,13 @@ return [
         'secret_id' => env('SICREDI_CLIENT_SECRET'),
         'token' => env('SICREDI_TOKEN'),
         'url' => env('SICRED_URL'),
-         
+
+    ],
+
+    'google' => [
+        'client_id' => '379079515230-316299rgn4ih9hk457chkg0kt3vagilo.apps.googleusercontent.com',
+        'client_secret' => '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',
+        'redirect' => 'http://localhost:8000/auth/google/callback',
     ],
 
 ];
