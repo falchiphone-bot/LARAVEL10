@@ -68,7 +68,9 @@ class ContaCobrancaCampos extends Component
     public function render()
     {
         $contasDev = DevSicredi::orderBy('DESENVOLVEDOR')->pluck('DESENVOLVEDOR','id');
-        $historicos = Historicos::orderBy('Descricao')->where('EmpresaID',$this->contaCobranca->EmpresaID)->pluck('Descricao','ID');
+        $historicos = Historicos::orderBy('Descricao')
+        ->where('EmpresaID',$this->contaCobranca->EmpresaID)
+        ->pluck('Descricao','ID');
         return view('livewire.conta-cobranca.conta-cobranca-campos',compact('contasDev','historicos'));
     }
 }

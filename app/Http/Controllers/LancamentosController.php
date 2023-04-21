@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\LancamentoResquest;
+use App\Models\Empresa;
+use App\Models\Historicos;
 use App\Models\Lancamento;
+use Illuminate\Support\Facades\Auth;
 
 class LancamentosController extends Controller
 {
@@ -12,11 +15,15 @@ class LancamentosController extends Controller
      */
     public function index()
     {
-        $ultimos_lancamentos = [];
-        if (session('Empresa')) {
-            $ultimos_lancamentos = Lancamento::where('EmpresaID',session('Empresa')->ID)->limit(10)->orderBy('ID','DESC')->get();
-        }
-        return view('Lancamentos.index',compact('ultimos_lancamentos'));
+        // $ultimos_lancamentos = [];
+        // if (session('Empresa')) {
+        //     $ultimos_lancamentos = Lancamento::where('EmpresaID',session('Empresa')->ID)->limit(10)->orderBy('ID','DESC')->get();
+        // }
+
+
+        // return view('Lancamentos.index',compact('ultimos_lancamentos'));
+        return redirect(route('planocontas.pesquisaavancada'));
+
     }
 
     /**
@@ -24,7 +31,19 @@ class LancamentosController extends Controller
      */
     public function create()
     {
-        return view('Lancamentos.create');
+        $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+            ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+            ->OrderBy('Descricao')
+            ->select(['Empresas.ID', 'Empresas.Descricao'])
+            ->get();
+
+            $historicos = Historicos::orderBy('Descricao')
+            ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+            ->select(['Historicos.ID', 'Historicos.Descricao']);
+            //  ->pluck('Descricao','ID');
+
+
+        return view('Lancamentos.create', compact('Empresas','historicos'));
     }
 
     /**
