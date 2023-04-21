@@ -74,6 +74,9 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('Teste', App\Http\Controllers\TesteController::class);
 
+    #Lancamentos
+    Route::resource('Lancamentos',App\Http\Controllers\LancamentosController::class);
+
     #Gerenciamento de Usuários
     Route::resource('Usuarios', App\Http\Controllers\UserController::class);
     Route::post('Usuarios/salvarpermissao/{id}', [App\Http\Controllers\UserController::class, 'salvarpermissao']);
