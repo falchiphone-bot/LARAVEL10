@@ -18,8 +18,6 @@
                 </div>
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                     <a class="btn btn-warning" href="/Contabilidade">Retornar e ou ir para Contabilidade</a>
-
-                    <a class="btn btn-danger" href="/Lancamentos/create">Incluir lançamento</a>
                 </nav>
                 @if (session('success'))
                     <div class="alert alert-success">
@@ -116,6 +114,8 @@
                                                 {{ $Empresa->Descricao }}
                                             </option>
                                         @endforeach
+
+
                                     </select>
                                 </div>
 
