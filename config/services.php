@@ -40,9 +40,11 @@ return [
     ],
 
     'google' => [
-        'client_id' => '379079515230-316299rgn4ih9hk457chkg0kt3vagilo.apps.googleusercontent.com',
-        'client_secret' => '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',
-        'redirect' => 'http://localhost:8000/auth/google/callback',
+        'client_id' => '276920584995-dh9gflphucm37l3rrh1md4i3jaerrcbv.apps.googleusercontent.com',
+        'client_secret' => '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',
+        // 'client_id' => env('GOOGLE_API_CLIENT_ID'),
+        // 'client_secret' => env('GOOGLE_API_CLIENT_SECRET'),
+        'redirect' => 'http://localhost/auth/google/callback',
     ],
 
 ];

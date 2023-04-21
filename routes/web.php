@@ -1,7 +1,8 @@
 <?php
 
-use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\MailController;
+use App\Http\Controllers\OAuthController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Auth\GoogleController;
@@ -20,7 +21,12 @@ use App\Http\Controllers\Auth\GoogleController;
 Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);
 Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
-Route::resource('teste', App\Http\Controllers\TesteController::class);
+Route::prefix('/mail')->group(function() {
+    Route::view('home', 'mail.home')->name('mail.home');
+    Route::post('/get-token', [OAuthController::class, 'doGenerateToken'])->name('generate.token');
+    Route::get('/get-token', [OAuthController::class, 'doSuccessToken'])->name('token.success');
+    Route::post('/send', [MailController::class, 'send'])->name('send.email');
+});
 
 Route::get('/', function () {
     return redirect('/dashboard');
@@ -29,10 +35,12 @@ Route::get('/', function () {
 Route::get('/dashboard', function () {
     return view('dashboard');
 })
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+->middleware(['auth', 'verified'])
+->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::get('sendMail',[\App\Http\Controllers\MailController::class,'send']);
+
     #Rotas criadas automaticamente laravel
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -85,7 +93,7 @@ Route::middleware('auth')->group(function () {
 
     #Gerenciamento de permissões e funções
     Route::resource('Permissoes', App\Http\Controllers\PermissionController::class);
-    Route::resource('ModelodeFuncoes', App\Http\Controllers\Model_has_RoleController::class);
+    // Route::resource('ModelodeFuncoes', App\Http\Controllers\Model_has_RoleController::class);
 
     #PlanoContas
     Route::get('PlanoContas/pesquisaavancada', [App\Http\Controllers\PlanoContaController::class, 'pesquisaavancada'])->name('planocontas.pesquisaavancada');
@@ -131,7 +139,7 @@ Route::middleware('auth')->group(function () {
         ->name('dashboardContabilidade');
 
     #Cobrança
-    Route::resource('Cobranca', App\Http\Controllers\CobrancaController::class);
+    // Route::resource('Cobranca', App\Http\Controllers\CobrancaController::class);
 
     Route::get('/Cobranca', function () {
         return view('Cobranca/dashboard');

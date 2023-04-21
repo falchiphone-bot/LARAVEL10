@@ -19,7 +19,7 @@ use Swift_SmtpTransport;
 
 // Inclua o autoload do Composer
 // require __DIR__ . '/../../../Users/pedrorobertofalchi/Projetos/IniciacaoLaravel-10/vendor/autoload.php';
-require '../vendor/autoload.php';
+// require '../vendor/autoload.php';
 
 // Users/pedrorobertofalchi/Projetos/IniciacaoLaravel-10/vendor/autoload.php;
 
