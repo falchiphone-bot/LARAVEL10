@@ -37,6 +37,13 @@ class Extrato extends Component
     public $data_bloqueio_empresa;
 
     public $exibicao_pesquisa;
+    public $editar_lancamento = false;
+
+    public function editarLancamento($lancamento_id)
+    {
+        $this->editar_lancamento = $lancamento_id;
+        $this->dispatchBrowserEvent('abrir-modal');
+    }
 
     protected $listeners = ['selectedSelEmpresaItem', 'selectedSelContaItem'];
     //gerenciamento select2
@@ -183,7 +190,7 @@ class Extrato extends Component
             }
             $this->Lancamentos = $lancamentos->orderBy('DataContabilidade')
             ->whereDoesntHave('SolicitacaoExclusao')
-            ->join('Contabilidade.Historicos','Historicos.ID','HistoricoID')
+            ->leftjoin('Contabilidade.Historicos','Historicos.ID','HistoricoID')
             ->get(["Lancamentos.ID",'Lancamentos.Valor','DataContabilidade',
             'Lancamentos.ContaCreditoID','Lancamentos.ContaDebitoID','Lancamentos.Descricao','Historicos.Descricao as HistoricoDescricao']);
 
@@ -277,10 +284,6 @@ class Extrato extends Component
             // $this->dispatchBrowserEvent('remove-line-exclusao', ['lancamento_id' => $lancamento_id]);
         }
         $this->search();
-    }
-    public function editarLancamento()
-    {
-        dd('Falta Criar Regra');
     }
 
     public function render()
