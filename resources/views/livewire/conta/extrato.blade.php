@@ -244,9 +244,9 @@
                                                 class="btn-sm btn btn-outline-info"
                                                 wire:click='confirmarLancamento({{ $lancamento->ID }})'>
                                                 @if ($lancamento->Conferido)
-                                                    <i class="fa fa-check-square-o"></i>
+                                                    <i class="cl-{{ $lancamento->ID }} fa fa-check-square-o"></i>
                                                 @else
-                                                    <i class="fa fa-square-o"></i>
+                                                    <i class="cl-{{ $lancamento->ID }} fa fa-square-o"></i>
                                                 @endif
                                             </button>
 
@@ -342,11 +342,11 @@
                     aria-labelledby="editarLancamentoModalLabel" aria-hidden="true">
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
-                            <div class="modal-header">
+                            {{-- <div class="modal-header">
                                 <h5 class="modal-title" id="editarLancamentoModalLabel">New message</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"
                                     aria-label="Close"></button>
-                            </div>
+                            </div> --}}
                             <div class="modal-body">
                                 @if ($editar_lancamento)
                                     @livewire('lancamento.editar-lancamento', ['lancamento_id' => $editar_lancamento])
@@ -354,83 +354,77 @@
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary"
-                                    data-bs-dismiss="modal">Close</button>
-                                <button type="button" class="btn btn-primary">Send message</button>
+                                    data-bs-dismiss="modal">Fechar</button>
+                                <button type="button" class="btn btn-primary">Salvar</button>
                             </div>
                         </div>
                     </div>
                 </div>
-
             </div>
-            @push('styles')
-                <!-- Styles -->
-                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" />
-                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" />
-                <link rel="stylesheet"
-                    href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
-            @endpush
-            @push('scripts')
-                <link rel="stylesheet"
-                    href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
-                <!-- Scripts -->
-                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-                <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.full.min.js"></script>
-                <script>
-                    $(document).ready(function() {
-                        //inicio-empresas
-                        window.initselEmpresaDrop = () => {
-                            $('#selEmpresa').select2({
-                                theme: 'bootstrap-5'
-                            });
-                        }
-                        initselEmpresaDrop();
-                        $('#selEmpresa').on('change', function(e) {
-                            livewire.emit('selectedSelEmpresaItem', e.target.value);
-                        });
-                        window.livewire.on('select2', () => {
-                            initselEmpresaDrop();
-                        });
-                        //fim-empresa
-                        //inicio-contas
-                        window.initselContaDrop = () => {
-                            $('#selConta').select2({
-                                theme: 'bootstrap-5'
-                            });
-                        }
-                        initselContaDrop();
-                        $('#selConta').on('change', function(e) {
-                            livewire.emit('selectedSelContaItem', e.target.value);
-                        });
-                        window.livewire.on('select2', () => {
-                            initselContaDrop();
-                        });
-                        //fim-contas
-                    });
+        </div>
+    </div>
+</div>
 
-                    $('form').submit(function(e) {
-                        e.preventDefault();
+@push('styles')
+    <!-- Styles -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" />
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+@endpush
+@push('scripts')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.full.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            //inicio-empresas
+            window.initselEmpresaDrop = () => {
+                $('#selEmpresa').select2({
+                    theme: 'bootstrap-5'
+                });
+            }
+            initselEmpresaDrop();
+            $('#selEmpresa').on('change', function(e) {
+                livewire.emit('selectedSelEmpresaItem', e.target.value);
+            });
+            window.livewire.on('select2', () => {
+                initselEmpresaDrop();
+            });
+            //fim-empresa
+            //inicio-contas
+            window.initselContaDrop = () => {
+                $('#selConta').select2({
+                    theme: 'bootstrap-5'
+                });
+            }
+            initselContaDrop();
+            $('#selConta').on('change', function(e) {
+                livewire.emit('selectedSelContaItem', e.target.value);
+            });
+            window.livewire.on('select2', () => {
+                initselContaDrop();
+            });
+            //fim-contas
+        });
+
+        $('form').submit(function(e) {
+            e.preventDefault();
+            $.confirm({
+                title: 'Confirmar!',
+                content: 'Confirma?',
+                buttons: {
+                    confirmar: function() {
+                        // $.alert('Confirmar!');
                         $.confirm({
                             title: 'Confirmar!',
-                            content: 'Confirma?',
+                            content: 'Deseja realmente continuar?',
                             buttons: {
                                 confirmar: function() {
                                     // $.alert('Confirmar!');
-                                    $.confirm({
-                                        title: 'Confirmar!',
-                                        content: 'Deseja realmente continuar?',
-                                        buttons: {
-                                            confirmar: function() {
-                                                // $.alert('Confirmar!');
-                                                e.currentTarget.submit()
-                                            },
-                                            cancelar: function() {
-                                                // $.alert('Cancelar!');
-                                            },
-
-                                        }
-                                    });
-
+                                    e.currentTarget.submit()
                                 },
                                 cancelar: function() {
                                     // $.alert('Cancelar!');
@@ -438,16 +432,33 @@
 
                             }
                         });
-                    });
 
-                    // ouvindo evetnos do livewire
-                    window.addEventListener('remove-line-exclusao', event => {
-                        $('.tr-' + event.detail.lancamento_id).remove();
-                        console.log(event.detail.lancamento_id);
-                    });
-                    window.addEventListener('abrir-modal', event => {
-                        alert('chamando modal');
-                        $('#editarLancamentoModal').show();
-                    })
-                </script>
-            @endpush
+                    },
+                    cancelar: function() {
+                        // $.alert('Cancelar!');
+                    },
+
+                }
+            });
+        });
+
+        // ouvindo evetnos do livewire
+        window.addEventListener('remove-line-exclusao', event => {
+            $('.tr-' + event.detail.lancamento_id).remove();
+            console.log(event.detail.lancamento_id);
+        });
+        window.addEventListener('abrir-modal', event => {
+            var myModal = new bootstrap.Modal(document.getElementById('editarLancamentoModal'))
+            myModal.show();
+        });
+        window.addEventListener('confirmarLancamento', event => {
+            if (event.detail.status) {
+                $('.cl-' + event.detail.lancamento_id).removeClass('fa-square-o');
+                $('.cl-' + event.detail.lancamento_id).addClass('fa-check-square-o');
+            } else {
+                $('.cl-' + event.detail.lancamento_id).removeClass('fa-check-square-o');
+                $('.cl-' + event.detail.lancamento_id).addClass('fa-square-o');
+            }
+        })
+    </script>
+@endpush

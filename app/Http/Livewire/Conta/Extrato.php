@@ -208,7 +208,8 @@ class Extrato extends Component
             $lancamento->Conferido = 1;
         }
         $lancamento->save();
-        $this->updated();
+        // $this->search();
+        $this->dispatchBrowserEvent('confirmarLancamento',['lancamento_id' => $lancamento_id,'status'=>$lancamento->Conferido]);
     }
 
     public function alterarDataVencidoRapido($lancamento_id, $acao)
