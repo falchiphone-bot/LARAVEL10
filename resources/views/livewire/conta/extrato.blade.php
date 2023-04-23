@@ -200,10 +200,9 @@
                                         <td>
                                             @if ($Conta->ID == $lancamento->ContaDebitoID)
                                                 {{ number_format($lancamento->Valor, 2, ',', '.') }}
-                                                @php($totalDebito += $lancamento->Valor)
-                                                @php($saldo += $lancamento->Valor)
-
                                                 @if (!in_array($lancamento->ID, $listaSoma))
+                                                    @php($totalDebito += $lancamento->Valor)
+                                                    @php($saldo += $lancamento->Valor)
                                                     @php($somatoria += $lancamento->Valor)
                                                 @endif
                                             @endif
@@ -211,10 +210,9 @@
                                         <td>
                                             @if ($Conta->ID == $lancamento->ContaCreditoID)
                                                 {{ number_format($lancamento->Valor, 2, ',', '.') }}
-                                                @php($totalCredito += $lancamento->Valor)
-                                                @php($saldo -= $lancamento->Valor)
-
                                                 @if (!in_array($lancamento->ID, $listaSoma))
+                                                    @php($totalCredito += $lancamento->Valor)
+                                                    @php($saldo -= $lancamento->Valor)
                                                     @php($somatoria += $lancamento->Valor)
                                                 @endif
                                             @endif
@@ -442,7 +440,7 @@
             });
         });
 
-        // ouvindo evetnos do livewire
+        // ouvindo eventos do livewire
         window.addEventListener('remove-line-exclusao', event => {
             $('.tr-' + event.detail.lancamento_id).remove();
             console.log(event.detail.lancamento_id);
