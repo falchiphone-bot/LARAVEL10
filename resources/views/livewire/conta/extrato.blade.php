@@ -44,7 +44,7 @@
             @endif
         </div>
 
-        <span>Conta Sel: {{ $Conta->ID }}</span>
+        {{-- <span>Conta Sel: {{ $Conta->ID }}</span> --}}
         <div class="card mt-3">
             <div class="card-header">
                 <div class="badge bg-success text-wrap"
