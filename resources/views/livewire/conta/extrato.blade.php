@@ -213,7 +213,7 @@
                                                 @if (!in_array($lancamento->ID, $listaSoma))
                                                     @php($totalCredito += $lancamento->Valor)
                                                     @php($saldo -= $lancamento->Valor)
-                                                    @php($somatoria += $lancamento->Valor)
+                                                    @php($somatoria -= $lancamento->Valor)
                                                 @endif
                                             @endif
                                         </td>
