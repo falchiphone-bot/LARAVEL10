@@ -5,7 +5,17 @@
         <div class="card-body">
             <div class="badge bg-success text-wrap" style="width: 100%;
              ;font-size: 16px; lign=˜Center˜">
+                <div class="row">
+                    <div class="row py-2">
+                        <div class="col-2">
+                            <a href="/PlanoContas/dashboard" class="btn btn-warning">Retornar para plano de contas</a>
+                        </div>
 
+                        <div class="col-2">
+                            <a href="/PlanoContas/pesquisaavancada" class="btn btn-primary">Pesquisa avançada em lançamentos</a>
+                        </div>
+                    </div>
+                </div>
                 <div class="row">
                     <div class="col-6">
                         <select class="form-control select2" id="selEmpresa" wire:model="selEmpresa">
@@ -23,11 +33,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="row py-2">
-                    <div class="col-2">
-                        <a href="/PlanoContas/dashboard" class="btn btn-warning">Retornar para plano de contas</a>
-                    </div>
-                </div>
+
             </div>
         </div>
         <div class="badge bg-success text-wrap" style="width: 100%;
