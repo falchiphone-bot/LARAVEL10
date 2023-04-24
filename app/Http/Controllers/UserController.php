@@ -2,18 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Model_has_PermissionCreateRequest;
-use App\Http\Requests\Model_has_RoleCreateRequest;
 use App\Http\Requests\UserCreateRequest;
+use App\Mail\RedefinicaoSenha;
 use App\Models\Empresa;
 use App\Models\User;
 use App\Models\EmpresaUsuario;
-use Faker\Guesser\Name;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Testing\Constraints\SeeInOrder;
-use Spatie\Permission\Contracts\Permission as ContractsPermission;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Password;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -143,5 +141,32 @@ class UserController extends Controller
         return back()->with('status', "Usuário {$user->name} EXCLUÍDO.");
 
         return redirect(route('Usuarios.index'))->with('success', 'Excluído com sucesso!');
+    }
+
+    public function fogotPassword(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ]);
+        $user = User::where('email', $request->email)->first();
+        if ($user) {
+            $token = hash('sha256',rand(500,5000));
+            //limpando tokens
+            DB::table('password_reset_tokens')->where('email',$request->email)->delete();
+
+            DB::table('password_reset_tokens')->insert([
+                'email' => $request->email,
+                'token' => $token,
+                'created_at' => date('d/m/Y H:i:s'),
+            ]);
+
+            $token = $request->schemeAndHttpHost()."/reset-password/$token";
+
+            Mail::to($request->email)->send(new RedefinicaoSenha($token));
+
+            return back()->with('status', 'Link de redefinição de senha enviado');
+        } else {
+            return back();
+        }
     }
 }

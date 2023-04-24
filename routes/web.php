@@ -1,11 +1,8 @@
 <?php
 
+use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\MailController;
-use App\Http\Controllers\OAuthController;
 use Illuminate\Support\Facades\Route;
-
-use App\Http\Controllers\Auth\GoogleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,17 +15,7 @@ use App\Http\Controllers\Auth\GoogleController;
 |
 */
 
-//Para autenticar no sistema sem usuario ou com usuário do google
-Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);
-Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
-
-//autenticação google paraenvio de email
-Route::prefix('/mail')->group(function() {
-    Route::view('home', 'mail.home')->name('mail.home');
-    Route::post('/get-token', [OAuthController::class, 'doGenerateToken'])->name('generate.token');
-    Route::get('/get-token', [OAuthController::class, 'doSuccessToken'])->name('token.success');
-    Route::post('/send', [MailController::class, 'send'])->name('send.email');
-});
+Route::resource('teste', App\Http\Controllers\TesteController::class);
 
 Route::get('/', function () {
     return redirect('/dashboard');
@@ -37,12 +24,10 @@ Route::get('/', function () {
 Route::get('/dashboard', function () {
     return view('dashboard');
 })
-->middleware(['auth', 'verified'])
-->name('dashboard');
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
-    Route::get('sendMail',[\App\Http\Controllers\MailController::class,'send']);
-
     #Rotas criadas automaticamente laravel
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -83,9 +68,6 @@ Route::middleware('auth')->group(function () {
     Route::resource('Empresas', App\Http\Controllers\EmpresaController::class);
 
     Route::resource('Teste', App\Http\Controllers\TesteController::class);
-
-    #Lancamentos
-    Route::resource('Lancamentos',App\Http\Controllers\LancamentosController::class);
 
     #Gerenciamento de Usuários
     Route::resource('Usuarios', App\Http\Controllers\UserController::class);
@@ -147,4 +129,5 @@ Route::middleware('auth')->group(function () {
         return view('Cobranca/dashboard');
     });
 });
+
 require __DIR__ . '/auth.php';
