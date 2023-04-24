@@ -19,7 +19,7 @@ class GoogleController extends Controller
     {
         return Socialite::driver('google')
         // ->scopes(['https://www.googleapis.com/auth/script.send_mail'])
-        ->scopes(['https://www.googleapis.com/auth/gmail.send'])
+        // ->scopes(['https://www.googleapis.com/auth/gmail.send'])
         ->redirect();
     }
 
