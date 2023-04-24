@@ -3,6 +3,8 @@
 use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\GoogleController;
+use App\Http\Controllers\OAuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,13 +35,25 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-
     # ENVIA EMAIL GMAIL
     // Route::get('/enviar-email', function () {
     //     $sender = new App\Services\GmailSender();
     //     $sender->send('usuario@example.com', 'Assunto do e-mail', 'Corpo da mensagem do e-mail');
     //     return "E-mail enviado com sucesso!";
     // });
+
+    //Para autenticar no sistema sem usuario ou com usuário do google
+    Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);
+    Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
+
+    //autenticação google paraenvio de email
+    Route::prefix('/mail')->group(function () {
+        Route::view('home', 'mail.home')->name('mail.home');
+        Route::post('/get-token', [OAuthController::class, 'doGenerateToken'])->name('generate.token');
+        Route::get('/get-token', [OAuthController::class, 'doSuccessToken'])->name('token.success');
+        Route::post('/send', [MailController::class, 'send'])->name('send.email');
+    });
+
     Route::get('EnviarEmail', [App\Http\Controllers\EnviaEmailController::class, 'enviaremail'])->name('gmail.enviaremail');
     Route::get('GoogleLogin', [App\Http\Controllers\EnviaEmailController::class, 'googlelogin'])->name('google.login');
 
@@ -51,18 +65,18 @@ Route::middleware('auth')->group(function () {
     Route::get('PlanoContas/pesquisaavancada', [App\Http\Controllers\GoogleCalendarController::class, 'pesquisaavancada'])->name('planocontas.pesquisaavancada');
 
     #testes
-    Route::get('Agenda',[\App\Http\Controllers\TesteController::class,'googleAgenda']);
+    Route::get('Agenda', [\App\Http\Controllers\TesteController::class, 'googleAgenda']);
 
     #GoogleCalendar
     Route::get('Agenda/starthoje', [App\Http\Controllers\GoogleCalendarController::class, 'starthoje'])->name('Agenda.starthoje');
     Route::get('Agenda/startanterior', [App\Http\Controllers\GoogleCalendarController::class, 'startanterior'])->name('Agenda.startanterior');
     Route::get('Agenda/startposterior', [App\Http\Controllers\GoogleCalendarController::class, 'startposterior'])->name('Agenda.startposterior');
-    Route::get('Agenda/dashboard', [App\Http\Controllers\GoogleCalendarController::class, 'dashboard'])->name('google.dashboard');
+    Route::get('Agenda/dashboard/{token?}', [App\Http\Controllers\GoogleCalendarController::class, 'dashboard'])->name('google.dashboard');
     Route::resource('Agenda', App\Http\Controllers\GoogleCalendarController::class);
 
     #Empresas
 
-    Route::put('Empresas/desbloquearempresas' ,[App\Http\Controllers\EmpresaController::class, 'desbloquearempresas'])->name('Empresas.DesbloquearEmpresas');
+    Route::put('Empresas/desbloquearempresas', [App\Http\Controllers\EmpresaController::class, 'desbloquearempresas'])->name('Empresas.DesbloquearEmpresas');
     Route::put('Empresas/bloquearempresas', [App\Http\Controllers\EmpresaController::class, 'bloquearempresas'])->name('Empresas.BloquearEmpresas');
     Route::put('Empresas/desbloquearempresas', [App\Http\Controllers\EmpresaController::class, 'desbloquearempresas'])->name('Empresas.DesbloquearEmpresas');
     Route::resource('Empresas', App\Http\Controllers\EmpresaController::class);
@@ -103,7 +117,6 @@ Route::middleware('auth')->group(function () {
 
     #Faturamentos
     Route::resource('Faturamentos', App\Http\Controllers\FaturamentosController::class);
-
 
     #Sicredi
     Route::get('Sicredi/ConsultaBoleto', App\Http\Livewire\Sicredi\ConsultaBoleto::class);
