@@ -18,9 +18,11 @@ use App\Http\Controllers\Auth\GoogleController;
 |
 */
 
+//Para autenticar no sistema sem usuario ou com usuário do google
 Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);
 Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
+//autenticação google paraenvio de email
 Route::prefix('/mail')->group(function() {
     Route::view('home', 'mail.home')->name('mail.home');
     Route::post('/get-token', [OAuthController::class, 'doGenerateToken'])->name('generate.token');
