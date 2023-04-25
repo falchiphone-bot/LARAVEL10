@@ -67,11 +67,14 @@ class OAuthController extends Controller
                 $token = $tokenObj->getToken();
                 $refresh_token = $tokenObj->getRefreshToken();
                 if( $refresh_token != null && !empty($refresh_token) ) {
-                    return redirect(route('mail.home'))->with('token', $refresh_token);
+                    session(['tokengoogle'=>$refresh_token]);
+                    return redirect(route('google.dashboard'))->with('token', $refresh_token);
                 } elseif ( $token != null && !empty($token) ) {
-                    return redirect(route('mail.home'))->with('token', $token);
+                    session(['tokengoogle'=>$token]);
+                    return redirect(route('google.dashboard'))->with('token', $token);
                 } else {
-                    return redirect(route('mail.home'))->with('error', 'Unable to retreive token.');
+                    session(['tokengoogle'=>false]);
+                    return redirect(route('google.dashboard'))->with('error', 'Não recebeu o token.');
                 }
         } catch(IdentityProviderException $e) {
             return redirect(route('mail.home'))->with('error', 'Exception: ' . $e->getMessage());

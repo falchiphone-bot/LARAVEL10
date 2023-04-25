@@ -15,6 +15,12 @@ use Swift_Mailer;
 use Swift_Message;
 use Swift_SmtpTransport;
 
+use League\OAuth2\Client\Provider\Google;
+use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\OAuth;
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+
 // addAttendee   - para incluir participante no evento
 
 // Inclua o autoload do Composer
@@ -25,6 +31,13 @@ use Swift_SmtpTransport;
 
 class GoogleCalendarController extends Controller
 {
+    private $email;
+    private $name;
+    private $client_id;
+    private $client_secret;
+    private $token;
+    private $provider;
+
     public function __construct()
     {
         $this->middleware('auth');
@@ -33,14 +46,21 @@ class GoogleCalendarController extends Controller
         $this->middleware(['permission:AGENDA - EDITAR'])->only(['edit', 'update']);
         // $this->middleware(['permission:AGENDA - VER'])->only(['edit', 'update']);
         $this->middleware(['permission:AGENDA - EXCLUIR'])->only('destroy');
+
+        $this->client_id = config('services.google.client_id');
+        $this->client_secret = config('services.google.client_secret');
+        $this->provider = new Google([
+            'clientId' => $this->client_id,
+            'clientSecret' => $this->client_secret,
+        ]);
     }
 
     /**
      * Display a listing of the resource.
      */
-    public function dashboard()
+    public function dashboard(Request $request)
     {
-        return view('Google.dashboard');
+        return view('Google.dashboard')->with('tokenGoogle', session('tokengoogle'));
     }
 
     // public function index()
@@ -168,11 +188,6 @@ class GoogleCalendarController extends Controller
 
         foreach ($usuario as $user) {
             if ($user->hasPermissionTo('AGENDA - RECEBER EMAIL DE INCLUSAO')) {
-                // Criar uma nova instância do SwiftMailer
-                $mailer = new Swift_Mailer(new Swift_SmtpTransport(env('MAIL_HOST'), env('MAIL_PORT'), env('MAIL_ENCRYPTION')));
-                $mailer->getTransport()->setUsername(env('MAIL_USERNAME'));
-                $mailer->getTransport()->setPassword(env('MAIL_PASSWORD'));
-
                 $html =
                     '<!DOCTYPE html>
             <html>
@@ -181,9 +196,6 @@ class GoogleCalendarController extends Controller
             </head>
             <body>
                 <h1>Inclusão na Agenda</h1>
-
-
-
                 <p>Olá, ' .
                     $user->name .
                     ',</p>
@@ -192,30 +204,19 @@ class GoogleCalendarController extends Controller
                 <p>Equipe de Agenda contabilidadeprf</p>
             </body>
             </html>';
-
-                // Criar a mensagem de e-mail
-                $message = (new Swift_Message('Alterado evento na agenda via API. = ' . $request->name))
-                    ->setFrom([env('MAIL_FROM_ADDRESS') => 'Agenda contabilidadeprf - EVENTO ALTERADO'])
-                    ->setTo([$user->email => $user->name])
-                    ->setBody('Titulo da agenda: ' . $request->name . ' <-///-> Link para a agenda: ' . $html, 'text/html');
-
-                // Enviar a mensagem de e-mail
-                $result = $mailer->send($message);
+                $result = $this->enviarEmail($html, 'Email do Sistema de Contabilidade');
 
                 // verifica se o e-mail foi enviado com sucesso
-                if ($result) {
+                if ($result['success']) {
                     $Enviado .= $user->name . ', ';
                 } else {
                     $NaoEnviado .= $user->name . ', ';
                 }
-
             }
-
         }
-            return redirect(route('Agenda.index'))
+        return redirect(route('Agenda.index'))
             ->with('success', 'Email enviados com sucesso para ' . $Enviado)
             ->with('error', 'Não foram enviados para ' . $NaoEnviado);
-
     }
 
     public function show(string $id)
@@ -224,8 +225,6 @@ class GoogleCalendarController extends Controller
         $evento = $evento->find($id);
 
         $participantes = $evento->attendees;
-
-
 
         return view('Google.show', compact('evento', 'participantes'));
     }
@@ -267,11 +266,6 @@ class GoogleCalendarController extends Controller
 
         foreach ($usuario as $user) {
             if ($user->hasPermissionTo('AGENDA - RECEBER EMAIL DE EDICAO')) {
-                // Criar uma nova instância do SwiftMailer
-                $mailer = new Swift_Mailer(new Swift_SmtpTransport(env('MAIL_HOST'), env('MAIL_PORT'), env('MAIL_ENCRYPTION')));
-                $mailer->getTransport()->setUsername(env('MAIL_USERNAME'));
-                $mailer->getTransport()->setPassword(env('MAIL_PASSWORD'));
-
                 $html =
                     '<!DOCTYPE html>
             <html>
@@ -280,9 +274,6 @@ class GoogleCalendarController extends Controller
             </head>
             <body>
                 <h1>Alteração na Agenda</h1>
-
-
-
                 <p>Olá, ' .
                     $user->name .
                     ',</p>
@@ -291,18 +282,10 @@ class GoogleCalendarController extends Controller
                 <p>Equipe de Agenda contabilidadeprf</p>
             </body>
             </html>';
-
-                // Criar a mensagem de e-mail
-                $message = (new Swift_Message('Alterado evento na agenda via API. = ' . $evento->name))
-                    ->setFrom([env('MAIL_FROM_ADDRESS') => 'Agenda contabilidadeprf - EVENTO ALTERADO'])
-                    ->setTo([$user->email => $user->name])
-                    ->setBody('Titulo da agenda: ' . $evento->name . ' <-///-> Link para a agenda: ' . $evento->htmlLink . $html, 'text/html');
-
-                // Enviar a mensagem de e-mail
-                $result = $mailer->send($message);
+                $result = $this->enviarEmail($html, 'Email do Sistema de Contabilidade');
 
                 // verifica se o e-mail foi enviado com sucesso
-                if ($result) {
+                if ($result['success']) {
                     $Enviado .= $user->name . ', ';
                 } else {
                     $NaoEnviado .= $user->name . ', ';
@@ -335,11 +318,6 @@ class GoogleCalendarController extends Controller
 
         foreach ($usuario as $user) {
             if ($user->hasPermissionTo('AGENDA - RECEBER EMAIL DE EXCLUSAO')) {
-                // Criar uma nova instância do SwiftMailer
-                $mailer = new Swift_Mailer(new Swift_SmtpTransport(env('MAIL_HOST'), env('MAIL_PORT'), env('MAIL_ENCRYPTION')));
-                $mailer->getTransport()->setUsername(env('MAIL_USERNAME'));
-                $mailer->getTransport()->setPassword(env('MAIL_PASSWORD'));
-
                 $html =
                     '<!DOCTYPE html>
             <html>
@@ -348,9 +326,6 @@ class GoogleCalendarController extends Controller
             </head>
             <body>
                 <h1>Alteração na Agenda</h1>
-
-
-
                 <p>Olá, ' .
                     $user->name .
                     ',</p>
@@ -360,28 +335,61 @@ class GoogleCalendarController extends Controller
             </body>
             </html>';
 
-                // Criar a mensagem de e-mail
-                $message = (new Swift_Message('Alterado evento na agenda via API. = ' . $evento->name))
-                    ->setFrom([env('MAIL_FROM_ADDRESS') => 'Agenda contabilidadeprf - EVENTO ALTERADO'])
-                    ->setTo([$user->email => $user->name])
-                    ->setBody('Titulo da agenda: ' . $evento->name . ' <-///-> Link para a agenda: ' . $evento->htmlLink . $html, 'text/html');
-
-                // Enviar a mensagem de e-mail
-                $result = $mailer->send($message);
+                $result = $this->enviarEmail($html, 'Email do Sistema de Contabilidade');
 
                 // verifica se o e-mail foi enviado com sucesso
-                if ($result) {
+                if ($result['success']) {
                     $Enviado .= $user->name . ', ';
                 } else {
                     $NaoEnviado .= $user->name . ', ';
                 }
-
             }
-
         }
-            return redirect(route('Agenda.index'))
+        return redirect(route('Agenda.index'))
             ->with('success', 'Email enviados com sucesso para ' . $Enviado)
             ->with('error', 'Não foram enviados para ' . $NaoEnviado);
+    }
 
+    public function enviarEmail($html, $altBody)
+    {
+        $this->email = Auth()->user()->email; // ex. example@gmail.com
+        $this->name = Auth()->user()->name; // ex. Abidhusain
+
+        $this->token = session('tokengoogle');
+
+        $mail = new PHPMailer(true);
+        try {
+            $mail->isSMTP();
+            $mail->SMTPDebug = SMTP::DEBUG_OFF;
+            $mail->Host = 'smtp.gmail.com';
+            $mail->Port = 465;
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            $mail->SMTPAuth = true;
+            $mail->AuthType = 'XOAUTH2';
+            $mail->setOAuth(
+                new OAuth([
+                    'provider' => $this->provider,
+                    'clientId' => $this->client_id,
+                    'clientSecret' => $this->client_secret,
+                    'refreshToken' => $this->token,
+                    'userName' => $this->email,
+                ]),
+            );
+
+            $mail->setFrom($this->email, $this->name);
+            $mail->addAddress($this->email, $this->name);
+            $mail->addCC('mauricio@net-rubi.com.br');
+            $mail->Subject = 'Enviado pelo sistema Laravel 10';
+            $mail->CharSet = PHPMailer::CHARSET_UTF8;
+            $mail->msgHTML($html);
+            $mail->AltBody = $altBody;
+            if ($mail->send()) {
+                return ['success' => 'E-mail enviado com sucesso!'];
+            } else {
+                return ['error' => 'Erro ao enviar e-mail!'];
+            }
+        } catch (Exception $e) {
+            dd($e);
+        }
     }
 }
