@@ -4,125 +4,93 @@
             <h4><strong>Edição</strong> de lançamentos</h4>
         </div>
         <div class="card-body">
-            <div class="default-tab">
-                <nav>
-                    <div class="nav nav-tabs" id="nav-tab" role="tablist">
-                        <a class="nav-item nav-link active show" id="nav-lancamento-tab" data-toggle="tab"
-                            href="#nav-lancamento" role="tab" aria-controls="nav-lancamento"
-                            aria-selected="true">Lançamento</a>
-                        <a class="nav-item nav-link" id="nav-comentarios-tab" data-toggle="tab" href="#nav-comentarios"
-                            role="tab" aria-controls="nav-comentarios" aria-selected="false">Comentarios</a>
-                        <a class="nav-item nav-link" id="nav-arquivos-tab" data-toggle="tab" href="#nav-arquivos"
-                            role="tab" aria-controls="nav-arquivos" aria-selected="false">Arquivos</a>
-                        <a class="nav-item nav-link" id="nav-trocaempresa-tab" data-toggle="tab"
-                            href="#nav-trocaempresa" role="tab" aria-controls="nav-trocaempresa"
-                            aria-selected="false">Troca de Empresa</a>
-                    </div>
-                </nav>
-                <div class="tab-content pl-3 pt-2" id="nav-tabContent">
-                    <div class="tab-pane fade active show" id="nav-lancamento" role="tabpanel"
-                        aria-labelledby="nav-lancamento-tab">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="form-group col-sm-3">
-                                    <label for="datacontabilidade" class=" form-control-label">Data
-                                        Contabilidade</label>
-                                    <input type="text" id="datacontabilidade" name="DataContabilidade"
-                                        class="form-control required dataBusca hasDatepicker" value="13/04/2023">
-                                    <span class="oculto badge badge-danger">Informação obrigatória</span>
-                                </div>
 
-                                <div class="form-group col-sm-3">
-                                    <label for="valor" class=" form-control-label">Valor</label>
-                                    <input type="text" id="valor" name="Valor" placeholder="R$"
-                                        class="form-control required" value="58,63">
-                                    <span class="oculto badge badge-danger">Informação obrigatória</span>
-                                </div>
-
-                                <div class="form-group col-sm-6">
-                                    <label for="descricao" class=" form-control-label">Descrição</label>
-                                    <input type="text" id="descricao" name="Descricao" placeholder=""
-                                        class="form-control" value="SAAE Rua: Quatorze, 783 - Sta Fé do Sul">
-                                    <span class="oculto badge badge-danger">Informação obrigatória</span>
-                                </div>
-
-                                <div class="form-group col-sm-6">
-                                    <label for="contadebito" class=" form-control-label">
-                                        <a href="/financeiro/contas/extrato/3590">Conta Débito</a>
-                                    </label>
-                                    <select id="contadebito" name="ContaDebitoID" class="form-control select2">
-                                        <option value="12182"> MONTAGEM DE REDE DE FIBRA ÓTICA - COSMORAMA</option>
-                                        <option value="5892">ZYXEL COMMUNICATIONS DO BRASIL LTDA</option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group col-sm-6">
-                                    <label for="historico" class=" form-control-label">Históricos</label>
-                                    <select id="historico" name="HistoricoID"
-                                        class="form-control select2 select2-hidden-accessible"
-                                        data-select2-id="historico" tabindex="-1" aria-hidden="true">
-                                        <option value="" data-select2-id="6"></option>
-                                        <option value="84"></option>
-                                        <option value="26"> ELIMINADO- TRANSF.AUTORIZ.ENTRE C/C MIGUEL MAGOSSI
-                                            FALCHI
-                                        </option>
-                                    </select>
-                                </div>
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="lancamento-tab" data-bs-toggle="tab" data-bs-target="#lancamento"
+                        type="button" role="tab" aria-controls="lancamento"
+                        aria-selected="true">Lançamento</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="comentarios-tab" data-bs-toggle="tab" data-bs-target="#comentarios"
+                        type="button" role="tab" aria-controls="comentarios" aria-selected="false">Comentários</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="arquivos-tab" data-bs-toggle="tab" data-bs-target="#arquivos"
+                        type="button" role="tab" aria-controls="arquivos" aria-selected="false">Arquivos</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="troca-empresa-tab" data-bs-toggle="tab" data-bs-target="#troca-empresa"
+                        type="button" role="tab" aria-controls="troca-empresa" aria-selected="false">Troca Empresa</button>
+                </li>
+            </ul>
+            <div class="tab-content" id="myTabContent">
+                <div class="tab-pane fade show active" id="lancamento" role="tabpanel" aria-labelledby="lancamento-tab">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="form-group col-sm-12">
+                                <label for="descricao" class=" form-control-label">Descrição</label>
+                                <input type="text" id="descricao" name="Descricao" placeholder=""
+                                    class="form-control" value="SAAE Rua: Quatorze, 783 - Sta Fé do Sul">
+                                <span class="oculto badge badge-danger">Informação obrigatória</span>
                             </div>
-                        </div>
-                    </div>
-                    <div class="tab-pane fade" id="nav-comentarios" role="tabpanel"
-                        aria-labelledby="nav-comentarios-tab">
-                        <div class="form-group col-sm-12">
-                            <label for="comentario" class=" form-control-label">Novo comentário</label>
-                            <input type="text" id="comentario" name="Comentario" placeholder=""
-                                class="form-control">
-                            <span class="oculto badge badge-danger">Informação obrigatória</span>
-                        </div>
 
-                        <div class="form-group col-sm-12">
-                        </div>
-                    </div>
-                    <div class="tab-pane fade" id="nav-arquivos" role="tabpanel" aria-labelledby="nav-arquivos-tab">
-                        <div class="form-group col-sm-6">
-                            <label for="rotulo" class=" form-control-label">Rótulo do arquivo</label>
-                            <input type="text" id="rotulo" name="Rotulo" placeholder=""
-                                class="form-control">
-                            <span class="oculto badge badge-danger">Informação obrigatória</span>
-                        </div>
-
-                        <div class="form-group col-sm-6">
-                            <label for="documento" class=" form-control-label">Selecionar arquivo</label>
-                            <input type="file" id="documento" name="Documento" placeholder=""
-                                class="form-control">
-                            <span class="oculto badge badge-danger">Informação obrigatória</span>
-                        </div>
-
-                        <div class="form-group">
                             <div class="card">
-                                <div class="card-header"><strong>Arquivos anexados</strong></div>
                                 <div class="card-body">
-                                    <!-- //documentos importados de contas a pagar -->
+                                    <div class="form-group col-sm-12">
+                                        <label for="contadebito" class=" form-control-label">
+                                            <a href="/financeiro/contas/extrato/3590">Conta Débito</a>
+                                        </label>
+                                        <select id="contadebito" name="ContaDebitoID" class="form-control select2">
+                                            <option value="12182"> MONTAGEM DE REDE DE FIBRA ÓTICA - COSMORAMA
+                                            </option>
+                                            <option value="5892">ZYXEL COMMUNICATIONS DO BRASIL LTDA</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-sm-12">
+                                        <label for="contacredito" class=" form-control-label">
+                                            <a href="/financeiro/contas/extrato/3590">Conta Crédito</a>
+                                        </label>
+                                        <select id="contacredito" name="ContaCreditoID" class="form-control select2">
+                                            <option value="12182"> MONTAGEM DE REDE DE FIBRA ÓTICA - COSMORAMA
+                                            </option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                    </div>
-                    <div class="tab-pane fade" id="nav-trocaempresa" role="tabpanel"
-                        aria-labelledby="nav-trocaempresa-tab">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="col-md-12">
-                                    <label for="tdebito" style="width: 100%;">
-                                        <strong>Conta Débito</strong>
-                                </div>
+                            <div class="form-group col-sm-12">
+                                <label for="historicoID" class=" form-control-label">
+                                    Histórico
+                                </label>
+                                <select id="historicoID" name="HistoricoID" class="form-control select2">
+                                    <option value="12182"> MONTAGEM DE REDE DE FIBRA ÓTICA - COSMORAMA
+                                    </option>
+                                </select>
+                            </div>
 
-                                <div class="col-md-12 result">
-                                </div>
+                            <div class="form-group col-sm-3">
+                                <label for="datacontabilidade" class=" form-control-label">Data
+                                    Contabilidade</label>
+                                <input type="text" id="datacontabilidade" name="DataContabilidade"
+                                    class="form-control required dataBusca hasDatepicker" value="13/04/2023">
+                                <span class="oculto badge badge-danger">Informação obrigatória</span>
+                            </div>
 
+                            <div class="form-group col-sm-3">
+                                <label for="valor" class=" form-control-label">Valor</label>
+                                <input type="text" id="valor" name="Valor" placeholder="R$"
+                                    class="form-control required" value="58,63">
+                                <span class="oculto badge badge-danger">Informação obrigatória</span>
                             </div>
                         </div>
                     </div>
+                </div>
+                <div class="tab-pane fade" id="comentarios" role="tabpanel" aria-labelledby="comentarios-tab">
+                    {{-- comentarios --}}
+                </div>
+                <div class="tab-pane fade" id="arquivos" role="tabpanel" aria-labelledby="arquivos-tab">
+                    {{-- codigo de arquivos --}}
                 </div>
             </div>
         </div>
