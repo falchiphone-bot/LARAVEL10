@@ -46,12 +46,12 @@ class Conta extends Model
     ];
 
     /**
-     * Get the PlanoConta associated with the Conta
+     * Get the PlanoConta that owns the Conta
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function PlanoConta(): HasOne
+    public function PlanoConta()
     {
-        return $this->hasOne(PlanoConta::class, 'ID', 'Planocontas_id');
+        return $this->belongsTo(PlanoConta::class, 'Planocontas_id','ID');
     }
 }

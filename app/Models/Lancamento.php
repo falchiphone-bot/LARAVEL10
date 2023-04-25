@@ -33,7 +33,7 @@ class Lancamento extends Model
     ];
 
     protected $casts = [
-        // 'DataContabilidade' => 'datetime:Y-m-d',
+        'DataContabilidade' => 'date:Y-m-d',
     ];
 
     /**
@@ -80,5 +80,9 @@ class Lancamento extends Model
     public function getDataContabilidadeAttribute($value)
     {
         return Carbon::createFromDate($value);
+    }
+    public function setDataContabilidadeAttribute($value)
+    {
+        return Carbon::createFromDate($value)->format('d/m/Y');
     }
 }

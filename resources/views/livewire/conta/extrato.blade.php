@@ -346,20 +346,10 @@
                     aria-labelledby="editarLancamentoModalLabel" aria-hidden="true">
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
-                            {{-- <div class="modal-header">
-                                <h5 class="modal-title" id="editarLancamentoModalLabel">New message</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                    aria-label="Close"></button>
-                            </div> --}}
                             <div class="modal-body">
                                 @if ($editar_lancamento)
                                     @livewire('lancamento.editar-lancamento', ['lancamento_id' => $editar_lancamento])
                                 @endif
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary"
-                                    data-bs-dismiss="modal">Fechar</button>
-                                <button type="button" class="btn btn-primary">Salvar</button>
                             </div>
                         </div>
                     </div>

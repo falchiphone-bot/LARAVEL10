@@ -17,7 +17,7 @@ use App\Http\Controllers\OAuthController;
 |
 */
 
-Route::resource('teste', App\Http\Controllers\TesteController::class);
+Route::get('teste/{lancamento_id}', App\Http\Livewire\Lancamento\EditarLancamento::class);
 
 Route::get('/', function () {
     return redirect('/dashboard');
