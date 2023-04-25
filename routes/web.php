@@ -29,6 +29,11 @@ Route::get('/dashboard', function () {
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+ //Para autenticar no sistema sem usuario ou com usuário do google
+ Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);
+ Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
+
+
 Route::middleware('auth')->group(function () {
     #Rotas criadas automaticamente laravel
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -42,9 +47,7 @@ Route::middleware('auth')->group(function () {
     //     return "E-mail enviado com sucesso!";
     // });
 
-    //Para autenticar no sistema sem usuario ou com usuário do google
-    Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);
-    Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
+
 
     //autenticação google paraenvio de email
     Route::prefix('/mail')->group(function () {
