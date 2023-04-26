@@ -20,11 +20,11 @@
                             <div class="badge bg-warning text-wrap"
                                 style="width: 100%;
                             ; font-size: 16px;a lign=˜Center˜ ">
-                                Opções para o sistema de moedas e valores
+                                Calendário Google
                             </div>
                         </thead>
                         <tbody>
-
+EURO H
 
                             @can('MOEDAS - LISTAR')
                                 <tr>

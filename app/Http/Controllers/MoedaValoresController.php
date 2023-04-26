@@ -32,7 +32,7 @@ class MoedaValoresController extends Controller
 
     public function index()
     {
-       $moedasvalores= MoedasValores::OrderBy('data')->get();
+       $moedasvalores= MoedasValores::OrderBy('data','desc')->get();
 
         return view('MoedasValores.index',compact('moedasvalores'));
     }
