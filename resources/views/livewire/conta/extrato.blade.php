@@ -12,7 +12,8 @@
                         </div>
 
                         <div class="col-2">
-                            <a href="/PlanoContas/pesquisaavancada" class="btn btn-primary">Pesquisa avançada em lançamentos</a>
+                            <a href="/PlanoContas/pesquisaavancada" class="btn btn-primary">Pesquisa avançada em
+                                lançamentos</a>
                         </div>
                     </div>
                 </div>
@@ -374,34 +375,28 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.full.min.js"></script>
     <script>
         $(document).ready(function() {
-            //inicio-empresas
-            window.initselEmpresaDrop = () => {
-                $('#selEmpresa').select2({
-                    theme: 'bootstrap-5'
-                });
-            }
-            initselEmpresaDrop();
             $('#selEmpresa').on('change', function(e) {
-                livewire.emit('selectedSelEmpresaItem', e.target.value);
+                @this.set('selEmpresa', e.target.value);
+            });
+            $('#selConta').on('change', function(e) {
+                @this.set('selConta', e.target.value);
             });
             window.livewire.on('select2', () => {
-                initselEmpresaDrop();
-            });
-            //fim-empresa
-            //inicio-contas
-            window.initselContaDrop = () => {
-                $('#selConta').select2({
+                $('.select2').select2({
                     theme: 'bootstrap-5'
                 });
-            }
-            initselContaDrop();
-            $('#selConta').on('change', function(e) {
-                livewire.emit('selectedSelContaItem', e.target.value);
-            });
-            window.livewire.on('select2', () => {
-                initselContaDrop();
             });
             //fim-contas
+            //scripts para troca de empresa
+
+            $(document).on('change', '#novacontadebito', function(e) {
+                console.log('ok');
+                Livewire.emitTo('lancamento.troca-empresa','setContaDebito',$(this).val());
+            });
+            $(document).on('change', '#novacontacredito', function(e) {
+                console.log('ok');
+                Livewire.emitTo('lancamento.troca-empresa','setContaCredito',$(this).val());
+            });
         });
 
         $('form').submit(function(e) {
@@ -444,7 +439,13 @@
         window.addEventListener('abrir-modal', event => {
             var myModal = new bootstrap.Modal(document.getElementById('editarLancamentoModal'))
             myModal.show();
+
+            var myModalEl = document.getElementById('editarLancamentoModal')
+            myModalEl.addEventListener('hidden.bs.modal', function(event) {
+                Livewire.emit('search')
+            })
         });
+
         window.addEventListener('confirmarLancamento', event => {
             if (event.detail.status) {
                 $('.cl-' + event.detail.lancamento_id).removeClass('fa-square-o');
@@ -453,6 +454,6 @@
                 $('.cl-' + event.detail.lancamento_id).removeClass('fa-check-square-o');
                 $('.cl-' + event.detail.lancamento_id).addClass('fa-square-o');
             }
-        })
+        });
     </script>
 @endpush

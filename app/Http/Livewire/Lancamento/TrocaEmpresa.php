@@ -4,6 +4,8 @@ namespace App\Http\Livewire\Lancamento;
 
 use App\Models\Conta;
 use App\Models\Empresa;
+use App\Models\Lancamento;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -13,11 +15,27 @@ class TrocaEmpresa extends Component
     public $novaempresa;
     public $novacontadebito;
     public $novacontacredito;
+    public $successMsg;
     public $contasnovas = [];
 
     public $lancamento_id;
 
-    protected $listeners = ['refreshComponent' => '$refresh'];
+    protected $listeners = ['setContaDebito','setContaCredito'];
+
+    public function setContaDebito($id)
+    {
+        $this->novacontadebito = $id;
+    }
+    public function setContaCredito($id)
+    {
+        $this->novacontacredito = $id;
+    }
+
+    protected $rules = [
+        'novaempresa' => 'required',
+        'novacontadebito' => 'required',
+        'novacontacredito' => 'required',
+    ];
 
     public function empresaSelecionada()
     {
@@ -25,11 +43,63 @@ class TrocaEmpresa extends Component
         ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
         ->orderBy('PlanoContas.Descricao')
         ->pluck('PlanoContas.Descricao', 'Contas.ID');
-        $this->emit('refreshComponent');
+
+        // $this->emit('select2');
     }
+
+    public function transferirLancamento()
+    {
+        $this->validate();
+        if (!$this->temBloqueio($this->lancamento_id)) {
+            $lancamento = Lancamento::find($this->lancamento_id);
+            $lancamento->EmpresaID = $this->novaempresa;
+            $lancamento->ContaDebitoID = $this->novacontadebito;
+            $lancamento->ContaCreditoID = $this->novacontacredito;
+            if ($lancamento->save()) {
+                session()->flash('message','Lançamento atualizado');
+                $this->emitTo('conta.extrato','trocaEmpresa');
+            }else {
+                $this->addError('save','Erro ao atualizar lançamento');
+            }
+        }
+
+    }
+
+    public function temBloqueio($lancamento_id)
+    {
+        $lancamento = Lancamento::find($lancamento_id);
+        $dataLancamento = Carbon::createFromDate($lancamento->DataContabilidade);
+
+        $data_conta_debito = $lancamento->ContaDebito->Bloqueiodataanterior;
+
+        if ($data_conta_debito) {
+            if ($data_conta_debito->greaterThanOrEqualTo($dataLancamento)) {
+                $this->addError('data_bloqueio', 'Bloqueio de Data na Conta Debito');
+                return true;
+            }
+        }
+        $data_empresa = Empresa::find($lancamento->EmpresaID)->Bloqueiodataanterior;
+        if ($data_empresa) {
+            if ($data_empresa->greaterThanOrEqualTo($dataLancamento)) {
+                $this->addError('data_bloqueio', 'Bloqueio de Data na Empresa');
+                return true;
+            }
+        }
+        if ($lancamento->ContaCredito->Bloqueiodataanterior) {
+            if ($lancamento->ContaCredito->Bloqueiodataanterior->greaterThanOrEqualTo($dataLancamento)) {
+                $this->addError('data_bloqueio', 'Bloqueio de Data na Conta Credito');
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     public function hydrate()
     {
         $this->emit('select2');
+        $this->resetErrorBag();
+        $this->resetValidation();
     }
 
     public function mount($lancamento_id)

@@ -42,10 +42,17 @@ class Extrato extends Component
     public function editarLancamento($lancamento_id)
     {
         $this->editar_lancamento = $lancamento_id;
+        $this->emitTo('lancamento.editar-lancamento','alterarIdLancamento',$lancamento_id);
         $this->dispatchBrowserEvent('abrir-modal');
     }
 
-    protected $listeners = ['selectedSelEmpresaItem', 'selectedSelContaItem','refreshComponent' => '$refresh'];
+    protected $listeners = ['selectedSelEmpresaItem', 'selectedSelContaItem', 'search'];
+
+    // public function select2()
+    // {
+    //     $this->dispatchBrowserEvent('select2');
+    // }
+
     //gerenciamento select2
     public function selectedSelEmpresaItem($item)
     {
@@ -208,7 +215,6 @@ class Extrato extends Component
             $lancamento->Conferido = 1;
         }
         $lancamento->save();
-        $this->emit('refreshComponent');
     }
 
     public function alterarDataVencidoRapido($lancamento_id, $acao)

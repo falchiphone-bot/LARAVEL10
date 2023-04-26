@@ -97,7 +97,7 @@ class ListarLiquidacao extends Component
                     'ContaDebitoID' => $historico->ContaDebitoID,
                     'ContaCreditoID' => $historico->ContaCreditoID,
                     'Usuarios_id' => auth()->user()->id,
-                    'DataContabilidade' => $dataLiquidacao->format('d/m/Y'),
+                    'DataContabilidade' => $dataLiquidacao,
                     'Created' => date('d/m/Y H:i:s'),
                     'HistoricoID' => $historico->ID,
                 ]);

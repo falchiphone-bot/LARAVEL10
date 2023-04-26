@@ -15,39 +15,59 @@
                         </ul>
                     </div>
                 @endif
-                @if ($successMsg)
+                @if (session()->has('message'))
                     <div class="alert alert-success">
-                        {{ $successMsg }}
+                        {{ session('message') }}
                     </div>
                 @endif
             </div>
 
             <ul class="nav nav-tabs" id="myTab" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="lancamento-tab" data-bs-toggle="tab"
-                        data-bs-target="#lancamento" type="button" role="tab" aria-controls="lancamento"
+                    <button class="nav-link @if ($currentTab == 'lancamento') active @endif" id="lancamento-tab"
+                        data-bs-toggle="tab" wire:click="sessionTab('lancamento')" data-bs-target="#lancamento"
+                        type="button" role="tab" aria-controls="lancamento"
                         aria-selected="true">Lançamento</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="comentarios-tab" data-bs-toggle="tab" data-bs-target="#comentarios"
-                        type="button" role="tab" aria-controls="comentarios"
+                    <button class="nav-link @if ($currentTab == 'comentario') active @endif" id="comentarios-tab"
+                        data-bs-toggle="tab" data-bs-target="#comentarios" type="button" role="tab"
+                        aria-controls="comentarios" wire:click="sessionTab('comentario')"
                         aria-selected="false">Comentários</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="arquivos-tab" data-bs-toggle="tab" data-bs-target="#arquivos"
-                        type="button" role="tab" aria-controls="arquivos" aria-selected="false">Arquivos</button>
+                    <button class="nav-link @if ($currentTab == 'arquivo') active @endif" id="arquivos-tab"
+                        data-bs-toggle="tab" data-bs-target="#arquivos" type="button" role="tab"
+                        aria-controls="arquivos" aria-selected="false"
+                        wire:click="sessionTab('arquivo')">Arquivos</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="troca-empresa-tab" data-bs-toggle="tab" data-bs-target="#troca-empresa"
-                        type="button" role="tab" aria-controls="troca-empresa" aria-selected="false">Troca
+                    <button class="nav-link @if ($currentTab == 'troca-empresa') active @endif" id="troca-empresa-tab"
+                        data-bs-toggle="tab" data-bs-target="#troca-empresa" type="button" role="tab"
+                        aria-controls="troca-empresa" aria-selected="false"
+                        wire:click="sessionTab('troca-empresa')">Troca
                         Empresa</button>
                 </li>
             </ul>
             <div class="tab-content" id="myTabContent">
-                <div class="tab-pane fade show active" id="lancamento" role="tabpanel" aria-labelledby="lancamento-tab">
+                <div class="tab-pane fade @if ($currentTab == 'lancamento') show active @endif" id="lancamento"
+                    role="tabpanel" aria-labelledby="lancamento-tab">
                     <div class="card-body">
                         <form wire:submit.prevent="salvarLancamento">
                             <div class="row">
+                                <div class="form-group col-sm-12 mb-2">
+                                    <label for="historicoID" class=" form-control-label">
+                                        Histórico
+                                    </label>
+                                    <select id="historicoID" name="HistoricoID" class="form-control select2"
+                                        wire:model='lancamento.HistoricoID' wire:change="selectHistorico">
+                                        <option value=""></option>
+                                        @foreach ($historicos as $historicoID => $historicoDescricao)
+                                            <option value="{{ $historicoID }}">{{ $historicoDescricao }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <hr>
                                 <div class="form-group col-sm-12">
                                     <label for="descricao" class=" form-control-label">Descrição</label>
                                     <input type="text" id="descricao" name="Descricao" placeholder=""
@@ -83,19 +103,11 @@
                                     </div>
                                 </div>
 
-                                <div class="form-group col-sm-12">
-                                    <label for="historicoID" class=" form-control-label">
-                                        Histórico
-                                    </label>
-                                    <select id="historicoID" name="HistoricoID" class="form-control select2">
-                                    </select>
-                                </div>
-
                                 <div class="form-group col-sm-3">
                                     <label for="datacontabilidade" class=" form-control-label">Data
                                         Contabilidade</label>
-                                    <input type="date" id="datacontabilidade"
-                                        class="form-control" wire:model.lazy="lancamento.DataContabilidade">
+                                    <input type="date" id="datacontabilidade" class="form-control"
+                                        wire:model.lazy="lancamento.DataContabilidade">
                                     <span class="oculto badge badge-danger">Informação obrigatória</span>
                                 </div>
 
@@ -115,7 +127,8 @@
                         </form>
                     </div>
                 </div>
-                <div class="tab-pane fade" id="comentarios" role="tabpanel" aria-labelledby="comentarios-tab">
+                <div class="tab-pane fade @if ($currentTab == 'comentario') show active @endif" id="comentarios"
+                    role="tabpanel" aria-labelledby="comentarios-tab">
                     <div class="card">
                         <div class="card-body">
                             <form wire:submit.prevent='salvarComentario'>
@@ -131,18 +144,22 @@
                         <div class="card-body">
                             <p>
                                 @foreach ($comentarios as $comentario)
-                                    <li>{{ $comentario->Descricao }} <br/>Em {{ $comentario->Created->format('d/m/Y H:i:s') }} | Por: {{ $comentario->user->name }}</li>
+                                    <li>{{ $comentario->Descricao }} <br />Em
+                                        {{ $comentario->Created->format('d/m/Y H:i:s') }} | Por:
+                                        {{ $comentario->user->name }}</li>
                                 @endforeach
                             </p>
                         </div>
 
                     </div>
                 </div>
-                <div class="tab-pane fade" id="arquivos" role="tabpanel" aria-labelledby="arquivos-tab">
+                <div class="tab-pane fade @if ($currentTab == 'arquivo') show active @endif" id="arquivos"
+                    role="tabpanel" aria-labelledby="arquivos-tab">
                     codigo de arquivos
                 </div>
-                <div class="tab-pane fade" id="troca-empresa" role="tabpanel" aria-labelledby="arquivos-tab">
-                    @livewire('lancamento.troca-empresa',['lancamento_id'=>$lancamento->ID])
+                <div class="tab-pane fade @if ($currentTab == 'troca-empresa') show active @endif" id="troca-empresa"
+                    role="tabpanel" aria-labelledby="arquivos-tab">
+                    @livewire('lancamento.troca-empresa', ['lancamento_id' => $lancamento->ID])
                 </div>
             </div>
         </div>
