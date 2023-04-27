@@ -61,6 +61,7 @@ class Extrato extends Component
             $this->Empresa = Empresa::find($item);
             $this->data_bloqueio_empresa = $this->Empresa->Bloqueiodataanterior?->format('Y-m-d');
             $this->selConta = null;
+            $this->Lancamentos = null;
         } else {
             $this->selEmpresa = null;
             $this->selConta = null;
@@ -74,6 +75,7 @@ class Extrato extends Component
             cache(['extrato_ContaID' => $item]);
             $this->Conta = Conta::find($item);
             $this->data_bloqueio_conta = $this->Conta->Bloqueiodataanterior?->format('Y-m-d');
+            $this->emit('search');
         } else {
             $this->selConta = null;
         }

@@ -376,10 +376,12 @@
     <script>
         $(document).ready(function() {
             $('#selEmpresa').on('change', function(e) {
-                @this.set('selEmpresa', e.target.value);
+                // @this.set('selEmpresa', e.target.value);
+                Livewire.emit('selectedSelEmpresaItem',e.target.value);
             });
             $('#selConta').on('change', function(e) {
-                @this.set('selConta', e.target.value);
+                Livewire.emit('selectedSelContaItem',e.target.value);
+                // @this.set('selConta', e.target.value);
             });
             window.livewire.on('select2', () => {
                 $('.select2').select2({
@@ -390,11 +392,9 @@
             //scripts para troca de empresa
 
             $(document).on('change', '#novacontadebito', function(e) {
-                console.log('ok');
                 Livewire.emitTo('lancamento.troca-empresa','setContaDebito',$(this).val());
             });
             $(document).on('change', '#novacontacredito', function(e) {
-                console.log('ok');
                 Livewire.emitTo('lancamento.troca-empresa','setContaCredito',$(this).val());
             });
         });
