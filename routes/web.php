@@ -133,10 +133,17 @@ Route::middleware('auth')->group(function () {
 
     #Contabilidade
     Route::get('/Contabilidade', function () {
-        return view('Contabilidade/dashboard');
+        return view('Contabilidade.dashboard');
     })
-        ->middleware(['auth', 'verified'])
         ->name('dashboardContabilidade');
+
+
+        Route::get('/ContasCarro', function () {
+            return view('Contas.carros');
+        })
+            ->name('ContasCarros');
+
+
 
     #Cobrança
     // Route::resource('Cobranca', App\Http\Controllers\CobrancaController::class);

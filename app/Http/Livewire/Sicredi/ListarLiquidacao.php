@@ -67,7 +67,7 @@ class ListarLiquidacao extends Component
 
         if (isset($contaCobranca->d_cobranca) && isset($contaCobranca->d_tarifa)) {
             $dataTarifa = Carbon::createFromFormat('Y-m-d', $this->consultaDia);
-            $dataLiquidacao = $dataTarifa->addDay($contaCobranca->d_cobranca);
+            $dataLiquidacao = Carbon::createFromFormat('Y-m-d', $this->consultaDia)->addDay($contaCobranca->d_cobranca);
 
             $feriado = Feriado::where('data', $dataLiquidacao->format('Y-m-d'))->first();
             while ($feriado) {
@@ -97,8 +97,7 @@ class ListarLiquidacao extends Component
                     'ContaDebitoID' => $historico->ContaDebitoID,
                     'ContaCreditoID' => $historico->ContaCreditoID,
                     'Usuarios_id' => auth()->user()->id,
-                    'DataContabilidade' => $dataLiquidacao,
-                    'Created' => date('d/m/Y H:i:s'),
+                    'DataContabilidade' => $dataLiquidacao->format('d/m/Y'),
                     'HistoricoID' => $historico->ID,
                 ]);
             }
@@ -106,7 +105,7 @@ class ListarLiquidacao extends Component
             $lancamentoTarifa = Lancamento::whereDate('DataContabilidade', $this->consultaDia)
                 ->where('HistoricoID', $contaCobranca->Tarifa_Cobranca)
                 ->where('EmpresaID', $contaCobranca->EmpresaID)
-                ->first();
+                ->First();
             if ($lancamentoTarifa) {
                 $this->addError('taxaCobranca', "Taxa de cobrança já lançado no dia <strong>$this->consultaDiaDisplay</strong>.");
             } else {
@@ -118,8 +117,7 @@ class ListarLiquidacao extends Component
                     'ContaDebitoID' => $historicoTarifa->ContaDebitoID,
                     'ContaCreditoID' => $historicoTarifa->ContaCreditoID,
                     'Usuarios_id' => auth()->user()->id,
-                    'DataContabilidade' => $this->consultaDiaDisplay,
-                    'Created' => date('d/m/Y H:i:s'),
+                    'DataContabilidade' =>  $dataTarifa->format('d/m/Y'),
                     'HistoricoID' => $historicoTarifa->ID,
                 ]);
                 session()->flash('message', 'Lançamentos criado.');

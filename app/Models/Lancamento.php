@@ -81,8 +81,8 @@ class Lancamento extends Model
     {
         return Carbon::createFromDate($value);
     }
-    public function setDataContabilidadeAttribute($value)
-    {
-        return Carbon::createFromDate($value)->format('d/m/Y');
-    }
+    // public function setDataContabilidadeAttribute($value)
+    // {
+    //     return Carbon::createFromDate($value)->format('d/m/Y');
+    // }
 }
