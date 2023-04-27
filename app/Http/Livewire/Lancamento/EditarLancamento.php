@@ -33,13 +33,16 @@ class EditarLancamento extends Component
         'lancamento.ContaCreditoID' => 'required|integer',
         'lancamento.ContaDebitoID' => 'required|integer',
         'lancamento.DataContabilidade' => 'required|date',
-        'lancamento.HistoricoID' => 'numeric',
+        'lancamento.HistoricoID' => ['required_without:lancamento.Descricao'],
+        'lancamento.Descricao' => 'required_without:lancamento.HistoricoID|string',
     ];
 
     public function salvarLancamento()
     {
         $this->validate();
         if (!$this->temBloqueio($this->lancamento->ID)) {
+            $this->lancamento['DataContabilidade'] = $this->lancamento->DataContabilidade->format('d-m-Y');
+            // dd($this->lancamento);
             if ($this->lancamento->save()) {
                 session()->flash('message', 'Lançamento atualizado.');
                 // $this->lancamento['DataContabilidade'] = $this->lancamento->DataContabilidade->format('Y-m-d');

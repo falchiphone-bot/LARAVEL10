@@ -21,7 +21,7 @@
                     <div class="col-6">
                         <select class="form-control select2" id="selEmpresa" wire:model="selEmpresa">
                             @foreach ($empresas as $empresa_id => $empresa_descricao)
-                                <option value="{{ $empresa_id }}">{{ $empresa_descricao }}</option>
+                                <option @selected($selEmpresa == $empresa_id) value="{{ $empresa_id }}">{{ $empresa_descricao }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -29,7 +29,7 @@
                         <select class="form-control select2" id="selConta" wire:model='selConta' aria-hidden="true">
                             <option value="0">Escolha uma conta</option>
                             @foreach ($contas as $conta_id => $conta_descricao)
-                                <option value="{{ $conta_id }}">{{ $conta_descricao }}</option>
+                                <option @selected($selConta == $conta_id) value="{{ $conta_id }}">{{ $conta_descricao }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -377,10 +377,10 @@
         $(document).ready(function() {
             $('#selEmpresa').on('change', function(e) {
                 // @this.set('selEmpresa', e.target.value);
-                Livewire.emit('selectedSelEmpresaItem',e.target.value);
+                Livewire.emit('selectedSelEmpresaItem', e.target.value);
             });
             $('#selConta').on('change', function(e) {
-                Livewire.emit('selectedSelContaItem',e.target.value);
+                Livewire.emit('selectedSelContaItem', e.target.value);
                 // @this.set('selConta', e.target.value);
             });
             window.livewire.on('select2', () => {
@@ -392,10 +392,10 @@
             //scripts para troca de empresa
 
             $(document).on('change', '#novacontadebito', function(e) {
-                Livewire.emitTo('lancamento.troca-empresa','setContaDebito',$(this).val());
+                Livewire.emitTo('lancamento.troca-empresa', 'setContaDebito', $(this).val());
             });
             $(document).on('change', '#novacontacredito', function(e) {
-                Livewire.emitTo('lancamento.troca-empresa','setContaCredito',$(this).val());
+                Livewire.emitTo('lancamento.troca-empresa', 'setContaCredito', $(this).val());
             });
         });
 
@@ -454,6 +454,10 @@
                 $('.cl-' + event.detail.lancamento_id).removeClass('fa-check-square-o');
                 $('.cl-' + event.detail.lancamento_id).addClass('fa-square-o');
             }
+        });
+
+        $('.select2').select2({
+            theme: 'bootstrap-5'
         });
     </script>
 @endpush

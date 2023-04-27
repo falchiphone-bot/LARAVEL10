@@ -52,6 +52,9 @@ class ContaController extends Controller
      */
     public function show(string $id)
     {
+        if ($id == 'Extrato') {
+            return redirect('/PlanoContas/dashboard')->with('error','Nenhuma conta foi selecionada');
+        }
         $conta = Conta::find($id);
 
         return view('Contas.show', compact('conta'));

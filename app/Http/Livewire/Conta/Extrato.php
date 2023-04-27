@@ -96,6 +96,7 @@ class Extrato extends Component
 
         $this->Conta = Conta::find($contaID);
         $this->selEmpresa = $this->Conta->EmpresaID;
+
         $this->Empresa = Empresa::find($this->selEmpresa);
         $this->data_bloqueio_conta = $this->Conta->Bloqueiodataanterior?->format('Y-m-d');
         $this->data_bloqueio_empresa = $this->Empresa->Bloqueiodataanterior?->format('Y-m-d');
@@ -217,6 +218,7 @@ class Extrato extends Component
             $lancamento->Conferido = 1;
         }
         $lancamento->save();
+        $this->dispatchBrowserEvent('confirmarLancamento', ['lancamento_id' => $lancamento_id,'status' => $lancamento->Conferido]);
     }
 
     public function alterarDataVencidoRapido($lancamento_id, $acao)
