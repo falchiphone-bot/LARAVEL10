@@ -75,7 +75,7 @@ class Extrato extends Component
             cache(['extrato_ContaID' => $item]);
             $this->Conta = Conta::find($item);
             $this->data_bloqueio_conta = $this->Conta->Bloqueiodataanterior?->format('Y-m-d');
-            $this->emit('search');
+            // $this->emit('search');
         } else {
             $this->selConta = null;
         }
