@@ -17,8 +17,6 @@ use App\Http\Controllers\OAuthController;
 |
 */
 
-Route::get('teste/{lancamento_id}', App\Http\Livewire\Lancamento\EditarLancamento::class);
-
 Route::get('/', function () {
     return redirect('/dashboard');
 });
@@ -35,6 +33,10 @@ Route::get('/dashboard', function () {
 
 
 Route::middleware('auth')->group(function () {
+
+    Route::get('drive/google/login',[App\Http\Controllers\GoogleDriveController::class,'googleLogin'])->name('google.login');
+    Route::get('drive/google-drive/file-upload',[App\Http\Controllers\GoogleDriveController::class,'googleDriveFileUpload'])->name('google.drive.file.upload');
+
     #Rotas criadas automaticamente laravel
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -57,8 +59,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/send', [MailController::class, 'send'])->name('send.email');
     });
 
-    Route::get('EnviarEmail', [App\Http\Controllers\EnviaEmailController::class, 'enviaremail'])->name('gmail.enviaremail');
-    Route::get('GoogleLogin', [App\Http\Controllers\EnviaEmailController::class, 'googlelogin'])->name('google.login');
+    // Route::get('EnviarEmail', [App\Http\Controllers\EnviaEmailController::class, 'enviaremail'])->name('gmail.enviaremail');
+    // Route::get('GoogleLogin', [App\Http\Controllers\EnviaEmailController::class, 'googlelogin'])->name('google.login');
 
     # Feriados
     // Route::get('/feriados', 'FeriadoController@index');
