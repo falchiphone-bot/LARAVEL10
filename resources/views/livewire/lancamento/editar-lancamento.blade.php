@@ -155,7 +155,38 @@
                 </div>
                 <div class="tab-pane fade @if ($currentTab == 'arquivo') show active @endif" id="arquivos"
                     role="tabpanel" aria-labelledby="arquivos-tab">
-                    codigo de arquivos
+                    <div class="card">
+                        <div class="card-body">
+                            <form wire:submit.prevent='salvarArquivo'>
+                                <div class="col-sm-12">
+                                    <label for="rotulo">Rotulo</label>
+                                    <input type="text" class="form-control" wire:model.defer="rotulo" required>
+                                </div>
+                                <div class="col-sm-12 mt-3">
+                                    <div class="custom-file">
+                                        <input type="file" class="custom-file-input" id="validatedCustomFile" wire:model="arquivo"
+                                            required>
+                                        <div class="invalid-feedback">Example invalid custom file feedback</div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-12 mt-3">
+                                    <button type="submit" class="btn btn-primary">Inserir novo arquivo</button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="card-body">
+                            <p>
+                                @foreach ($files as $file)
+                                    <li>
+                                        {{ $file->Rotulo }} <br />Em
+                                        {{ $file->Created->format('d/m/Y H:i:s') }} | Por:
+                                        {{ $file->user->name ?? '' }}
+                                    </li>
+                                @endforeach
+                            </p>
+                        </div>
+
+                    </div>
                 </div>
                 <div class="tab-pane fade @if ($currentTab == 'troca-empresa') show active @endif" id="troca-empresa"
                     role="tabpanel" aria-labelledby="arquivos-tab">

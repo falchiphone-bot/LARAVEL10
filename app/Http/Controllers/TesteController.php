@@ -9,6 +9,7 @@ use App\Models\Teste;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Spatie\GoogleCalendar\Event;
 
@@ -39,7 +40,11 @@ class TesteController extends Controller
      */
     public function index()
     {
-        dd(CobrancaSicredi::first());
+        $teste = Storage::disk('ftp')->download('/webroot/contabilidade/teste.txt');
+        return $teste;
+
+
+        // $testes = Storage::disk('ftp')->put('/webroot/contabilidade/teste.txt', rand(10,100));
     }
 
     /**

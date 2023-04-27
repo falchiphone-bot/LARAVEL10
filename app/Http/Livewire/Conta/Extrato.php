@@ -278,6 +278,7 @@ class Extrato extends Component
     {
         return in_array($lancamento_id, $this->listaExclusao);
     }
+    
     public function processarExclussao()
     {
         foreach ($this->listaExclusao as $lancamento_id) {

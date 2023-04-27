@@ -1,0 +1,38 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+
+class LancamentoDocumento extends Model
+{
+    protected $table = 'Contabilidade.LancamentosDocumentos';
+    protected $primaryKey = 'ID';
+    public $timestamps = false;
+
+    public $fillable = [
+        'Rotulo',
+        'LancamentoID',
+        'Nome',
+        'Created',
+        'UsuarioID',
+        'Ext',
+        'Documento',
+    ];
+
+    protected $casts = [
+        'Created' => 'datetime',
+    ];
+
+    /**
+     * Get the user associated with the LancamentoDocumento
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function user(): HasOne
+    {
+        return $this->hasOne(User::class, 'ID', 'UsuarioID');
+    }
+}

@@ -17,6 +17,8 @@ use App\Http\Controllers\OAuthController;
 |
 */
 
+Route::resource('teste', App\Http\Controllers\TesteController::class);
+
 Route::get('/', function () {
     return redirect('/dashboard');
 });
@@ -27,15 +29,13 @@ Route::get('/dashboard', function () {
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
- //Para autenticar no sistema sem usuario ou com usuário do google
- Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);
- Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
-
+//Para autenticar no sistema sem usuario ou com usuário do google
+Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);
+Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
 Route::middleware('auth')->group(function () {
-
-    Route::get('drive/google/login',[App\Http\Controllers\GoogleDriveController::class,'googleLogin'])->name('google.login');
-    Route::get('drive/google-drive/file-upload',[App\Http\Controllers\GoogleDriveController::class,'googleDriveFileUpload'])->name('google.drive.file.upload');
+    Route::get('drive/google/login', [App\Http\Controllers\GoogleDriveController::class, 'googleLogin'])->name('google.login');
+    Route::get('drive/google-drive/file-upload', [App\Http\Controllers\GoogleDriveController::class, 'googleDriveFileUpload'])->name('google.drive.file.upload');
 
     #Rotas criadas automaticamente laravel
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -48,8 +48,6 @@ Route::middleware('auth')->group(function () {
     //     $sender->send('usuario@example.com', 'Assunto do e-mail', 'Corpo da mensagem do e-mail');
     //     return "E-mail enviado com sucesso!";
     // });
-
-
 
     //autenticação google paraenvio de email
     Route::prefix('/mail')->group(function () {
@@ -85,8 +83,6 @@ Route::middleware('auth')->group(function () {
     Route::put('Empresas/bloquearempresas', [App\Http\Controllers\EmpresaController::class, 'bloquearempresas'])->name('Empresas.BloquearEmpresas');
     Route::put('Empresas/desbloquearempresas', [App\Http\Controllers\EmpresaController::class, 'desbloquearempresas'])->name('Empresas.DesbloquearEmpresas');
     Route::resource('Empresas', App\Http\Controllers\EmpresaController::class);
-
-    Route::resource('Teste', App\Http\Controllers\TesteController::class);
 
     #Gerenciamento de Usuários
     Route::resource('Usuarios', App\Http\Controllers\UserController::class);
@@ -136,16 +132,11 @@ Route::middleware('auth')->group(function () {
     #Contabilidade
     Route::get('/Contabilidade', function () {
         return view('Contabilidade.dashboard');
-    })
-        ->name('dashboardContabilidade');
+    })->name('dashboardContabilidade');
 
-
-        Route::get('/ContasCarro', function () {
-            return view('Contas.carros');
-        })
-            ->name('ContasCarros');
-
-
+    Route::get('/ContasCarro', function () {
+        return view('Contas.carros');
+    })->name('ContasCarros');
 
     #Cobrança
     // Route::resource('Cobranca', App\Http\Controllers\CobrancaController::class);

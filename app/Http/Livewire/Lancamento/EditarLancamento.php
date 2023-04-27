@@ -7,12 +7,19 @@ use App\Models\Empresa;
 use App\Models\Historicos;
 use App\Models\Lancamento;
 use App\Models\LancamentoComentario;
+use App\Models\LancamentoDocumento;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class EditarLancamento extends Component
 {
+    public $files;
+    public $arquivo;
+    public $rotulo;
+
     public $contas;
     public Lancamento $lancamento;
     public $historicos;
@@ -111,17 +118,42 @@ class EditarLancamento extends Component
         }
     }
 
+    use WithFileUploads;
+    public function salvarArquivo()
+    {
+        $this->validate([
+            'arquivo' => 'max:5012', // 1MB Max
+        ]);
+
+        $file = $this->arquivo->store('/webroot/contabilidade','ftp');
+        if ($file) {
+            LancamentoDocumento::create([
+                'Rotulo' => $this->rotulo,
+                'LancamentoID' => $this->lancamento->ID,
+                'Nome' => explode('.',$file)[0],
+                'Created' => date('d-m-Y H:i:s'),
+                'UsuarioID' => Auth::user()->id,
+                'Ext' => explode('.',$file)[1],
+            ]);
+            session()->flash('message', 'Comentário adicionado.');
+        }else {
+            $this->addError('upload','Erro ao subir arquivo.');
+        }
+    }
+
     public function mount($lancamento_id)
     {
         $this->currentTab = 'lancamento';
 
         $this->lancamento = Lancamento::find($lancamento_id);
+        $this->files = $this->lancamento->arquivos;
 
         $this->comentarios = LancamentoComentario::where('LancamentoID',$lancamento_id)->get();
 
         $this->contas = Conta::where('EmpresaID',$this->lancamento->EmpresaID)->where('Grau',5)
         ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
         ->orderBy('PlanoContas.Descricao')->pluck('PlanoContas.Descricao', 'Contas.ID');
+
         $this->historicos = Historicos::where('EmpresaID',$this->lancamento->EmpresaID)->orderBy('Descricao')->pluck('Descricao','ID');
     }
 
