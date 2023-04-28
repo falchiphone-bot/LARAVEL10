@@ -204,7 +204,7 @@ class GoogleCalendarController extends Controller
                 <p>Equipe de Agenda contabilidadeprf</p>
             </body>
             </html>';
-                $result = $this->enviarEmail($html, 'Email do Sistema de Contabilidade');
+                $result = $this->enviarEmail($html, $user, 'Email do Sistema de Contabilidade');
 
                 // verifica se o e-mail foi enviado com sucesso
                 if ($result['success']) {
@@ -282,7 +282,7 @@ class GoogleCalendarController extends Controller
                 <p>Equipe de Agenda contabilidadeprf</p>
             </body>
             </html>';
-                $result = $this->enviarEmail($html, 'Email do Sistema de Contabilidade');
+                $result = $this->enviarEmail($html, $user,'Email do Sistema de Contabilidade');
 
                 // verifica se o e-mail foi enviado com sucesso
                 if ($result['success']) {
@@ -335,7 +335,7 @@ class GoogleCalendarController extends Controller
             </body>
             </html>';
 
-                $result = $this->enviarEmail($html, 'Email do Sistema de Contabilidade');
+                $result = $this->enviarEmail($html, $user, 'Email do Sistema de Contabilidade');
 
                 // verifica se o e-mail foi enviado com sucesso
                 if ($result['success']) {
@@ -350,7 +350,7 @@ class GoogleCalendarController extends Controller
             ->with('error', 'Não foram enviados para ' . $NaoEnviado);
     }
 
-    public function enviarEmail($html, $altBody)
+    public function enviarEmail($html, $user, $altBody)
     {
         $this->email = Auth()->user()->email; // ex. example@gmail.com
         $this->name = Auth()->user()->name; // ex. Abidhusain
@@ -377,8 +377,8 @@ class GoogleCalendarController extends Controller
             );
 
             $mail->setFrom($this->email, $this->name);
-            $mail->addAddress($this->email, $this->name);
-            $mail->addCC('mauricio@net-rubi.com.br');
+            $mail->addAddress($user->email, $user->name);
+            $mail->addCC('contabilidadeprf@gmail.com');
             $mail->Subject = 'Enviado pelo sistema Laravel 10';
             $mail->CharSet = PHPMailer::CHARSET_UTF8;
             $mail->msgHTML($html);

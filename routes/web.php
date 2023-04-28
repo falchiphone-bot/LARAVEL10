@@ -34,8 +34,11 @@ Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);
 Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
 Route::middleware('auth')->group(function () {
+
+    #GoogleDrive
     Route::get('drive/google/login', [App\Http\Controllers\GoogleDriveController::class, 'googleLogin'])->name('google.login');
     Route::get('drive/google-drive/file-upload', [App\Http\Controllers\GoogleDriveController::class, 'googleDriveFileUpload'])->name('google.drive.file.upload');
+    Route::get('drive/dashboard', [App\Http\Controllers\GoogleDriveController::class, 'dashboard'])->name('googledrive.dashboard');
 
     #Rotas criadas automaticamente laravel
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

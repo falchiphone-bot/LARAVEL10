@@ -16,10 +16,12 @@ class GoogleDriveController extends Controller
         $this->gClient = new \Google_Client();
 
         // $this->gClient->setApplicationName('YOUR APPLICATION NAME'); // ADD YOUR AUTH2 APPLICATION NAME (WHEN YOUR GENERATE SECRATE KEY)
-        $this->gClient->setClientId('154506411439-v35hmhf8t50s6lloljhb6q69blt7vaa0.apps.googleusercontent.com');
-        $this->gClient->setClientSecret('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');
+        // $this->gClient->setClientId('154506411439-v35hmhf8t50s6lloljhb6q69blt7vaa0.apps.googleusercontent.com');
+        // $this->gClient->setClientSecret('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');
+        $this->gClient->setClientId('152725472725-7vb6t4u4092uijg7lrgqhnha9ka22vbc.apps.googleusercontent.com');
+        $this->gClient->setClientSecret('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');
         $this->gClient->setRedirectUri(route('google.login'));
-        $this->gClient->setDeveloperKey('AIzaSyD2ivg_Ui-Y4pRDcps8TmUESGsCVfyyQSU');
+        $this->gClient->setDeveloperKey('AIzaSyCZtB2vF2JDA5m3ZbskCT-ku2P-QaqPvZ4');
         $this->gClient->setScopes(array(
             'https://www.googleapis.com/auth/drive.file',
             'https://www.googleapis.com/auth/drive'
@@ -28,6 +30,11 @@ class GoogleDriveController extends Controller
         $this->gClient->setAccessType("offline");
 
         $this->gClient->setApprovalPrompt("force");
+    }
+
+    public function dashboard(Request $request)
+    {
+        return view('googledrive.dashboard')->with('tokenGoogle', session('tokengoogledrive'));
     }
 
     public function googleLogin(Request $request)  {
@@ -101,19 +108,22 @@ class GoogleDriveController extends Controller
         }
 
         $fileMetadata = new \Google_Service_Drive_DriveFile(array(
-            'name' => 'contabilidade',             // ADD YOUR GOOGLE DRIVE FOLDER NAME
+            'name' => 'Prfcontabilidade',             // ADD YOUR GOOGLE DRIVE FOLDER NAME
             'mimeType' => 'application/vnd.google-apps.folder'));
 
-        $folder = $service->files->create($fileMetadata, array('fields' => 'id'));
+        // $folder = $service->files->create($fileMetadata, array('fields' => 'id'));
 
-        printf("Folder ID: %s\n", $folder->id);
+        // printf("Folder ID: %s\n", $folder->id);
 
-        $file = new \Google_Service_Drive_DriveFile(array('name' => 'sample2.pdf','parents' => array($folder->id)));
+        $folder = '1SV8zXjgtfqViak_Jrlich-YVEM32bu8F';
+        // $file = new \Google_Service_Drive_DriveFile(array('name' => 'piso1.jpg','parents' => array($folder->id)));
+        $file = new \Google_Service_Drive_DriveFile(array('name' => 'piso1.jpg','parents' => array($folder)));
+
 
         $result = $service->files->create($file, array(
 
             // dd(Storage::path('contabilidade/sample.pdf')),
-            'data' => file_get_contents(Storage::path('contabilidade/sample2.pdf')), // ADD YOUR FILE PATH WHICH YOU WANT TO UPLOAD ON GOOGLE DRIVE
+            'data' => file_get_contents(Storage::path('contabilidade/piso1.jpg')), // ADD YOUR FILE PATH WHICH YOU WANT TO UPLOAD ON GOOGLE DRIVE
             'mimeType' => 'application/octet-stream',
             'uploadType' => 'media'
         ));

@@ -144,6 +144,22 @@
 
                             </tr>
                         @endcan
+
+                        @can('GoogleDrive - Opções')
+                        <tr>
+
+                                <th>
+
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary"
+                                        <a href="drive/dashboard">Google Drive Dashboard</a>
+
+                                    </nav>
+                                </th>
+
+                            </tr>
+                        @endcan
+
                         @can('FERIADOS - LISTAR')
                         <tr>
 

@@ -202,7 +202,7 @@ class Extrato extends Component
             ->whereDoesntHave('SolicitacaoExclusao')
             ->leftjoin('Contabilidade.Historicos','Historicos.ID','HistoricoID')
             ->get(["Lancamentos.ID",'Lancamentos.Valor','DataContabilidade',
-            'Lancamentos.ContaCreditoID','Lancamentos.ContaDebitoID','Lancamentos.Descricao','Historicos.Descricao as HistoricoDescricao']);
+            'Lancamentos.ContaCreditoID','Lancamentos.ContaDebitoID','Lancamentos.Descricao','Historicos.Descricao as HistoricoDescricao','Conferido']);
 
         } else {
             $this->Lancamentos = null;
@@ -239,7 +239,8 @@ class Extrato extends Component
             $this->addError('alteraDataVencimenotRapido', 'Nenhuma ação selecionada');
         }
 
-        $lancamento->DataContabilidade = $novaData->format('d/m/Y');
+          $lancamento->DataContabilidade = $novaData->format('d-m-Y');
+
         $lancamento->save();
         $this->search();
     }
@@ -278,7 +279,7 @@ class Extrato extends Component
     {
         return in_array($lancamento_id, $this->listaExclusao);
     }
-    
+
     public function processarExclussao()
     {
         foreach ($this->listaExclusao as $lancamento_id) {
