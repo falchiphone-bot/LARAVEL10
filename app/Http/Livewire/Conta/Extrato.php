@@ -47,11 +47,7 @@ class Extrato extends Component
     }
 
     protected $listeners = ['selectedSelEmpresaItem', 'selectedSelContaItem', 'search'];
-
-    // public function select2()
-    // {
-    //     $this->dispatchBrowserEvent('select2');
-    // }
+    
 
     //gerenciamento select2
     public function selectedSelEmpresaItem($item)

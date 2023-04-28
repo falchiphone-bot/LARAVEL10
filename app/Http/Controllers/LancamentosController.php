@@ -6,7 +6,9 @@ use App\Http\Requests\LancamentoResquest;
 use App\Models\Empresa;
 use App\Models\Historicos;
 use App\Models\Lancamento;
+use App\Models\LancamentoDocumento;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class LancamentosController extends Controller
 {
@@ -105,5 +107,15 @@ class LancamentosController extends Controller
         }
         $lancamento->destroy();
         return redirect(route('Lancamentos.index'));
+    }
+
+    public function baixarArquivo($id)
+    {
+        $download = LancamentoDocumento::find($id);
+        if ($download) {
+            return Storage::disk('ftp')->download($download->Nome.'.'.$download->Ext);
+        }else {
+            $this->addError('download','Arquivo não localizado para baixar.');
+        }
     }
 }
