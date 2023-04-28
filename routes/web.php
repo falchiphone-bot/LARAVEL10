@@ -101,6 +101,9 @@ Route::middleware('auth')->group(function () {
     Route::get('PlanoContas/dashboard', [App\Http\Controllers\PlanoContaController::class, 'dashboard'])->name('planocontas.dashboard');
     Route::resource('PlanoContas', App\Http\Controllers\PlanoContaController::class);
 
+    #Lançamentos
+    Route::get('lancamentos/download/{id}',[App\Http\Controllers\LancamentosController::class,'baixarArquivo'])->name('lancamentos.download');
+
     #Contas
     Route::get('Contas/Extrato/{contaID}', [App\Http\Controllers\ContaController::class, 'extrato']);
     Route::resource('Contas', App\Http\Controllers\ContaController::class);

@@ -21,7 +21,8 @@
                     <div class="col-6">
                         <select class="form-control select2" id="selEmpresa" wire:model="selEmpresa">
                             @foreach ($empresas as $empresa_id => $empresa_descricao)
-                                <option @selected($selEmpresa == $empresa_id) value="{{ $empresa_id }}">{{ $empresa_descricao }}</option>
+                                <option @selected($selEmpresa == $empresa_id) value="{{ $empresa_id }}">
+                                    {{ $empresa_descricao }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -29,7 +30,8 @@
                         <select class="form-control select2" id="selConta" wire:model='selConta' aria-hidden="true">
                             <option value="0">Escolha uma conta</option>
                             @foreach ($contas as $conta_id => $conta_descricao)
-                                <option @selected($selConta == $conta_id) value="{{ $conta_id }}">{{ $conta_descricao }}</option>
+                                <option @selected($selConta == $conta_id) value="{{ $conta_id }}">{{ $conta_descricao }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -459,5 +461,22 @@
         $('.select2').select2({
             theme: 'bootstrap-5'
         });
+
+        function excluirArquivo(id) {
+            $.confirm({
+                title: 'Confirmar!',
+                content: 'Deseja realmente continuar?',
+                buttons: {
+                    confirmar: function() {
+                        // $.alert('Confirmar!');
+                        Livewire.emit('excluir',id)
+                    },
+                    cancelar: function() {
+                        // $.alert('Cancelar!');
+                    },
+
+                }
+            });
+        }
     </script>
 @endpush

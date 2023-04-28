@@ -47,11 +47,7 @@ class Extrato extends Component
     }
 
     protected $listeners = ['selectedSelEmpresaItem', 'selectedSelContaItem', 'search'];
-
-    // public function select2()
-    // {
-    //     $this->dispatchBrowserEvent('select2');
-    // }
+    
 
     //gerenciamento select2
     public function selectedSelEmpresaItem($item)
@@ -278,7 +274,7 @@ class Extrato extends Component
     {
         return in_array($lancamento_id, $this->listaExclusao);
     }
-    
+
     public function processarExclussao()
     {
         foreach ($this->listaExclusao as $lancamento_id) {
