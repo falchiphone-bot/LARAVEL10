@@ -69,14 +69,21 @@ class ListarLiquidacao extends Component
             $dataTarifa = Carbon::createFromFormat('Y-m-d', $this->consultaDia);
             $dataLiquidacao = Carbon::createFromFormat('Y-m-d', $this->consultaDia)->addDay($contaCobranca->d_cobranca);
 
+            if ($dataLiquidacao->weekDay() == 6) {
+                $dataLiquidacao->addDay(2);
+            } elseif ($dataLiquidacao->weekday() == 7) {
+                $dataLiquidacao->addDay(1);
+            }
+
+
             $feriado = Feriado::where('data', $dataLiquidacao->format('Y-m-d'))->first();
-            while ($feriado) {
+            while ($feriado ) {
                 $dataLiquidacao->addDay();
-                if ($dataLiquidacao->weekDay() == 6) {
-                    $dataLiquidacao->addDay(2);
-                } elseif ($dataLiquidacao->weekday() == 7) {
-                    $dataLiquidacao->addDay(1);
-                }
+                // if ($dataLiquidacao->weekDay() == 6) {
+                //     $dataLiquidacao->addDay(2);
+                // } elseif ($dataLiquidacao->weekday() == 7) {
+                //     $dataLiquidacao->addDay(1);
+                // }
                 $feriado = Feriado::where('data', $dataLiquidacao->format('Y-m-d'))->first();
             }
 
