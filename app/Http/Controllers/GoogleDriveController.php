@@ -34,7 +34,7 @@ class GoogleDriveController extends Controller
 
     public function dashboard(Request $request)
     {
-        return view('googledrive.dashboard')->with('tokenGoogle', session('tokengoogledrive'));
+        return view('GoogleDrive.dashboard')->with('tokenGoogle', session('tokengoogledrive'));
     }
 
     public function googleLogin(Request $request)  {
