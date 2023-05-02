@@ -24,9 +24,9 @@
                             </div>
                         </thead>
                         <tbody>
-EURO H
 
-                            @can('MOEDAS - LISTAR')
+
+                            @can('AGENDA - LISTAR')
                                 <tr>
 
                                     <th>
@@ -42,7 +42,7 @@ EURO H
 
                                                 <form action="{{ route('generate.token') }}" method="post" class="mr-2">
                                                     @csrf
-                                                    <button type="submit"class="btn btn-success">Autenticar no Google
+                                                    <button type="submit"class="btn btn-success">Autenticar no Google Calendário
                                                     </button>
                                                 </form>
                                             </nav>
