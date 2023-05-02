@@ -20,12 +20,22 @@
                         </thead>
                         <tbody>
 
+                            @if(session('tokengoogledrive'))
+                                    conectado
+                            @else
+                                    não conectado
+                            @endif
+
 
                             @can('GoogleDrive - Opções')
                                 <tr>
                                     <th>
                                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                                             <a class="btn btn-success" href="google/login">Autenticar no Google</a>
+                                        </nav>
+
+                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                            <a class="btn btn-success" href="showGoogleClientInfo">Dados do cliente Google</a>
                                         </nav>
 
                                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">

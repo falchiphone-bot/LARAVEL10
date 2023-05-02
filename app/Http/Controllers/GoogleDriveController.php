@@ -11,8 +11,9 @@ class GoogleDriveController extends Controller
 {
     public $gClient;
 
-    function __construct(){
-
+    function __construct()
+    {
+        // BIBLIOTECAS - https://developers.google.com/identity/protocols/oauth2?hl=pt-br
         $this->gClient = new \Google_Client();
 
         // $this->gClient->setApplicationName('YOUR APPLICATION NAME'); // ADD YOUR AUTH2 APPLICATION NAME (WHEN YOUR GENERATE SECRATE KEY)
@@ -22,14 +23,11 @@ class GoogleDriveController extends Controller
         $this->gClient->setClientSecret('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');
         $this->gClient->setRedirectUri(route('google.login'));
         $this->gClient->setDeveloperKey('AIzaSyCZtB2vF2JDA5m3ZbskCT-ku2P-QaqPvZ4');
-        $this->gClient->setScopes(array(
-            'https://www.googleapis.com/auth/drive.file',
-            'https://www.googleapis.com/auth/drive'
-        ));
+        $this->gClient->setScopes(['https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/drive']);
 
-        $this->gClient->setAccessType("offline");
+        $this->gClient->setAccessType('offline');
 
-        $this->gClient->setApprovalPrompt("force");
+        $this->gClient->setApprovalPrompt('force');
     }
 
     public function dashboard(Request $request)
@@ -37,24 +35,33 @@ class GoogleDriveController extends Controller
         return view('GoogleDrive.dashboard')->with('tokenGoogle', session('tokengoogledrive'));
     }
 
-    public function googleLogin(Request $request)  {
+    public function showGoogleClientInfo()
+    {
+        // $gClientInfo = [
+        //     'authConfig' => $this->gClient->getAuthConfig(),
+        //     'scopes' => $this->gClient->getScopes(),
+        //     'accessToken' => $this->gClient->getAccessToken(),
+        //     // Adicione outras informações que desejar aqui
+        // ];
+        $gClientInfo = 'teste';
+        return view('GoogleDrive/DadosClienteGoogle', compact('gClientInfo'));
+    }
 
+    public function googleLogin(Request $request)
+    {
         $google_oauthV2 = new \Google_Service_Oauth2($this->gClient);
 
-        if ($request->get('code')){
-
+        if ($request->get('code')) {
             $this->gClient->authenticate($request->get('code'));
 
             $request->session()->put('token', $this->gClient->getAccessToken());
         }
 
-        if ($request->session()->get('token')){
-
+        if ($request->session()->get('token')) {
             $this->gClient->setAccessToken($request->session()->get('token'));
         }
 
-        if ($this->gClient->getAccessToken()){
-
+        if ($this->gClient->getAccessToken()) {
             //FOR LOGGED IN USER, GET DETAILS FROM GOOGLE USING ACCES
             // $user = User::find(1);
 
@@ -64,10 +71,8 @@ class GoogleDriveController extends Controller
 
             Cache::put('token_google', $this->gClient->getAccessToken(), $seconds = 1800);
 
-            dd("Successfully authenticated");
-
-        } else{
-
+            dd('Autenticado no Google Drive');
+        } else {
             // FOR GUEST USER, GET GOOGLE LOGIN URL
             $authUrl = $this->gClient->createAuthUrl();
 
@@ -86,7 +91,6 @@ class GoogleDriveController extends Controller
         // dd($this->gClient);
 
         if ($this->gClient->isAccessTokenExpired()) {
-
             // SAVE REFRESH TOKEN TO SOME VARIABLE
             $refreshTokenSaved = $this->gClient->getRefreshToken();
 
@@ -102,14 +106,15 @@ class GoogleDriveController extends Controller
             // SET THE NEW ACCES TOKEN
             $this->gClient->setAccessToken($updatedAccessToken);
 
-            $user->access_token=$updatedAccessToken;
+            $user->access_token = $updatedAccessToken;
 
             $user->save();
         }
 
-        $fileMetadata = new \Google_Service_Drive_DriveFile(array(
-            'name' => 'Prfcontabilidade',             // ADD YOUR GOOGLE DRIVE FOLDER NAME
-            'mimeType' => 'application/vnd.google-apps.folder'));
+        $fileMetadata = new \Google_Service_Drive_DriveFile([
+            'name' => 'Prfcontabilidade', // ADD YOUR GOOGLE DRIVE FOLDER NAME
+            'mimeType' => 'application/vnd.google-apps.folder',
+        ]);
 
         // $folder = $service->files->create($fileMetadata, array('fields' => 'id'));
 
@@ -117,20 +122,18 @@ class GoogleDriveController extends Controller
 
         $folder = '1SV8zXjgtfqViak_Jrlich-YVEM32bu8F';
         // $file = new \Google_Service_Drive_DriveFile(array('name' => 'piso1.jpg','parents' => array($folder->id)));
-        $file = new \Google_Service_Drive_DriveFile(array('name' => 'piso1.jpg','parents' => array($folder)));
+        $file = new \Google_Service_Drive_DriveFile(['name' => 'piso1.jpg', 'parents' => [$folder]]);
 
-
-        $result = $service->files->create($file, array(
-
+        $result = $service->files->create($file, [
             // dd(Storage::path('contabilidade/sample.pdf')),
             'data' => file_get_contents(Storage::path('contabilidade/piso1.jpg')), // ADD YOUR FILE PATH WHICH YOU WANT TO UPLOAD ON GOOGLE DRIVE
             'mimeType' => 'application/octet-stream',
-            'uploadType' => 'media'
-        ));
+            'uploadType' => 'media',
+        ]);
 
         // GET URL OF UPLOADED FILE
 
-        $url='https://drive.google.com/open?id='.$result->id;
+        $url = 'https://drive.google.com/open?id=' . $result->id;
 
         dd($result);
     }
