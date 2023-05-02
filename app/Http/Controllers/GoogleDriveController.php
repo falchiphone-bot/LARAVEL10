@@ -37,7 +37,7 @@ class GoogleDriveController extends Controller
 
     public function showGoogleClientInfo()
     {
-        // dd(session('googleUser')->name);
+        // dd(session('googleUser'));
         // $gClientInfo = [
         //     'authConfig' => $this->gClient->getAuthConfig(),
         //     'scopes' => $this->gClient->getScopes(),
@@ -98,7 +98,7 @@ class GoogleDriveController extends Controller
         $service = new \Google_Service_Drive($this->gClient);
 
         // $user= User::find(1);
-
+        // Cache::put('token_google', session('googleUser')->token , $seconds = 1800);
         $this->gClient->setAccessToken(Cache::get('token_google'));
 
         // dd($this->gClient);

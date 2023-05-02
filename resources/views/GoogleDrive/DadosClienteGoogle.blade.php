@@ -27,7 +27,7 @@
 
 
                       <div>
-                        
+
                         <ul>
                             {{-- <li><strong>Arquivo de configuração:</strong> {{ $gClientInfo['authConfig'] }}</li>
                             <li><strong>Permissões:</strong> {{ implode(', ', $gClientInfo['scopes']) }}</li>
@@ -41,21 +41,48 @@
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-sm-12">
-                                    <label for="name">Nome</label>
+                                    <img src="{{ asset(session('googleUser')->avatar) }}" alt="Minha imagem">
+                                </div>
+                                <div class="col-sm-12">
+                                    <label for="name">Identificação no Google:</label>
+                                    {{session('googleUser')->id}}
+                                </div>
+                                <div class="col-sm-12">
+                                    <label for="name">Nick no Google:</label>
+                                    {{session('googleUser')->nickname}}
+                                </div>
+                                <div class="col-sm-12">
+                                    <label for="name">Família:</label>
+                                    {{session('googleUser')->user['family_name']}}
+                                </div>
+                                <div class="col-sm-12">
+                                    <label for="name">Nome:</label>
                                     {{session('googleUser')->name}}
 
                                 </div>
                                 <div class="col-sm-12">
-                                    <label for="inicio">Email</label>
+                                    <label for="inicio">Email:</label>
                                     {{session('googleUser')->email}}
                                 </div>
                                 <div class="col-sm-12">
-                                    <label for="fim">Texto 3</label>
-                                    {{-- <input required type="datetime-local" class="form-control" id='fim' name="fim"> --}}
+                                    <label for="name">Email verificado:</label>
+                                    {{session('googleUser')->user['email_verified']}}
                                 </div>
                                 <div class="col-sm-12">
-                                    <label for="fim">Texto 4</label>
-                                    {{-- <textarea required name="descricao" id="descricao" cols="30" rows="10" class="form-control "></textarea> --}}
+                                    <label for="name">Localidade:</label>
+                                    {{session('googleUser')->user['locale']}}
+                                </div>
+                                <div class="col-sm-12">
+                                    <label for="name">Corporação:</label>
+                                    {{session('googleUser')->user['hd']}}
+                                </div>
+                                <div class="col-sm-12">
+                                    <label for="name">Perfil Google:</label>
+                                    {{session('googleUser')->user['profile']}}
+                                </div>
+                                <div class="col-sm-12">
+                                    <label for="name">link-----plus :</label>
+                                    {{session('googleUser')->user['link']}}
                                 </div>
                             </div>
                         </div>
