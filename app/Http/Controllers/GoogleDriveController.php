@@ -45,7 +45,15 @@ class GoogleDriveController extends Controller
         //     // Adicione outras informações que desejar aqui
         // ];
         // // $gClientInfo = 'teste';
-        return view('GoogleDrive/DadosClienteGoogle');
+
+
+        if(session('googleUser')) {
+            return view('GoogleDrive/DadosClienteGoogle');
+         } else {
+             return redirect('/auth/google');
+         }
+
+
     }
 
     public function googleLogin(Request $request)
