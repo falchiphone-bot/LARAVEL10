@@ -1,7 +1,7 @@
 <div>
     <div class="card">
         <div class="card-header">
-            <h4><strong>Edição</strong> de lançamentos | {{ $lancamento->Empresa->Descricao }}</h4>
+            <h4><strong>{{ $lancamento->ID }} - Edição</strong> de lançamentos | {{ $lancamento->Empresa->Descricao }}</h4>
         </div>
         <div class="card-body">
 
@@ -121,7 +121,9 @@
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary"
                                         data-bs-dismiss="modal">Fechar</button>
+                                    {{-- <button type="submit" wire:click="acao('limpar')" class="btn btn-seconday">Limpar</button> --}}
                                     <button type="submit" class="btn btn-primary">Salvar Lancamento</button>
+                                    <button type="submit" wire:click="acao('novo')" class="btn btn-warning">Salvar Como Novo</button>
                                 </div>
                             </div>
                         </form>
