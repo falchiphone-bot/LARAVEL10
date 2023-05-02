@@ -366,7 +366,8 @@
     <!-- Styles -->
     {{-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" /> --}}
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
 @endpush
 @push('scripts')
@@ -388,7 +389,7 @@
             });
             window.livewire.on('select2', () => {
                 $('.select2').select2({
-                    theme: 'bootstrap-5'
+                    // theme: 'bootstrap-5'
                 });
             });
             //fim-contas
@@ -402,37 +403,37 @@
             });
         });
 
-        $('form').submit(function(e) {
-            e.preventDefault();
-            $.confirm({
-                title: 'Confirmar!',
-                content: 'Confirma?',
-                buttons: {
-                    confirmar: function() {
-                        // $.alert('Confirmar!');
-                        $.confirm({
-                            title: 'Confirmar!',
-                            content: 'Deseja realmente continuar?',
-                            buttons: {
-                                confirmar: function() {
-                                    // $.alert('Confirmar!');
-                                    e.currentTarget.submit()
-                                },
-                                cancelar: function() {
-                                    // $.alert('Cancelar!');
-                                },
+        // $('form').submit(function(e) {
+        //     e.preventDefault();
+        //     $.confirm({
+        //         title: 'Confirmar!',
+        //         content: 'Confirma?',
+        //         buttons: {
+        //             confirmar: function() {
+        //                 // $.alert('Confirmar!');
+        //                 $.confirm({
+        //                     title: 'Confirmar!',
+        //                     content: 'Deseja realmente continuar?',
+        //                     buttons: {
+        //                         confirmar: function() {
+        //                             // $.alert('Confirmar!');
+        //                             e.currentTarget.submit()
+        //                         },
+        //                         cancelar: function() {
+        //                             // $.alert('Cancelar!');
+        //                         },
 
-                            }
-                        });
+        //                     }
+        //                 });
 
-                    },
-                    cancelar: function() {
-                        // $.alert('Cancelar!');
-                    },
+        //             },
+        //             cancelar: function() {
+        //                 // $.alert('Cancelar!');
+        //             },
 
-                }
-            });
-        });
+        //         }
+        //     });
+        // });
 
         // ouvindo eventos do livewire
         window.addEventListener('remove-line-exclusao', event => {
@@ -459,14 +460,10 @@
             }
         });
 
-        // $(document).on('select2', () => {
-        //     // theme: 'bootstrap-5',
-        //     document.querySelector('.select2-search__field').focus();
-        // });
 
         // In your Javascript (external .js resource or <script> tag)
         $('.select2').select2({
-            theme: 'bootstrap-5'
+            // theme: 'bootstrap-5'
         });
 
         function excluirArquivo(id) {
@@ -477,6 +474,36 @@
                     confirmar: function() {
                         // $.alert('Confirmar!');
                         Livewire.emit('excluir', id)
+                    },
+                    cancelar: function() {
+                        // $.alert('Cancelar!');
+                    },
+
+                }
+            });
+        };
+
+        function confirmar(params) {
+            $.confirm({
+                title: 'Confirmar!',
+                content: 'Confirma?',
+                buttons: {
+                    confirmar: function() {
+                        // $.alert('Confirmar!');
+                        $.confirm({
+                            title: 'Confirmar!',
+                            content: 'Deseja realmente continuar?',
+                            buttons: {
+                                confirmar: function() {
+                                    Livewire.emit('salvarLancamento',params);
+                                },
+                                cancelar: function() {
+                                    // $.alert('Cancelar!');
+                                },
+
+                            }
+                        });
+
                     },
                     cancelar: function() {
                         // $.alert('Cancelar!');

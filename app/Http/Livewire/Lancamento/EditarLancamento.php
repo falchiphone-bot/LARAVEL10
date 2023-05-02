@@ -14,7 +14,6 @@ use Livewire\Component;
 class EditarLancamento extends Component
 {
     public $contas;
-    public $metodo;
 
     public Lancamento $lancamento;
     public $historicos;
@@ -23,11 +22,12 @@ class EditarLancamento extends Component
 
     public $currentTab;
 
-    protected $listeners = ['alterarIdLancamento'];
+    protected $listeners = ['alterarIdLancamento', 'salvarLancamento'];
 
     public function alterarIdLancamento($lancamento_id)
     {
         $this->mount($lancamento_id);
+        // $this->emit('select2');
     }
 
     protected $rules = [
@@ -39,18 +39,17 @@ class EditarLancamento extends Component
         'lancamento.Descricao' => 'required_without:lancamento.HistoricoID|string',
     ];
 
-    public function salvarLancamento()
+    public function salvarLancamento($novo = null)
     {
         $this->validate();
-        if ($this->metodo == 'novo') {
+        if ($novo) {
             $novoLancamento = $this->lancamento->replicate();
             if (!$this->temBloqueio()) {
                 $novoLancamento->DataContabilidade = $this->lancamento->DataContabilidade->format('d/m/Y');
                 $novoLancamento->save();
                 session()->flash('message', 'Lançamento Criado.');
             }
-
-        }elseif(!$this->temBloqueio($this->lancamento->ID, $this->lancamento->DataContabilidade)) {
+        } elseif (!$this->temBloqueio($this->lancamento->ID, $this->lancamento->DataContabilidade)) {
             $this->lancamento['DataContabilidade'] = $this->lancamento->DataContabilidade->format('d-m-Y');
 
             if ($this->lancamento->save()) {
@@ -111,7 +110,7 @@ class EditarLancamento extends Component
                 }
             }
             return false;
-        }elseif ($this->lancamento->DataContabilidade) {
+        } elseif ($this->lancamento->DataContabilidade) {
             $data_empresa = $this->lancamento->Empresa->Bloqueiodataanterior;
             if ($data_empresa) {
                 if ($data_empresa->greaterThanOrEqualTo($this->lancamento->DataContabilidade)) {
@@ -131,7 +130,7 @@ class EditarLancamento extends Component
                     return true;
                 }
             }
-        }else{
+        } else {
             return false;
         }
     }
@@ -162,11 +161,12 @@ class EditarLancamento extends Component
             ->where('Grau', 5)
             ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', 'Planocontas_id')
             ->orderBy('PlanoContas.Descricao')
-            ->pluck('PlanoContas.Descricao', 'Contas.ID');
+            ->get(['PlanoContas.Descricao', 'Contas.ID']);
 
         $this->historicos = Historicos::where('EmpresaID', $this->lancamento->EmpresaID)
-            ->orderBy('Descricao')
-            ->pluck('Descricao', 'ID');
+        ->orderBy('Descricao', 'asc')
+            ->get(['Descricao', 'ID']);
+
     }
 
     public function render()

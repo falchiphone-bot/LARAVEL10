@@ -1,7 +1,8 @@
 <div>
     <div class="card">
         <div class="card-header">
-            <h4><strong>{{ $lancamento->ID }} - Edição</strong> de lançamentos | {{ $lancamento->Empresa->Descricao }}</h4>
+            <h4><strong>{{ $lancamento->ID }} - Edição</strong> de lançamentos | {{ $lancamento->Empresa->Descricao }}
+            </h4>
         </div>
         <div class="card-body">
 
@@ -53,17 +54,17 @@
                 <div class="tab-pane fade @if ($currentTab == 'lancamento') show active @endif" id="lancamento"
                     role="tabpanel" aria-labelledby="lancamento-tab">
                     <div class="card-body">
-                        <form wire:submit.prevent="salvarLancamento">
+                        <form wire:submit.prevent="salvarLancamento()" id="form-lancamento">
                             <div class="row">
                                 <div class="form-group col-sm-12 mb-2">
                                     <label for="historicoID" class=" form-control-label">
                                         Histórico
                                     </label>
-                                    <select id="historicoID" name="HistoricoID" class="form-control select2"
+                                    <select id="historicoID" name="HistoricoID" class="form-control"
                                         wire:model='lancamento.HistoricoID' wire:change="selectHistorico">
                                         <option value=""></option>
-                                        @foreach ($historicos as $historicoID => $historicoDescricao)
-                                            <option value="{{ $historicoID }}">{{ $historicoDescricao }}</option>
+                                        @foreach ($historicos as $historico)
+                                            <option value="{{ $historico->ID }}">{{ $historico->Descricao }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -82,9 +83,9 @@
                                             </label>
                                             <select id="contadebito" wire:model.lazy='lancamento.ContaDebitoID'
                                                 name="ContaDebitoID" class="form-control select2">
-                                                @foreach ($contas as $ContaID => $ContaDescricao)
-                                                    <option value="{{ $ContaID }}">
-                                                        {{ $ContaDescricao }}</option>
+                                                @foreach ($contas as $conta)
+                                                    <option value="{{ $conta->ID }}">
+                                                        {{ $conta->Descricao }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -94,9 +95,9 @@
                                             </label>
                                             <select id="contacredito" wire:model.lazy='lancamento.ContaCreditoID'
                                                 name="ContaCreditoID" class="form-control select2">
-                                                @foreach ($contas as $ContaID => $ContaDescricao)
-                                                    <option value="{{ $ContaID }}">
-                                                        {{ $ContaDescricao }}</option>
+                                                @foreach ($contas as $conta)
+                                                    <option value="{{ $conta->ID }}">
+                                                        {{ $conta->Descricao }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -122,8 +123,16 @@
                                     <button type="button" class="btn btn-secondary"
                                         data-bs-dismiss="modal">Fechar</button>
                                     {{-- <button type="submit" wire:click="acao('limpar')" class="btn btn-seconday">Limpar</button> --}}
-                                    <button type="submit" class="btn btn-primary">Salvar Lancamento</button>
-                                    <button type="submit" wire:click="acao('novo')" class="btn btn-warning">Salvar Como Novo</button>
+                                    <button type="button" class="btn btn-primary"
+                                        onclick="confirmar()"
+                                        >
+                                        Salvar Lancamento
+                                    </button>
+                                    <button type="button"
+                                    onclick="confirmar(true)"
+                                     class="btn btn-warning">
+                                        Salvar Como Novo
+                                    </button>
                                 </div>
                             </div>
                         </form>
@@ -157,7 +166,7 @@
                 </div>
                 <div class="tab-pane fade @if ($currentTab == 'arquivo') show active @endif" id="arquivos"
                     role="tabpanel" aria-labelledby="arquivos-tab">
-                    @livewire('lancamento.arquivo-lancamento',['lancamento_id' => $lancamento->ID])
+                    @livewire('lancamento.arquivo-lancamento', ['lancamento_id' => $lancamento->ID])
                 </div>
                 <div class="tab-pane fade @if ($currentTab == 'troca-empresa') show active @endif" id="troca-empresa"
                     role="tabpanel" aria-labelledby="arquivos-tab">
