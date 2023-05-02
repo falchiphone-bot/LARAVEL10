@@ -27,7 +27,7 @@
 
 
                       <div>
-                        <h2>Informações do Google Client:</h2>
+                        
                         <ul>
                             {{-- <li><strong>Arquivo de configuração:</strong> {{ $gClientInfo['authConfig'] }}</li>
                             <li><strong>Permissões:</strong> {{ implode(', ', $gClientInfo['scopes']) }}</li>
@@ -41,12 +41,13 @@
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-sm-12">
-                                    <label for="name">Texto 1</label>
-                                    {{-- <input required type="text" class="form-control" id='name' name="name"> --}}
+                                    <label for="name">Nome</label>
+                                    {{session('googleUser')->name}}
+
                                 </div>
                                 <div class="col-sm-12">
-                                    <label for="inicio">Texto 2</label>
-                                    {{-- <input required type="datetime-local" class="form-control" id='inicio' name="inicio"> --}}
+                                    <label for="inicio">Email</label>
+                                    {{session('googleUser')->email}}
                                 </div>
                                 <div class="col-sm-12">
                                     <label for="fim">Texto 3</label>

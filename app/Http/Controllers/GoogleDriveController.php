@@ -37,14 +37,15 @@ class GoogleDriveController extends Controller
 
     public function showGoogleClientInfo()
     {
+        // dd(session('googleUser')->name);
         // $gClientInfo = [
         //     'authConfig' => $this->gClient->getAuthConfig(),
         //     'scopes' => $this->gClient->getScopes(),
         //     'accessToken' => $this->gClient->getAccessToken(),
         //     // Adicione outras informações que desejar aqui
         // ];
-        $gClientInfo = 'teste';
-        return view('GoogleDrive/DadosClienteGoogle', compact('gClientInfo'));
+        // // $gClientInfo = 'teste';
+        return view('GoogleDrive/DadosClienteGoogle');
     }
 
     public function googleLogin(Request $request)
@@ -70,8 +71,12 @@ class GoogleDriveController extends Controller
             // $user->save();
 
             Cache::put('token_google', $this->gClient->getAccessToken(), $seconds = 1800);
+            dd($this->gClient);
+            Cache::put('dadoscliente_google', $this->gClient, $seconds = 1800);
+            // dd('Autenticado no Google Drive');
 
-            dd('Autenticado no Google Drive');
+            return redirect(route('google.showGoogleClientInfo'));
+
         } else {
             // FOR GUEST USER, GET GOOGLE LOGIN URL
             $authUrl = $this->gClient->createAuthUrl();
