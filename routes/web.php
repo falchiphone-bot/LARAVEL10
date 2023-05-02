@@ -30,15 +30,19 @@ Route::get('/dashboard', function () {
     ->name('dashboard');
 
 //Para autenticar no sistema sem usuario ou com usuário do google
-Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);
+Route::get('auth/google/', [GoogleController::class, 'redirectToGoogle']);
 Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
 Route::middleware('auth')->group(function () {
 
     #GoogleDrive
+    Route::get('drive/showGoogleClientInfo', [App\Http\Controllers\GoogleDriveController::class, 'showGoogleClientInfo'])->name('google.showGoogleClientInfo');
     Route::get('drive/google/login', [App\Http\Controllers\GoogleDriveController::class, 'googleLogin'])->name('google.login');
     Route::get('drive/google-drive/file-upload', [App\Http\Controllers\GoogleDriveController::class, 'googleDriveFileUpload'])->name('google.drive.file.upload');
     Route::get('drive/dashboard', [App\Http\Controllers\GoogleDriveController::class, 'dashboard'])->name('googledrive.dashboard');
+    Route::get('drive/DadosClienteGoogle', function () { return view('GoogleDrive.DadosClienteGoogle');
+    })->name('Dados.clienteGoogle');
+
 
     #Rotas criadas automaticamente laravel
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -55,6 +59,7 @@ Route::middleware('auth')->group(function () {
     //autenticação google paraenvio de email
     Route::prefix('/mail')->group(function () {
         Route::view('home', 'mail.home')->name('mail.home');
+
         Route::post('/get-token', [OAuthController::class, 'doGenerateToken'])->name('generate.token');
         Route::get('/get-token', [OAuthController::class, 'doSuccessToken'])->name('token.success');
         Route::post('/send', [MailController::class, 'send'])->name('send.email');

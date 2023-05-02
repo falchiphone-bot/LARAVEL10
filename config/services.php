@@ -44,7 +44,8 @@ return [
         // 'client_secret' => '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',
         'client_id' => env('GOOGLE_API_CLIENT_ID'),
         'client_secret' => env('GOOGLE_API_CLIENT_SECRET'),
-        'redirect' => 'https://contabilidade.falchi.com.br/auth/google/callback',
+        'redirect' => 'http://localhost:82/auth/google/callback',
+        // Producao 'redirect' => 'https://contabilidade.falchi.com.br/auth/google/callback',
     ],
 
 ];

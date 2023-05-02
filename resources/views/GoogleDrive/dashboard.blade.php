@@ -19,13 +19,25 @@
                             </div>
                         </thead>
                         <tbody>
+                            @php
+                             session(['retornar'=>'googledrive.dashboard']);
+                            @endphp
+                            @if(session('googleUser'))
+                                    CONECTADO
+                            @else
+                                    NÃO CONECTADO
+                            @endif
 
 
                             @can('GoogleDrive - Opções')
                                 <tr>
                                     <th>
                                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-success" href="google/login">Autenticar no Google</a>
+                                            <a class="btn btn-success" href="/auth/google/">Autenticar no Google</a>
+                                        </nav>
+
+                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                            <a class="btn btn-success" href="showGoogleClientInfo">Dados do cliente Google</a>
                                         </nav>
 
                                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">

@@ -15,9 +15,11 @@ class GoogleController extends Controller
      *
      * @return void
      */
-    public function redirectToGoogle()
+    public function redirectToGoogle($retorno = null)
     {
+
         return Socialite::driver('google')
+        ->with(['redirect'=>'http://localhost:82/auth/google/callback'])
         // ->scopes(['https://www.googleapis.com/auth/script.send_mail'])
         // ->scopes(['https://www.googleapis.com/auth/gmail.send'])
         ->redirect();
@@ -30,10 +32,17 @@ class GoogleController extends Controller
      */
     public function handleGoogleCallback()
     {
+
         try {
             $googleUser = Socialite::driver('google')->user();
 
             session(['googleUser'=>$googleUser]);
+
+
+            if(session('retornar'))
+            {
+                return redirect(route(session('retornar')));
+            }
 
             $finduser = User::where('google_id', $googleUser->id)->first();
 
