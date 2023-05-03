@@ -164,9 +164,8 @@ class EditarLancamento extends Component
             ->get(['PlanoContas.Descricao', 'Contas.ID']);
 
         $this->historicos = Historicos::where('EmpresaID', $this->lancamento->EmpresaID)
-        ->orderBy('Descricao', 'asc')
+            ->orderBy('Descricao', 'asc')
             ->get(['Descricao', 'ID']);
-
     }
 
     public function render()

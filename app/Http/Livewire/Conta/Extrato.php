@@ -47,7 +47,7 @@ class Extrato extends Component
     }
 
     protected $listeners = ['selectedSelEmpresaItem', 'selectedSelContaItem', 'search'];
-    
+
 
     //gerenciamento select2
     public function selectedSelEmpresaItem($item)
@@ -327,7 +327,7 @@ class Extrato extends Component
             ->where('Grau', 5)
             ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', 'Planocontas_id')
             ->orderBy('PlanoContas.Descricao')
-            ->pluck('PlanoContas.Descricao', 'Contas.ID');
+            ->get(['PlanoContas.Descricao', 'Contas.ID']);
 
         return view('livewire.conta.extrato', compact('empresas', 'contas', 'saldoAnterior'));
     }
