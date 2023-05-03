@@ -96,15 +96,16 @@ class GoogleDriveController extends Controller
 
     public function googleDriveFileUpload(Request $request)
     {
+        // https://laravel.com/docs/10.x/filesystem#the-local-driver
+
+
         $service = new \Google_Service_Drive($this->gClient);
 
-        // dd($this->gClient);
 
         // $user= User::find(1);
         // Cache::put('token_google', session('googleUser')->token , $seconds = 1800);
         $this->gClient->setAccessToken(session('googleUserDrive'));
 
-        // dd($this->gClient);
 
         if ($this->gClient->isAccessTokenExpired()) {
             // SAVE REFRESH TOKEN TO SOME VARIABLE
@@ -135,9 +136,17 @@ class GoogleDriveController extends Controller
         // $folder = $service->files->create($fileMetadata, array('fields' => 'id'));
 
         // printf("Folder ID: %s\n", $folder->id);
+        // $arquivo = $request->file('arquivo');
+
 
         dd($request->file('arquivo'));
-        $path = $request->file('arquivo')->store('contabilidade');
+
+
+        /// usar na pasta do servidor - não apaga
+        // $path = $request->file('arquivo')->store('contabilidade');
+
+        /////// aqui fica na pasta temporário /temp/    - apaga
+        $path = $request->file('arquivo')->getRealPath();
 
         $file = $request->file('arquivo');
 
@@ -147,11 +156,12 @@ class GoogleDriveController extends Controller
 
         $folder = '1SV8zXjgtfqViak_Jrlich-YVEM32bu8F';
         // $file = new \Google_Service_Drive_DriveFile(array('name' => 'piso1.jpg','parents' => array($folder->id)));
-        $file = new \Google_Service_Drive_DriveFile(['name' => 'piso1.jpg', 'parents' => [$folder]]);
+        $file = new \Google_Service_Drive_DriveFile(['name' => $request->file('arquivo')->getClientOriginalName(), 'parents' => [$folder]]);
 
         $result = $service->files->create($file, [
             // dd(Storage::path('contabilidade/sample.pdf')),
-            'data' => file_get_contents(Storage::path($path)), // ADD YOUR FILE PATH WHICH YOU WANT TO UPLOAD ON GOOGLE DRIVE
+            // 'data' => file_get_contents(Storage::path($path)), // ADD YOUR FILE PATH WHICH YOU WANT TO UPLOAD ON GOOGLE DRIVE
+            'data' => file_get_contents($path), // ADD YOUR FILE PATH WHICH YOU WANT TO UPLOAD ON GOOGLE DRIVE
             'mimeType' => 'application/octet-stream',
             'uploadType' => 'media',
         ]);

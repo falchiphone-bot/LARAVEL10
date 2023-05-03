@@ -38,11 +38,11 @@ Route::middleware('auth')->group(function () {
     #GoogleDrive
     Route::get('drive/showGoogleClientInfo', [App\Http\Controllers\GoogleDriveController::class, 'showGoogleClientInfo'])->name('google.showGoogleClientInfo');
     Route::get('drive/google/login', [App\Http\Controllers\GoogleDriveController::class, 'googleLogin'])->name('google.login');
-    Route::get('drive/google-drive/file-upload', [App\Http\Controllers\GoogleDriveController::class, 'googleDriveFileUpload'])->name('google.drive.file.upload');
+    Route::post('drive/google-drive/file-upload', [App\Http\Controllers\GoogleDriveController::class, 'googleDriveFileUpload'])->name('google.drive.file.upload');
     Route::get('drive/dashboard', [App\Http\Controllers\GoogleDriveController::class, 'dashboard'])->name('googledrive.dashboard');
-    Route::get('drive/DadosClienteGoogle', function () { return view('GoogleDrive.DadosClienteGoogle');
-    })->name('Dados.clienteGoogle');
-
+    Route::get('drive/DadosClienteGoogle', function () { return view('GoogleDrive.DadosClienteGoogle');})->name('Dados.clienteGoogle');
+    // Route::get('drive/UploadArquivo', [App\Http\Controllers\GoogleDriveController::class, ' '])->name('google.uploadarquivo');
+    Route::get('drive/UploadArquivo', function () { return view('GoogleDrive.UploadArquivoGoogleDrive');})->name('upload.arquivos');
 
     #Rotas criadas automaticamente laravel
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
