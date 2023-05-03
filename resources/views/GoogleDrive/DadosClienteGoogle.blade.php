@@ -41,48 +41,54 @@
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-sm-12">
-                                    <img src="{{ asset(session('googleUser')->avatar) }}" alt="Minha imagem">
+                                    <img src="{{ asset( optional(session('googleUser'))->avatar) }}" alt="Minha imagem">
                                 </div>
                                 <div class="col-sm-12">
                                     <label for="name">Identificação no Google:</label>
-                                    {{session('googleUser')->id}}
+                                    {{ optional(session('googleUser'))->id}}
                                 </div>
                                 <div class="col-sm-12">
                                     <label for="name">Nick no Google:</label>
-                                    {{session('googleUser')->nickname}}
+                                    {{ optional(session('googleUser'))->nickname}}
                                 </div>
                                 <div class="col-sm-12">
                                     <label for="name">Família:</label>
-                                    {{session('googleUser')->user['family_name']}}
+                                    {{ optional(session('googleUser'))->user['family_name']}}
                                 </div>
                                 <div class="col-sm-12">
                                     <label for="name">Nome:</label>
-                                    {{session('googleUser')->name}}
+                                    {{ session('googleUser')->name}}
 
                                 </div>
                                 <div class="col-sm-12">
                                     <label for="inicio">Email:</label>
-                                    {{session('googleUser')->email}}
+                                    {{ session('googleUser')->email}}
                                 </div>
                                 <div class="col-sm-12">
                                     <label for="name">Email verificado:</label>
-                                    {{session('googleUser')->user['email_verified']}}
+                                    @if ( optional(session('googleUser')->user)['email_verified']  == 1)
+                                            SIM
+                                    @else
+                                            NÃO
+                                    @endif
+
                                 </div>
                                 <div class="col-sm-12">
                                     <label for="name">Localidade:</label>
-                                    {{session('googleUser')->user['locale']}}
+                                    {{ optional(session('googleUser')->user)['locale']}}
                                 </div>
+
                                 <div class="col-sm-12">
                                     <label for="name">Corporação:</label>
-                                    {{session('googleUser')->user['hd']}}
+                                    {{ optional(session('googleUser')->user)['hd'] }}
                                 </div>
                                 <div class="col-sm-12">
                                     <label for="name">Perfil Google:</label>
-                                    {{session('googleUser')->user['profile']}}
+                                    {{ optional(session('googleUser')->user)['profile']}}
                                 </div>
                                 <div class="col-sm-12">
                                     <label for="name">link-----plus :</label>
-                                    {{session('googleUser')->user['link']}}
+                                    {{ optional(session('googleUser')->user)['link']}}
                                 </div>
                             </div>
                         </div>
