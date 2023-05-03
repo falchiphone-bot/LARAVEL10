@@ -34,7 +34,7 @@
                             @can('GoogleDrive - Opções')
                                 <tr>
                                     <th>
-                                        @if (session('googleUser'))
+                                        @if (session('googleUserDrive'))
                                             <nav class="navbar navbar-red"
                                                 style="background-color: hsla(234, 92%, 47%, 0.096);">
                                                 <a class="btn btn-success" href="showGoogleClientInfo">Dados do cliente
@@ -49,7 +49,7 @@
                                         @else
                                             <nav class="navbar navbar-red"
                                                 style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                                <a class="btn btn-success" href="/auth/google/">Autenticar no Google Drive</a>
+                                                <a class="btn btn-success" href="/drive/google/login/">Autenticar no Google Drive</a>
                                             </nav>
 
                                         @endif

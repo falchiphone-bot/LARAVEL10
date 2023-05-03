@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
-use Illuminate\Support\Facades\Cache;
+// use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class GoogleDriveController extends Controller
@@ -78,9 +78,10 @@ class GoogleDriveController extends Controller
 
             // $user->save();
 
-            Cache::put('token_google', $this->gClient->getAccessToken(), $seconds = 1800);
-            dd($this->gClient);
-            Cache::put('dadoscliente_google', $this->gClient, $seconds = 1800);
+            // Cache::put('token_google', $this->gClient->getAccessToken(), $seconds = 1800);
+            session(['googleUserDrive'=>$this->gClient->getAccessToken()]);
+            // dd($this->gClient);
+            // Cache::put('dadoscliente_google', $this->gClient, $seconds = 1800);
             // dd('Autenticado no Google Drive');
 
             return redirect(route('google.showGoogleClientInfo'));
@@ -93,13 +94,15 @@ class GoogleDriveController extends Controller
         }
     }
 
-    public function googleDriveFileUpload()
+    public function googleDriveFileUpload(Request $request)
     {
         $service = new \Google_Service_Drive($this->gClient);
 
+        // dd($this->gClient);
+
         // $user= User::find(1);
         // Cache::put('token_google', session('googleUser')->token , $seconds = 1800);
-        $this->gClient->setAccessToken(Cache::get('token_google'));
+        $this->gClient->setAccessToken(session('googleUserDrive'));
 
         // dd($this->gClient);
 
@@ -133,13 +136,22 @@ class GoogleDriveController extends Controller
 
         // printf("Folder ID: %s\n", $folder->id);
 
+        dd($request->file('arquivo'));
+        $path = $request->file('arquivo')->store('contabilidade');
+
+        $file = $request->file('arquivo');
+
+        $name = $file->getClientOriginalName();
+        $extension = $file->getClientOriginalExtension();
+
+
         $folder = '1SV8zXjgtfqViak_Jrlich-YVEM32bu8F';
         // $file = new \Google_Service_Drive_DriveFile(array('name' => 'piso1.jpg','parents' => array($folder->id)));
         $file = new \Google_Service_Drive_DriveFile(['name' => 'piso1.jpg', 'parents' => [$folder]]);
 
         $result = $service->files->create($file, [
             // dd(Storage::path('contabilidade/sample.pdf')),
-            'data' => file_get_contents(Storage::path('contabilidade/piso1.jpg')), // ADD YOUR FILE PATH WHICH YOU WANT TO UPLOAD ON GOOGLE DRIVE
+            'data' => file_get_contents(Storage::path($path)), // ADD YOUR FILE PATH WHICH YOU WANT TO UPLOAD ON GOOGLE DRIVE
             'mimeType' => 'application/octet-stream',
             'uploadType' => 'media',
         ]);
@@ -148,6 +160,8 @@ class GoogleDriveController extends Controller
 
         $url = 'https://drive.google.com/open?id=' . $result->id;
 
-        dd($result);
+        return redirect($url);
+
+        // dd($result);
     }
 }

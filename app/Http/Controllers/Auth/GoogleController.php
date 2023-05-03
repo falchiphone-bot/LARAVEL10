@@ -20,8 +20,8 @@ class GoogleController extends Controller
 
         return Socialite::driver('google')
         ->with(['redirect'=>'http://localhost:82/auth/google/callback'])
-        // ->scopes(['https://www.googleapis.com/auth/script.send_mail'])
-        // ->scopes(['https://www.googleapis.com/auth/gmail.send'])
+        ->scopes('https://www.googleapis.com/auth/drive.file')
+        ->scopes('https://www.googleapis.com/auth/drive')
         ->redirect();
     }
 
