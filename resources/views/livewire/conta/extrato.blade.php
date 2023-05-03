@@ -19,7 +19,7 @@
                 </div>
                 <div class="row">
                     <div class="col-6">
-                        <select class="form-control select2" id="selEmpresa" wire:model="selEmpresa">
+                        <select class="form-control" id="selEmpresa" wire:model="selEmpresa">
                             @foreach ($empresas as $empresa_id => $empresa_descricao)
                                 <option @selected($selEmpresa == $empresa_id) value="{{ $empresa_id }}">
                                     {{ $empresa_descricao }}</option>
@@ -27,10 +27,10 @@
                         </select>
                     </div>
                     <div class="col-6">
-                        <select class="form-control select2" id="selConta" wire:model='selConta' aria-hidden="true">
+                        <select class="form-control" id="selConta" wire:model='selConta' aria-hidden="true">
                             <option value="0">Escolha uma conta</option>
-                            @foreach ($contas as $conta_id => $conta_descricao)
-                                <option @selected($selConta == $conta_id) value="{{ $conta_id }}">{{ $conta_descricao }}
+                            @foreach ($contas as $conta)
+                                <option @selected($selConta == $conta->ID) value="{{ $conta->ID }}">{{ $conta->Descricao }}
                                 </option>
                             @endforeach
                         </select>
@@ -351,7 +351,7 @@
                         <div class="modal-content">
                             <div class="modal-body">
                                 @if ($editar_lancamento)
-                                    @livewire('lancamento.editar-lancamento', ['lancamento_id' => $editar_lancamento])
+                                    @livewire('lancamento.editar-lancamento', ['lancamento_id' => $editar_lancamento,'contas'=>$contas])
                                 @endif
                             </div>
                         </div>

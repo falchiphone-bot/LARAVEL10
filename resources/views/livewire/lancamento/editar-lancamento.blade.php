@@ -82,7 +82,7 @@
                                                 <a href="">Conta Debito</a>
                                             </label>
                                             <select id="contadebito" wire:model.lazy='lancamento.ContaDebitoID'
-                                                name="ContaDebitoID" class="form-control select2">
+                                                name="ContaDebitoID" class="form-control">
                                                 @foreach ($contas as $conta)
                                                     <option value="{{ $conta->ID }}">
                                                         {{ $conta->Descricao }}</option>
@@ -94,7 +94,7 @@
                                                 <a href="">Conta Crédito</a>
                                             </label>
                                             <select id="contacredito" wire:model.lazy='lancamento.ContaCreditoID'
-                                                name="ContaCreditoID" class="form-control select2">
+                                                name="ContaCreditoID" class="form-control">
                                                 @foreach ($contas as $conta)
                                                     <option value="{{ $conta->ID }}">
                                                         {{ $conta->Descricao }}</option>
