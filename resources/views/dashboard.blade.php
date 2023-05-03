@@ -13,75 +13,78 @@
                 </div>
                 <div class="card-body">
                     <table class="table table-success table-striped">
+                        @if (session('googleUser'))
                         <div class="badge bg-success text-wrap" style="width: 100%;align=˜left˜ ">
                             <div class="col-sm-1">
                                 <img src="{{ asset(session('googleUser')->avatar) }}" alt="Minha imagem">
 
                             </div>
-
-                            @if (session('googleUser')->user['profile'])
+                        @endif
+                        @if (session('googleUser'))
                                 <div class="col-sm-12">
                                     <div class="badge bg-warning text-wrap"
                                         style="width: 40%; height: 30px;
-                    ; font-size: 16px;align=˜Center˜ ">
-                                        <a href="{{ session('googleUser')->user['profile'] }}" target="_blank">Abrir perfil
+                                             ; font-size: 16px;align=˜Center˜ ">
+                                        <a href="{{ session('googleUser')->user['link'] }}" target="_blank">Abrir perfil
                                             Google
                                             do usuário em uma nova aba</a>
                                     </div>
                                 </div>
                             @endif
-                            
-                            <div class="badge bg-warning text-wrap" style="width: 100%;align=˜Center˜ ">
-                                <div class="badge bg-success text-wrap" style="width: 100%;align=˜Center˜ ">
-                                    <thead class="table-light">
-                                        <div class="badge bg-success text-wrap"
-                                            style="width: 100%;
+                        </div>
+
+
+                        <div class="badge bg-warning text-wrap" style="width: 100%;align=˜Center˜ ">
+                            <div class="badge bg-success text-wrap" style="width: 100%;align=˜Center˜ ">
+                                <thead class="table-light">
+                                    <div class="badge bg-success text-wrap"
+                                        style="width: 100%;
                                     ; font-size: 16px;align=˜Center˜ ">
-                                            Opções para o sistema
-                                        </div>
-                                </div>
+                                        Opções para o sistema
+                                    </div>
                             </div>
+                        </div>
 
-                            @can('USUARIOS - LISTAR')
-                                <tr>
-                                    <th>
+                        @can('USUARIOS - LISTAR')
+                            <tr>
+                                <th>
 
-                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-primary" href="/Usuarios">Usuários</a>
-                                        </nav>
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="/Usuarios">Usuários</a>
+                                    </nav>
 
-                                    </th>
+                                </th>
 
-                                </tr>
-                            @endcan
-
-
-                            @can('PERMISSOES - LISTAR')
-                                <tr>
-                                    <th>
-
-                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-primary" href="/Permissoes">Permissões</a>
-                                        </nav>
-
-                                    </th>
-                                </tr>
-                            @endcan
+                            </tr>
+                        @endcan
 
 
-                            @can('FUNCOES - LISTAR')
-                                <tr>
-                                    <th>
+                        @can('PERMISSOES - LISTAR')
+                            <tr>
+                                <th>
 
-                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-primary" href="/Funcoes">Funcões</a>
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="/Permissoes">Permissões</a>
+                                    </nav>
 
-                                    </th>
-                                </tr>
-                            @endcan
+                                </th>
+                            </tr>
+                        @endcan
 
 
-                            {{-- @can('PLANO DE CONTAS - LISTAR')
+                        @can('FUNCOES - LISTAR')
+                            <tr>
+                                <th>
+
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="/Funcoes">Funcões</a>
+
+                                </th>
+                            </tr>
+                        @endcan
+
+
+                        {{-- @can('PLANO DE CONTAS - LISTAR')
                                 <tr>
                                     <th>
 
@@ -93,105 +96,105 @@
                                 </tr>
                             @endcan --}}
 
-                            @can('EMPRESAS - LISTAR')
-                                <tr>
-                                    <th>
+                        @can('EMPRESAS - LISTAR')
+                            <tr>
+                                <th>
 
-                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-primary" href="/Empresas">Empresas</a>
-                                        </nav>
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="/Empresas">Empresas</a>
+                                    </nav>
 
-                                    </th>
-                                </tr>
-                            @endcan
-
-
+                                </th>
+                            </tr>
+                        @endcan
 
 
 
-                            @can('CONTABILIDADE - LISTAR')
-                                <tr>
-                                    <th>
-
-                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-primary" href="/Contabilidade">Contabilidade</a>
-                                        </nav>
-
-                                    </th>
-                                </tr>
-                            @endcan
-
-                            @can('COBRANCA - LISTAR')
-                                <tr>
-                                    <th>
-
-                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-primary" href="/Cobranca">Cobrança</a>
-                                        </nav>
-
-                                    </th>
-                                </tr>
-                            @endcan
 
 
+                        @can('CONTABILIDADE - LISTAR')
+                            <tr>
+                                <th>
 
-                            @can('MOEDAS - LISTAR')
-                                <tr>
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="/Contabilidade">Contabilidade</a>
+                                    </nav>
 
-                                    <th>
+                                </th>
+                            </tr>
+                        @endcan
 
-                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-primary" <a href="Moedas/dashboard">Moedas Dashboard</a>
+                        @can('COBRANCA - LISTAR')
+                            <tr>
+                                <th>
 
-                                        </nav>
-                                    </th>
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="/Cobranca">Cobrança</a>
+                                    </nav>
 
-                                </tr>
-                            @endcan
+                                </th>
+                            </tr>
+                        @endcan
 
-                            @can('AGENDA - LISTAR')
-                                <tr>
 
-                                    <th>
 
-                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-primary" <a href="Agenda/dashboard">Calendário Dashboard</a>
+                        @can('MOEDAS - LISTAR')
+                            <tr>
 
-                                        </nav>
-                                    </th>
+                                <th>
 
-                                </tr>
-                            @endcan
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" <a href="Moedas/dashboard">Moedas Dashboard</a>
 
-                            @can('GoogleDrive - Opções')
-                                <tr>
+                                    </nav>
+                                </th>
 
-                                    <th>
+                            </tr>
+                        @endcan
 
-                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-primary" <a href="drive/dashboard">Google Drive Dashboard</a>
+                        @can('AGENDA - LISTAR')
+                            <tr>
 
-                                        </nav>
-                                    </th>
+                                <th>
 
-                                </tr>
-                            @endcan
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" <a href="Agenda/dashboard">Calendário Dashboard</a>
 
-                            @can('FERIADOS - LISTAR')
-                                <tr>
+                                    </nav>
+                                </th>
 
-                                    <th>
+                            </tr>
+                        @endcan
 
-                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-primary" <a href="Feriados">Feriados</a>
+                        @can('GoogleDrive - Opções')
+                            <tr>
 
-                                        </nav>
-                                    </th>
+                                <th>
 
-                                </tr>
-                            @endcan
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" <a href="drive/dashboard">Google Drive Dashboard</a>
 
-                            </tbody>
+                                    </nav>
+                                </th>
+
+                            </tr>
+                        @endcan
+
+                        @can('FERIADOS - LISTAR')
+                            <tr>
+
+                                <th>
+
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" <a href="Feriados">Feriados</a>
+
+                                    </nav>
+                                </th>
+
+                            </tr>
+                        @endcan
+
+                        </tbody>
                     </table>
                     <div class="badge bg-warning text-wrap" style="width: 100%;align=˜Center˜ ">
                         <div class="badge bg-success text-wrap" style="width: 100%;align=˜Center˜ "> . .
