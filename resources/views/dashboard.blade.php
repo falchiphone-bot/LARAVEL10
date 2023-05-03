@@ -5,22 +5,42 @@
 
             <div class="card">
                 <div class="card-header">
-                    <div class="badge bg-warning text-wrap" style="width: 100%; height: 50px;
+                    <div class="badge bg-warning text-wrap"
+                        style="width: 100%; height: 50px;
                     ; font-size: 24px;align=˜Center˜ ">
                         Menu Principal do sistema administrativo e contábil
                     </div>
                 </div>
                 <div class="card-body">
                     <table class="table table-success table-striped">
-                        <div class="badge bg-warning text-wrap" style="width: 100%;align=˜Center˜ ">
-                            <div class="badge bg-success text-wrap" style="width: 100%;align=˜Center˜ ">
-                                <thead class="table-light">
-                                    <div class="badge bg-success text-wrap" style="width: 100%;
-                                    ; font-size: 16px;align=˜Center˜ ">
-                                        Opções para o sistema
-                                    </div>
+                        <div class="badge bg-success text-wrap" style="width: 100%;align=˜left˜ ">
+                            <div class="col-sm-1">
+                                <img src="{{ asset(session('googleUser')->avatar) }}" alt="Minha imagem">
+
                             </div>
-                        </div>
+
+                            @if (session('googleUser')->user['profile'])
+                                <div class="col-sm-12">
+                                    <div class="badge bg-warning text-wrap"
+                                        style="width: 40%; height: 30px;
+                    ; font-size: 16px;align=˜Center˜ ">
+                                        <a href="{{ session('googleUser')->user['profile'] }}" target="_blank">Abrir perfil
+                                            Google
+                                            do usuário em uma nova aba</a>
+                                    </div>
+                                </div>
+                            @endif
+                            
+                            <div class="badge bg-warning text-wrap" style="width: 100%;align=˜Center˜ ">
+                                <div class="badge bg-success text-wrap" style="width: 100%;align=˜Center˜ ">
+                                    <thead class="table-light">
+                                        <div class="badge bg-success text-wrap"
+                                            style="width: 100%;
+                                    ; font-size: 16px;align=˜Center˜ ">
+                                            Opções para o sistema
+                                        </div>
+                                </div>
+                            </div>
 
                             @can('USUARIOS - LISTAR')
                                 <tr>
@@ -121,8 +141,7 @@
                                     <th>
 
                                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-primary"
-                                            <a href="Moedas/dashboard">Moedas Dashboard</a>
+                                            <a class="btn btn-primary" <a href="Moedas/dashboard">Moedas Dashboard</a>
 
                                         </nav>
                                     </th>
@@ -131,102 +150,100 @@
                             @endcan
 
                             @can('AGENDA - LISTAR')
-                            <tr>
+                                <tr>
 
-                                <th>
+                                    <th>
 
-                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                        <a class="btn btn-primary"
-                                        <a href="Agenda/dashboard">Calendário Dashboard</a>
+                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                            <a class="btn btn-primary" <a href="Agenda/dashboard">Calendário Dashboard</a>
 
-                                    </nav>
-                                </th>
+                                        </nav>
+                                    </th>
 
-                            </tr>
-                        @endcan
+                                </tr>
+                            @endcan
 
-                        @can('GoogleDrive - Opções')
-                        <tr>
+                            @can('GoogleDrive - Opções')
+                                <tr>
 
-                                <th>
+                                    <th>
 
-                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                        <a class="btn btn-primary"
-                                        <a href="drive/dashboard">Google Drive Dashboard</a>
+                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                            <a class="btn btn-primary" <a href="drive/dashboard">Google Drive Dashboard</a>
 
-                                    </nav>
-                                </th>
+                                        </nav>
+                                    </th>
 
-                            </tr>
-                        @endcan
+                                </tr>
+                            @endcan
 
-                        @can('FERIADOS - LISTAR')
-                        <tr>
+                            @can('FERIADOS - LISTAR')
+                                <tr>
 
-                            <th>
+                                    <th>
 
-                                <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                    <a class="btn btn-primary"
-                                    <a href="Feriados">Feriados</a>
+                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                            <a class="btn btn-primary" <a href="Feriados">Feriados</a>
 
-                                </nav>
-                            </th>
+                                        </nav>
+                                    </th>
 
-                        </tr>
-                    @endcan
+                                </tr>
+                            @endcan
 
                             </tbody>
                     </table>
                     <div class="badge bg-warning text-wrap" style="width: 100%;align=˜Center˜ ">
-                    <div class="badge bg-success text-wrap" style="width: 100%;align=˜Center˜ ">              .  .
+                        <div class="badge bg-success text-wrap" style="width: 100%;align=˜Center˜ "> . .
+                        </div>
+                    </div>
+
                 </div>
+                <div class="b-example-divider"></div>
             </div>
+        @endsection
 
-        </div>
-        <div class="b-example-divider"></div>
-    </div>
-@endsection
+        @push('scripts')
+            <link rel="stylesheet"
+                href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
+            <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+            <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+            <script>
+                $(document).ready(function() {
+                    $('.select2').select2();
+                });
 
-@push('scripts')
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            $('.select2').select2();
-        });
+                $('form').submit(function(e) {
+                    e.preventDefault();
+                    $.confirm({
+                        title: 'Confirmar!',
+                        content: 'Confirma?',
+                        buttons: {
+                            confirmar: function() {
+                                // $.alert('Confirmar!');
+                                $.confirm({
+                                    title: 'Confirmar!',
+                                    content: 'Deseja realmente continuar?',
+                                    buttons: {
+                                        confirmar: function() {
+                                            // $.alert('Confirmar!');
+                                            e.currentTarget.submit()
+                                        },
+                                        cancelar: function() {
+                                            // $.alert('Cancelar!');
+                                        },
 
-        $('form').submit(function(e) {
-            e.preventDefault();
-            $.confirm({
-                title: 'Confirmar!',
-                content: 'Confirma?',
-                buttons: {
-                    confirmar: function() {
-                        // $.alert('Confirmar!');
-                        $.confirm({
-                            title: 'Confirmar!',
-                            content: 'Deseja realmente continuar?',
-                            buttons: {
-                                confirmar: function() {
-                                    // $.alert('Confirmar!');
-                                    e.currentTarget.submit()
-                                },
-                                cancelar: function() {
-                                    // $.alert('Cancelar!');
-                                },
+                                    }
+                                });
 
-                            }
-                        });
+                            },
+                            cancelar: function() {
+                                // $.alert('Cancelar!');
+                            },
 
-                    },
-                    cancelar: function() {
-                        // $.alert('Cancelar!');
-                    },
-
-                }
-            });
-        });
-    </script>
-@endpush
+                        }
+                    });
+                });
+            </script>
+        @endpush
