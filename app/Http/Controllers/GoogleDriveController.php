@@ -139,7 +139,7 @@ class GoogleDriveController extends Controller
         // $arquivo = $request->file('arquivo');
 
 
-        dd($request->file('arquivo'));
+        // dd($request->file('arquivo'));
 
 
         /// usar na pasta do servidor - não apaga
