@@ -207,6 +207,9 @@ class Extrato extends Component
             $this->Lancamentos = null;
         }
 
+        $this->dispatchBrowserEvent('refreshSelect2');
+
+
     }
 
     public function confirmarLancamento($lancamento_id)

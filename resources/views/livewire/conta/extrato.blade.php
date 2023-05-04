@@ -408,10 +408,10 @@
             });
 
             $(document).on('change', '#contadebito', function(e) {
-                Livewire.emitTo('lancamento.editar-lancamento','changeContaDebitoID',e.target.value);
+                Livewire.emitTo('lancamento.editar-lancamento', 'changeContaDebitoID', e.target.value);
             });
             $(document).on('change', '#contacredito', function(e) {
-                Livewire.emitTo('lancamento.editar-lancamento','changeContaCreditoID',e.target.value);
+                Livewire.emitTo('lancamento.editar-lancamento', 'changeContaCreditoID', e.target.value);
             });
         });
 
@@ -426,9 +426,6 @@
             // Livewire.hook('message.failed', (message, component) => {})
             // Livewire.hook('message.received', (message, component) => {})
             Livewire.hook('message.processed', (message, component) => {
-                $('.select2').select2({
-                    theme: 'bootstrap-5'
-                });
                 $('.money').mask('000.000.000.000.000,00', {
                     reverse: true
                 });
@@ -450,10 +447,17 @@
 
             var myModalEl = document.getElementById('editarLancamentoModal')
             myModalEl.addEventListener('hidden.bs.modal', function(event) {
-                Livewire.emit('search')
+                Livewire.emit('search');
             })
         });
 
+        window.addEventListener('refreshSelect2', event => {
+            $(document).ready(function() {
+                $('.select2').select2({
+                    theme: 'bootstrap-5'
+                });
+            });
+        });
         window.addEventListener('confirmarLancamento', event => {
             if (event.detail.status) {
                 $('.cl-' + event.detail.lancamento_id).removeClass('fa-square-o');
