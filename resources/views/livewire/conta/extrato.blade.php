@@ -86,8 +86,8 @@
                             <label for="ate" class="px-1  form-control-label">Conferido</label>
                             <select name="Conferido" id="Conferido" class="form-control" wire:model.defer='Conferido'>
                                 <option value="">Todos</option>
-                                <option value="1">Conferido</option>
-                                <option value="0">Não conferido</option>
+                                <option value="true">Conferido</option>
+                                <option value="false">Não conferido</option>
                             </select>
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
@@ -385,6 +385,7 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
+        var modal = false;
         $(document).ready(function() {
             $('#selEmpresa').on('change', function(e) {
                 // @this.set('selEmpresa', e.target.value);
@@ -415,7 +416,22 @@
             });
         });
 
-        // ouvindo eventos do livewire
+        window.addEventListener('remove-line-exclusao', event => {
+            $('.tr-' + event.detail.lancamento_id).remove();
+            console.log(event.detail.lancamento_id);
+        });
+        window.addEventListener('abrir-modal', event => {
+            var myModal = new bootstrap.Modal(document.getElementById('editarLancamentoModal'));
+            modal = true;
+            myModal.show();
+            var myModalEl = document.getElementById('editarLancamentoModal');
+
+            myModalEl.addEventListener('hidden.bs.modal', function(event) {
+                modal = false;
+                Livewire.emit('search');
+            })
+        });
+
         document.addEventListener("DOMContentLoaded", () => {
             // Livewire.hook('component.initialized', (component) => {})
             // Livewire.hook('element.initialized', (el, component) => {})
@@ -426,38 +442,46 @@
             // Livewire.hook('message.failed', (message, component) => {})
             // Livewire.hook('message.received', (message, component) => {})
             Livewire.hook('message.processed', (message, component) => {
-                $('.money').mask('000.000.000.000.000,00', {
-                    reverse: true
+                $(document).ready(function() {
+                    $('.money').mask('000.000.000.000.000,00', {
+                        reverse: true
+                    });
                 });
-                $('.select2').select2({
-                    dropdownParent: $('#editarLancamentoModal'),
-                    theme: 'bootstrap-5'
-                });
+                if (modal) {
+                    console.log('modal open');
+                    $('.select2').select2({
+                        dropdownParent: $('#editarLancamentoModal'),
+                        theme: 'bootstrap-5'
+                    });
+                } else {
+                    console.log('modal closed');
+                    $('.select2').select2({
+                        theme: 'bootstrap-5'
+                    });
+
+                }
             })
         });
 
+        // window.addEventListener('select2', event => {
+        //     console.log('chamou ' + event.detail.target);
+        //     if (event.detail.target == 'modal') {
+        //         // $(document).ready(function() {
+        //         //     $('.select2').select2({
+        //         //         dropdownParent: $('#editarLancamentoModal'),
+        //         //         theme: 'bootstrap-5'
+        //         //     });
+        //         // });
+        //         console.log('entrou');
+        //     } else {
+        //         $(document).ready(function() {
+        //             $('.select2').select2({
+        //                 theme: 'bootstrap-5'
+        //             });
+        //         });
+        //     }
+        // });
 
-        window.addEventListener('remove-line-exclusao', event => {
-            $('.tr-' + event.detail.lancamento_id).remove();
-            console.log(event.detail.lancamento_id);
-        });
-        window.addEventListener('abrir-modal', event => {
-            var myModal = new bootstrap.Modal(document.getElementById('editarLancamentoModal'))
-            myModal.show();
-
-            var myModalEl = document.getElementById('editarLancamentoModal')
-            myModalEl.addEventListener('hidden.bs.modal', function(event) {
-                Livewire.emit('search');
-            })
-        });
-
-        window.addEventListener('refreshSelect2', event => {
-            $(document).ready(function() {
-                $('.select2').select2({
-                    theme: 'bootstrap-5'
-                });
-            });
-        });
         window.addEventListener('confirmarLancamento', event => {
             if (event.detail.status) {
                 $('.cl-' + event.detail.lancamento_id).removeClass('fa-square-o');

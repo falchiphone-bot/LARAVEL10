@@ -38,6 +38,8 @@ class Extrato extends Component
 
     public $exibicao_pesquisa;
     public $editar_lancamento = false;
+    //resolvendo problema do select2
+    public $modal = false;
 
     protected $listeners = ['selectedSelEmpresaItem', 'selectedSelContaItem', 'search'];
 
@@ -46,6 +48,7 @@ class Extrato extends Component
         $this->editar_lancamento = $lancamento_id;
         $this->emitTo('lancamento.editar-lancamento', 'alterarIdLancamento', $lancamento_id);
         $this->dispatchBrowserEvent('abrir-modal');
+        $this->modal = true;
     }
 
     public function selectedSelEmpresaItem($item)
@@ -193,7 +196,14 @@ class Extrato extends Component
                 });
             }
             if ($this->Conferido != '') {
-                $lancamentos->where('conferido', $this->Conferido);
+                if ($this->Conferido == 'false') {
+                    $lancamentos->where(function ($q)
+                    {
+                        return $q->whereNull('Conferido')->orWhere('Conferido',0);
+                    });
+                }else {
+                    $lancamentos->where('Conferido', $this->Conferido);
+                }
             }
             if ($this->Notificacao != '') {
                 $lancamentos->where('notificacao', $this->Notificacao);
@@ -206,10 +216,6 @@ class Extrato extends Component
         } else {
             $this->Lancamentos = null;
         }
-
-        $this->dispatchBrowserEvent('refreshSelect2');
-
-
     }
 
     public function confirmarLancamento($lancamento_id)

@@ -34,6 +34,7 @@ class Lancamento extends Model
 
     protected $casts = [
         'DataContabilidade' => 'date:Y-m-d',
+        'Conferido' => 'boolean',
     ];
 
     public function Empresa(): HasOne

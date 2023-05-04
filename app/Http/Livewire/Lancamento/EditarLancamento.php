@@ -22,7 +22,7 @@ class EditarLancamento extends Component
 
     public $currentTab;
 
-    protected $listeners = ['alterarIdLancamento', 'salvarLancamento', 'selectHistorico','changeContaDebitoID','changeContaCreditoID'];
+    protected $listeners = ['alterarIdLancamento', 'salvarLancamento', 'selectHistorico', 'changeContaDebitoID', 'changeContaCreditoID'];
 
     public function alterarIdLancamento($lancamento_id)
     {
@@ -51,7 +51,7 @@ class EditarLancamento extends Component
     public function salvarLancamento($novo = null)
     {
         $this->validate();
-        $this->lancamento['Valor'] = str_replace(',','.',str_replace('.','',$this->lancamento['Valor']));
+        $this->lancamento['Valor'] = str_replace(',', '.', str_replace('.', '', $this->lancamento['Valor']));
         if ($novo) {
             $novoLancamento = $this->lancamento->replicate();
             if (!$this->temBloqueio()) {
@@ -61,11 +61,11 @@ class EditarLancamento extends Component
             }
         } elseif (!$this->temBloqueio($this->lancamento->ID, $this->lancamento->DataContabilidade)) {
             $this->lancamento['DataContabilidade'] = $this->lancamento->DataContabilidade->format('d-m-Y');
-            $this->lancamento['EmpresaID'] = $this->lancamento['EmpresaID']??session('conta.extrato.empresa.id');
-            $this->lancamento['Usuarios_id'] = $this->lancamento['Usuarios_id']??Auth::user()->id;
+            $this->lancamento['EmpresaID'] = $this->lancamento['EmpresaID'] ?? session('conta.extrato.empresa.id');
+            $this->lancamento['Usuarios_id'] = $this->lancamento['Usuarios_id'] ?? Auth::user()->id;
 
             if ($this->lancamento->save()) {
-                $this->lancamento->Valor = number_format($this->lancamento->Valor,2,',','.');
+                $this->lancamento->Valor = number_format($this->lancamento->Valor, 2, ',', '.');
                 session()->flash('message', 'Lançamento atualizado.');
                 // $this->lancamento['DataContabilidade'] = $this->lancamento->DataContabilidade->format('Y-m-d');
             } else {
@@ -147,12 +147,8 @@ class EditarLancamento extends Component
                 }
             }
         } else {
-
-            dd('passou por tudo');
             return false;
         }
-
-
     }
 
     public function sessionTab($tab)
@@ -171,21 +167,25 @@ class EditarLancamento extends Component
         // $this->emitTo('conta.extrato','select2');
     }
 
-    public function hydrate()
+    public function hydrated()
     {
-        // $this->emit('select2');
         $this->resetErrorBag();
-        $this->resetValidation();
+    }
+    public function dehydrate()
+    {
+        if (!strpos($this->lancamento['Valor'], ",")) {
+            $this->lancamento['Valor'] = number_format($this->lancamento->Valor,2,',','.');
+        }
     }
 
     public function mount($lancamento_id)
     {
-        $this->emitTo('lancamento.troca-empresa','setLancamentoID',$lancamento_id);
+        $this->emitTo('lancamento.troca-empresa', 'setLancamentoID', $lancamento_id);
         $this->currentTab = 'lancamento';
 
         if ($lancamento_id != 'novo') {
             $this->lancamento = Lancamento::find($lancamento_id);
-            $this->lancamento->Valor = number_format($this->lancamento->Valor,2,',','.');
+            $this->lancamento->Valor = number_format($this->lancamento->Valor, 2, ',', '.');
             $this->comentarios = LancamentoComentario::where('LancamentoID', $lancamento_id)->get();
         } else {
             $this->lancamento = new Lancamento();
@@ -199,6 +199,8 @@ class EditarLancamento extends Component
         $this->historicos = Historicos::where('EmpresaID', $this->lancamento->EmpresaID ?? session('conta.extrato.empresa.id'))
             ->orderBy('Descricao', 'asc')
             ->get(['Descricao', 'ID']);
+
+        $this->emitTo('extrato', 'select2', ['target' => 'modal']);
     }
 
     public function render()
