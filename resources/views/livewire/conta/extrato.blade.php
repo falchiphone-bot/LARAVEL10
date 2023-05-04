@@ -104,12 +104,12 @@
                         <div class="form-group col-sm-12 col-md-3">
                             <label for="de" class="pr-1  form-control-label">Buscar Descrição</label>
                             <input type="text" value="" id="descricao" class="form-control" autocomplete="off"
-                                wire:model.debounce.800ms='Descricao'>
+                                wire:model.lazy='Descricao'>
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
                             <label for="de" class="pr-1  form-control-label">A partir De:</label>
                             <input type="date" value="" id="a_partir_de" class="form-control"
-                                autocomplete="off" wire:model.defer='DescricaoApartirDe'>
+                                autocomplete="off" wire:model.lazy='DescricaoApartirDe'>
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
                             <label for="data_bloqueio_conta" class="pr-1  form-control-label">Data Bloqueio
@@ -427,14 +427,14 @@
             // Livewire.hook('message.received', (message, component) => {})
             Livewire.hook('message.processed', (message, component) => {
                 $('.select2').select2({
-                    dropdownParent: $('#editarLancamentoModal'),
-                    theme: 'bootstrap-5'
-                });
-                $('.select2').select2({
                     theme: 'bootstrap-5'
                 });
                 $('.money').mask('000.000.000.000.000,00', {
                     reverse: true
+                });
+                $('.select2').select2({
+                    dropdownParent: $('#editarLancamentoModal'),
+                    theme: 'bootstrap-5'
                 });
             })
         });

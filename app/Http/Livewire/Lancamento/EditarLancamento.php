@@ -51,6 +51,7 @@ class EditarLancamento extends Component
     public function salvarLancamento($novo = null)
     {
         $this->validate();
+        $this->lancamento['Valor'] = str_replace(',','.',str_replace('.','',$this->lancamento['Valor']));
         if ($novo) {
             $novoLancamento = $this->lancamento->replicate();
             if (!$this->temBloqueio()) {
@@ -62,9 +63,9 @@ class EditarLancamento extends Component
             $this->lancamento['DataContabilidade'] = $this->lancamento->DataContabilidade->format('d-m-Y');
             $this->lancamento['EmpresaID'] = $this->lancamento['EmpresaID']??session('conta.extrato.empresa.id');
             $this->lancamento['Usuarios_id'] = $this->lancamento['Usuarios_id']??Auth::user()->id;
-            $this->lancamento['Valor'] = str_replace(',','.',str_replace('.','',$this->lancamento['Valor']));
 
             if ($this->lancamento->save()) {
+                $this->lancamento->Valor = number_format($this->lancamento->Valor,2,',','.');
                 session()->flash('message', 'Lançamento atualizado.');
                 // $this->lancamento['DataContabilidade'] = $this->lancamento->DataContabilidade->format('Y-m-d');
             } else {
@@ -101,26 +102,29 @@ class EditarLancamento extends Component
             $dataLancamento = Carbon::createFromDate($lancamento->DataContabilidade);
 
             $data_conta_debito = $lancamento->ContaDebito->Bloqueiodataanterior;
-
             if ($data_conta_debito) {
-                if ($data_conta_debito->greaterThanOrEqualTo($dataLancamento)) {
+                if ($data_conta_debito->greaterThanOrEqualTo($this->lancamento->DataContabilidade) || $this->lancamento->DataContabilidade->lessThan($data_conta_debito)) {
                     $this->addError('data_bloqueio', 'Bloqueio de Data na Conta Debito');
                     return true;
                 }
             }
+            // dd($this->lancamento->DataContabilidade->lessThan($data_conta_debito));
+
             $data_empresa = Empresa::find($lancamento->EmpresaID)->Bloqueiodataanterior;
             if ($data_empresa) {
-                if ($data_empresa->greaterThanOrEqualTo($dataLancamento)) {
+                if ($data_empresa->greaterThanOrEqualTo($dataLancamento) || $this->lancamento->DataContabilidade->lessThan($data_empresa)) {
                     $this->addError('data_bloqueio', 'Bloqueio de Data na Empresa');
                     return true;
                 }
             }
+
             if ($lancamento->ContaCredito->Bloqueiodataanterior) {
-                if ($lancamento->ContaCredito->Bloqueiodataanterior->greaterThanOrEqualTo($dataLancamento)) {
+                if ($lancamento->ContaCredito->Bloqueiodataanterior->greaterThanOrEqualTo($dataLancamento) || $this->lancamento->DataContabilidade->lessThan($data_empresa)) {
                     $this->addError('data_bloqueio', 'Bloqueio de Data na Conta Credito');
                     return true;
                 }
             }
+
             return false;
         } elseif ($this->lancamento->DataContabilidade) {
             $data_empresa = $data_empresa = Empresa::find(session('conta.extrato.empresa.id'))->Bloqueiodataanterior;
@@ -143,8 +147,12 @@ class EditarLancamento extends Component
                 }
             }
         } else {
+
+            dd('passou por tudo');
             return false;
         }
+
+
     }
 
     public function sessionTab($tab)

@@ -173,7 +173,11 @@ class Extrato extends Component
             });
 
             if ($this->De) {
-                $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
+                if ($this->Descricao && $this->DescricaoApartirDe) {
+                    $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
+                }else {
+                    $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
+                }
                 $lancamentos->where('DataContabilidade', '>=', $de);
                 cache(['Extrato_De' => $this->De]);
             }
@@ -182,9 +186,10 @@ class Extrato extends Component
                 $lancamentos->where('DataContabilidade', '<=', $ate);
                 cache(['Extrato_Ate' => $this->Ate]);
             }
+
             if ($this->Descricao) {
                 $lancamentos->where(function ($q) {
-                    return $q->where('Lancamentos.Descricao', 'like', "%$this->Descricao%")->orWhere('Historicos.Descricao', 'like', "%$this->Descricao%");
+                    $q->where('Lancamentos.Descricao', 'like', "%$this->Descricao%")->orWhere('Historicos.Descricao', 'like', "%$this->Descricao%");
                 });
             }
             if ($this->Conferido != '') {
@@ -201,6 +206,7 @@ class Extrato extends Component
         } else {
             $this->Lancamentos = null;
         }
+
     }
 
     public function confirmarLancamento($lancamento_id)

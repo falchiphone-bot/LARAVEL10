@@ -82,7 +82,7 @@
                                     <div class="card-body">
                                         <div class="form-group col-sm-12">
                                             <label for="contadebito" class=" form-control-label">
-                                                <a href="">Conta Debito</a>
+                                                <a href="{{ $this->lancamento->ContaDebitoID }}">Conta Debito</a>
                                             </label>
                                             <select id="contadebito" wire:model.lazy='lancamento.ContaDebitoID'
                                                 class="form-control select2">
@@ -94,7 +94,7 @@
                                         </div>
                                         <div class="form-group col-sm-12">
                                             <label for="contacredito" class=" form-control-label">
-                                                <a href="">Conta Crédito</a>
+                                                <a href="{{ $this->lancamento->ContaCreditoID }}">Conta Crédito</a>
                                             </label>
                                             <select id="contacredito" wire:model.lazy='lancamento.ContaCreditoID'
                                                 class="form-control select2">
