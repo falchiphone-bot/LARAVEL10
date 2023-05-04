@@ -19,7 +19,16 @@
                                 <img src="{{ asset(session('googleUser')->avatar) }}" alt="Minha imagem">
 
                             </div>
+
+                        @else
+
+                        <a href="{{ url('auth/google') }}" style="margin-top: 0px !important;background: rgb(13, 0, 128);color: #ffffff;padding: 5px;border-radius:7px;" class="ml-2 btn-google">
+                            <strong>Login no Google</strong>
+                          </a>
                         @endif
+
+
+
                         @if (session('googleUser'))
                                 <div class="col-sm-12">
                                     <div class="badge bg-warning text-wrap"

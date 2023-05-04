@@ -166,8 +166,12 @@ class GoogleDriveController extends Controller
             'uploadType' => 'media',
         ]);
 
-        // GET URL OF UPLOADED FILE
 
+        // dd($result);
+
+
+        // GET URL OF UPLOADED FILE
+        
         $url = 'https://drive.google.com/open?id=' . $result->id;
 
         return redirect($url);
