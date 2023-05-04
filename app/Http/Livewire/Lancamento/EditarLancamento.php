@@ -27,7 +27,6 @@ class EditarLancamento extends Component
     public function alterarIdLancamento($lancamento_id)
     {
         $this->mount($lancamento_id);
-        // $this->emit('select2');
     }
 
     protected $rules = [
@@ -170,6 +169,6 @@ class EditarLancamento extends Component
 
     public function render()
     {
-        return view('livewire.lancamento.editar-lancamento')->extends('layouts.bootstrap5');
+        return view('livewire.lancamento.editar-lancamento');
     }
 }
