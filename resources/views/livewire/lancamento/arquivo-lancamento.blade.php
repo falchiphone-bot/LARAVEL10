@@ -31,6 +31,7 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @if ($files)
                     @foreach ($files as $file)
                     <tr>
                         <th scope="row">{{ $file->ID }}</th>
@@ -44,6 +45,7 @@
                     </tr>
 
                     @endforeach
+                    @endif
                 </tbody>
             </table>
         </div>

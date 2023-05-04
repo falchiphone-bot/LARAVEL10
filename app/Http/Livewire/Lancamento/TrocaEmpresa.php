@@ -97,7 +97,7 @@ class TrocaEmpresa extends Component
 
     public function hydrate()
     {
-        $this->emit('select2');
+        // $this->emit('select2');
         $this->resetErrorBag();
         $this->resetValidation();
     }

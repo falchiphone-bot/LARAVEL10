@@ -44,8 +44,10 @@ class ArquivoLancamento extends Component
     public function mount($lancamento_id)
     {
         $lancamento = Lancamento::find($lancamento_id);
-        $this->files = $lancamento->arquivos;
-        $this->lancamentoID = $lancamento_id;
+        if ($lancamento) {
+            $this->files = $lancamento->arquivos;
+            $this->lancamentoID = $lancamento_id;
+        }
     }
 
     use WithFileUploads;

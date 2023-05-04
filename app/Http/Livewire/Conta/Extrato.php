@@ -39,27 +39,27 @@ class Extrato extends Component
     public $exibicao_pesquisa;
     public $editar_lancamento = false;
 
+    protected $listeners = ['selectedSelEmpresaItem', 'selectedSelContaItem', 'search'];
+
     public function editarLancamento($lancamento_id)
     {
         $this->editar_lancamento = $lancamento_id;
-        $this->emitTo('lancamento.editar-lancamento','alterarIdLancamento',$lancamento_id);
+        $this->emitTo('lancamento.editar-lancamento', 'alterarIdLancamento', $lancamento_id);
         $this->dispatchBrowserEvent('abrir-modal');
     }
 
-    protected $listeners = ['selectedSelEmpresaItem', 'selectedSelContaItem', 'search'];
-
-
-    //gerenciamento select2
     public function selectedSelEmpresaItem($item)
     {
         if ($item) {
             $this->selEmpresa = $item;
+            session(['conta.extrato.empresa.id' => $this->selEmpresa]);
             $this->Empresa = Empresa::find($item);
             $this->data_bloqueio_empresa = $this->Empresa->Bloqueiodataanterior?->format('Y-m-d');
             $this->selConta = null;
             $this->Lancamentos = null;
         } else {
             $this->selEmpresa = null;
+            session(['conta.extrato.empresa.id' => $this->selEmpresa]);
             $this->selConta = null;
         }
         $this->updated();
@@ -79,7 +79,7 @@ class Extrato extends Component
     }
     public function hydrate()
     {
-        $this->emit('select2');
+        // $this->emit('select2');
         $this->resetErrorBag();
         $this->resetValidation();
     }
@@ -92,6 +92,7 @@ class Extrato extends Component
 
         $this->Conta = Conta::find($contaID);
         $this->selEmpresa = $this->Conta->EmpresaID;
+        session(['conta.extrato.empresa.id' => $this->selEmpresa]);
 
         $this->Empresa = Empresa::find($this->selEmpresa);
         $this->data_bloqueio_conta = $this->Conta->Bloqueiodataanterior?->format('Y-m-d');
@@ -104,10 +105,10 @@ class Extrato extends Component
         $lancamentos = Lancamento::where(function ($query) use ($contaID) {
             return $query->where('ContaDebitoID', $contaID)->orWhere('ContaCreditoID', $contaID);
         })
-        ->whereDoesntHave('SolicitacaoExclusao')
-        ->where(function ($where) use ($de,$ate) {
-            return $where->where('DataContabilidade','>=',$de)->where('DataContabilidade','<=',$ate);
-        });
+            ->whereDoesntHave('SolicitacaoExclusao')
+            ->where(function ($where) use ($de, $ate) {
+                return $where->where('DataContabilidade', '>=', $de)->where('DataContabilidade', '<=', $ate);
+            });
 
         $this->Lancamentos = $lancamentos->orderBy('DataContabilidade')->get();
     }
@@ -135,14 +136,14 @@ class Extrato extends Component
 
         if ($data_conta) {
             if ($data_conta->greaterThanOrEqualTo($dataLancamento)) {
-                $this->addError('data_bloqueio', 'Não é possivel alterar esse lançamento para essa data, pois há um bloqueio de data na Conta - ID: '.$lancamento_id);
+                $this->addError('data_bloqueio', 'Não é possivel alterar esse lançamento para essa data, pois há um bloqueio de data na Conta - ID: ' . $lancamento_id);
                 return true;
             }
         }
         $data_empresa = $this->Empresa->Bloqueiodataanterior;
         if ($data_empresa) {
             if (Carbon::createFromDate($data_empresa)->greaterThanOrEqualTo($dataLancamento)) {
-                $this->addError('data_bloqueio', 'Não é possivel alterar esse lançamento para essa data, pois há um bloqueio de data na Empresa - ID: '.$lancamento_id);
+                $this->addError('data_bloqueio', 'Não é possivel alterar esse lançamento para essa data, pois há um bloqueio de data na Empresa - ID: ' . $lancamento_id);
                 return true;
             }
         }
@@ -156,7 +157,7 @@ class Extrato extends Component
         }
         if ($data_conta_partida) {
             if (Carbon::createFromDate($data_conta_partida)->greaterThanOrEqualTo($dataLancamento)) {
-                $this->addError('data_bloqueio', 'Não é possivel alterar esse lançamento para essa data, pois há um bloqueio de data na Conta Partida: '.$descricao);
+                $this->addError('data_bloqueio', 'Não é possivel alterar esse lançamento para essa data, pois há um bloqueio de data na Conta Partida: ' . $descricao);
                 return true;
             }
         }
@@ -182,10 +183,8 @@ class Extrato extends Component
                 cache(['Extrato_Ate' => $this->Ate]);
             }
             if ($this->Descricao) {
-                $lancamentos
-                ->where(function ($q){
-                    return $q->where('Lancamentos.Descricao', 'like', "%$this->Descricao%")
-                    ->orWhere('Historicos.Descricao', 'like', "%$this->Descricao%");
+                $lancamentos->where(function ($q) {
+                    return $q->where('Lancamentos.Descricao', 'like', "%$this->Descricao%")->orWhere('Historicos.Descricao', 'like', "%$this->Descricao%");
                 });
             }
             if ($this->Conferido != '') {
@@ -194,12 +193,11 @@ class Extrato extends Component
             if ($this->Notificacao != '') {
                 $lancamentos->where('notificacao', $this->Notificacao);
             }
-            $this->Lancamentos = $lancamentos->orderBy('DataContabilidade')
-            ->whereDoesntHave('SolicitacaoExclusao')
-            ->leftjoin('Contabilidade.Historicos','Historicos.ID','HistoricoID')
-            ->get(["Lancamentos.ID",'Lancamentos.Valor','DataContabilidade',
-            'Lancamentos.ContaCreditoID','Lancamentos.ContaDebitoID','Lancamentos.Descricao','Historicos.Descricao as HistoricoDescricao','Conferido']);
-
+            $this->Lancamentos = $lancamentos
+                ->orderBy('DataContabilidade')
+                ->whereDoesntHave('SolicitacaoExclusao')
+                ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
+                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID', 'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido']);
         } else {
             $this->Lancamentos = null;
         }
@@ -214,14 +212,14 @@ class Extrato extends Component
             $lancamento->Conferido = 1;
         }
         $lancamento->save();
-        $this->dispatchBrowserEvent('confirmarLancamento', ['lancamento_id' => $lancamento_id,'status' => $lancamento->Conferido]);
+        $this->dispatchBrowserEvent('confirmarLancamento', ['lancamento_id' => $lancamento_id, 'status' => $lancamento->Conferido]);
     }
 
     public function alterarDataVencidoRapido($lancamento_id, $acao)
     {
         $lancamento = Lancamento::find($lancamento_id);
 
-        if ($this->temBloqueio($lancamento_id,$lancamento->DataContabilidade)) {
+        if ($this->temBloqueio($lancamento_id, $lancamento->DataContabilidade)) {
             return false;
         }
         $hoje = Carbon::now();
@@ -235,15 +233,15 @@ class Extrato extends Component
             $this->addError('alteraDataVencimenotRapido', 'Nenhuma ação selecionada');
         }
 
-          $lancamento->DataContabilidade = $novaData->format('d-m-Y');
+        $lancamento->DataContabilidade = $novaData->format('d-m-Y');
 
         $lancamento->save();
         $this->search();
     }
 
-    public function incluirExclusao($lancamento_id,$data)
+    public function incluirExclusao($lancamento_id, $data)
     {
-        if ($this->temBloqueio($lancamento_id,$data)) {
+        if ($this->temBloqueio($lancamento_id, $data)) {
             return false;
         }
 
@@ -298,7 +296,7 @@ class Extrato extends Component
     {
         $de = Carbon::createFromDate($this->De)->format('d/m/Y');
         $contaID = $this->selConta;
-        $totalCredito = Lancamento::where(function ($q) use ($de,$contaID) {
+        $totalCredito = Lancamento::where(function ($q) use ($de, $contaID) {
             return $q
                 ->where('ContaCreditoID', $contaID)
                 ->where('EmpresaID', $this->selEmpresa)
@@ -307,7 +305,7 @@ class Extrato extends Component
             ->whereDoesntHave('SolicitacaoExclusao')
             ->sum('Lancamentos.Valor');
 
-        $totalDebito = Lancamento::where(function ($q) use ($de,$contaID) {
+        $totalDebito = Lancamento::where(function ($q) use ($de, $contaID) {
             return $q
                 ->where('ContaDebitoID', $contaID)
                 ->where('EmpresaID', $this->selEmpresa)

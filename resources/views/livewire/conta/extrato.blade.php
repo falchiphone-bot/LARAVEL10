@@ -15,11 +15,15 @@
                             <a href="/PlanoContas/pesquisaavancada" class="btn btn-primary">Pesquisa avançada em
                                 lançamentos</a>
                         </div>
+
+                        <div class="col-2">
+                            <button wire:click="editarLancamento('novo')" class="btn btn-danger">Inicar um novo lançamento</button>
+                        </div>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-6">
-                        <select class="form-control" id="selEmpresa" wire:model="selEmpresa">
+                        <select class="form-control select2" id="selEmpresa" wire:model="selEmpresa">
                             @foreach ($empresas as $empresa_id => $empresa_descricao)
                                 <option @selected($selEmpresa == $empresa_id) value="{{ $empresa_id }}">
                                     {{ $empresa_descricao }}</option>
@@ -27,7 +31,7 @@
                         </select>
                     </div>
                     <div class="col-6">
-                        <select class="form-control" id="selConta" wire:model='selConta' aria-hidden="true">
+                        <select class="form-control select2" id="selConta" wire:model='selConta' aria-hidden="true">
                             <option value="0">Escolha uma conta</option>
                             @foreach ($contas as $conta)
                                 <option @selected($selConta == $conta->ID) value="{{ $conta->ID }}">{{ $conta->Descricao }}
@@ -351,7 +355,7 @@
                         <div class="modal-content">
                             <div class="modal-body">
                                 @if ($editar_lancamento)
-                                    @livewire('lancamento.editar-lancamento', ['lancamento_id' => $editar_lancamento,'contas'=>$contas])
+                                    @livewire('lancamento.editar-lancamento', ['lancamento_id' => $editar_lancamento, 'contas' => $contas])
                                 @endif
                             </div>
                         </div>
@@ -387,55 +391,39 @@
                 Livewire.emit('selectedSelContaItem', e.target.value);
                 // @this.set('selConta', e.target.value);
             });
-            window.livewire.on('select2', () => {
-                $('.select2').select2({
-                    // theme: 'bootstrap-5'
-                });
-            });
-            //fim-contas
-            //scripts para troca de empresa
 
+            //scripts para troca de empresa
             $(document).on('change', '#novacontadebito', function(e) {
                 Livewire.emitTo('lancamento.troca-empresa', 'setContaDebito', $(this).val());
             });
             $(document).on('change', '#novacontacredito', function(e) {
                 Livewire.emitTo('lancamento.troca-empresa', 'setContaCredito', $(this).val());
             });
+            //troca de historico
+            $(document).on('change', '#historicoID', function(e) {
+                Livewire.emitTo('lancamento.editar-lancamento', 'selectHistorico', e.target.value);
+            });
         });
 
-        // $('form').submit(function(e) {
-        //     e.preventDefault();
-        //     $.confirm({
-        //         title: 'Confirmar!',
-        //         content: 'Confirma?',
-        //         buttons: {
-        //             confirmar: function() {
-        //                 // $.alert('Confirmar!');
-        //                 $.confirm({
-        //                     title: 'Confirmar!',
-        //                     content: 'Deseja realmente continuar?',
-        //                     buttons: {
-        //                         confirmar: function() {
-        //                             // $.alert('Confirmar!');
-        //                             e.currentTarget.submit()
-        //                         },
-        //                         cancelar: function() {
-        //                             // $.alert('Cancelar!');
-        //                         },
-
-        //                     }
-        //                 });
-
-        //             },
-        //             cancelar: function() {
-        //                 // $.alert('Cancelar!');
-        //             },
-
-        //         }
-        //     });
-        // });
-
         // ouvindo eventos do livewire
+        document.addEventListener("DOMContentLoaded", () => {
+            // Livewire.hook('component.initialized', (component) => {})
+            // Livewire.hook('element.initialized', (el, component) => {})
+            // Livewire.hook('element.updating', (fromEl, toEl, component) => {})
+            // Livewire.hook('element.updated', (el, component) => {})
+            // Livewire.hook('element.removed', (el, component) => {})
+            // Livewire.hook('message.sent', (message, component) => {})
+            // Livewire.hook('message.failed', (message, component) => {})
+            // Livewire.hook('message.received', (message, component) => {})
+            Livewire.hook('message.processed', (message, component) => {
+                $('.select2').select2({
+                    dropdownParent: $('#editarLancamentoModal'),
+                    theme: 'bootstrap-5'
+                });
+            })
+        });
+
+
         window.addEventListener('remove-line-exclusao', event => {
             $('.tr-' + event.detail.lancamento_id).remove();
             console.log(event.detail.lancamento_id);
@@ -463,7 +451,7 @@
 
         // In your Javascript (external .js resource or <script> tag)
         $('.select2').select2({
-            // theme: 'bootstrap-5'
+            theme: 'bootstrap-5'
         });
 
         function excluirArquivo(id) {
@@ -495,7 +483,7 @@
                             content: 'Deseja realmente continuar?',
                             buttons: {
                                 confirmar: function() {
-                                    Livewire.emit('salvarLancamento',params);
+                                    Livewire.emit('salvarLancamento', params);
                                 },
                                 cancelar: function() {
                                     // $.alert('Cancelar!');

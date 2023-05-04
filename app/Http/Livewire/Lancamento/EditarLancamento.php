@@ -22,7 +22,7 @@ class EditarLancamento extends Component
 
     public $currentTab;
 
-    protected $listeners = ['alterarIdLancamento', 'salvarLancamento'];
+    protected $listeners = ['alterarIdLancamento', 'salvarLancamento', 'selectHistorico'];
 
     public function alterarIdLancamento($lancamento_id)
     {
@@ -50,6 +50,8 @@ class EditarLancamento extends Component
             }
         } elseif (!$this->temBloqueio($this->lancamento->ID, $this->lancamento->DataContabilidade)) {
             $this->lancamento['DataContabilidade'] = $this->lancamento->DataContabilidade->format('d-m-Y');
+            $this->lancamento['EmpresaID'] = $this->lancamento['EmpresaID']??session('conta.extrato.empresa.id');
+            $this->lancamento['Usuarios_id'] = $this->lancamento['Usuarios_id']??Auth::user()->id;
 
             if ($this->lancamento->save()) {
                 session()->flash('message', 'Lançamento atualizado.');
@@ -110,7 +112,7 @@ class EditarLancamento extends Component
             }
             return false;
         } elseif ($this->lancamento->DataContabilidade) {
-            $data_empresa = $this->lancamento->Empresa->Bloqueiodataanterior;
+            $data_empresa = $data_empresa = Empresa::find(session('conta.extrato.empresa.id'))->Bloqueiodataanterior;
             if ($data_empresa) {
                 if ($data_empresa->greaterThanOrEqualTo($this->lancamento->DataContabilidade)) {
                     $this->addError('data_bloqueio', 'Bloqueio de Data na Empresa');
@@ -139,30 +141,41 @@ class EditarLancamento extends Component
         $this->currentTab = $tab;
     }
 
-    public function selectHistorico()
+    public function selectHistorico($value)
     {
+        $this->lancamento->HistoricoID = $value;
         $historico = Historicos::find($this->lancamento->HistoricoID);
         if ($historico) {
             $this->lancamento->ContaDebitoID = $historico->ContaDebitoID;
             $this->lancamento->ContaCreditoID = $historico->ContaCreditoID;
         }
+        // $this->emitTo('conta.extrato','select2');
+    }
+
+    public function hydrate()
+    {
+        // $this->emit('select2');
+        $this->resetErrorBag();
+        $this->resetValidation();
     }
 
     public function mount($lancamento_id)
     {
         $this->currentTab = 'lancamento';
 
-        $this->lancamento = Lancamento::find($lancamento_id);
+        if ($lancamento_id != 'novo') {
+            $this->lancamento = Lancamento::find($lancamento_id);
+            $this->comentarios = LancamentoComentario::where('LancamentoID', $lancamento_id)->get();
+        } else {
+            $this->lancamento = new Lancamento();
+        }
 
-        $this->comentarios = LancamentoComentario::where('LancamentoID', $lancamento_id)->get();
-
-        $this->contas = Conta::where('EmpresaID', $this->lancamento->EmpresaID)
+        $this->contas = Conta::where('EmpresaID', $this->lancamento->EmpresaID ?? session('conta.extrato.empresa.id'))
             ->where('Grau', 5)
             ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', 'Planocontas_id')
             ->orderBy('PlanoContas.Descricao')
             ->pluck('PlanoContas.Descricao', 'Contas.ID');
-
-        $this->historicos = Historicos::where('EmpresaID', $this->lancamento->EmpresaID)
+        $this->historicos = Historicos::where('EmpresaID', $this->lancamento->EmpresaID ?? session('conta.extrato.empresa.id'))
             ->orderBy('Descricao', 'asc')
             ->get(['Descricao', 'ID']);
     }

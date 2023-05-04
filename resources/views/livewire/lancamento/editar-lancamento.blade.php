@@ -1,7 +1,8 @@
 <div>
     <div class="card">
         <div class="card-header">
-            <h4><strong>{{ $lancamento->ID }} - Edição</strong> de lançamentos | {{ $lancamento->Empresa->Descricao }}
+            <h4><strong>{{ $lancamento->ID }} - Edição</strong> de lançamentos |
+                {{ $lancamento->Empresa->Descricao ?? null }}
             </h4>
         </div>
         <div class="card-body">
@@ -60,8 +61,8 @@
                                     <label for="historicoID" class=" form-control-label">
                                         Histórico
                                     </label>
-                                    <select id="historicoID" name="HistoricoID" class="form-control"
-                                        wire:model='lancamento.HistoricoID' wire:change="selectHistorico">
+                                    <select id="historicoID" name="HistoricoID" class="form-control select2"
+                                        wire:model='lancamento.HistoricoID'>
                                         <option value=""></option>
                                         @foreach ($historicos as $historico)
                                             <option value="{{ $historico->ID }}">{{ $historico->Descricao }}</option>
@@ -82,7 +83,7 @@
                                                 <a href="">Conta Debito</a>
                                             </label>
                                             <select id="contadebito" wire:model.lazy='lancamento.ContaDebitoID'
-                                                name="ContaDebitoID" class="form-control">
+                                                class="form-control select2">
                                                 @foreach ($contas as $contaID => $contaDescricao)
                                                     <option value="{{ $contaID }}">
                                                         {{ $contaDescricao }}</option>
@@ -94,7 +95,7 @@
                                                 <a href="">Conta Crédito</a>
                                             </label>
                                             <select id="contacredito" wire:model.lazy='lancamento.ContaCreditoID'
-                                                name="ContaCreditoID" class="form-control">
+                                                class="form-control select2">
                                                 @foreach ($contas as $contaID => $contaDescricao)
                                                     <option value="{{ $contaID }}">
                                                         {{ $contaDescricao }}</option>
@@ -123,14 +124,10 @@
                                     <button type="button" class="btn btn-secondary"
                                         data-bs-dismiss="modal">Fechar</button>
                                     {{-- <button type="submit" wire:click="acao('limpar')" class="btn btn-seconday">Limpar</button> --}}
-                                    <button type="button" class="btn btn-primary"
-                                        onclick="confirmar()"
-                                        >
+                                    <button type="button" class="btn btn-primary" onclick="confirmar()">
                                         Salvar Lancamento
                                     </button>
-                                    <button type="button"
-                                    onclick="confirmar(true)"
-                                     class="btn btn-warning">
+                                    <button type="button" onclick="confirmar(true)" class="btn btn-warning">
                                         Salvar Como Novo
                                     </button>
                                 </div>
@@ -154,11 +151,13 @@
                         </div>
                         <div class="card-body">
                             <p>
-                                @foreach ($comentarios as $comentario)
-                                    <li>{{ $comentario->Descricao }} <br />Em
-                                        {{ $comentario->Created->format('d/m/Y H:i:s') }} | Por:
-                                        {{ $comentario->user->name }}</li>
-                                @endforeach
+                                @if ($comentarios)
+                                    @foreach ($comentarios as $comentario)
+                                        <li>{{ $comentario->Descricao }} <br />Em
+                                            {{ $comentario->Created->format('d/m/Y H:i:s') }} | Por:
+                                            {{ $comentario->user->name }}</li>
+                                    @endforeach
+                                @endif
                             </p>
                         </div>
 
