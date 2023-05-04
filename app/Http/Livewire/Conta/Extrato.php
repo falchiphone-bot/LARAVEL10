@@ -41,7 +41,7 @@ class Extrato extends Component
     //resolvendo problema do select2
     public $modal = false;
 
-    protected $listeners = ['selectedSelEmpresaItem', 'selectedSelContaItem', 'search'];
+    protected $listeners = ['selectedSelEmpresaItem', 'selectedSelContaItem', 'search','alterarData'];
 
     public function editarLancamento($lancamento_id)
     {
@@ -49,6 +49,16 @@ class Extrato extends Component
         $this->emitTo('lancamento.editar-lancamento', 'alterarIdLancamento', $lancamento_id);
         $this->dispatchBrowserEvent('abrir-modal');
         $this->modal = true;
+    }
+
+    public function alterarData($date)
+    {
+        $novadadata = Carbon::parse($date);
+        foreach ($this->Lancamentos as $lancamento) {
+            $lancamento->DataContabilidade = $novadadata->format('Y-m-d');
+            $lancamento->save();
+        }
+
     }
 
     public function selectedSelEmpresaItem($item)

@@ -20,6 +20,12 @@
                             <button wire:click="editarLancamento('novo')" class="btn btn-danger">Inicar um novo
                                 lançamento</button>
                         </div>
+
+                        <div class="col-2">
+                            <button onclick="alterarData()" class="btn btn-secondary">
+                                Alterar Data em Massa
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="row">
@@ -70,7 +76,7 @@
 
             </div>
             <div class="card-body card-block">
-                <form id="idform" method="post" class="form">
+                <form id="idform" method="post" wire:submit.prevent="search">
                     <div class="row">
                         <div class="form-group col-sm-12 col-md-3">
                             <label for="de" class="pr-1  form-control-label">De</label>
@@ -130,11 +136,7 @@
             </div>
 
             <div class="card-footer">
-                <div class="badge bg-warning text-wrap"
-                    style="width: 100%;
-             ;font-size: 16px; lign=˜Center˜">
-
-
+                <div class="badge bg-warning text-wrap" style="width: 100%; ;font-size: 16px; lign=˜Center˜">
                     <button id="buscar" wire:click='search()' type="button" class="btn btn-primary btn-sm">
                         <i class="fa fa-dot-circle-o"></i>Buscar informações e atualizar visualização
                     </button>
@@ -385,6 +387,7 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
+        4.500, 00
         var modal = false;
         $(document).ready(function() {
             $('#selEmpresa').on('change', function(e) {
@@ -433,14 +436,6 @@
         });
 
         document.addEventListener("DOMContentLoaded", () => {
-            // Livewire.hook('component.initialized', (component) => {})
-            // Livewire.hook('element.initialized', (el, component) => {})
-            // Livewire.hook('element.updating', (fromEl, toEl, component) => {})
-            // Livewire.hook('element.updated', (el, component) => {})
-            // Livewire.hook('element.removed', (el, component) => {})
-            // Livewire.hook('message.sent', (message, component) => {})
-            // Livewire.hook('message.failed', (message, component) => {})
-            // Livewire.hook('message.received', (message, component) => {})
             Livewire.hook('message.processed', (message, component) => {
                 $(document).ready(function() {
                     $('.money').mask('000.000.000.000.000,00', {
@@ -463,24 +458,57 @@
             })
         });
 
-        // window.addEventListener('select2', event => {
-        //     console.log('chamou ' + event.detail.target);
-        //     if (event.detail.target == 'modal') {
-        //         // $(document).ready(function() {
-        //         //     $('.select2').select2({
-        //         //         dropdownParent: $('#editarLancamentoModal'),
-        //         //         theme: 'bootstrap-5'
-        //         //     });
-        //         // });
-        //         console.log('entrou');
-        //     } else {
-        //         $(document).ready(function() {
-        //             $('.select2').select2({
-        //                 theme: 'bootstrap-5'
-        //             });
-        //         });
-        //     }
-        // });
+        function alterarData() {
+            $.confirm({
+                title: 'Alteração de Data em Massa!',
+                content: '' +
+                    '<form action="" class="formName">' +
+                    '<div class="form-group">' +
+                    '<label>Informe a data de Alteração</label>' +
+                    '<input type="date" class="date form-control" required />' +
+                    '</div>' +
+                    '</form>',
+                buttons: {
+                    formSubmit: {
+                        text: 'Submit',
+                        btnClass: 'btn-blue',
+                        action: function() {
+                            var date = this.$content.find('.date').val();
+                            if (!date) {
+                                $.alert('Informe uma data');
+                                return false;
+                            }
+                            $.confirm({
+                                title: 'Confirmar!',
+                                content: 'Deseja realmente continuar?',
+                                buttons: {
+                                    confirmar: function() {
+                                        // $.alert('Confirmar!');
+                                        Livewire.emit('alterarData', date)
+                                    },
+                                    cancelar: function() {
+                                        // $.alert('Cancelar!');
+                                    },
+
+                                }
+                            });
+                        }
+                    },
+                    cancel: function() {
+                        //close
+                    },
+                },
+                onContentReady: function() {
+                    // bind to events
+                    var jc = this;
+                    this.$content.find('form').on('submit', function(e) {
+                        // if the user submits the form by pressing enter in the field.
+                        e.preventDefault();
+                        jc.$$formSubmit.trigger('click'); // reference the button and click it
+                    });
+                }
+            });
+        }
 
         window.addEventListener('confirmarLancamento', event => {
             if (event.detail.status) {
