@@ -31,25 +31,27 @@
                         type="button" role="tab" aria-controls="lancamento"
                         aria-selected="true">Lançamento</button>
                 </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link @if ($currentTab == 'comentario') active @endif" id="comentarios-tab"
-                        data-bs-toggle="tab" data-bs-target="#comentarios" type="button" role="tab"
-                        aria-controls="comentarios" wire:click="sessionTab('comentario')"
-                        aria-selected="false">Comentários</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link @if ($currentTab == 'arquivo') active @endif" id="arquivos-tab"
-                        data-bs-toggle="tab" data-bs-target="#arquivos" type="button" role="tab"
-                        aria-controls="arquivos" aria-selected="false"
-                        wire:click="sessionTab('arquivo')">Arquivos</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link @if ($currentTab == 'troca-empresa') active @endif" id="troca-empresa-tab"
-                        data-bs-toggle="tab" data-bs-target="#troca-empresa" type="button" role="tab"
-                        aria-controls="troca-empresa" aria-selected="false"
-                        wire:click="sessionTab('troca-empresa')">Troca
-                        Empresa</button>
-                </li>
+                @if ($lancamento->ID)
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link @if ($currentTab == 'comentario') active @endif" id="comentarios-tab"
+                            data-bs-toggle="tab" data-bs-target="#comentarios" type="button" role="tab"
+                            aria-controls="comentarios" wire:click="sessionTab('comentario')"
+                            aria-selected="false">Comentários</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link @if ($currentTab == 'arquivo') active @endif" id="arquivos-tab"
+                            data-bs-toggle="tab" data-bs-target="#arquivos" type="button" role="tab"
+                            aria-controls="arquivos" aria-selected="false"
+                            wire:click="sessionTab('arquivo')">Arquivos</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link @if ($currentTab == 'troca-empresa') active @endif" id="troca-empresa-tab"
+                            data-bs-toggle="tab" data-bs-target="#troca-empresa" type="button" role="tab"
+                            aria-controls="troca-empresa" aria-selected="false"
+                            wire:click="sessionTab('troca-empresa')">Troca
+                            Empresa</button>
+                    </li>
+                @endif
             </ul>
             <div class="tab-content" id="myTabContent">
                 <div class="tab-pane fade @if ($currentTab == 'lancamento') show active @endif" id="lancamento"
@@ -116,7 +118,7 @@
                                 <div class="form-group col-sm-2">
                                     <label for="valor" class=" form-control-label">Valor</label>
                                     <input type="text" id="valor" name="Valor" placeholder="R$"
-                                        class="form-control required" wire:model.lazy="lancamento.Valor">
+                                        class="form-control required money" wire:model.lazy="lancamento.Valor">
                                     <span class="oculto badge badge-danger">Informação obrigatória</span>
                                 </div>
 
@@ -127,9 +129,11 @@
                                     <button type="button" class="btn btn-primary" onclick="confirmar()">
                                         Salvar Lancamento
                                     </button>
-                                    <button type="button" onclick="confirmar(true)" class="btn btn-warning">
-                                        Salvar Como Novo
-                                    </button>
+                                    @if ($lancamento->ID)
+                                        <button type="button" onclick="confirmar(true)" class="btn btn-warning">
+                                            Salvar Como Novo
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
                         </form>

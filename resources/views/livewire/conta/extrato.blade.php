@@ -17,7 +17,8 @@
                         </div>
 
                         <div class="col-2">
-                            <button wire:click="editarLancamento('novo')" class="btn btn-danger">Inicar um novo lançamento</button>
+                            <button wire:click="editarLancamento('novo')" class="btn btn-danger">Inicar um novo
+                                lançamento</button>
                         </div>
                     </div>
                 </div>
@@ -375,6 +376,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
 @endpush
 @push('scripts')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.js"></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
     <!-- Scripts -->
     {{-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script> --}}
@@ -403,6 +406,13 @@
             $(document).on('change', '#historicoID', function(e) {
                 Livewire.emitTo('lancamento.editar-lancamento', 'selectHistorico', e.target.value);
             });
+
+            $(document).on('change', '#contadebito', function(e) {
+                Livewire.emitTo('lancamento.editar-lancamento','changeContaDebitoID',e.target.value);
+            });
+            $(document).on('change', '#contacredito', function(e) {
+                Livewire.emitTo('lancamento.editar-lancamento','changeContaCreditoID',e.target.value);
+            });
         });
 
         // ouvindo eventos do livewire
@@ -419,6 +429,12 @@
                 $('.select2').select2({
                     dropdownParent: $('#editarLancamentoModal'),
                     theme: 'bootstrap-5'
+                });
+                $('.select2').select2({
+                    theme: 'bootstrap-5'
+                });
+                $('.money').mask('000.000.000.000.000,00', {
+                    reverse: true
                 });
             })
         });

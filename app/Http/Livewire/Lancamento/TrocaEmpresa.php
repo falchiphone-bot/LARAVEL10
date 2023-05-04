@@ -20,7 +20,7 @@ class TrocaEmpresa extends Component
 
     public $lancamento_id;
 
-    protected $listeners = ['setContaDebito','setContaCredito'];
+    protected $listeners = ['setContaDebito','setContaCredito','setLancamentoID'];
 
     public function setContaDebito($id)
     {
@@ -29,6 +29,10 @@ class TrocaEmpresa extends Component
     public function setContaCredito($id)
     {
         $this->novacontacredito = $id;
+    }
+    public function setLancamentoID($id)
+    {
+        $this->lancamento_id = $id;
     }
 
     protected $rules = [
@@ -102,9 +106,8 @@ class TrocaEmpresa extends Component
         $this->resetValidation();
     }
 
-    public function mount($lancamento_id)
+    public function mount()
     {
-        $this->lancamento_id = $lancamento_id;
         $this->empresas = Empresa::join('Contabilidade.EmpresasUsuarios','EmpresasUsuarios.EmpresaID','Empresas.ID')
         ->where('EmpresasUsuarios.UsuarioID',Auth::user()->id)->orderBy('Descricao')->pluck('Descricao','Empresas.ID');
     }

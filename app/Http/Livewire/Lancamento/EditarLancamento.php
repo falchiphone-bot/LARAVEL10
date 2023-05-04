@@ -22,7 +22,7 @@ class EditarLancamento extends Component
 
     public $currentTab;
 
-    protected $listeners = ['alterarIdLancamento', 'salvarLancamento', 'selectHistorico'];
+    protected $listeners = ['alterarIdLancamento', 'salvarLancamento', 'selectHistorico','changeContaDebitoID','changeContaCreditoID'];
 
     public function alterarIdLancamento($lancamento_id)
     {
@@ -30,13 +30,23 @@ class EditarLancamento extends Component
     }
 
     protected $rules = [
-        'lancamento.Valor' => 'required|numeric',
+        'lancamento.Valor' => 'required',
         'lancamento.ContaCreditoID' => 'required|integer',
         'lancamento.ContaDebitoID' => 'required|integer',
         'lancamento.DataContabilidade' => 'required|date',
         'lancamento.HistoricoID' => ['required_without:lancamento.Descricao'],
-        'lancamento.Descricao' => 'required_without:lancamento.HistoricoID|string',
+        'lancamento.Descricao' => 'required_without:lancamento.HistoricoID',
     ];
+
+    public function changeContaDebitoID($value)
+    {
+        $this->lancamento->ContaDebitoID = $value;
+    }
+
+    public function changeContaCreditoID($value)
+    {
+        $this->lancamento->ContaCreditoID = $value;
+    }
 
     public function salvarLancamento($novo = null)
     {
@@ -52,6 +62,7 @@ class EditarLancamento extends Component
             $this->lancamento['DataContabilidade'] = $this->lancamento->DataContabilidade->format('d-m-Y');
             $this->lancamento['EmpresaID'] = $this->lancamento['EmpresaID']??session('conta.extrato.empresa.id');
             $this->lancamento['Usuarios_id'] = $this->lancamento['Usuarios_id']??Auth::user()->id;
+            $this->lancamento['Valor'] = str_replace(',','.',str_replace('.','',$this->lancamento['Valor']));
 
             if ($this->lancamento->save()) {
                 session()->flash('message', 'Lançamento atualizado.');
@@ -161,10 +172,12 @@ class EditarLancamento extends Component
 
     public function mount($lancamento_id)
     {
+        $this->emitTo('lancamento.troca-empresa','setLancamentoID',$lancamento_id);
         $this->currentTab = 'lancamento';
 
         if ($lancamento_id != 'novo') {
             $this->lancamento = Lancamento::find($lancamento_id);
+            $this->lancamento->Valor = number_format($this->lancamento->Valor,2,',','.');
             $this->comentarios = LancamentoComentario::where('LancamentoID', $lancamento_id)->get();
         } else {
             $this->lancamento = new Lancamento();
