@@ -160,7 +160,7 @@ class EditarLancamento extends Component
             ->where('Grau', 5)
             ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', 'Planocontas_id')
             ->orderBy('PlanoContas.Descricao')
-            ->get(['PlanoContas.Descricao', 'Contas.ID']);
+            ->pluck('PlanoContas.Descricao', 'Contas.ID');
 
         $this->historicos = Historicos::where('EmpresaID', $this->lancamento->EmpresaID)
             ->orderBy('Descricao', 'asc')
