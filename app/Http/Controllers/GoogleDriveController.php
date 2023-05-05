@@ -10,6 +10,7 @@ use DateTime;
 use Illuminate\Support\Facades\Storage;
 use Google_Service_Drive_Permission;
 use Google_Service_Drive;
+use Google_Service_Exception;
 
 class GoogleDriveController extends Controller
 {
@@ -195,24 +196,60 @@ class GoogleDriveController extends Controller
 
         $client = $this->gClient;
 ///////////////////////////////////////////////////////////////////////////////// tornar o arquivo privado
-$fileIdPrivado = '1CaOTqAaD71YtbMMM1g2djuJyXwMuwUAr';
+// $fileIdPrivado = '1CaOTqAaD71YtbMMM1g2djuJyXwMuwUAr';
 
-// Alterar as permissões do arquivo para torná-lo privado
-$permission = new Google_Service_Drive_Permission();
+// // Alterar as permissões do arquivo para torná-lo privado
+// $permission = new Google_Service_Drive_Permission();
 
-$permission->setRole('owner');
-$permission->setType('user');
-$permission->setDomain('falchi.com.br');
-// $permission->setFileid($path);
-$permission->setEmailAddress('pedroroberto@falchi.com.br');
-$permission->setAllowFileDiscovery(false);
-// dd($service->permissions);
-//
-//  $permission->setSendNotificationEmail(false);
-$service->permissions->create($fileIdPrivado, $permission);
+// $permission->setRole('owner');
+// $permission->setType('user');
+// $permission->setDomain('falchi.com.br');
+// // $permission->setFileid($path);
+// $permission->setEmailAddress('pedroroberto@falchi.com.br');
+// $permission->setAllowFileDiscovery(false);
+// // dd($service->permissions);
+// //
+// //  $permission->setSendNotificationEmail(false);
+// $service->permissions->create($fileIdPrivado, $permission);
 ///////////////////////////////////////////////////////////////////////////////// /////////////////////////////////////////////////////////////////////////////////
 
-dd('privado');
+
+///////////////////////////////////////////////////////////////////////////////// Excluir arquivo
+
+// $fileIdExcluir = '1CaOTqAaD71YtbMMM1g2djuJyXwMuwUAr';
+// $service->files->delete($fileIdExcluir);
+// dd($result);
+///////////////////////////////////////////////////////////////////////////////// /////////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////// verificar se exite o arquivo
+
+try {
+    $fileIdConsultar = '1CaOTqAaD71YtbMMM1g2djuJyXwMuwUAr';
+    // $fileIdConsultar = '1l7xyPSqL8s07XyK-PeQ8D04Uapu2-8Py';
+
+    // tenta buscar o arquivo pelo ID
+    $file = $service->files->get($fileIdConsultar);
+
+
+  } catch (Google_Service_Exception $e) {
+    // trata o erro, se houver
+    if($e->getCode() == 404)
+    {
+        $url = 'https://drive.google.com/open?id=' . $fileIdConsultar;
+        return redirect($url);
+        dd("O arquivo não existe.");
+    }
+    else
+    {
+        $url = 'https://drive.google.com/open?id=' .$fileIdConsultar;
+        return redirect($url);
+        dd("EXISTE");
+    }
+    // throw new Google_Service_Exception(dd('Não foi possível encontrar o arquivo especificado. ==> ERRO :'. $e->getCode()));
+
+}
+
+
 
 
         ///////////////////////////////////////////////////////////////////////////////// tornar o arquivo público
