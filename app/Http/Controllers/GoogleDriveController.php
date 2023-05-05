@@ -161,14 +161,14 @@ class GoogleDriveController extends Controller
         $folder = env('FOLDER_DRIVE_GOOGLE');
 
         // $nome_arquivo = $request->file('arquivo')->getClientOriginalName();
-        
+
         // // $nome_arquivo = Carbon::now().'-(100)-'.$request->file('arquivo')->getClientOriginalName();
 
         $nome_arquivo = Carbon::now().'-'.$request->file('arquivo')->getClientOriginalName();
         // preg_match('/\((\d+)\)/', $nome_arquivo, $matches);
         // $numero =  $matches[1];
 
-        dd($nome_arquivo);
+        // dd($nome_arquivo);
 
         // $file = new \Google_Service_Drive_DriveFile(array('name' => 'piso1.jpg','parents' => array($folder->id)));
         $file = new \Google_Service_Drive_DriveFile(['name' => $nome_arquivo, 'parents' => [$folder]]);
