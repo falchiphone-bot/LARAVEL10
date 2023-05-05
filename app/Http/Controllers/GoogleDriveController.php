@@ -152,14 +152,15 @@ class GoogleDriveController extends Controller
         $path = $request->file('arquivo')->getRealPath();
 
         $file = $request->file('arquivo');
-
+        $Complemento = $request->complemento;
         $name = $file->getClientOriginalName();
         $extension = $file->getClientOriginalExtension();
 
+        dd($Complemento);
 
         // $folder = '1SV8zXjgtfqViak_Jrlich-YVEM32bu8F';   FIXADO NO ARQUIVO .env
         $folder = env('FOLDER_DRIVE_GOOGLE');
-         
+
         // $nome_arquivo = $request->file('arquivo')->getClientOriginalName();
 
         // // $nome_arquivo = Carbon::now().'-(100)-'.$request->file('arquivo')->getClientOriginalName();

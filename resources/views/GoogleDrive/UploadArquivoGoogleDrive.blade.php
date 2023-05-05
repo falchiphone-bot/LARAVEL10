@@ -30,12 +30,13 @@
                             <div class="row">
                                 <form method="POST" action="google-drive/file-upload" enctype="multipart/form-data">
                                     @csrf
-                                    <input type="file" class="btn btn-danger" name="arquivo">
+                                    <label for="fim">Complemento para o nome do arquivo</label>
+                                    <textarea required name="complemento" id="complemento" cols="1" rows="1" class="form-control "></textarea>
+                                    <input required type="file" class="btn btn-danger" name="arquivo">
                                     <p class="my-2">
                                         <button type="submit" class="btn btn-success">Enviar o arquivo</button>
                                     </p>
                                 </form>
-
                             </div>
                         </div>
 
