@@ -8,7 +8,8 @@ use Carbon\Carbon;
 use DateTime;
 // use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
-
+use Google_Service_Drive_Permission;
+use Google_Service_Drive;
 
 class GoogleDriveController extends Controller
 {
@@ -87,7 +88,7 @@ class GoogleDriveController extends Controller
             // Cache::put('dadoscliente_google', $this->gClient, $seconds = 1800);
             // dd('Autenticado no Google Drive');
 
-            return redirect(route('google.showGoogleClientInfo'));
+            return redirect(route('googledrive.dashboard'));
 
         } else {
             // FOR GUEST USER, GET GOOGLE LOGIN URL
@@ -97,6 +98,9 @@ class GoogleDriveController extends Controller
         }
     }
 
+
+
+
     public function googleDriveFileUpload(Request $request)
     {
         // https://laravel.com/docs/10.x/filesystem#the-local-driver
@@ -105,12 +109,18 @@ class GoogleDriveController extends Controller
         $service = new \Google_Service_Drive($this->gClient);
 
 
+
         // $user= User::find(1);
         // Cache::put('token_google', session('googleUser')->token , $seconds = 1800);
         $this->gClient->setAccessToken(session('googleUserDrive'));
 
 
         if ($this->gClient->isAccessTokenExpired()) {
+
+
+            $request->session()->put('token', false);
+            return redirect('/drive/google/login');
+
             // SAVE REFRESH TOKEN TO SOME VARIABLE
             $refreshTokenSaved = $this->gClient->getRefreshToken();
 
@@ -156,8 +166,6 @@ class GoogleDriveController extends Controller
         $name = $file->getClientOriginalName();
         $extension = $file->getClientOriginalExtension();
 
-        dd($Complemento);
-
         // $folder = '1SV8zXjgtfqViak_Jrlich-YVEM32bu8F';   FIXADO NO ARQUIVO .env
         $folder = env('FOLDER_DRIVE_GOOGLE');
 
@@ -185,9 +193,44 @@ class GoogleDriveController extends Controller
 
         // dd($result);
 
+        $client = $this->gClient;
+///////////////////////////////////////////////////////////////////////////////// tornar o arquivo privado
+$fileIdPrivado = '1CaOTqAaD71YtbMMM1g2djuJyXwMuwUAr';
+
+// Alterar as permissões do arquivo para torná-lo privado
+$permission = new Google_Service_Drive_Permission();
+
+$permission->setRole('owner');
+$permission->setType('user');
+$permission->setDomain('falchi.com.br');
+// $permission->setFileid($path);
+$permission->setEmailAddress('pedroroberto@falchi.com.br');
+$permission->setAllowFileDiscovery(false);
+// dd($service->permissions);
+//
+//  $permission->setSendNotificationEmail(false);
+$service->permissions->create($fileIdPrivado, $permission);
+///////////////////////////////////////////////////////////////////////////////// /////////////////////////////////////////////////////////////////////////////////
+
+dd('privado');
+
+
+        ///////////////////////////////////////////////////////////////////////////////// tornar o arquivo público
+        $fileIdPublico = $result->id; // Substitua pelo ID do seu arquivo
+        $permission = new Google_Service_Drive_Permission();
+        $permission->setRole('reader');
+        $permission->setType('anyone');
+        $permission->setAllowFileDiscovery(false);
+        // $permission->setSendNotificationEmail(false);
+
+
+
+        $driveService = new Google_Service_Drive($client); // Substitua $client pelo seu objeto de cliente autorizado
+        $driveService->permissions->create($fileIdPublico, $permission, array('fields' => 'id'));
+        /////////
+
 
         // GET URL OF UPLOADED FILE
-
         $url = 'https://drive.google.com/open?id=' . $result->id;
 
         return redirect($url);
