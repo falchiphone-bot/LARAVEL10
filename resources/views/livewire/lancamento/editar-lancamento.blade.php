@@ -1,8 +1,13 @@
 <div>
     <div class="card">
         <div class="card-header">
-            <h4><strong>{{ $lancamento->ID }} - Edição</strong> de lançamentos |
-                {{ $lancamento->Empresa->Descricao ?? null }}
+            <h4>
+                @if ($lancamento->ID)
+                    <strong>{{ $lancamento->ID }} - Edição</strong> de lançamentos |
+                    {{ $lancamento->Empresa->Descricao }}
+                @else
+                    <strong>Novo</strong> de lançamentos | {{ $empresa->Descricao ?? null }}
+                @endif
             </h4>
         </div>
         <div class="card-body">
@@ -59,6 +64,18 @@
                     <div class="card-body">
                         <form wire:submit.prevent="salvarLancamento()" id="form-lancamento">
                             <div class="row">
+                                @if ($empresa)
+                                    <div class="col-sm-12">
+                                        <label for="empresaid">Nova Empresa</label>
+                                        <select wire:model='lancamento.EmpresaID'
+                                            id="novaEmpresaID" class="form-control select2">
+                                            <option value="">Selecione</option>
+                                            @foreach ($empresas as $empresaID => $empresaDescricao)
+                                                <option value="{{ $empresaID }}">{{ $empresaDescricao }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @endif
                                 <div class="form-group col-sm-12 mb-2">
                                     <label for="historicoID" class=" form-control-label">
                                         Histórico

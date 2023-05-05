@@ -17,7 +17,7 @@
                         </div>
 
                         <div class="col-2">
-                            <button wire:click="editarLancamento('novo')" class="btn btn-danger">Inicar um novo
+                            <button wire:click="editarLancamento('novo',{{$selEmpresa}})" class="btn btn-danger">Inicar um novo
                                 lançamento</button>
                         </div>
 
@@ -358,7 +358,7 @@
                         <div class="modal-content">
                             <div class="modal-body">
                                 @if ($editar_lancamento)
-                                    @livewire('lancamento.editar-lancamento', ['lancamento_id' => $editar_lancamento, 'contas' => $contas])
+                                    @livewire('lancamento.editar-lancamento', ['lancamento_id' => $editar_lancamento, 'contas' => $contas, 'empresas' => $empresas])
                                 @endif
                             </div>
                         </div>
@@ -405,6 +405,10 @@
             });
             $(document).on('change', '#novacontacredito', function(e) {
                 Livewire.emitTo('lancamento.troca-empresa', 'setContaCredito', $(this).val());
+            });
+            ///troca de emprsa
+            $(document).on('change', '#novaEmpresaID', function(e) {
+                Livewire.emitTo('lancamento.editar-lancamento', 'changeEmpresaID', $(this).val());
             });
             //troca de historico
             $(document).on('change', '#historicoID', function(e) {
