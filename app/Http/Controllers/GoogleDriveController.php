@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use Carbon\Carbon;
+use DateTime;
 // use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+
 
 class GoogleDriveController extends Controller
 {
@@ -154,9 +157,21 @@ class GoogleDriveController extends Controller
         $extension = $file->getClientOriginalExtension();
 
 
-        $folder = '1SV8zXjgtfqViak_Jrlich-YVEM32bu8F';
+        // $folder = '1SV8zXjgtfqViak_Jrlich-YVEM32bu8F';   FIXADO NO ARQUIVO .env
+        $folder = env('FOLDER_DRIVE_GOOGLE');
+
+        // $nome_arquivo = $request->file('arquivo')->getClientOriginalName();
+        
+        // // $nome_arquivo = Carbon::now().'-(100)-'.$request->file('arquivo')->getClientOriginalName();
+
+        $nome_arquivo = Carbon::now().'-'.$request->file('arquivo')->getClientOriginalName();
+        // preg_match('/\((\d+)\)/', $nome_arquivo, $matches);
+        // $numero =  $matches[1];
+
+        dd($nome_arquivo);
+
         // $file = new \Google_Service_Drive_DriveFile(array('name' => 'piso1.jpg','parents' => array($folder->id)));
-        $file = new \Google_Service_Drive_DriveFile(['name' => $request->file('arquivo')->getClientOriginalName(), 'parents' => [$folder]]);
+        $file = new \Google_Service_Drive_DriveFile(['name' => $nome_arquivo, 'parents' => [$folder]]);
 
         $result = $service->files->create($file, [
             // dd(Storage::path('contabilidade/sample.pdf')),
@@ -171,7 +186,7 @@ class GoogleDriveController extends Controller
 
 
         // GET URL OF UPLOADED FILE
-        
+
         $url = 'https://drive.google.com/open?id=' . $result->id;
 
         return redirect($url);
