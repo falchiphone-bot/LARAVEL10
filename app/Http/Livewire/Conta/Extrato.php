@@ -55,8 +55,10 @@ class Extrato extends Component
     {
         $novadadata = Carbon::parse($date);
         foreach ($this->Lancamentos as $lancamento) {
-            $lancamento->DataContabilidade = $novadadata->format('Y-m-d');
-            $lancamento->save();
+            if (!$this->temBloqueio($lancamento->ID,$date)) {
+                $lancamento->DataContabilidade = $novadadata->format('d-m-Y');
+                $lancamento->save();
+            }
         }
 
     }
