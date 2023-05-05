@@ -43,10 +43,10 @@ class Extrato extends Component
 
     protected $listeners = ['selectedSelEmpresaItem', 'selectedSelContaItem', 'search','alterarData'];
 
-    public function editarLancamento($lancamento_id)
+    public function editarLancamento($lancamento_id,$empresa_id = null)
     {
         $this->editar_lancamento = $lancamento_id;
-        $this->emitTo('lancamento.editar-lancamento', 'alterarIdLancamento', $lancamento_id);
+        $this->emitTo('lancamento.editar-lancamento', 'alterarIdLancamento', $lancamento_id,$empresa_id);
         $this->dispatchBrowserEvent('abrir-modal');
         $this->modal = true;
     }

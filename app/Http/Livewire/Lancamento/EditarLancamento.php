@@ -14,23 +14,43 @@ use Livewire\Component;
 class EditarLancamento extends Component
 {
     public $contas;
+    public $empresa_id;
 
     public Lancamento $lancamento;
+    public Empresa $empresa;
+    public $empresas;
     public $historicos;
     public $comentarios;
     public $comentario;
 
     public $currentTab;
 
-    protected $listeners = ['alterarIdLancamento', 'salvarLancamento', 'selectHistorico', 'changeContaDebitoID', 'changeContaCreditoID'];
+    protected $listeners = [
+        'alterarIdLancamento',
+        'salvarLancamento',
+        'selectHistorico',
+        'changeContaDebitoID',
+        'changeContaCreditoID',
+        'changeEmpresaID'
+    ];
 
-    public function alterarIdLancamento($lancamento_id)
+    public function alterarIdLancamento($lancamento_id,$empresa_id = null)
     {
-        $this->mount($lancamento_id);
+        $this->mount($lancamento_id,$empresa_id);
+        if ($empresa_id) {
+            $this->empresa = Empresa::find($empresa_id);
+            $this->lancamento->EmpresaID = $empresa_id;
+        }
     }
 
+    protected function prepareForValidation($attributes)
+    {
+        $attributes['lancamento']->Valor = str_replace(',', '.', str_replace('.', '', $attributes['lancamento']->Valor));
+        return $attributes;
+    }
     protected $rules = [
-        'lancamento.Valor' => 'required',
+        'lancamento.Valor' => 'required|decimal:2|gt:0',
+        'lancamento.EmpresaID' => 'required|integer',
         'lancamento.ContaCreditoID' => 'required|integer',
         'lancamento.ContaDebitoID' => 'required|integer',
         'lancamento.DataContabilidade' => 'required|date',
@@ -48,10 +68,16 @@ class EditarLancamento extends Component
         $this->lancamento->ContaCreditoID = $value;
     }
 
+    public function changeEmpresaID($value)
+    {
+        $this->lancamento->EmpresaID = $value;
+        $this->empresa = Empresa::find($value);
+        $this->atualizarContasHistoricos($value);
+    }
+
     public function salvarLancamento($novo = null)
     {
         $this->validate();
-        $this->lancamento['Valor'] = str_replace(',', '.', str_replace('.', '', $this->lancamento['Valor']));
         if ($novo) {
             $novoLancamento = $this->lancamento->replicate();
             if (!$this->temBloqueio()) {
@@ -178,7 +204,7 @@ class EditarLancamento extends Component
         }
     }
 
-    public function mount($lancamento_id)
+    public function mount($lancamento_id = null)
     {
         $this->emitTo('lancamento.troca-empresa', 'setLancamentoID', $lancamento_id);
         $this->currentTab = 'lancamento';
@@ -191,16 +217,21 @@ class EditarLancamento extends Component
             $this->lancamento = new Lancamento();
         }
 
-        $this->contas = Conta::where('EmpresaID', $this->lancamento->EmpresaID ?? session('conta.extrato.empresa.id'))
+        $this->atualizarContasHistoricos($this->lancamento->EmpresaID);
+
+        $this->emitTo('extrato', 'select2', ['target' => 'modal']);
+    }
+
+    public function atualizarContasHistoricos($empresa_id)
+    {
+        $this->contas = Conta::where('EmpresaID', $empresa_id ?? session('conta.extrato.empresa.id'))
             ->where('Grau', 5)
             ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', 'Planocontas_id')
             ->orderBy('PlanoContas.Descricao')
             ->pluck('PlanoContas.Descricao', 'Contas.ID');
-        $this->historicos = Historicos::where('EmpresaID', $this->lancamento->EmpresaID ?? session('conta.extrato.empresa.id'))
+        $this->historicos = Historicos::where('EmpresaID', $empresa_id ?? session('conta.extrato.empresa.id'))
             ->orderBy('Descricao', 'asc')
             ->get(['Descricao', 'ID']);
-
-        $this->emitTo('extrato', 'select2', ['target' => 'modal']);
     }
 
     public function render()
