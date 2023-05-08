@@ -51,14 +51,11 @@ class GoogleDriveController extends Controller
         // ];
         // // $gClientInfo = 'teste';
 
-
-        if(session('googleUser')) {
+        if (session('googleUser')) {
             return view('GoogleDrive/DadosClienteGoogle');
-         } else {
-             return redirect('/auth/google');
-         }
-
-
+        } else {
+            return redirect('/auth/google');
+        }
     }
 
     public function googleLogin(Request $request)
@@ -84,13 +81,12 @@ class GoogleDriveController extends Controller
             // $user->save();
 
             // Cache::put('token_google', $this->gClient->getAccessToken(), $seconds = 1800);
-            session(['googleUserDrive'=>$this->gClient->getAccessToken()]);
+            session(['googleUserDrive' => $this->gClient->getAccessToken()]);
             // dd($this->gClient);
             // Cache::put('dadoscliente_google', $this->gClient, $seconds = 1800);
             // dd('Autenticado no Google Drive');
 
             return redirect(route('googledrive.dashboard'));
-
         } else {
             // FOR GUEST USER, GET GOOGLE LOGIN URL
             $authUrl = $this->gClient->createAuthUrl();
@@ -99,26 +95,17 @@ class GoogleDriveController extends Controller
         }
     }
 
-
-
-
     public function googleDriveFileUpload(Request $request)
     {
         // https://laravel.com/docs/10.x/filesystem#the-local-driver
 
-
         $service = new \Google_Service_Drive($this->gClient);
-
-
 
         // $user= User::find(1);
         // Cache::put('token_google', session('googleUser')->token , $seconds = 1800);
         $this->gClient->setAccessToken(session('googleUserDrive'));
 
-
         if ($this->gClient->isAccessTokenExpired()) {
-
-
             $request->session()->put('token', false);
             return redirect('/drive/google/login');
 
@@ -153,8 +140,6 @@ class GoogleDriveController extends Controller
         // $arquivo = $request->file('arquivo');
 
 
-        // dd($request->file('arquivo'));
-
 
         /// usar na pasta do servidor - não apaga
         // $path = $request->file('arquivo')->store('contabilidade');
@@ -167,14 +152,22 @@ class GoogleDriveController extends Controller
         $name = $file->getClientOriginalName();
         $extension = $file->getClientOriginalExtension();
 
-        // $folder = '1SV8zXjgtfqViak_Jrlich-YVEM32bu8F';   FIXADO NO ARQUIVO .env
+        // $folder = '1Jzih3qPaWpf7HISQEsDpUpH0ab7eS-yJ';   //FIXADO NO ARQUIVO .env
         $folder = env('FOLDER_DRIVE_GOOGLE');
+        if($folder == null)
+        {
+            session([
+                'InformacaoArquivo' => 'Pasta não informada! Verifique o arquivo de configuração .env.'
+            ]);
+            return redirect(route('informacao.arquivos'));
+        }
+
 
         // $nome_arquivo = $request->file('arquivo')->getClientOriginalName();
 
         // // $nome_arquivo = Carbon::now().'-(100)-'.$request->file('arquivo')->getClientOriginalName();
 
-        $nome_arquivo = Carbon::now().'-'.$request->file('arquivo')->getClientOriginalName();
+        $nome_arquivo = Carbon::now() . '-' . $request->file('arquivo')->getClientOriginalName();
         // preg_match('/\((\d+)\)/', $nome_arquivo, $matches);
         // $numero =  $matches[1];
 
@@ -192,80 +185,71 @@ class GoogleDriveController extends Controller
         ]);
 
 
-        // dd($result);
 
         $client = $this->gClient;
-///////////////////////////////////////////////////////////////////////////////// tornar o arquivo privado
-// $fileIdPrivado = '1CaOTqAaD71YtbMMM1g2djuJyXwMuwUAr';
+        ///////////////////////////////////////////////////////////////////////////////// tornar o arquivo privado
+        // $fileIdPrivado = '1CaOTqAaD71YtbMMM1g2djuJyXwMuwUAr';
 
-// // Alterar as permissões do arquivo para torná-lo privado
-// $permission = new Google_Service_Drive_Permission();
+        // // Alterar as permissões do arquivo para torná-lo privado
+        // $permission = new Google_Service_Drive_Permission();
 
-// $permission->setRole('owner');
-// $permission->setType('user');
-// $permission->setDomain('falchi.com.br');
-// // $permission->setFileid($path);
-// $permission->setEmailAddress('pedroroberto@falchi.com.br');
-// $permission->setAllowFileDiscovery(false);
-// // dd($service->permissions);
-// //
-// //  $permission->setSendNotificationEmail(false);
-// $service->permissions->create($fileIdPrivado, $permission);
-///////////////////////////////////////////////////////////////////////////////// /////////////////////////////////////////////////////////////////////////////////
+        // $permission->setRole('owner');
+        // $permission->setType('user');
+        // $permission->setDomain('falchi.com.br');
+        // // $permission->setFileid($path);
+        // $permission->setEmailAddress('pedroroberto@falchi.com.br');
+        // $permission->setAllowFileDiscovery(false);
+        // // dd($service->permissions);
+        // //
+        // //  $permission->setSendNotificationEmail(false);
+        // $service->permissions->create($fileIdPrivado, $permission);
+        ///////////////////////////////////////////////////////////////////////////////// /////////////////////////////////////////////////////////////////////////////////
 
+        ///////////////////////////////////////////////////////////////////////////////// Excluir arquivo
 
-///////////////////////////////////////////////////////////////////////////////// Excluir arquivo
+        // $fileIdExcluir = '1CaOTqAaD71YtbMMM1g2djuJyXwMuwUAr';
+        // $service->files->delete($fileIdExcluir);
+        // dd($result);
+        ///////////////////////////////////////////////////////////////////////////////// /////////////////////////////////////////////////////////////////////////////////
 
-// $fileIdExcluir = '1CaOTqAaD71YtbMMM1g2djuJyXwMuwUAr';
-// $service->files->delete($fileIdExcluir);
-// dd($result);
-///////////////////////////////////////////////////////////////////////////////// /////////////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////////// verificar se exite o arquivo
 
-///////////////////////////////////////////////////////////////////////////////// verificar se exite o arquivo
+        // try {
+        //     $fileIdConsultar = '1CaOTqAaD71YtbMMM1g2djuJyXwMuwUAr';
+        //     // $fileIdConsultar = '1l7xyPSqL8s07XyK-PeQ8D04Uapu2-8Py';
 
-try {
-    $fileIdConsultar = '1CaOTqAaD71YtbMMM1g2djuJyXwMuwUAr';
-    // $fileIdConsultar = '1l7xyPSqL8s07XyK-PeQ8D04Uapu2-8Py';
+        //     // tenta buscar o arquivo pelo ID
+        //     $file = $service->files->get($fileIdConsultar);
 
-    // tenta buscar o arquivo pelo ID
-    $file = $service->files->get($fileIdConsultar);
+        // } catch (Google_Service_Exception $e) {
+        //     // trata o erro, se houver
+        //     if($e->getCode() == 404)
+        //     {
+        //         $url = 'https://drive.google.com/open?id=' . $fileIdConsultar;
+        //         return redirect($url);
+        //         dd("O arquivo não existe.");
+        //     }
+        //     else
+        //     {
+        //         $url = 'https://drive.google.com/open?id=' .$fileIdConsultar;
+        //         return redirect($url);
+        //         dd("EXISTE");
+        //     }
+        //     // throw new Google_Service_Exception(dd('Não foi possível encontrar o arquivo especificado. ==> ERRO :'. $e->getCode()));
 
+        // }
 
-  } catch (Google_Service_Exception $e) {
-    // trata o erro, se houver
-    if($e->getCode() == 404)
-    {
-        $url = 'https://drive.google.com/open?id=' . $fileIdConsultar;
-        return redirect($url);
-        dd("O arquivo não existe.");
-    }
-    else
-    {
-        $url = 'https://drive.google.com/open?id=' .$fileIdConsultar;
-        return redirect($url);
-        dd("EXISTE");
-    }
-    // throw new Google_Service_Exception(dd('Não foi possível encontrar o arquivo especificado. ==> ERRO :'. $e->getCode()));
+        // ///////////////////////////////////////////////////////////////////////////////// tornar o arquivo público
+        // $fileIdPublico = $result->id; // Substitua pelo ID do seu arquivo
+        // $permission = new Google_Service_Drive_Permission();
+        // $permission->setRole('reader');
+        // $permission->setType('anyone');
+        // $permission->setAllowFileDiscovery(false);
+        // // $permission->setSendNotificationEmail(false);
 
-}
-
-
-
-
-        ///////////////////////////////////////////////////////////////////////////////// tornar o arquivo público
-        $fileIdPublico = $result->id; // Substitua pelo ID do seu arquivo
-        $permission = new Google_Service_Drive_Permission();
-        $permission->setRole('reader');
-        $permission->setType('anyone');
-        $permission->setAllowFileDiscovery(false);
-        // $permission->setSendNotificationEmail(false);
-
-
-
-        $driveService = new Google_Service_Drive($client); // Substitua $client pelo seu objeto de cliente autorizado
-        $driveService->permissions->create($fileIdPublico, $permission, array('fields' => 'id'));
-        /////////
-
+        // $driveService = new Google_Service_Drive($client); // Substitua $client pelo seu objeto de cliente autorizado
+        // $driveService->permissions->create($fileIdPublico, $permission, array('fields' => 'id'));
+        // /////////
 
         // GET URL OF UPLOADED FILE
         $url = 'https://drive.google.com/open?id=' . $result->id;
@@ -273,5 +257,142 @@ try {
         return redirect($url);
 
         // dd($result);
+    }
+
+    public function googleDriveFileDelete(Request $request)
+    {
+        $service = new \Google_Service_Drive($this->gClient);
+        $this->gClient->setAccessToken(session('googleUserDrive'));
+
+        if ($this->gClient->isAccessTokenExpired()) {
+            $request->session()->put('token', false);
+            return redirect('/drive/google/login');
+
+            // SAVE REFRESH TOKEN TO SOME VARIABLE
+            $refreshTokenSaved = $this->gClient->getRefreshToken();
+
+            // UPDATE ACCESS TOKEN
+            $this->gClient->fetchAccessTokenWithRefreshToken($refreshTokenSaved);
+
+            // PASS ACCESS TOKEN TO SOME VARIABLE
+            $updatedAccessToken = $this->gClient->getAccessToken();
+
+            // APPEND REFRESH TOKEN
+            $updatedAccessToken['refresh_token'] = $refreshTokenSaved;
+
+            // SET THE NEW ACCES TOKEN
+            $this->gClient->setAccessToken($updatedAccessToken);
+
+            $user->access_token = $updatedAccessToken;
+
+            $user->save();
+        }
+
+        $fileMetadata = new \Google_Service_Drive_DriveFile([
+            'name' => 'Prfcontabilidade', // ADD YOUR GOOGLE DRIVE FOLDER NAME
+            'mimeType' => 'application/vnd.google-apps.folder',
+        ]);
+
+        $client = $this->gClient;
+
+        ///////////////////////////////////////////////////////////////////////////////// Excluir arquivo
+        if($request->iddeletar == '1Jzih3qPaWpf7HISQEsDpUpH0ab7eS-yJ')
+        {
+            session([
+                'InformacaoArquivo' => 'Isso é id da pasta dos arquivos do sistema! NÃO PODE SER EXCLUÍDA!'
+            ]);
+            return redirect(route('informacao.arquivos'));
+        }
+
+
+        try {
+            $fileIdExcluir = $request->iddeletar;
+            $service->files->delete($fileIdExcluir);
+            session(['InformacaoArquivo' => 'Arquivo:' . $fileIdExcluir . '. Excluído com sucesso']);
+        } catch (Google_Service_Exception $e) {
+            //  throw new Google_Service_Exception(dd('Arquivo:'.$fileIdExcluir.'. Não foi possível encontrar o arquivo especificado. ==> ERRO :'. $e->GetMessage()));
+            // dd($e);
+
+            session([
+                'InformacaoArquivo' => 'Arquivo:' . $fileIdExcluir . '. Não foi possível excluir o arquivo especificado pelos motivos a seguir: ==> ERRO :' . $e->GetMessage(),
+            ]);
+        }
+        return redirect(route('informacao.arquivos'));
+        ///////////////////////////////////////////////////////////////////////////////// /////////////////////////////////////////////////////////////////////////////////
+    }
+
+
+
+    public function googleDriveFileConsultar(Request $request)
+    {
+        // $service = new \Google_Service_Drive($this->gClient);
+        $service = new Google_Service_Drive($this->gClient);
+        $this->gClient->setAccessToken(session('googleUserDrive'));
+
+        if ($this->gClient->isAccessTokenExpired()) {
+            $request->session()->put('token', false);
+            return redirect('/drive/google/login');
+
+            // SAVE REFRESH TOKEN TO SOME VARIABLE
+            $refreshTokenSaved = $this->gClient->getRefreshToken();
+
+            // UPDATE ACCESS TOKEN
+            $this->gClient->fetchAccessTokenWithRefreshToken($refreshTokenSaved);
+
+            // PASS ACCESS TOKEN TO SOME VARIABLE
+            $updatedAccessToken = $this->gClient->getAccessToken();
+
+            // APPEND REFRESH TOKEN
+            $updatedAccessToken['refresh_token'] = $refreshTokenSaved;
+
+            // SET THE NEW ACCES TOKEN
+            $this->gClient->setAccessToken($updatedAccessToken);
+
+            $user->access_token = $updatedAccessToken;
+
+            $user->save();
+        }
+
+        $client = $this->gClient;
+
+// ID do arquivo a ser consultado
+// $fileId = '1HOEUTvekJzsGNchPLJA7MUupY1L_DQgz';
+$fileIdConsultar = $request->idconsultararquivo;
+
+try {
+    // Fazer a consulta de metadados do arquivo
+    $file = $service->files->get($fileIdConsultar, array('fields' => 'owners'));
+    // $fileLoc = $service->files->get($fileIdConsultar);
+
+    // dd($file);
+
+    // Verificar se o arquivo existe e mostrar o nome do proprietário
+    // if ($file->getId() == $fileIdConsultar) {
+    if ($file){
+        $owner = $file->getOwners()[0];
+
+        session([
+            'avatar' => $owner->getPhotoLink()
+        ]);
+        
+          session([
+            'InformacaoArquivo' => 'Encontrado o arquivo:' . $fileIdConsultar . '. O proprietário é ' . $owner->getDisplayName().". Email: ".$owner->getEmailAddress()
+        ]);
+
+        return redirect(route('informacao.arquivos'));
+
+    } else {
+        ////////// Quando o id não é localizado no Google Drive é causado uma Exception
+    }
+} catch (Google_Service_Exception $e) {
+    session([
+        'InformacaoArquivo' => 'Erro de pesquisa. Provávelmente arquivo não encontrado:' . $fileIdConsultar
+    ]);
+    return redirect(route('informacao.arquivos'));
+}
+
+
+
+
     }
 }

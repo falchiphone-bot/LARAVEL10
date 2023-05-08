@@ -6,7 +6,7 @@
             <div class="card">
                 <div class="badge bg-primary text-wrap" style="width: 100%;
                 ;font-size: 24px; lign=˜Center˜">
-                    UPLOAD DE ARQUIVO PARA GOOGLE DRIVE NO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
+                    GOOGLE DRIVE NO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
                 </div>
 
 
@@ -18,45 +18,29 @@
                     </nav>
                 </div>
 
-                    <div class="badge bg-warning text-wrap" style="width: 100%; font-size: 24px; color: black; text-align: center;">
-                        <div class="card">
-                            <nav class="navbar navbar-success" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                  UPLOAD DE ARQUIVO SELECIONADO
-                            </nav>
-                      </div>
-
-                </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <form method="POST" action="google-drive/file-upload" enctype="multipart/form-data">
-                                    @csrf
-                                    <label for="fim">Complemento para o arquivo</label>
-
-
-
-                                    <textarea required name="complemento" id="complemento" cols="1" rows="3" class="form-control" style="background-color: green; color: white;"></textarea>
-
-
-
-                                    <input required type="file" class="btn btn-danger" name="arquivo">
-                                    <p class="my-2">
-                                        <button type="submit" class="btn btn-success">Enviar o arquivo para a pasta do sistema.</button>
-                                    </p>
-                                </form>
-                            </div>
-                        </div>
-
-                        <div class="card-footer">
-                            {{-- <button class='btn btn-primary'>Salvar o evento</button> --}}
-                        </div>
-
+                <div class="badge bg-warning text-wrap"
+                    style="width: 100%; font-size: 24px; color: black; text-align: center;">
+                    <div class="card">
+                        <nav class="navbar navbar-success" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                           INFORMAÇÃO DO GOOGLE DRIVE
+                        </nav>
                     </div>
 
+                </div>
+                <div class="card-body">
 
 
-
+                    <div class="card">
+                        <div class="badge bg-danger text-wrap" style="width: 100%;
+                        ;font-size: 24px; lign=˜Center˜">
+                           {{session('InformacaoArquivo')}}. <img src="{{ asset(session('avatar'))}}">
+                        </div>
+                         
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
 
     </div>
     <div class="b-example-divider"></div>
