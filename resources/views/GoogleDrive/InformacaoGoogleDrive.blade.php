@@ -34,9 +34,21 @@
                         <div class="badge bg-danger text-wrap" style="width: 100%;
                         ;font-size: 24px; lign=˜Center˜">
                            {{session('InformacaoArquivo')}}. <img src="{{ asset(session('avatar'))}}">
+                           {{ session([
+                            'InformacaoArquivoProprietário' => null]);}}
                         </div>
-                         
+
                     </div>
+                    <div class="card">
+                        <div class="badge bg-success text-wrap" style="width: 100%;
+                        ;font-size: 24px; lign=˜Center˜">
+                           {{session('InformacaoArquivoProprietário')}}
+
+                        {{ session([
+                            'InformacaoArquivoProprietário' => null]);}}
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>

@@ -6,7 +6,7 @@
             <div class="card">
                 <div class="badge bg-primary text-wrap" style="width: 100%;
                 ;font-size: 24px; lign=˜Center˜">
-                    EXCLUSÃO DO ARQUIVO NO GOOGLE DRIVE NO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL - PERMANENTEMENTE
+                    MOVER ARQUIVO NO GOOGLE DRIVE NO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
                 </div>
 
 
@@ -22,7 +22,7 @@
                     style="width: 100%; font-size: 24px; color: black; text-align: center;">
                     <div class="card">
                         <nav class="navbar navbar-success" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                            EXCLUSÃO DE ARQUIVO SELECIONADO PERMANENTEMENTE
+                            MOVER DE ARQUIVO SELECIONADO
                         </nav>
                     </div>
 
@@ -30,14 +30,14 @@
                 <div class="card-body">
                     <div class="row">
 
-                            <form method="POST" action="/drive/google-drive/file-delete" enctype="multipart/form-data">
+                            <form method="POST" action="/drive/google-drive/file-mover" enctype="multipart/form-data">
                             @csrf
-                            <label for="fim">Excluir o arquivo</label>
+                            <label for="fim">Mover o arquivo</label>
 
-                            <textarea required name="iddeletar" id="iddeletar" cols="1" rows="1" class="form-control"
+                            <textarea required name="idmoverarquivo" id="idmoverarquivo" cols="1" rows="1" class="form-control"
                                 style="background-color: red; color: white;"></textarea>
                             <p class="my-2">
-                                <button type="submit" class="btn btn-success">Enviar o arquivo para exclusão. Irá para a lixeira do Google Drive</button>
+                                <button type="submit" class="btn btn-success">Mover o arquivo</button>
                             </p>
                         </form>
                     </div>
