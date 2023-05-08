@@ -58,11 +58,8 @@
                                             </nav>
                                             <nav class="navbar navbar-red"
                                                 style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                                {{-- <a class="btn btn-success" href="google-drive/file-upload">Enviar arquivo no
-                                                    Google Drive</a> --}}
-                                                <a href="https://drive.google.com" class="btn btn-success"
-                                                    target="_blank">Consultar pasta Google Drive</a>
 
+                                                <a class="btn btn-success" target="_blank" href="https://drive.google.com/drive/u/O/folders/{{env('FOLDER_DRIVE_GOOGLE')}}">Consultar pasta principal do sistema no Google Drive</a>
                                             </nav>
                                         @else
                                             <nav class="navbar navbar-red"
