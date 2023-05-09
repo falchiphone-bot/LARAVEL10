@@ -38,7 +38,7 @@
                             <textarea required name="iddeletar" id="iddeletar" cols="1" rows="1" class="form-control"
                                 style="background-color: red; color: white;"></textarea>
                             <p class="my-2">
-                                <button type="submit" class="btn btn-success">Enviar o arquivo para exclusão. Irá para a lixeira do Google Drive</button>
+                                <button type="submit" class="btn btn-success">Enviar o arquivo para exclusão. Será excluído definitivamente do Google Drive</button>
                             </p>
                         </form>
                     </div>
