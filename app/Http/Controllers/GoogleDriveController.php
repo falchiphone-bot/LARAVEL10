@@ -158,14 +158,14 @@ class GoogleDriveController extends Controller
 
         if ($folder == null) {
             session([
-                'InformacaoArquivo' => 'Pasta não informada! Verifique o arquivo de configuração .env( FOLDER_DRIVE_GOOGLE ).',
+                'InformacaoArquivo' => 'Pasta não informada! Verifique o arquivo de configuração env( FOLDER_DRIVE_GOOGLE ).',
             ]);
             return redirect(route('informacao.arquivos'));
         }
         $folderTemp = env('FOLDER_DRIVE_GOOGLE');
         if ($folderTemp == null) {
             session([
-                'InformacaoArquivo' => 'Pasta não informada! Verifique o arquivo de configuração .env( FOLDER_DRIVE_GOOGLE_TEMPORARIA ).',
+                'InformacaoArquivo' => 'Pasta não informada! Verifique o arquivo de configuração env( FOLDER_DRIVE_GOOGLE_TEMPORARIA ).',
             ]);
             return redirect(route('informacao.arquivos'));
         }
@@ -309,8 +309,6 @@ class GoogleDriveController extends Controller
             ]);
             return redirect(route('informacao.arquivos'));
         }
-
-            // $service->files->delete($fileIdExcluir);/// exclui definitivamente do Google Drive
 
             $fileMetadata = new \Google_Service_Drive_DriveFile([
                 // 'name' => 'Prfcontabilidade', // ADD YOUR GOOGLE DRIVE FOLDER NAME
