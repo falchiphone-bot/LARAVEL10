@@ -59,21 +59,26 @@
                                                     Drive</a>
                                             </nav>
 
-                                            <nav class="navbar navbar-red"
+                                            {{-- <nav class="navbar navbar-red"
                                                 style="background-color: hsla(234, 92%, 47%, 0.096);">
                                                 <a class="btn btn-success" href="/drive/MoverArquivo">Mover arquivo do Google Drive para pasta de guarda temporária</a>
-                                            </nav>
+                                            </nav> --}}
 
                                             <nav class="navbar navbar-red"
                                                 style="background-color: hsla(234, 92%, 47%, 0.096);">
                                                 <a class="btn btn-success" href="/drive/DeleteArquivo">Excluir arquivo do Google
-                                                    Drive PERMANENTEMENTE</a>
+                                                    Drive para a lixeira</a>
+                                            </nav>
+                                            <nav class="navbar navbar-red"
+                                                style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                                <a class="btn btn-success" href="/drive/DeleteArquivoDefinitivo">Excluir arquivo do Google
+                                                    Drive DEFINITIVAMENTE</a>
                                             </nav>
                                             <nav class="navbar navbar-red"
                                                 style="background-color: hsla(234, 92%, 47%, 0.096);">
 
                                                 <a class="btn btn-success" target="_blank"
-                                                    href="https://drive.google.com/drive/u/O/folders/{{ env('FOLDER_DRIVE_GOOGLE') }}">Consultar
+                                                    href="https://drive.google.com/drive/u/O/folders/{{env('FOLDER_DRIVE_GOOGLE')}}">Consultar
                                                     pasta principal do sistema no Google Drive</a>
                                             </nav>
                                         @else

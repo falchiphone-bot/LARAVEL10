@@ -40,6 +40,7 @@ Route::middleware('auth')->group(function () {
     Route::get('drive/google/login', [App\Http\Controllers\GoogleDriveController::class, 'googleLogin'])->name('google.login');
     Route::post('drive/google-drive/file-upload', [App\Http\Controllers\GoogleDriveController::class, 'googleDriveFileUpload'])->name('google.drive.file.upload');
     Route::post('drive/google-drive/file-delete', [App\Http\Controllers\GoogleDriveController::class, 'googleDriveFileDelete'])->name('google.drive.file.delete');
+    Route::post('drive/google-drive/file-deletedefinitivo', [App\Http\Controllers\GoogleDriveController::class, 'googleDriveFileDeleteDefinitivo'])->name('google.drive.file.deletedefinitivo');
     Route::post('drive/google-drive/file-consultar', [App\Http\Controllers\GoogleDriveController::class, 'googleDriveFileConsultar'])->name('google.drive.file.consultar');
     Route::post('drive/google-drive/file-mover', [App\Http\Controllers\GoogleDriveController::class, 'googleDriveFileMover'])->name('google.drive.file.mover');
     Route::post('drive/google-drive/file-alterarnome', [App\Http\Controllers\GoogleDriveController::class, 'googleDriveFileAlterarNome'])->name('google.drive.file.alterarnome');
@@ -51,6 +52,7 @@ Route::middleware('auth')->group(function () {
     // Route::get('drive/UploadArquivo', [App\Http\Controllers\GoogleDriveController::class, ' '])->name('google.uploadarquivo');
     Route::get('drive/UploadArquivo', function () { return view('GoogleDrive.UploadArquivoGoogleDrive');})->name('upload.arquivos');
     Route::get('drive/DeleteArquivo', function () { return view('GoogleDrive.DeleteArquivoGoogleDrive');})->name('delete.arquivos');
+    Route::get('drive/DeleteArquivoDefinitivo', function () { return view('GoogleDrive.DeleteDefinitivoArquivoGoogleDrive');})->name('deletedefinitivo.arquivos');
     Route::get('drive/ConsultarArquivo', function () { return view('GoogleDrive.ConsultarArquivoGoogleDrive');})->name('consultar.arquivos');
     Route::get('drive/MoverArquivo', function () { return view('GoogleDrive.MoverArquivoGoogleDrive');})->name('mover.arquivos');
     Route::get('drive/AlterarNomeArquivo', function () { return view('GoogleDrive.AlterarNomeArquivoGoogleDrive');})->name('alterarnome.arquivos');

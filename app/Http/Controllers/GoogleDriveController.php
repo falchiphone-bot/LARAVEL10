@@ -266,6 +266,7 @@ class GoogleDriveController extends Controller
     public function googleDriveFileDelete(Request $request)
     {
         $service = new \Google_Service_Drive($this->gClient);
+
         $this->gClient->setAccessToken(session('googleUserDrive'));
 
         if ($this->gClient->isAccessTokenExpired()) {
@@ -292,33 +293,35 @@ class GoogleDriveController extends Controller
             $user->save();
         }
 
-        $fileMetadata = new \Google_Service_Drive_DriveFile([
-            'name' => 'Prfcontabilidade', // ADD YOUR GOOGLE DRIVE FOLDER NAME
-            'mimeType' => 'application/vnd.google-apps.folder',
-        ]);
-
-        $client = $this->gClient;
-
-        ///////////////////////////////////////////////////////////////////////////////// Excluir arquivo
-
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////////// Excluir arquivo para a Lixeira do Google Drive
+        try {
         # Obter informações sobre o arquivo ou pasta
-        $fileArquivoFolder = $service->files->get($request->iddeletar);
-        if ($fileArquivoFolder->mimeType == 'application/vnd.google-apps.folder') {
-            session(['InformacaoArquivo' => 'Encontrado o id:' . $request->iddeletar . '. Ele é uma pasta de nome: ' . $fileArquivoFolder->name . '. NÃO POSSO EXCLUIR POR ESTE PROCEDIMENTO!']);
-            return redirect(route('informacao.arquivos'));
-        }
-
-        if ($request->iddeletar == '1Jzih3qPaWpf7HISQEsDpUpH0ab7eS-yJ') {
+        // $fileArquivoFolder = $service->files->get($request->iddeletar);
+        // if ($fileArquivoFolder->mimeType == 'application/vnd.google-apps.folder') {
+        //     session(['InformacaoArquivo' => 'Encontrado o id:' . $request->iddeletar . '. Ele é uma pasta de nome: ' . $fileArquivoFolder->name . '. NÃO POSSO EXCLUIR POR ESTE PROCEDIMENTO!']);
+        //     return redirect(route('informacao.arquivos'));
+        // }
+        $fileIdExcluir = $request->iddeletar;
+        if ($fileIdExcluir == '1Jzih3qPaWpf7HISQEsDpUpH0ab7eS-yJ') {
             session([
                 'InformacaoArquivo' => 'Isso é id da pasta dos arquivos do sistema! NÃO PODE SER EXCLUÍDA!',
             ]);
             return redirect(route('informacao.arquivos'));
         }
 
-        try {
-            $fileIdExcluir = $request->iddeletar;
-            $service->files->delete($fileIdExcluir);
-            session(['InformacaoArquivo' => 'Arquivo:' . $fileIdExcluir . '. EXCLUÍDO COM SUCESSO!']);
+            // $service->files->delete($fileIdExcluir);/// exclui definitivamente do Google Drive
+
+            $fileMetadata = new \Google_Service_Drive_DriveFile([
+                // 'name' => 'Prfcontabilidade', // ADD YOUR GOOGLE DRIVE FOLDER NAME
+                // 'mimeType' => 'application/vnd.google-apps.folder',
+                //// foram retirados para não alterar nada
+            ]);
+            $fileMetadata->setTrashed(true);
+            $result = $service->files->update($fileIdExcluir, $fileMetadata);
+
+            session(['InformacaoArquivo' => 'Arquivo:' . $fileIdExcluir . '. EXCLUÍDO COM SUCESSO PARA A LIXEIRA DO GOOGLE DRIVE!']);
+
         } catch (Google_Service_Exception $e) {
             ////////////PROPRIETÁRIO DO ARQUIVO
             // Fazer a consulta de metadados do arquivo
@@ -631,6 +634,91 @@ class GoogleDriveController extends Controller
             return redirect(route('informacao.arquivos'));
         }
     }
+
+    public function googleDriveFileDeleteDefinitivo(Request $request)
+    {
+        $service = new \Google_Service_Drive($this->gClient);
+
+        $this->gClient->setAccessToken(session('googleUserDrive'));
+
+        if ($this->gClient->isAccessTokenExpired()) {
+            $request->session()->put('token', false);
+            return redirect('/drive/google/login');
+
+            // SAVE REFRESH TOKEN TO SOME VARIABLE
+            $refreshTokenSaved = $this->gClient->getRefreshToken();
+
+            // UPDATE ACCESS TOKEN
+            $this->gClient->fetchAccessTokenWithRefreshToken($refreshTokenSaved);
+
+            // PASS ACCESS TOKEN TO SOME VARIABLE
+            $updatedAccessToken = $this->gClient->getAccessToken();
+
+            // APPEND REFRESH TOKEN
+            $updatedAccessToken['refresh_token'] = $refreshTokenSaved;
+
+            // SET THE NEW ACCES TOKEN
+            $this->gClient->setAccessToken($updatedAccessToken);
+
+            $user->access_token = $updatedAccessToken;
+
+            $user->save();
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////////// Excluir arquivo DEFINITIVAMENTE do Google Drive
+        try {
+
+        $fileIdExcluir = $request->iddeletar;
+        if ($fileIdExcluir == '1Jzih3qPaWpf7HISQEsDpUpH0ab7eS-yJ') {
+            session([
+                'InformacaoArquivo' => 'Isso é id da pasta dos arquivos do sistema! NÃO PODE SER EXCLUÍDA!',
+            ]);
+            return redirect(route('informacao.arquivos'));
+        }
+
+            $service->files->delete($fileIdExcluir);/// exclui definitivamente do Google Drive
+
+            // $fileMetadata = new \Google_Service_Drive_DriveFile([
+            //     // 'name' => 'Prfcontabilidade', // ADD YOUR GOOGLE DRIVE FOLDER NAME
+            //     // 'mimeType' => 'application/vnd.google-apps.folder',
+            //     //// foram retirados para não alterar nada
+            // ]);
+            // $fileMetadata->setTrashed(true);
+            // $result = $service->files->update($fileIdExcluir, $fileMetadata);
+
+            session(['InformacaoArquivo' => 'Arquivo:' . $fileIdExcluir . '. EXCLUÍDO DEFINITIVAMENTE COM SUCESSO!']);
+
+        } catch (Google_Service_Exception $e) {
+            ////////////PROPRIETÁRIO DO ARQUIVO
+            // Fazer a consulta de metadados do arquivo
+            $file = $service->files->get($fileIdExcluir, ['fields' => 'owners']);
+
+            # Obter informações sobre o arquivo ou pasta
+            $fileArquivoFolder = $service->files->get($fileIdExcluir);
+
+            if ($file) {
+                $owner = $file->getOwners()[0];
+
+                session([
+                    'avatar' => $owner->getPhotoLink(),
+                ]);
+
+                session([
+                    'InformacaoArquivoProprietário' => 'Encontrado o arquivo:' . $fileIdExcluir . '. O proprietário é ' . $owner->getDisplayName() . '. Email: ' . $owner->getEmailAddress(),
+                ]);
+
+                //////
+
+                session([
+                    'InformacaoArquivo' => 'Arquivo:' . $fileIdExcluir . '. Não foi possível excluir o arquivo especificado pelos motivos a seguir: ==> ERRO :' . $e->GetMessage(),
+                ]);
+            }
+        }
+        return redirect(route('informacao.arquivos'));
+        ///////////////////////////////////////////////////////////////////////////////// /////////////////////////////////////////////////////////////////////////////////
+    }
+
 
 
 }

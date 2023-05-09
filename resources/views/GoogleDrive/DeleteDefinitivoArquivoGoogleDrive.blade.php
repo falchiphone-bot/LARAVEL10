@@ -6,7 +6,7 @@
             <div class="card">
                 <div class="badge bg-primary text-wrap" style="width: 100%;
                 ;font-size: 24px; lign=˜Center˜">
-                    EXCLUSÃO DO ARQUIVO PARA LIXEIRA DO GOOGLE DRIVE NO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
+                    EXCLUSÃO DO ARQUIVO DEFINITIVAMENTE DO GOOGLE DRIVE NO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
                 </div>
 
 
@@ -22,7 +22,8 @@
                     style="width: 100%; font-size: 24px; color: black; text-align: center;">
                     <div class="card">
                         <nav class="navbar navbar-success" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                            EXCLUSÃO DE ARQUIVO SELECIONADO PARA LIXEIRA
+                            EXCLUSÃO DE ARQUIVO SELECIONADO DEFINITIVAMENTE
+                            <h1>MUITO CUIDADO! SEM RETORNO!</h1>
                         </nav>
                     </div>
 
@@ -30,7 +31,7 @@
                 <div class="card-body">
                     <div class="row">
 
-                            <form method="POST" action="/drive/google-drive/file-delete" enctype="multipart/form-data">
+                            <form method="POST" action="/drive/google-drive/file-deletedefinitivo" enctype="multipart/form-data">
                             @csrf
                             <label for="fim">Excluir o arquivo</label>
 
