@@ -10,6 +10,7 @@ use DateTime;
 use Illuminate\Support\Facades\Storage;
 use Google_Service_Drive_Permission;
 use Google_Service_Drive;
+use Google_Service_Drive_DriveFile;
 use Google_Service_Exception;
 
 class GoogleDriveController extends Controller
@@ -154,13 +155,20 @@ class GoogleDriveController extends Controller
 
         // $folder = '1Jzih3qPaWpf7HISQEsDpUpH0ab7eS-yJ';   //FIXADO NO ARQUIVO .env
         $folder = env('FOLDER_DRIVE_GOOGLE');
+
         if ($folder == null) {
             session([
-                'InformacaoArquivo' => 'Pasta não informada! Verifique o arquivo de configuração .env.',
+                'InformacaoArquivo' => 'Pasta não informada! Verifique o arquivo de configuração .env( FOLDER_DRIVE_GOOGLE ).',
             ]);
             return redirect(route('informacao.arquivos'));
         }
-
+        $folderTemp = env('FOLDER_DRIVE_GOOGLE');
+        if ($folderTemp == null) {
+            session([
+                'InformacaoArquivo' => 'Pasta não informada! Verifique o arquivo de configuração .env( FOLDER_DRIVE_GOOGLE_TEMPORARIA ).',
+            ]);
+            return redirect(route('informacao.arquivos'));
+        }
         // $nome_arquivo = $request->file('arquivo')->getClientOriginalName();
 
         // // $nome_arquivo = Carbon::now().'-(100)-'.$request->file('arquivo')->getClientOriginalName();
@@ -312,8 +320,7 @@ class GoogleDriveController extends Controller
             $service->files->delete($fileIdExcluir);
             session(['InformacaoArquivo' => 'Arquivo:' . $fileIdExcluir . '. EXCLUÍDO COM SUCESSO!']);
         } catch (Google_Service_Exception $e) {
-
-                                                                                         ////////////PROPRIETÁRIO DO ARQUIVO
+            ////////////PROPRIETÁRIO DO ARQUIVO
             // Fazer a consulta de metadados do arquivo
             $file = $service->files->get($fileIdExcluir, ['fields' => 'owners']);
 
@@ -331,11 +338,11 @@ class GoogleDriveController extends Controller
                     'InformacaoArquivoProprietário' => 'Encontrado o arquivo:' . $fileIdExcluir . '. O proprietário é ' . $owner->getDisplayName() . '. Email: ' . $owner->getEmailAddress(),
                 ]);
 
-                                                                                           //////
+                //////
 
-                    session([
+                session([
                     'InformacaoArquivo' => 'Arquivo:' . $fileIdExcluir . '. Não foi possível excluir o arquivo especificado pelos motivos a seguir: ==> ERRO :' . $e->GetMessage(),
-            ]);
+                ]);
             }
         }
         return redirect(route('informacao.arquivos'));
@@ -417,6 +424,8 @@ class GoogleDriveController extends Controller
 
     public function googleDriveFileMover(Request $request)
     {
+
+
         // $service = new \Google_Service_Drive($this->gClient);
         $service = new Google_Service_Drive($this->gClient);
         $this->gClient->setAccessToken(session('googleUserDrive'));
@@ -445,44 +454,183 @@ class GoogleDriveController extends Controller
             $user->save();
         }
 
-        $client = $this->gClient;
+        // $client = $this->gClient;
 
-        $fileIdConsultar = $request->idconsultararquivo;
+        $fileIdMover = $request->idmoverarquivo;
 
         try {
             // Fazer a consulta de metadados do arquivo
-            $file = $service->files->get($fileIdConsultar, ['fields' => 'owners']);
+            $fileMover = $service->files->get($fileIdMover, ['fields' => 'owners']);
 
             # Obter informações sobre o arquivo ou pasta
-            $fileArquivoFolder = $service->files->get($fileIdConsultar);
+            $fileArquivoFolder = $service->files->get($fileIdMover);
 
             # Verificar se o ID se refere a uma pasta ou arquivo
             if ($fileArquivoFolder->mimeType == 'application/vnd.google-apps.folder') {
-                session(['InformacaoArquivo' => 'Encontrado o id:' . $fileIdConsultar . '. Ele é uma pasta de nome: ' . $fileArquivoFolder->name]);
+                session(['InformacaoArquivo' => 'Encontrado o id:' . $fileIdMover . '. Ele é uma pasta de nome: ' . $fileArquivoFolder->name]);
                 return redirect(route('informacao.arquivos'));
             }
 
             // Verificar se o arquivo existe e mostrar o nome do proprietário
-            if ($file) {
-                $owner = $file->getOwners()[0];
+            if ($fileMover) {
+                $owner = $fileMover->getOwners()[0];
 
                 session([
-                    'avatar' => $owner->getPhotoLink(),
+                    'avatarProprietário' => $owner->getPhotoLink(),
                 ]);
 
                 session([
-                    'InformacaoArquivo' => 'Encontrado o arquivo:' . $fileIdConsultar . '. O proprietário é ' . $owner->getDisplayName() . '. Email: ' . $owner->getEmailAddress(),
+                    'InformacaoArquivo' => 'Encontrado o arquivo:' . $fileIdMover . '. O proprietário é ' . $owner->getDisplayName() . '. Email: ' . $owner->getEmailAddress(),
                 ]);
+                ////////////////////////////MOVER
 
+                                                        $fileId = $fileIdMover; // ID do arquivo que deseja atualizar
+                                                        $newContent = 'Novo conteúdo do arquivo'; // Novo conteúdo do arquivo (opcional)
+
+                                                        // Obter informações atuais do arquivo
+                                                        $file = $service->files->get($fileId, ['fields' => 'id, parents, name, mimeType']);
+
+                                                        // Mover o arquivo para a pasta pai desejada (opcional)
+                                                        $folderId = env('FOLDER_DRIVE_GOOGLE_TEMPORARIA');  // ID da pasta pai desejada
+                                                        if (!in_array($folderId, $file->parents)) {
+                                                            $previousParents = join(',', $file->parents);
+                                                            $file->parents = [$folderId];
+                                                            $updatedFile = $service->files->update($fileId, $file, [
+                                                                'addParents' => $folderId,
+                                                                'removeParents' => $previousParents,
+                                                                'fields' => 'id, parents',
+                                                            ]);
+                                                        }
+
+                                                        // Atualizar o arquivo
+                                                        $fileMetadata = new Google_Service_Drive_DriveFile([
+                                                            'name' => $file->name,
+                                                            'parents' => [$folderId], // Define a nova pasta pai do arquivo
+                                                            'mimeType' => $file->mimeType,
+                                                        ]);
+
+                                                        if ($newContent) {
+                                                            $file = $service->files->update($fileId, $fileMetadata, [
+                                                                'data' => $newContent,
+                                                                'uploadType' => 'media',
+                                                            ]);
+                                                        } else {
+                                                            $file = $service->files->update($fileId, $fileMetadata);
+                                                        }
+
+                ////////////////////////////FIM DE MOVER
+
+                session([
+                    'InformacaoArquivo' => 'Encontrado o arquivo:' . $fileIdMover . '. O proprietário é ' . $owner->getDisplayName() . '. Email: ' . $owner->getEmailAddress() . ' MOVIDO COM SUCESSO!',
+                ]);
                 return redirect(route('informacao.arquivos'));
             } else {
                 ////////// Quando o id não é localizado no Google Drive é causado uma Exception
             }
         } catch (Google_Service_Exception $e) {
             session([
-                'InformacaoArquivo' => 'Erro de pesquisa. Provávelmente arquivo não encontrado:' . $fileIdConsultar,
+                'InformacaoArquivo' => 'Erro de pesquisa. Provávelmente arquivo não encontrado:' . $fileIdMover . '. MAIS INFORMAÇÕES:' . $e->GetMessage(),
             ]);
             return redirect(route('informacao.arquivos'));
         }
     }
+
+    public function googleDriveFileAlterarNome(Request $request)
+    {
+        // $service = new \Google_Service_Drive($this->gClient);
+        $service = new Google_Service_Drive($this->gClient);
+        $this->gClient->setAccessToken(session('googleUserDrive'));
+
+        if ($this->gClient->isAccessTokenExpired()) {
+            $request->session()->put('token', false);
+            return redirect('/drive/google/login');
+
+            // SAVE REFRESH TOKEN TO SOME VARIABLE
+            $refreshTokenSaved = $this->gClient->getRefreshToken();
+
+            // UPDATE ACCESS TOKEN
+            $this->gClient->fetchAccessTokenWithRefreshToken($refreshTokenSaved);
+
+            // PASS ACCESS TOKEN TO SOME VARIABLE
+            $updatedAccessToken = $this->gClient->getAccessToken();
+
+            // APPEND REFRESH TOKEN
+            $updatedAccessToken['refresh_token'] = $refreshTokenSaved;
+
+            // SET THE NEW ACCES TOKEN
+            $this->gClient->setAccessToken($updatedAccessToken);
+
+            $user->access_token = $updatedAccessToken;
+
+            $user->save();
+        }
+
+        // $client = $this->gClient;
+
+        $fileId = $request->idarquivo;
+        $nome = $request->NovoNome;
+        try {
+            // Fazer a consulta de metadados do arquivo
+            $fileMover = $service->files->get($fileId, ['fields' => 'owners']);
+
+            # Obter informações sobre o arquivo ou pasta
+            $fileArquivoFolder = $service->files->get($fileId);
+
+            # Verificar se o ID se refere a uma pasta ou arquivo
+            if ($fileArquivoFolder->mimeType == 'application/vnd.google-apps.folder') {
+                session(['InformacaoArquivo' => 'Encontrado o id:' . $fileId . '. Ele é uma pasta de nome: ' . $fileArquivoFolder->name]);
+                return redirect(route('informacao.arquivos'));
+            }
+
+            // Verificar se o arquivo existe e mostrar o nome do proprietário
+            if ($fileMover) {
+                $owner = $fileMover->getOwners()[0];
+
+                session([
+                    'avatarProprietário' => $owner->getPhotoLink(),
+                ]);
+
+                session([
+                    'InformacaoArquivo' => 'Encontrado o arquivo:' . $fileId . '. O proprietário é ' . $owner->getDisplayName() . '. Email: ' . $owner->getEmailAddress(),
+                ]);
+                //////////////////////////////ALTERAR NOME DO ARQUIVO
+                // $fileId = $fileId; // ID do arquivo que deseja atualizar
+                $newName = $nome; // Novo nome do arquivo
+                $newContent = 'Novo conteúdo do arquivo'; // Novo conteúdo do arquivo (opcional)
+
+                $file =  new \Google_Service_Drive_DriveFile();
+
+
+                $file->setName($newName); // Define o novo nome do arquivo
+
+                if ($newContent) {
+                    // Define o novo conteúdo do arquivo
+
+                    $updatedFile = $service->files->update($fileId, $file, [
+                        'data' => $newContent,
+                        'uploadType' => 'media'
+                    ]);
+                } else {
+                    $updatedFile = $service->files->update($fileId, $file);
+                }
+                ///// FIM DE MOVER
+
+
+
+                session([
+                    'InformacaoArquivo' => 'Encontrado o arquivo:' . $fileId . '. O proprietário é ' . $owner->getDisplayName() . '. Email: ' . $owner->getEmailAddress() . ' MOVIDO COM SUCESSO!',
+                ]);
+                return redirect(route('informacao.arquivos'));
+            } else {
+                ////////// Quando o id não é localizado no Google Drive é causado uma Exception
+            }
+        } catch (Google_Service_Exception $e) {
+            session([
+                'InformacaoArquivo' => 'Erro de pesquisa. Provávelmente arquivo não encontrado:' . $fileId . '. MAIS INFORMAÇÕES:' . $e->GetMessage(),
+            ]);
+            return redirect(route('informacao.arquivos'));
+        }
+    }
+
+
 }

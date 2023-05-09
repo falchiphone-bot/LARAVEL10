@@ -6,7 +6,7 @@
             <div class="card">
                 <div class="badge bg-primary text-wrap" style="width: 100%;
                 ;font-size: 24px; lign=˜Center˜">
-                    MOVER ARQUIVO NO GOOGLE DRIVE NO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
+                    ALTERAR NOME DO ARQUIVO PARA GOOGLE DRIVE NO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
                 </div>
 
 
@@ -18,37 +18,44 @@
                     </nav>
                 </div>
 
-                <div class="badge bg-warning text-wrap"
-                    style="width: 100%; font-size: 24px; color: black; text-align: center;">
-                    <div class="card">
-                        <nav class="navbar navbar-success" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                            MOVER ARQUIVO SELECIONADO
-                        </nav>
-                    </div>
+                    <div class="badge bg-warning text-wrap" style="width: 100%; font-size: 24px; color: black; text-align: center;">
+                        <div class="card">
+                            <nav class="navbar navbar-success" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                  ALTERAR NOME DO ARQUIVO SELECIONADO
+                            </nav>
+                      </div>
 
                 </div>
-                <div class="card-body">
-                    <div class="row">
+                        <div class="card-body">
+                            <div class="row">
+                                <form method="POST" action="google-drive/file-alterarnome" enctype="multipart/form-data">
+                                    @csrf
+                                    <label for="fim">Novo nome para o arquivo</label>
+                                    <textarea required name="NovoNome" id="NovoNome" cols="1" rows="1" class="form-control" style="background-color: green; color: white;"></textarea>
 
-                            <form method="POST" action="/drive/google-drive/file-mover" enctype="multipart/form-data">
-                            @csrf
-                            <label for="fim">Mover o arquivo</label>
+                                    <label for="fim">Arquivo</label>
+                                    <textarea required name="idarquivo" id="idarquivo" cols="1" rows="1" class="form-control"
+                                        style="background-color: red; color: white;"></textarea>
 
-                            <textarea required name="idmoverarquivo" id="idmoverarquivo" cols="1" rows="1" class="form-control"
-                                style="background-color: red; color: white;"></textarea>
-                            <p class="my-2">
-                                <button type="submit" class="btn btn-primary">Mover o arquivo para a pasta temporária</button>
-                            </p>
-                        </form>
+
+                                    <p class="my-2">
+                                        <button type="submit" class="btn btn-success">Enviar para alterar o nome do arquivo para a pasta do sistema.</button>
+                                    </p>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                            {{-- <button class='btn btn-primary'>Salvar o evento</button> --}}
+                        </div>
+
                     </div>
-                </div> <nav class="navbar navbar-red"
-                                            style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-success" href="/drive/ConsultarArquivo">Consultar arquivo do Google
-                                                Drive</a>
-                                        </nav>
+
+
+
+
             </div>
         </div>
-    </div>
 
     </div>
     <div class="b-example-divider"></div>

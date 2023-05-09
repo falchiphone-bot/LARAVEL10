@@ -47,10 +47,23 @@
                                                     Google Drive</a>
                                             </nav>
                                             <nav class="navbar navbar-red"
-                                            style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-success" href="/drive/ConsultarArquivo">Consultar arquivo do Google
-                                                Drive</a>
-                                        </nav>
+                                                style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                                <a class="btn btn-success" href="/drive/ConsultarArquivo">Consultar arquivo do
+                                                    Google
+                                                    Drive</a>
+                                            </nav>
+                                            <nav class="navbar navbar-red"
+                                                style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                                <a class="btn btn-success" href="/drive/AlterarNomeArquivo">Alterar nome do arquivo no
+                                                    Google
+                                                    Drive</a>
+                                            </nav>
+
+                                            <nav class="navbar navbar-red"
+                                                style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                                <a class="btn btn-success" href="/drive/MoverArquivo">Mover arquivo do Google Drive para pasta de guarda temporária</a>
+                                            </nav>
+
                                             <nav class="navbar navbar-red"
                                                 style="background-color: hsla(234, 92%, 47%, 0.096);">
                                                 <a class="btn btn-success" href="/drive/DeleteArquivo">Excluir arquivo do Google
@@ -59,7 +72,9 @@
                                             <nav class="navbar navbar-red"
                                                 style="background-color: hsla(234, 92%, 47%, 0.096);">
 
-                                                <a class="btn btn-success" target="_blank" href="https://drive.google.com/drive/u/O/folders/{{env('FOLDER_DRIVE_GOOGLE')}}">Consultar pasta principal do sistema no Google Drive</a>
+                                                <a class="btn btn-success" target="_blank"
+                                                    href="https://drive.google.com/drive/u/O/folders/{{ env('FOLDER_DRIVE_GOOGLE') }}">Consultar
+                                                    pasta principal do sistema no Google Drive</a>
                                             </nav>
                                         @else
                                             <nav class="navbar navbar-red"

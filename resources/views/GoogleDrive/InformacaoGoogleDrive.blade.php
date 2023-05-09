@@ -33,7 +33,8 @@
                     <div class="card">
                         <div class="badge bg-danger text-wrap" style="width: 100%;
                         ;font-size: 24px; lign=˜Center˜">
-                           {{session('InformacaoArquivo')}}. <img src="{{ asset(session('avatar'))}}">
+                           {{session('InformacaoArquivo')}}. <img src="{{ asset(session('avatarProprietário'))}}">
+
                            {{ session([
                             'InformacaoArquivoProprietário' => null]);}}
                         </div>
