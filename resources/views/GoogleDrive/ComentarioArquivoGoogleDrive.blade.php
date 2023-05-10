@@ -6,7 +6,7 @@
             <div class="card">
                 <div class="badge bg-primary text-wrap" style="width: 100%;
                 ;font-size: 24px; lign=˜Center˜">
-                    CONSULTAR ARQUIVO NO GOOGLE DRIVE NO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
+                    COMENTÁRIO NO ARQUIVO PARA GOOGLE DRIVE NO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
                 </div>
 
 
@@ -18,38 +18,44 @@
                     </nav>
                 </div>
 
-                <div class="badge bg-warning text-wrap"
-                    style="width: 100%; font-size: 24px; color: black; text-align: center;">
-                    <div class="card">
-                        <nav class="navbar navbar-success" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                            CONSULTAR DE ARQUIVO SELECIONADO
-                        </nav>
-                        {{session('idArquivo')['mensagem']??null}}
-                        <nav class="navbar navbar-success" style="background-color: hsla(154, 92%, 47%, 0.096);">
-                         {{session('idArquivo')['novocomentario']??null}}
-                        </nav>
-                    </div>
+                    <div class="badge bg-warning text-wrap" style="width: 100%; font-size: 24px; color: black; text-align: center;">
+                        <div class="card">
+                            <nav class="navbar navbar-success" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                  COMENTÁRIOS NO ARQUIVO SELECIONADO
+                            </nav>
+                      </div>
+
                 </div>
-                
-                <div class="card-body">
-                    <div class="row">
+                        <div class="card-body">
+                            <div class="row">
+                                <form method="POST" action="google-drive/file-comentario" enctype="multipart/form-data">
+                                    @csrf
+                                    <label for="fim">Novo comentário no arquivo</label>
+                                    <textarea required name="NovoComentario" id="NovoComentario" cols="1" rows="1" class="form-control" style="background-color: green; color: white;"></textarea>
 
-                            <form method="POST" action="/drive/google-drive/file-consultar" enctype="multipart/form-data">
-                            @csrf
-                            <label for="fim">Consultar o arquivo</label>
+                                    <label for="fim">Arquivo</label>
+                                    <textarea required name="idcomentarioarquivo" id="idcomentarioarquivo" cols="1" rows="1" class="form-control"
+                                        style="background-color: red; color: white;"></textarea>
 
-                            <textarea required name="idconsultararquivo" id="idconsultararquivo" cols="1" rows="1" class="form-control"
-                                style="background-color: red; color: white;">{{session('idArquivo')['id']??null}}</textarea>
 
-                            <p class="my-2">
-                                <button type="submit" class="btn btn-success">Consultar o arquivo</button>
-                            </p>
-                        </form>
+                                    <p class="my-2">
+                                        <button type="submit" class="btn btn-success">Enviar para alterar comentário no arquivo para a pasta do sistema.</button>
+                                    </p>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                            {{-- <button class='btn btn-primary'>Salvar o evento</button> --}}
+                        </div>
+
                     </div>
-                </div>
+
+
+
+
             </div>
         </div>
-    </div>
 
     </div>
     <div class="b-example-divider"></div>

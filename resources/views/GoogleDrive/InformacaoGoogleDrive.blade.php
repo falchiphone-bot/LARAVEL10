@@ -42,11 +42,13 @@
 
                         <h2>Informações do arquivo:</h2>
                         <div style="text-align: left;">
-                        <p>ID do arquivo: {{ session('InformacaoArquivo')['fileIdConsultar'] }}</p>
-                        <p>Proprietário: {{ session('InformacaoArquivo')['ownerDisplayName'] }}</p>
-                        <p>Email do proprietário: {{ session('InformacaoArquivo')['emailAddress'] }}</p>
-                        <p>Link do arquivo: <a href="{{ session('InformacaoArquivo')['webContentLink'] }}">{{ session('InformacaoArquivo')['webContentLink'] }}</a></p>
-                        <p>Descrição do arquivo: {{ session('InformacaoArquivo')['description'] }}</p>
+                        <p>ID do arquivo: {{ session('InformacaoArquivo')['fileIdConsultar']??null }}</p>
+                        <p>Proprietário: {{ session('InformacaoArquivo')['ownerDisplayName']??null }}</p>
+                        <p>Email do proprietário: {{ session('InformacaoArquivo')['emailAddress']??null }}</p>
+                        <p>Link do arquivo: <a href="{{ session('InformacaoArquivo')['webContentLink']??null }}">{{ session('InformacaoArquivo')['webContentLink']??null }}</a></p>
+
+                        <p>Descrição do arquivo: {{ session('InformacaoArquivo')['description']??null }}</p>
+                       
                         </div>
                             {{ session([
                                 'InformacaoArquivoProprietário' => null,

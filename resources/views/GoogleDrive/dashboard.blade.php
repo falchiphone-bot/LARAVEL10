@@ -58,7 +58,12 @@
                                                     Google
                                                     Drive</a>
                                             </nav>
-
+                                            <nav class="navbar navbar-red"
+                                            style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                            <a class="btn btn-success" href="/drive/ComentarioArquivo">Alterar comentário arquivo no
+                                                Google
+                                                Drive</a>
+                                        </nav>
                                             {{-- <nav class="navbar navbar-red"
                                                 style="background-color: hsla(234, 92%, 47%, 0.096);">
                                                 <a class="btn btn-success" href="/drive/MoverArquivo">Mover arquivo do Google Drive para pasta de guarda temporária</a>

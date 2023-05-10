@@ -425,11 +425,6 @@ class GoogleDriveController extends Controller
                     'avatar' => $owner->getPhotoLink(),
                 ]);
 
-                // session([
-                //     'InformacaoArquivo' => 'Encontrado o arquivo:' . $fileIdConsultar . '. O proprietário é '
-                //      . $owner->getDisplayName() . '. Email: ' . $owner->getEmailAddress().' Comentários anotados:'. $filemetadados->getDescription()
-                //      .' Link: '.$filemetadados->getWebContentLink()
-                // ]);
 
                 $informacoes = array(
                     'fileIdConsultar' => $fileIdConsultar,
@@ -747,6 +742,83 @@ class GoogleDriveController extends Controller
         ///////////////////////////////////////////////////////////////////////////////// /////////////////////////////////////////////////////////////////////////////////
     }
 
+
+    public function googleDriveFileComentario(Request $request)
+    {
+        // $service = new \Google_Service_Drive($this->gClient);
+        $service = new Google_Service_Drive($this->gClient);
+        $this->gClient->setAccessToken(session('googleUserDrive'));
+
+        if ($this->gClient->isAccessTokenExpired()) {
+            $request->session()->put('token', false);
+            return redirect('/drive/google/login');
+
+            // SAVE REFRESH TOKEN TO SOME VARIABLE
+            $refreshTokenSaved = $this->gClient->getRefreshToken();
+
+            // UPDATE ACCESS TOKEN
+            $this->gClient->fetchAccessTokenWithRefreshToken($refreshTokenSaved);
+
+            // PASS ACCESS TOKEN TO SOME VARIABLE
+            $updatedAccessToken = $this->gClient->getAccessToken();
+
+            // APPEND REFRESH TOKEN
+            $updatedAccessToken['refresh_token'] = $refreshTokenSaved;
+
+            // SET THE NEW ACCES TOKEN
+            $this->gClient->setAccessToken($updatedAccessToken);
+
+            $user->access_token = $updatedAccessToken;
+
+            $user->save();
+        }
+
+        $client = $this->gClient;
+
+        // ID do arquivo a ser consultado
+        // $fileId = '1HOEUTvekJzsGNchPLJA7MUupY1L_DQgz';
+        $fileIdComentario = $request->idcomentarioarquivo;
+
+        try {
+            // Fazer a consulta de metadados do arquivo
+
+            // Verificar se o arquivo existe e mostrar o nome do proprietário
+            if ($fileIdComentario) {
+
+                $fields = 'id,name,mimeType,createdTime,modifiedTime,size,description,webContentLink';
+            $filemetadados = $service->files->get($fileIdComentario, array(
+                'fields' => $fields
+            ));
+
+                //////////////////////////////////////// comentários no arquivo
+            $ComentarioAnterior = $filemetadados->description;
+            $fileMetadata = new Google_Service_Drive_DriveFile(array(
+                'description' =>  $ComentarioAnterior." Em ".Carbon::now()->format('d/m/Y H:i:s')." -> ".$request->NovoComentario." | "
+            ));
+            $file = $service->files->update($fileIdComentario, $fileMetadata, array(
+                        'fields' => 'description'
+                    ));
+
+                  $informacoes = array(
+                    'id' => $fileIdComentario,
+                    'mensagem' => 'INSERIDO NOVO COMENTÁRIO',
+                    'novocomentario' => $request->NovoComentario,
+                );
+                session(['idArquivo' => $informacoes]);
+
+                // return redirect(route('informacao.arquivos'));
+                return redirect(route('consultar.arquivos'));
+
+            } else {
+                ////////// Quando o id não é localizado no Google Drive é causado uma Exception
+            }
+        } catch (Google_Service_Exception $e) {
+            session([
+                'InformacaoArquivo' => 'Erro de pesquisa. Provávelmente arquivo não encontrado:' . $fileIdComentario.' Mais informações: '.$e,
+            ]);
+            return redirect(route('informacao.arquivos'));
+        }
+    }
 
 
 }
