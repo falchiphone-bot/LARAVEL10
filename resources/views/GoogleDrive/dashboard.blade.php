@@ -78,7 +78,8 @@
                                                 style="background-color: hsla(234, 92%, 47%, 0.096);">
 
                                                 <a class="btn btn-success" target="_blank"
-                                                    href="https://drive.google.com/drive/u/O/folders/{{env('FOLDER_DRIVE_GOOGLE')}}">Consultar
+
+                                                    href="https://drive.google.com/drive/folders/{{env('FOLDER_DRIVE_GOOGLE')}}">Consultar
                                                     pasta principal do sistema no Google Drive</a>
                                             </nav>
                                         @else

@@ -17,13 +17,13 @@
                         </div>
 
                         <div class="col-2">
-                            <button wire:click="editarLancamento('novo',{{$selEmpresa}})" class="btn btn-danger">Inicar um novo
+                            <button wire:click="editarLancamento('novo',{{$selEmpresa}})" class="btn btn-danger">Iniciar um novo
                                 lançamento</button>
                         </div>
 
                         <div class="col-2">
                             <button onclick="alterarData()" class="btn btn-secondary">
-                                Alterar Data em Massa
+                                Alterar data em múltiplos lançamentos
                             </button>
                         </div>
                     </div>
@@ -118,18 +118,19 @@
                                 autocomplete="off" wire:model.lazy='DescricaoApartirDe'>
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
-                            <label for="data_bloqueio_conta" class="pr-1  form-control-label">Data Bloqueio
-                                Conta:</label>
-                            <input type="date" value="" id="data_bloqueio_conta" class="form-control"
-                                autocomplete="off" wire:model.defer='data_bloqueio_conta'
-                                wire:change='updateDataBloqueioConta()'>
+
+                                <label for="data_bloqueio_conta" class="pr-1  form-control-label" style="color: red;">Data Bloqueio Conta:</label>
+
+                                <input type="date" value="" id="data_bloqueio_conta" class="form-control"
+                                autocomplete="off" wire:model.defer='data_bloqueio_conta' wire:change='updateDataBloqueioConta()' style="background-color: red; color: white">
+
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
-                            <label for="data_bloqueio_empresa" class="pr-1  form-control-label">Data Bloqueio
-                                Empresa:</label>
-                            <input type="date" value="" id="data_bloqueio_empresa" class="form-control"
-                                autocomplete="off" wire:model.defer='data_bloqueio_empresa'
-                                wire:change='updateDataBloqueioEmpresa()'>
+                            <label for="data_bloqueio_empresa" class="pr-1  form-control-label" style="color: blue;">Data Bloqueio Empresa:</label>
+
+                            <input type="date" value="" id="data_bloqueio_empresa" class="form-control" autocomplete="off"
+                             wire:model.defer='data_bloqueio_empresa' wire:change='updateDataBloqueioEmpresa()' style="background-color: blue; color: white">
+
                         </div>
                     </div>
                 </form>
