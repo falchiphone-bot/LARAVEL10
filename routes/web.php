@@ -143,6 +143,11 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('MoedasValores', App\Http\Controllers\MoedaValoresController::class);
 
+    #ARQUIVOS
+    Route::get('LeituraArquivo/SelecionaDatas', [App\Http\Controllers\LeituraArquivoController::class, 'SelecionaDatas'])->name('LeituraArquivo.SelecionaDatas');
+    Route::resource('LeituraArquivo', App\Http\Controllers\LeituraArquivoController::class);
+
+
     #Faturamentos
     Route::resource('Faturamentos', App\Http\Controllers\FaturamentosController::class);
 
