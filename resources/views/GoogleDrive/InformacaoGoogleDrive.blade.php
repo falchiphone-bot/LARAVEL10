@@ -22,31 +22,47 @@
                     style="width: 100%; font-size: 24px; color: black; text-align: center;">
                     <div class="card">
                         <nav class="navbar navbar-success" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                           INFORMAÇÃO DO GOOGLE DRIVE
+                            INFORMAÇÃO DO GOOGLE DRIVE
                         </nav>
                     </div>
 
                 </div>
+
+
+
+
                 <div class="card-body">
 
-
                     <div class="card">
-                        <div class="badge bg-danger text-wrap" style="width: 100%;
-                        ;font-size: 24px; lign=˜Center˜">
-                           {{session('InformacaoArquivo')}}. <img src="{{ asset(session('avatarProprietário'))}}">
 
-                           {{ session([
-                            'InformacaoArquivoProprietário' => null]);}}
+                                            <div class="badge bg-danger text-wrap"
+                            style="width: 100%;
+                        ;font-size: 24px; lign=˜Center˜">
+                            {{-- {{ session('InformacaoArquivo') }}. <img src="{{ asset(session('avatarProprietário')) }}"> --}}
+
+                        <h2>Informações do arquivo:</h2>
+                        <div style="text-align: left;">
+                        <p>ID do arquivo: {{ session('InformacaoArquivo')['fileIdConsultar'] }}</p>
+                        <p>Proprietário: {{ session('InformacaoArquivo')['ownerDisplayName'] }}</p>
+                        <p>Email do proprietário: {{ session('InformacaoArquivo')['emailAddress'] }}</p>
+                        <p>Link do arquivo: <a href="{{ session('InformacaoArquivo')['webContentLink'] }}">{{ session('InformacaoArquivo')['webContentLink'] }}</a></p>
+                        <p>Descrição do arquivo: {{ session('InformacaoArquivo')['description'] }}</p>
+                        </div>
+                            {{ session([
+                                'InformacaoArquivoProprietário' => null,
+                            ]) }}
                         </div>
 
                     </div>
                     <div class="card">
-                        <div class="badge bg-success text-wrap" style="width: 100%;
+                        <div class="badge bg-success text-wrap"
+                            style="width: 100%;
                         ;font-size: 24px; lign=˜Center˜">
-                           {{session('InformacaoArquivoProprietário')}}
+                            {{ session('InformacaoArquivoProprietário') }}
 
-                        {{ session([
-                            'InformacaoArquivoProprietário' => null]);}}
+                            {{ session([
+                                'InformacaoArquivoProprietário' => null,
+                            ]) }}
                         </div>
                     </div>
 

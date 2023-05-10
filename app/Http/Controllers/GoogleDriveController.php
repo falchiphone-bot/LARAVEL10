@@ -12,6 +12,7 @@ use Google_Service_Drive_Permission;
 use Google_Service_Drive;
 use Google_Service_Drive_DriveFile;
 use Google_Service_Exception;
+use  Google_Service_Drive_Comment;
 
 class GoogleDriveController extends Controller
 {
@@ -393,6 +394,23 @@ class GoogleDriveController extends Controller
             # Obter informações sobre o arquivo ou pasta
             $fileArquivoFolder = $service->files->get($fileIdConsultar);
 
+
+
+        //     $fileMetadata = new Google_Service_Drive_DriveFile(array(
+        //         'description' => 'CONTRATO COM  FERNANDO CHAVES EM 10.05.2023, em 7 parcelas de 2000,00'
+        //     ));
+        //     $file = $service->files->update($fileIdConsultar, $fileMetadata, array(
+        //         'fields' => 'description'
+        //     ));
+
+            $fields = 'id,name,mimeType,createdTime,modifiedTime,size,description,webContentLink';
+            $filemetadados = $service->files->get($fileIdConsultar, array(
+                'fields' => $fields
+            ));
+
+
+
+
             # Verificar se o ID se refere a uma pasta ou arquivo
             if ($fileArquivoFolder->mimeType == 'application/vnd.google-apps.folder') {
                 session(['InformacaoArquivo' => 'Encontrado o id:' . $fileIdConsultar . '. Ele é uma pasta de nome: ' . $fileArquivoFolder->name]);
@@ -407,17 +425,29 @@ class GoogleDriveController extends Controller
                     'avatar' => $owner->getPhotoLink(),
                 ]);
 
-                session([
-                    'InformacaoArquivo' => 'Encontrado o arquivo:' . $fileIdConsultar . '. O proprietário é ' . $owner->getDisplayName() . '. Email: ' . $owner->getEmailAddress(),
-                ]);
+                // session([
+                //     'InformacaoArquivo' => 'Encontrado o arquivo:' . $fileIdConsultar . '. O proprietário é '
+                //      . $owner->getDisplayName() . '. Email: ' . $owner->getEmailAddress().' Comentários anotados:'. $filemetadados->getDescription()
+                //      .' Link: '.$filemetadados->getWebContentLink()
+                // ]);
 
+                $informacoes = array(
+                    'fileIdConsultar' => $fileIdConsultar,
+                    'ownerDisplayName' => $owner->getDisplayName(),
+                    'emailAddress' => $owner->getEmailAddress(),
+                    'webContentLink' => $filemetadados->getWebContentLink(),
+                    'description' => $filemetadados->getDescription()
+                );
+                // $informacaoArquivo = implode('|', $informacoes);
+                // session(['InformacaoArquivo' => $informacaoArquivo]);
+                session(['InformacaoArquivo' => $informacoes]);
                 return redirect(route('informacao.arquivos'));
             } else {
                 ////////// Quando o id não é localizado no Google Drive é causado uma Exception
             }
         } catch (Google_Service_Exception $e) {
             session([
-                'InformacaoArquivo' => 'Erro de pesquisa. Provávelmente arquivo não encontrado:' . $fileIdConsultar,
+                'InformacaoArquivo' => 'Erro de pesquisa. Provávelmente arquivo não encontrado:' . $fileIdConsultar.' Mais informações: '.$e,
             ]);
             return redirect(route('informacao.arquivos'));
         }
