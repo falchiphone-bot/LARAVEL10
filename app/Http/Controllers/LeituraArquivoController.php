@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Carbon\Carbon;
 use Faker\Core\DateTime;
+use Illuminate\Support\Collection;
 
 class LeituraArquivoController extends Controller
 {
@@ -61,27 +62,61 @@ class LeituraArquivoController extends Controller
             }
         }
 
-
         // dd($cellData);
         // return view('LeituraArquivo.index', ['cellData' => $cellData]);
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
         return view('LeituraArquivo.index', ['cellData' => $cellData]);
     }
 
     public function SelecionaDatas()
     {
-
-dd('SELECIONA DATAS');
-
-       $caminho = storage_path('app/contabilidade/sicredi.csv');
+        $caminho = storage_path('app/contabilidade/sicredi.csv');
 
         // Abre o arquivo Excel
         $spreadsheet = IOFactory::load($caminho);
 
-        return view('LeituraArquivo.index', ['cellData' => $cellData]);
+        // Seleciona a primeira planilha do arquivo
+        $worksheet = $spreadsheet->getActiveSheet();
+
+        // Obtém a última linha da planilha
+        $lastRow = $worksheet->getHighestDataRow();
+
+        // Obtém a última coluna da planilha
+        $lastColumn = $worksheet->getHighestDataColumn();
+
+        // Converte a última coluna para um número (ex: "D" para 4)
+        $lastColumnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($lastColumn);
+
+        // Array que irá armazenar os dados das células
+        $cellData = [];
+
+        // Loop para percorrer todas as células da planilha
+        $dateValue = null;
+        for ($row = 1; $row <= $lastRow; $row++) {
+            for ($column = 1; $column <= $lastColumnIndex; $column++) {
+                // Obtém o valor da célula
+                $cellValue = $worksheet->getCellByColumnAndRow($column, $row)->getValue();
+
+                // Adiciona o valor da célula ao array $cellData
+                $cellData[$row][$column] = $cellValue;
+            }
+        }
+
+        $novadata = array_slice($cellData, 20);
+
+        $Data = $novadata[0][1];
+        $Historico = $novadata[0][2];
+        $Valor = $novadata[0][4];
+        $valor_numerico = preg_replace('/[^0-9,.]/', '', $Valor);
+
+        $arraydatanova = compact('Data', 'Historico', 'valor_numerico');
+
+        $rowData = $cellData;
+        // dd($rowData);
+
+        return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
     }
 
     /**
