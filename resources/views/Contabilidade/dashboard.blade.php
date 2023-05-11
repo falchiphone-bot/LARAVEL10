@@ -4,6 +4,15 @@
         <div class="container">
 
             <div class="card">
+
+
+                @if (session('Lancamento'))
+                    <div class="alert alert-success">
+                        {{ session('Lancamento') }}
+                    </div>
+                     {{session(['Lancamento' => '']) }}
+                 @endif
+
                 <div class="card-header">
                     <div class="badge bg-primary text-wrap"
                         style="width: 100%;

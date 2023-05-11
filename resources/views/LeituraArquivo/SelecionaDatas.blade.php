@@ -15,6 +15,7 @@
                     <div class="alert alert-success">
                         {{ session('Lancamento') }}
                     </div>
+                    {{session(['Lancamento' => '']) }}
                 @endif
 
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
