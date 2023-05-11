@@ -30,7 +30,7 @@
                     <a class="btn btn-warning" href="/Contabilidade">Retornar a lista de opções</a>
                     <a class="btn btn-primary" href="/LeituraArquivo/SelecionaDatas">Selecionar datas e conciliar cartão de crédito</a>
 
-                    <a class="btn btn-secondary" href="/LeituraArquivo/SelecionaLinha">Selecionar linha e conciliar cartão de crédito</a>
+                    <a class="btn btn-secondary" href="/LeituraArquivo/SomenteLinha">Selecionar linha e conciliar cartão de crédito</a>
                 </nav>
 
 

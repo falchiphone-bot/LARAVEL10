@@ -228,18 +228,43 @@ class LeituraArquivoController extends Controller
 
         // Obter a planilha ativa (por exemplo, a primeira planilha)
         $planilha_ativa = $planilha->getActiveSheet();
+        ///////////////////////////// DADOS DA LINHA 7 PARA DEFINIR CONTAS
+        $linha_7 = $planilha_ativa->getCell('A' . 7)->getValue();
+        $Empresa = '11';
+        $ContaCartao = null;
+        $DespesaContaDebitoID = null;
+        $CashBackContaCreditoID = '19271';
+
+
+            $string =  $linha_7;
+            $parts = explode('-', $string);
+            $result = trim($parts[0]);
+
+                if($result = '4891.67XX.XXXX.9125')
+                {
+                    $ContaCartao = '17457';
+                    $Empresa = 11;
+                    $DespesaContaDebitoID = '15372';
+                    $CashBackContaCreditoID = '19271';
+                    // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
+                 }
+
+
+
+
 
         // Número da linha que você deseja obter (por exemplo, linha 3)
         $numero_linha = $request->linha;
-
 
 
         // Obter os dados da linha desejada
         $linha_data = $planilha_ativa->getCell('A' . $numero_linha)->getValue();
         $linha_descricao = $planilha_ativa->getCell('B' . $numero_linha)->getValue();
         $linha_parcela = $planilha_ativa->getCell('C' . $numero_linha)->getValue();
-
         $linha_valor = $planilha_ativa->getCell('D' . $numero_linha)->getValue();
+
+
+
 
         $primeiro_caractere = substr($linha_valor, 0, 1);
 
@@ -256,29 +281,16 @@ class LeituraArquivoController extends Controller
         $valor_numerico = floatval($valor_numerico);
         $linha_valor_formatado = number_format($valor_numerico, 2, '.', '');
 
-        $arraydatanova = compact('linha_data', 'linha_descricao', 'linha_parcela', 'linha_valor_formatado');
+        $arraydatanova = compact('linha_data', 'linha_descricao', 'linha_parcela', 'linha_valor_formatado', 'numero_linha');
+
+        $SeValor = floatval($arraydatanova["linha_valor_formatado"]);
 
 
-        $Empresa = '11';
-        $ContaCartao = null;
-        $DespesaContaDebitoID = null;
-        $CashBackContaCreditoID = '19271';
-        
-        if ($numero_linha = 7) {
-            $string = $arraydatanova['linha_data'];
-            $parts = explode('-', $string);
-            $result = trim($parts[0]);
-
-                if($result = '4891.67XX.XXXX.9125')
-                {
-                    $ContaCartao = '17457';
-                    $Empresa = 11;
-                    $DespesaContaDebitoID = '15372';
-                    $CashBackContaCreditoID = '19271';
-                    dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
-                }
-
+        if ($SeValor == null) {
+            session(['Lancamento' => 'A linha '.$numero_linha.' não possui valor']);
+            return redirect(route('LeituraArquivo.index'));
         }
+ 
 
         if ($primeiro_caractere === '-') {
             $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['linha_data'])
