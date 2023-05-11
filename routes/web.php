@@ -144,8 +144,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('MoedasValores', App\Http\Controllers\MoedaValoresController::class);
 
     #ARQUIVOS
+    Route::get('LeituraArquivo/SomenteLinha', function () { return view('LeituraArquivo.SomenteLinha');})->name('LeituraArquivo.SomenteLinha');
     Route::get('LeituraArquivo/SelecionaDatas', [App\Http\Controllers\LeituraArquivoController::class, 'SelecionaDatas'])->name('LeituraArquivo.SelecionaDatas');
-    Route::get('LeituraArquivo/SelecionaLinha', [App\Http\Controllers\LeituraArquivoController::class, 'SelecionaLinha'])->name('LeituraArquivo.SelecionaLinha');
+    Route::post('LeituraArquivo/SelecionaLinha', [App\Http\Controllers\LeituraArquivoController::class, 'SelecionaLinha'])->name('LeituraArquivo.SelecionaLinha');
     Route::resource('LeituraArquivo', App\Http\Controllers\LeituraArquivoController::class);
 
 

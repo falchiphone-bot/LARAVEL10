@@ -195,8 +195,6 @@ class LeituraArquivoController extends Controller
      */
     public function show(string $id)
     {
-        $cadastro = Moeda::find($id);
-        return view('Moedas.show', compact('cadastro'));
     }
 
     /**
@@ -204,10 +202,6 @@ class LeituraArquivoController extends Controller
      */
     public function edit(string $id)
     {
-        $moedas = Moeda::find($id);
-        // dd($cadastro);
-
-        return view('Moedas.edit', compact('moedas'));
     }
 
     /**
@@ -215,13 +209,6 @@ class LeituraArquivoController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $cadastro = Moeda::find($id);
-
-        $cadastro->fill($request->all());
-
-        $cadastro->save();
-
-        return redirect(route('Moedas.index'));
     }
 
     /**
@@ -229,13 +216,9 @@ class LeituraArquivoController extends Controller
      */
     public function destroy(string $id)
     {
-        $moedas = Moeda::find($id);
-
-        $moedas->delete();
-        return redirect(route('Moedas.index'));
     }
 
-    public function SelecionaLinha()
+    public function SelecionaLinha(Request $request)
     {
         // Caminho do arquivo da planilha
         $caminho_arquivo = storage_path('app/contabilidade/sicredi.csv');
@@ -247,7 +230,9 @@ class LeituraArquivoController extends Controller
         $planilha_ativa = $planilha->getActiveSheet();
 
         // Número da linha que você deseja obter (por exemplo, linha 3)
-        $numero_linha = 23;
+        $numero_linha = $request->linha;
+
+
 
         // Obter os dados da linha desejada
         $linha_data = $planilha_ativa->getCell('A' . $numero_linha)->getValue();
@@ -263,7 +248,7 @@ class LeituraArquivoController extends Controller
             $valor_sem_simbolo = substr($linha_valor, 4); // Extrai a string sem o símbolo "R$"
             // dd($valor_sem_simbolo);
         } else {
-            dd("O valor não começa com 'R'.");
+            // dd("O valor não começa com 'R'.");
         }
 
         $valor_numerico = preg_replace('/[^0-9,.]/', '', $linha_valor);
@@ -273,17 +258,39 @@ class LeituraArquivoController extends Controller
 
         $arraydatanova = compact('linha_data', 'linha_descricao', 'linha_parcela', 'linha_valor_formatado');
 
+
+        $Empresa = '11';
+        $ContaCartao = null;
+        $DespesaContaDebitoID = null;
+        $CashBackContaCreditoID = '19271';
+        
+        if ($numero_linha = 7) {
+            $string = $arraydatanova['linha_data'];
+            $parts = explode('-', $string);
+            $result = trim($parts[0]);
+
+                if($result = '4891.67XX.XXXX.9125')
+                {
+                    $ContaCartao = '17457';
+                    $Empresa = 11;
+                    $DespesaContaDebitoID = '15372';
+                    $CashBackContaCreditoID = '19271';
+                    dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
+                }
+
+        }
+
         if ($primeiro_caractere === '-') {
             $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['linha_data'])
                 ->where('Valor', $valorString = $arraydatanova['linha_valor_formatado'])
-                ->where('EmpresaID', '11')
-                ->where('ContaDebitoID', '17457')
+                ->where('EmpresaID', $Empresa)
+                ->where('ContaDebitoID', $ContaCartao)
                 ->First();
         } else {
             $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['linha_data'])
                 ->where('Valor', $valorString = $arraydatanova['linha_valor_formatado'])
-                ->where('EmpresaID', '11')
-                ->where('ContaCreditoID', '17457')
+                ->where('EmpresaID', $Empresa)
+                ->where('ContaCreditoID', $ContaCartao)
                 ->First();
         }
 
@@ -297,30 +304,29 @@ class LeituraArquivoController extends Controller
                 $DescricaoCompleta = $arraydatanova['linha_descricao'];
             }
 
-            if ($primeiro_caractere === '-') {
+            if ($primeiro_caractere === '-') {   //// valor negativo ----- é estorno ou retorno cash back
                 Lancamento::create([
                     'Valor' => ($valorString = $arraydatanova['linha_valor_formatado']),
-                    'EmpresaID' => '11',
-                    'ContaDebitoID' => '17457',
-                    'ContaCreditoID' => '19271',
+                    'EmpresaID' => $Empresa,
+                    'ContaDebitoID' => $ContaCartao,
+                    'ContaCreditoID' => $CashBackContaCreditoID,
                     'Descricao' => $DescricaoCompleta,
                     'Usuarios_id' => auth()->user()->id,
                     'DataContabilidade' => $linha_data,
                     'HistoricoID' => '',
                 ]);
-            } else {
+            } else {  /////////   lança a despesa
                 Lancamento::create([
                     'Valor' => ($valorString = $arraydatanova['linha_valor_formatado']),
-                    'EmpresaID' => '11',
-                    'ContaDebitoID' => '15372',
-                    'ContaCreditoID' => '17457',
+                    'EmpresaID' => $Empresa,
+                    'ContaDebitoID' => $DespesaContaDebitoID,
+                    'ContaCreditoID' => $ContaCartao,
                     'Descricao' => $DescricaoCompleta,
                     'Usuarios_id' => auth()->user()->id,
                     'DataContabilidade' => $linha_data,
                     'HistoricoID' => '',
                 ]);
             }
-
             session(['Lancamento' => 'Lancamentos criados!']);
         }
 
