@@ -11,13 +11,9 @@
 
 
             <div class="card-body">
-                @if (session('success'))
+                @if (session('Lancamento'))
                     <div class="alert alert-success">
-                        {{ session('success') }}
-                    </div>
-                @elseif (session('error'))
-                    <div class="alert alert-danger">
-                        {{ session('error') }}
+                        {{ session('Lancamento') }}
                     </div>
                 @endif
 

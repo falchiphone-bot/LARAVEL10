@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Lancamento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Carbon\Carbon;
 use Faker\Core\DateTime;
 use Illuminate\Support\Collection;
+use PhpParser\Node\Stmt\Foreach_;
+
+use function Pest\Laravel\get;
 
 class LeituraArquivoController extends Controller
 {
@@ -104,18 +108,61 @@ class LeituraArquivoController extends Controller
             }
         }
 
-        $novadata = array_slice($cellData, 20);
+        $novadata = array_slice($cellData, 19);
 
-        $Data = $novadata[0][1];
-        $Historico = $novadata[0][2];
-        $Valor = $novadata[0][4];
-        $valor_numerico = preg_replace('/[^0-9,.]/', '', $Valor);
+        foreach ($novadata as $item) {
+            $Data = $item[1];
+            $Descricao = $item[2];
+            $Valor =$item[4];
+            $valor_numerico = preg_replace('/[^0-9,.]/', '', $Valor);
+            $valor_numerico = str_replace(',', '.', $valor_numerico);
+            $valor_numerico = floatval($valor_numerico);
+            $valor_formatado = number_format($valor_numerico, 2, '.', '');
 
-        $arraydatanova = compact('Data', 'Historico', 'valor_numerico');
+
+            $arraydatanova = compact('Data', 'Descricao', 'valor_formatado');
+
+// dd($arraydatanova['Descricao']);
+
+            $rowData = $cellData;
+
+            $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
+                ->where('EmpresaID', '11')
+                ->where('ContaCreditoID', '17457')
+                ->First();
+
+            if ($lancamento) {
+                // dd($lancamento);
+                session(['Lancamento' => 'Nenhum lançamento criado!']);
+            } else {
+
+                Lancamento::create([
+                    'Valor' => $valorString = $arraydatanova['valor_formatado'],
+                    'EmpresaID' => '11',
+                    'ContaDebitoID' => '15372',
+                    'ContaCreditoID' => '17457',
+                    'Descricao' => $arraydatanova['Descricao'],
+                    'Usuarios_id' => auth()->user()->id,
+                    'DataContabilidade' =>  $Data,
+                    'HistoricoID' => '1',
+                ]);
+
+
+                $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
+                ->where('EmpresaID', '11')
+                ->where('ContaCreditoID', '17457')
+                ->First();
+                dd($lancamento);
+
+                session(['Lancamento' => 'Lancamentos criados!']);
+            }
+
+
+
+
+        }
 
         $rowData = $cellData;
-        // dd($rowData);
-
         return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
     }
 
