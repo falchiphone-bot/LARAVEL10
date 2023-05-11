@@ -256,81 +256,74 @@ class LeituraArquivoController extends Controller
 
         $linha_valor = $planilha_ativa->getCell('D' . $numero_linha)->getValue();
 
-
         $primeiro_caractere = substr($linha_valor, 0, 1);
 
         $valor_sem_simbolo = '';
-        if ($primeiro_caractere === "-") {
+        if ($primeiro_caractere === '-') {
             $valor_sem_simbolo = substr($linha_valor, 4); // Extrai a string sem o símbolo "R$"
             // dd($valor_sem_simbolo);
         } else {
             dd("O valor não começa com 'R'.");
         }
 
-            $valor_numerico = preg_replace('/[^0-9,.]/', '', $linha_valor);
-            $valor_numerico = str_replace(',', '.', $valor_numerico);
-            $valor_numerico = floatval($valor_numerico);
-            $linha_valor_formatado = number_format($valor_numerico, 2, '.', '');
+        $valor_numerico = preg_replace('/[^0-9,.]/', '', $linha_valor);
+        $valor_numerico = str_replace(',', '.', $valor_numerico);
+        $valor_numerico = floatval($valor_numerico);
+        $linha_valor_formatado = number_format($valor_numerico, 2, '.', '');
 
+        $arraydatanova = compact('linha_data', 'linha_descricao', 'linha_parcela', 'linha_valor_formatado');
 
-             $arraydatanova = compact('linha_data', 'linha_descricao', 'linha_parcela', 'linha_valor_formatado');
-
-             if ($primeiro_caractere === "-") {
-                $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['linha_data'])
+        if ($primeiro_caractere === '-') {
+            $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['linha_data'])
                 ->where('Valor', $valorString = $arraydatanova['linha_valor_formatado'])
                 ->where('EmpresaID', '11')
                 ->where('ContaDebitoID', '17457')
                 ->First();
-            } else {
-                $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['linha_data'])
+        } else {
+            $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['linha_data'])
                 ->where('Valor', $valorString = $arraydatanova['linha_valor_formatado'])
                 ->where('EmpresaID', '11')
                 ->where('ContaCreditoID', '17457')
                 ->First();
+        }
+
+        if ($lancamento) {
+            // dd($lancamento);
+            session(['Lancamento' => 'Nenhum lançamento criado!']);
+        } else {
+            if ($linha_parcela) {
+                $DescricaoCompleta = $arraydatanova['linha_descricao'] . ' Parcela ' . $linha_parcela;
+            } else {
+                $DescricaoCompleta = $arraydatanova['linha_descricao'];
             }
 
-
-            if ($lancamento) {
-                // dd($lancamento);
-                session(['Lancamento' => 'Nenhum lançamento criado!']);
-            } else {
-                if ($linha_parcela) {
-                    $DescricaoCompleta = $arraydatanova['linha_descricao'] . ' Parcela ' . $linha_parcela;
-                } else {
-                    $DescricaoCompleta = $arraydatanova['linha_descricao'];
-                }
-
-                if ($primeiro_caractere === "-") {
-                    Lancamento::create([
-                        'Valor' => ($valorString = $arraydatanova['linha_valor_formatado']),
-                        'EmpresaID' => '11',
-                         'ContaDebitoID' => '17457',
-                        'ContaCreditoID' => '19271',
-                        'Descricao' => $DescricaoCompleta,
-                        'Usuarios_id' => auth()->user()->id,
-                        'DataContabilidade' => $linha_data,
-                        'HistoricoID' => '',
-                         ]);
-
-                } else {
-                    Lancamento::create([
+            if ($primeiro_caractere === '-') {
+                Lancamento::create([
                     'Valor' => ($valorString = $arraydatanova['linha_valor_formatado']),
                     'EmpresaID' => '11',
-                     'ContaDebitoID' => '15372',
+                    'ContaDebitoID' => '17457',
+                    'ContaCreditoID' => '19271',
+                    'Descricao' => $DescricaoCompleta,
+                    'Usuarios_id' => auth()->user()->id,
+                    'DataContabilidade' => $linha_data,
+                    'HistoricoID' => '',
+                ]);
+            } else {
+                Lancamento::create([
+                    'Valor' => ($valorString = $arraydatanova['linha_valor_formatado']),
+                    'EmpresaID' => '11',
+                    'ContaDebitoID' => '15372',
                     'ContaCreditoID' => '17457',
                     'Descricao' => $DescricaoCompleta,
                     'Usuarios_id' => auth()->user()->id,
                     'DataContabilidade' => $linha_data,
                     'HistoricoID' => '',
-                     ]);
-                }
-
-                session(['Lancamento' => 'Lancamentos criados!']);
+                ]);
             }
-        // }
 
+            session(['Lancamento' => 'Lancamentos criados!']);
+        }
 
-
-        return view('Contabilidade.dashboard');
+        return redirect(route('dashboardContabilidade'));
     }
 }
