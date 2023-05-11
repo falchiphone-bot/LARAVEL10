@@ -109,15 +109,20 @@ class LeituraArquivoController extends Controller
         }
 
         $novadata = array_slice($cellData, 19);
+        // $novadata = array_slice($cellData, 152);
 
         foreach ($novadata as $item) {
             $Data = $item[1];
             $Descricao = $item[2];
+            $Parcela = $item[3];
             $Valor =$item[4];
+
             $valor_numerico = preg_replace('/[^0-9,.]/', '', $Valor);
             $valor_numerico = str_replace(',', '.', $valor_numerico);
             $valor_numerico = floatval($valor_numerico);
             $valor_formatado = number_format($valor_numerico, 2, '.', '');
+
+
 
 
             $arraydatanova = compact('Data', 'Descricao', 'valor_formatado');
@@ -136,15 +141,26 @@ class LeituraArquivoController extends Controller
                 session(['Lancamento' => 'Nenhum lançamento criado!']);
             } else {
 
+
+                if($Parcela)
+                    {
+                        $DescricaoCompleta =  $arraydatanova['Descricao'].' Parcela '. $Parcela;
+                    }
+                    else{
+                        $DescricaoCompleta =  $arraydatanova['Descricao'];
+                    }
+
+
+
                 Lancamento::create([
                     'Valor' => $valorString = $arraydatanova['valor_formatado'],
                     'EmpresaID' => '11',
                     'ContaDebitoID' => '15372',
                     'ContaCreditoID' => '17457',
-                    'Descricao' => $arraydatanova['Descricao'],
+                    'Descricao' => $DescricaoCompleta,
                     'Usuarios_id' => auth()->user()->id,
                     'DataContabilidade' =>  $Data,
-                    'HistoricoID' => '1',
+                    'HistoricoID' => '',
                 ]);
 
 
@@ -152,7 +168,7 @@ class LeituraArquivoController extends Controller
                 ->where('EmpresaID', '11')
                 ->where('ContaCreditoID', '17457')
                 ->First();
-                dd($lancamento);
+                // dd($lancamento);
 
                 session(['Lancamento' => 'Lancamentos criados!']);
             }
