@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Empresa;
 use App\Models\Lancamento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -76,6 +77,8 @@ class LeituraArquivoController extends Controller
 
     public function SelecionaDatas()
     {
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
         $caminho = storage_path('app/contabilidade/sicredi.csv');
 
         // Abre o arquivo Excel
@@ -93,41 +96,36 @@ class LeituraArquivoController extends Controller
         // Converte a última coluna para um número (ex: "D" para 4)
         $lastColumnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($lastColumn);
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
- // Obter a planilha ativa (por exemplo, a primeira planilha)
- $planilha_ativa =  $spreadsheet->getActiveSheet();
- ///////////////////////////// DADOS DA LINHA 1 PARA DEFINIR CONTAS
- $linha_1 = $planilha_ativa->getCell('B' . 1)->getValue();
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Obter a planilha ativa (por exemplo, a primeira planilha)
+        $planilha_ativa = $spreadsheet->getActiveSheet();
+        ///////////////////////////// DADOS DA LINHA 1 PARA DEFINIR CONTAS
+        $linha_1 = $planilha_ativa->getCell('B' . 1)->getValue();
 
- ///////////////////////////// DADOS DA LINHA 7 PARA DEFINIR CONTAS
- $linha_7 = $planilha_ativa->getCell('A' . 7)->getValue();
+        ///////////////////////////// DADOS DA LINHA 7 PARA DEFINIR CONTAS
+        $linha_7 = $planilha_ativa->getCell('A' . 7)->getValue();
 
+        $ContaCartao = null;
+        $DespesaContaDebitoID = null;
+        $CashBackContaCreditoID = '19271';
 
- $Empresa = '11';
- $ContaCartao = null;
- $DespesaContaDebitoID = null;
- $CashBackContaCreditoID = '19271';
+        $string = $linha_7;
+        $parts = explode('-', $string);
+        $result_linha7 = trim($parts[0]);
+        $linhas1_7 = $linha_1 . '-' . $result_linha7;
 
+        if ($linhas1_7 === 'SANDRA ELISA MAGOSSI FALCHI-4891.67XX.XXXX.9125') {
+            $ContaCartao = '17457';
+            $Empresa = 11;
+            $DespesaContaDebitoID = '15372';
+            $CashBackContaCreditoID = '19271';
+            // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
+        } else {
+            session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique o mesmo está correto para este procedimento!']);
+            return redirect(route('LeituraArquivo.index'));
+        }
 
-     $string =  $linha_7;
-     $parts = explode('-', $string);
-     $result_linha7 = trim($parts[0]);
-     $linhas1_7 = $linha_1.'-'.$result_linha7;
-
-
-         if($linhas1_7 === 'SANDRA ELISA MAGOSSI FALCHI-4891.67XX.XXXX.9125')
-         {
-             $ContaCartao = '17457';
-             $Empresa = 11;
-             $DespesaContaDebitoID = '15372';
-             $CashBackContaCreditoID = '19271';
-             // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
-          } else {
-                 session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique o mesmo está correto para este procedimento!']);
-                 return redirect(route('LeituraArquivo.index'));
-          }
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         // Array que irá armazenar os dados das células
         $cellData = [];
@@ -147,8 +145,21 @@ class LeituraArquivoController extends Controller
         $novadata = array_slice($cellData, 19);
         // $novadata = array_slice($cellData, 152);
 
+        ///// CONFERE SE EMPRESA BLOQUEADA
+        $Empresa = '11';
+        $EmpresaBloqueada = Empresa::find($Empresa);
+        $Data_bloqueada = $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y');
+
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
         foreach ($novadata as $item) {
             $Data = $item[1];
+            if ($Data <= $Data_bloqueada) {
+                session(['Lancamento' => 'Empresa bloqueada no sistema para o primeiro lançamento encontrado! Deverá desbloquear a data de bloqueio da empresa para seguir este procedimento. Bloqueada para até ' . $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y') . '!']);
+                return redirect(route('LeituraArquivo.index'));
+            }
+
             $Descricao = $item[2];
             $Parcela = $item[3];
             $Valor = $item[4];
@@ -202,7 +213,7 @@ class LeituraArquivoController extends Controller
         }
 
         $rowData = $cellData;
-    //    $rowData = $novadata;
+        //    $rowData = $novadata;
         return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
     }
 
@@ -271,44 +282,35 @@ class LeituraArquivoController extends Controller
         ///////////////////////////// DADOS DA LINHA 7 PARA DEFINIR CONTAS
         $linha_7 = $planilha_ativa->getCell('A' . 7)->getValue();
 
-
         $Empresa = '11';
         $ContaCartao = null;
         $DespesaContaDebitoID = null;
         $CashBackContaCreditoID = '19271';
 
+        $string = $linha_7;
+        $parts = explode('-', $string);
+        $result_linha7 = trim($parts[0]);
+        $linhas1_7 = $linha_1 . '-' . $result_linha7;
 
-            $string =  $linha_7;
-            $parts = explode('-', $string);
-            $result_linha7 = trim($parts[0]);
-            $linhas1_7 = $linha_1.'-'.$result_linha7;
-
-
-                if($linhas1_7 === 'SANDRA ELISA MAGOSSI FALCHI-4891.67XX.XXXX.9125')
-                {
-                    $ContaCartao = '17457';
-                    $Empresa = 11;
-                    $DespesaContaDebitoID = '15372';
-                    $CashBackContaCreditoID = '19271';
-                    // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
-                 } else {
-                        session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique o mesmo está correto para este procedimento!']);
-                        return redirect(route('LeituraArquivo.SomenteLinha'));
-                 }
-
+        if ($linhas1_7 === 'SANDRA ELISA MAGOSSI FALCHI-4891.67XX.XXXX.9125') {
+            $ContaCartao = '17457';
+            $Empresa = 11;
+            $DespesaContaDebitoID = '15372';
+            $CashBackContaCreditoID = '19271';
+            // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
+        } else {
+            session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique o mesmo está correto para este procedimento!']);
+            return redirect(route('LeituraArquivo.SomenteLinha'));
+        }
 
         // Número da linha que você deseja obter (por exemplo, linha 3)
         $numero_linha = $request->linha;
-
 
         // Obter os dados da linha desejada
         $linha_data = $planilha_ativa->getCell('A' . $numero_linha)->getValue();
         $linha_descricao = $planilha_ativa->getCell('B' . $numero_linha)->getValue();
         $linha_parcela = $planilha_ativa->getCell('C' . $numero_linha)->getValue();
         $linha_valor = $planilha_ativa->getCell('D' . $numero_linha)->getValue();
-
-
-
 
         $primeiro_caractere = substr($linha_valor, 0, 1);
 
@@ -327,14 +329,12 @@ class LeituraArquivoController extends Controller
 
         $arraydatanova = compact('linha_data', 'linha_descricao', 'linha_parcela', 'linha_valor_formatado', 'numero_linha');
 
-        $SeValor = floatval($arraydatanova["linha_valor_formatado"]);
-
+        $SeValor = floatval($arraydatanova['linha_valor_formatado']);
 
         if ($SeValor == null) {
-            session(['Lancamento' => 'A linha '.$numero_linha.' não possui valor']);
+            session(['Lancamento' => 'A linha ' . $numero_linha . ' não possui valor']);
             return redirect(route('LeituraArquivo.index'));
         }
-
 
         if ($primeiro_caractere === '-') {
             $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['linha_data'])
@@ -360,7 +360,8 @@ class LeituraArquivoController extends Controller
                 $DescricaoCompleta = $arraydatanova['linha_descricao'];
             }
 
-            if ($primeiro_caractere === '-') {   //// valor negativo ----- é estorno ou retorno cash back
+            if ($primeiro_caractere === '-') {
+                //// valor negativo ----- é estorno ou retorno cash back
                 Lancamento::create([
                     'Valor' => ($valorString = $arraydatanova['linha_valor_formatado']),
                     'EmpresaID' => $Empresa,
@@ -371,7 +372,8 @@ class LeituraArquivoController extends Controller
                     'DataContabilidade' => $linha_data,
                     'HistoricoID' => '',
                 ]);
-            } else {  /////////   lança a despesa
+            } else {
+                /////////   lança a despesa
                 Lancamento::create([
                     'Valor' => ($valorString = $arraydatanova['linha_valor_formatado']),
                     'EmpresaID' => $Empresa,
