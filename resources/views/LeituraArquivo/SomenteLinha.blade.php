@@ -4,6 +4,12 @@
         <div class="container">
 
             <div class="card">
+                @if (session('Lancamento'))
+                <div class="alert alert-success">
+                    {{ session('Lancamento') }}
+                </div>
+                {{session(['Lancamento' => null]) }}
+            @endif
                 <div class="badge bg-primary text-wrap" style="width: 100%;
                 ;font-size: 24px; lign=˜Center˜">
                     SELECIONAR SOMENTE LINHA DETERMINADA NO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL

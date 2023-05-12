@@ -228,8 +228,13 @@ class LeituraArquivoController extends Controller
 
         // Obter a planilha ativa (por exemplo, a primeira planilha)
         $planilha_ativa = $planilha->getActiveSheet();
+        ///////////////////////////// DADOS DA LINHA 1 PARA DEFINIR CONTAS
+        $linha_1 = $planilha_ativa->getCell('B' . 1)->getValue();
+
         ///////////////////////////// DADOS DA LINHA 7 PARA DEFINIR CONTAS
         $linha_7 = $planilha_ativa->getCell('A' . 7)->getValue();
+
+
         $Empresa = '11';
         $ContaCartao = null;
         $DespesaContaDebitoID = null;
@@ -238,19 +243,21 @@ class LeituraArquivoController extends Controller
 
             $string =  $linha_7;
             $parts = explode('-', $string);
-            $result = trim($parts[0]);
+            $result_linha7 = trim($parts[0]);
+            $linhas1_7 = $linha_1.'-'.$result_linha7;
 
-                if($result = '4891.67XX.XXXX.9125')
+
+                if($linhas1_7 === 'SANDRA ELISA MAGOSSI FALCHI-4891.67XX.XXXX.9125')
                 {
                     $ContaCartao = '17457';
                     $Empresa = 11;
                     $DespesaContaDebitoID = '15372';
                     $CashBackContaCreditoID = '19271';
                     // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
+                 } else {
+                        session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique o mesmo está correto para este procedimento!']);
+                        return redirect(route('LeituraArquivo.SomenteLinha'));
                  }
-
-
-
 
 
         // Número da linha que você deseja obter (por exemplo, linha 3)
@@ -290,7 +297,7 @@ class LeituraArquivoController extends Controller
             session(['Lancamento' => 'A linha '.$numero_linha.' não possui valor']);
             return redirect(route('LeituraArquivo.index'));
         }
- 
+
 
         if ($primeiro_caractere === '-') {
             $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['linha_data'])

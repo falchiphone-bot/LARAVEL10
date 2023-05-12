@@ -10,7 +10,7 @@
                     <div class="alert alert-success">
                         {{ session('Lancamento') }}
                     </div>
-                     {{session(['Lancamento' => '']) }}
+                    {{session(['Lancamento' => null]) }}
                  @endif
 
                 <div class="card-header">
