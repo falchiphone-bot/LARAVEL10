@@ -283,6 +283,16 @@ class LeituraArquivoController extends Controller
         $linha_7 = $planilha_ativa->getCell('A' . 7)->getValue();
 
         $Empresa = '11';
+
+///// CONFERE SE EMPRESA BLOQUEADA
+$Empresa = '11';
+$EmpresaBloqueada = Empresa::find($Empresa);
+$Data_bloqueada = $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y');
+
+
+/////////////////////////////////////////////////////////////////////
+
+
         $ContaCartao = null;
         $DespesaContaDebitoID = null;
         $CashBackContaCreditoID = '19271';
@@ -308,6 +318,10 @@ class LeituraArquivoController extends Controller
 
         // Obter os dados da linha desejada
         $linha_data = $planilha_ativa->getCell('A' . $numero_linha)->getValue();
+
+
+
+
         $linha_descricao = $planilha_ativa->getCell('B' . $numero_linha)->getValue();
         $linha_parcela = $planilha_ativa->getCell('C' . $numero_linha)->getValue();
         $linha_valor = $planilha_ativa->getCell('D' . $numero_linha)->getValue();
@@ -333,6 +347,20 @@ class LeituraArquivoController extends Controller
 
         if ($SeValor == null) {
             session(['Lancamento' => 'A linha ' . $numero_linha . ' não possui valor']);
+            return redirect(route('LeituraArquivo.index'));
+        }
+
+$carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $linha_data);
+$linha_data_comparar = $carbon_data->format('Y-m-d');
+
+
+$carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $Data_bloqueada);
+$Data_bloqueada_comparar = $carbon_data->format('Y-m-d');
+
+
+        if ($linha_data_comparar <= $Data_bloqueada_comparar){
+            session(['Lancamento' => 'Empresa bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio da empresa para seguir este procedimento. Bloqueada para até ' . $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y') . '!']);
+
             return redirect(route('LeituraArquivo.index'));
         }
 
