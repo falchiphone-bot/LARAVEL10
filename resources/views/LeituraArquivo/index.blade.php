@@ -21,7 +21,7 @@
                     </div>
                 @endif
                 @if (session('Lancamento'))
-                    <div class="alert alert-success">
+                    <div class="alert alert-danger">
                         {{ session('Lancamento') }}
                     </div>
                     {{session(['Lancamento' => null]) }}

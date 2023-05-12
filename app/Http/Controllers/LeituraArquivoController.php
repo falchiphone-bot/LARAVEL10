@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Empresa;
 use App\Models\Lancamento;
+use App\Models\Conta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -11,6 +12,7 @@ use Carbon\Carbon;
 use Faker\Core\DateTime;
 use Illuminate\Support\Collection;
 use PhpParser\Node\Stmt\Foreach_;
+use Livewire\Component;
 
 use function Pest\Laravel\get;
 
@@ -150,7 +152,6 @@ class LeituraArquivoController extends Controller
         $EmpresaBloqueada = Empresa::find($Empresa);
         $Data_bloqueada = $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y');
 
-
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         foreach ($novadata as $item) {
@@ -284,14 +285,12 @@ class LeituraArquivoController extends Controller
 
         $Empresa = '11';
 
-///// CONFERE SE EMPRESA BLOQUEADA
-$Empresa = '11';
-$EmpresaBloqueada = Empresa::find($Empresa);
-$Data_bloqueada = $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y');
+        ///// CONFERE SE EMPRESA BLOQUEADA
+        $Empresa = '11';
+        $EmpresaBloqueada = Empresa::find($Empresa);
+        $Data_bloqueada = $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y');
 
-
-/////////////////////////////////////////////////////////////////////
-
+        /////////////////////////////////////////////////////////////////////
 
         $ContaCartao = null;
         $DespesaContaDebitoID = null;
@@ -318,9 +317,6 @@ $Data_bloqueada = $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y');
 
         // Obter os dados da linha desejada
         $linha_data = $planilha_ativa->getCell('A' . $numero_linha)->getValue();
-
-
-
 
         $linha_descricao = $planilha_ativa->getCell('B' . $numero_linha)->getValue();
         $linha_parcela = $planilha_ativa->getCell('C' . $numero_linha)->getValue();
@@ -350,15 +346,13 @@ $Data_bloqueada = $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y');
             return redirect(route('LeituraArquivo.index'));
         }
 
-$carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $linha_data);
-$linha_data_comparar = $carbon_data->format('Y-m-d');
+        $carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $linha_data);
+        $linha_data_comparar = $carbon_data->format('Y-m-d');
 
+        $carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $Data_bloqueada);
+        $Data_bloqueada_comparar = $carbon_data->format('Y-m-d');
 
-$carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $Data_bloqueada);
-$Data_bloqueada_comparar = $carbon_data->format('Y-m-d');
-
-
-        if ($linha_data_comparar <= $Data_bloqueada_comparar){
+        if ($linha_data_comparar <= $Data_bloqueada_comparar) {
             session(['Lancamento' => 'Empresa bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio da empresa para seguir este procedimento. Bloqueada para até ' . $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y') . '!']);
 
             return redirect(route('LeituraArquivo.index'));
@@ -377,6 +371,28 @@ $Data_bloqueada_comparar = $carbon_data->format('Y-m-d');
                 ->where('ContaCreditoID', $ContaCartao)
                 ->First();
         }
+
+        $dataLancamento_carbon = Carbon::createFromDate($lancamento->DataContabilidade);
+        $dataLancamento = $dataLancamento_carbon->format('Y/m/d');
+        if ($lancamento) {
+            $data_conta_debito_bloqueio = $lancamento->ContaDebito->Bloqueiodataanterior;
+            if ($data_conta_debito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
+                session(['Lancamento' => 'Conta DÉBITO: ' . $lancamento->ContaDebito->PlanoConta->Descricao . ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio da conta para seguir este procedimento. Bloqueada para até ' . $data_conta_debito_bloqueio->format("d/m/Y") . '!']);
+                return redirect(route('LeituraArquivo.index'));
+            }
+        }
+
+        if ($lancamento) {
+
+            $data_conta_credito_bloqueio = $lancamento->ContaCredito->Bloqueiodataanterior;
+             if ($data_conta_credito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
+
+                session(['Lancamento' => 'Conta CRÉDITO: ' . $lancamento->ContaCredito->PlanoConta->Descricao . ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio da conta para seguir este procedimento. Bloqueada para até ' . $data_conta_credito_bloqueio->format("d/m/Y") . '!']);
+
+                return redirect(route('LeituraArquivo.index'));
+            }
+        }
+
 
         if ($lancamento) {
             // dd($lancamento);
