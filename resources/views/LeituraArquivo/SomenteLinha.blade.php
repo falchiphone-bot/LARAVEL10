@@ -19,7 +19,7 @@
                 <div class="card-body">
 
                     <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                        <a class="btn btn-warning" href="dashboard">Retornar a lista de opções</a>
+                        <a class="btn btn-warning" href="\LeituraArquivo">Retornar a lista de opções</a>
 
                     </nav>
                 </div>

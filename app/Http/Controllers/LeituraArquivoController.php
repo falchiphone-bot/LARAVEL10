@@ -93,6 +93,42 @@ class LeituraArquivoController extends Controller
         // Converte a última coluna para um número (ex: "D" para 4)
         $lastColumnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($lastColumn);
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ // Obter a planilha ativa (por exemplo, a primeira planilha)
+ $planilha_ativa =  $spreadsheet->getActiveSheet();
+ ///////////////////////////// DADOS DA LINHA 1 PARA DEFINIR CONTAS
+ $linha_1 = $planilha_ativa->getCell('B' . 1)->getValue();
+
+ ///////////////////////////// DADOS DA LINHA 7 PARA DEFINIR CONTAS
+ $linha_7 = $planilha_ativa->getCell('A' . 7)->getValue();
+
+
+ $Empresa = '11';
+ $ContaCartao = null;
+ $DespesaContaDebitoID = null;
+ $CashBackContaCreditoID = '19271';
+
+
+     $string =  $linha_7;
+     $parts = explode('-', $string);
+     $result_linha7 = trim($parts[0]);
+     $linhas1_7 = $linha_1.'-'.$result_linha7;
+
+
+         if($linhas1_7 === 'SANDRA ELISA MAGOSSI FALCHI-4891.67XX.XXXX.9125')
+         {
+             $ContaCartao = '17457';
+             $Empresa = 11;
+             $DespesaContaDebitoID = '15372';
+             $CashBackContaCreditoID = '19271';
+             // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
+          } else {
+                 session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique o mesmo está correto para este procedimento!']);
+                 return redirect(route('LeituraArquivo.index'));
+          }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
         // Array que irá armazenar os dados das células
         $cellData = [];
 
@@ -166,6 +202,7 @@ class LeituraArquivoController extends Controller
         }
 
         $rowData = $cellData;
+    //    $rowData = $novadata;
         return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
     }
 
