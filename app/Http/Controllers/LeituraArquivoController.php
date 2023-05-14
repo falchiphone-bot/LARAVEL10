@@ -154,12 +154,36 @@ class LeituraArquivoController extends Controller
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        foreach ($novadata as $item) {
+        foreach ($novadata as $PegaLinha => $item) {
             $Data = $item[1];
-            if ($Data <= $Data_bloqueada) {
-                session(['Lancamento' => 'Empresa bloqueada no sistema para o primeiro lançamento encontrado! Deverá desbloquear a data de bloqueio da empresa para seguir este procedimento. Bloqueada para até ' . $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y') . '!']);
+            $Descricao = $item[2];
+
+
+
+            $linha = $PegaLinha + 20;   ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
+
+            if (strpos($Descricao, 'CREDITO CASH BACK') !== false){  //// se contiver, conter o texto na variável
+                // dd($linha, $Descricao);
+                continue;
+            }
+
+            $carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $Data);
+            $linha_data_comparar = $carbon_data->format('Y-m-d');
+
+            $carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $Data_bloqueada);
+            $Data_bloqueada_comparar = $carbon_data->format('Y-m-d');
+
+            if ($linha_data_comparar <= $Data_bloqueada_comparar) {
+                session(['Lancamento'
+                 => 'Empresa bloqueada no sistema para o lançamento
+                  solicitado! Deverá desbloquear a data de bloqueio
+                  da empresa para seguir este procedimento. Bloqueada para até '
+                   . $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y')
+                   . '! Encontrado lançamento na linha '
+                   .$linha  ]);
                 return redirect(route('LeituraArquivo.index'));
             }
+
 
             $Descricao = $item[2];
             $Parcela = $item[3];
@@ -172,15 +196,47 @@ class LeituraArquivoController extends Controller
 
             $arraydatanova = compact('Data', 'Descricao', 'valor_formatado');
 
-            // dd($arraydatanova['Descricao']);
+
+
 
             $rowData = $cellData;
 
             $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
                 ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
-                ->where('EmpresaID', '11')
-                ->where('ContaCreditoID', '17457')
+                ->where('EmpresaID', $Empresa)
+                ->where('ContaCreditoID', $ContaCartao)
                 ->First();
+
+
+                $dataLancamento_carbon = Carbon::createFromDate($lancamento->DataContabilidade);
+                $dataLancamento = $dataLancamento_carbon->format('Y/m/d');
+                if ($lancamento) {
+                    $data_conta_debito_bloqueio = $lancamento->ContaDebito->Bloqueiodataanterior;
+                    if ($data_conta_debito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
+                        session(['Lancamento' => 'Conta DÉBITO: ' . $lancamento->ContaDebito->PlanoConta->Descricao
+                        . ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                         da conta para seguir este procedimento. Bloqueada para até '
+                          . $data_conta_debito_bloqueio->format("d/m/Y")
+                          . '! Encontrado lançamento na linha '
+                          .$linha  ]);
+                        return redirect(route('LeituraArquivo.index'));
+                    }
+                }
+
+                if ($lancamento) {
+                    $data_conta_credito_bloqueio = $lancamento->ContaCredito->Bloqueiodataanterior;
+                     if ($data_conta_credito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
+
+                        session(['Lancamento' => 'Conta CRÉDITO: ' . $lancamento->ContaCredito->PlanoConta->Descricao .
+                         ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio da
+                          conta para seguir este procedimento. Bloqueada para até '
+                          . $data_conta_credito_bloqueio->format("d/m/Y")
+                          . '! Encontrado lançamento na linha '
+                          .$linha  ]);
+                        return redirect(route('LeituraArquivo.index'));
+                    }
+                }
+
 
             if ($lancamento) {
                 // dd($lancamento);
@@ -188,26 +244,22 @@ class LeituraArquivoController extends Controller
             } else {
                 if ($Parcela) {
                     $DescricaoCompleta = $arraydatanova['Descricao'] . ' Parcela ' . $Parcela;
+
                 } else {
                     $DescricaoCompleta = $arraydatanova['Descricao'];
                 }
 
                 Lancamento::create([
                     'Valor' => ($valorString = $arraydatanova['valor_formatado']),
-                    'EmpresaID' => '11',
-                    'ContaDebitoID' => '15372',
-                    'ContaCreditoID' => '17457',
+                    'EmpresaID' => $Empresa,
+                    'ContaDebitoID' => $DespesaContaDebitoID,
+                    'ContaCreditoID' => $ContaCartao,
                     'Descricao' => $DescricaoCompleta,
                     'Usuarios_id' => auth()->user()->id,
                     'DataContabilidade' => $Data,
                     'HistoricoID' => '',
                 ]);
 
-                $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
-                    ->where('EmpresaID', '11')
-                    ->where('ContaCreditoID', '17457')
-                    ->First();
-                // dd($lancamento);
 
                 session(['Lancamento' => 'Lancamentos criados!']);
             }
