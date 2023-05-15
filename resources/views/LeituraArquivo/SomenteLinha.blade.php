@@ -5,11 +5,11 @@
 
             <div class="card">
                 @if (session('Lancamento'))
-                <div class="alert alert-success">
-                    {{ session('Lancamento') }}
-                </div>
-                {{session(['Lancamento' => null]) }}
-            @endif
+                    <div class="alert alert-success">
+                        {{ session('Lancamento') }}
+                    </div>
+                    {{ session(['Lancamento' => null]) }}
+                @endif
                 <div class="badge bg-primary text-wrap" style="width: 100%;
                 ;font-size: 24px; lign=˜Center˜">
                     SELECIONAR SOMENTE LINHA DETERMINADA NO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
@@ -24,42 +24,75 @@
                     </nav>
                 </div>
 
-                    <div class="badge bg-warning text-wrap" style="width: 100%; font-size: 24px; color: black; text-align: center;">
-                        <div class="card">
-                            <nav class="navbar navbar-success" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                  SELECIONAR SOMENTE LINHA DETERMINADA DE ARQUIVO SELECIONADO
-                            </nav>
-                      </div>
-
-                </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <form method="POST" action="/LeituraArquivo/SelecionaLinha" enctype="multipart/form-data">
-                                    @csrf
-                                    <label for="fim">Linha para selecionar</label>
-                                    {{-- <textarea required name="linha" id="linha" cols="5" rows="1" class="form-control" style="background-color: green; color: white;"></textarea> --}}
-                                    <div class="badge bg-warning text-wrap" style="width: 10%; font-size: 24px; color: black; text-align: center;">
-                                       <input type="number" required name="linha" id="linha" class="form-control" style="background-color: green; color: white;">
-                                    </div>
-                                    {{-- <input required type="file" class="btn btn-danger" name="arquivo"> --}}
-                                    <p class="my-2">
-                                        <button type="submit" class="btn btn-success">Enviar o arquivo para a pasta do sistema.</button>
-                                    </p>
-                                </form>
-                            </div>
-                        </div>
-
-                        <div class="card-footer">
-                            {{-- <button class='btn btn-primary'>Salvar o evento</button> --}}
-                        </div>
-
+                <div class="badge bg-warning text-wrap"
+                    style="width: 100%; font-size: 24px; color: black; text-align: center;">
+                    <div class="card">
+                        <nav class="navbar navbar-success" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                            SELECIONAR SOMENTE LINHA DETERMINADA DE ARQUIVO SELECIONADO
+                        </nav>
                     </div>
 
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <form method="POST" action="/LeituraArquivo/SelecionaLinha" enctype="multipart/form-data">
+                            @csrf
+                            {{-- <textarea required name="linha" id="linha" cols="5" rows="1" class="form-control" style="background-color: green; color: white;"></textarea> --}}
+
+                            <form method="POST" action="/LeituraArquivo/SelecionaLinha" enctype="multipart/form-data">
+                                @csrf
+                                {{-- <textarea required name="linha" id="linha" cols="5" rows="1" class="form-control" style="background-color: green; color: white;"></textarea> --}}
 
 
+                                <label for="fim">Linha para selecionar</label>
+
+                                <div class="badge bg-warning text-wrap"
+                                    style="width: 10%; font-size: 24px; color: black; text-align: center;">
+                                    <input type="number" required name="linha" id="linha" class="form-control"
+                                        style="background-color: green; color: white;">
+
+                                </div>
+
+                                <div class="badge bg-warning text-wrap"
+                                    style="width: 100%; font-size: 24px; color: black; text-align: center;">
+                                    <input type="file" required class="btn btn-danger" name="arquivo">
+                                    <p class="my-2">
+                                        <button type="submit" class="btn btn-info">Enviar o arquivo para a pasta do sistema
+                                            e consultar por linha.</button>
+                                    </p>
+                            </form>
+                    </div>
+
+                    <div class="row">
+                        <form method="POST" action="/LeituraArquivo/SelecionaDatas" enctype="multipart/form-data">
+                            @csrf
+                            <label for="fim">Arquivo para selecionar</label>
+                            <div class="badge bg-warning text-wrap"
+                                style="width: 100%; font-size: 24px; color: black; text-align: center;">
+                                <input type="file" required class="btn btn-danger" name="arquivo">
+                            </div>
+
+
+                            <p class="my-2">
+                                <button type="submit" class="btn btn-success">Enviar o arquivo para a pasta do sistema e
+                                    consulta o arquivo total.</button>
+                            </p>
+                        </form>
+
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    {{-- <button class='btn btn-primary'>Salvar o evento</button> --}}
+                </div>
 
             </div>
+
+
+
+
         </div>
+    </div>
 
     </div>
     <div class="b-example-divider"></div>

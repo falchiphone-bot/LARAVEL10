@@ -77,11 +77,20 @@ class LeituraArquivoController extends Controller
         return view('LeituraArquivo.index', ['cellData' => $cellData]);
     }
 
-    public function SelecionaDatas()
+    public function SelecionaDatas(Request $request)
     {
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        $caminho = storage_path('app/contabilidade/sicredi.csv');
+        // $caminho = storage_path('app/contabilidade/sicredi.csv');
+
+        /////// aqui fica na pasta temporário /temp/    - apaga
+        $path = $request->file('arquivo')->getRealPath();
+
+        $file = $request->file('arquivo');
+        $Complemento = $request->complemento;
+        $name = $file->getClientOriginalName();
+        $extension = $file->getClientOriginalExtension();
+        $caminho = $path;
 
         // Abre o arquivo Excel
         $spreadsheet = IOFactory::load($caminho);
@@ -146,7 +155,7 @@ class LeituraArquivoController extends Controller
 
         $novadata = array_slice($cellData, 19);
         // $novadata = array_slice($cellData, 152);
-
+   
         ///// CONFERE SE EMPRESA BLOQUEADA
         $Empresa = '11';
         $EmpresaBloqueada = Empresa::find($Empresa);
@@ -321,8 +330,26 @@ class LeituraArquivoController extends Controller
 
     public function SelecionaLinha(Request $request)
     {
+
+        if ($request->linha == null) {
+            $arquivo = $request->file('arquivo');
+            $path = $request->file('arquivo')->getRealPath();
+            return redirect(route('LeituraArquivo.SelecionaDatas'))->with('arquivo', $path);
+        }
+
+
         // Caminho do arquivo da planilha
-        $caminho_arquivo = storage_path('app/contabilidade/sicredi.csv');
+// // $caminho_arquivo = storage_path('app/contabilidade/sicredi.csv');
+
+         /////// aqui fica na pasta temporário /temp/    - apaga
+         $path = $request->file('arquivo')->getRealPath();
+
+         $file = $request->file('arquivo');
+         $Complemento = $request->complemento;
+         $name = $file->getClientOriginalName();
+         $extension = $file->getClientOriginalExtension();
+         $caminho_arquivo = $path;
+// dd($path,$Complemento,$name,$extension);
 
         // Carregar o arquivo da planilha
         $planilha = IOFactory::load($caminho_arquivo);

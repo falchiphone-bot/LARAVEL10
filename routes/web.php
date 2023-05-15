@@ -145,7 +145,7 @@ Route::middleware('auth')->group(function () {
 
     #ARQUIVOS
     Route::get('LeituraArquivo/SomenteLinha', function () { return view('LeituraArquivo.SomenteLinha');})->name('LeituraArquivo.SomenteLinha');
-    Route::get('LeituraArquivo/SelecionaDatas', [App\Http\Controllers\LeituraArquivoController::class, 'SelecionaDatas'])->name('LeituraArquivo.SelecionaDatas');
+    Route::post('LeituraArquivo/SelecionaDatas', [App\Http\Controllers\LeituraArquivoController::class, 'SelecionaDatas'])->name('LeituraArquivo.SelecionaDatas');
     Route::post('LeituraArquivo/SelecionaLinha', [App\Http\Controllers\LeituraArquivoController::class, 'SelecionaLinha'])->name('LeituraArquivo.SelecionaLinha');
     Route::resource('LeituraArquivo', App\Http\Controllers\LeituraArquivoController::class);
 
