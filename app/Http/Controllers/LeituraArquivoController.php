@@ -91,12 +91,11 @@ class LeituraArquivoController extends Controller
         $Complemento = $request->complemento;
         $name = $file->getClientOriginalName();
         $caminho = $path;
-          if ($extension != "txt" && $extension != "csv" && $extension != "xlsx") {
+        if ($extension != 'txt' && $extension != 'csv' && $extension != 'xlsx') {
             session(['Lancamento' => 'Arquivo considerado não compatível para este procedimento! Apresentado o último enviado. ATENÇÃO!']);
             return redirect(route('LeituraArquivo.index'));
         }
         copy($path, storage_path('app/contabilidade/sicredi.csv'));
-
 
         // Abre o arquivo Excel
         $spreadsheet = IOFactory::load($caminho);
@@ -137,8 +136,14 @@ class LeituraArquivoController extends Controller
             $DespesaContaDebitoID = '15372';
             $CashBackContaCreditoID = '19271';
             // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
+        } elseif ($linhas1_7 === 'PEDRO ROBERTO FALCHI-4891.67XX.XXXX.2113') {
+            $ContaCartao = '17458';
+            $Empresa = 11;
+            $DespesaContaDebitoID = '15354';
+            $CashBackContaCreditoID = '19271';
+            // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
         } else {
-            session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique o mesmo está correto para este procedimento!']);
+            session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
             return redirect(route('LeituraArquivo.index'));
         }
 
@@ -173,12 +178,15 @@ class LeituraArquivoController extends Controller
             $Data = $item[1];
             $Descricao = $item[2];
 
+            $linha = $PegaLinha + 20; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
 
-
-            $linha = $PegaLinha + 20;   ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
-
-            if (strpos($Descricao, 'CREDITO CASH BACK') !== false){  //// se contiver, conter o texto na variável
+            if (strpos($Descricao, 'CREDITO CASH BACK') !== false) {
+                //// se contiver, conter o texto na variável
                 // dd($linha, $Descricao);
+                continue;
+            } elseif (strpos($Descricao, 'PAGAMENTO DEBITO EM') !== false) {
+                //// se contiver, conter o texto na variável
+
                 continue;
             }
 
@@ -189,30 +197,33 @@ class LeituraArquivoController extends Controller
             $Data_bloqueada_comparar = $carbon_data->format('Y-m-d');
 
             if ($linha_data_comparar <= $Data_bloqueada_comparar) {
-                session(['Lancamento'
-                 => 'Empresa bloqueada no sistema para o lançamento
+                session([
+                    'Lancamento' =>
+                        'Empresa bloqueada no sistema para o lançamento
                   solicitado! Deverá desbloquear a data de bloqueio
-                  da empresa para seguir este procedimento. Bloqueada para até '
-                   . $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y')
-                   . '! Encontrado lançamento na linha '
-                   .$linha  ]);
+                  da empresa para seguir este procedimento. Bloqueada para até ' .
+                        $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y') .
+                        '! Encontrado lançamento na linha ' .
+                        $linha,
+                ]);
                 return redirect(route('LeituraArquivo.index'));
             }
-
 
             $Descricao = $item[2];
             $Parcela = $item[3];
             $Valor = $item[4];
 
             $valor_numerico = preg_replace('/[^0-9,.]/', '', $Valor);
-            $valor_numerico = str_replace(',', '.', $valor_numerico);
-            $valor_numerico = floatval($valor_numerico);
+            $Valor_sem_virgula = str_replace(',', '', $Valor);
+            $Valor_sem_pontos_virgulas = str_replace('.', '', $Valor_sem_virgula);
+            $valor_sem_simbolo = substr($Valor_sem_pontos_virgulas, 3); // Extrai a string sem o símbolo "R$"
+
+
+            $valor_numerico = floatval($valor_sem_simbolo)/100;
             $valor_formatado = number_format($valor_numerico, 2, '.', '');
 
             $arraydatanova = compact('Data', 'Descricao', 'valor_formatado');
-
-
-
+            // dd($Valor,$Valor_sem_virgula,$Valor_sem_pontos_virgulas,$valor_sem_simbolo ,$valor_numerico,$arraydatanova);
 
             $rowData = $cellData;
 
@@ -223,34 +234,54 @@ class LeituraArquivoController extends Controller
                 ->First();
 
 
+            if ($lancamento) {
                 $dataLancamento_carbon = Carbon::createFromDate($lancamento->DataContabilidade);
                 $dataLancamento = $dataLancamento_carbon->format('Y/m/d');
-                if ($lancamento) {
-                    $data_conta_debito_bloqueio = $lancamento->ContaDebito->Bloqueiodataanterior;
-                    if ($data_conta_debito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
-                        session(['Lancamento' => 'Conta DÉBITO: ' . $lancamento->ContaDebito->PlanoConta->Descricao
-                        . ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
-                         da conta para seguir este procedimento. Bloqueada para até '
-                          . $data_conta_debito_bloqueio->format("d/m/Y")
-                          . '! Encontrado lançamento na linha '
-                          .$linha  ]);
-                        return redirect(route('LeituraArquivo.index'));
-                    }
+                $data_conta_debito_bloqueio = $lancamento->ContaDebito->Bloqueiodataanterior;
+                if ($data_conta_debito_bloqueio == null) {
+                    session([
+                        'Lancamento' =>
+                            'Conta DÉBITO: ' .
+                            $lancamento->ContaDebito->PlanoConta->Descricao .
+                            ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                         da conta para seguir este procedimento. Bloqueada para até NULA' .
+                            '! Encontrado lançamento na linha ' .
+                            $linha,
+                    ]);
+                    return redirect(route('LeituraArquivo.index'));
                 }
 
-                if ($lancamento) {
-                    $data_conta_credito_bloqueio = $lancamento->ContaCredito->Bloqueiodataanterior;
-                     if ($data_conta_credito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
-
-                        session(['Lancamento' => 'Conta CRÉDITO: ' . $lancamento->ContaCredito->PlanoConta->Descricao .
-                         ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio da
-                          conta para seguir este procedimento. Bloqueada para até '
-                          . $data_conta_credito_bloqueio->format("d/m/Y")
-                          . '! Encontrado lançamento na linha '
-                          .$linha  ]);
-                        return redirect(route('LeituraArquivo.index'));
-                    }
+                if ($data_conta_debito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
+                    session([
+                        'Lancamento' =>
+                            'Conta DÉBITO: ' .
+                            $lancamento->ContaDebito->PlanoConta->Descricao .
+                            ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                         da conta para seguir este procedimento. Bloqueada para até ' .
+                            $data_conta_debito_bloqueio->format('d/m/Y') .
+                            '! Encontrado lançamento na linha ' .
+                            $linha,
+                    ]);
+                    return redirect(route('LeituraArquivo.index'));
                 }
+            }
+
+            if ($lancamento) {
+                $data_conta_credito_bloqueio = $lancamento->ContaCredito->Bloqueiodataanterior;
+                if ($data_conta_credito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
+                    session([
+                        'Lancamento' =>
+                            'Conta CRÉDITO: ' .
+                            $lancamento->ContaCredito->PlanoConta->Descricao .
+                            ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio da
+                          conta para seguir este procedimento. Bloqueada para até ' .
+                            $data_conta_credito_bloqueio->format('d/m/Y') .
+                            '! Encontrado lançamento na linha ' .
+                            $linha,
+                    ]);
+                    return redirect(route('LeituraArquivo.index'));
+                }
+            }
 
 
             if ($lancamento) {
@@ -259,13 +290,16 @@ class LeituraArquivoController extends Controller
             } else {
                 if ($Parcela) {
                     $DescricaoCompleta = $arraydatanova['Descricao'] . ' Parcela ' . $Parcela;
-
                 } else {
                     $DescricaoCompleta = $arraydatanova['Descricao'];
                 }
 
+
+
+                // dd($arraydatanova);
+
                 Lancamento::create([
-                    'Valor' => ($valorString = $arraydatanova['valor_formatado']),
+                    'Valor' => ($valorString = $valor_formatado),
                     'EmpresaID' => $Empresa,
                     'ContaDebitoID' => $DespesaContaDebitoID,
                     'ContaCreditoID' => $ContaCartao,
@@ -274,7 +308,6 @@ class LeituraArquivoController extends Controller
                     'DataContabilidade' => $Data,
                     'HistoricoID' => '',
                 ]);
-
 
                 session(['Lancamento' => 'Lancamentos criados!']);
             }
@@ -336,20 +369,19 @@ class LeituraArquivoController extends Controller
 
     public function SelecionaLinha(Request $request)
     {
-
         // Caminho do arquivo da planilha
-// // $caminho_arquivo = storage_path('app/contabilidade/sicredi.csv');
+        // // $caminho_arquivo = storage_path('app/contabilidade/sicredi.csv');
 
-         /////// aqui fica na pasta temporário /temp/    - apaga
-         $path = $request->file('arquivo')->getRealPath();
+        /////// aqui fica na pasta temporário /temp/    - apaga
+        $path = $request->file('arquivo')->getRealPath();
 
-         $file = $request->file('arquivo');
-         $Complemento = $request->complemento;
-         $name = $file->getClientOriginalName();
-         $extension = $file->getClientOriginalExtension();
-         $caminho_arquivo = $path;
-        
-          if ($extension != "txt" && $extension != "csv" && $extension != "xlsx") {
+        $file = $request->file('arquivo');
+        $Complemento = $request->complemento;
+        $name = $file->getClientOriginalName();
+        $extension = $file->getClientOriginalExtension();
+        $caminho_arquivo = $path;
+
+        if ($extension != 'txt' && $extension != 'csv' && $extension != 'xlsx') {
             session(['Lancamento' => 'Arquivo considerado não compatível para este procedimento! Apresentado o último enviado. ATENÇÃO!']);
             return redirect(route('LeituraArquivo.index'));
         }
@@ -409,7 +441,7 @@ class LeituraArquivoController extends Controller
 
         $valor_sem_simbolo = '';
         if ($primeiro_caractere === '-') {
-            $valor_sem_simbolo = substr($linha_valor, 4); // Extrai a string sem o símbolo "R$"
+            $valor_sem_simbolo = substr($linha_valor, 3); // Extrai a string sem o símbolo "R$"
             // dd($valor_sem_simbolo);
         } else {
             // dd("O valor não começa com 'R'.");
@@ -460,22 +492,19 @@ class LeituraArquivoController extends Controller
         if ($lancamento) {
             $data_conta_debito_bloqueio = $lancamento->ContaDebito->Bloqueiodataanterior;
             if ($data_conta_debito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
-                session(['Lancamento' => 'Conta DÉBITO: ' . $lancamento->ContaDebito->PlanoConta->Descricao . ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio da conta para seguir este procedimento. Bloqueada para até ' . $data_conta_debito_bloqueio->format("d/m/Y") . '!']);
+                session(['Lancamento' => 'Conta DÉBITO: ' . $lancamento->ContaDebito->PlanoConta->Descricao . ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio da conta para seguir este procedimento. Bloqueada para até ' . $data_conta_debito_bloqueio->format('d/m/Y') . '!']);
                 return redirect(route('LeituraArquivo.index'));
             }
         }
 
         if ($lancamento) {
-
             $data_conta_credito_bloqueio = $lancamento->ContaCredito->Bloqueiodataanterior;
-             if ($data_conta_credito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
-
-                session(['Lancamento' => 'Conta CRÉDITO: ' . $lancamento->ContaCredito->PlanoConta->Descricao . ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio da conta para seguir este procedimento. Bloqueada para até ' . $data_conta_credito_bloqueio->format("d/m/Y") . '!']);
+            if ($data_conta_credito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
+                session(['Lancamento' => 'Conta CRÉDITO: ' . $lancamento->ContaCredito->PlanoConta->Descricao . ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio da conta para seguir este procedimento. Bloqueada para até ' . $data_conta_credito_bloqueio->format('d/m/Y') . '!']);
 
                 return redirect(route('LeituraArquivo.index'));
             }
         }
-
 
         if ($lancamento) {
             // dd($lancamento);

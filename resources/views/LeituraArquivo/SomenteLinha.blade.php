@@ -50,7 +50,7 @@
 
                                 <div class="badge bg-warning text-wrap" style="width: 100%; font-size: 24px; color: black; text-align: center;">
 
-                                        <input type="file" required class="btn btn-danger" name="arquivo">
+                                        <input type="file" required class="btn btn-info" name="arquivo">
                                         <p class="my-2">
                                             <button type="submit" class="btn btn-info">Enviar o arquivo para a pasta do sistema e consultar por linha.</button>
                                         </p>
@@ -65,7 +65,7 @@
                             <label for="fim">Arquivo para selecionar</label>
                             <div class="badge bg-warning text-wrap"
                                 style="width: 100%; font-size: 24px; color: black; text-align: center;">
-                                <input type="file" required class="btn btn-danger" name="arquivo">
+                                <input type="file" required class="btn btn-success" name="arquivo">
 
 
 
