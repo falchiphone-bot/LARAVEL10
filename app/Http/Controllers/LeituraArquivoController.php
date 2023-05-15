@@ -85,12 +85,18 @@ class LeituraArquivoController extends Controller
 
         /////// aqui fica na pasta temporário /temp/    - apaga
         $path = $request->file('arquivo')->getRealPath();
-
         $file = $request->file('arquivo');
+        $extension = $file->getClientOriginalExtension();
+
         $Complemento = $request->complemento;
         $name = $file->getClientOriginalName();
-        $extension = $file->getClientOriginalExtension();
         $caminho = $path;
+          if ($extension != "txt" && $extension != "csv" && $extension != "xlsx") {
+            session(['Lancamento' => 'Arquivo considerado não compatível para este procedimento! Apresentado o último enviado. ATENÇÃO!']);
+            return redirect(route('LeituraArquivo.index'));
+        }
+        copy($path, storage_path('app/contabilidade/sicredi.csv'));
+
 
         // Abre o arquivo Excel
         $spreadsheet = IOFactory::load($caminho);
@@ -155,7 +161,7 @@ class LeituraArquivoController extends Controller
 
         $novadata = array_slice($cellData, 19);
         // $novadata = array_slice($cellData, 152);
-   
+
         ///// CONFERE SE EMPRESA BLOQUEADA
         $Empresa = '11';
         $EmpresaBloqueada = Empresa::find($Empresa);
@@ -331,13 +337,6 @@ class LeituraArquivoController extends Controller
     public function SelecionaLinha(Request $request)
     {
 
-        if ($request->linha == null) {
-            $arquivo = $request->file('arquivo');
-            $path = $request->file('arquivo')->getRealPath();
-            return redirect(route('LeituraArquivo.SelecionaDatas'))->with('arquivo', $path);
-        }
-
-
         // Caminho do arquivo da planilha
 // // $caminho_arquivo = storage_path('app/contabilidade/sicredi.csv');
 
@@ -349,7 +348,12 @@ class LeituraArquivoController extends Controller
          $name = $file->getClientOriginalName();
          $extension = $file->getClientOriginalExtension();
          $caminho_arquivo = $path;
-// dd($path,$Complemento,$name,$extension);
+        
+          if ($extension != "txt" && $extension != "csv" && $extension != "xlsx") {
+            session(['Lancamento' => 'Arquivo considerado não compatível para este procedimento! Apresentado o último enviado. ATENÇÃO!']);
+            return redirect(route('LeituraArquivo.index'));
+        }
+        copy($path, storage_path('app/contabilidade/sicredi.csv'));
 
         // Carregar o arquivo da planilha
         $planilha = IOFactory::load($caminho_arquivo);

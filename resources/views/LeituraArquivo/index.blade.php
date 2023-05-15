@@ -29,9 +29,9 @@
 
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                     <a class="btn btn-warning" href="/Contabilidade">Retornar a lista de opções</a>
-                    <a class="btn btn-primary" href="/LeituraArquivo/SelecionaDatas">Selecionar datas e conciliar cartão de crédito</a>
+                    {{-- <a class="btn btn-primary" href="/LeituraArquivo">Último arquivo enviado de extrado cartão de crédito</a> --}}
 
-                    <a class="btn btn-secondary" href="/LeituraArquivo/SomenteLinha">Selecionar linha e conciliar cartão de crédito</a>
+                    <a class="btn btn-secondary" href="/LeituraArquivo/SomenteLinha">Selecionar linha, ou enviar arquivo e conciliar extrato cartão de crédito</a>
                 </nav>
 
 
