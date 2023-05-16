@@ -461,16 +461,17 @@ class LeituraArquivoController extends Controller
         $Data_bloqueada = $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y');
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+        $Saldo = 0;
         foreach ($novadata as $PegaLinha => $item) {
             $Data = $item[1];
 
             $Descricao = $item[2];
 
-            $linha = $PegaLinha + 12; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
+
+            $linha = $PegaLinha + 11; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
             if ($Data == '') {
                 session([
-                    'Lancamento' => 'Terminado na linha ' . $linha,
+                    'Lancamento' => 'Terminado na linha ' . $linha . ". Saldo de: ".$Saldo,
                 ]);
                 return redirect(route('LeituraArquivo.index'));
             }
@@ -505,13 +506,14 @@ class LeituraArquivoController extends Controller
 
             $Descricao = $item[2];
             $Parcela = $item[3];
-
+            $Saldo = $item[5];
             $primeirosCincoDeParcela = substr($Parcela, 0, 5);
             if ($primeirosCincoDeParcela == 'COB00') {
                 continue;
             }
 
             $Valor = $item[4];
+
 
             $valor_str = strval($Valor);
 
