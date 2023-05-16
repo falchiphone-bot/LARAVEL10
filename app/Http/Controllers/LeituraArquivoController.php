@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\SaldoLancamentoHelper;
 use App\Models\Empresa;
 use App\Models\Lancamento;
 use App\Models\Conta;
@@ -15,6 +16,7 @@ use Illuminate\Support\Collection;
 use PhpParser\Node\Stmt\Foreach_;
 use Livewire\Component;
 use PhpParser\Node\Stmt\Continue_;
+use Ramsey\Uuid\Type\Decimal;
 
 use function Pest\Laravel\get;
 
@@ -458,7 +460,7 @@ class LeituraArquivoController extends Controller
             }
         }
 
-        $novadata = array_slice($cellData, 11);
+        $novadata = array_slice($cellData, 10);
         // $novadata = array_slice($cellData, 152);
 
         ///// CONFERE SE EMPRESA BLOQUEADA
@@ -467,18 +469,54 @@ class LeituraArquivoController extends Controller
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         $Saldo = 0;
+        $DataInicial = null;
+
         foreach ($novadata as $PegaLinha => $item) {
+            // echo $PegaLinha ."<br>";
+            //     foreach ($item as $key => $value) {
+            //         echo $value ." | ";
+            //     }
+
+
             $Data = $item[1];
 
+            if($DataInicial == null){
+                $DataInicial = $Data;
+            }
             $Descricao = $item[2];
 
 
-            $linha = $PegaLinha + 11; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
+            $linha = $PegaLinha + 10; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
+
+
             if ($Data == '') {
+
+                $SaldoAnterior = SaldoLancamentoHelper::Anterior($DataInicial, $Conta, $Empresa);
+                $SaldoDia = SaldoLancamentoHelper::Dia($DataInicial, $Conta, $Empresa);
+                $SaldoAtual = $SaldoAnterior + $SaldoDia;
+
+                $DiferecaSaldo = number_format($Saldo - $SaldoAtual);
+
+
+
+
+
+                if($DiferecaSaldo == 0){
+                    $TextoConciliado = "CONCILIAÇÃO COM EXATIDÃO DE SALDOS.";
+                }else{
+                    $TextoConciliado = "SALDOS NÃO CONFEREM! VERIFIQUE!";
+                }
+
                 session([
-                    'Lancamento' => 'Terminado na linha ' . $linha . ". Saldo de: ".$Saldo,
+                    'Lancamento' => 'Terminado na linha ' . $linha . ". Saldo no extrato bancário de: ".$Saldo
+                    ." Saldo atual no sistema contábil de ".$SaldoAtual
+                    ." = ".$TextoConciliado,
                 ]);
+
+
+
                 return redirect(route('LeituraArquivo.index'));
+
             }
             if (strpos($Descricao, 'CREDITO CASH BACK') !== false) {
                 //// se contiver, conter o texto na variável
@@ -486,9 +524,27 @@ class LeituraArquivoController extends Controller
                 continue;
             } elseif (strpos($Descricao, 'PAGAMENTO DEBITO EM') !== false) {
                 //// se contiver, conter o texto na variável
-
                 continue;
-            }
+            } elseif (strpos(trim($Descricao), 'LIQ.COBRANCA SIMPLES') !== false) {
+                //// se contiver, conter o texto na variável
+                // $lancamento = Lancamento::where('DataContabilidade', $item[1])
+                //     ->where('Valor', $item[4])
+                //     ->where('EmpresaID', $Empresa)
+                //     ->where('ContaDebitoID', $Conta)
+                //     ->First();
+                //     // DD($lancamento);
+                //     session([
+                //         'Lancamento' =>
+                //             'Lançamento não encontrado no sistema contábil!'.
+                //             '! Lançamento na linha no extrato de número '.
+                //              $linha.
+                //              " Valor de  ".$item[4]." com descrição de ".trim($Descricao).".",
+                //     ]);
+                //     return redirect(route('LeituraArquivo.index'));
+
+        }
+
+
 
             $carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $Data);
             $linha_data_comparar = $carbon_data->format('Y-m-d');
@@ -513,9 +569,9 @@ class LeituraArquivoController extends Controller
             $Parcela = $item[3];
             $Saldo = $item[5];
             $primeirosCincoDeParcela = substr($Parcela, 0, 5);
-            if ($primeirosCincoDeParcela == 'COB00') {
-                continue;
-            }
+            // if ($primeirosCincoDeParcela == 'COB00') {
+            //     continue;
+            // }
 
             $Valor = $item[4];
 
@@ -563,22 +619,37 @@ class LeituraArquivoController extends Controller
             $valor_formatado = abs($valor_formatado);
 
             $arraydatanova = compact('Data', 'Descricao', 'valor_formatado');
+            //
+            // if ($linha == 13) {
+            //     // if (strpos(trim($Descricao), 'LIQ.COBRANCA SIMPLES') !== false) {
+            //         dd($arraydatanova);
+            //     // }
 
-            if ($linha == 37) {
-                // dd($Valor, $Valor_sem_virgula, $Valor_sem_pontos_virgulas, $valor_numerico, $arraydatanova, $Descricao, $Parcela, $linha);
-                // dd($Valor, $arraydatanova, $Descricao, $Parcela, $linha);
-            }
+            // }
 
             $rowData = $cellData;
             $lancamento = null;
+
+
             if ($Valor_Positivo) {
                 $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
                     ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
                     ->where('EmpresaID', $Empresa)
                     ->where('ContaDebitoID', $Conta)
                     ->First();
+
+                    if($lancamento == null){
+                session([
+                    'Lancamento' =>
+                        'Lançamento não encontrado no sistema contábil!'.
+                        '! Lançamento na linha no extrato de número '.
+                         $linha.
+                         " Valor de  ".$item[4]." com descrição de ".trim($Descricao).".",
+                ]);
+                return redirect(route('LeituraArquivo.index'));
             }
 
+            }
             if ($Valor_Negativo) {
                 $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
                     ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
@@ -587,6 +658,9 @@ class LeituraArquivoController extends Controller
                     ->First();
                 // dd("LANCAMENTO NEGATIVO",$lancamento,$arraydatanova['Data'],$arraydatanova['valor_formatado'],$Empresa,$Conta );
             }
+
+
+
 
             if ($lancamento) {
                 $dataLancamento_carbon = Carbon::createFromDate($lancamento->DataContabilidade);
@@ -688,23 +762,12 @@ class LeituraArquivoController extends Controller
                         'HistoricoID' => $historico->ID,
                     ]);
                 }
-// dd($historico,$Descricao,$Empresa,$NomeEmpresa);
-                // Lancamento::create([
-                //     'Valor' => ($valorString = $valor_formatado),
-                //     'EmpresaID' => $Empresa,
-                //     'ContaDebitoID' => $DespesaContaDebitoID,
-                //     'ContaCreditoID' => $Conta,
-                //     'Descricao' => $DescricaoCompleta,
-                //     'Usuarios_id' => auth()->user()->id,
-                //     'DataContabilidade' => $Data,
-                //     'HistoricoID' => '',
-                // ]);
 
                 session(['Lancamento' => 'Lancamentos criados!']);
             }
         }
 
-        $rowData = $cellData;
+        // $rowData = $cellData;
         //    $rowData = $novadata;
         return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
     }
