@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Empresa;
 use App\Models\Lancamento;
 use App\Models\Conta;
+use App\Models\Historicos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -361,11 +362,15 @@ class LeituraArquivoController extends Controller
         ///////////////////////////// DADOS DA LINHA 1 PARA DEFINIR CONTAS
         $linha_1 = $planilha_ativa->getCell('B' . 1)->getValue();
 
+         ///////////////////////////// DADOS DA LINHA 2 COLUNA 2 PARA DEFINIR CONTAS
+         $linha_2_coluna_2 = $planilha_ativa->getCell('B' . 2)->getValue();
         ///////////////////////////// DADOS DA LINHA 4 COLUNA 2 PARA DEFINIR CONTAS
         $linha_4_coluna_2 = $planilha_ativa->getCell('B' . 4)->getValue();
 
         ///////////////////////////// DADOS DA LINHA 7 PARA DEFINIR CONTAS
         $linha_7 = $planilha_ativa->getCell('A' . 7)->getValue();
+
+        $NomeEmpresa = $linha_2_coluna_2;
 
         // $Conta = null;
         // $DespesaContaDebitoID = null;
@@ -659,25 +664,41 @@ class LeituraArquivoController extends Controller
                 } else {
                     $DescricaoCompleta = $arraydatanova['Descricao'];
                 }
-                // dd($linha_4_coluna_2, 'Linha 303 do código');
 
-                session([
-                    'Lancamento' => 'LANÇAMENTO NÃO ENCONTRADO NO SISTEMA CONTÁBIL. ' . ' Valor: ' . $valor_formatado . ' Descrição: ' . $DescricaoCompleta . ' Encontrado lançamento na linha ' . $linha . ' do extrato.',
-                ]);
-                return redirect(route('LeituraArquivo.index'));
 
-                // dd($arraydatanova);
+                // session([
+                //     'Lancamento' => 'LANÇAMENTO NÃO ENCONTRADO NO SISTEMA CONTÁBIL. ' . ' Valor: ' . $valor_formatado . ' Descrição: ' . $DescricaoCompleta . ' Encontrado lançamento na linha ' . $linha . ' do extrato.',
+                // ]);
+                // return redirect(route('LeituraArquivo.index'));
 
-                Lancamento::create([
-                    'Valor' => ($valorString = $valor_formatado),
-                    'EmpresaID' => $Empresa,
-                    'ContaDebitoID' => $DespesaContaDebitoID,
-                    'ContaCreditoID' => $Conta,
-                    'Descricao' => $DescricaoCompleta,
-                    'Usuarios_id' => auth()->user()->id,
-                    'DataContabilidade' => $Data,
-                    'HistoricoID' => '',
-                ]);
+
+
+                $historico = Historicos::where('EmpresaID', $Empresa)->where('Descricao','like', "%".trim($Descricao)."%")->first();
+
+                if($historico){
+                    Lancamento::create([
+                        'Valor' => ($valorString = $valor_formatado),
+                        'EmpresaID' => $Empresa,
+                        'ContaDebitoID' => $historico->ContaDebitoID,
+                        'ContaCreditoID' => $historico->ContaCreditoID,
+                        'Descricao' => $Parcela,
+                        'Usuarios_id' => auth()->user()->id,
+                        'DataContabilidade' => $Data,
+                        'Conferido' => true,
+                        'HistoricoID' => $historico->ID,
+                    ]);
+                }
+// dd($historico,$Descricao,$Empresa,$NomeEmpresa);
+                // Lancamento::create([
+                //     'Valor' => ($valorString = $valor_formatado),
+                //     'EmpresaID' => $Empresa,
+                //     'ContaDebitoID' => $DespesaContaDebitoID,
+                //     'ContaCreditoID' => $Conta,
+                //     'Descricao' => $DescricaoCompleta,
+                //     'Usuarios_id' => auth()->user()->id,
+                //     'DataContabilidade' => $Data,
+                //     'HistoricoID' => '',
+                // ]);
 
                 session(['Lancamento' => 'Lancamentos criados!']);
             }
