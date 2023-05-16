@@ -75,6 +75,24 @@
                             </p>
                         </form>
  </div>
+
+ <div class="row">
+    <form method="POST" action="/LeituraArquivo/SelecionaDatasExtratoSicrediPJ" enctype="multipart/form-data">
+        @csrf
+        <label for="fim">Arquivo de extrato Sicredi pessoa jurídica - PJ (EMPRESA)</label>
+        <div class="badge bg-warning text-wrap"
+            style="width: 100%; font-size: 24px; color: black; text-align: center;">
+            <input type="file" required class="btn btn-danger" name="arquivo">
+
+
+
+        <p class="my-2">
+            <button type="submit" class="btn btn-danger">Enviar o arquivo extrato PJ para a pasta do sistema e
+                consulta o arquivo total.</button>
+        </p>
+    </form>
+</div>
+
                     </div>
                 </div>
 
