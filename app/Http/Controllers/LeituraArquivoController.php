@@ -13,6 +13,7 @@ use Faker\Core\DateTime;
 use Illuminate\Support\Collection;
 use PhpParser\Node\Stmt\Foreach_;
 use Livewire\Component;
+use PhpParser\Node\Stmt\Continue_;
 
 use function Pest\Laravel\get;
 
@@ -380,12 +381,61 @@ class LeituraArquivoController extends Controller
             $Empresa = 5;
             $DespesaContaDebitoID = '19417';
             $CashBackContaCreditoID = '19417';
+        } elseif ($linha_4_coluna_2 === '11382-9') {
+            $Conta = '19099';
+            $Empresa = 1027;
+            $DespesaContaDebitoID = '19420';
+            $CashBackContaCreditoID = '19420';
+        } elseif ($linha_4_coluna_2 === '53998-8') {
+            $Conta = '5971';
+            $Empresa = 4;
+            $DespesaContaDebitoID = '19421';
+            $CashBackContaCreditoID = '19421';
+        } elseif ($linha_4_coluna_2 === '72334-7') {
+            $Conta = '5863';
+            $Empresa = 1021;
+            $DespesaContaDebitoID = '1942';
+            $CashBackContaCreditoID = '19422';
+
+        } elseif ($linha_4_coluna_2 === '72640-0') {
+            $Conta = '5921';
+            $Empresa = 3;
+            $DespesaContaDebitoID = '19423';
+            $CashBackContaCreditoID = '19423';
+
+        }
+        elseif ($linha_4_coluna_2 === '02069-4') {
+            $Conta = '15314';
+            $Empresa = 1025;
+            $DespesaContaDebitoID = '19424';
+            $CashBackContaCreditoID = '19424';
+
+        }
+        elseif ($linha_4_coluna_2 === '01409-3') {
+            $Conta = '15295';
+            $Empresa = 6;
+            $DespesaContaDebitoID = '19425';
+            $CashBackContaCreditoID = '19425';
+
+        }
+        elseif ($linha_4_coluna_2 === '72335-5') {
+            $Conta = '15251';
+            $Empresa = 11;
+            $DespesaContaDebitoID = '19426';
+            $CashBackContaCreditoID = '19426';
+
+        }
+        elseif ($linha_4_coluna_2 === '72642-7') {
+            $Conta = '15252';
+            $Empresa = 11;
+            $DespesaContaDebitoID = '19426';
+            $CashBackContaCreditoID = '19426';
             // dd($Empresa,' - ',$Conta, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
-        } else {
+        }
+         else {
             session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
             return redirect(route('LeituraArquivo.index'));
         }
-
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         // Array que irá armazenar os dados das células
@@ -415,17 +465,12 @@ class LeituraArquivoController extends Controller
         foreach ($novadata as $PegaLinha => $item) {
             $Data = $item[1];
 
-
-
             $Descricao = $item[2];
 
             $linha = $PegaLinha + 12; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
-            if($Data == '')
-            {
+            if ($Data == '') {
                 session([
-                    'Lancamento'
-                     => 'Terminado: '
-                    .$linha,
+                    'Lancamento' => 'Terminado na linha ' . $linha,
                 ]);
                 return redirect(route('LeituraArquivo.index'));
             }
@@ -460,26 +505,45 @@ class LeituraArquivoController extends Controller
 
             $Descricao = $item[2];
             $Parcela = $item[3];
+
+            $primeirosCincoDeParcela = substr($Parcela, 0, 5);
+            if ($primeirosCincoDeParcela == 'COB00') {
+                continue;
+            }
+
             $Valor = $item[4];
 
-            $valorString = strval($Valor); // Converte o valor para uma string
+            $valor_str = strval($Valor);
 
-            if (strpos($valorString, '.') !== false) {
-                // dd("O valor contém um ponto decimal.");
+            $posicao_ponto = strpos($valor_str, '.');
+            if ($posicao_ponto !== false) {
+                $caracteres_decimal = strlen(substr($valor_str, $posicao_ponto + 1));
+                if ($caracteres_decimal == 1) {
+                    $Valor = $Valor . '0';
+                }
+                // dd("Número de caracteres após o ponto decimal: " . $caracteres_decimal." Valor:".$Valor);
             } else {
-                // dd("O valor não contém um ponto decimal.");
-                $Valor = $Valor * 100;
+                $Valor = $Valor . '00';
+                //    dd("O número não possui parte decimal. ".$Valor);
             }
+
+            // $valorString = strval($Valor); // Converte o valor para uma string
+
+            // if (strpos($valorString, '.') !== false) {
+            //     // dd("O valor contém um ponto decimal.");
+            // } else {
+            //     // dd("O valor não contém um ponto decimal.");
+            //     $Valor = $Valor * 100;
+            // }
 
             $primeiro_caractere = substr($Valor, 0, 1);
             if ($primeiro_caractere !== '-') {
                 $Valor_Positivo = true;
                 $Valor_Negativo = false;
-            }else{
+            } else {
                 $Valor_Positivo = false;
                 $Valor_Negativo = true;
             }
-
 
             $valor_numerico = preg_replace('/[^0-9,.]/', '', $Valor);
             $Valor_sem_virgula = str_replace(',', '', $Valor);
@@ -488,37 +552,34 @@ class LeituraArquivoController extends Controller
 
             $valor_numerico = floatval($Valor_sem_pontos_virgulas) / 100;
             $valor_formatado = number_format($valor_numerico, 2, '.', '');
+
             $valor_formatado = abs($valor_formatado);
+
             $arraydatanova = compact('Data', 'Descricao', 'valor_formatado');
 
-            // dd($Valor,$Valor_sem_virgula,
-            //             $Valor_sem_pontos_virgulas,
-            //             $valor_numerico,$arraydatanova,  $Descricao,$Parcela,$linha  );
+            if ($linha == 37) {
+                // dd($Valor, $Valor_sem_virgula, $Valor_sem_pontos_virgulas, $valor_numerico, $arraydatanova, $Descricao, $Parcela, $linha);
+                // dd($Valor, $arraydatanova, $Descricao, $Parcela, $linha);
+            }
 
             $rowData = $cellData;
             $lancamento = null;
-            if($Valor_Positivo){
+            if ($Valor_Positivo) {
                 $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
-                ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
-                ->where('EmpresaID', $Empresa)
-                ->where('ContaDebitoID', $Conta)
-                ->First();
-            //    dd("LANCAMENTO POSITIVO",$lancamento,$arraydatanova['Data'],$arraydatanova['valor_formatado'],$Empresa,$Conta );
-
+                    ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
+                    ->where('EmpresaID', $Empresa)
+                    ->where('ContaDebitoID', $Conta)
+                    ->First();
             }
 
-            if($Valor_Negativo){
-                 $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
-                ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
-                ->where('EmpresaID', $Empresa)
-                ->where('ContaCreditoID', $Conta)
-                ->First();
+            if ($Valor_Negativo) {
+                $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
+                    ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
+                    ->where('EmpresaID', $Empresa)
+                    ->where('ContaCreditoID', $Conta)
+                    ->First();
                 // dd("LANCAMENTO NEGATIVO",$lancamento,$arraydatanova['Data'],$arraydatanova['valor_formatado'],$Empresa,$Conta );
-
             }
-
-
-
 
             if ($lancamento) {
                 $dataLancamento_carbon = Carbon::createFromDate($lancamento->DataContabilidade);
@@ -552,9 +613,7 @@ class LeituraArquivoController extends Controller
                 }
             }
 
-
             if ($lancamento) {
-
                 $data_conta_credito_bloqueio = $lancamento->ContaCredito->Bloqueiodataanterior;
                 if ($data_conta_credito_bloqueio == null) {
                     session([
@@ -589,8 +648,8 @@ class LeituraArquivoController extends Controller
 
                 Lancamento::where('id', $idDoLancamento)->update([
                     'Conferido' => true,
-                    ]);
-                    // dd($lancamento);
+                ]);
+                // dd($lancamento);
                 session(['Lancamento' => 'Nenhum lançamento criado!']);
             } else {
                 if ($Parcela) {
@@ -600,11 +659,10 @@ class LeituraArquivoController extends Controller
                 }
                 // dd($linha_4_coluna_2, 'Linha 303 do código');
 
-                    session([
-                        'Lancamento' => 'LANÇAMENTO NÃO ENCONTRADO NO SISTEMA CONTÁBIL. ' . ' Valor: ' . $valor_formatado . ' Descrição: ' . $DescricaoCompleta . ' Encontrado lançamento na linha ' . $linha . ' do extrato.',
-                    ]);
-                    return redirect(route('LeituraArquivo.index'));
-
+                session([
+                    'Lancamento' => 'LANÇAMENTO NÃO ENCONTRADO NO SISTEMA CONTÁBIL. ' . ' Valor: ' . $valor_formatado . ' Descrição: ' . $DescricaoCompleta . ' Encontrado lançamento na linha ' . $linha . ' do extrato.',
+                ]);
+                return redirect(route('LeituraArquivo.index'));
 
                 // dd($arraydatanova);
 
