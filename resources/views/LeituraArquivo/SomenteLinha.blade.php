@@ -83,10 +83,17 @@
         <div class="badge bg-warning text-wrap"
             style="width: 100%; font-size: 24px; color: black; text-align: center;">
             <input type="file" required class="btn btn-danger" name="arquivo">
-
-            <input type="checkbox" name="vercriarlancamento" value="1">
-            <label for="checkbox_enviar">Ver se vai criar lançamento</label>
             <br>
+            <input type="checkbox" name="vercriarlancamentocomhistorico" value="1">
+            <label for="checkbox_enviar">Ver se vai criar lançamento com histórico ou não</label>
+            <br>
+            <input type="checkbox" name="vercriarlancamento" value="1">
+            <label for="checkbox_enviar">Ver se vai criar lançamento sem histórico pré-programado</label>
+            <br>
+            <input type="checkbox" name="criarlancamentosemhistorico" value="1">
+            <label for="checkbox_enviar">Autorizar criar lançamento sem histórico pré-programado</label>
+            <br>
+
 
 
         <p class="my-2">
