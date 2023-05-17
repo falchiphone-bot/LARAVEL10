@@ -84,6 +84,9 @@
             style="width: 100%; font-size: 24px; color: black; text-align: center;">
             <input type="file" required class="btn btn-danger" name="arquivo">
 
+            <input type="checkbox" name="vercriarlancamento" value="1">
+            <label for="checkbox_enviar">Ver se vai criar lançamento</label>
+            <br>
 
 
         <p class="my-2">

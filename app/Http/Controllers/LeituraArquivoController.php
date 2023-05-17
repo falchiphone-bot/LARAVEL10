@@ -364,8 +364,8 @@ class LeituraArquivoController extends Controller
         ///////////////////////////// DADOS DA LINHA 1 PARA DEFINIR CONTAS
         $linha_1 = $planilha_ativa->getCell('B' . 1)->getValue();
 
-         ///////////////////////////// DADOS DA LINHA 2 COLUNA 2 PARA DEFINIR CONTAS
-         $linha_2_coluna_2 = $planilha_ativa->getCell('B' . 2)->getValue();
+        ///////////////////////////// DADOS DA LINHA 2 COLUNA 2 PARA DEFINIR CONTAS
+        $linha_2_coluna_2 = $planilha_ativa->getCell('B' . 2)->getValue();
         ///////////////////////////// DADOS DA LINHA 4 COLUNA 2 PARA DEFINIR CONTAS
         $linha_4_coluna_2 = $planilha_ativa->getCell('B' . 4)->getValue();
 
@@ -403,43 +403,33 @@ class LeituraArquivoController extends Controller
             $Empresa = 1021;
             $DespesaContaDebitoID = '1942';
             $CashBackContaCreditoID = '19422';
-
         } elseif ($linha_4_coluna_2 === '72640-0') {
             $Conta = '5921';
             $Empresa = 3;
             $DespesaContaDebitoID = '19423';
             $CashBackContaCreditoID = '19423';
-
-        }
-        elseif ($linha_4_coluna_2 === '02069-4') {
+        } elseif ($linha_4_coluna_2 === '02069-4') {
             $Conta = '15314';
             $Empresa = 1025;
             $DespesaContaDebitoID = '19424';
             $CashBackContaCreditoID = '19424';
-
-        }
-        elseif ($linha_4_coluna_2 === '01409-3') {
+        } elseif ($linha_4_coluna_2 === '01409-3') {
             $Conta = '15295';
             $Empresa = 6;
             $DespesaContaDebitoID = '19425';
             $CashBackContaCreditoID = '19425';
-
-        }
-        elseif ($linha_4_coluna_2 === '72335-5') {
+        } elseif ($linha_4_coluna_2 === '72335-5') {
             $Conta = '15251';
             $Empresa = 11;
             $DespesaContaDebitoID = '19426';
             $CashBackContaCreditoID = '19426';
-
-        }
-        elseif ($linha_4_coluna_2 === '72642-7') {
+        } elseif ($linha_4_coluna_2 === '72642-7') {
             $Conta = '15252';
             $Empresa = 11;
             $DespesaContaDebitoID = '19426';
             $CashBackContaCreditoID = '19426';
             // dd($Empresa,' - ',$Conta, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
-        }
-         else {
+        } else {
             session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
             return redirect(route('LeituraArquivo.index'));
         }
@@ -477,46 +467,33 @@ class LeituraArquivoController extends Controller
             //         echo $value ." | ";
             //     }
 
-
             $Data = $item[1];
 
-            if($DataInicial == null){
+            if ($DataInicial == null) {
                 $DataInicial = $Data;
             }
             $Descricao = $item[2];
 
-
             $linha = $PegaLinha + 10; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
 
-
             if ($Data == '') {
-
                 $SaldoAnterior = SaldoLancamentoHelper::Anterior($DataInicial, $Conta, $Empresa);
                 $SaldoDia = SaldoLancamentoHelper::Dia($DataInicial, $Conta, $Empresa);
                 $SaldoAtual = $SaldoAnterior + $SaldoDia;
 
                 $DiferecaSaldo = number_format($Saldo - $SaldoAtual);
 
-
-
-
-
-                if($DiferecaSaldo == 0){
-                    $TextoConciliado = "CONCILIAÇÃO COM EXATIDÃO DE SALDOS.";
-                }else{
-                    $TextoConciliado = "SALDOS NÃO CONFEREM! VERIFIQUE!";
+                if ($DiferecaSaldo == 0) {
+                    $TextoConciliado = 'CONCILIAÇÃO COM EXATIDÃO DE SALDOS.';
+                } else {
+                    $TextoConciliado = 'SALDOS NÃO CONFEREM! VERIFIQUE!';
                 }
 
                 session([
-                    'Lancamento' => 'Terminado na linha ' . $linha . ". Saldo no extrato bancário de: ".$Saldo
-                    ." Saldo atual no sistema contábil de ".$SaldoAtual
-                    ." = ".$TextoConciliado,
+                    'Lancamento' => 'Terminado na linha ' . $linha . '. Saldo no extrato bancário de: ' . $Saldo . ' Saldo atual no sistema contábil de ' . $SaldoAtual . ' = ' . $TextoConciliado,
                 ]);
 
-
-
                 return redirect(route('LeituraArquivo.index'));
-
             }
             if (strpos($Descricao, 'CREDITO CASH BACK') !== false) {
                 //// se contiver, conter o texto na variável
@@ -541,8 +518,11 @@ class LeituraArquivoController extends Controller
                 //              " Valor de  ".$item[4]." com descrição de ".trim($Descricao).".",
                 //     ]);
                 //     return redirect(route('LeituraArquivo.index'));
-
-        }
+            }
+            elseif (strpos($Descricao, 'TARIFA COM R LIQUIDACAO') !== false) {
+                //// se contiver, conter o texto na variável
+                 continue;
+            }
 
 
 
@@ -574,7 +554,6 @@ class LeituraArquivoController extends Controller
             // }
 
             $Valor = $item[4];
-
 
             $valor_str = strval($Valor);
 
@@ -630,7 +609,6 @@ class LeituraArquivoController extends Controller
             $rowData = $cellData;
             $lancamento = null;
 
-
             if ($Valor_Positivo) {
                 $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
                     ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
@@ -638,18 +616,14 @@ class LeituraArquivoController extends Controller
                     ->where('ContaDebitoID', $Conta)
                     ->First();
 
-                    if($lancamento == null){
-                session([
-                    'Lancamento' =>
-                        'Lançamento não encontrado no sistema contábil!'.
-                        '! Lançamento na linha no extrato de número '.
-                         $linha.
-                         " Valor de  ".$item[4]." com descrição de ".trim($Descricao).".",
-                ]);
-                return redirect(route('LeituraArquivo.index'));
+                // if ($lancamento == null) {
+                //     session([
+                //         'Lancamento' => 'Lançamento não encontrado no sistema contábil!' . '! Lançamento na linha no extrato de número ' . $linha . ' Valor de  ' . $item[4] . ' com descrição de ' . trim($Descricao) . '.',
+                //     ]);
+                //     return redirect(route('LeituraArquivo.index'));
+                // }
             }
 
-            }
             if ($Valor_Negativo) {
                 $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
                     ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
@@ -659,98 +633,100 @@ class LeituraArquivoController extends Controller
                 // dd("LANCAMENTO NEGATIVO",$lancamento,$arraydatanova['Data'],$arraydatanova['valor_formatado'],$Empresa,$Conta );
             }
 
-
-
-
-            if ($lancamento) {
-                $dataLancamento_carbon = Carbon::createFromDate($lancamento->DataContabilidade);
-                $dataLancamento = $dataLancamento_carbon->format('Y/m/d');
-                $data_conta_debito_bloqueio = $lancamento->ContaDebito->Bloqueiodataanterior;
-                if ($data_conta_debito_bloqueio == null) {
-                    session([
-                        'Lancamento' =>
-                            'Conta DÉBITO: ' .
-                            $lancamento->ContaDebito->PlanoConta->Descricao .
-                            ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
-                         da conta para seguir este procedimento. Bloqueada para até NULA' .
-                            '! Encontrado lançamento na linha ' .
-                            $linha,
-                    ]);
-                    return redirect(route('LeituraArquivo.index'));
-                }
-
-                if ($data_conta_debito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
-                    session([
-                        'Lancamento' =>
-                            'Conta DÉBITO: ' .
-                            $lancamento->ContaDebito->PlanoConta->Descricao .
-                            ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
-                         da conta para seguir este procedimento. Bloqueada para até ' .
-                            $data_conta_debito_bloqueio->format('d/m/Y') .
-                            '! Encontrado lançamento na linha ' .
-                            $linha,
-                    ]);
-                    return redirect(route('LeituraArquivo.index'));
-                }
-            }
-
-            if ($lancamento) {
-                $data_conta_credito_bloqueio = $lancamento->ContaCredito->Bloqueiodataanterior;
-                if ($data_conta_credito_bloqueio == null) {
-                    session([
-                        'Lancamento' =>
-                            'Conta CRÉDITO: ' .
-                            $lancamento->ContaCredito->PlanoConta->Descricao .
-                            ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
-                         da conta para seguir este procedimento. Bloqueada para até NULA' .
-                            '! Encontrado lançamento na linha ' .
-                            $linha,
-                    ]);
-                    return redirect(route('LeituraArquivo.index'));
-                }
-
-                if ($data_conta_credito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
-                    session([
-                        'Lancamento' =>
-                            'Conta CRÉDITO: ' .
-                            $lancamento->ContaCredito->PlanoConta->Descricao .
-                            ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio da
-                          conta para seguir este procedimento. Bloqueada para até ' .
-                            $data_conta_credito_bloqueio->format('d/m/Y') .
-                            '! Encontrado lançamento na linha ' .
-                            $linha,
-                    ]);
-                    return redirect(route('LeituraArquivo.index'));
-                }
-            }
-
             if ($lancamento) {
                 $idDoLancamento = $lancamento->ID;
 
                 Lancamento::where('id', $idDoLancamento)->update([
                     'Conferido' => true,
                 ]);
-                // dd($lancamento);
+
                 session(['Lancamento' => 'Nenhum lançamento criado!']);
             } else {
+
                 if ($Parcela) {
                     $DescricaoCompleta = $arraydatanova['Descricao'] . ' Parcela ' . $Parcela;
                 } else {
                     $DescricaoCompleta = $arraydatanova['Descricao'];
                 }
 
-
                 // session([
                 //     'Lancamento' => 'LANÇAMENTO NÃO ENCONTRADO NO SISTEMA CONTÁBIL. ' . ' Valor: ' . $valor_formatado . ' Descrição: ' . $DescricaoCompleta . ' Encontrado lançamento na linha ' . $linha . ' do extrato.',
                 // ]);
                 // return redirect(route('LeituraArquivo.index'));
 
+                $historico = Historicos::where('EmpresaID', $Empresa)
+                    ->where('Descricao', 'like', '%' . trim($Descricao) . '%')
+                    ->first();
+                $Conferir_Bloqueio = false;
+                if($request->vercriarlancamento){
+                    exit("Lançamento sendo criado! ".$historico);
+                }
 
 
-                $historico = Historicos::where('EmpresaID', $Empresa)->where('Descricao','like', "%".trim($Descricao)."%")->first();
+                if ($historico) {
+                                                if ($Conferir_Bloqueio == true) {
+                                                    $dataLancamento_carbon = Carbon::createFromDate($lancamento->DataContabilidade);
+                                                    $dataLancamento = $dataLancamento_carbon->format('Y/m/d');
+                                                    $data_conta_debito_bloqueio = $lancamento->ContaDebito->Bloqueiodataanterior;
+                                                    if ($data_conta_debito_bloqueio == null) {
+                                                        session([
+                                                            'Lancamento' =>
+                                                                'Conta DÉBITO: ' .
+                                                                $lancamento->ContaDebito->PlanoConta->Descricao .
+                                                                ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                                                                da conta para seguir este procedimento. Bloqueada para até NULA' .
+                                                                '! Encontrado lançamento na linha ' .
+                                                                $linha,
+                                                        ]);
+                                                        return redirect(route('LeituraArquivo.index'));
+                                                    }
 
-                if($historico){
-                    Lancamento::create([
+                                                    if ($data_conta_debito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
+                                                        session([
+                                                            'Lancamento' =>
+                                                                'Conta DÉBITO: ' .
+                                                                $lancamento->ContaDebito->PlanoConta->Descricao .
+                                                                ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                                                                da conta para seguir este procedimento. Bloqueada para até ' .
+                                                                $data_conta_debito_bloqueio->format('d/m/Y') .
+                                                                '! Encontrado lançamento na linha ' .
+                                                                $linha,
+                                                        ]);
+                                                        return redirect(route('LeituraArquivo.index'));
+                                                    }
+
+                                                    $data_conta_credito_bloqueio = $lancamento->ContaCredito->Bloqueiodataanterior;
+                                                    if ($data_conta_credito_bloqueio == null) {
+                                                        session([
+                                                            'Lancamento' =>
+                                                                'Conta CRÉDITO: ' .
+                                                                $lancamento->ContaCredito->PlanoConta->Descricao .
+                                                                ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                                                                da conta para seguir este procedimento. Bloqueada para até NULA' .
+                                                                '! Encontrado lançamento na linha ' .
+                                                                $linha,
+                                                        ]);
+                                                        return redirect(route('LeituraArquivo.index'));
+                                                    }
+
+                                                    if ($data_conta_credito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
+                                                        session([
+                                                            'Lancamento' =>
+                                                                'Conta CRÉDITO: ' .
+                                                                $lancamento->ContaCredito->PlanoConta->Descricao .
+                                                                ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio da
+                                                                conta para seguir este procedimento. Bloqueada para até ' .
+                                                                $data_conta_credito_bloqueio->format('d/m/Y') .
+                                                                '! Encontrado lançamento na linha ' .
+                                                                $linha,
+                                                        ]);
+                                                        return redirect(route('LeituraArquivo.index'));
+                                                    }
+                                                }
+
+
+
+                     Lancamento::create([
                         'Valor' => ($valorString = $valor_formatado),
                         'EmpresaID' => $Empresa,
                         'ContaDebitoID' => $historico->ContaDebitoID,
@@ -764,6 +740,9 @@ class LeituraArquivoController extends Controller
                 }
 
                 session(['Lancamento' => 'Lancamentos criados!']);
+
+
+
             }
         }
 
