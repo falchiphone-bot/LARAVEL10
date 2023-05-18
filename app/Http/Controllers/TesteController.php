@@ -40,11 +40,8 @@ class TesteController extends Controller
      */
     public function index()
     {
-        $teste = Storage::disk('ftp')->download('/webroot/contabilidade/teste.txt');
-        return $teste;
-
-
-        // $testes = Storage::disk('ftp')->put('/webroot/contabilidade/teste.txt', rand(10,100));
+        $dd = Storage::disk('google')->put('hello2.txt','hello world2');
+        dd($dd);
     }
 
     /**

@@ -58,22 +58,28 @@ class ArquivoLancamento extends Component
             'rotulo' => 'required',
         ]);
         foreach ($this->arquivos as $arquivo) {
-            $file = $arquivo->store('lancamentos', 'ftp');
+            // dd($arquivo->get());
+            // $file = $arquivo->store('lancamentos', 'ftp');
+
+            // $file = $arquivo->disk('google')->store('lancamentos', 'ftp');
+            $file = Storage::disk('google')->put($arquivo->getFilename(), $arquivo->get());
             if ($file) {
                 $ld = LancamentoDocumento::create([
                     'Rotulo' => $this->rotulo,
                     'LancamentoID' => $this->lancamentoID,
-                    'Nome' => explode('.', $file)[0],
+                    'Nome' => explode('.', $arquivo->getFilename())[0],
                     'Created' => date('d-m-Y H:i:s'),
                     'UsuarioID' => Auth::user()->id,
-                    'Ext' => explode('.', $file)[1],
+                    'Ext' => explode('.', $arquivo->getFilename())[1],
                 ]);
                 if (!$ld) {
                     Storage::drive('ftp')->delete($file);
                 }
+                session()->flash('message', 'Arquivo(s) adicionado.');
+            }else {
+                $this->addError('upload','Erro ao fazer upload do arquivo.');
             }
         }
-        session()->flash('message', 'Arquivo(s) adicionado.');
         $this->mount($this->lancamentoID);
     }
 
