@@ -14,8 +14,14 @@
                         <div class="invalid-feedback">Arquivo inválido</div>
                     </div>
                 </div>
-                <div class="col-sm-12 mt-3">
-                    <button type="submit" class="btn btn-primary">Inserir novo arquivo</button>
+                <div wire:loading.remove class="col-sm-12 mt-3">
+                    <button type="submit" class="btn btn-primary">Enviar novo arquivo</button>
+                </div>
+                <div class="col-sm-12 mt-3" wire:loading>
+                    <button class="btn btn-primary" type="button" disabled>
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Processando sua solicitação...
+                    </button>
                 </div>
             </form>
         </div>
@@ -32,26 +38,27 @@
                 </thead>
                 <tbody>
                     @if ($files)
-                    @foreach ($files as $file)
-                    <tr>
-                        <th scope="row">{{ $file->ID }}</th>
-                        <td>{{ $file->Rotulo }}</td>
-                        <td>{{ $file->user->name}}</td>
-                        <td>{{ $file->Created->format('d/m/Y H:i:s') }}</td>
-                        <td>
-                            <button onclick="excluirArquivo({{$file->ID}})" class="btn btn-danger"><i class="fa fa-trash" aria-hidden="true"></i></button>
-                            <a href="{{route('lancamentos.download',$file->ID)}}" target="_blank" class="btn btn-success"><i class="fa-solid fa-cloud-arrow-down"></i></i></button>
-                        </td>
-                    </tr>
-
-                    @endforeach
+                        @foreach ($files as $file)
+                            <tr>
+                                <th scope="row">{{ $file->ID }}</th>
+                                <td>{{ $file->Rotulo }}</td>
+                                <td>{{ $file->user->name }}</td>
+                                <td>{{ $file->Created->format('d/m/Y H:i:s') }}</td>
+                                <td>
+                                    <button onclick="excluirArquivo({{ $file->ID }})" class="btn btn-danger"><i
+                                            class="fa fa-trash" aria-hidden="true"></i></button>
+                                    <a href="{{ route('lancamentos.download', $file->ID) }}" target="_blank"
+                                        class="btn btn-success"><i
+                                            class="fa-solid fa-cloud-arrow-down"></i></i></button>
+                                </td>
+                            </tr>
+                        @endforeach
                     @endif
                 </tbody>
             </table>
         </div>
         <div class="card-footer">
-            <button type="button" class="btn btn-secondary"
-                                        data-bs-dismiss="modal">Fechar</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
         </div>
     </div>
 </div>

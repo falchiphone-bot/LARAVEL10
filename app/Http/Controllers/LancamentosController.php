@@ -163,7 +163,7 @@ class LancamentosController extends Controller
     {
         $download = LancamentoDocumento::find($id);
         if ($download) {
-            return Storage::disk('ftp')->download($download->Nome.'.'.$download->Ext);
+            return Storage::disk('google')->download($download->Nome.'.'.$download->Ext);
         }else {
             $this->addError('download','Arquivo não localizado para baixar.');
         }
