@@ -650,9 +650,18 @@ class LeituraArquivoController extends Controller
                 // ]);
                 // return redirect(route('LeituraArquivo.index'));
 
-                $historico = Historicos::where('EmpresaID', $Empresa)
-                    ->where('Descricao', 'like', '%' . trim($Descricao) . '%')
-                    ->first();
+                if ($Valor_Positivo) {
+                    $historico = Historicos::where('EmpresaID', $Empresa)
+                        ->where('Descricao', 'like', '%' . trim($Descricao) . '%')
+                        ->where('ContaDebitoID', $Conta)
+                        ->first();
+                }
+                if ($Valor_Negativo) {
+                    $historico = Historicos::where('EmpresaID', $Empresa)
+                        ->where('Descricao', 'like', '%' . trim($Descricao) . '%')
+                        ->where('ContaCreditoID', $Conta)
+                        ->first();
+                }
 
                 $Conferir_Bloqueio = false;
                 if ($request->vercriarlancamentocomhistorico) {
@@ -724,7 +733,6 @@ class LeituraArquivoController extends Controller
                         }
                     }
 
-
                     Lancamento::create([
                         'Valor' => ($valorString = $valor_formatado),
                         'EmpresaID' => $Empresa,
@@ -737,21 +745,19 @@ class LeituraArquivoController extends Controller
                         'HistoricoID' => $historico->ID,
                     ]);
                 } else {
-
                     if ($request->criarlancamentosemhistorico) {
                         if ($request->vercriarlancamento) {
-                          exit('Necessito criar lançamento sem histórico pré programado! ');
-                         }
+                            exit('Necessito criar lançamento sem histórico pré programado! ');
+                        }
 
-                         if($Valor_Positivo){
+                        if ($Valor_Positivo) {
                             $ContaDebito = $Conta;
                             $ContaCredito = $DespesaContaDebitoID;
-                         }
-                         if($Valor_Negativo){
+                        }
+                        if ($Valor_Negativo) {
                             $ContaDebito = $DespesaContaDebitoID;
                             $ContaCredito = $Conta;
-                         }
-
+                        }
 
                         Lancamento::create([
                             'Valor' => ($valorString = $valor_formatado),
@@ -765,8 +771,6 @@ class LeituraArquivoController extends Controller
                             'HistoricoID' => null,
                         ]);
                     }
-
-
                 }
 
                 session(['Lancamento' => 'Lancamentos criados!']);
