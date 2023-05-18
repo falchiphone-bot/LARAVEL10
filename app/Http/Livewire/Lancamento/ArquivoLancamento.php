@@ -21,7 +21,7 @@ class ArquivoLancamento extends Component
     public function excluir($id)
     {
         $file = LancamentoDocumento::find($id);
-        if (Storage::drive('ftp')->delete($file->Nome . '.' . $file->Ext)) {
+        if (Storage::drive('google')->delete($file->Nome . '.' . $file->Ext)) {
             $file->delete();
         } else {
             $this->addError('delete', 'Erro ao deletar arquivo.');
@@ -35,7 +35,7 @@ class ArquivoLancamento extends Component
         $download = LancamentoDocumento::find($id);
         if ($download) {
             // dd($download->Nome.'.'.$download->Ext);
-            return Storage::disk('ftp')->download($download->Nome.'.'.$download->Ext);
+            return Storage::disk('google')->download($download->Nome.'.'.$download->Ext);
         }else {
             $this->addError('download','Arquivo não localizado para baixar.');
         }
@@ -72,9 +72,9 @@ class ArquivoLancamento extends Component
                     'UsuarioID' => Auth::user()->id,
                     'Ext' => explode('.', $arquivo->getFilename())[1],
                 ]);
-                if (!$ld) {
-                    Storage::drive('ftp')->delete($file);
-                }
+                // if (!$ld) {
+                //     Storage::drive('ftp')->delete($file);
+                // }
                 session()->flash('message', 'Arquivo(s) adicionado.');
             }else {
                 $this->addError('upload','Erro ao fazer upload do arquivo.');
