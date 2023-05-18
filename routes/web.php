@@ -127,6 +127,8 @@ Route::middleware('auth')->group(function () {
 
     #Lançamentos
     Route::get('lancamentos/download/{id}',[App\Http\Controllers\LancamentosController::class,'baixarArquivo'])->name('lancamentos.download');
+    Route::get('lancamentos/price',[App\Http\Controllers\LancamentosController::class,'price'])->name('lancamentos.price');
+
 
     #Contas
     Route::get('Contas/Extrato/{contaID}', [App\Http\Controllers\ContaController::class, 'extrato']);

@@ -73,6 +73,10 @@
                                     <a class="btn btn-success" href="/LeituraArquivo">Abrir arquivo planilha</a>
                                 </nav>
 
+                                <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                    <a class="btn btn-success" href="/lancamentos/price">Cálculo pela tabela price</a>
+                                </nav>
+
                                 {{-- </th>
                                         </tr>
                                     @endcan --}}

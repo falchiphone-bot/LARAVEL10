@@ -479,6 +479,7 @@ class LeituraArquivoController extends Controller
             if ($Data == '') {
                 $SaldoAnterior = SaldoLancamentoHelper::Anterior($DataInicial, $Conta, $Empresa);
                 $SaldoDia = SaldoLancamentoHelper::Dia($DataInicial, $Conta, $Empresa);
+                
                 $SaldoAtual = $SaldoAnterior + $SaldoDia;
 
                 $DiferecaSaldo = number_format($Saldo - $SaldoAtual);
