@@ -48,8 +48,6 @@ class HistoricoController extends Controller
 
         $pesquisa = Historicos::where('EmpresaID', $Request->EmpresaSelecionada)->where('Descricao','like', "%".$Request->PesquisaTexto."%")->get();
 
-// DD($pesquisa->first()->ContaCredito);
-
         $retorno["EmpresaSelecionada"] = $Request->EmpresaSelecionada;
         $retorno["PesquisaTexto"] = $Request->PesquisaTexto;
 
@@ -69,8 +67,8 @@ class HistoricoController extends Controller
      */
     public function store(HistoricosCreateRequest $request)
     {
+        $request['UsuarioID'] = auth()->user()->id;
         $Historicos = $request->all();
-        //dd($dados);
 
         Historicos::create($Historicos);
 
@@ -91,9 +89,7 @@ class HistoricoController extends Controller
      */
     public function edit(string $id)
     {
-        $Historicos = Historicos::find($id);
-        // dd($Historicos);
-        return view('Historicos.edit', compact('Historicos'));
+        return view('Historicos.edit', compact('id'));
     }
 
     /**
@@ -103,6 +99,7 @@ class HistoricoController extends Controller
     {
         $cadastro = Historicos::find($id);
 
+        $request['UsuarioID'] = auth()->user()->id;
         $cadastro->fill($request->all());
 
         $cadastro->save();

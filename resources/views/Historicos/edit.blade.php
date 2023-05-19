@@ -19,9 +19,9 @@
     </div>
 @endif
 
-<form method="POST" action="{{route('Historicos.update',$Historicos->ID)}}" accept-charset="UTF-8">
+<form method="POST" action="{{route('Historicos.update',$id)}}" accept-charset="UTF-8">
     <input type="hidden" name="_method" value="PUT">
-    @include('Historicos.campos')
+    @livewire('historicos.create-historico',["historico_id" => $id])
 </form>
 
 @endsection

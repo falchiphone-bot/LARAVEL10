@@ -11,7 +11,7 @@
                 <h1 class="text-center">Históricos - Inclusão</h1>
                 <hr>
                 <form method="POST" action="/Historicos" accept-charset="UTF-8">
-                    @include('Historicos.campos')
+                    @livewire('historicos.create-historico')
                 </form>
             </div>
         </div>
