@@ -17,6 +17,7 @@ use PhpParser\Node\Stmt\Foreach_;
 use Livewire\Component;
 use PhpParser\Node\Stmt\Continue_;
 use Ramsey\Uuid\Type\Decimal;
+use Illuminate\Support\Facades\File;
 
 use function Pest\Laravel\get;
 
@@ -25,13 +26,13 @@ class LeituraArquivoController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-           $this->middleware(['permission:LEITURA DE ARQUIVO - LISTAR'])->only('index');
+        $this->middleware(['permission:LEITURA DE ARQUIVO - LISTAR'])->only('index');
         // $this->middleware(['permission:PLANO DE CONTAS - INCLUIR'])->only(['create', 'store']);
         // $this->middleware(['permission:PLANO DE CONTAS - EDITAR'])->only(['edit', 'update']);
         // $this->middleware(['permission:PLANO DE CONTAS - EXCLUIR'])->only('destroy');
-           $this->middleware(['permission:LEITURA DE ARQUIVO - LISTAR'])->only('SelecionaDatas');
-           $this->middleware(['permission:LEITURA DE ARQUIVO - LISTAR'])->only('SelecionaDatasExtratoSicrediPJ');
-           $this->middleware(['permission:LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA VISUALIZAR'])->only('SelecionaLinha');
+        $this->middleware(['permission:LEITURA DE ARQUIVO - LISTAR'])->only('SelecionaDatas');
+        $this->middleware(['permission:LEITURA DE ARQUIVO - LISTAR'])->only('SelecionaDatasExtratoSicrediPJ');
+        $this->middleware(['permission:LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA VISUALIZAR'])->only('SelecionaLinha');
     }
 
     /**
@@ -45,54 +46,56 @@ class LeituraArquivoController extends Controller
     public function index()
     {
         $email = auth()->user()->email;
-        $user = str_replace('@', "",  $email);
-        $user = str_replace('.', "",  $user);
-        $arquivosalvo = 'app/contabilidade/'.$user.'.prf';
+        $user = str_replace('@', '', $email);
+        $user = str_replace('.', '', $user);
+        $arquivosalvo = 'app/contabilidade/' . $user . '.prf';
 
         $caminho = storage_path($arquivosalvo);
+        if (File::exists($caminho)) {
+            // Abre o arquivo Excel
+            $spreadsheet = IOFactory::load($caminho);
 
-        // Abre o arquivo Excel
-        $spreadsheet = IOFactory::load($caminho);
+            // Seleciona a primeira planilha do arquivo
+            $worksheet = $spreadsheet->getActiveSheet();
 
-        // Seleciona a primeira planilha do arquivo
-        $worksheet = $spreadsheet->getActiveSheet();
+            // Obtém a última linha da planilha
+            $lastRow = $worksheet->getHighestDataRow();
 
-        // Obtém a última linha da planilha
-        $lastRow = $worksheet->getHighestDataRow();
+            // Obtém a última coluna da planilha
+            $lastColumn = $worksheet->getHighestDataColumn();
 
-        // Obtém a última coluna da planilha
-        $lastColumn = $worksheet->getHighestDataColumn();
+            // Converte a última coluna para um número (ex: "D" para 4)
+            $lastColumnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($lastColumn);
 
-        // Converte a última coluna para um número (ex: "D" para 4)
-        $lastColumnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($lastColumn);
+            // Array que irá armazenar os dados das células
+            $cellData = [];
 
-        // Array que irá armazenar os dados das células
-        $cellData = [];
+            // Loop para percorrer todas as células da planilha
+            for ($row = 1; $row <= $lastRow; $row++) {
+                for ($column = 1; $column <= $lastColumnIndex; $column++) {
+                    // Obtém o valor da célula
+                    $cellValue = $worksheet->getCellByColumnAndRow($column, $row)->getValue();
 
-        // Loop para percorrer todas as células da planilha
-        for ($row = 1; $row <= $lastRow; $row++) {
-            for ($column = 1; $column <= $lastColumnIndex; $column++) {
-                // Obtém o valor da célula
-                $cellValue = $worksheet->getCellByColumnAndRow($column, $row)->getValue();
-
-                // Adiciona o valor da célula ao array $cellData
-                $cellData[$row][$column] = $cellValue;
+                    // Adiciona o valor da célula ao array $cellData
+                    $cellData[$row][$column] = $cellValue;
+                }
             }
+
+            // dd($cellData);
+            // return view('LeituraArquivo.index', ['cellData' => $cellData]);
+
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            return view('LeituraArquivo.index', ['cellData' => $cellData]);
+        }else
+        {
+            return view('LeituraArquivo.SomenteLinha');
         }
 
-        // dd($cellData);
-        // return view('LeituraArquivo.index', ['cellData' => $cellData]);
-
-        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        return view('LeituraArquivo.index', ['cellData' => $cellData]);
     }
 
     public function SelecionaDatas(Request $request)
     {
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-         
 
         /////// aqui fica na pasta temporário /temp/    - apaga
         $path = $request->file('arquivo')->getRealPath();
@@ -108,11 +111,10 @@ class LeituraArquivoController extends Controller
         }
 
         $email = auth()->user()->email;
-        $user = str_replace('@', "",  $email);
-        $user = str_replace('.', "",  $user);
-        $arquivosalvo = 'app/contabilidade/'.$user.'.prf';
+        $user = str_replace('@', '', $email);
+        $user = str_replace('.', '', $user);
+        $arquivosalvo = 'app/contabilidade/' . $user . '.prf';
         copy($path, storage_path($arquivosalvo));
-
 
         // Abre o arquivo Excel
         $spreadsheet = IOFactory::load($caminho);
@@ -350,23 +352,15 @@ class LeituraArquivoController extends Controller
         $Complemento = $request->complemento;
         $name = $file->getClientOriginalName();
         $caminho = $path;
-        if ($extension != 'txt'
-         && $extension != 'TXT'
-         && $extension != 'csv'
-         && $extension != 'CSV'
-         && $extension != 'xlsx'
-         && $extension != 'XLSX'
-         && $extension != 'xls'
-         && $extension != 'XLS')
-         {
+        if ($extension != 'txt' && $extension != 'TXT' && $extension != 'csv' && $extension != 'CSV' && $extension != 'xlsx' && $extension != 'XLSX' && $extension != 'xls' && $extension != 'XLS') {
             session(['Lancamento' => 'Arquivo considerado não compatível para este procedimento! Autorizados arquivos com extensões csv, txt, xls e xlsx. Apresentado o último enviado. ATENÇÃO!']);
             return redirect(route('LeituraArquivo.index'));
         }
 
         $email = auth()->user()->email;
-        $user = str_replace('@', "",  $email);
-        $user = str_replace('.', "",  $user);
-        $arquivosalvo = 'app/contabilidade/'.$user.'.prf';
+        $user = str_replace('@', '', $email);
+        $user = str_replace('.', '', $user);
+        $arquivosalvo = 'app/contabilidade/' . $user . '.prf';
         copy($path, storage_path($arquivosalvo));
 
         // Abre o arquivo Excel
@@ -860,8 +854,6 @@ class LeituraArquivoController extends Controller
 
     public function SelecionaLinha(Request $request)
     {
-
-
         /////// aqui fica na pasta temporário /temp/    - apaga
         $path = $request->file('arquivo')->getRealPath();
 
@@ -876,9 +868,9 @@ class LeituraArquivoController extends Controller
             return redirect(route('LeituraArquivo.index'));
         }
         $email = auth()->user()->email;
-        $user = str_replace('@', "",  $email);
-        $user = str_replace('.', "",  $user);
-        $arquivosalvo = 'app/contabilidade/'.$user.'.prf';
+        $user = str_replace('@', '', $email);
+        $user = str_replace('.', '', $user);
+        $arquivosalvo = 'app/contabilidade/' . $user . '.prf';
         copy($path, storage_path($arquivosalvo));
 
         // Carregar o arquivo da planilha
