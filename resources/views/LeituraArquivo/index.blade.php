@@ -14,11 +14,13 @@
                 @if (session('success'))
                     <div class="alert alert-success">
                         {{ session('success') }}
+                        {{session(['success' => null]) }}
                     </div>
                 @elseif (session('error'))
                     <div class="alert alert-danger">
                         {{ session('error') }}
                     </div>
+                    {{session(['error' => null]) }}
                 @endif
                 @if (session('Lancamento'))
                     <div class="alert alert-danger">
@@ -30,9 +32,12 @@
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                     <a class="btn btn-warning" href="/Contabilidade">Retornar a lista de opções</a>
                     {{-- <a class="btn btn-primary" href="/LeituraArquivo">Último arquivo enviado de extrado cartão de crédito</a> --}}
-
-                    <a class="btn btn-secondary" href="/LeituraArquivo/SomenteLinha">Selecionar linha, ou enviar arquivo e conciliar extrato cartão de crédito</a>
+                    @can('LEITURA DE ARQUIVO - LISTAR')
+                      <a class="btn btn-secondary" href="/LeituraArquivo/SomenteLinha">Selecionar linha, ou enviar arquivo e conciliar extrato cartão de crédito</a>
+                    @endcan
                 </nav>
+
+
 
 
 
@@ -47,6 +52,7 @@
                     </div>
                 </div> --}}
 
+                 @can('LEITURA DE ARQUIVO - VISUALIZAR')
                 <table>
                     <thead>
                         <tr>
@@ -67,7 +73,7 @@
                         @endforeach
                     </tbody>
                 </table>
-
+@endcan
 
 
 

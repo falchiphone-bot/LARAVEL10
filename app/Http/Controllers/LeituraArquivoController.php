@@ -24,12 +24,14 @@ class LeituraArquivoController extends Controller
 {
     public function __construct()
     {
-        // $this->middleware('auth');
-        // $this->middleware(['permission:MOEDAS - LISTAR'])->only('index');
-        // $this->middleware(['permission:MOEDAS - INCLUIR'])->only(['create', 'store']);
-        // $this->middleware(['permission:MOEDAS - EDITAR'])->only(['edit', 'update']);
-        // $this->middleware(['permission:MOEDAS - VER'])->only(['edit', 'update']);
-        // $this->middleware(['permission:MOEDAS - EXCLUIR'])->only('destroy');
+        $this->middleware('auth');
+           $this->middleware(['permission:LEITURA DE ARQUIVO - LISTAR'])->only('index');
+        // $this->middleware(['permission:PLANO DE CONTAS - INCLUIR'])->only(['create', 'store']);
+        // $this->middleware(['permission:PLANO DE CONTAS - EDITAR'])->only(['edit', 'update']);
+        // $this->middleware(['permission:PLANO DE CONTAS - EXCLUIR'])->only('destroy');
+           $this->middleware(['permission:LEITURA DE ARQUIVO - LISTAR'])->only('SelecionaDatas');
+           $this->middleware(['permission:LEITURA DE ARQUIVO - LISTAR'])->only('SelecionaDatasExtratoSicrediPJ');
+           $this->middleware(['permission:LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA VISUALIZAR'])->only('SelecionaLinha');
     }
 
     /**
@@ -479,7 +481,7 @@ class LeituraArquivoController extends Controller
             if ($Data == '') {
                 $SaldoAnterior = SaldoLancamentoHelper::Anterior($DataInicial, $Conta, $Empresa);
                 $SaldoDia = SaldoLancamentoHelper::Dia($DataInicial, $Conta, $Empresa);
-                
+
                 $SaldoAtual = $SaldoAnterior + $SaldoDia;
 
                 $DiferecaSaldo = number_format($Saldo - $SaldoAtual);

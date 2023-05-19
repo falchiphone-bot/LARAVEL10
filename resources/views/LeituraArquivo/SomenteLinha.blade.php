@@ -28,13 +28,14 @@
                     style="width: 100%; font-size: 24px; color: black; text-align: center;">
                     <div class="card">
                         <nav class="navbar navbar-success" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                            SELECIONAR ARQUIVO SELECIONADO CONFORME OPÇÕES DISPONÍVEIS
+                            SELECIONAR ARQUIVO CONFORME OPÇÕES DISPONÍVEIS
                         </nav>
                     </div>
 
                 </div>
                 <div class="card-body">
-                    <div class="row">
+                    @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO E SELECIONAR LINHA')
+                        <div class="row">
 
                             <form method="POST" action="/LeituraArquivo/SelecionaLinha" enctype="multipart/form-data">
                                 @csrf
@@ -42,78 +43,95 @@
 
 
 
-                                <div class="badge bg-info text-wrap" style="width: 10%; font-size: 16px; color: black; text-align: center;">
+                                <div class="badge bg-info text-wrap"
+                                    style="width: 10%; font-size: 16px; color: black; text-align: center;">
                                     <label for="linha">Linha para selecionar</label>
-                                    <input type="number" required name="linha" id="linha" class="form-control" style="background-color: green; color: white;">
+                                    <input type="number" required name="linha" id="linha" class="form-control"
+                                        style="background-color: green; color: white;">
                                 </div>
 
+                                <div class="badge bg-warning text-wrap"
+                                    style="width: 100%; font-size: 24px; color: black; text-align: center;">
 
-                                <div class="badge bg-warning text-wrap" style="width: 100%; font-size: 24px; color: black; text-align: center;">
-
-                                        <input type="file" required class="btn btn-info" name="arquivo">
-                                        <p class="my-2">
-                                            <button type="submit" class="btn btn-info">Enviar o arquivo para a pasta do sistema e consultar por linha.</button>
-                                        </p>
+                                    <input type="file" required class="btn btn-info" name="arquivo">
+                                    <p class="my-2">
+                                        <button type="submit" class="btn btn-info">Enviar o arquivo para a pasta do sistema e
+                                            consultar por linha.</button>
+                                    </p>
 
                                 </div>
+
                             </form>
-                    </div>
+                        </div>
+                    @endcan
 
-                    <div class="row">
-                        <form method="POST" action="/LeituraArquivo/SelecionaDatas" enctype="multipart/form-data">
-                            @csrf
-                            <label for="fim">Arquivo para selecionar</label>
-                            <div class="badge bg-warning text-wrap"
-                                style="width: 100%; font-size: 24px; color: black; text-align: center;">
-                                <input type="file" required class="btn btn-success" name="arquivo">
+                    @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA VISUALIZAR')
+                        <div class="row">
 
-
-
-                            <p class="my-2">
-                                <button type="submit" class="btn btn-success">Enviar o arquivo para a pasta do sistema e
-                                    consulta o arquivo total.</button>
-                            </p>
-                        </form>
- </div>
-
- <div class="row">
-    <form method="POST" action="/LeituraArquivo/SelecionaDatasExtratoSicrediPJ" enctype="multipart/form-data">
-        @csrf
-        <label for="fim">Arquivo de extrato Sicredi pessoa jurídica - PJ (EMPRESA)</label>
-        <div class="badge bg-warning text-wrap"
-            style="width: 100%; font-size: 24px; color: black; text-align: center;">
-            <input type="file" required class="btn btn-danger" name="arquivo">
-            <br>
-            <input type="checkbox" name="vercriarlancamentocomhistorico" value="1">
-            <label for="checkbox_enviar">Ver se vai criar lançamento com histórico ou não</label>
-            <br>
-            <input type="checkbox" name="vercriarlancamento" value="1">
-            <label for="checkbox_enviar">Ver se vai criar lançamento sem histórico pré-programado</label>
-            <br>
-            <input type="checkbox" name="criarlancamentosemhistorico" value="1">
-            <label for="checkbox_enviar">Autorizar criar lançamento sem histórico pré-programado</label>
-            <br>
+                            <form method="POST" action="/LeituraArquivo/SelecionaDatas" enctype="multipart/form-data">
+                                @csrf
+                                <label for="fim">Arquivo para selecionar</label>
+                                <div class="badge bg-warning text-wrap"
+                                    style="width: 100%; font-size: 24px; color: black; text-align: center;">
+                                    <input type="file" required class="btn btn-success" name="arquivo">
 
 
 
-        <p class="my-2">
-            <button type="submit" class="btn btn-danger">Enviar o arquivo extrato PJ para a pasta do sistema e
-                consulta o arquivo total.</button>
-        </p>
-    </form>
-</div>
+                                    <p class="my-2">
+                                        <button type="submit" class="btn btn-success">Enviar o arquivo para a pasta do sistema
+                                            e
+                                            consulta o arquivo total.</button>
+                                    </p>
 
-                    </div>
+                            </form>
+                        </div>
+                    @endcan
+
+                    @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA CONCILIACA0 BANCARIA')
+                        <div class="row">
+                            <form method="POST" action="/LeituraArquivo/SelecionaDatasExtratoSicrediPJ"
+                                enctype="multipart/form-data">
+                                @csrf
+                                <label for="fim">Arquivo de extrato Sicredi pessoa jurídica - PJ E pessoa física -
+                                    PF</label>
+                                <div class="badge bg-warning text-wrap"
+                                    style="width: 100%; font-size: 24px; color: black; text-align: center;">
+                                    <input type="file" required class="btn btn-danger" name="arquivo">
+                                    <br>
+                                    <input type="checkbox" name="vercriarlancamentocomhistorico" value="1">
+                                    <label for="checkbox_enviar">Ver se vai criar lançamento com histórico ou não</label>
+                                    <br>
+                                    <input type="checkbox" name="vercriarlancamento" value="1">
+                                    <label for="checkbox_enviar">Ver se vai criar lançamento sem histórico
+                                        pré-programado</label>
+                                    <br>
+
+                                    @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA CONCILIACA0 BANCARIA E AUTORIZAR CRIAR LANCAMENTO')
+                                    <input type="checkbox" name="criarlancamentosemhistorico" value="1">
+                                    <label for="checkbox_enviar">Autorizar criar lançamento sem histórico pré-programado</label>
+                                    <br>
+                                    @endcan
+
+
+                                    <p class="my-2">
+                                        <button type="submit" class="btn btn-danger">Enviar o arquivo extrato PJ para a pasta
+                                            do sistema e
+                                            consulta o arquivo total.</button>
+                                    </p>
+                            </form>
+                        </div>
+                    @endcan
                 </div>
-
-
-
             </div>
 
 
 
-
         </div>
+
+
+
+
+    </div>
     </div>
 
     </div>
