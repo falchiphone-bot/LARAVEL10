@@ -18,21 +18,41 @@ class LancamentosController extends Controller
      * Display a listing of the resource.
      */
 
-    public function price(Request $request)
+     public function Informaprice()
     {
 
-     $valorTotal = $request->TotalFinanciado;
-     $taxaJuros = $request->TaxaJurosMensal;
-     $parcelas = $request->Parcelas;
+        return view('Lancamentos.informaprice');
+    }
 
-     $valorTotal = 34257.52;
-     $taxaJuros = 4.28250;
-     $parcelas = 20;
+    public function tabelaprice(Request $Request)
+    {
 
-     $valorParcela = FinancaHelper::calcularTabelaPrice($valorTotal, $taxaJuros, $parcelas);
+     $valorTotal = $Request->TotalFinanciado;
+     $taxaJuros = $Request->TaxaJurosMensal;
+     $parcelas = $Request->Parcelas;
 
 
-     $saldoDevedor = $valorTotal;
+$valor = str_replace(',', '', $valorTotal);
+
+if($parcelas <= '0'){
+     session(['Lancamento' => "Campo de quantidade de parcelas foi preenchida erradamente!"]);
+    return view('Lancamentos.informaprice', ['Retorno' => $parcelas ]);
+}
+
+
+
+    if($Request->VerVariaveis)
+    {
+          dd($valor,   $taxaJuros,   $parcelas);
+    }
+
+
+
+
+     $valorParcela = FinancaHelper::calcularTabelaPrice($valor, $taxaJuros, $parcelas);
+
+
+     $saldoDevedor = $valor;
 
      for ($i = 1; $i <= $parcelas; $i++) {
         $juros = $saldoDevedor * $taxaJuros / 100;
@@ -61,7 +81,7 @@ class LancamentosController extends Controller
 
 
 // dd($tabelaParcelas);
-    return view('lancamentos.tabelaprice', ['tabelaParcelas' => $tabelaParcelas]);
+    return view('lancamentos.tabelapriceresultado', ['tabelaParcelas' => $tabelaParcelas]);
 
     }
 

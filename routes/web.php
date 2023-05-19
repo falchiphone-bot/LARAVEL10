@@ -126,8 +126,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('PlanoContas', App\Http\Controllers\PlanoContaController::class);
 
     #Lançamentos
+    Route::get('Lancamentos/Informaprice',[App\Http\Controllers\LancamentosController::class,'Informaprice'])->name('lancamentos.informaprice');
+    Route::post('lancamentos/tabelaprice',[App\Http\Controllers\LancamentosController::class,'tabelaprice'])->name('lancamentos.tabelaprice');
     Route::get('lancamentos/download/{id}',[App\Http\Controllers\LancamentosController::class,'baixarArquivo'])->name('lancamentos.download');
-    Route::get('lancamentos/price',[App\Http\Controllers\LancamentosController::class,'price'])->name('lancamentos.price');
+    Route::get('Lancamentos/tabelaprice', function () { return view('Lancamento.tabelaprice');})->name('lancamentos.tabelapriceresultado');
 
 
     #Contas
