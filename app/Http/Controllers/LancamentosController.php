@@ -88,7 +88,16 @@ class LancamentosController extends Controller
 
     public function lancamentoinformaprice()
     {
-        return view('Lancamentos.lancamentosInformaPrice');
+        $retorno['EmpresaSelecionada'] = null;
+
+        $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+            ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+            ->OrderBy('Descricao')
+            ->select(['Empresas.ID', 'Empresas.Descricao'])
+            ->get();
+
+
+        return view('Lancamentos.lancamentosInformaPrice', compact('Empresas', 'retorno'));
     }
 
 
@@ -97,6 +106,10 @@ class LancamentosController extends Controller
         $valorTotal = $Request->TotalFinanciado;
         $taxaJuros = $Request->TaxaJurosMensal;
         $parcelas = $Request->Parcelas;
+        // $ContaDebito = $Request->ContaDebito;
+        // $ContaCredito = $Request->ContaCredito;
+        $DataInicio = $Request->DataInicio;
+
 
         $valor = str_replace(',', '', $valorTotal);
 
@@ -106,7 +119,7 @@ class LancamentosController extends Controller
         }
 
         if ($Request->VerVariaveis) {
-            dd($valor, $taxaJuros, $parcelas);
+            dd($valor, $taxaJuros, $parcelas, $DataInicio);
         }
 
         $valorParcela = FinancaHelper::calcularTabelaPrice($valor, $taxaJuros, $parcelas);
@@ -122,7 +135,7 @@ class LancamentosController extends Controller
             $jurosFormatado = number_format($juros, 2, ',', '.');
             $amortizacaoFormatada = number_format($amortizacao, 2, ',', '.');
             $saldoDevedorFormatado = number_format($saldoDevedor, 2, ',', '.');
-
+            $DataInicial = $DataInicio;
             $tabelaParcelas[] = [
                 'Parcela' => $i,
                 'Amortização' => $amortizacao,
@@ -131,6 +144,7 @@ class LancamentosController extends Controller
                 'taxaJuros' => $taxaJuros,
                 'parcelas' => $parcelas,
                 'valorTotalFinanciado' => $valorTotal,
+                'datainicial'=> $DataInicial,
             ];
 
             // echo $i . "\tR$ " . $amortizacaoFormatada . "\t\tR$ " . $jurosFormatado . "\tR$ " . $valorParcelaFormatado . PHP_EOL;

@@ -35,6 +35,7 @@
                 <table>
                     <thead>
                         <tr>
+                             <th>Data</th>
                             <th>Parcela</th>
                             <th>Amortização</th>
                             <th>Juros</th>
@@ -47,6 +48,7 @@
                     <tbody>
                         @foreach ($tabelaParcelas as $parcela)
                             <tr>
+                              <td>{{ DateTime::createFromFormat('Y-m-d', $parcela['datainicial'])->format('d/m/Y') }}</td>
                                 <td> {{ $parcela['Parcela'] }} </td>
                                 <td> {{ number_format($parcela['Amortização'], 2, ',', '.') }} </td>
                                 <td> {{ number_format($parcela['Juros'], 2, ',', '.') }} </td>
@@ -60,7 +62,7 @@
                     <tfoot>
 
                         <tr>
-                            <td colspan="6">
+                            <td colspan="9">
                                 <div class="badge bg-secondary text-wrap"
                                     style="width: 100%; font-size: 24px; color: black; text-align: center;">
 

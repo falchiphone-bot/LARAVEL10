@@ -88,14 +88,42 @@
                                     @enderror
                                 </div>
                             </div>
-                    </div>
+
+                            <div class="badge bg-success text-wrap"
+                            style="width: 100%;
+            ;font-size: 24px; lign=˜Center˜">
+                        <label for="TotalFinanciado">Data início dos lançamentos</label>
+                            <div class="col-sm-2">
+                                <input required
+                                    class="form-control @error('TotalFinanciado') is-invalid @else is-valid @enderror"
+                                    name="DataInicio" type="date" id="DataInicio"
+                                    value=" ">
+                            </div>
+
+                                    <div class="col-9">
+                                        <label for="Limite" style="color: white;">Empresas permitidas para o usuário</label>
+                                        <select class="form-control select2" id="EmpresaSelecionada" name="EmpresaSelecionada">
+                                            <option value="">
+                                                Selecionar empresa
+                                            </option>
+                                            @foreach ($Empresas as $Empresa)
+                                                <option @if ($retorno['EmpresaSelecionada'] == $Empresa->ID) selected @endif
+                                                    value="{{ $Empresa->ID }}">
+
+                                                    {{ $Empresa->Descricao }}
+                                                </option>
+                                            @endforeach
+
+
+                                        </select>
+                                    </div>
 
 
                     <input type="checkbox" name="VerVariaveis" value="1">
                     <label for="checkbox_enviar">Ver os valores em tela debug</label>
                     <br>
                     <p class="my-2">
-                        <button type="submit" class="btn btn-success">Enviar calcular e efetuar lançamentos</button>
+                        <button type="submit" class="btn btn-secondary">Enviar calcular e efetuar lançamentos</button>
                     </p>
                     </form>
                 </div>
