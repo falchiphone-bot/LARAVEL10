@@ -77,6 +77,10 @@
                                     <a class="btn btn-success" href="\Lancamentos\Informaprice">Cálculo pela tabela price</a>
                                 </nav>
 
+                                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                    <a class="btn btn-success" href="\Lancamentos\lancamentoinformaprice">Cálculo pela tabela price e efetuar lançamentos</a>
+                                </nav>
+
                                 {{-- </th>
                                         </tr>
                                     @endcan --}}

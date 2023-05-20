@@ -18,72 +18,129 @@ class LancamentosController extends Controller
      * Display a listing of the resource.
      */
 
-     public function Informaprice()
-    {
+     public function __construct()
+     {
+         $this->middleware('auth');
+        //  $this->middleware(['permission:LEITURA DE ARQUIVO - LISTAR'])->only('index');
+         // $this->middleware(['permission:PLANO DE CONTAS - INCLUIR'])->only(['create', 'store']);
+         // $this->middleware(['permission:PLANO DE CONTAS - EDITAR'])->only(['edit', 'update']);
+         // $this->middleware(['permission:PLANO DE CONTAS - EXCLUIR'])->only('destroy');
+         $this->middleware(['permission:LEITURA DE ARQUIVO - LISTAR'])->only('lancamentotabelaprice');
+         $this->middleware(['permission:LEITURA DE ARQUIVO - LISTAR'])->only('lancamentoinformaprice');
+        //  $this->middleware(['permission:LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA VISUALIZAR'])->only('SelecionaLinha');
+     }
 
+
+    public function Informaprice()
+    {
         return view('Lancamentos.informaprice');
     }
 
     public function tabelaprice(Request $Request)
     {
+        $valorTotal = $Request->TotalFinanciado;
+        $taxaJuros = $Request->TaxaJurosMensal;
+        $parcelas = $Request->Parcelas;
 
-     $valorTotal = $Request->TotalFinanciado;
-     $taxaJuros = $Request->TaxaJurosMensal;
-     $parcelas = $Request->Parcelas;
+        $valor = str_replace(',', '', $valorTotal);
+
+        if ($parcelas <= '0') {
+            session(['Lancamento' => 'Campo de quantidade de parcelas foi preenchida erradamente!']);
+            return view('Lancamentos.informaprice', ['Retorno' => $parcelas]);
+        }
+
+        if ($Request->VerVariaveis) {
+            dd($valor, $taxaJuros, $parcelas);
+        }
+
+        $valorParcela = FinancaHelper::calcularTabelaPrice($valor, $taxaJuros, $parcelas);
+
+        $saldoDevedor = $valor;
+
+        for ($i = 1; $i <= $parcelas; $i++) {
+            $juros = ($saldoDevedor * $taxaJuros) / 100;
+            $amortizacao = $valorParcela - $juros;
+            $saldoDevedor -= $amortizacao;
+
+            $valorParcelaFormatado = number_format($valorParcela, 2, ',', '.');
+            $jurosFormatado = number_format($juros, 2, ',', '.');
+            $amortizacaoFormatada = number_format($amortizacao, 2, ',', '.');
+            $saldoDevedorFormatado = number_format($saldoDevedor, 2, ',', '.');
+
+            $tabelaParcelas[] = [
+                'Parcela' => $i,
+                'Amortização' => $amortizacao,
+                'Juros' => $juros,
+                'Total' => $valorParcela,
+                'taxaJuros' => $taxaJuros,
+                'parcelas' => $parcelas,
+                'valorTotalFinanciado' => $valorTotal,
+            ];
+
+            // echo $i . "\tR$ " . $amortizacaoFormatada . "\t\tR$ " . $jurosFormatado . "\tR$ " . $valorParcelaFormatado . PHP_EOL;
+        }
+
+        // dd($tabelaParcelas);
+        return view('lancamentos.tabelapriceresultado', ['tabelaParcelas' => $tabelaParcelas]);
+
+    }
 
 
-$valor = str_replace(',', '', $valorTotal);
-
-if($parcelas <= '0'){
-     session(['Lancamento' => "Campo de quantidade de parcelas foi preenchida erradamente!"]);
-    return view('Lancamentos.informaprice', ['Retorno' => $parcelas ]);
-}
-
-
-
-    if($Request->VerVariaveis)
+    public function lancamentoinformaprice()
     {
-          dd($valor,   $taxaJuros,   $parcelas);
+        return view('Lancamentos.lancamentosInformaPrice');
     }
 
 
+        public function lancamentotabelaprice(Request $Request)
+    {
+        $valorTotal = $Request->TotalFinanciado;
+        $taxaJuros = $Request->TaxaJurosMensal;
+        $parcelas = $Request->Parcelas;
 
+        $valor = str_replace(',', '', $valorTotal);
 
-     $valorParcela = FinancaHelper::calcularTabelaPrice($valor, $taxaJuros, $parcelas);
+        if ($parcelas <= '0') {
+            session(['Lancamento' => 'Campo de quantidade de parcelas foi preenchida erradamente!']);
+            return view('Lancamentos.informaprice', ['Retorno' => $parcelas]);
+        }
 
+        if ($Request->VerVariaveis) {
+            dd($valor, $taxaJuros, $parcelas);
+        }
 
-     $saldoDevedor = $valor;
+        $valorParcela = FinancaHelper::calcularTabelaPrice($valor, $taxaJuros, $parcelas);
 
-     for ($i = 1; $i <= $parcelas; $i++) {
-        $juros = $saldoDevedor * $taxaJuros / 100;
-        $amortizacao = $valorParcela - $juros;
-        $saldoDevedor -= $amortizacao;
+        $saldoDevedor = $valor;
 
-        $valorParcelaFormatado = number_format($valorParcela, 2, ',', '.');
-        $jurosFormatado = number_format($juros, 2, ',', '.');
-        $amortizacaoFormatada = number_format($amortizacao, 2, ',', '.');
-        $saldoDevedorFormatado = number_format($saldoDevedor, 2, ',', '.');
+        for ($i = 1; $i <= $parcelas; $i++) {
+            $juros = ($saldoDevedor * $taxaJuros) / 100;
+            $amortizacao = $valorParcela - $juros;
+            $saldoDevedor -= $amortizacao;
 
+            $valorParcelaFormatado = number_format($valorParcela, 2, ',', '.');
+            $jurosFormatado = number_format($juros, 2, ',', '.');
+            $amortizacaoFormatada = number_format($amortizacao, 2, ',', '.');
+            $saldoDevedorFormatado = number_format($saldoDevedor, 2, ',', '.');
 
-        $tabelaParcelas[] = array(
-                    'Parcela' => $i,
-                    'Amortização' => $amortizacao,
-                    'Juros' => $juros,
-                    'Total' => $valorParcela,
-                    'taxaJuros' => $taxaJuros,
-                    'parcelas' => $parcelas,
-                    'valorTotalFinanciado' => $valorTotal,
-                );
+            $tabelaParcelas[] = [
+                'Parcela' => $i,
+                'Amortização' => $amortizacao,
+                'Juros' => $juros,
+                'Total' => $valorParcela,
+                'taxaJuros' => $taxaJuros,
+                'parcelas' => $parcelas,
+                'valorTotalFinanciado' => $valorTotal,
+            ];
 
+            // echo $i . "\tR$ " . $amortizacaoFormatada . "\t\tR$ " . $jurosFormatado . "\tR$ " . $valorParcelaFormatado . PHP_EOL;
+        }
 
-        // echo $i . "\tR$ " . $amortizacaoFormatada . "\t\tR$ " . $jurosFormatado . "\tR$ " . $valorParcelaFormatado . PHP_EOL;
+        // dd($tabelaParcelas);
+        return view('lancamentos.lancamentotabelapriceresultado', ['tabelaParcelas' => $tabelaParcelas]);
     }
 
 
-// dd($tabelaParcelas);
-    return view('lancamentos.tabelapriceresultado', ['tabelaParcelas' => $tabelaParcelas]);
-
-    }
 
     public function index()
     {
@@ -92,10 +149,8 @@ if($parcelas <= '0'){
         //     $ultimos_lancamentos = Lancamento::where('EmpresaID',session('Empresa')->ID)->limit(10)->orderBy('ID','DESC')->get();
         // }
 
-
         // return view('Lancamentos.index',compact('ultimos_lancamentos'));
         return redirect(route('planocontas.pesquisaavancada'));
-
     }
 
     /**
@@ -109,13 +164,12 @@ if($parcelas <= '0'){
             ->select(['Empresas.ID', 'Empresas.Descricao'])
             ->get();
 
-            $historicos = Historicos::orderBy('Descricao')
+        $historicos = Historicos::orderBy('Descricao')
             ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
             ->select(['Historicos.ID', 'Historicos.Descricao']);
-            //  ->pluck('Descricao','ID');
+        //  ->pluck('Descricao','ID');
 
-
-        return view('Lancamentos.create', compact('Empresas','historicos'));
+        return view('Lancamentos.create', compact('Empresas', 'historicos'));
     }
 
     /**
@@ -125,7 +179,7 @@ if($parcelas <= '0'){
     {
         $lancamento = $request->all();
         Lancamento::created($lancamento);
-        return redirect(route('Lancamentos.index'))->with('success','Lançamento Criado.');
+        return redirect(route('Lancamentos.index'))->with('success', 'Lançamento Criado.');
     }
 
     /**
@@ -135,9 +189,9 @@ if($parcelas <= '0'){
     {
         $lancamento = Lancamento::find($id);
         if (empty($lancamento)) {
-            return redirect(route('Lancamentos.index'))->with('error','Lançamento não encontrado');
+            return redirect(route('Lancamentos.index'))->with('error', 'Lançamento não encontrado');
         }
-        return view('Lancamentos.show',compact('lancamento'));
+        return view('Lancamentos.show', compact('lancamento'));
     }
 
     /**
@@ -147,9 +201,9 @@ if($parcelas <= '0'){
     {
         $lancamento = Lancamento::find($id);
         if (empty($lancamento)) {
-            return redirect(route('Lancamentos.index'))->with('error','Lançamento não encontrado');
+            return redirect(route('Lancamentos.index'))->with('error', 'Lançamento não encontrado');
         }
-        return view('Lancamentos.edit',compact('lancamento'));
+        return view('Lancamentos.edit', compact('lancamento'));
     }
 
     /**
@@ -159,11 +213,11 @@ if($parcelas <= '0'){
     {
         $lancamento = Lancamento::find($id);
         if (empty($lancamento)) {
-            return redirect(route('Lancamentos.index'))->with('error','Lançamento não encontrado');
+            return redirect(route('Lancamentos.index'))->with('error', 'Lançamento não encontrado');
         }
         $lancamento->fill($request->all());
         $lancamento->save();
-        return redirect(route('Lancamentos.index'))->with('success','Lançamento atualizado.');
+        return redirect(route('Lancamentos.index'))->with('success', 'Lançamento atualizado.');
     }
 
     /**
@@ -173,7 +227,7 @@ if($parcelas <= '0'){
     {
         $lancamento = Lancamento::find($id);
         if (empty($lancamento)) {
-            return redirect(route('Lancamentos.index'))->with('error','Lançamento não encontrado');
+            return redirect(route('Lancamentos.index'))->with('error', 'Lançamento não encontrado');
         }
         $lancamento->destroy();
         return redirect(route('Lancamentos.index'));
@@ -183,9 +237,9 @@ if($parcelas <= '0'){
     {
         $download = LancamentoDocumento::find($id);
         if ($download) {
-            return Storage::disk('google')->download($download->Nome.'.'.$download->Ext);
-        }else {
-            $this->addError('download','Arquivo não localizado para baixar.');
+            return Storage::disk('google')->download($download->Nome . '.' . $download->Ext);
+        } else {
+            $this->addError('download', 'Arquivo não localizado para baixar.');
         }
     }
 }
