@@ -125,7 +125,7 @@
                                                 Selecionar conta débito
                                             </option>
                                             @foreach ($debito as $Debito)
-                                                <option @if ($retorno['EmpresaSelecionada'] == $Empresa->ID) selected @endif
+                                                <option @if ($Debito->ID == $Empresa->ID) selected @endif
                                                     value="{{ $Debito->ID }}">
 
                                                     {{ $Debito->Descricao }}
@@ -141,8 +141,8 @@
                                                 Selecionar conta crédito
                                             </option>
                                             @foreach ($credito as $Credito)
-                                                <option @if ($retorno['EmpresaSelecionada'] == $Empresa->ID) selected @endif
-                                                    value="{{ $Empresa->ID }}">
+                                                <option @if ($Credito->ID == $Empresa->ID) selected @endif
+                                                    value="{{ $Credito->ID }}">
 
                                                     {{ $Credito->Descricao }}
                                                 </option>

@@ -7,7 +7,8 @@ use App\Http\Requests\LancamentoResquest;
 use App\Models\Empresa;
 use App\Models\Historicos;
 use App\Models\Lancamento;
-use app\Model\Conta;
+use App\Model\Model;
+use App\Models\Conta;
 use App\Models\LancamentoDocumento;
 use App\Models\PlanoConta;
 use Illuminate\Support\Facades\Auth;
@@ -135,6 +136,10 @@ class LancamentosController extends Controller
             dd($valor, $taxaJuros, $parcelas, $DataInicio, $Empresa, $ContaDebito,$ContaCredito);
         }
 
+
+      $debito = Conta::where('EmpresaID', '=', $Empresa)     ->where('PlanoContas_id', $ContaDebito)     ->first();
+      $credito = Conta::where('EmpresaID', '=', $Empresa)     ->where('PlanoContas_id', $ContaCredito)     ->first();
+
         $valorParcela = FinancaHelper::calcularTabelaPrice($valor, $taxaJuros, $parcelas);
 
         $saldoDevedor = $valor;
@@ -161,8 +166,8 @@ $DataInicialSomada = $DataInicial;
                 'valorTotalFinanciado' => $valorTotal,
                 'datainicial'=> $DataInicial,
                 'empresa' => $Empresa,
-'debito' => $ContaDebito,
-'credito' => $ContaCredito,
+'debito' => $debito->ID,
+'credito' => $credito->ID,
                 'datasomada' => $DataInicialSomada,
             ];
 
