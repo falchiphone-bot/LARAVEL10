@@ -41,10 +41,12 @@
                             <th>Juros</th>
                             <th>Valor da parcela</th>
                             <th>Taxa de juros</th>
-
                             <th>Valor financiado</th>
+                            <th>Empresa</th>
+ <th>Débito</th>
+ <th>Crédito</th>
 
-                    </thead>
+                    </td>
                     <tbody>
                         @foreach ($tabelaParcelas as $parcela)
                             <tr>
@@ -55,6 +57,9 @@
                                 <td> {{ number_format($parcela['Total'], 2, ',', '.') }}</td>
                                 <td> {{ number_format($parcela['taxaJuros'], 4, ',', '.') }}</td>
                                 <td> {{  $parcela['valorTotalFinanciado'] }}</td>
+                                <td> {{ $parcela['empresa'] }}</td>
+                                 <td> {{ $parcela['debito'] }}</td>
+                                  <td> {{ $parcela['credito'] }}</td>
                             </tr>
                         @endforeach
 
@@ -62,7 +67,7 @@
                     <tfoot>
 
                         <tr>
-                            <td colspan="9">
+                            <td colspan="11">
                                 <div class="badge bg-secondary text-wrap"
                                     style="width: 100%; font-size: 24px; color: black; text-align: center;">
 
@@ -72,6 +77,7 @@
 
                         </tr>
                         <tr>
+                            <td></td>
                             <td>Total:</td>
                             <td>{{ number_format(array_sum(array_column($tabelaParcelas, 'Amortização')), 2, ',', '.') }}
                             </td>

@@ -118,6 +118,41 @@
                                         </select>
                                     </div>
 
+                                    <div class="col-6">
+                                        <label for="Limite" style="color: white;">Conta débito</label>
+                                        <select class="form-control select2" id=“ContaDebito " name="ContaDebito">
+                                            <option value="">
+                                                Selecionar conta débito
+                                            </option>
+                                            @foreach ($debito as $Debito)
+                                                <option @if ($retorno['EmpresaSelecionada'] == $Empresa->ID) selected @endif
+                                                    value="{{ $Debito->ID }}">
+
+                                                    {{ $Debito->Descricao }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <div class="col-6">
+                                        <label for="Limite" style="color: white;">Conta crédito</label>
+                                        <select class="form-control select2" id=“ContaCredito " name="ContaCredito">
+                                            <option value="">
+                                                Selecionar conta crédito
+                                            </option>
+                                            @foreach ($credito as $Credito)
+                                                <option @if ($retorno['EmpresaSelecionada'] == $Empresa->ID) selected @endif
+                                                    value="{{ $Empresa->ID }}">
+
+                                                    {{ $Credito->Descricao }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+
+
+
 
                     <input type="checkbox" name="VerVariaveis" value="1">
                     <label for="checkbox_enviar">Ver os valores em tela debug</label>

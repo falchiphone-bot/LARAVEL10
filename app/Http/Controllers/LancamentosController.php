@@ -7,10 +7,13 @@ use App\Http\Requests\LancamentoResquest;
 use App\Models\Empresa;
 use App\Models\Historicos;
 use App\Models\Lancamento;
+use app\Model\Conta;
 use App\Models\LancamentoDocumento;
+use App\Models\PlanoConta;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
+use PhpOffice\PhpSpreadsheet\Calculation\DateTimeExcel\Days;
 
 class LancamentosController extends Controller
 {
@@ -96,8 +99,11 @@ class LancamentosController extends Controller
             ->select(['Empresas.ID', 'Empresas.Descricao'])
             ->get();
 
+                $debito = PlanoConta ::orderBy('codigo', 'desc')->get();
+                $credito = PlanoConta::orderBy('descricao', 'asc')->get();
 
-        return view('Lancamentos.lancamentosInformaPrice', compact('Empresas', 'retorno'));
+
+        return view('Lancamentos.lancamentosInformaPrice', compact('Empresas', 'retorno','debito', 'credito'));
     }
 
 
@@ -106,10 +112,10 @@ class LancamentosController extends Controller
         $valorTotal = $Request->TotalFinanciado;
         $taxaJuros = $Request->TaxaJurosMensal;
         $parcelas = $Request->Parcelas;
-        // $ContaDebito = $Request->ContaDebito;
-        // $ContaCredito = $Request->ContaCredito;
+        $ContaDebito = $Request->ContaDebito;
+        $ContaCredito = $Request->ContaCredito;
         $DataInicio = $Request->DataInicio;
-
+        $Empresa = $Request->EmpresaSelecionada;
 
         $valor = str_replace(',', '', $valorTotal);
 
@@ -119,12 +125,15 @@ class LancamentosController extends Controller
         }
 
         if ($Request->VerVariaveis) {
-            dd($valor, $taxaJuros, $parcelas, $DataInicio);
+            dd($valor, $taxaJuros, $parcelas, $DataInicio, $Empresa, $ContaDebito,$ContaCredito);
         }
 
         $valorParcela = FinancaHelper::calcularTabelaPrice($valor, $taxaJuros, $parcelas);
 
         $saldoDevedor = $valor;
+            $DataInicial = $DataInicio;
+$DataInicialSomada = $DataInicial;
+
 
         for ($i = 1; $i <= $parcelas; $i++) {
             $juros = ($saldoDevedor * $taxaJuros) / 100;
@@ -135,7 +144,6 @@ class LancamentosController extends Controller
             $jurosFormatado = number_format($juros, 2, ',', '.');
             $amortizacaoFormatada = number_format($amortizacao, 2, ',', '.');
             $saldoDevedorFormatado = number_format($saldoDevedor, 2, ',', '.');
-            $DataInicial = $DataInicio;
             $tabelaParcelas[] = [
                 'Parcela' => $i,
                 'Amortização' => $amortizacao,
@@ -145,7 +153,16 @@ class LancamentosController extends Controller
                 'parcelas' => $parcelas,
                 'valorTotalFinanciado' => $valorTotal,
                 'datainicial'=> $DataInicial,
+                'empresa' => $Empresa,
+'debito' => $ContaDebito,
+'credito' => $ContaCredito,
+                'datasomada' => $DataInicialSomada,
             ];
+
+              $DataInicial = strtotime($DataInicial);
+              $DataInicial = strtotime('+30 days', $DataInicial);
+              $DataInicial = date('Y-m-d', $DataInicial);
+              $DataInicialSomada = $DataInicial;
 
             // echo $i . "\tR$ " . $amortizacaoFormatada . "\t\tR$ " . $jurosFormatado . "\tR$ " . $valorParcelaFormatado . PHP_EOL;
         }
