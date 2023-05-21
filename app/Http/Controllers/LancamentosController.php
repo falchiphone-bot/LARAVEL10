@@ -99,8 +99,15 @@ class LancamentosController extends Controller
             ->select(['Empresas.ID', 'Empresas.Descricao'])
             ->get();
 
-                $debito = PlanoConta ::orderBy('codigo', 'desc')->get();
-                $credito = PlanoConta::orderBy('descricao', 'asc')->get();
+            $debito = PlanoConta::where('descricao', 'LIKE', '%EMPRESTIMOS BANCARIOS A PAGAR%')
+    ->orderBy('descricao', 'asc')
+    ->get();
+
+
+                $credito = PlanoConta::
+                where('Grau',5)
+                ->orderBy('descricao', 'asc')
+                ->get();
 
 
         return view('Lancamentos.lancamentosInformaPrice', compact('Empresas', 'retorno','debito', 'credito'));
