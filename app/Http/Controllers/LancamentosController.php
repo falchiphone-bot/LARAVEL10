@@ -151,8 +151,35 @@ class LancamentosController extends Controller
         }
 
 
+        $contadebitoJuros = Conta::where('EmpresaID', '=', $Empresa)     ->where('PlanoContas_id', '9238')     ->first();
+        // dd($contadebitoJuros);
+        if($contadebitoJuros->Bloqueiodataanterior == null)
+        {
+            session([
+                'Lancamento' =>
+                    'Conta DÉBITO: ' .
+                    $contadebitoJuros->PlanoConta->Descricao .
+                    ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                 da conta para seguir este procedimento. Bloqueada ou  NULA  - CÓDIGO L158',
+            ]);
+            return view('lancamentos.lancamentotabelapriceresultado', ['tabelaParcelas' => $tabelaParcelas]);
+        }
+        $data_conta_juros_bloqueio = $contadebitoJuros->Bloqueiodataanterior;
+        if ($data_conta_juros_bloqueio->greaterThanOrEqualTo($DataInicio)) {
+            session([
+                'Lancamento' =>
+                    'Conta DÉBITO: ' .
+                    $contadebitoJuros->PlanoConta->Descricao .
+                    ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                 da conta para seguir este procedimento. Bloqueada para até ' .
+                    $data_conta_juros_bloqueio->format('d/m/Y'). '  - CÓDIGO L158',
+
+            ]);
+        }
+
+        // dd($contadebitoJuros->ID);
       $debito = Conta::where('EmpresaID', '=', $Empresa)     ->where('PlanoContas_id', $ContaDebito)     ->first();
-      if($debito ==null){
+      if($debito == null){
         session(['Lancamento' => "CONTA DÉBITO NÃO PERTENCE A EMPRESA SELECIONADA! ATENÇÃO!"]);
         return view('lancamentos.lancamentotabelapriceresultado', ['tabelaParcelas' => $tabelaParcelas]);
       }
@@ -161,6 +188,9 @@ class LancamentosController extends Controller
         session(['Lancamento' => "CONTA CRÉDITO NÃO PERTENCE A EMPRESA SELECIONADA! ATENÇÃO"]);
         return view('lancamentos.lancamentotabelapriceresultado', ['tabelaParcelas' => $tabelaParcelas]);
       }
+
+
+
 
         $valorParcela = FinancaHelper::calcularTabelaPrice($valor, $taxaJuros, $parcelas);
 
@@ -262,6 +292,7 @@ class LancamentosController extends Controller
 
 
 
+
                 $data = $EfetuarLancamento['datasomada'];
 
                 $dataString = date('d-m-Y', strtotime($data));
@@ -274,7 +305,9 @@ class LancamentosController extends Controller
                 ->where('EmpresaID', $Empresa)
                 ->where('ContaDebitoID', $EfetuarLancamento['debito'])
                 ->First();
-                $dataLancamento_carbon = Carbon::createFromDate($data);
+
+                if($lancamentoLocalizado){
+                    $dataLancamento_carbon = Carbon::createFromDate($data);
                 $dataLancamento = $dataLancamento_carbon->format('Y/m/d');
                 $data_conta_debito_bloqueio = $lancamentoLocalizado->ContaDebito->Bloqueiodataanterior;
                 $data_conta_credito_bloqueio = $lancamentoLocalizado->ContaCredito->Bloqueiodataanterior;
@@ -285,7 +318,7 @@ class LancamentosController extends Controller
                             'Conta DÉBITO: ' .
                             $lancamentoLocalizado->ContaDebito->PlanoConta->Descricao .
                             ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
-                         da conta para seguir este procedimento. Bloqueada: NULA',
+                         da conta para seguir este procedimento. Bloqueada: NULA  - CÓDIGO L291',
                     ]);
                     return view('lancamentos.lancamentotabelapriceresultado', ['tabelaParcelas' => $tabelaParcelas]);
                 }
@@ -297,7 +330,7 @@ class LancamentosController extends Controller
                             $lancamentoLocalizado->ContaDebito->PlanoConta->Descricao .
                             ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
                          da conta para seguir este procedimento. Bloqueada para até ' .
-                            $data_conta_debito_bloqueio->format('d/m/Y'),
+                            $data_conta_debito_bloqueio->format('d/m/Y').'- CÓDIGO L333',
 
                     ]);
                 }
@@ -308,7 +341,7 @@ class LancamentosController extends Controller
                             'Conta DÉBITO: ' .
                             $lancamentoLocalizado->ContaCredito->PlanoConta->Descricao .
                             ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
-                         da conta para seguir este procedimento. Bloqueada: NULA',
+                         da conta para seguir este procedimento. Bloqueada: NULA - CÓDIGO L314',
                     ]);
                     return view('lancamentos.lancamentotabelapriceresultado', ['tabelaParcelas' => $tabelaParcelas]);
                 }
@@ -320,10 +353,12 @@ class LancamentosController extends Controller
                             $lancamentoLocalizado->ContaCredito->PlanoConta->Descricao .
                             ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
                          da conta para seguir este procedimento. Bloqueada para até ' .
-                            $data_conta_debito_bloqueio->format('d/m/Y'),
+                            $data_conta_debito_bloqueio->format('d/m/Y').'- CÓDIGO L356',
 
                     ]);
                 }
+                }
+
 
 
 
@@ -359,14 +394,15 @@ class LancamentosController extends Controller
                 ->where('ContaCreditoID', $EfetuarLancamento['debito'])
                 ->First();
 
-                    $data_conta_juros_bloqueio = $lancamentoLocalizadoJuros->ContaDebito->Bloqueiodataanterior;
+                if($lancamentoLocalizadoJuros){
+                     $data_conta_juros_bloqueio = $lancamentoLocalizadoJuros->ContaDebito->Bloqueiodataanterior;
                     if ($data_conta_juros_bloqueio == null) {
                         session([
                             'Lancamento' =>
                                 'Conta DÉBITO: ' .
                                 $lancamentoLocalizadoJuros->ContaDebito->PlanoConta->Descricao .
                                 ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
-                             da conta para seguir este procedimento. Bloqueada: NULA',
+                             da conta para seguir este procedimento. Bloqueada: NULA - CÓDIGO L375',
                         ]);
 
                         return view('lancamentos.lancamentotabelapriceresultado', ['tabelaParcelas' => $tabelaParcelas]);
@@ -379,10 +415,12 @@ class LancamentosController extends Controller
                                 $lancamentoLocalizado->ContaDebito->PlanoConta->Descricao .
                                 ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
                              da conta para seguir este procedimento. Bloqueada para até ' .
-                                $data_conta_juros_bloqueio->format('d/m/Y'),
+                                $data_conta_juros_bloqueio->format('d/m/Y').'- CÓDIGO L418',
 
                         ]);
                     }
+                }
+
 
                 if($lancamentoLocalizadoJuros){
                     // dd( $datacontabil,$EfetuarLancamento['Total'], $Empresa, $EfetuarLancamento['debito'] );
@@ -398,7 +436,7 @@ class LancamentosController extends Controller
                     $LancamentoParcela[] = Lancamento::create([
                     'Valor' => ($valorString = $EfetuarLancamento['Juros']),
                     'EmpresaID' => $EfetuarLancamento['empresa'],
-                    'ContaDebitoID' => '19075',
+                    'ContaDebitoID' => $contadebitoJuros->ID,
                     'ContaCreditoID' => $EfetuarLancamento['debito'],
                     'Descricao' => $EfetuarLancamento['debitodescricao'],
                     'Usuarios_id' => auth()->user()->id,
