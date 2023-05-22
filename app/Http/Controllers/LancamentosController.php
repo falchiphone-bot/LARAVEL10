@@ -259,7 +259,8 @@ class LancamentosController extends Controller
         if($Lancar){
             session(['LancamentoDebito' => "NADA LANÇAMENTO A DÉBITO!"]);
             foreach($tabelaParcelas as $EfetuarLancamento){
-                // dd($EfetuarLancamento);
+
+
 
                 $data = $EfetuarLancamento['datasomada'];
 
@@ -268,19 +269,67 @@ class LancamentosController extends Controller
                 $datacontabil = $EfetuarLancamento['datasomada'];
                 $valorString = $EfetuarLancamento['Total'];
 
-
                 $lancamentoLocalizado = Lancamento::where('DataContabilidade', $dataString)
                 ->where('Valor', $EfetuarLancamento['Total'])
                 ->where('EmpresaID', $Empresa)
                 ->where('ContaDebitoID', $EfetuarLancamento['debito'])
                 ->First();
+                $dataLancamento_carbon = Carbon::createFromDate($data);
+                $dataLancamento = $dataLancamento_carbon->format('Y/m/d');
+                $data_conta_debito_bloqueio = $lancamentoLocalizado->ContaDebito->Bloqueiodataanterior;
+                $data_conta_credito_bloqueio = $lancamentoLocalizado->ContaCredito->Bloqueiodataanterior;
+
+                if ($data_conta_debito_bloqueio == null) {
+                    session([
+                        'Lancamento' =>
+                            'Conta DÉBITO: ' .
+                            $lancamentoLocalizado->ContaDebito->PlanoConta->Descricao .
+                            ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                         da conta para seguir este procedimento. Bloqueada: NULA',
+                    ]);
+                    return view('lancamentos.lancamentotabelapriceresultado', ['tabelaParcelas' => $tabelaParcelas]);
+                }
+
+                if ($data_conta_debito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
+                    session([
+                        'Lancamento' =>
+                            'Conta DÉBITO: ' .
+                            $lancamentoLocalizado->ContaDebito->PlanoConta->Descricao .
+                            ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                         da conta para seguir este procedimento. Bloqueada para até ' .
+                            $data_conta_debito_bloqueio->format('d/m/Y'),
+
+                    ]);
+                }
+
+                if ($data_conta_credito_bloqueio == null) {
+                    session([
+                        'Lancamento' =>
+                            'Conta DÉBITO: ' .
+                            $lancamentoLocalizado->ContaCredito->PlanoConta->Descricao .
+                            ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                         da conta para seguir este procedimento. Bloqueada: NULA',
+                    ]);
+                    return view('lancamentos.lancamentotabelapriceresultado', ['tabelaParcelas' => $tabelaParcelas]);
+                }
+
+                if ($data_conta_credito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
+                    session([
+                        'Lancamento' =>
+                            'Conta DÉBITO: ' .
+                            $lancamentoLocalizado->ContaCredito->PlanoConta->Descricao .
+                            ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                         da conta para seguir este procedimento. Bloqueada para até ' .
+                            $data_conta_debito_bloqueio->format('d/m/Y'),
+
+                    ]);
+                }
+
 
 
                 if($lancamentoLocalizado){
                     // dd( $datacontabil,$EfetuarLancamento['Total'], $Empresa, $EfetuarLancamento['debito'] );
-                    session(['LancamentoDebito' => "NADA LANÇAMENTO A DÉBITO!"]);
-
-                    continue;
+                    session(['LancamentoDebito' => "NADA LANÇAMENTO A DÉBITO OU A CRÉDITO!"]);
                 }
                 else{
                     // dd("Lancando ", $datacontabil,$EfetuarLancamento['Total'], $Empresa, $EfetuarLancamento['debito'] );
@@ -304,6 +353,64 @@ class LancamentosController extends Controller
                     // return view('lancamentos.lancamentotabelapriceresultado', ['tabelaParcelas' => $tabelaParcelas]);
                 }
 
+                $lancamentoLocalizadoJuros = Lancamento::where('DataContabilidade', $dataString)
+                ->where('Valor', $EfetuarLancamento['Juros'])
+                ->where('EmpresaID', $Empresa)
+                ->where('ContaCreditoID', $EfetuarLancamento['debito'])
+                ->First();
+
+                    $data_conta_juros_bloqueio = $lancamentoLocalizadoJuros->ContaDebito->Bloqueiodataanterior;
+                    if ($data_conta_juros_bloqueio == null) {
+                        session([
+                            'Lancamento' =>
+                                'Conta DÉBITO: ' .
+                                $lancamentoLocalizadoJuros->ContaDebito->PlanoConta->Descricao .
+                                ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                             da conta para seguir este procedimento. Bloqueada: NULA',
+                        ]);
+
+                        return view('lancamentos.lancamentotabelapriceresultado', ['tabelaParcelas' => $tabelaParcelas]);
+                    }
+
+                    if ($data_conta_juros_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
+                        session([
+                            'Lancamento' =>
+                                'Conta DÉBITO: ' .
+                                $lancamentoLocalizado->ContaDebito->PlanoConta->Descricao .
+                                ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                             da conta para seguir este procedimento. Bloqueada para até ' .
+                                $data_conta_juros_bloqueio->format('d/m/Y'),
+
+                        ]);
+                    }
+
+                if($lancamentoLocalizadoJuros){
+                    // dd( $datacontabil,$EfetuarLancamento['Total'], $Empresa, $EfetuarLancamento['debito'] );
+                    session(['LancamentoDebito' => "NADA LANÇAMENTO A DÉBITO OU A CRÉDITO!"]);
+
+                    continue;
+                }
+                else{
+                    // dd("Lancando ", $datacontabil,$EfetuarLancamento['Total'], $Empresa, $EfetuarLancamento['debito'] );
+
+                    $dataSalvar = Carbon::createFromDate($EfetuarLancamento['datainicial']);
+
+                    $LancamentoParcela[] = Lancamento::create([
+                    'Valor' => ($valorString = $EfetuarLancamento['Juros']),
+                    'EmpresaID' => $EfetuarLancamento['empresa'],
+                    'ContaDebitoID' => '19075',
+                    'ContaCreditoID' => $EfetuarLancamento['debito'],
+                    'Descricao' => $EfetuarLancamento['debitodescricao'],
+                    'Usuarios_id' => auth()->user()->id,
+                    'DataContabilidade' => $dataString ,
+                    'Conferido' => false,
+                    'HistoricoID' => null,
+                    ]);
+
+
+                    session(['LancamentoDebito' => "LANÇAMENTO A DÉBITO CRIADO!"]);
+                    // return view('lancamentos.lancamentotabelapriceresultado', ['tabelaParcelas' => $tabelaParcelas]);
+                }
 
             }
 

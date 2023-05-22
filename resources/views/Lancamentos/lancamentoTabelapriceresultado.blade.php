@@ -10,12 +10,14 @@
                     </div>
                     {{ session(['Lancamento' => null]) }}
                 @endif
+
                 @if (session('LancamentoDebito'))
                 <div class="alert alert-success">
                     {{ session('LancamentoDebito') }}
                 </div>
                 {{ session(['LancamentoDebito' => null]) }}
                @endif
+               
                 <div class="badge bg-secondary text-wrap" style="width: 100%;
                 ;font-size: 24px; lign=˜Center˜">
                     CÁLCULO PELA TABELA PRICE E EFETUAR LANÇAMENTOS NO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
@@ -47,7 +49,7 @@
                             <th>Amortização</th>
                             <th>Juros</th>
                             <th>Valor da parcela</th>
-                            <th>Taxa de juros</th>
+                            <th>Taxa de juros em %</th>
                             <th>Valor financiado</th>
                             <th>Empresa</th>
  <th>Débito</th>
@@ -90,7 +92,7 @@
 
                         </tr>
                         <tr>
-                            <td></td>
+                            <td colspan="2">
                             <td>Total:</td>
                             <td>{{ number_format(array_sum(array_column($tabelaParcelas, 'Amortização')), 2, ',', '.') }}
                             </td>
