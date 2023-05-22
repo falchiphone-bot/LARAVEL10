@@ -79,11 +79,6 @@ class ListarLiquidacao extends Component
             $feriado = Feriado::where('data', $dataLiquidacao->format('Y-m-d'))->first();
             while ($feriado ) {
                 $dataLiquidacao->addDay();
-                // if ($dataLiquidacao->weekDay() == 6) {
-                //     $dataLiquidacao->addDay(2);
-                // } elseif ($dataLiquidacao->weekday() == 7) {
-                //     $dataLiquidacao->addDay(1);
-                // }
                 $feriado = Feriado::where('data', $dataLiquidacao->format('Y-m-d'))->first();
             }
 

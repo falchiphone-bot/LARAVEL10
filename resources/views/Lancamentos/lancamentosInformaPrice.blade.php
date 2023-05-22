@@ -10,7 +10,7 @@
                     </div>
                     {{ session(['Lancamento' => null]) }}
                 @endif
-
+                
                 <div class="badge bg-secondary text-wrap" style="width: 100%;
                 ;font-size: 24px; lign=˜Center˜">
                     INFORMAR VALORES PARA CALCULAR TABELA PRICE E LANÇAR NO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
@@ -151,7 +151,12 @@
                                     </div>
 
 
-
+                                    <input type="checkbox" name="Mesmodia" value="true">
+                                    <label for="checkbox_enviar">Vencimentos em mesmo dia</label>
+                                    <br>
+                                    <input type="checkbox" name="Lancar" value="true">
+                                    <label for="checkbox_enviar">Efetuar os lancamentos de parcelas e dos juros</label>
+                                    <br>
 
 
                     <input type="checkbox" name="VerVariaveis" value="1">
