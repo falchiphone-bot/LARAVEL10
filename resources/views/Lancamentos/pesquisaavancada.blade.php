@@ -18,7 +18,13 @@
                 </div>
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                     <a class="btn btn-warning" href="/Contabilidade">Retornar e ou ir para Contabilidade</a>
+
                 </nav>
+                <nav class="navbar navbar-primay" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                    <a class="btn btn-success" href="/Historicos">Históricos para lançamentos
+                        contábeis</a>
+                </nav>
+
                 @if (session('success'))
                     <div class="alert alert-success">
                         {{ session('success') }}

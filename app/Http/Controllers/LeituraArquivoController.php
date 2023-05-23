@@ -511,7 +511,8 @@ class LeituraArquivoController extends Controller
                 }
 
                 session([
-                    'Lancamento' => 'Terminado na linha ' . $linha . '. Saldo no extrato bancário de: ' . $Saldo . ' Saldo atual no sistema contábil de ' . $SaldoAtual . ' = ' . $TextoConciliado,
+                    'Lancamento' => 'Terminado na linha ' . $linha . '. Saldo no extrato bancário de: ' . number_format($Saldo, 2, '.', ',')."." .
+                     ' Saldo atual no sistema contábil de ' .  number_format($SaldoAtual, 2, '.', ',') . ' = ' . $TextoConciliado,
                 ]);
 
                 return redirect(route('LeituraArquivo.index'));

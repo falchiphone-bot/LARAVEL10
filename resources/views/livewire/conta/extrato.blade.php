@@ -3,7 +3,7 @@
 
     <div class="card">
         <div class="card-body">
-            <div class="badge bg-success text-wrap" style="width: 100%;
+            <div class="badge bg-secondary text-wrap" style="width: 100%;
              ;font-size: 16px; lign=˜Center˜">
                 <div class="row">
                     <div class="row py-2">
@@ -26,6 +26,10 @@
                                 Alterar data em múltiplos lançamentos
                             </button>
                         </div>
+                        <div class="col-2">
+                             <a class="btn btn-success" href="/Historicos">Históricos para lançamentos</a>
+                        </div>
+
                     </div>
                 </div>
                 <div class="row">
