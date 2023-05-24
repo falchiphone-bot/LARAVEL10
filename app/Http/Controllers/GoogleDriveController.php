@@ -156,14 +156,15 @@ class GoogleDriveController extends Controller
 
         // $folder = '1Jzih3qPaWpf7HISQEsDpUpH0ab7eS-yJ';   //FIXADO NO ARQUIVO .env
         $folder = env('FOLDER_DRIVE_GOOGLE');
-
+        // $folder = null;
         if ($folder == null) {
             session([
-                'InformacaoArquivo' => 'Pasta não informada! Verifique o arquivo de configuração env( FOLDER_DRIVE_GOOGLE ).',
+                'InformacaoArquivo' => 'Pasta não informada! Verifique o arquivo de configuração env( FOLDER_DRIVE_GOOGLE ). Execute: # php artisan config:clear no SERVIDOR DOCKER LARAVEL'
             ]);
             return redirect(route('informacao.arquivos'));
         }
         $folderTemp = env('FOLDER_DRIVE_GOOGLE');
+        // $folderTemp = null;
         if ($folderTemp == null) {
             session([
                 'InformacaoArquivo' => 'Pasta não informada! Verifique o arquivo de configuração env( FOLDER_DRIVE_GOOGLE_TEMPORARIA ).',

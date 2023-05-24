@@ -68,6 +68,7 @@ class HistoricoController extends Controller
     public function store(HistoricosCreateRequest $request)
     {
         $request['UsuarioID'] = auth()->user()->id;
+        $request['Descricao'] = trim($request->Descricao);
         $Historicos = $request->all();
 
         Historicos::create($Historicos);
@@ -100,6 +101,7 @@ class HistoricoController extends Controller
         $cadastro = Historicos::find($id);
 
         $request['UsuarioID'] = auth()->user()->id;
+        $request['Descricao'] = trim($request->Descricao);
         $cadastro->fill($request->all());
 
         $cadastro->save();

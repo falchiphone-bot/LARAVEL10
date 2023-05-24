@@ -673,17 +673,21 @@ class LeituraArquivoController extends Controller
                 // return redirect(route('LeituraArquivo.index'));
 
                 if ($Valor_Positivo) {
-                    $historico = Historicos::where('EmpresaID', $Empresa)
+                    $historico = Historicos::
+                    where('EmpresaID', $Empresa)
                         ->where('Descricao', 'like', '%' . trim($Descricao) . '%')
                         ->where('ContaDebitoID', $Conta)
                         ->first();
-                }
+
+                }else
                 if ($Valor_Negativo) {
                     $historico = Historicos::where('EmpresaID', $Empresa)
                         ->where('Descricao', 'like', '%' . trim($Descricao) . '%')
                         ->where('ContaCreditoID', $Conta)
                         ->first();
+
                 }
+//  dd($historico,trim($Descricao), $Conta,$Empresa,'680');
 
                 $Conferir_Bloqueio = false;
                 if ($request->vercriarlancamentocomhistorico) {
@@ -695,6 +699,7 @@ class LeituraArquivoController extends Controller
                 }
 
                 if ($historico) {
+
                     if ($Conferir_Bloqueio == true) {
                         $dataLancamento_carbon = Carbon::createFromDate($lancamento->DataContabilidade);
                         $dataLancamento = $dataLancamento_carbon->format('Y/m/d');
@@ -928,10 +933,10 @@ class LeituraArquivoController extends Controller
 
         $valor_sem_simbolo = '';
         if ($primeiro_caractere === '-') {
-            $valor_sem_simbolo = substr($linha_valor, 3); // Extrai a string sem o símbolo "R$"
+            $valor_sem_simbolo = substr($linha_valor, 3); // Extrai a string sem o símbolo R$
             // dd($valor_sem_simbolo);
         } else {
-            // dd("O valor não começa com 'R'.");
+            // dd(O valor não começa com R.);
         }
 
         $valor_numerico = preg_replace('/[^0-9,.]/', '', $linha_valor);

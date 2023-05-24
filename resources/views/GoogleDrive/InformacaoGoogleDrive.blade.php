@@ -11,12 +11,20 @@
 
 
                 <div class="card-body">
+                    @if (session('InformacaoArquivo'))
+                    <div class="alert alert-danger">
+                        {{ session('InformacaoArquivo') }}
+                    </div>
+                    {{ session(['InformacaoArquivo' => null]) }}
+
 
                     <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                         <a class="btn btn-warning" href="dashboard">Retornar a lista de opções</a>
 
                     </nav>
                 </div>
+                 @else
+
 
                 <div class="badge bg-warning text-wrap"
                     style="width: 100%; font-size: 24px; color: black; text-align: center;">
@@ -48,7 +56,7 @@
                         <p>Link do arquivo: <a href="{{ session('InformacaoArquivo')['webContentLink']??null }}">{{ session('InformacaoArquivo')['webContentLink']??null }}</a></p>
 
                         <p>Descrição do arquivo: {{ session('InformacaoArquivo')['description']??null }}</p>
-                       
+
                         </div>
                             {{ session([
                                 'InformacaoArquivoProprietário' => null,
@@ -69,6 +77,7 @@
                     </div>
 
                 </div>
+                @endif
             </div>
         </div>
     </div>
