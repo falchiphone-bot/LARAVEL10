@@ -651,9 +651,7 @@ class LeituraArquivoController extends Controller
                         1 .
                         '!',
                 ]);
-                if ($NumeroParcela !== null && $QuantidadeParcela !== null) {
-                    dd('VARIAS PARCELAS');
-                }
+
             } else {
                 if ($request->criarlancamentosemhistorico == true) {
                     if ($Parcela) {
@@ -681,9 +679,28 @@ class LeituraArquivoController extends Controller
                     }
 
                     if ($NumeroParcela !== null && $QuantidadeParcela !== null) {
-                        dd('VARIAS PARCELAS');
+                        $registros = array();
+                            for ($i = 1; $i <= $QuantidadeParcela; $i++) {
+                                $novoRegistroParcelas = array(
+                                    'NumeroParcela' => $NumeroParcela,
+                                    'QuantidadeParcela' => $QuantidadeParcela,
+                                    'Valor' => ($valorString = $valor_formatado),
+                                    'Data' => $Data,
+                                    'Descricao' => $Descricao.' Parcela:'.$i.' de '.$QuantidadeParcela
+                                );
+
+                                // Faça algo com o novo registro, como armazená-lo em um banco de dados ou exibi-lo
+                                // por exemplo:
+                                // salvarRegistroNoBancoDeDados($novoRegistro);
+                                // exibirRegistro($novoRegistro);
+                                echo $i,' ';
+                                // Você também pode adicionar o registro a uma lista, array, ou qualquer outra estrutura de dados necessária
+                            $registros[] = $novoRegistroParcelas;
+                            }
+
+                        dd('VARIAS PARCELAS',$Descricao, $registros);
                     } else {
-                        // DD('NÃO CRIAR');
+                        DD('NÃO CRIAR');
                         Lancamento::create([
                             'Valor' => ($valorString = $valor_formatado),
                             'EmpresaID' => $Empresa,
