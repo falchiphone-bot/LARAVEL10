@@ -72,7 +72,7 @@
                                 @csrf
                                 <label for="fim"></label>
 
-                                     <div class="badge bg-warning text-wrap"
+                                     <div class="badge bg-info text-wrap"
                                     style="width: 100%; font-size: 24px; color: black; text-align: center;">
                                     {{-- <input type="file" required class="btn btn-success" name="arquivo" accept=".csv, text/csv"> --}}
 
@@ -100,8 +100,8 @@
                                 enctype="multipart/form-data">
                                 @csrf
                                 <label for="fim"></label>
-                                <div class="badge bg-warning text-wrap"
-                                    style="width: 100%; font-size: 24px; color: black; text-align: center;">
+                                <div class="badge bg-success text-wrap"
+                                    style="width: 100%; font-size: 24px; color: white; text-align: center;">
 
                                     <label for="fim">Arquivo de extrato Sicredi pessoa jurídica - PJ E pessoa física -
                                         PF</label>
