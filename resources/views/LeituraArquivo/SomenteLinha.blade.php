@@ -66,6 +66,37 @@
                     @endcan
 
                     @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA VISUALIZAR')
+                    <div class="row">
+
+                        <form method="POST" action="/LeituraArquivo/SelecionaDatasFaturaEmAberto" enctype="multipart/form-data">
+                            @csrf
+                            <label for="fim"></label>
+
+                                 <div class="badge bg-secondary text-wrap"
+                                style="width: 100%; font-size: 24px; color: black; text-align: center;">
+                                {{-- <input type="file" required class="btn btn-success" name="arquivo" accept=".csv, text/csv"> --}}
+
+                                <input type="file" required class="btn btn-success" name="arquivo" accept=".csv" onchange="validateFile(this)">
+
+
+                                <label for="fim">Arquivo *.csv para selecionar exportado do aplicativo mobile do Sicredi - CARTÕES.
+                                    Dever ser enviado por AirDrop para o dispositivo de execução. Extrato em situação: 'Fatura em aberto, sujeita a alterações'
+                                </label>
+
+
+                                <p class="my-2">
+                                    <button type="submit" class="btn btn-danger">Enviar o arquivo para a pasta do sistema
+                                        e
+                                        consulta o arquivo *.csv total proveniente do aplicativo mobile do Sicredi - CARTÕES</button>
+                                </p>
+
+                        </form>
+                    </div>
+                @endcan
+
+
+
+                    @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA VISUALIZAR')
                         <div class="row">
 
                             <form method="POST" action="/LeituraArquivo/SelecionaDatas" enctype="multipart/form-data">
@@ -79,9 +110,9 @@
                                     <input type="file" required class="btn btn-success" name="arquivo" accept=".csv" onchange="validateFile(this)">
 
 
- <label for="fim">Arquivo *.csv para selecionar exportado do aplicativo mobile do Sicredi - CARTÕES.
-    Dever ser enviado por AirDrop para o dispositivo de execução. Extrato em situação: 'Fechada'
-</label>
+                                    <label for="fim">Arquivo *.csv para selecionar exportado do aplicativo mobile do Sicredi - CARTÕES.
+                                        Dever ser enviado por AirDrop para o dispositivo de execução. Extrato em situação: 'Fechada'
+                                    </label>
 
 
                                     <p class="my-2">

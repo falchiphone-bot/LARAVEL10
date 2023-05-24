@@ -372,6 +372,297 @@ class LeituraArquivoController extends Controller
         return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
     }
 
+    public function SelecionaDatasFaturaEmAberto(Request $request)
+    {
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        /////// aqui fica na pasta temporário /temp/    - apaga
+        $path = $request->file('arquivo')->getRealPath();
+        $file = $request->file('arquivo');
+        $extension = $file->getClientOriginalExtension();
+
+        $Complemento = $request->complemento;
+        $name = $file->getClientOriginalName();
+        $caminho = $path;
+        // if ($extension != 'txt' && $extension != 'csv' && $extension != 'xlsx' && $extension != 'xls') {
+        //     session(['Lancamento' => 'Arquivo considerado não compatível para este procedimento! Autorizados arquivos com extensões csv, txt, xls e xlsx. Apresentado o último enviado. ATENÇÃO!']);
+        //     return redirect(route('LeituraArquivo.index'));
+        // }
+
+        if ($extension != 'csv') {
+            session(['Lancamento' => 'Arquivo considerado não compatível para este procedimento! Autorizados arquivos com extensões csv. Apresentado o último enviado. ATENÇÃO!']);
+            return redirect(route('LeituraArquivo.index'));
+        }
+
+        $email = auth()->user()->email;
+        $user = str_replace('@', '', $email);
+        $user = str_replace('.', '', $user);
+        $arquivosalvo = 'app/contabilidade/' . $user . '.prf';
+        copy($path, storage_path($arquivosalvo));
+
+        // Abre o arquivo Excel
+        $spreadsheet = IOFactory::load($caminho);
+
+        // Seleciona a primeira planilha do arquivo
+        $worksheet = $spreadsheet->getActiveSheet();
+
+        // Obtém a última linha da planilha
+        $lastRow = $worksheet->getHighestDataRow();
+
+        // Obtém a última coluna da planilha
+        $lastColumn = $worksheet->getHighestDataColumn();
+
+        // Converte a última coluna para um número (ex: "D" para 4)
+        $lastColumnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($lastColumn);
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // Obter a planilha ativa (por exemplo, a primeira planilha)
+        $planilha_ativa = $spreadsheet->getActiveSheet();
+        ///////////////////////////// DADOS DA LINHA 1 PARA DEFINIR CONTAS
+        $linha_1 = $planilha_ativa->getCell('B' . 1)->getValue();
+        ///////////////////////////// DADOS DA LINHA 4 COLUNA 2 PARA DEFINIR CONTAS
+        $linha_4_coluna_2 = $planilha_ativa->getCell('B' . 4)->getValue();
+        ///////////////////////////// DADOS DA LINHA 7 PARA DEFINIR CONTAS
+        $linha_7 = $planilha_ativa->getCell('A' . 7)->getValue();
+
+        if ($linha_7 == null) {
+            session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
+            return redirect(route('LeituraArquivo.index'));
+        }
+
+ ///////////////////////////// DADOS DA LINHA 12 PARA DEFINIR SITUAÇÃO
+ $linha_8 = trim($planilha_ativa->getCell('B' . 8)->getValue());
+
+ if ($linha_8 != "Fatura em aberto, sujeita a alterações") {
+    session(['Lancamento' => 'Arquivo e ou ficheiro não identificado!
+     Verifique se o mesmo está correto para este procedimento!
+      A situação do extrato tem que ser: Fatura em aberto, sujeita a alterações. Neste arquivo está como situação: '.$linha_8]);
+    return redirect(route('LeituraArquivo.index'));
+}
+// dd('Pesquisar se já lançada!');
+
+        $ContaCartao = null;
+        $DespesaContaDebitoID = null;
+        $CashBackContaCreditoID = '19271';
+
+        $string = $linha_7;
+        $parts = explode('-', $string);
+        $result_linha7 = trim($parts[0]);
+        $linhas1_7 = $linha_1 . '-' . $result_linha7;
+
+        if ($linhas1_7 === 'SANDRA ELISA MAGOSSI FALCHI-4891.67XX.XXXX.9125') {
+            $ContaCartao = '17457';
+            $Empresa = 11;
+            $DespesaContaDebitoID = '19426';
+            $CashBackContaCreditoID = '19271';
+            // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
+        } elseif ($linhas1_7 === 'PEDRO ROBERTO FALCHI-4891.67XX.XXXX.2113') {
+            $ContaCartao = '17458';
+            $Empresa = 11;
+            $DespesaContaDebitoID = '19426';
+            $CashBackContaCreditoID = '19271';
+            // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
+           }elseif ($linhas1_7 === 'PEDRO ROBERTO FALCHI-4891.67XX.XXXX.2915') {
+                $ContaCartao = '17458';
+                $Empresa = 11;
+                $DespesaContaDebitoID = '19426';
+                $CashBackContaCreditoID = '19271';
+                // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
+        } elseif ($linha_4_coluna_2 === '54958-4') {
+            $ContaCartao = '17458';
+            $Empresa = 11;
+            $DespesaContaDebitoID = '15354';
+            $CashBackContaCreditoID = '19271';
+            // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
+        } else {
+            session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
+            return redirect(route('LeituraArquivo.index'));
+        }
+
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        // Array que irá armazenar os dados das células
+        $cellData = [];
+
+        // Loop para percorrer todas as células da planilha
+        $dateValue = null;
+        for ($row = 1; $row <= $lastRow; $row++) {
+            for ($column = 1; $column <= $lastColumnIndex; $column++) {
+                // Obtém o valor da célula
+                $cellValue = $worksheet->getCellByColumnAndRow($column, $row)->getValue();
+
+                // Adiciona o valor da célula ao array $cellData
+                $cellData[$row][$column] = $cellValue;
+            }
+        }
+
+        $novadata = array_slice($cellData, 19);
+        // $novadata = array_slice($cellData, 152);
+
+        ///// CONFERE SE EMPRESA BLOQUEADA
+        $Empresa = '11';
+        $EmpresaBloqueada = Empresa::find($Empresa);
+        $Data_bloqueada = $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y');
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        foreach ($novadata as $PegaLinha => $item) {
+            $Data = $item[1];
+
+            if ($Data == 'Histórico de Despesas') {
+                session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
+                return redirect(route('LeituraArquivo.index'));
+            }
+            $Descricao = $item[2];
+
+            $linha = $PegaLinha + 20; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
+
+            if (strpos($Descricao, 'CREDITO CASH BACK') !== false) {
+                //// se contiver, conter o texto na variável
+                // dd($linha, $Descricao);
+                continue;
+            } elseif (strpos($Descricao, 'PAGAMENTO DEBITO EM') !== false) {
+                //// se contiver, conter o texto na variável
+
+                continue;
+            }
+
+            $carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $Data);
+            $linha_data_comparar = $carbon_data->format('Y-m-d');
+
+            $carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $Data_bloqueada);
+            $Data_bloqueada_comparar = $carbon_data->format('Y-m-d');
+
+            if ($linha_data_comparar <= $Data_bloqueada_comparar) {
+                session([
+                    'Lancamento' =>
+                        'Empresa bloqueada no sistema para o lançamento
+                  solicitado! Deverá desbloquear a data de bloqueio
+                  da empresa para seguir este procedimento. Bloqueada para até ' .
+                        $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y') .
+                        '! Encontrado lançamento na linha ' .
+                        $linha,
+                ]);
+                return redirect(route('LeituraArquivo.index'));
+            }
+
+            $Descricao = $item[2];
+            $Parcela = $item[3];
+            $Valor = $item[4];
+
+            $valor_numerico = preg_replace('/[^0-9,.]/', '', $Valor);
+            $Valor_sem_virgula = str_replace(',', '', $Valor);
+            $Valor_sem_pontos_virgulas = str_replace('.', '', $Valor_sem_virgula);
+            $valor_sem_simbolo = substr($Valor_sem_pontos_virgulas, 3); // Extrai a string sem o símbolo "R$"
+
+            $valor_numerico = floatval($valor_sem_simbolo) / 100;
+            $valor_formatado = number_format($valor_numerico, 2, '.', '');
+            if ($valor_formatado == 0.00) {
+                session([
+                    'Lancamento' =>
+                        'ALGO ERRADO! VALOR 0.00. Linha:  ' .
+                        $linha,
+                ]);
+                return redirect(route('LeituraArquivo.index'));
+            }
+            $arraydatanova = compact('Data', 'Descricao', 'valor_formatado');
+            // dd($Valor,$Valor_sem_virgula,$Valor_sem_pontos_virgulas,$valor_sem_simbolo ,$valor_numerico,$arraydatanova);
+
+            $rowData = $cellData;
+
+            $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
+                ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
+                ->where('EmpresaID', $Empresa)
+                ->where('ContaCreditoID', $ContaCartao)
+                ->First();
+
+            if ($lancamento) {
+                $dataLancamento_carbon = Carbon::createFromDate($lancamento->DataContabilidade);
+                $dataLancamento = $dataLancamento_carbon->format('Y/m/d');
+                $data_conta_debito_bloqueio = $lancamento->ContaDebito->Bloqueiodataanterior;
+                if ($data_conta_debito_bloqueio == null) {
+                    session([
+                        'Lancamento' =>
+                            'Conta DÉBITO: ' .
+                            $lancamento->ContaDebito->PlanoConta->Descricao .
+                            ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                         da conta para seguir este procedimento. Bloqueada para até NULA' .
+                            '! Encontrado lançamento na linha ' .
+                            $linha,
+                    ]);
+                    return redirect(route('LeituraArquivo.index'));
+                }
+
+                if ($data_conta_debito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
+                    session([
+                        'Lancamento' =>
+                            'Conta DÉBITO: ' .
+                            $lancamento->ContaDebito->PlanoConta->Descricao .
+                            ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                         da conta para seguir este procedimento. Bloqueada para até ' .
+                            $data_conta_debito_bloqueio->format('d/m/Y') .
+                            '! Encontrado lançamento na linha ' .
+                            $linha,
+                    ]);
+                    return redirect(route('LeituraArquivo.index'));
+                }
+            }
+
+            if ($lancamento) {
+                $data_conta_credito_bloqueio = $lancamento->ContaCredito->Bloqueiodataanterior;
+                if ($data_conta_credito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
+                    session([
+                        'Lancamento' =>
+                            'Conta CRÉDITO: ' .
+                            $lancamento->ContaCredito->PlanoConta->Descricao .
+                            ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio da
+                          conta para seguir este procedimento. Bloqueada para até ' .
+                            $data_conta_credito_bloqueio->format('d/m/Y') .
+                            '! Encontrado lançamento na linha ' .
+                            $linha,
+                    ]);
+                    return redirect(route('LeituraArquivo.index'));
+                }
+            }
+
+            if ($lancamento) {
+                // dd($lancamento);
+                session(['Lancamento' => 'Nenhum lançamento criado! Consultado todos os lançamentos iniciado na linha 20!']);
+            } else {
+                if ($Parcela) {
+                    $DescricaoCompleta = $arraydatanova['Descricao'] . ' Parcela ' . $Parcela;
+                } else {
+                    $DescricaoCompleta = $arraydatanova['Descricao'];
+                }
+
+
+                dd($arraydatanova);
+
+
+
+                Lancamento::create([
+                    'Valor' => ($valorString = $valor_formatado),
+                    'EmpresaID' => $Empresa,
+                    'ContaDebitoID' => $DespesaContaDebitoID,
+                    'ContaCreditoID' => $ContaCartao,
+                    'Descricao' => $DescricaoCompleta,
+                    'Usuarios_id' => auth()->user()->id,
+                    'DataContabilidade' => $Data,
+                    'HistoricoID' => '',
+                ]);
+
+                session(['Lancamento' => 'Lancamentos criados!']);
+            }
+        }
+
+        $rowData = $cellData;
+        //    $rowData = $novadata;
+        return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
+    }
+
+
+
+
     public function SelecionaDatasExtratoSicrediPJ(Request $request)
     {
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
