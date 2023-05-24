@@ -149,15 +149,19 @@ class LeituraArquivoController extends Controller
             return redirect(route('LeituraArquivo.index'));
         }
 
- ///////////////////////////// DADOS DA LINHA 12 PARA DEFINIR SITUAÇÃO
- $linha_12 = $planilha_ativa->getCell('B' . 12)->getValue();
- if ($linha_12 != "Fechada") {
-    session(['Lancamento' => 'Arquivo e ou ficheiro não identificado!
+        ///////////////////////////// DADOS DA LINHA 12 PARA DEFINIR SITUAÇÃO
+        $linha_12 = $planilha_ativa->getCell('B' . 12)->getValue();
+        if ($linha_12 != 'Fechada') {
+            session([
+                'Lancamento' =>
+                    'Arquivo e ou ficheiro não identificado!
      Verifique se o mesmo está correto para este procedimento!
-      A situação do extrato tem que ser: Fechada'.' Neste arquivo está como situação: '.$linha_12]);
-    return redirect(route('LeituraArquivo.index'));
-}
-
+      A situação do extrato tem que ser: Fechada' .
+                    ' Neste arquivo está como situação: ' .
+                    $linha_12,
+            ]);
+            return redirect(route('LeituraArquivo.index'));
+        }
 
         $ContaCartao = null;
         $DespesaContaDebitoID = null;
@@ -269,11 +273,9 @@ class LeituraArquivoController extends Controller
 
             $valor_numerico = floatval($valor_sem_simbolo) / 100;
             $valor_formatado = number_format($valor_numerico, 2, '.', '');
-            if ($valor_formatado == 0.00) {
+            if ($valor_formatado == 0.0) {
                 session([
-                    'Lancamento' =>
-                        'ALGO ERRADO! VALOR 0.00. Linha:  ' .
-                        $linha,
+                    'Lancamento' => 'ALGO ERRADO! VALOR 0.00. Linha:  ' . $linha,
                 ]);
                 return redirect(route('LeituraArquivo.index'));
             }
@@ -347,10 +349,7 @@ class LeituraArquivoController extends Controller
                     $DescricaoCompleta = $arraydatanova['Descricao'];
                 }
 
-
                 // dd($arraydatanova);
-
-
 
                 Lancamento::create([
                     'Valor' => ($valorString = $valor_formatado),
@@ -430,16 +429,19 @@ class LeituraArquivoController extends Controller
             return redirect(route('LeituraArquivo.index'));
         }
 
- ///////////////////////////// DADOS DA LINHA 12 PARA DEFINIR SITUAÇÃO
- $linha_8 = trim($planilha_ativa->getCell('B' . 8)->getValue());
+        ///////////////////////////// DADOS DA LINHA 12 PARA DEFINIR SITUAÇÃO
+        $linha_8 = trim($planilha_ativa->getCell('B' . 8)->getValue());
 
- if ($linha_8 != "Fatura em aberto, sujeita a alterações") {
-    session(['Lancamento' => 'Arquivo e ou ficheiro não identificado!
+        if ($linha_8 != 'Fatura em aberto, sujeita a alterações') {
+            session([
+                'Lancamento' =>
+                    'Arquivo e ou ficheiro não identificado!
      Verifique se o mesmo está correto para este procedimento!
-      A situação do extrato tem que ser: Fatura em aberto, sujeita a alterações. Neste arquivo está como situação: '.$linha_8]);
-    return redirect(route('LeituraArquivo.index'));
-}
-// dd('Pesquisar se já lançada!');
+      A situação do extrato tem que ser: Fatura em aberto, sujeita a alterações. Neste arquivo está como situação: ' . $linha_8,
+            ]);
+            return redirect(route('LeituraArquivo.index'));
+        }
+        // dd('Pesquisar se já lançada!');
 
         $ContaCartao = null;
         $DespesaContaDebitoID = null;
@@ -462,12 +464,12 @@ class LeituraArquivoController extends Controller
             $DespesaContaDebitoID = '19426';
             $CashBackContaCreditoID = '19271';
             // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
-           }elseif ($linhas1_7 === 'PEDRO ROBERTO FALCHI-4891.67XX.XXXX.2915') {
-                $ContaCartao = '17458';
-                $Empresa = 11;
-                $DespesaContaDebitoID = '19426';
-                $CashBackContaCreditoID = '19271';
-                // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
+        } elseif ($linhas1_7 === 'PEDRO ROBERTO FALCHI-4891.67XX.XXXX.2915') {
+            $ContaCartao = '17458';
+            $Empresa = 11;
+            $DespesaContaDebitoID = '19426';
+            $CashBackContaCreditoID = '19271';
+            // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
         } elseif ($linha_4_coluna_2 === '54958-4') {
             $ContaCartao = '17458';
             $Empresa = 11;
@@ -496,7 +498,7 @@ class LeituraArquivoController extends Controller
             }
         }
 
-        $novadata = array_slice($cellData, 19);
+        $novadata = array_slice($cellData, 10);
         // $novadata = array_slice($cellData, 152);
 
         ///// CONFERE SE EMPRESA BLOQUEADA
@@ -515,13 +517,17 @@ class LeituraArquivoController extends Controller
             }
             $Descricao = $item[2];
 
-            $linha = $PegaLinha + 20; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
+            $linha = $PegaLinha + 10; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
 
             if (strpos($Descricao, 'CREDITO CASH BACK') !== false) {
                 //// se contiver, conter o texto na variável
                 // dd($linha, $Descricao);
                 continue;
             } elseif (strpos($Descricao, 'PAGAMENTO DEBITO EM') !== false) {
+                //// se contiver, conter o texto na variável
+
+                continue;
+            } elseif (strpos($Descricao, 'PAGAMENTO') !== false) {
                 //// se contiver, conter o texto na variável
 
                 continue;
@@ -545,9 +551,19 @@ class LeituraArquivoController extends Controller
                 ]);
                 return redirect(route('LeituraArquivo.index'));
             }
+            $NumeroParcela = null;
+            $QuantidadeParcela = null;
 
             $Descricao = $item[2];
             $Parcela = $item[3];
+            if ($Parcela == '  ') {
+                // continue;
+            } else {
+                $NumeroParcela = substr($Parcela, 1, 2);
+                $QuantidadeParcela = substr($Parcela, 6, 2);
+            }
+            //  dd($Parcela,$NumeroParcela, $QuantidadeParcela, $Descricao );
+
             $Valor = $item[4];
 
             $valor_numerico = preg_replace('/[^0-9,.]/', '', $Valor);
@@ -557,11 +573,9 @@ class LeituraArquivoController extends Controller
 
             $valor_numerico = floatval($valor_sem_simbolo) / 100;
             $valor_formatado = number_format($valor_numerico, 2, '.', '');
-            if ($valor_formatado == 0.00) {
+            if ($valor_formatado == 0.0) {
                 session([
-                    'Lancamento' =>
-                        'ALGO ERRADO! VALOR 0.00. Linha:  ' .
-                        $linha,
+                    'Lancamento' => 'ALGO ERRADO! VALOR 0.00. Linha:  ' . $linha,
                 ]);
                 return redirect(route('LeituraArquivo.index'));
             }
@@ -625,33 +639,65 @@ class LeituraArquivoController extends Controller
                 }
             }
 
+
+
             if ($lancamento) {
                 // dd($lancamento);
-                session(['Lancamento' => 'Nenhum lançamento criado! Consultado todos os lançamentos iniciado na linha 20!']);
-            } else {
-                if ($Parcela) {
-                    $DescricaoCompleta = $arraydatanova['Descricao'] . ' Parcela ' . $Parcela;
-                } else {
-                    $DescricaoCompleta = $arraydatanova['Descricao'];
-                }
-
-
-                dd($arraydatanova);
-
-
-
-                Lancamento::create([
-                    'Valor' => ($valorString = $valor_formatado),
-                    'EmpresaID' => $Empresa,
-                    'ContaDebitoID' => $DespesaContaDebitoID,
-                    'ContaCreditoID' => $ContaCartao,
-                    'Descricao' => $DescricaoCompleta,
-                    'Usuarios_id' => auth()->user()->id,
-                    'DataContabilidade' => $Data,
-                    'HistoricoID' => '',
+                session([
+                    'Lancamento' =>
+                        'Nenhum lançamento criado!
+                 Consultado todos os lançamentos iniciado na linha 11 e terminado na linha ' .
+                        $linha +
+                        1 .
+                        '!',
                 ]);
+                if ($NumeroParcela !== null && $QuantidadeParcela !== null) {
+                    dd('VARIAS PARCELAS');
+                }
+            } else {
+                if ($request->criarlancamentosemhistorico == true) {
+                    if ($Parcela) {
+                        $DescricaoCompleta = $arraydatanova['Descricao'] . ' Parcela ' . $Parcela;
+                    } else {
+                        $DescricaoCompleta = $arraydatanova['Descricao'];
+                    }
 
-                session(['Lancamento' => 'Lancamentos criados!']);
+                    // dd($arraydatanova);
+                    $historico = Historicos::where('EmpresaID', $Empresa)
+                        ->where('Descricao', 'like', '%' . trim($Descricao) . '%')
+                        ->where('ContaCreditoID', $ContaCartao)
+                        ->first();
+
+                    if ($historico) {
+                        $DespesaContaDebitoID = $historico->ContaDebitoID;
+                    } else {
+                        if ($request->versemhistorico == true) {
+                            dd('Sem histórico!', $historico, $arraydatanova, $Descricao, $ContaCartao, $DespesaContaDebitoID);
+                        }
+                    }
+
+                    if ($request->criarlancamentosemhistorico == null) {
+                        dd('histórico nulo!', $historico, $arraydatanova, $Descricao, $ContaCartao, $DespesaContaDebitoID);
+                    }
+
+                    if ($NumeroParcela !== null && $QuantidadeParcela !== null) {
+                        dd('VARIAS PARCELAS');
+                    } else {
+                        // DD('NÃO CRIAR');
+                        Lancamento::create([
+                            'Valor' => ($valorString = $valor_formatado),
+                            'EmpresaID' => $Empresa,
+                            'ContaDebitoID' => $DespesaContaDebitoID,
+                            'ContaCreditoID' => $ContaCartao,
+                            'Descricao' => $DescricaoCompleta,
+                            'Usuarios_id' => auth()->user()->id,
+                            'DataContabilidade' => $Data,
+                            'HistoricoID' => '',
+                        ]);
+                    }
+                    // dd('fim');
+                    session(['Lancamento' => 'Lancamentos criados!']);
+                }
             }
         }
 
@@ -659,9 +705,6 @@ class LeituraArquivoController extends Controller
         //    $rowData = $novadata;
         return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
     }
-
-
-
 
     public function SelecionaDatasExtratoSicrediPJ(Request $request)
     {

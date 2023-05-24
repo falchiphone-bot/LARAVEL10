@@ -102,6 +102,7 @@ class HistoricoController extends Controller
 
         $request['UsuarioID'] = auth()->user()->id;
         $request['Descricao'] = trim($request->Descricao);
+        $request['PIX'] = trim($request->PIX);
         $cadastro->fill($request->all());
 
         $cadastro->save();

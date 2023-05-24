@@ -77,7 +77,18 @@
                                 {{-- <input type="file" required class="btn btn-success" name="arquivo" accept=".csv, text/csv"> --}}
 
                                 <input type="file" required class="btn btn-success" name="arquivo" accept=".csv" onchange="validateFile(this)">
+                                @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA CONCILIACA0 BANCARIA E AUTORIZAR CRIAR LANCAMENTO')
+                                <input type="checkbox" name="criarlancamentosemhistorico" value="1">
 
+                                <label for="checkbox_enviar">Autorizar criar lançamento sem histórico pré-programado</label>
+                                <br>
+                                @endcan
+
+                                @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA CONCILIACA0 BANCARIA E AUTORIZAR CRIAR LANCAMENTO')
+                                <input type="checkbox" name="versemhistorico" value="1">
+                                <label for="checkbox_enviar">Verificar sem histórico pré-programado</label>
+                                <br>
+                                @endcan
 
                                 <label for="fim">Arquivo *.csv para selecionar exportado do aplicativo mobile do Sicredi - CARTÕES.
                                     Dever ser enviado por AirDrop para o dispositivo de execução. Extrato em situação: 'Fatura em aberto, sujeita a alterações'

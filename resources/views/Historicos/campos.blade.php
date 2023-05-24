@@ -2,13 +2,20 @@
 <div class="card">
     <div class="card-body">
         <div class="row">
-            <div class="col-sm-12">
+            <div class="col-sm-6">
+
                 <label for="Descricao">Nome</label>
                 <input class="form-control @error('Descricao') is-invalid @else is-valid @enderror" name="Descricao"
                     type="text" id="Descricao" value="{{ $historico->Descricao ?? null }}">
                 @error('Descricao')
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
+            </div>
+            <div class="col-sm-6">
+
+                <label for="PIX">PIX ou Complemento</label>
+                <input class="form-control" name="PIX"
+                    type="text" id="Pix" value="{{ $historico->PIX ?? null }}">
             </div>
         </div>
 
