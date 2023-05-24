@@ -86,11 +86,9 @@ class LeituraArquivoController extends Controller
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             return view('LeituraArquivo.index', ['cellData' => $cellData]);
-        }else
-        {
+        } else {
             return view('LeituraArquivo.SomenteLinha');
         }
-
     }
 
     public function SelecionaDatas(Request $request)
@@ -105,8 +103,13 @@ class LeituraArquivoController extends Controller
         $Complemento = $request->complemento;
         $name = $file->getClientOriginalName();
         $caminho = $path;
-        if ($extension != 'txt' && $extension != 'csv' && $extension != 'xlsx' && $extension != 'xls') {
-            session(['Lancamento' => 'Arquivo considerado não compatível para este procedimento! Autorizados arquivos com extensões csv, txt, xls e xlsx. Apresentado o último enviado. ATENÇÃO!']);
+        // if ($extension != 'txt' && $extension != 'csv' && $extension != 'xlsx' && $extension != 'xls') {
+        //     session(['Lancamento' => 'Arquivo considerado não compatível para este procedimento! Autorizados arquivos com extensões csv, txt, xls e xlsx. Apresentado o último enviado. ATENÇÃO!']);
+        //     return redirect(route('LeituraArquivo.index'));
+        // }
+
+        if ($extension != 'csv') {
+            session(['Lancamento' => 'Arquivo considerado não compatível para este procedimento! Autorizados arquivos com extensões csv. Apresentado o último enviado. ATENÇÃO!']);
             return redirect(route('LeituraArquivo.index'));
         }
 
@@ -140,6 +143,11 @@ class LeituraArquivoController extends Controller
         $linha_4_coluna_2 = $planilha_ativa->getCell('B' . 4)->getValue();
         ///////////////////////////// DADOS DA LINHA 7 PARA DEFINIR CONTAS
         $linha_7 = $planilha_ativa->getCell('A' . 7)->getValue();
+
+        if ($linha_7 == null) {
+            session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
+            return redirect(route('LeituraArquivo.index'));
+        }
 
         $ContaCartao = null;
         $DespesaContaDebitoID = null;
@@ -202,6 +210,11 @@ class LeituraArquivoController extends Controller
 
         foreach ($novadata as $PegaLinha => $item) {
             $Data = $item[1];
+
+            if ($Data == 'Histórico de Despesas') {
+                session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
+                return redirect(route('LeituraArquivo.index'));
+            }
             $Descricao = $item[2];
 
             $linha = $PegaLinha + 20; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
@@ -316,7 +329,7 @@ class LeituraArquivoController extends Controller
                 } else {
                     $DescricaoCompleta = $arraydatanova['Descricao'];
                 }
-                dd($linha_4_coluna_2, 'Linha 303 do código');
+                 
 
                 // dd($arraydatanova);
 
@@ -388,9 +401,17 @@ class LeituraArquivoController extends Controller
         $linha_2_coluna_2 = $planilha_ativa->getCell('B' . 2)->getValue();
         ///////////////////////////// DADOS DA LINHA 4 COLUNA 2 PARA DEFINIR CONTAS
         $linha_4_coluna_2 = $planilha_ativa->getCell('B' . 4)->getValue();
+        if ($linha_4_coluna_2 == null) {
+            session(['Lancamento' => 'LINHA 4 COLUNA 2 =  NULA. Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
+            return redirect(route('LeituraArquivo.index'));
+        }
 
         ///////////////////////////// DADOS DA LINHA 7 PARA DEFINIR CONTAS
         $linha_7 = $planilha_ativa->getCell('A' . 7)->getValue();
+        if ($linha_7 == null) {
+            session(['Lancamento' => 'LINHA 7 = NULA. Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
+            return redirect(route('LeituraArquivo.index'));
+        }
 
         $NomeEmpresa = $linha_2_coluna_2;
 
@@ -511,8 +532,7 @@ class LeituraArquivoController extends Controller
                 }
 
                 session([
-                    'Lancamento' => 'Terminado na linha ' . $linha . '. Saldo no extrato bancário de: ' . number_format($Saldo, 2, '.', ',')."." .
-                     ' Saldo atual no sistema contábil de ' .  number_format($SaldoAtual, 2, '.', ',') . ' = ' . $TextoConciliado,
+                    'Lancamento' => 'Terminado na linha ' . $linha . '. Saldo no extrato bancário de: ' . number_format($Saldo, 2, '.', ',') . '.' . ' Saldo atual no sistema contábil de ' . number_format($SaldoAtual, 2, '.', ',') . ' = ' . $TextoConciliado,
                 ]);
 
                 return redirect(route('LeituraArquivo.index'));
@@ -673,21 +693,17 @@ class LeituraArquivoController extends Controller
                 // return redirect(route('LeituraArquivo.index'));
 
                 if ($Valor_Positivo) {
-                    $historico = Historicos::
-                    where('EmpresaID', $Empresa)
+                    $historico = Historicos::where('EmpresaID', $Empresa)
                         ->where('Descricao', 'like', '%' . trim($Descricao) . '%')
                         ->where('ContaDebitoID', $Conta)
                         ->first();
-
-                }else
-                if ($Valor_Negativo) {
+                } elseif ($Valor_Negativo) {
                     $historico = Historicos::where('EmpresaID', $Empresa)
                         ->where('Descricao', 'like', '%' . trim($Descricao) . '%')
                         ->where('ContaCreditoID', $Conta)
                         ->first();
-
                 }
-//  dd($historico,trim($Descricao), $Conta,$Empresa,'680');
+                //  dd($historico,trim($Descricao), $Conta,$Empresa,'680');
 
                 $Conferir_Bloqueio = false;
                 if ($request->vercriarlancamentocomhistorico) {
@@ -699,7 +715,6 @@ class LeituraArquivoController extends Controller
                 }
 
                 if ($historico) {
-
                     if ($Conferir_Bloqueio == true) {
                         $dataLancamento_carbon = Carbon::createFromDate($lancamento->DataContabilidade);
                         $dataLancamento = $dataLancamento_carbon->format('Y/m/d');
