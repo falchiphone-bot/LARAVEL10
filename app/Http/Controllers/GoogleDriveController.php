@@ -258,11 +258,15 @@ class GoogleDriveController extends Controller
         // /////////
 
         // GET URL OF UPLOADED FILE
-        $url = 'https://drive.google.com/open?id=' . $result->id;
+        // $url = 'https://drive.google.com/open?id=' . $result->id;
 
-        return redirect($url);
+        // return redirect($url);
 
         // dd($result);
+        session([
+            'InformacaoArquivo' => 'Arquivo enviado com sucesso. O ID do mesmo é '.$result->id,
+        ]);
+        return redirect(route('informacao.arquivos'));
     }
 
     public function googleDriveFileDelete(Request $request)
@@ -436,7 +440,9 @@ class GoogleDriveController extends Controller
                 );
                 // $informacaoArquivo = implode('|', $informacoes);
                 // session(['InformacaoArquivo' => $informacaoArquivo]);
-                session(['InformacaoArquivo' => $informacoes]);
+                session(['InformacaoArquivo' => null]);
+                session(['InformacaoArquivoConsulta' => $informacoes]);
+
                 return redirect(route('informacao.arquivos'));
             } else {
                 ////////// Quando o id não é localizado no Google Drive é causado uma Exception

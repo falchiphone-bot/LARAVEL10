@@ -11,21 +11,21 @@
 
 
                 <div class="card-body">
+
                     @if (session('InformacaoArquivo'))
-                    <div class="alert alert-danger">
-                        {{ session('InformacaoArquivo') }}
-                    </div>
-                    {{ session(['InformacaoArquivo' => null]) }}
+                        <div class="alert alert-danger">
+                            {{ session('InformacaoArquivo') }}
+                        </div>
+                        {{ session(['InformacaoArquivo' => null]) }}
 
 
-                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                        <a class="btn btn-warning" href="dashboard">Retornar a lista de opções</a>
+                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                            <a class="btn btn-warning" href="dashboard">Retornar a lista de opções</a>
 
-                    </nav>
+                        </nav>
                 </div>
-                 @else
-
-
+                }
+            @else
                 <div class="badge bg-warning text-wrap"
                     style="width: 100%; font-size: 24px; color: black; text-align: center;">
                     <div class="card">
@@ -43,21 +43,24 @@
 
                     <div class="card">
 
-                                            <div class="badge bg-danger text-wrap"
+                        <div class="badge bg-danger text-wrap"
                             style="width: 100%;
                         ;font-size: 24px; lign=˜Center˜">
-                            {{-- {{ session('InformacaoArquivo') }}. <img src="{{ asset(session('avatarProprietário')) }}"> --}}
+                            {{-- {{ session('InformacaoArquivoConsulta') }}. <img src="{{ asset(session('avatarProprietário')) }}"> --}}
 
-                        <h2>Informações do arquivo:</h2>
-                        <div style="text-align: left;">
-                        <p>ID do arquivo: {{ session('InformacaoArquivo')['fileIdConsultar']??null }}</p>
-                        <p>Proprietário: {{ session('InformacaoArquivo')['ownerDisplayName']??null }}</p>
-                        <p>Email do proprietário: {{ session('InformacaoArquivo')['emailAddress']??null }}</p>
-                        <p>Link do arquivo: <a href="{{ session('InformacaoArquivo')['webContentLink']??null }}">{{ session('InformacaoArquivo')['webContentLink']??null }}</a></p>
+                            <h2>Informações do arquivo:</h2>
+                            <div style="text-align: left;">
+                                <p>ID do arquivo: {{ session('InformacaoArquivoConsulta')['fileIdConsultar'] ?? null }}</p>
+                                <p>Proprietário: {{ session('InformacaoArquivoConsulta')['ownerDisplayName'] ?? null }}</p>
+                                <p>Email do proprietário: {{ session('InformacaoArquivoConsulta')['emailAddress'] ?? null }}
+                                </p>
+                                <p>Link do arquivo: <a
+                                        href="{{ session('InformacaoArquivoConsulta')['webContentLink'] ?? null }}">{{ session('InformacaoArquivoConsulta')['webContentLink'] ?? null }}</a>
+                                </p>
 
-                        <p>Descrição do arquivo: {{ session('InformacaoArquivo')['description']??null }}</p>
+                                <p>Descrição do arquivo: {{ session('InformacaoArquivoConsulta')['description'] ?? null }}</p>
 
-                        </div>
+                            </div>
                             {{ session([
                                 'InformacaoArquivoProprietário' => null,
                             ]) }}
@@ -78,6 +81,7 @@
 
                 </div>
                 @endif
+
             </div>
         </div>
     </div>
