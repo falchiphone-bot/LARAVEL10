@@ -74,9 +74,14 @@
 
                                      <div class="badge bg-warning text-wrap"
                                     style="width: 100%; font-size: 24px; color: black; text-align: center;">
-                                    <input type="file" required class="btn btn-success" name="arquivo">
+                                    {{-- <input type="file" required class="btn btn-success" name="arquivo" accept=".csv, text/csv"> --}}
 
- <label for="fim">Arquivo *.csv para selecionar exportado do aplicativo mobile do Sicredi - CARTÕES. Dever ser enviado por AirDrop para o dispositivo de execução.</label>
+                                    <input type="file" required class="btn btn-success" name="arquivo" accept=".csv" onchange="validateFile(this)">
+
+
+ <label for="fim">Arquivo *.csv para selecionar exportado do aplicativo mobile do Sicredi - CARTÕES.
+    Dever ser enviado por AirDrop para o dispositivo de execução. Extrato em situação: 'Fechada'
+</label>
 
 
                                     <p class="my-2">
@@ -149,6 +154,18 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
+
+function validateFile(fileInput) {
+  var filePath = fileInput.value;
+  var allowedExtensions = /(\.csv)$/i;
+  if (!allowedExtensions.exec(filePath)) {
+    alert('Selecione apenas arquivos com extensão .csv.');
+    fileInput.value = '';
+    return false;
+  }
+}
+
+
         $(document).ready(function() {
             $('.select2').select2();
         });
