@@ -1067,13 +1067,31 @@ class LeituraArquivoController extends Controller
                         ->where('Descricao', 'like', '%' . trim($Descricao) . '%')
                         ->where('ContaDebitoID', $Conta)
                         ->first();
+                     if($historico !== true){
+                            $historico = Historicos::where('EmpresaID', $Empresa)
+                        ->where('Descricao', 'like', '%' .  substr($Descricao, 0, 30) . '%')
+                        ->where('ContaDebitoID', $Conta)
+                        ->first();
+
+
+                    }
                 } elseif ($Valor_Negativo) {
                     $historico = Historicos::where('EmpresaID', $Empresa)
                         ->where('Descricao', 'like', '%' . trim($Descricao) . '%')
                         ->where('ContaCreditoID', $Conta)
                         ->first();
+                        if($historico == null){
+                            $historico = Historicos::where('EmpresaID', $Empresa)
+                            ->where('Descricao', 'like', '%' .  substr(trim($Descricao), 0, 30) . '%')
+                            ->where('ContaCreditoID', $Conta)
+                            ->first();
+                            // dd(substr($Descricao, 0, 30),$historico,trim($Descricao), $Conta,$Empresa,'1088');
+                        }
+
+
+
                 }
-                //  dd($historico,trim($Descricao), $Conta,$Empresa,'680');
+                //  dd($historico,trim($Descricao), $Conta,$Empresa,'1094');
 
                 $Conferir_Bloqueio = false;
                 if ($request->vercriarlancamentocomhistorico) {
