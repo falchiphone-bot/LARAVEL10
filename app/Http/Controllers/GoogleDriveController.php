@@ -155,7 +155,7 @@ class GoogleDriveController extends Controller
         $extension = $file->getClientOriginalExtension();
 
         // $folder = '1Jzih3qPaWpf7HISQEsDpUpH0ab7eS-yJ';   //FIXADO NO ARQUIVO .env
-        $folder = env('FOLDER_DRIVE_GOOGLE');
+        $folder = config('services.google_drive.folder');
         // $folder = null;
         if ($folder == null) {
             session([
@@ -163,7 +163,7 @@ class GoogleDriveController extends Controller
             ]);
             return redirect(route('informacao.arquivos'));
         }
-        $folderTemp = env('FOLDER_DRIVE_GOOGLE');
+        $folderTemp =config('services.google_drive.folder');
         // $folderTemp = null;
         if ($folderTemp == null) {
             session([
