@@ -40,7 +40,7 @@ return [
     ],
 
     'google_drive' => [
-        'folder' => env(PASTA_NOME_ENV);
+        'folder' => env('PASTA_NOME_ENV');
     ],
 
     'google' => [
