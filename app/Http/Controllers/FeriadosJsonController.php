@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Feriado;
 
-class FeriadoController extends Controller
+class FeriadoJsonController extends Controller
 {
     public function index(Request $request)
     {
