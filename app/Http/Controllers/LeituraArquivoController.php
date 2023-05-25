@@ -639,9 +639,7 @@ class LeituraArquivoController extends Controller
                 }
             }
 
-
-
-            if ($lancamento) {
+            if ($lancamento && $NumeroParcela === null && $QuantidadeParcela === null) {
                 // dd($lancamento);
                 session([
                     'Lancamento' =>
@@ -651,7 +649,6 @@ class LeituraArquivoController extends Controller
                         1 .
                         '!',
                 ]);
-
             } else {
                 if ($request->criarlancamentosemhistorico == true) {
                     if ($Parcela) {
@@ -679,28 +676,65 @@ class LeituraArquivoController extends Controller
                     }
 
                     if ($NumeroParcela !== null && $QuantidadeParcela !== null) {
-                        $registros = array();
-                            for ($i = 1; $i <= $QuantidadeParcela; $i++) {
-                                $novoRegistroParcelas = array(
-                                    'NumeroParcela' => $NumeroParcela,
-                                    'QuantidadeParcela' => $QuantidadeParcela,
-                                    'Valor' => ($valorString = $valor_formatado),
-                                    'Data' => $Data,
-                                    'Descricao' => $Descricao.' Parcela:'.$i.' de '.$QuantidadeParcela
-                                );
+                        if($NumeroParcela > 1){
 
-                                // Faça algo com o novo registro, como armazená-lo em um banco de dados ou exibi-lo
-                                // por exemplo:
-                                // salvarRegistroNoBancoDeDados($novoRegistro);
-                                // exibirRegistro($novoRegistro);
-                                echo $i,' ';
-                                // Você também pode adicionar o registro a uma lista, array, ou qualquer outra estrutura de dados necessária
+                            continue;
+                        }
+
+                        $registros = [];
+                        for ($i = 1; $i <= $QuantidadeParcela; $i++) {
+                            $novoRegistroParcelas = [
+                                'EmpresaID' => $Empresa,
+                                'ContaDebitoID' => $DespesaContaDebitoID,
+                                'ContaCreditoID' => $ContaCartao,
+                                'NumeroParcela' => $NumeroParcela,
+                                'QuantidadeParcela' => $QuantidadeParcela,
+                                'Valor' => ($valorString = $valor_formatado),
+                                'Data' => $Data,
+                                'Descricao' => $Descricao . ' Parcela:' . $i . ' de ' . $QuantidadeParcela,
+                                'Usuarios_id' => auth()->user()->id,
+                            ];
+
+                            // Faça algo com o novo registro, como armazená-lo em um banco de dados ou exibi-lo
+                            // por exemplo:
+                            // salvarRegistroNoBancoDeDados($novoRegistro);
+                            // exibirRegistro($novoRegistro);
+                            echo $i, ' ';
+                            // Você também pode adicionar o registro a uma lista, array, ou qualquer outra estrutura de dados necessária
                             $registros[] = $novoRegistroParcelas;
+                        }
+
+                        foreach ($registros as $incluirregistros) {
+                            $lancamentoregistros = Lancamento::where('DataContabilidade', $incluirregistros['Data'])
+                                ->where('Valor', $valorString = $incluirregistros['Valor'])
+                                ->where('EmpresaID', $incluirregistros['EmpresaID'])
+                                ->where('ContaCreditoID', $incluirregistros['ContaCreditoID'])
+                                ->where('Descricao', trim($incluirregistros['Descricao']))
+                                ->First();
+
+
+                            if ($lancamentoregistros) {
+                                // dd('JÁ LANÇADO', $Descricao, $incluirregistros);
+                                continue;
+                            } else {
+
+                                Lancamento::create([
+                                    'Valor' => $incluirregistros['Valor'],
+                                    'EmpresaID' => $incluirregistros['EmpresaID'],
+                                    'ContaDebitoID' => $incluirregistros['ContaDebitoID'],
+                                    'ContaCreditoID' => $incluirregistros['ContaCreditoID'],
+                                    'Descricao' => $incluirregistros['Descricao'],
+                                    'Usuarios_id' => $incluirregistros['Usuarios_id'],
+                                    'DataContabilidade' => $incluirregistros['Data'],
+                                    'HistoricoID' => '',
+                                ]);
+
                             }
 
-                        dd('VARIAS PARCELAS',$Descricao, $registros);
+
+                        }
                     } else {
-                        DD('NÃO CRIAR');
+                         
                         Lancamento::create([
                             'Valor' => ($valorString = $valor_formatado),
                             'EmpresaID' => $Empresa,
@@ -1067,29 +1101,25 @@ class LeituraArquivoController extends Controller
                         ->where('Descricao', 'like', '%' . trim($Descricao) . '%')
                         ->where('ContaDebitoID', $Conta)
                         ->first();
-                     if($historico !== true){
-                            $historico = Historicos::where('EmpresaID', $Empresa)
-                        ->where('Descricao', 'like', '%' .  substr($Descricao, 0, 30) . '%')
-                        ->where('ContaDebitoID', $Conta)
-                        ->first();
 
-
+                    if ($historico !== true) {
+                        $historico = Historicos::where('EmpresaID', $Empresa)
+                            ->where('Descricao', 'like', '%' . substr(trim($Descricao), 0, 30) . '%')
+                            ->where('ContaDebitoID', $Conta)
+                            ->first();
                     }
                 } elseif ($Valor_Negativo) {
                     $historico = Historicos::where('EmpresaID', $Empresa)
                         ->where('Descricao', 'like', '%' . trim($Descricao) . '%')
                         ->where('ContaCreditoID', $Conta)
                         ->first();
-                        if($historico == null){
-                            $historico = Historicos::where('EmpresaID', $Empresa)
-                            ->where('Descricao', 'like', '%' .  substr(trim($Descricao), 0, 30) . '%')
+                    if ($historico == null) {
+                        $historico = Historicos::where('EmpresaID', $Empresa)
+                            ->where('Descricao', 'like', '%' . substr(trim($Descricao), 0, 30) . '%')
                             ->where('ContaCreditoID', $Conta)
                             ->first();
-                            // dd(substr($Descricao, 0, 30),$historico,trim($Descricao), $Conta,$Empresa,'1088');
-                        }
-
-
-
+                        // dd(substr($Descricao, 0, 30),$historico,trim($Descricao), $Conta,$Empresa,'1088');
+                    }
                 }
                 //  dd($historico,trim($Descricao), $Conta,$Empresa,'1094');
 
