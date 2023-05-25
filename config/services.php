@@ -39,6 +39,10 @@ return [
 
     ],
 
+    'google_drive' => [
+        'folder' => env(PASTA_NOME_ENV);
+    ],
+
     'google' => [
         // 'client_id' => '276920584995-dh9gflphucm37l3rrh1md4i3jaerrcbv.apps.googleusercontent.com',
         // 'client_secret' => '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',
