@@ -277,7 +277,8 @@ class LeituraArquivoController extends Controller
                 session([
                     'Lancamento' => 'ALGO ERRADO! VALOR 0.00. Linha:  ' . $linha,
                 ]);
-                return redirect(route('LeituraArquivo.index'));
+                // return redirect(route('LeituraArquivo.index'));
+                continue;
             }
             $arraydatanova = compact('Data', 'Descricao', 'valor_formatado');
             // dd($Valor,$Valor_sem_virgula,$Valor_sem_pontos_virgulas,$valor_sem_simbolo ,$valor_numerico,$arraydatanova);
@@ -374,7 +375,7 @@ class LeituraArquivoController extends Controller
     public function SelecionaDatasFaturaEmAberto(Request $request)
     {
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+        $Mensagem = null;
         /////// aqui fica na pasta temporário /temp/    - apaga
         $path = $request->file('arquivo')->getRealPath();
         $file = $request->file('arquivo');
@@ -469,7 +470,7 @@ class LeituraArquivoController extends Controller
             $Empresa = 11;
             $DespesaContaDebitoID = '19426';
             $CashBackContaCreditoID = '19271';
-            // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
+            //  dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
         } elseif ($linha_4_coluna_2 === '54958-4') {
             $ContaCartao = '17458';
             $Empresa = 11;
@@ -575,10 +576,14 @@ class LeituraArquivoController extends Controller
             $valor_formatado = number_format($valor_numerico, 2, '.', '');
             if ($valor_formatado == 0.0) {
                 session([
-                    'Lancamento' => 'ALGO ERRADO! VALOR 0.00. Linha:  ' . $linha,
+                    'Lancamento' => 'ALGO ERRADO! VALOR 0.00. Linha:  ' . $linha + 1,
                 ]);
-                return redirect(route('LeituraArquivo.index'));
+                $Mensagem = 'ALGO ERRADO! VALOR 0.00. Linha:  ' . $linha + 1;
+                // return redirect(route('LeituraArquivo.index'));
+
+                continue;
             }
+
             $arraydatanova = compact('Data', 'Descricao', 'valor_formatado');
             // dd($Valor,$Valor_sem_virgula,$Valor_sem_pontos_virgulas,$valor_sem_simbolo ,$valor_numerico,$arraydatanova);
 
@@ -639,7 +644,7 @@ class LeituraArquivoController extends Controller
                 }
             }
 
-            if ($lancamento && $NumeroParcela === null && $QuantidadeParcela === null) {
+            if ($lancamento) {
                 // dd($lancamento);
                 session([
                     'Lancamento' =>
@@ -650,91 +655,91 @@ class LeituraArquivoController extends Controller
                         '!',
                 ]);
             } else {
-                if ($request->criarlancamentosemhistorico == true) {
-                    if ($Parcela) {
-                        $DescricaoCompleta = $arraydatanova['Descricao'] . ' Parcela ' . $Parcela;
-                    } else {
-                        $DescricaoCompleta = $arraydatanova['Descricao'];
+                // if ($request->criarlancamentosemhistorico == true) {
+
+                if ($Parcela) {
+                    $DescricaoCompleta = $arraydatanova['Descricao'] . ' Parcela ' . $Parcela;
+                } else {
+                    $DescricaoCompleta = $arraydatanova['Descricao'];
+                }
+
+                // dd($arraydatanova);
+                $historico = Historicos::where('EmpresaID', $Empresa)
+                    ->where('Descricao', 'like', '%' . trim($Descricao) . '%')
+                    ->where('ContaCreditoID', $ContaCartao)
+                    ->first();
+
+                if ($historico) {
+                    $DespesaContaDebitoID = $historico->ContaDebitoID;
+                } else {
+                    if ($request->vercriarlancamento == true) {
+                        dd('Sem histórico!', $historico, $arraydatanova, $Descricao, $ContaCartao, $DespesaContaDebitoID);
+                    }
+                }
+
+                if ($request->verhistorico == true) {
+                    dd('VERIFICANDO SE TEM HISTÓRICO!', $historico, $arraydatanova, $Descricao, $ContaCartao, $DespesaContaDebitoID);
+                }
+
+                if ($NumeroParcela !== null && $QuantidadeParcela !== null) {
+                    if ($NumeroParcela > 1) {
+                        continue;
                     }
 
-                    // dd($arraydatanova);
-                    $historico = Historicos::where('EmpresaID', $Empresa)
-                        ->where('Descricao', 'like', '%' . trim($Descricao) . '%')
-                        ->where('ContaCreditoID', $ContaCartao)
-                        ->first();
+                    $registros = [];
+                    for ($i = 1; $i <= $QuantidadeParcela; $i++) {
+                        $novoRegistroParcelas = [
+                            'EmpresaID' => $Empresa,
+                            'ContaDebitoID' => $DespesaContaDebitoID,
+                            'ContaCreditoID' => $ContaCartao,
+                            'NumeroParcela' => $NumeroParcela,
+                            'QuantidadeParcela' => $QuantidadeParcela,
+                            'Valor' => ($valorString = $valor_formatado),
+                            'Data' => $Data,
+                            'Descricao' => $Descricao . ' Parcela:' . $i . ' de ' . $QuantidadeParcela,
+                            'Usuarios_id' => auth()->user()->id,
+                        ];
 
-                    if ($historico) {
-                        $DespesaContaDebitoID = $historico->ContaDebitoID;
-                    } else {
-                        if ($request->versemhistorico == true) {
-                            dd('Sem histórico!', $historico, $arraydatanova, $Descricao, $ContaCartao, $DespesaContaDebitoID);
-                        }
+                        // Faça algo com o novo registro, como armazená-lo em um banco de dados ou exibi-lo
+                        // por exemplo:
+                        // salvarRegistroNoBancoDeDados($novoRegistro);
+                        // exibirRegistro($novoRegistro);
+                        // echo $i, ' ';
+                        // Você também pode adicionar o registro a uma lista, array, ou qualquer outra estrutura de dados necessária
+                        $registros[] = $novoRegistroParcelas;
                     }
 
-                    if ($request->criarlancamentosemhistorico == null) {
-                        dd('histórico nulo!', $historico, $arraydatanova, $Descricao, $ContaCartao, $DespesaContaDebitoID);
-                    }
+                    foreach ($registros as $incluirregistros) {
+                        $lancamentoregistros = Lancamento::where('DataContabilidade', $incluirregistros['Data'])
+                            ->where('Valor', $valorString = $incluirregistros['Valor'])
+                            ->where('EmpresaID', $incluirregistros['EmpresaID'])
+                            ->where('ContaCreditoID', $incluirregistros['ContaCreditoID'])
+                            ->where('Descricao', trim($incluirregistros['Descricao']))
+                            ->First();
 
-                    if ($NumeroParcela !== null && $QuantidadeParcela !== null) {
-                        if($NumeroParcela > 1){
-
+                        if ($lancamentoregistros) {
+                            // dd('JÁ LANÇADO', $Descricao, $incluirregistros);
                             continue;
-                        }
-
-                        $registros = [];
-                        for ($i = 1; $i <= $QuantidadeParcela; $i++) {
-                            $novoRegistroParcelas = [
-                                'EmpresaID' => $Empresa,
-                                'ContaDebitoID' => $DespesaContaDebitoID,
-                                'ContaCreditoID' => $ContaCartao,
-                                'NumeroParcela' => $NumeroParcela,
-                                'QuantidadeParcela' => $QuantidadeParcela,
-                                'Valor' => ($valorString = $valor_formatado),
-                                'Data' => $Data,
-                                'Descricao' => $Descricao . ' Parcela:' . $i . ' de ' . $QuantidadeParcela,
-                                'Usuarios_id' => auth()->user()->id,
-                            ];
-
-                            // Faça algo com o novo registro, como armazená-lo em um banco de dados ou exibi-lo
-                            // por exemplo:
-                            // salvarRegistroNoBancoDeDados($novoRegistro);
-                            // exibirRegistro($novoRegistro);
-                            echo $i, ' ';
-                            // Você também pode adicionar o registro a uma lista, array, ou qualquer outra estrutura de dados necessária
-                            $registros[] = $novoRegistroParcelas;
-                        }
-
-                        foreach ($registros as $incluirregistros) {
-                            $lancamentoregistros = Lancamento::where('DataContabilidade', $incluirregistros['Data'])
-                                ->where('Valor', $valorString = $incluirregistros['Valor'])
-                                ->where('EmpresaID', $incluirregistros['EmpresaID'])
-                                ->where('ContaCreditoID', $incluirregistros['ContaCreditoID'])
-                                ->where('Descricao', trim($incluirregistros['Descricao']))
-                                ->First();
-
-
-                            if ($lancamentoregistros) {
-                                // dd('JÁ LANÇADO', $Descricao, $incluirregistros);
+                        } else {
+                            if ($request->criarlancamentosemhistorico !== true) {
                                 continue;
-                            } else {
-
-                                Lancamento::create([
-                                    'Valor' => $incluirregistros['Valor'],
-                                    'EmpresaID' => $incluirregistros['EmpresaID'],
-                                    'ContaDebitoID' => $incluirregistros['ContaDebitoID'],
-                                    'ContaCreditoID' => $incluirregistros['ContaCreditoID'],
-                                    'Descricao' => $incluirregistros['Descricao'],
-                                    'Usuarios_id' => $incluirregistros['Usuarios_id'],
-                                    'DataContabilidade' => $incluirregistros['Data'],
-                                    'HistoricoID' => '',
-                                ]);
-
                             }
 
-
+                            Lancamento::create([
+                                'Valor' => $incluirregistros['Valor'],
+                                'EmpresaID' => $incluirregistros['EmpresaID'],
+                                'ContaDebitoID' => $incluirregistros['ContaDebitoID'],
+                                'ContaCreditoID' => $incluirregistros['ContaCreditoID'],
+                                'Descricao' => $incluirregistros['Descricao'],
+                                'Usuarios_id' => $incluirregistros['Usuarios_id'],
+                                'DataContabilidade' => $incluirregistros['Data'],
+                                'HistoricoID' => '',
+                            ]);
                         }
-                    } else {
-                         
+                    }
+                } else {
+
+                    if ($historico == true) {
                         Lancamento::create([
                             'Valor' => ($valorString = $valor_formatado),
                             'EmpresaID' => $Empresa,
@@ -745,15 +750,45 @@ class LeituraArquivoController extends Controller
                             'DataContabilidade' => $Data,
                             'HistoricoID' => '',
                         ]);
+                        session(['Lancamento' => 'Lancamentos criados com históricos!']);
+                        // dd('Criando lançamento com histórico', $historico,session('Lancamento'));
                     }
-                    // dd('fim');
-                    session(['Lancamento' => 'Lancamentos criados!']);
-                }
-            }
-        }
 
+                    if ($request->criarlancamentosemhistorico == true) {
+                        //  dd("Criando lançamento sem histórico!");
+                        if ($historico === null) {
+                            Lancamento::create([
+                                'Valor' => ($valorString = $valor_formatado),
+                                'EmpresaID' => $Empresa,
+                                'ContaDebitoID' => $DespesaContaDebitoID,
+                                'ContaCreditoID' => $ContaCartao,
+                                'Descricao' => $DescricaoCompleta,
+                                'Usuarios_id' => auth()->user()->id,
+                                'DataContabilidade' => $Data,
+                                'HistoricoID' => '',
+                            ]);
+                        }
+                        session(['Lancamento' => 'Lancamentos criados sem históricos!']);
+
+                    }
+                }
+
+                // dd('fim');
+                session(['Lancamento' => 'Lancamentos criados!']);
+                // dd('Criado lançamento com histórico', $historico);
+            }
+            // }///////////////retirar - liga com linha 658
+        }
+        if ($Mensagem) {
+            $xMensagem = session('Lancamento') . ' Mensagem auxiliar: ' . $Mensagem;
+            session([
+                'Lancamento' => $xMensagem,
+            ]);
+            $Mensagem = null;
+        }
         $rowData = $cellData;
         //    $rowData = $novadata;
+        // dd("Fim",$Descricao,$lancamento);
         return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
     }
 

@@ -78,15 +78,15 @@
 
                                 <input type="file" required class="btn btn-success" name="arquivo" accept=".csv" onchange="validateFile(this)">
                                 @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA CONCILIACA0 BANCARIA E AUTORIZAR CRIAR LANCAMENTO')
-                                <input type="checkbox" name="criarlancamentosemhistorico" value="1">
+                                <input type="checkbox" name="criarlancamentosemhistorico" value= 'true'>
 
                                 <label for="checkbox_enviar">Autorizar criar lançamento sem histórico pré-programado</label>
                                 <br>
                                 @endcan
 
                                 @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA CONCILIACA0 BANCARIA E AUTORIZAR CRIAR LANCAMENTO')
-                                <input type="checkbox" name="versemhistorico" value="1">
-                                <label for="checkbox_enviar">Verificar sem histórico pré-programado</label>
+                                <input type="checkbox" name="verhistorico" value="1">
+                                <label for="checkbox_enviar">Verificar sem tem histórico pré-programado</label>
                                 <br>
                                 @endcan
 
