@@ -372,7 +372,7 @@ class LeituraArquivoController extends Controller
         return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
     }
 
-    
+
     public function SelecionaDatasExtratoSicrediPJ(Request $request)
     {
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -520,7 +520,8 @@ class LeituraArquivoController extends Controller
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         $Saldo = 0;
-        $DataInicial = null;
+
+        $UltimoDia = null;
 
         foreach ($novadata as $PegaLinha => $item) {
             // echo $PegaLinha ."<br>";
@@ -530,18 +531,21 @@ class LeituraArquivoController extends Controller
 
             $Data = $item[1];
 
-            if ($DataInicial == null) {
-                $DataInicial = $Data;
-            }
+
+
+
             $Descricao = $item[2];
 
             $linha = $PegaLinha + 10; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
 
             if ($Data == '') {
-                $SaldoAnterior = SaldoLancamentoHelper::Anterior($DataInicial, $Conta, $Empresa);
-                $SaldoDia = SaldoLancamentoHelper::Dia($DataInicial, $Conta, $Empresa);
+
+                $SaldoAnterior = SaldoLancamentoHelper::Anterior($UltimoDia, $Conta, $Empresa);
+                $SaldoDia = SaldoLancamentoHelper::Dia($UltimoDia, $Conta, $Empresa);
 
                 $SaldoAtual = $SaldoAnterior + $SaldoDia;
+
+                // dd($UltimoDia,$SaldoAnterior,$SaldoDia,$SaldoAtual);
 
                 $DiferecaSaldo = number_format($Saldo - $SaldoAtual);
 
@@ -551,12 +555,22 @@ class LeituraArquivoController extends Controller
                     $TextoConciliado = 'SALDOS NÃO CONFEREM! VERIFIQUE!';
                 }
 
+
+                $DiferençaApurada = $SaldoAtual - $Saldo ;
                 session([
-                    'Lancamento' => 'Terminado na linha ' . $linha . '. Saldo no extrato bancário de: ' . number_format($Saldo, 2, '.', ',') . '.' . ' Saldo atual no sistema contábil de ' . number_format($SaldoAtual, 2, '.', ',') . ' = ' . $TextoConciliado,
+                    'Lancamento' => 'Terminado na linha ' . $linha .
+                     '. Saldo no extrato bancário de: ' . number_format($Saldo, 2, '.', ',') .
+                     '.' . ' Saldo atual no sistema contábil de ' . number_format($SaldoAtual, 2, '.', ',') . ' = ' . $TextoConciliado.
+                     " Diferença apurada: ".number_format($DiferençaApurada, 2, '.', ','),
                 ]);
 
                 return redirect(route('LeituraArquivo.index'));
             }
+
+
+                $UltimoDia = $item[1];
+
+
             if (strpos($Descricao, 'CREDITO CASH BACK') !== false) {
                 //// se contiver, conter o texto na variável
                 // dd($linha, $Descricao);
@@ -853,6 +867,7 @@ class LeituraArquivoController extends Controller
 
                 // session(['Lancamento' => 'Lançamentos criados!']);
             }
+
         }
 
         // $rowData = $cellData;
