@@ -555,23 +555,29 @@ class LeituraArquivoController extends Controller
                     $TextoConciliado = 'SALDOS NÃO CONFEREM! VERIFIQUE!';
                 }
 
+                session([
+                    'Lancamento' => 'Terminado na linha ' . $linha .
+                     '. Saldo no extrato bancário de: ' . number_format($Saldo, 2, '.', ',') .
+                     '.' . ' Saldo atual no sistema contábil de ' . number_format($SaldoAtual, 2, '.', ',') . ' = ' . $TextoConciliado,
+                ]);
 
                 $DiferençaApurada = $SaldoAtual - $Saldo ;
-                if($DiferençaApurada !== 0.00){
+ 
+                if(number_format($DiferençaApurada, 2, '.', ',') ==     0.00){
                     session([
                         'Lancamento' => 'Terminado na linha ' . $linha .
                          '. Saldo no extrato bancário de: ' . number_format($Saldo, 2, '.', ',') .
                          '.' . ' Saldo atual no sistema contábil de ' . number_format($SaldoAtual, 2, '.', ',') . ' = ' . $TextoConciliado,
-
-                    ]);
+                     ]);
                 }
                 else{
-                   session([
-                    'Lancamento' => 'Terminado na linha ' . $linha .
-                     '. Saldo no extrato bancário de: ' . number_format($Saldo, 2, '.', ',') .
-                     '.' . ' Saldo atual no sistema contábil de ' . number_format($SaldoAtual, 2, '.', ',') . ' = ' . $TextoConciliado.
-                     " Diferença apurada: ".number_format($DiferençaApurada, 2, '.', ','),
-                ]);
+                    session([
+                        'Lancamento' => 'Terminado na linha ' . $linha .
+                         '. Saldo no extrato bancário de: ' . number_format($Saldo, 2, '.', ',') .
+                         '.' . ' Saldo atual no sistema contábil de ' . number_format($SaldoAtual, 2, '.', ',') . ' = ' . $TextoConciliado.
+                          " Diferença apurada: ".number_format($DiferençaApurada, 2, '.', ',')
+                    ]);
+
                 }
 
 
