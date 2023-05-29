@@ -32,6 +32,13 @@
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                     <a class="btn btn-warning" href="/Contabilidade">Retornar a lista de opções</a>
                     {{-- <a class="btn btn-primary" href="/LeituraArquivo">Último arquivo enviado de extrado cartão de crédito</a> --}}
+
+                     @can('HISTORICOS - LISTAR')
+                            <a class="btn btn-success" href="/Historicos">Históricos para lançamentos
+
+                                contábeis</a>
+                        @endcan
+
                     @can('LEITURA DE ARQUIVO - LISTAR')
                       <a class="btn btn-secondary" href="/LeituraArquivo/SomenteLinha">Selecionar linha, ou enviar arquivo e conciliar extrato cartão de crédito</a>
                     @endcan

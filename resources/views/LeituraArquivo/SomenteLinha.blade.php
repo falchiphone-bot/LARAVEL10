@@ -20,10 +20,13 @@
 
                     <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                         <a class="btn btn-warning" href="\LeituraArquivo">Retornar a lista de opções</a>
- <a class="btn btn-success" href="/Historicos">Históricos para lançamentos
-                            contábeis</a>
+                        @can('HISTORICOS - LISTAR')
+                            <a class="btn btn-success" href="/Historicos">Históricos para lançamentos
+
+                                contábeis</a>
+                        @endcan
                     </nav>
-                   
+
                 </div>
 
                 <div class="badge bg-warning text-wrap"
@@ -68,44 +71,51 @@
                     @endcan
 
                     @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA VISUALIZAR')
-                    <div class="row">
+                        <div class="row">
 
-                        <form method="POST" action="/FaturaSicrediAberto/SelecionaDatasFaturaEmAberto" enctype="multipart/form-data">
-                            @csrf
-                            <label for="fim"></label>
+                            <form method="POST" action="/FaturaSicrediAberto/SelecionaDatasFaturaEmAberto"
+                                enctype="multipart/form-data">
+                                @csrf
+                                <label for="fim"></label>
 
-                                 <div class="badge bg-secondary text-wrap"
-                                style="width: 100%; font-size: 24px; color: black; text-align: center;">
-                                {{-- <input type="file" required class="btn btn-success" name="arquivo" accept=".csv, text/csv"> --}}
+                                <div class="badge bg-secondary text-wrap"
+                                    style="width: 100%; font-size: 24px; color: black; text-align: center;">
+                                    {{-- <input type="file" required class="btn btn-success" name="arquivo" accept=".csv, text/csv"> --}}
 
-                                <input type="file" required class="btn btn-success" name="arquivo" accept=".csv" onchange="validateFile(this)">
-                                @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA CONCILIACA0 BANCARIA E AUTORIZAR CRIAR LANCAMENTO')
-                                <input type="checkbox" name="criarlancamentosemhistorico" value= 'true'>
+                                    <input type="file" required class="btn btn-success" name="arquivo" accept=".csv"
+                                        onchange="validateFile(this)">
+                                    @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA CONCILIACA0 BANCARIA E AUTORIZAR CRIAR
+                                        LANCAMENTO')
+                                        <input type="checkbox" name="criarlancamentosemhistorico" value='true'>
 
-                                <label for="checkbox_enviar">Autorizar criar lançamento sem histórico pré-programado</label>
-                                <br>
-                                @endcan
+                                        <label for="checkbox_enviar">Autorizar criar lançamento sem histórico pré-programado</label>
+                                        <br>
+                                    @endcan
 
-                                @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA CONCILIACA0 BANCARIA E AUTORIZAR CRIAR LANCAMENTO')
-                                <input type="checkbox" name="verhistorico" value="1">
-                                <label for="checkbox_enviar">Verificar sem tem histórico pré-programado</label>
-                                <br>
-                                @endcan
+                                    @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA CONCILIACA0 BANCARIA E AUTORIZAR CRIAR
+                                        LANCAMENTO')
+                                        <input type="checkbox" name="verhistorico" value="1">
+                                        <label for="checkbox_enviar">Verificar sem tem histórico pré-programado</label>
+                                        <br>
+                                    @endcan
 
-                                <label for="fim">Arquivo *.csv para selecionar exportado do aplicativo mobile do Sicredi - CARTÕES.
-                                    Dever ser enviado por AirDrop para o dispositivo de execução. Extrato em situação: 'Fatura em aberto, sujeita a alterações'
-                                </label>
+                                    <label for="fim">Arquivo *.csv para selecionar exportado do aplicativo mobile do
+                                        Sicredi - CARTÕES.
+                                        Dever ser enviado por AirDrop para o dispositivo de execução. Extrato em situação:
+                                        'Fatura em aberto, sujeita a alterações'
+                                    </label>
 
 
-                                <p class="my-2">
-                                    <button type="submit" class="btn btn-danger">Enviar o arquivo para a pasta do sistema
-                                        e
-                                        consulta o arquivo *.csv total proveniente do aplicativo mobile do Sicredi - CARTÕES</button>
-                                </p>
+                                    <p class="my-2">
+                                        <button type="submit" class="btn btn-danger">Enviar o arquivo para a pasta do sistema
+                                            e
+                                            consulta o arquivo *.csv total proveniente do aplicativo mobile do Sicredi -
+                                            CARTÕES</button>
+                                    </p>
 
-                        </form>
-                    </div>
-                @endcan
+                            </form>
+                        </div>
+                    @endcan
 
 
 
@@ -116,22 +126,26 @@
                                 @csrf
                                 <label for="fim"></label>
 
-                                     <div class="badge bg-info text-wrap"
+                                <div class="badge bg-info text-wrap"
                                     style="width: 100%; font-size: 24px; color: black; text-align: center;">
                                     {{-- <input type="file" required class="btn btn-success" name="arquivo" accept=".csv, text/csv"> --}}
 
-                                    <input type="file" required class="btn btn-success" name="arquivo" accept=".csv" onchange="validateFile(this)">
+                                    <input type="file" required class="btn btn-success" name="arquivo" accept=".csv"
+                                        onchange="validateFile(this)">
 
 
-                                    <label for="fim">Arquivo *.csv para selecionar exportado do aplicativo mobile do Sicredi - CARTÕES.
-                                        Dever ser enviado por AirDrop para o dispositivo de execução. Extrato em situação: 'Fechada'
+                                    <label for="fim">Arquivo *.csv para selecionar exportado do aplicativo mobile do
+                                        Sicredi - CARTÕES.
+                                        Dever ser enviado por AirDrop para o dispositivo de execução. Extrato em situação:
+                                        'Fechada'
                                     </label>
 
 
                                     <p class="my-2">
                                         <button type="submit" class="btn btn-success">Enviar o arquivo para a pasta do sistema
                                             e
-                                            consulta o arquivo *.csv total proveniente do aplicativo mobile do Sicredi - CARTÕES</button>
+                                            consulta o arquivo *.csv total proveniente do aplicativo mobile do Sicredi -
+                                            CARTÕES</button>
                                     </p>
 
                             </form>
@@ -160,10 +174,12 @@
                                         pré-programado</label>
                                     <br>
 
-                                    @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA CONCILIACA0 BANCARIA E AUTORIZAR CRIAR LANCAMENTO')
-                                    <input type="checkbox" name="criarlancamentosemhistorico" value="1">
-                                    <label for="checkbox_enviar">Autorizar criar lançamento sem histórico pré-programado</label>
-                                    <br>
+                                    @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA CONCILIACA0 BANCARIA E AUTORIZAR CRIAR
+                                        LANCAMENTO')
+                                        <input type="checkbox" name="criarlancamentosemhistorico" value="1">
+                                        <label for="checkbox_enviar">Autorizar criar lançamento sem histórico
+                                            pré-programado</label>
+                                        <br>
                                     @endcan
 
 
@@ -198,16 +214,15 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
-
-function validateFile(fileInput) {
-  var filePath = fileInput.value;
-  var allowedExtensions = /(\.csv)$/i;
-  if (!allowedExtensions.exec(filePath)) {
-    alert('Selecione apenas arquivos com extensão .csv.');
-    fileInput.value = '';
-    return false;
-  }
-}
+        function validateFile(fileInput) {
+            var filePath = fileInput.value;
+            var allowedExtensions = /(\.csv)$/i;
+            if (!allowedExtensions.exec(filePath)) {
+                alert('Selecione apenas arquivos com extensão .csv.');
+                fileInput.value = '';
+                return false;
+            }
+        }
 
 
         $(document).ready(function() {
