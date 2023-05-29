@@ -33,7 +33,6 @@ class CreateHistorico extends Component
         $this->contas = new SupportCollection();
         $this->empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
             ->where('EmpresasUsuarios.UsuarioID', auth()->user()->id)
-            ->OrderBy('Descricao')
             ->pluck('Empresas.Descricao', 'Empresas.ID');
 
         if ($historico_id) {

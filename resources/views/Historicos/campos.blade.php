@@ -24,7 +24,7 @@
                 <label for="EmpresaID">Empresas</label>
                 <select name="EmpresaID" id="EmpresaID" class="form-control" wire:model='empresaID'>
                     <option value="">Selecione a conta de debito</option>
-                    @foreach ($empresas as $empresaID => $empresaDescricao)
+                    @foreach ($empresas->sort() as $empresaID => $empresaDescricao)
                         <option @selected($historico?->EmpresaID == $empresaID) value="{{ $empresaID }}">{{ $empresaDescricao }}
                         </option>
                     @endforeach
