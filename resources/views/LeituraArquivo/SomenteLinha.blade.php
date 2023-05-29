@@ -20,8 +20,10 @@
 
                     <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                         <a class="btn btn-warning" href="\LeituraArquivo">Retornar a lista de opções</a>
-
+ <a class="btn btn-success" href="/Historicos">Históricos para lançamentos
+                            contábeis</a>
                     </nav>
+                   
                 </div>
 
                 <div class="badge bg-warning text-wrap"
@@ -68,7 +70,7 @@
                     @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA VISUALIZAR')
                     <div class="row">
 
-                        <form method="POST" action="/LeituraArquivo/SelecionaDatasFaturaEmAberto" enctype="multipart/form-data">
+                        <form method="POST" action="/FaturaSicrediAberto/SelecionaDatasFaturaEmAberto" enctype="multipart/form-data">
                             @csrf
                             <label for="fim"></label>
 
