@@ -16,7 +16,7 @@ class ArquivoLancamento extends Component
     public $rotulo;
     public $lancamentoID;
 
-    public $listeners = ['excluir'];
+    public $listeners = ['excluir','resetData'];
 
     public function excluir($id)
     {
@@ -28,6 +28,11 @@ class ArquivoLancamento extends Component
         }
         session()->flash('message', 'Arquivo(s) adicionado.');
         $this->mount($file->LancamentoID);
+    }
+
+    public function resetData()
+    {
+        $this->reset();
     }
 
     public function download($id)
