@@ -155,18 +155,27 @@ class ExtratoConectCarController extends Controller
         // dd(131,$linha_10,$ContaCartao ,$Empresa,$DespesaContaDebitoID, $novadata);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+        $Saldo = $novadata[12];
         foreach ($novadata as $PegaLinha => $item) {
             $DataCampo = $item[2];
             $Data = substr($DataCampo,0,10);
+ $Descricao = $item[2];
+
+            $linha = $PegaLinha + 29; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
+            if ($Data == '') {
+                session([
+                    'Lancamento' => 'Terminado na linha ' . $linha .
+                     '. Saldo no extrato de: ' . number_format($Saldo, 2, '.', ','),
+                ]);
+                return redirect(route('LeituraArquivo.index'));
+            }
+
 
             // if ($Data == 'Histórico de Despesas') {
             //     session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
             //     return redirect(route('LeituraArquivo.index'));
             // }
-            $Descricao = $item[2];
 
-            $linha = $PegaLinha + 29; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
 
             // if (strpos($Descricao, 'CREDITO CASH BACK') !== false) {
             //     //// se contiver, conter o texto na variável
@@ -200,12 +209,13 @@ class ExtratoConectCarController extends Controller
                 ]);
                 return redirect(route('LeituraArquivo.index'));
             }
-            
+
             // $NumeroParcela = null;
             // $QuantidadeParcela = null;
-
-            $Descricao = $item[6];
             $Veiculo = $item[4];
+            $Descricao_transacao = $item[6];
+            $Descricao = 'Veiculo: '.$Veiculo.' - '.$Descricao_transacao;
+
             // $Parcela = $item[3];
             // if ($Parcela == '  ') {
             //     // continue;
@@ -215,15 +225,25 @@ class ExtratoConectCarController extends Controller
             // }
             //  dd($Parcela,$NumeroParcela, $QuantidadeParcela, $Descricao );
 
-            $Valor = $item[12];
+            $Valor12 = $item[12];
+            if($Valor12){
+                 $Valor = abs($item[12]);
+            }else
+            {
+                continue;
+            }
+
 
             $valor_numerico = preg_replace('/[^0-9,.]/', '', $Valor);
             $Valor_sem_virgula = str_replace(',', '', $Valor);
-            $Valor_sem_pontos_virgulas = str_replace('.', '', $Valor_sem_virgula);
-            $valor_sem_simbolo = substr($Valor_sem_pontos_virgulas, 3); // Extrai a string sem o símbolo "R$"
+            // $Valor_sem_pontos_virgulas = str_replace('.', '', $Valor_sem_virgula);
+            // $valor_sem_simbolo = substr($Valor_sem_pontos_virgulas, 3); // Extrai a string sem o símbolo "R$"
 
-            $valor_numerico = floatval($valor_sem_simbolo) / 100;
-            $valor_formatado = number_format($valor_numerico, 2, '.', '');
+            // $valor_numerico = floatval($valor_sem_simbolo) / 100;
+            // $valor_formatado = number_format($valor_numerico, 2, '.', '');
+
+
+            $valor_formatado =  $Valor_sem_virgula;
             if ($valor_formatado == 0.0) {
                 session([
                     'Lancamento' => 'ALGO ERRADO! VALOR 0.00. Linha:  ' . $linha + 1,
@@ -235,7 +255,7 @@ class ExtratoConectCarController extends Controller
             }
 
             $arraydatanova = compact('Data', 'Descricao', 'valor_formatado','Veiculo');
-            dd($Valor,$Valor_sem_virgula,$Valor_sem_pontos_virgulas,$valor_sem_simbolo ,$valor_numerico,$arraydatanova);
+            // dd($Valor,$Valor_sem_virgula,$valor_numerico,$arraydatanova);
 
             $rowData = $cellData;
 
@@ -272,8 +292,7 @@ class ExtratoConectCarController extends Controller
                          da conta para seguir este procedimento. Bloqueada para até ' .
                             $data_conta_debito_bloqueio->format('d/m/Y') .
                             '! Encontrado lançamento na linha ' .
-                            $linha +
-                            1,
+                            $linha,
                     ]);
                     return redirect(route('LeituraArquivo.index'));
                 }
@@ -309,15 +328,17 @@ class ExtratoConectCarController extends Controller
             } else {
                 // if ($request->criarlancamentosemhistorico == true) {
 
-                if ($Parcela) {
-                    $DescricaoCompleta = $arraydatanova['Descricao'] . ' Parcela ' . $Parcela;
-                } else {
-                    $DescricaoCompleta = $arraydatanova['Descricao'];
-                }
+                // if ($Parcela) {
+                //     $DescricaoCompleta = $arraydatanova['Descricao'] . ' Parcela ' . $Parcela;
+                // } else {
+                //     $DescricaoCompleta = $arraydatanova['Descricao'];
+                // }
 
+                $DescricaoCompleta = $arraydatanova['Descricao'];
                 // dd($arraydatanova);
+                $TextoHistorico = $Veiculo.'-PAGAMENTOS DE PEDAGIOS';
                 $historico = Historicos::where('EmpresaID', $Empresa)
-                    ->where('Descricao', 'like', '%' . trim($Descricao) . '%')
+                    ->where('Descricao', 'like', '%' . trim($TextoHistorico) . '%')
                     ->where('ContaCreditoID', $ContaCartao)
                     ->first();
 
@@ -337,63 +358,63 @@ class ExtratoConectCarController extends Controller
                     dd('VERIFICANDO SE TEM HISTÓRICO!', ' Mensagem: ' . $SituacaoHistorico . ' => ' . $historico, $arraydatanova, $Descricao, $ContaCartao, $DespesaContaDebitoID);
                 }
 
-                if ($NumeroParcela !== null && $QuantidadeParcela !== null) {
-                    if ($NumeroParcela > 1) {
-                        continue;
-                    }
+                // if ($NumeroParcela !== null && $QuantidadeParcela !== null) {
+                //     if ($NumeroParcela > 1) {
+                //         continue;
+                //     }
 
-                    $registros = [];
-                    for ($i = 1; $i <= $QuantidadeParcela; $i++) {
-                        $novoRegistroParcelas = [
-                            'EmpresaID' => $Empresa,
-                            'ContaDebitoID' => $DespesaContaDebitoID,
-                            'ContaCreditoID' => $ContaCartao,
-                            'NumeroParcela' => $NumeroParcela,
-                            'QuantidadeParcela' => $QuantidadeParcela,
-                            'Valor' => ($valorString = $valor_formatado),
-                            'Data' => $Data,
-                            'Descricao' => $Descricao . ' Parcela:' . $i . ' de ' . $QuantidadeParcela,
-                            'Usuarios_id' => auth()->user()->id,
-                        ];
+                //     $registros = [];
+                //     for ($i = 1; $i <= $QuantidadeParcela; $i++) {
+                //         $novoRegistroParcelas = [
+                //             'EmpresaID' => $Empresa,
+                //             'ContaDebitoID' => $DespesaContaDebitoID,
+                //             'ContaCreditoID' => $ContaCartao,
+                //             'NumeroParcela' => $NumeroParcela,
+                //             'QuantidadeParcela' => $QuantidadeParcela,
+                //             'Valor' => ($valorString = $valor_formatado),
+                //             'Data' => $Data,
+                //             'Descricao' => $Descricao . ' Parcela:' . $i . ' de ' . $QuantidadeParcela,
+                //             'Usuarios_id' => auth()->user()->id,
+                //         ];
 
-                        // Faça algo com o novo registro, como armazená-lo em um banco de dados ou exibi-lo
-                        // por exemplo:
-                        // salvarRegistroNoBancoDeDados($novoRegistro);
-                        // exibirRegistro($novoRegistro);
-                        // echo $i, ' ';
-                        // Você também pode adicionar o registro a uma lista, array, ou qualquer outra estrutura de dados necessária
-                        $registros[] = $novoRegistroParcelas;
-                    }
+                //         // Faça algo com o novo registro, como armazená-lo em um banco de dados ou exibi-lo
+                //         // por exemplo:
+                //         // salvarRegistroNoBancoDeDados($novoRegistro);
+                //         // exibirRegistro($novoRegistro);
+                //         // echo $i, ' ';
+                //         // Você também pode adicionar o registro a uma lista, array, ou qualquer outra estrutura de dados necessária
+                //         $registros[] = $novoRegistroParcelas;
+                //     }
 
-                    foreach ($registros as $incluirregistros) {
-                        $lancamentoregistros = Lancamento::where('DataContabilidade', $incluirregistros['Data'])
-                            ->where('Valor', $valorString = $incluirregistros['Valor'])
-                            ->where('EmpresaID', $incluirregistros['EmpresaID'])
-                            ->where('ContaCreditoID', $incluirregistros['ContaCreditoID'])
-                            ->where('Descricao', trim($incluirregistros['Descricao']))
-                            ->First();
+                //     foreach ($registros as $incluirregistros) {
+                //         $lancamentoregistros = Lancamento::where('DataContabilidade', $incluirregistros['Data'])
+                //             ->where('Valor', $valorString = $incluirregistros['Valor'])
+                //             ->where('EmpresaID', $incluirregistros['EmpresaID'])
+                //             ->where('ContaCreditoID', $incluirregistros['ContaCreditoID'])
+                //             ->where('Descricao', trim($incluirregistros['Descricao']))
+                //             ->First();
 
-                        if ($lancamentoregistros) {
-                            // dd('JÁ LANÇADO', $Descricao, $incluirregistros);
-                            continue;
-                        } else {
-                            if ($request->criarlancamentosemhistorico !== true) {
-                                continue;
-                            }
+                //         if ($lancamentoregistros) {
+                //             // dd('JÁ LANÇADO', $Descricao, $incluirregistros);
+                //             continue;
+                //         } else {
+                //             if ($request->criarlancamentosemhistorico !== true) {
+                //                 continue;
+                //             }
 
-                            Lancamento::create([
-                                'Valor' => $incluirregistros['Valor'],
-                                'EmpresaID' => $incluirregistros['EmpresaID'],
-                                'ContaDebitoID' => $incluirregistros['ContaDebitoID'],
-                                'ContaCreditoID' => $incluirregistros['ContaCreditoID'],
-                                'Descricao' => $incluirregistros['Descricao'],
-                                'Usuarios_id' => $incluirregistros['Usuarios_id'],
-                                'DataContabilidade' => $incluirregistros['Data'],
-                                'HistoricoID' => '',
-                            ]);
-                        }
-                    }
-                } else {
+                //             Lancamento::create([
+                //                 'Valor' => $incluirregistros['Valor'],
+                //                 'EmpresaID' => $incluirregistros['EmpresaID'],
+                //                 'ContaDebitoID' => $incluirregistros['ContaDebitoID'],
+                //                 'ContaCreditoID' => $incluirregistros['ContaCreditoID'],
+                //                 'Descricao' => $incluirregistros['Descricao'],
+                //                 'Usuarios_id' => $incluirregistros['Usuarios_id'],
+                //                 'DataContabilidade' => $incluirregistros['Data'],
+                //                 'HistoricoID' => '',
+                //             ]);
+                //         }
+                //     }
+                // } else {
                     if ($historico == true) {
                         Lancamento::create([
                             'Valor' => ($valorString = $valor_formatado),
@@ -425,13 +446,13 @@ class ExtratoConectCarController extends Controller
                         }
                         session(['Lancamento' => 'Lancamentos criados sem históricos!']);
                     }
-                }
+                // }
 
                 // dd('fim');
                 // session(['Lancamento' => 'Lancamentos criados!']);
                 // dd('Criado lançamento com histórico', $historico);
             }
-            // }///////////////retirar - liga com linha 658
+
         }
         if ($Mensagem) {
             $xMensagem = session('Lancamento') . ' Mensagem auxiliar: ' . $Mensagem;
