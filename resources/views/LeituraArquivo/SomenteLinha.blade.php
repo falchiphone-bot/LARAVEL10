@@ -39,6 +39,48 @@
 
                 </div>
                 <div class="card-body">
+
+                    @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA CONCILIACA0 BANCARIA')
+                    <div class="row">
+                        <form method="POST" action="/LeituraArquivo/SelecionaDatasExtratoSicrediPJ"
+                            enctype="multipart/form-data">
+                            @csrf
+                            <label for="fim"></label>
+                            <div class="badge bg-success text-wrap"
+                                style="width: 100%; font-size: 24px; color: white; text-align: center;">
+
+                                <label for="fim">Arquivo de extrato Sicredi pessoa jurídica - PJ E pessoa física -
+                                    PF</label>
+                                <br>
+                                <input type="file" required class="btn btn-danger" name="arquivo">
+                                <br>
+                                <input type="checkbox" name="vercriarlancamentocomhistorico" value="1">
+                                <label for="checkbox_enviar">Ver se vai criar lançamento com histórico ou não</label>
+                                <br>
+                                <input type="checkbox" name="vercriarlancamento" value="1">
+                                <label for="checkbox_enviar">Ver se vai criar lançamento sem histórico
+                                    pré-programado</label>
+                                <br>
+
+                                @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA CONCILIACA0 BANCARIA E AUTORIZAR CRIAR
+                                    LANCAMENTO')
+                                    <input type="checkbox" name="criarlancamentosemhistorico" value="1">
+                                    <label for="checkbox_enviar">Autorizar criar lançamento sem histórico
+                                        pré-programado</label>
+                                    <br>
+                                @endcan
+
+
+                                <p class="my-2">
+                                    <button type="submit" class="btn btn-danger">Enviar o arquivo extrato PJ para a pasta
+                                        do sistema e
+                                        consulta o arquivo total.</button>
+                                </p>
+                        </form>
+                    </div>
+                @endcan
+
+
                     @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO E SELECIONAR LINHA')
                         <div class="row">
 
@@ -152,19 +194,18 @@
                         </div>
                     @endcan
 
-                    @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA CONCILIACA0 BANCARIA')
+                    @can('EXTRATO CONECTCAR - ENVIAR')
                         <div class="row">
-                            <form method="POST" action="/LeituraArquivo/SelecionaDatasExtratoSicrediPJ"
+                            <form method="POST" action="/ConectCar/ExtratoConectCar"
                                 enctype="multipart/form-data">
                                 @csrf
                                 <label for="fim"></label>
                                 <div class="badge bg-success text-wrap"
                                     style="width: 100%; font-size: 24px; color: white; text-align: center;">
 
-                                    <label for="fim">Arquivo de extrato Sicredi pessoa jurídica - PJ E pessoa física -
-                                        PF</label>
+                                    <label for="fim">Arquivo de extrato ConectCar</label>
                                     <br>
-                                    <input type="file" required class="btn btn-danger" name="arquivo">
+                                    <input type="file" required class="btn btn-secondary" name="arquivo">
                                     <br>
                                     <input type="checkbox" name="vercriarlancamentocomhistorico" value="1">
                                     <label for="checkbox_enviar">Ver se vai criar lançamento com histórico ou não</label>
@@ -184,13 +225,15 @@
 
 
                                     <p class="my-2">
-                                        <button type="submit" class="btn btn-danger">Enviar o arquivo extrato PJ para a pasta
+                                        <button type="submit" class="btn btn-secondary">Enviar o arquivo extrato ConectCar para a pasta
                                             do sistema e
                                             consulta o arquivo total.</button>
                                     </p>
                             </form>
                         </div>
                     @endcan
+
+
                 </div>
             </div>
 
