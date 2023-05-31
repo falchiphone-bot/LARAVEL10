@@ -41,7 +41,7 @@
                             <tr>
                                 <th scope="row">{{ $file->ID }}</th>
                                 <td>{{ $file->Rotulo }}</td>
-                                <td>{{ $file->user->name }}</td>
+                                <td>{{ $file->user?->name }}</td>
                                 <td>{{ $file->Created->format('d/m/Y H:i:s') }}</td>
                                 <td>
                                     <button onclick="excluirArquivo({{ $file->ID }})" class="btn btn-danger"><i
