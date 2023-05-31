@@ -249,18 +249,20 @@ class LeituraArquivoController extends Controller
             $carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $Data_bloqueada);
             $Data_bloqueada_comparar = $carbon_data->format('Y-m-d');
 
-            if ($linha_data_comparar <= $Data_bloqueada_comparar) {
-                session([
-                    'Lancamento' =>
-                        'Empresa bloqueada no sistema para o lançamento
-                  solicitado! Deverá desbloquear a data de bloqueio
-                  da empresa para seguir este procedimento. Bloqueada para até ' .
-                        $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y') .
-                        '! Encontrado lançamento na linha ' .
-                        $linha+1,
-                ]);
-                return redirect(route('LeituraArquivo.index'));
-            }
+
+                if ($linha_data_comparar <= $Data_bloqueada_comparar) {
+                    session([
+                        'Lancamento' =>
+                            'Empresa bloqueada no sistema para o lançamento
+                    solicitado! Deverá desbloquear a data de bloqueio
+                    da empresa para seguir este procedimento. Bloqueada para até ' .
+                            $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y') .
+                            '! Encontrado lançamento na linha ' .
+                            $linha+1,
+                    ]);
+                    return redirect(route('LeituraArquivo.index'));
+                }
+
 
             $Descricao = $item[2];
             $Parcela = $item[3];
@@ -308,6 +310,7 @@ class LeituraArquivoController extends Controller
                     return redirect(route('LeituraArquivo.index'));
                 }
 
+
                 if ($data_conta_debito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
                     session([
                         'Lancamento' =>
@@ -339,6 +342,8 @@ class LeituraArquivoController extends Controller
                     return redirect(route('LeituraArquivo.index'));
                 }
             }
+        
+
 
             if ($lancamento) {
                 // dd($lancamento);
@@ -562,7 +567,7 @@ class LeituraArquivoController extends Controller
                 ]);
 
                 $DiferençaApurada = $SaldoAtual - $Saldo ;
- 
+
                 if(number_format($DiferençaApurada, 2, '.', ',') ==     0.00){
                     session([
                         'Lancamento' => 'Terminado na linha ' . $linha .

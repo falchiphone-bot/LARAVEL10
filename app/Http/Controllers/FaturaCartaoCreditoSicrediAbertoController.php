@@ -31,6 +31,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
 
     public function SelecionaDatasFaturaEmAberto(Request $request)
     {
+        $DESCONSIDERAR_BLOQUEIOS = $request->DESCONSIDERAR_BLOQUEIOS;
 
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         $Mensagem = null;
@@ -117,14 +118,13 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
             $DespesaContaDebitoID = '19426';
             $CashBackContaCreditoID = '19271';
             // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
-        }elseif ($linhas1_7 === 'SANDRA ELISA MAGOSSI FALCHI-4891.67XX.XXXX.9919') {
+        } elseif ($linhas1_7 === 'SANDRA ELISA MAGOSSI FALCHI-4891.67XX.XXXX.9919') {
             $ContaCartao = '17457';
             $Empresa = 11;
             $DespesaContaDebitoID = '19426';
             $CashBackContaCreditoID = '19271';
             // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
-        }
-        elseif ($linhas1_7 === 'PEDRO ROBERTO FALCHI-4891.67XX.XXXX.2113') {
+        } elseif ($linhas1_7 === 'PEDRO ROBERTO FALCHI-4891.67XX.XXXX.2113') {
             $ContaCartao = '17458';
             $Empresa = 11;
             $DespesaContaDebitoID = '19426';
@@ -205,18 +205,22 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
             $carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $Data_bloqueada);
             $Data_bloqueada_comparar = $carbon_data->format('Y-m-d');
 
-            if ($linha_data_comparar <= $Data_bloqueada_comparar) {
-                session([
-                    'Lancamento' =>
-                        'Empresa bloqueada no sistema para o lançamento
+            if ($DESCONSIDERAR_BLOQUEIOS == null) {
+                if ($linha_data_comparar <= $Data_bloqueada_comparar) {
+                    session([
+                        'Lancamento' =>
+                            'Empresa bloqueada no sistema para o lançamento
                   solicitado! Deverá desbloquear a data de bloqueio
                   da empresa para seguir este procedimento. Bloqueada para até ' .
-                        $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y') .
-                        '! Encontrado lançamento na linha ' .
-                        $linha+1,
-                ]);
-                return redirect(route('LeituraArquivo.index'));
+                            $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y') .
+                            '! Encontrado lançamento na linha ' .
+                            $linha +
+                            1,
+                    ]);
+                    return redirect(route('LeituraArquivo.index'));
+                }
             }
+
             $NumeroParcela = null;
             $QuantidadeParcela = null;
 
@@ -260,52 +264,56 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                 ->where('ContaCreditoID', $ContaCartao)
                 ->First();
 
-            if ($lancamento) {
-                $dataLancamento_carbon = Carbon::createFromDate($lancamento->DataContabilidade);
-                $dataLancamento = $dataLancamento_carbon->format('Y/m/d');
-                $data_conta_debito_bloqueio = $lancamento->ContaDebito->Bloqueiodataanterior;
-                if ($data_conta_debito_bloqueio == null) {
-                    session([
-                        'Lancamento' =>
-                            'Conta DÉBITO: ' .
-                            $lancamento->ContaDebito->PlanoConta->Descricao .
-                            ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+            if ($DESCONSIDERAR_BLOQUEIOS == null) {
+                if ($lancamento) {
+                    $dataLancamento_carbon = Carbon::createFromDate($lancamento->DataContabilidade);
+                    $dataLancamento = $dataLancamento_carbon->format('Y/m/d');
+                    $data_conta_debito_bloqueio = $lancamento->ContaDebito->Bloqueiodataanterior;
+                    if ($data_conta_debito_bloqueio == null) {
+                        session([
+                            'Lancamento' =>
+                                'Conta DÉBITO: ' .
+                                $lancamento->ContaDebito->PlanoConta->Descricao .
+                                ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
                          da conta para seguir este procedimento. Bloqueada para até NULA' .
-                            '! Encontrado lançamento na linha ' .
-                            $linha+1,
-                    ]);
-                    return redirect(route('LeituraArquivo.index'));
-                }
+                                '! Encontrado lançamento na linha ' .
+                                $linha +
+                                1,
+                        ]);
+                        return redirect(route('LeituraArquivo.index'));
+                    }
 
-                if ($data_conta_debito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
-                    session([
-                        'Lancamento' =>
-                            'Conta DÉBITO: ' .
-                            $lancamento->ContaDebito->PlanoConta->Descricao .
-                            ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                    if ($data_conta_debito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
+                        session([
+                            'Lancamento' =>
+                                'Conta DÉBITO: ' .
+                                $lancamento->ContaDebito->PlanoConta->Descricao .
+                                ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
                          da conta para seguir este procedimento. Bloqueada para até ' .
-                            $data_conta_debito_bloqueio->format('d/m/Y') .
-                            '! Encontrado lançamento na linha ' .
-                            $linha+1,
-                    ]);
-                    return redirect(route('LeituraArquivo.index'));
+                                $data_conta_debito_bloqueio->format('d/m/Y') .
+                                '! Encontrado lançamento na linha ' .
+                                $linha +
+                                1,
+                        ]);
+                        return redirect(route('LeituraArquivo.index'));
+                    }
                 }
-            }
 
-            if ($lancamento) {
-                $data_conta_credito_bloqueio = $lancamento->ContaCredito->Bloqueiodataanterior;
-                if ($data_conta_credito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
-                    session([
-                        'Lancamento' =>
-                            'Conta CRÉDITO: ' .
-                            $lancamento->ContaCredito->PlanoConta->Descricao .
-                            ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio da
+                if ($lancamento) {
+                    $data_conta_credito_bloqueio = $lancamento->ContaCredito->Bloqueiodataanterior;
+                    if ($data_conta_credito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
+                        session([
+                            'Lancamento' =>
+                                'Conta CRÉDITO: ' .
+                                $lancamento->ContaCredito->PlanoConta->Descricao .
+                                ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio da
                           conta para seguir este procedimento. Bloqueada para até ' .
-                            $data_conta_credito_bloqueio->format('d/m/Y') .
-                            '! Encontrado lançamento na linha ' .
-                            $linha,
-                    ]);
-                    return redirect(route('LeituraArquivo.index'));
+                                $data_conta_credito_bloqueio->format('d/m/Y') .
+                                '! Encontrado lançamento na linha ' .
+                                $linha,
+                        ]);
+                        return redirect(route('LeituraArquivo.index'));
+                    }
                 }
             }
 
@@ -344,11 +352,10 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
 
                 if ($request->verhistorico == true) {
                     $SituacaoHistorico = 'HISTÓRICO CADASTRADO!';
-                    if($historico == null)
-                    {
-                       $SituacaoHistorico = ' O ABAIXO PRECISA SER CADASTRADO EM HISTÓRICOS PRÉ PROGRAMADO CASO QUEIRA LANÇAR POR HISTÓRICO, POIS NÃO TEM CADASTRO!';
+                    if ($historico == null) {
+                        $SituacaoHistorico = ' O ABAIXO PRECISA SER CADASTRADO EM HISTÓRICOS PRÉ PROGRAMADO CASO QUEIRA LANÇAR POR HISTÓRICO, POIS NÃO TEM CADASTRO!';
                     }
-                    dd('VERIFICANDO SE TEM HISTÓRICO!', " Mensagem: ".$SituacaoHistorico." => ".$historico,$arraydatanova, $Descricao, $ContaCartao, $DespesaContaDebitoID);
+                    dd('VERIFICANDO SE TEM HISTÓRICO!', ' Mensagem: ' . $SituacaoHistorico . ' => ' . $historico, $arraydatanova, $Descricao, $ContaCartao, $DespesaContaDebitoID);
                 }
 
                 if ($NumeroParcela !== null && $QuantidadeParcela !== null) {
@@ -408,7 +415,6 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                         }
                     }
                 } else {
-
                     if ($historico == true) {
                         Lancamento::create([
                             'Valor' => ($valorString = $valor_formatado),
@@ -439,7 +445,6 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                             ]);
                         }
                         session(['Lancamento' => 'Lancamentos criados sem históricos!']);
-
                     }
                 }
 
@@ -461,5 +466,4 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
         // dd("Fim",$Descricao,$lancamento);
         return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
     }
-
 }

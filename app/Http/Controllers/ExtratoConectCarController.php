@@ -31,11 +31,14 @@ class ExtratoConectCarController extends Controller
 
     public function ExtratoConectar(Request $request)
     {
+        $DESCONSIDERAR_BLOQUEIOS = $request->DESCONSIDERAR_BLOQUEIOS;
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         $Mensagem = null;
         /////// aqui fica na pasta temporário /temp/    - apaga
         $path = $request->file('arquivo')->getRealPath();
         $file = $request->file('arquivo');
+
+
         $extension = $file->getClientOriginalExtension();
 
         $Complemento = $request->complemento;
@@ -143,7 +146,7 @@ class ExtratoConectCarController extends Controller
             }
         }
 
-        $novadata = array_slice($cellData, 29);
+        $novadata = array_slice($cellData, 28);
         // $novadata = array_slice($cellData, 152);
 
         ///// CONFERE SE EMPRESA BLOQUEADA
@@ -155,32 +158,98 @@ class ExtratoConectCarController extends Controller
         // dd(131,$linha_10,$ContaCartao ,$Empresa,$DespesaContaDebitoID, $novadata);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        $Saldo = $novadata[12];
+         $Saldo = null;
+         $UltimoDia = null;
         foreach ($novadata as $PegaLinha => $item) {
+            if($Saldo == null){
+                $Saldo = $item[14];
+                $DataCampo_Ultimo_Dia = $item[2];
+                $Data = substr($DataCampo_Ultimo_Dia,0,10);
+                $UltimoDia = $Data;
+               }
             $DataCampo = $item[2];
             $Data = substr($DataCampo,0,10);
  $Descricao = $item[2];
  $passagem = $item[6];
- $termo_passagem = null;
- // Usando a função preg_match para extrair o termo "passagem"
- if (preg_match('/\b([A-Za-z]+)\b/', $passagem, $matches)) {
-     $termo_passagem = $matches[1];
 
- }
 
-if($termo_passagem == 'Passagem'){
- DD($item, $Descricao, $termo_passagem);
+/////////////////////////////////////////////////////////////////////////////// Detecta estacionamentos
+$termo_Passagem = null;
+if (preg_match('/\bPassagem\b/', $passagem, $matches)) {
+    $termo_Passagem = $matches[0];
+    // dd($termo_Passagem);
 }
+if($termo_Passagem == 'Passagem'){
+    $DespesaContaDebitoID = '19462';
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/////////////////////////////////////////////////////////////////////////////// Detecta plano
+$termo_Plano_Completo = null;
+if (preg_match('/\bPlano\b/', $passagem, $matches)) {
+    $termo_Plano_Completo = $matches[0];
+    // dd($termo_Passagem);
+}
+if($termo_Plano_Completo == 'Plano'){
+    $DespesaContaDebitoID = '19463';
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             $linha = $PegaLinha + 29; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
+
             if ($Data == '') {
                 session([
                     'Lancamento' => 'Terminado na linha ' . $linha .
-                     '. Saldo no extrato de: ' . $Saldo,
+                    '. Saldo no extrato de: ' . $Saldo,
                 ]);
+
+                $SaldoAnterior = SaldoLancamentoHelper::Anterior($UltimoDia, $ContaCartao, $Empresa);
+                $SaldoDia = SaldoLancamentoHelper::Dia($UltimoDia, $ContaCartao, $Empresa);
+
+                $SaldoAtual = $SaldoAnterior + $SaldoDia;
+
+                // dd($UltimoDia,$SaldoAnterior,$SaldoDia,$SaldoAtual);
+
+                $DiferecaSaldo = number_format($Saldo - $SaldoAtual);
+
+                if ($DiferecaSaldo == 0) {
+                    $TextoConciliado = 'CONCILIAÇÃO COM EXATIDÃO DE SALDOS.';
+                } else {
+                    $TextoConciliado = 'SALDOS NÃO CONFEREM! VERIFIQUE!';
+                }
+
+                session([
+                    'Lancamento' => 'Terminado na linha ' . $linha .
+                     '. Saldo no extrato bancário de: ' . number_format($Saldo, 2, '.', ',') .
+                     '.' . ' Saldo atual no sistema contábil de ' . number_format($SaldoAtual, 2, '.', ',') . ' = ' . $TextoConciliado,
+                ]);
+
+                $DiferençaApurada = $SaldoAtual - $Saldo ;
+
+                if(number_format($DiferençaApurada, 2, '.', ',') ==     0.00){
+                    session([
+                        'Lancamento' => 'Terminado na linha ' . $linha .
+                         '. Saldo no extrato bancário de: ' . number_format($Saldo, 2, '.', ',') .
+                         '.' . ' Saldo atual no sistema contábil de ' . number_format($SaldoAtual, 2, '.', ',') . ' = ' . $TextoConciliado,
+                     ]);
+                }
+                else{
+                    session([
+                        'Lancamento' => 'Terminado na linha ' . $linha .
+                         '. Saldo no extrato bancário de: ' . number_format($Saldo, 2, '.', ',') .
+                         '.' . ' Saldo atual no sistema contábil de ' . number_format($SaldoAtual, 2, '.', ',') . ' = ' . $TextoConciliado.
+                          " Diferença apurada: ".number_format($DiferençaApurada, 2, '.', ',')
+                    ]);
+
+                }
                 return redirect(route('LeituraArquivo.index'));
             }
+
+
+// if($linha == 46){
+//  DD($item, $Descricao, $termo_Passagem);
+// }
+
  //  '. Saldo no extrato de: ' . number_format($Saldo, 2, '.', ','),
 
             // if ($Data == 'Histórico de Despesas') {
@@ -209,62 +278,68 @@ if($termo_passagem == 'Passagem'){
             $carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $Data_bloqueada);
             $Data_bloqueada_comparar = $carbon_data->format('Y-m-d');
 
-            if ($linha_data_comparar <= $Data_bloqueada_comparar) {
-                session([
-                    'Lancamento' =>
-                        'Empresa bloqueada no sistema para o lançamento
-                  solicitado! Deverá desbloquear a data de bloqueio
-                  da empresa para seguir este procedimento. Bloqueada para até ' .
-                        $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y') .
-                        '! Encontrado lançamento na linha ' .
-                        $linha,
-                ]);
-                return redirect(route('LeituraArquivo.index'));
-            }
 
-            // $NumeroParcela = null;
-            // $QuantidadeParcela = null;
-            $Veiculo = $item[4];
-            $Descricao_transacao = $item[6];
-            $Descricao = 'Veiculo: '.$Veiculo.' - '.$Descricao_transacao;
-
-            // $Parcela = $item[3];
-            // if ($Parcela == '  ') {
-            //     // continue;
-            // } else {
-            //     $NumeroParcela = substr($Parcela, 1, 2);
-            //     $QuantidadeParcela = substr($Parcela, 6, 2);
-            // }
-            //  dd($Parcela,$NumeroParcela, $QuantidadeParcela, $Descricao );
-
-            $Valor12 = $item[12];
-            if($Valor12){
-                 $Valor = abs($item[12]);
-            }else
-            {
-                continue;
+            if ($DESCONSIDERAR_BLOQUEIOS == null) {
+                    if ($linha_data_comparar <= $Data_bloqueada_comparar) {
+                        session([
+                            'Lancamento' =>
+                                'Empresa bloqueada no sistema para o lançamento
+                        solicitado! Deverá desbloquear a data de bloqueio
+                        da empresa para seguir este procedimento. Bloqueada para até ' .
+                                $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y') .
+                                '! Encontrado lançamento na linha ' .
+                                $linha,
+                        ]);
+                        return redirect(route('LeituraArquivo.index'));
+                    }
             }
 
 
-            $valor_numerico = preg_replace('/[^0-9,.]/', '', $Valor);
-            $Valor_sem_virgula = str_replace(',', '', $Valor);
-            // $Valor_sem_pontos_virgulas = str_replace('.', '', $Valor_sem_virgula);
-            // $valor_sem_simbolo = substr($Valor_sem_pontos_virgulas, 3); // Extrai a string sem o símbolo "R$"
+                        // $NumeroParcela = null;
+                        // $QuantidadeParcela = null;
+                        $Veiculo = $item[4];
+                        $Descricao_transacao = $item[6];
+                        $Descricao = 'Veiculo: '.$Veiculo.' - '.$Descricao_transacao;
 
-            // $valor_numerico = floatval($valor_sem_simbolo) / 100;
-            // $valor_formatado = number_format($valor_numerico, 2, '.', '');
+                        // $Parcela = $item[3];
+                        // if ($Parcela == '  ') {
+                        //     // continue;
+                        // } else {
+                        //     $NumeroParcela = substr($Parcela, 1, 2);
+                        //     $QuantidadeParcela = substr($Parcela, 6, 2);
+                        // }
+                        //  dd($Parcela,$NumeroParcela, $QuantidadeParcela, $Descricao );
+
+                        $Valor12 = $item[12];
+                        if($Valor12){
+                            $Valor = abs($item[12]);
+                        }else
+                        {
+                            continue;
+                        }
 
 
-            $valor_formatado =  $Valor_sem_virgula;
-            if ($valor_formatado == 0.0) {
-                session([
-                    'Lancamento' => 'ALGO ERRADO! VALOR 0.00. Linha:  ' . $linha + 1,
-                ]);
-                $Mensagem = 'ALGO ERRADO! VALOR 0.00. Linha:  ' . $linha + 1;
-                // return redirect(route('LeituraArquivo.index'));
+                            $valor_numerico = preg_replace('/[^0-9,.]/', '', $Valor);
+                            $Valor_sem_virgula = str_replace(',', '', $Valor);
+                            // $Valor_sem_pontos_virgulas = str_replace('.', '', $Valor_sem_virgula);
+                            // $valor_sem_simbolo = substr($Valor_sem_pontos_virgulas, 3); // Extrai a string sem o símbolo "R$"
 
-                continue;
-            }
+                            // $valor_numerico = floatval($valor_sem_simbolo) / 100;
+                            // $valor_formatado = number_format($valor_numerico, 2, '.', '');
+
+
+                            $valor_formatado =  $Valor_sem_virgula;
+                            if ($valor_formatado == 0.0) {
+                                session([
+                                    'Lancamento' => 'ALGO ERRADO! VALOR 0.00. Linha:  ' . $linha + 1,
+                                ]);
+                                $Mensagem = 'ALGO ERRADO! VALOR 0.00. Linha:  ' . $linha + 1;
+                                // return redirect(route('LeituraArquivo.index'));
+
+                                continue;
+                            }
+          
+
 
             $arraydatanova = compact('Data', 'Descricao', 'valor_formatado','Veiculo');
             // dd($Valor,$Valor_sem_virgula,$valor_numerico,$arraydatanova);
@@ -277,55 +352,57 @@ if($termo_passagem == 'Passagem'){
                 ->where('ContaCreditoID', $ContaCartao)
                 ->First();
 
-            if ($lancamento) {
-                $dataLancamento_carbon = Carbon::createFromDate($lancamento->DataContabilidade);
-                $dataLancamento = $dataLancamento_carbon->format('Y/m/d');
-                $data_conta_debito_bloqueio = $lancamento->ContaDebito->Bloqueiodataanterior;
-                if ($data_conta_debito_bloqueio == null) {
-                    session([
-                        'Lancamento' =>
-                            'Conta DÉBITO: ' .
-                            $lancamento->ContaDebito->PlanoConta->Descricao .
-                            ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
-                         da conta para seguir este procedimento. Bloqueada para até NULA' .
-                            '! Encontrado lançamento na linha ' .
-                            $linha +
-                            1,
-                    ]);
-                    return redirect(route('LeituraArquivo.index'));
-                }
+            if ($DESCONSIDERAR_BLOQUEIOS == null) {
+                    if ($lancamento) {
+                        $dataLancamento_carbon = Carbon::createFromDate($lancamento->DataContabilidade);
+                        $dataLancamento = $dataLancamento_carbon->format('Y/m/d');
+                        $data_conta_debito_bloqueio = $lancamento->ContaDebito->Bloqueiodataanterior;
+                        if ($data_conta_debito_bloqueio == null) {
+                            session([
+                                'Lancamento' =>
+                                    'Conta DÉBITO: ' .
+                                    $lancamento->ContaDebito->PlanoConta->Descricao .
+                                    ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                                da conta para seguir este procedimento. Bloqueada para até NULA' .
+                                    '! Encontrado lançamento na linha ' .
+                                    $linha +
+                                    1,
+                            ]);
+                            return redirect(route('LeituraArquivo.index'));
+                        }
 
-                if ($data_conta_debito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
-                    session([
-                        'Lancamento' =>
-                            'Conta DÉBITO: ' .
-                            $lancamento->ContaDebito->PlanoConta->Descricao .
-                            ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
-                         da conta para seguir este procedimento. Bloqueada para até ' .
-                            $data_conta_debito_bloqueio->format('d/m/Y') .
-                            '! Encontrado lançamento na linha ' .
-                            $linha,
-                    ]);
-                    return redirect(route('LeituraArquivo.index'));
-                }
-            }
+                        if ($data_conta_debito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
+                            session([
+                                'Lancamento' =>
+                                    'Conta DÉBITO: ' .
+                                    $lancamento->ContaDebito->PlanoConta->Descricao .
+                                    ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                                da conta para seguir este procedimento. Bloqueada para até ' .
+                                    $data_conta_debito_bloqueio->format('d/m/Y') .
+                                    '! Encontrado lançamento na linha ' .
+                                    $linha,
+                            ]);
+                            return redirect(route('LeituraArquivo.index'));
+                        }
+                    }
 
-            if ($lancamento) {
-                $data_conta_credito_bloqueio = $lancamento->ContaCredito->Bloqueiodataanterior;
-                if ($data_conta_credito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
-                    session([
-                        'Lancamento' =>
-                            'Conta CRÉDITO: ' .
-                            $lancamento->ContaCredito->PlanoConta->Descricao .
-                            ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio da
-                          conta para seguir este procedimento. Bloqueada para até ' .
-                            $data_conta_credito_bloqueio->format('d/m/Y') .
-                            '! Encontrado lançamento na linha ' .
-                            $linha,
-                    ]);
-                    return redirect(route('LeituraArquivo.index'));
+                    if ($lancamento) {
+                        $data_conta_credito_bloqueio = $lancamento->ContaCredito->Bloqueiodataanterior;
+                        if ($data_conta_credito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
+                            session([
+                                'Lancamento' =>
+                                    'Conta CRÉDITO: ' .
+                                    $lancamento->ContaCredito->PlanoConta->Descricao .
+                                    ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio da
+                                conta para seguir este procedimento. Bloqueada para até ' .
+                                    $data_conta_credito_bloqueio->format('d/m/Y') .
+                                    '! Encontrado lançamento na linha ' .
+                                    $linha,
+                            ]);
+                            return redirect(route('LeituraArquivo.index'));
+                        }
+                    }
                 }
-            }
 
             if ($lancamento) {
                 // dd($lancamento);
@@ -370,65 +447,9 @@ if($termo_passagem == 'Passagem'){
                     dd('VERIFICANDO SE TEM HISTÓRICO!', ' Mensagem: ' . $SituacaoHistorico . ' => ' . $historico, $arraydatanova, $Descricao, $ContaCartao, $DespesaContaDebitoID);
                 }
 
-                // if ($NumeroParcela !== null && $QuantidadeParcela !== null) {
-                //     if ($NumeroParcela > 1) {
-                //         continue;
-                //     }
 
-                //     $registros = [];
-                //     for ($i = 1; $i <= $QuantidadeParcela; $i++) {
-                //         $novoRegistroParcelas = [
-                //             'EmpresaID' => $Empresa,
-                //             'ContaDebitoID' => $DespesaContaDebitoID,
-                //             'ContaCreditoID' => $ContaCartao,
-                //             'NumeroParcela' => $NumeroParcela,
-                //             'QuantidadeParcela' => $QuantidadeParcela,
-                //             'Valor' => ($valorString = $valor_formatado),
-                //             'Data' => $Data,
-                //             'Descricao' => $Descricao . ' Parcela:' . $i . ' de ' . $QuantidadeParcela,
-                //             'Usuarios_id' => auth()->user()->id,
-                //         ];
-
-                //         // Faça algo com o novo registro, como armazená-lo em um banco de dados ou exibi-lo
-                //         // por exemplo:
-                //         // salvarRegistroNoBancoDeDados($novoRegistro);
-                //         // exibirRegistro($novoRegistro);
-                //         // echo $i, ' ';
-                //         // Você também pode adicionar o registro a uma lista, array, ou qualquer outra estrutura de dados necessária
-                //         $registros[] = $novoRegistroParcelas;
-                //     }
-
-                //     foreach ($registros as $incluirregistros) {
-                //         $lancamentoregistros = Lancamento::where('DataContabilidade', $incluirregistros['Data'])
-                //             ->where('Valor', $valorString = $incluirregistros['Valor'])
-                //             ->where('EmpresaID', $incluirregistros['EmpresaID'])
-                //             ->where('ContaCreditoID', $incluirregistros['ContaCreditoID'])
-                //             ->where('Descricao', trim($incluirregistros['Descricao']))
-                //             ->First();
-
-                //         if ($lancamentoregistros) {
-                //             // dd('JÁ LANÇADO', $Descricao, $incluirregistros);
-                //             continue;
-                //         } else {
-                //             if ($request->criarlancamentosemhistorico !== true) {
-                //                 continue;
-                //             }
-
-                //             Lancamento::create([
-                //                 'Valor' => $incluirregistros['Valor'],
-                //                 'EmpresaID' => $incluirregistros['EmpresaID'],
-                //                 'ContaDebitoID' => $incluirregistros['ContaDebitoID'],
-                //                 'ContaCreditoID' => $incluirregistros['ContaCreditoID'],
-                //                 'Descricao' => $incluirregistros['Descricao'],
-                //                 'Usuarios_id' => $incluirregistros['Usuarios_id'],
-                //                 'DataContabilidade' => $incluirregistros['Data'],
-                //                 'HistoricoID' => '',
-                //             ]);
-                //         }
-                //     }
-                // } else {
                     if ($historico == true) {
-                         dd("Criar com histórico");
+                        //  dd("Criar com histórico");
 
                         Lancamento::create([
                             'Valor' => ($valorString = $valor_formatado),
@@ -447,7 +468,7 @@ if($termo_passagem == 'Passagem'){
                     if ($request->criarlancamentosemhistorico == true) {
                         //  dd("Criando lançamento sem histórico!");
                         if ($historico === null) {
-                            dd("Criar SEM histórico");
+                            // dd("Criar SEM histórico");
                             Lancamento::create([
                                 'Valor' => ($valorString = $valor_formatado),
                                 'EmpresaID' => $Empresa,
@@ -461,14 +482,15 @@ if($termo_passagem == 'Passagem'){
                         }
                         session(['Lancamento' => 'Lancamentos criados sem históricos!']);
                     }
-                // }
+
 
                 // dd('fim');
                 // session(['Lancamento' => 'Lancamentos criados!']);
                 // dd('Criado lançamento com histórico', $historico);
             }
-
+            // $UltimoDia = $Data ;
         }
+
         if ($Mensagem) {
             $xMensagem = session('Lancamento') . ' Mensagem auxiliar: ' . $Mensagem;
             session([

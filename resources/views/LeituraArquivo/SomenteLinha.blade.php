@@ -128,6 +128,10 @@
                                         onchange="validateFile(this)">
                                     @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA CONCILIACA0 BANCARIA E AUTORIZAR CRIAR
                                         LANCAMENTO')
+
+<input type="checkbox" name="DESCONSIDERAR_BLOQUEIOS" value='true'>
+<label for="checkbox_enviar">DESCONSIDERAR BLOQUEIOS DA EMPRESA E CONTAS</label>
+<br>
                                         <input type="checkbox" name="criarlancamentosemhistorico" value='true'>
 
                                         <label for="checkbox_enviar">Autorizar criar lançamento sem histórico pré-programado</label>
@@ -207,6 +211,9 @@
                                     <br>
                                     <input type="file" required class="btn btn-secondary" name="arquivo">
                                     <br>
+                                    <input type="checkbox" name="DESCONSIDERAR_BLOQUEIOS" value='true'>
+<label for="checkbox_enviar">DESCONSIDERAR BLOQUEIOS DA EMPRESA E CONTAS</label>
+<br>
                                     <input type="checkbox" name="vercriarlancamentocomhistorico" value="1">
                                     <label for="checkbox_enviar">Ver se vai criar lançamento com histórico ou não</label>
                                     <br>
