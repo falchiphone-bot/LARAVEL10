@@ -160,6 +160,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('LeituraArquivo', App\Http\Controllers\LeituraArquivoController::class);
 
 
+    #EXTRATO CONECTCAR
+    Route::post('ConectCar/ExtratoConectCar', [App\Http\Controllers\ExtratoConectCarController::class, 'ExtratoConectar'])->name('ConectCar.ExtratoConectCar');
+
     #Faturamentos
     Route::resource('Faturamentos', App\Http\Controllers\FaturamentosController::class);
 
