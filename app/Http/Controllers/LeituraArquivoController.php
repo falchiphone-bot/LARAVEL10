@@ -18,6 +18,7 @@ use Livewire\Component;
 use PhpParser\Node\Stmt\Continue_;
 use Ramsey\Uuid\Type\Decimal;
 use Illuminate\Support\Facades\File;
+use Dompdf\Dompdf;
 
 use function Pest\Laravel\get;
 
@@ -43,8 +44,58 @@ class LeituraArquivoController extends Controller
     //     return view('Moedas.dashboard');
     // }
 
-    public function index()
+    public function index(Request $request)
     {
+        $email = auth()->user()->email;
+        $user = str_replace('@', '', $email);
+        $user = str_replace('.', '', $user);
+        $arquivosalvo = 'app/contabilidade/' . $user . '.prf';
+        $GerarPdf = $request->GerarPDF;
+
+        $caminho = storage_path($arquivosalvo);
+        if (File::exists($caminho)) {
+            // Abre o arquivo Excel
+            $spreadsheet = IOFactory::load($caminho);
+
+            // Seleciona a primeira planilha do arquivo
+            $worksheet = $spreadsheet->getActiveSheet();
+
+            // Obtém a última linha da planilha
+            $lastRow = $worksheet->getHighestDataRow();
+
+            // Obtém a última coluna da planilha
+            $lastColumn = $worksheet->getHighestDataColumn();
+
+            // Converte a última coluna para um número (ex: "D" para 4)
+            $lastColumnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($lastColumn);
+
+            // Array que irá armazenar os dados das células
+            $cellData = [];
+
+            // Loop para percorrer todas as células da planilha
+            for ($row = 1; $row <= $lastRow; $row++) {
+                for ($column = 1; $column <= $lastColumnIndex; $column++) {
+                    // Obtém o valor da célula
+                    $cellValue = $worksheet->getCellByColumnAndRow($column, $row)->getValue();
+
+                    // Adiciona o valor da célula ao array $cellData
+                    $cellData[$row][$column] = $cellValue;
+                }
+            }
+
+            // dd($cellData);
+            // return view('LeituraArquivo.index', ['cellData' => $cellData]);
+
+            return view('LeituraArquivo.index', ['cellData' => $cellData]);
+        } else {
+            return view('LeituraArquivo.SomenteLinha');
+        }
+    }
+
+    public function GerarPDF()
+    {
+
+
         $email = auth()->user()->email;
         $user = str_replace('@', '', $email);
         $user = str_replace('.', '', $user);
@@ -81,13 +132,77 @@ class LeituraArquivoController extends Controller
                 }
             }
 
-            // dd($cellData);
-            // return view('LeituraArquivo.index', ['cellData' => $cellData]);
-
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            return view('LeituraArquivo.index', ['cellData' => $cellData]);
-        } else {
-            return view('LeituraArquivo.SomenteLinha');
+            // return redirect()->route('pdf.gerarpdf',['cellData' => $$cellData]);
+            // Crie uma nova instância do Dompdf
+            $dompdf = new Dompdf();
+
+            // Defina o conteúdo do relatório em HTML
+            $html =
+                '
+                <html>
+
+                <head>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                        }
+                        h1 {
+                            color: #333;
+                        }
+                        p {
+                            margin-bottom: 10px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>Relatório de arquivo no procedimento LeituraArquivo</h1>
+                    <p>Data: ' .
+                                date('d/m/Y') .
+                                '</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>';
+                            foreach (range(1, count($cellData[1])) as $column) {
+                                $html .= '<th>Column ' . $column . '</th>';
+                            }
+                            $html .= '</tr>
+                        </thead>
+                        <tbody>';
+                            foreach ($cellData as $rowIndex => $rowData) {
+                                $html .=
+                                    '<tr>
+                                <td>' .
+                                    $rowIndex .
+                                    '</td>';
+                                foreach ($rowData as $cellValue) {
+                                    $html .= '<td>' . $cellValue . '</td>';
+                                }
+                                $html .= '</tr>';
+                            }
+                            $html .= '</tbody>
+                    </table>
+                </body>
+                </html>
+                ';
+
+            // Renderize o HTML do relatório
+            $dompdf->loadHtml($html);
+
+            // Renderize o PDF
+            $dompdf->render();
+
+            // Defina o nome do arquivo de saída
+            $nomeArquivo = 'relatorio.pdf';
+
+            // Salve o arquivo PDF no diretório de armazenamento do Laravel
+            $path = storage_path('app/public/' . $nomeArquivo);
+            file_put_contents($path, $dompdf->output());
+
+            // Retorne uma resposta para apresentar o PDF ao usuário
+            return response()->file($path);
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         }
     }
 
@@ -249,20 +364,19 @@ class LeituraArquivoController extends Controller
             $carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $Data_bloqueada);
             $Data_bloqueada_comparar = $carbon_data->format('Y-m-d');
 
-
-                if ($linha_data_comparar <= $Data_bloqueada_comparar) {
-                    session([
-                        'Lancamento' =>
-                            'Empresa bloqueada no sistema para o lançamento
+            if ($linha_data_comparar <= $Data_bloqueada_comparar) {
+                session([
+                    'Lancamento' =>
+                        'Empresa bloqueada no sistema para o lançamento
                     solicitado! Deverá desbloquear a data de bloqueio
                     da empresa para seguir este procedimento. Bloqueada para até ' .
-                            $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y') .
-                            '! Encontrado lançamento na linha ' .
-                            $linha+1,
-                    ]);
-                    return redirect(route('LeituraArquivo.index'));
-                }
-
+                        $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y') .
+                        '! Encontrado lançamento na linha ' .
+                        $linha +
+                        1,
+                ]);
+                return redirect(route('LeituraArquivo.index'));
+            }
 
             $Descricao = $item[2];
             $Parcela = $item[3];
@@ -310,7 +424,6 @@ class LeituraArquivoController extends Controller
                     return redirect(route('LeituraArquivo.index'));
                 }
 
-
                 if ($data_conta_debito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
                     session([
                         'Lancamento' =>
@@ -342,8 +455,6 @@ class LeituraArquivoController extends Controller
                     return redirect(route('LeituraArquivo.index'));
                 }
             }
-        
-
 
             if ($lancamento) {
                 // dd($lancamento);
@@ -376,7 +487,6 @@ class LeituraArquivoController extends Controller
         //    $rowData = $novadata;
         return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
     }
-
 
     public function SelecionaDatasExtratoSicrediPJ(Request $request)
     {
@@ -536,15 +646,11 @@ class LeituraArquivoController extends Controller
 
             $Data = $item[1];
 
-
-
-
             $Descricao = $item[2];
 
             $linha = $PegaLinha + 10; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
 
             if ($Data == '') {
-
                 $SaldoAnterior = SaldoLancamentoHelper::Anterior($UltimoDia, $Conta, $Empresa);
                 $SaldoDia = SaldoLancamentoHelper::Dia($UltimoDia, $Conta, $Empresa);
 
@@ -561,37 +667,25 @@ class LeituraArquivoController extends Controller
                 }
 
                 session([
-                    'Lancamento' => 'Terminado na linha ' . $linha .
-                     '. Saldo no extrato bancário de: ' . number_format($Saldo, 2, '.', ',') .
-                     '.' . ' Saldo atual no sistema contábil de ' . number_format($SaldoAtual, 2, '.', ',') . ' = ' . $TextoConciliado,
+                    'Lancamento' => 'Terminado na linha ' . $linha . '. Saldo no extrato bancário de: ' . number_format($Saldo, 2, '.', ',') . '.' . ' Saldo atual no sistema contábil de ' . number_format($SaldoAtual, 2, '.', ',') . ' = ' . $TextoConciliado,
                 ]);
 
-                $DiferençaApurada = $SaldoAtual - $Saldo ;
+                $DiferençaApurada = $SaldoAtual - $Saldo;
 
-                if(number_format($DiferençaApurada, 2, '.', ',') ==     0.00){
+                if (number_format($DiferençaApurada, 2, '.', ',') == 0.0) {
                     session([
-                        'Lancamento' => 'Terminado na linha ' . $linha .
-                         '. Saldo no extrato bancário de: ' . number_format($Saldo, 2, '.', ',') .
-                         '.' . ' Saldo atual no sistema contábil de ' . number_format($SaldoAtual, 2, '.', ',') . ' = ' . $TextoConciliado,
-                     ]);
-                }
-                else{
-                    session([
-                        'Lancamento' => 'Terminado na linha ' . $linha .
-                         '. Saldo no extrato bancário de: ' . number_format($Saldo, 2, '.', ',') .
-                         '.' . ' Saldo atual no sistema contábil de ' . number_format($SaldoAtual, 2, '.', ',') . ' = ' . $TextoConciliado.
-                          " Diferença apurada: ".number_format($DiferençaApurada, 2, '.', ',')
+                        'Lancamento' => 'Terminado na linha ' . $linha . '. Saldo no extrato bancário de: ' . number_format($Saldo, 2, '.', ',') . '.' . ' Saldo atual no sistema contábil de ' . number_format($SaldoAtual, 2, '.', ',') . ' = ' . $TextoConciliado,
                     ]);
-
+                } else {
+                    session([
+                        'Lancamento' => 'Terminado na linha ' . $linha . '. Saldo no extrato bancário de: ' . number_format($Saldo, 2, '.', ',') . '.' . ' Saldo atual no sistema contábil de ' . number_format($SaldoAtual, 2, '.', ',') . ' = ' . $TextoConciliado . ' Diferença apurada: ' . number_format($DiferençaApurada, 2, '.', ','),
+                    ]);
                 }
-
 
                 return redirect(route('LeituraArquivo.index'));
             }
 
-
-                $UltimoDia = $item[1];
-
+            $UltimoDia = $item[1];
 
             if (strpos($Descricao, 'CREDITO CASH BACK') !== false) {
                 //// se contiver, conter o texto na variável
@@ -635,7 +729,9 @@ class LeituraArquivoController extends Controller
                   da empresa para seguir este procedimento. Bloqueada para até ' .
                         $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y') .
                         '! Encontrado lançamento na linha ' .
-                        $linha+1 . '. Código L1020-A-1028.',
+                        $linha +
+                        1 .
+                        '. Código L1020-A-1028.',
                 ]);
                 return redirect(route('LeituraArquivo.index'));
             }
@@ -889,7 +985,6 @@ class LeituraArquivoController extends Controller
 
                 // session(['Lancamento' => 'Lançamentos criados!']);
             }
-
         }
 
         // $rowData = $cellData;
@@ -1048,8 +1143,13 @@ class LeituraArquivoController extends Controller
         $Data_bloqueada_comparar = $carbon_data->format('Y-m-d');
 
         if ($linha_data_comparar <= $Data_bloqueada_comparar) {
-            session(['Lancamento' => 'Empresa bloqueada no sistema para o lançamento solicitado!
-             Deverá desbloquear a data de bloqueio da empresa para seguir este procedimento. Bloqueada para até ' . $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y') . '!']);
+            session([
+                'Lancamento' =>
+                    'Empresa bloqueada no sistema para o lançamento solicitado!
+             Deverá desbloquear a data de bloqueio da empresa para seguir este procedimento. Bloqueada para até ' .
+                    $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y') .
+                    '!',
+            ]);
 
             return redirect(route('LeituraArquivo.index'));
         }

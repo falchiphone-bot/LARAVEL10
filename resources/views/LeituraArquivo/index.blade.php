@@ -42,6 +42,7 @@
                     @can('LEITURA DE ARQUIVO - LISTAR')
                       <a class="btn btn-secondary" href="/LeituraArquivo/SomenteLinha">Selecionar linha, ou enviar arquivo e conciliar extrato cartão de crédito</a>
                     @endcan
+
                 </nav>
 
 
@@ -61,6 +62,10 @@
 
                  @can('LEITURA DE ARQUIVO - VISUALIZAR')
                 <table>
+                    {{-- <form action="/LeituraArquivo/GerarPDF" method="post">
+                        <button type="submit" name="GerarPDF" value="true">Gerar PDF</button>
+                      </form> --}}
+                      <a class="btn btn-danger" href="/LeituraArquivo/GerarPDF">Gerar PDF</a>
                     <thead>
                         <tr>
                             <th>#</th>

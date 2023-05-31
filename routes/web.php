@@ -35,6 +35,11 @@ Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallba
 
 Route::middleware('auth')->group(function () {
 
+
+# PDF
+Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::class, 'GerarPDF'])->name('pdf.gerarpdf');
+
+
     #GoogleDrive
     Route::get('drive/showGoogleClientInfo', [App\Http\Controllers\GoogleDriveController::class, 'showGoogleClientInfo'])->name('google.showGoogleClientInfo');
     Route::get('drive/google/login', [App\Http\Controllers\GoogleDriveController::class, 'googleLogin'])->name('google.login');
@@ -150,13 +155,14 @@ Route::middleware('auth')->group(function () {
     Route::resource('MoedasValores', App\Http\Controllers\MoedaValoresController::class);
 
     #ARQUIVOS
-    Route::get('LeituraArquivo/SomenteLinha', function () { return view('LeituraArquivo.SomenteLinha');})->name('LeituraArquivo.SomenteLinha');
+
+    Route::get('LeituraArquivo/GerarPDF', [App\Http\Controllers\LeituraArquivoController::class, 'GerarPDF'])->name('LeituraArquivo.gerarpdf');
     Route::post('LeituraArquivo/SelecionaDatas', [App\Http\Controllers\LeituraArquivoController::class, 'SelecionaDatas'])->name('LeituraArquivo.SelecionaDatas');
     Route::post('LeituraArquivo/SelecionaLinha', [App\Http\Controllers\LeituraArquivoController::class, 'SelecionaLinha'])->name('LeituraArquivo.SelecionaLinha');
     Route::post('LeituraArquivo/SelecionaDatasExtratoSicrediPJ', [App\Http\Controllers\LeituraArquivoController::class, 'SelecionaDatasExtratoSicrediPJ'])->name('LeituraArquivo.SelecionaDatasExtratoSicrediPJ');
     // Route::post('LeituraArquivo/SelecionaDatasFaturaEmAberto', [App\Http\Controllers\LeituraArquivoController::class, 'SelecionaDatasFaturaEmAberto'])->name('LeituraArquivo.SelecionaDatasFaturaEmAberto');
     Route::post('FaturaSicrediAberto/SelecionaDatasFaturaEmAberto', [App\Http\Controllers\FaturaCartaoCreditoSicrediAbertoController::class, 'SelecionaDatasFaturaEmAberto'])->name('FaturaSicrediAberto.SelecionaDatasFaturaEmAberto');
-
+ Route::get('LeituraArquivo/SomenteLinha', function () { return view('LeituraArquivo.SomenteLinha');})->name('LeituraArquivo.SomenteLinha');
     Route::resource('LeituraArquivo', App\Http\Controllers\LeituraArquivoController::class);
 
 
