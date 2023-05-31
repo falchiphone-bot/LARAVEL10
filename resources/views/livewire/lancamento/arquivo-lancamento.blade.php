@@ -1,5 +1,4 @@
 <div>
-    {{-- A good traveler has no fixed plans and is not intent upon arriving. --}}
     <div class="card">
         <div class="card-body">
             <form wire:submit.prevent='salvarArquivo'>
@@ -9,7 +8,7 @@
                 </div>
                 <div class="col-sm-12 mt-3">
                     <div class="custom-file">
-                        <input type="file" class="custom-file-input" id="validatedCustomFile" wire:model="arquivos"
+                        <input type="file" class="custom-file-input" id="arquivos-{{$arquivosId}}" wire:model="arquivos"
                             multiple required>
                         <div class="invalid-feedback">Arquivo inválido</div>
                     </div>

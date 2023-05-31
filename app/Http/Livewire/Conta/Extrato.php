@@ -61,7 +61,6 @@ class Extrato extends Component
                 $lancamento->save();
             }
         }
-
     }
 
     public function selectedSelEmpresaItem($item)
