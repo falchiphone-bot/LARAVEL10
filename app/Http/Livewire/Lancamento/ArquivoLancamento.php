@@ -15,6 +15,7 @@ class ArquivoLancamento extends Component
     public $arquivos = [];
     public $rotulo;
     public $lancamentoID;
+    public $arquivosId = 1;
 
     public $listeners = ['excluir','resetData'];
 
@@ -32,7 +33,8 @@ class ArquivoLancamento extends Component
 
     public function resetData()
     {
-        $this->reset();
+        $this->reset(['arquivos','rotulo']);
+        $this->arquivosId ++;
     }
 
     public function download($id)
