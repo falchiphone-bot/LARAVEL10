@@ -160,16 +160,28 @@ class ExtratoConectCarController extends Controller
             $DataCampo = $item[2];
             $Data = substr($DataCampo,0,10);
  $Descricao = $item[2];
+ $passagem = $item[6];
+ $termo_passagem = null;
+ // Usando a função preg_match para extrair o termo "passagem"
+ if (preg_match('/\b([A-Za-z]+)\b/', $passagem, $matches)) {
+     $termo_passagem = $matches[1];
+
+ }
+
+if($termo_passagem == 'Passagem'){
+ DD($item, $Descricao, $termo_passagem);
+}
+
 
             $linha = $PegaLinha + 29; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
             if ($Data == '') {
                 session([
                     'Lancamento' => 'Terminado na linha ' . $linha .
-                     '. Saldo no extrato de: ' . number_format($Saldo, 2, '.', ','),
+                     '. Saldo no extrato de: ' . $Saldo,
                 ]);
                 return redirect(route('LeituraArquivo.index'));
             }
-
+ //  '. Saldo no extrato de: ' . number_format($Saldo, 2, '.', ','),
 
             // if ($Data == 'Histórico de Despesas') {
             //     session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
@@ -416,6 +428,8 @@ class ExtratoConectCarController extends Controller
                 //     }
                 // } else {
                     if ($historico == true) {
+                         dd("Criar com histórico");
+
                         Lancamento::create([
                             'Valor' => ($valorString = $valor_formatado),
                             'EmpresaID' => $Empresa,
@@ -433,6 +447,7 @@ class ExtratoConectCarController extends Controller
                     if ($request->criarlancamentosemhistorico == true) {
                         //  dd("Criando lançamento sem histórico!");
                         if ($historico === null) {
+                            dd("Criar SEM histórico");
                             Lancamento::create([
                                 'Valor' => ($valorString = $valor_formatado),
                                 'EmpresaID' => $Empresa,
