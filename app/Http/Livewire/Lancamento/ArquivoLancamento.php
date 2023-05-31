@@ -31,10 +31,11 @@ class ArquivoLancamento extends Component
         $this->mount($file->LancamentoID);
     }
 
-    public function resetData()
+    public function resetData($lancamento_id)
     {
         $this->reset(['arquivos','rotulo']);
         $this->arquivosId ++;
+        $this->mount($lancamento_id);
     }
 
     public function download($id)

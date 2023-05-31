@@ -47,7 +47,7 @@ class Extrato extends Component
     {
         $this->editar_lancamento = $lancamento_id;
         $this->emitTo('lancamento.editar-lancamento', 'alterarIdLancamento', $lancamento_id,$empresa_id);
-        $this->emitTo('lancamento.arquivo-lancamento','resetData');
+        $this->emitTo('lancamento.arquivo-lancamento','resetData',$lancamento_id);
         $this->dispatchBrowserEvent('abrir-modal');
         $this->modal = true;
     }
