@@ -49,7 +49,7 @@
                             <div class="badge bg-success text-wrap"
                                 style="width: 100%; font-size: 24px; color: white; text-align: center;">
 
-                                <label for="fim">Arquivo de extrato Sicredi pessoa jurídica - PJ E pessoa física -
+                                <label for="fim">Arquivo de extrato Sicredi pessoa jurídica - PJ e pessoa física -
                                     PF</label>
                                 <br>
                                 <input type="file" required class="btn btn-danger" name="arquivo">

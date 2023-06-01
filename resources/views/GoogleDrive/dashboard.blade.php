@@ -84,7 +84,7 @@
 
                                                 <a class="btn btn-success" target="_blank"
 
-                                                    href="https://drive.google.com/drive/folders/{{env('FOLDER_DRIVE_GOOGLE')}}">Consultar
+                                                    href="https://drive.google.com/drive/folders/{{ config('services.google_drive.folder') }}">Consultar
                                                     pasta principal do sistema no Google Drive</a>
                                             </nav>
                                         @else

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LancamentoDocumento;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Carbon\Carbon;
@@ -13,6 +14,7 @@ use Google_Service_Drive;
 use Google_Service_Drive_DriveFile;
 use Google_Service_Exception;
 use  Google_Service_Drive_Comment;
+use Illuminate\Support\Facades\Auth;
 
 class GoogleDriveController extends Controller
 {
@@ -22,7 +24,7 @@ class GoogleDriveController extends Controller
     {
         // BIBLIOTECAS - https://developers.google.com/identity/protocols/oauth2?hl=pt-br
         $this->gClient = new \Google_Client();
-
+        $this->middleware('auth');
         // $this->gClient->setApplicationName('YOUR APPLICATION NAME'); // ADD YOUR AUTH2 APPLICATION NAME (WHEN YOUR GENERATE SECRATE KEY)
         // $this->gClient->setClientId('154506411439-v35hmhf8t50s6lloljhb6q69blt7vaa0.apps.googleusercontent.com');
         // $this->gClient->setClientSecret('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');
@@ -193,6 +195,22 @@ class GoogleDriveController extends Controller
         ]);
 
         $client = $this->gClient;
+
+
+
+        // dd($result, explode('.', $result->getId()), explode('.', $result->getName())[1]);
+                  $Documentos= LancamentoDocumento::create([
+            'Rotulo' => $Complemento,
+            'LancamentoID' => null,
+            'Nome' => $result->getId(),
+            'Created' => date('d-m-Y H:i:s'),
+            'UsuarioID' => Auth::user()->id,
+            'Ext' => explode('.', $result->getName())[1],
+        ]);
+
+                session([
+                    'InformacaoArquivo' => 'Arquivo enviado com sucesso. O ID do mesmo é '.$result->id,
+                ]);
         ///////////////////////////////////////////////////////////////////////////////// tornar o arquivo privado
         // $fileIdPrivado = '1CaOTqAaD71YtbMMM1g2djuJyXwMuwUAr';
 
@@ -263,9 +281,7 @@ class GoogleDriveController extends Controller
         // return redirect($url);
 
         // dd($result);
-        session([
-            'InformacaoArquivo' => 'Arquivo enviado com sucesso. O ID do mesmo é '.$result->id,
-        ]);
+
         return redirect(route('informacao.arquivos'));
     }
 
