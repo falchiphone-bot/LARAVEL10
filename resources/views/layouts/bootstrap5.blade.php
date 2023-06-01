@@ -104,7 +104,11 @@
     </main>
 
     <footer class="text-muted py-5">
+
         <div class="container">
+               <a href="#" onclick="window.history.back(); return false;"> <= Voltar para página anterior</a>
+               <a href="#" onclick="window.history.forward(); return false;"> => Avançar para página posterior</a>
+
             <p class="float-end mb-1">
                 <a href="#">Ir para o top da página.</a>
             </p>

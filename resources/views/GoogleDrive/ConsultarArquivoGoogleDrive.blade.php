@@ -24,22 +24,22 @@
                         <nav class="navbar navbar-success" style="background-color: hsla(234, 92%, 47%, 0.096);">
                             CONSULTAR DE ARQUIVO SELECIONADO
                         </nav>
-                        {{session('idArquivo')['mensagem']??null}}
+                        {{ session('idArquivo')['mensagem'] ?? null }}
                         <nav class="navbar navbar-success" style="background-color: hsla(154, 92%, 47%, 0.096);">
-                         {{session('idArquivo')['novocomentario']??null}}
+                            {{ session('idArquivo')['novocomentario'] ?? null }}
                         </nav>
                     </div>
                 </div>
-                
+
                 <div class="card-body">
                     <div class="row">
 
-                            <form method="POST" action="/drive/google-drive/file-consultar" enctype="multipart/form-data">
+                        <form method="POST" action="/drive/google-drive/file-consultar" enctype="multipart/form-data">
                             @csrf
                             <label for="fim">Consultar o arquivo</label>
 
                             <textarea required name="idconsultararquivo" id="idconsultararquivo" cols="1" rows="1" class="form-control"
-                                style="background-color: red; color: white;">{{session('idArquivo')['id']??null}}</textarea>
+                                style="background-color: red; color: white;">{{ session('idArquivo')['id'] ?? null }}</textarea>
 
                             <p class="my-2">
                                 <button type="submit" class="btn btn-success">Consultar o arquivo</button>

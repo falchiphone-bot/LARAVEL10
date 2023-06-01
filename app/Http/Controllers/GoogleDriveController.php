@@ -103,6 +103,15 @@ class GoogleDriveController extends Controller
 
     public function googleDriveFileUpload(Request $request)
     {
+        $complemento = $request->complemento;
+        $quantidadeCaracteres = trim(strlen($complemento));
+        if ($quantidadeCaracteres > 3) {
+            session([
+                'InformacaoArquivo' => 'O complemento possui '. $quantidadeCaracteres . ' caracteres. Quantidade de caracteres maior que o permitido que é 255.'
+            ]);
+            return redirect(route('informacao.arquivos'));
+        }
+dd('parado!');
         // https://laravel.com/docs/10.x/filesystem#the-local-driver
 
         $service = new \Google_Service_Drive($this->gClient);
