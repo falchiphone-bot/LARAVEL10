@@ -132,6 +132,17 @@
                                 </th>
                             </tr>
                         @endcan
+                        @can('LANCAMENTOS DOCUMENTOS - LISTAR')
+                            <tr>
+                                <th>
+
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="/LancamentosDocumentos">Documentos</a>
+                                    </nav>
+
+                                </th>
+                            </tr>
+                        @endcan
 
                         @can('COBRANCA - LISTAR')
                             <tr>

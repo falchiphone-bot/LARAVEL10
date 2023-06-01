@@ -154,6 +154,10 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
 
     Route::resource('MoedasValores', App\Http\Controllers\MoedaValoresController::class);
 
+#LANCAMENTO - DOCUMENTO
+// Route::get('Moedas/dashboard', [App\Http\Controllers\MoedaController::class, 'dashboard'])->name('moedas.dashboard');
+Route::resource('LancamentosDocumentos', App\Http\Controllers\LancamentosDocumentosController::class);
+
     #ARQUIVOS
 
     Route::get('LeituraArquivo/GerarPDF', [App\Http\Controllers\LeituraArquivoController::class, 'GerarPDF'])->name('LeituraArquivo.gerarpdf');
