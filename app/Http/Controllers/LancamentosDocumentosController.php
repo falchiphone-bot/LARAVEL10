@@ -35,10 +35,16 @@ class LancamentosDocumentosController extends Controller
     // }
 
 
-    public function index()
+    public function index(string $id)
     {
-       $documentos = LancamentoDocumento::Limit(100)->OrderBy('ID','DESC' )->get();
 
+        if($id){
+            $documentos = LancamentoDocumento::Where('ID',$id)->get();
+        }else
+        {
+            $documentos = LancamentoDocumento::Limit(100)->OrderBy('ID','DESC' )->get();
+        }
+ 
 
         return view('LancamentosDocumentos.index',compact('documentos'));
     }
@@ -46,7 +52,6 @@ class LancamentosDocumentosController extends Controller
     public function pesquisaavancada(Request $Request)
     {
         $CompararDataInicial = $Request->DataInicial;
-
 
         $pesquisa =  LancamentoDocumento::Limit($Request->Limite ?? 100);
 
@@ -57,12 +62,15 @@ class LancamentosDocumentosController extends Controller
         //     ->select(['Lancamentos.ID', 'DataContabilidade', 'Lancamentos.Descricao', 'Lancamentos.EmpresaID', 'Contabilidade.Lancamentos.Valor', 'Historicos.Descricao as DescricaoHistorico', 'Lancamentos.ContaDebitoID', 'Lancamentos.ContaCreditoID'])
         //     ->orderBy('Lancamentos.ID', 'desc');
 
+
+
         if ($Request->Texto) {
             $texto = $Request->Texto;
-            $pesquisa->where(function ($query) use ($texto) {
-                // return $query->where('LancamentosDocumentos.Rotulo', 'like', '%' . $texto . '%')->orWhere('Historicos.Descricao', 'like', '%' . $texto . '%');
-                return $query->where('LancamentosDocumentos.Rotulo', 'like', '%' . $texto . '%');
-            });
+            // $pesquisa->where(function ($query) use ($texto) {
+            //     // return $query->where('LancamentosDocumentos.Rotulo', 'like', '%' . $texto . '%')->orWhere('Historicos.Descricao', 'like', '%' . $texto . '%');
+            //     return $query->where('LancamentosDocumentos.Rotulo', 'like', '%' . $texto . '%');
+            // });
+            $pesquisa->where('LancamentosDocumentos.Rotulo', 'like', '%' . $texto . '%');
         }
 
         // if ($Request->Valor) {
@@ -106,8 +114,31 @@ class LancamentosDocumentosController extends Controller
         //     $pesquisa->where('Lancamentos.EmpresaID', $Request->EmpresaSelecionada);
         // }
 
-        $pesquisa = $pesquisa->get();
-        $documentos = $pesquisa;
+        if($Request->SelecionarSemContabilidade)
+        {
+            $pesquisa->where('LancamentoID', null);
+        }
+
+        if($Request->SelecionarComContabilidade)
+        {
+
+            $pesquisa->where('LancamentoID', '>', 0);
+
+        }
+
+        if($Request->ordem == 'crescente')
+        {
+            $pesquisa->OrderBy('ID','ASC');
+        }
+
+        if($Request->ordem == 'decrescente')
+        {
+            $pesquisa->OrderBy('ID', 'DESC');
+
+        }
+
+        $pesquisaFinal = $pesquisa->get();
+        $documentos = $pesquisaFinal;
 
         // dd($pesquisa->first()->ContaDebito->PlanoConta);
         return view('LancamentosDocumentos.index', compact('pesquisa', 'retorno','documentos'  ));
@@ -127,6 +158,8 @@ class LancamentosDocumentosController extends Controller
     public function update(Request $request, string $id)
     {
 
+        $idEdit = $id;
+
         $cadastro = LancamentoDocumento::find($id);
 
         $cadastro->fill($request->all()) ;
@@ -135,7 +168,9 @@ class LancamentosDocumentosController extends Controller
         $cadastro->save();
 
 
-        return redirect(route('LancamentosDocumentos.index'));
+        return redirect()->route('LancamentosDocumentosID.index', ['id' => $id]);
+
+
     }
 
     /**

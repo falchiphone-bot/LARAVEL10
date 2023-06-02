@@ -42,6 +42,22 @@
                         <ul class="nav col-12 col-lg-auto my-2 justify-content-center my-md-0 text-small">
 
                             <li>
+                                <style>
+                                    .link-esquerda {
+                                        position: fixed;
+                                        left: 600px;
+                                        top: 3%;
+                                        transform: translateY(-50%);
+                                        color: white;
+                                    }
+                                </style>
+
+                                <a href="#" onclick="scrollToBottom('left'); return false;" class="link-esquerda">Ir para a parte inferior</a>
+                            </li>
+
+                            </li>
+
+                            <li>
                                 <a href="/dashboard" data-bs-toggle="tooltip" data-bs-placement="top" . . .
                                     data-bs-custom-class="custom-tooltip"
                                     data-bs-title="Ir para o início do sistema com as opções disponíveis"
@@ -107,7 +123,7 @@
 
         <div class="container">
                <a href="#" onclick="window.history.back(); return false;"> <= Voltar para página anterior</a>
-               <a href="#" onclick="window.history.forward(); return false;"> => Avançar para página posterior</a>
+               <a href="#" onclick="window.history.forward(); return false;"> =>Avançar para página posterior</a>
 
             <p class="float-end mb-1">
                 <a href="#">Ir para o top da página.</a>
@@ -135,3 +151,8 @@
 </body>
 
 </html>
+<script>
+    function scrollToBottom() {
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+    </script>

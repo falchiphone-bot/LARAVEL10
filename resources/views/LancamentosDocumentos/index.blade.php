@@ -39,13 +39,10 @@
                     @endif
                 @endcan
                 @can('LANCAMENTOS DOCUMENTOS - LISTAR')
-
-
-                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                        <a class="btn btn-primary" href="/LancamentosDocumentos">Últimos 100 documentos enviados</a>
-                                    </nav>
-
-                        @endcan
+                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                        <a class="btn btn-primary" href="/LancamentosDocumentos">Últimos 100 documentos enviados</a>
+                    </nav>
+                @endcan
 
 
                 <form method="POST" action="{{ route('lancamentosdocumentos.pesquisaavancada') }}" accept-charset="UTF-8">
@@ -62,23 +59,36 @@
                                         value="{{ $retorno['Texto'] ?? null }}">
                                 </div>
                             </div>
-
                             <div class="row">
+                                <div class="col-6">
+                                    <input type="checkbox" name="SelecionarSemContabilidade" value="1">
+                                    <label for="checkbox_enviar">Documento sem vínculo contábil</label>
+                                    <br>
+                                    <input type="checkbox" name="SelecionarComContabilidade" value="1">
+                                    <label for="checkbox_enviar">Documento com vínculo contábil</label>
+                                    <br>
+                                    <br>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                  <label for="ordem">Ordem:</label>
+                                  <select name="ordem" id="ordem">
+                                    <option value="decrescente">Ordem decrescente</option>
+                                    <option value="crescente">Ordem crescente</option>
+                                     
+                                  </select>
+                                </div>
+                              </div>
 
-
-
-
+                            <br>
+                            <div class="row">
                                 <div class="col-3">
-
                                     <label for="Limite" style="color: black;">Limite de registros para retorno</label>
                                     <input class="form-control @error('limite') is-invalid @else is-valid @enderror"
                                         name="Limite" size="30" type="number" step="1" id="Limite"
                                         value="{{ $retorno['Limite'] ?? null }}">
                                 </div>
-
-
-
-
                             </div>
                             <div class="row mt-2">
                                 <div class="col-6">
@@ -111,7 +121,7 @@
                     <thead>
                         <tr>
                             <th scope="col" class="px-6 py-4">Rótulo do documento</th>
-                            {{-- <th scope="col" class="px-6 py-4">Identificação</th> --}}
+                            <th scope="col" class="px-6 py-4">Identificação</th>
                             <th scope="col" class="px-6 py-4"></th>
                             <th scope="col" class="px-6 py-4"></th>
                             <th scope="col" class="px-6 py-4"></th>
@@ -125,9 +135,9 @@
                                     {{ $documento->Rotulo }}
                                     </a>
                                 </td>
-                                {{-- <td class="">
-                                    {{ $documento->Nome }}
-                                </td> --}}
+                                <td class="">
+                                    {{ $documento->LancamentoID }}
+                                </td>
 
 
                                 @can('LANCAMENTOS DOCUMENTOS - EDITAR')

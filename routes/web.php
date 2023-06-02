@@ -157,6 +157,7 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
 #LANCAMENTO - DOCUMENTO
 // Route::get('Moedas/dashboard', [App\Http\Controllers\MoedaController::class, 'dashboard'])->name('moedas.dashboard');
 Route::post('LancamentosDocumentos/pesquisaavancada', [App\Http\Controllers\LancamentosDocumentosController::class, 'pesquisaavancada'])->name('lancamentosdocumentos.pesquisaavancada');
+Route::get('/lancamentosdocumentos/{id}',[App\Http\Controllers\LancamentosDocumentosController::class,'index'])->name('LancamentosDocumentosID.index');
 Route::resource('LancamentosDocumentos', App\Http\Controllers\LancamentosDocumentosController::class);
 
     #ARQUIVOS
