@@ -76,7 +76,7 @@
                                   <select name="ordem" id="ordem">
                                     <option value="decrescente">Ordem decrescente</option>
                                     <option value="crescente">Ordem crescente</option>
-                                     
+
                                   </select>
                                 </div>
                               </div>
@@ -150,8 +150,8 @@
 
                                 @can('LANCAMENTOS DOCUMENTOS - VER')
                                     <td>
-                                        <a href="{{ route('LancamentosDocumentos.show', $documento->ID) }}" class="btn btn-info"
-                                            tabindex="-1" role="button" aria-disabled="true">Ver</a>
+                                        <a href="{{ route('google.drive.file.consultardocumento', ['id' => $documento->Nome]) }}" class="btn btn-info" tabindex="-1" role="button" aria-disabled="true">Ver</a>
+
                                     </td>
                                 @endcan
 
