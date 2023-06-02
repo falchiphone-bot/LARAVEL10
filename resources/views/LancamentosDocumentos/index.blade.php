@@ -38,8 +38,62 @@
                         </nav>
                     @endif
                 @endcan
+                @can('LANCAMENTOS DOCUMENTOS - LISTAR')
 
 
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="/LancamentosDocumentos">Últimos 100 documentos enviados</a>
+                                    </nav>
+
+                        @endcan
+
+
+                <form method="POST" action="{{ route('lancamentosdocumentos.pesquisaavancada') }}" accept-charset="UTF-8">
+                    @csrf
+
+                    <div class="card">
+                        <div class="card-body" style="background-color: rgb(33, 244, 33)">
+                            <div class="row">
+                                <div class="col-6">
+
+                                    <label for="Texto" style="color: black;">Texto a pesquisar</label>
+                                    <input class="form-control @error('Descricao') is-invalid @else is-valid @enderror"
+                                        name="Texto" size="70" type="text" id="Texto"
+                                        value="{{ $retorno['Texto'] ?? null }}">
+                                </div>
+                            </div>
+
+                            <div class="row">
+
+
+
+
+                                <div class="col-3">
+
+                                    <label for="Limite" style="color: black;">Limite de registros para retorno</label>
+                                    <input class="form-control @error('limite') is-invalid @else is-valid @enderror"
+                                        name="Limite" size="30" type="number" step="1" id="Limite"
+                                        value="{{ $retorno['Limite'] ?? null }}">
+                                </div>
+
+
+
+
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-6">
+                                    <button class="btn btn-primary">Pesquisar conforme informações constantes do
+                                        formulário</button>
+
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+
+                </form>
 
                 <div class="card-header">
                     <div class="badge bg-info text-wrap" style="width: 100%;font-size: 24px">

@@ -7,6 +7,11 @@ use App\Http\Requests\MoedaValoresCreateRequest;
 use App\Models\LancamentoDocumento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Nette\Utils\Strings;
+use PHPUnit\Framework\Constraint\Count;
 
 
 class LancamentosDocumentosController extends Controller
@@ -38,40 +43,76 @@ class LancamentosDocumentosController extends Controller
         return view('LancamentosDocumentos.index',compact('documentos'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    // public function create()
-    // {
-    //     return view('LancamentosDocumentos.create');
-    // }
+    public function pesquisaavancada(Request $Request)
+    {
+        $CompararDataInicial = $Request->DataInicial;
 
-    // /**
-    //  * Store a newly created resource in storage.
-    //  */
-    // public function store(MoedaValoresCreateRequest $request)
-    // {
-    //     $moedas= $request->all();
-    //     //dd($dados);
 
-    //     Moeda::create($moedas);
+        $pesquisa =  LancamentoDocumento::Limit($Request->Limite ?? 100);
 
-    //     return redirect(route('LancamentosDocumentos.index'));
+        // $pesquisa = Lancamento::Limit($Request->Limite ?? 100)
+        //     ->join('Contabilidade.EmpresasUsuarios', 'Lancamentos.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
+        //     ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', '=', 'Lancamentos.HistoricoID')
+        //     ->Where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+        //     ->select(['Lancamentos.ID', 'DataContabilidade', 'Lancamentos.Descricao', 'Lancamentos.EmpresaID', 'Contabilidade.Lancamentos.Valor', 'Historicos.Descricao as DescricaoHistorico', 'Lancamentos.ContaDebitoID', 'Lancamentos.ContaCreditoID'])
+        //     ->orderBy('Lancamentos.ID', 'desc');
 
-    // }
+        if ($Request->Texto) {
+            $texto = $Request->Texto;
+            $pesquisa->where(function ($query) use ($texto) {
+                // return $query->where('LancamentosDocumentos.Rotulo', 'like', '%' . $texto . '%')->orWhere('Historicos.Descricao', 'like', '%' . $texto . '%');
+                return $query->where('LancamentosDocumentos.Rotulo', 'like', '%' . $texto . '%');
+            });
+        }
 
-    /**
-     * Display the specified resource.
-     */
-    // public function show(string $id)
-    // {
-    //     $cadastro = Moeda::find($id);
-    //     return view('Moedas.show',compact('cadastro'));
-    // }
+        // if ($Request->Valor) {
+        //     $pesquisa->where('Lancamentos.Valor', '=', $Request->Valor);
+        // }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+        // if ($Request->DataInicial) {
+        //     $DataInicial = Carbon::createFromFormat('Y-m-d', $Request->DataInicial);
+        //     $pesquisa->where('DataContabilidade', '>=', $DataInicial->format('d/m/Y'));
+        // }
+
+        // if ($Request->DataFinal) {
+        //     $DataFinal = Carbon::createFromFormat('Y-m-d', $Request->DataFinal);
+        //     $pesquisa->where('DataContabilidade', '<=', $DataFinal->format('d/m/Y'));
+        // }
+
+        // $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+        //     ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+        //     ->OrderBy('Descricao')
+        //     ->select(['Empresas.ID', 'Empresas.Descricao'])
+        //     ->get();
+
+        $retorno = $Request->all();
+
+        if ($pesquisa->count() > 0) {
+            session(['success' => 'A pesquisa abaixo mostra os lançamentos de todas as empresas autorizadas conforme a pesquisa proposta!']);
+        }
+        else
+        {
+            session(['error' => 'Nenhum lançamento encontrado para as empresas autorizadas!']);
+        }
+
+        // if ($Request->DataInicial && $Request->DataFinal) {
+        //     if ($DataInicial > $DataFinal) {
+        //         session(['error' => 'Data de início MAIOR que a final. VERIFIQUE!']);
+        //         return view('LancamentosDocumentos.index', compact('pesquisa', 'retorno'  ));
+        //     }
+        // }
+
+        // if ($Request->EmpresaSelecionada) {
+        //     $pesquisa->where('Lancamentos.EmpresaID', $Request->EmpresaSelecionada);
+        // }
+
+        $pesquisa = $pesquisa->get();
+        $documentos = $pesquisa;
+
+        // dd($pesquisa->first()->ContaDebito->PlanoConta);
+        return view('LancamentosDocumentos.index', compact('pesquisa', 'retorno','documentos'  ));
+    }
+
     public function edit(string $id)
     {
         $documento = LancamentoDocumento::find($id);
