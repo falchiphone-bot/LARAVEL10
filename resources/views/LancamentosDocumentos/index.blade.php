@@ -25,10 +25,22 @@
                     <a class="btn btn-warning" href="/LancamentosDocumentos/dashboard">Retornar a lista de opções</a> </nav> --}}
 
 
-                {{-- @can('LANCAMENTOS DOCUMENTOS - INCLUIR')
-                    <a href="{{ route('Moedas.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
-                        aria-disabled="true">Incluir nome de moedas</a>
-                @endcan --}}
+                @can('LANCAMENTOS DOCUMENTOS - INCLUIR')
+                    @if (session('googleUserDrive'))
+                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                            <a class="btn btn-primary" href="/drive/UploadArquivo">Upload de arquivo para
+                                Google Drive</a>
+                        </nav>
+                    @else
+                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                            <a class="btn btn-success" href="/drive/google/login/">Autenticar no Google
+                                Drive</a>
+                        </nav>
+                    @endif
+                @endcan
+
+
+
                 <div class="card-header">
                     <div class="badge bg-info text-wrap" style="width: 100%;font-size: 24px">
                         <p>Total de documentos listados no sistema de gerenciamento administrativo e contábil:
@@ -66,21 +78,23 @@
 
                                 @can('LANCAMENTOS DOCUMENTOS - EDITAR')
                                     <td>
-                                        <a href="{{ route('LancamentosDocumentos.edit', $documento->ID) }}" class="btn btn-success" tabindex="-1"
-                                            role="button" aria-disabled="true">Editar</a>
+                                        <a href="{{ route('LancamentosDocumentos.edit', $documento->ID) }}"
+                                            class="btn btn-success" tabindex="-1" role="button"
+                                            aria-disabled="true">Editar</a>
                                     </td>
                                 @endcan
 
                                 @can('LANCAMENTOS DOCUMENTOS - VER')
                                     <td>
-                                        <a href="{{ route('LancamentosDocumentos.show', $documento->ID) }}" class="btn btn-info" tabindex="-1"
-                                            role="button" aria-disabled="true">Ver</a>
+                                        <a href="{{ route('LancamentosDocumentos.show', $documento->ID) }}" class="btn btn-info"
+                                            tabindex="-1" role="button" aria-disabled="true">Ver</a>
                                     </td>
                                 @endcan
 
                                 @can('LANCAMENTOS DOCUMENTOS - EXCLUIR')
                                     <td>
-                                        <form method="POST" action="{{ route('LancamentosDocumentos.destroy', $documento->ID) }}">
+                                        <form method="POST"
+                                            action="{{ route('LancamentosDocumentos.destroy', $documento->ID) }}">
                                             @csrf
                                             <input type="hidden" name="_method" value="DELETE">
                                             <button type="submit" class="btn btn-danger">
@@ -93,9 +107,9 @@
                         @endforeach
                     </tbody>
                 </table>
-                                <div class="badge bg-primary text-wrap" style="width: 100%;">
+                <div class="badge bg-primary text-wrap" style="width: 100%;">
+                </div>
         </div>
-    </div>
 
     </div>
     <div class="b-example-divider"></div>
