@@ -20,8 +20,14 @@
                     <a class="btn btn-warning" href="/Contabilidade">Retornar e ou ir para Contabilidade</a>
                     <a class="btn btn-success" href="/Historicos">Históricos para lançamentos
                         contábeis</a>
+                    @can('LANCAMENTOS DOCUMENTOS - LISTAR')
+                      <a class="btn btn-primary" href="/LancamentosDocumentos">Documentos</a>
+                   @endcan
                     <a class="btn btn-danger" href="/Lancamentos/create">Incluir lançamento</a>
                 </nav>
+
+
+
 
                 @if (session('success'))
                     <div class="alert alert-success">
