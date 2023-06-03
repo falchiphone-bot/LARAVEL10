@@ -45,7 +45,7 @@
                                 <style>
                                     .link-esquerda {
                                         position: fixed;
-                                        left: 600px;
+                                        left: 500px;
                                         top: 3%;
                                         transform: translateY(-50%);
                                         color: white;

@@ -63,7 +63,7 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
     Route::get('drive/DeleteArquivo', function () { return view('GoogleDrive.DeleteArquivoGoogleDrive');})->name('delete.arquivos');
     Route::get('drive/DeleteArquivoDefinitivo', function () { return view('GoogleDrive.DeleteDefinitivoArquivoGoogleDrive');})->name('deletedefinitivo.arquivos');
     Route::get('drive/ConsultarArquivo', function () { return view('GoogleDrive.ConsultarArquivoGoogleDrive');})->name('consultar.arquivos');
-    
+
     Route::get('drive/ComentarioArquivo', function () { return view('GoogleDrive.ComentarioArquivoGoogleDrive');})->name('comentario.arquivos');
     Route::get('drive/MoverArquivo', function () { return view('GoogleDrive.MoverArquivoGoogleDrive');})->name('mover.arquivos');
     Route::get('drive/AlterarNomeArquivo', function () { return view('GoogleDrive.AlterarNomeArquivoGoogleDrive');})->name('alterarnome.arquivos');
@@ -161,7 +161,7 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
 #LANCAMENTO - DOCUMENTO
 // Route::get('Moedas/dashboard', [App\Http\Controllers\MoedaController::class, 'dashboard'])->name('moedas.dashboard');
 Route::post('LancamentosDocumentos/pesquisaavancada', [App\Http\Controllers\LancamentosDocumentosController::class, 'pesquisaavancada'])->name('lancamentosdocumentos.pesquisaavancada');
-Route::get('/lancamentosdocumentos/{id}',[App\Http\Controllers\LancamentosDocumentosController::class,'index'])->name('LancamentosDocumentosID.index');
+Route::get('/lancamentosdocumentos/{id}',[App\Http\Controllers\LancamentosDocumentosController::class,'indexpost'])->name('LancamentosDocumentosID.index');
 Route::resource('LancamentosDocumentos', App\Http\Controllers\LancamentosDocumentosController::class);
 
     #ARQUIVOS

@@ -34,8 +34,15 @@ class LancamentosDocumentosController extends Controller
     //     return view('Moedas.dashboard');
     // }
 
+    public function index()
+    {
 
-    public function index(string $id)
+            $documentos = LancamentoDocumento::Limit(100)->OrderBy('ID','DESC' )->get();
+
+        return view('LancamentosDocumentos.index',compact('documentos'));
+    }
+
+    public function indexpost(string $id)
     {
 
         if($id){
@@ -44,7 +51,7 @@ class LancamentosDocumentosController extends Controller
         {
             $documentos = LancamentoDocumento::Limit(100)->OrderBy('ID','DESC' )->get();
         }
- 
+
 
         return view('LancamentosDocumentos.index',compact('documentos'));
     }
@@ -116,8 +123,14 @@ class LancamentosDocumentosController extends Controller
 
         if($Request->SelecionarSemContabilidade)
         {
-            $pesquisa->where('LancamentoID', null);
+            $pesquisa->where('LancamentoID', null)
+            ->where('Documento', null);
         }
+
+        if($Request->SelecionarClubeComContabilidade)
+              {
+                $pesquisa->where('Documento', '>' ,0);
+                }
 
         if($Request->SelecionarComContabilidade)
         {

@@ -67,6 +67,9 @@
                                     <input type="checkbox" name="SelecionarComContabilidade" value="1">
                                     <label for="checkbox_enviar">Documento com vínculo contábil</label>
                                     <br>
+                                     <input type="checkbox" name="SelecionarClubeComContabilidade" value="1">
+                                    <label for="checkbox_enviar">Documento com vínculo contábil via CLUBE</label>
+                                    <br>
                                     <br>
                                 </div>
                             </div>
@@ -76,7 +79,6 @@
                                   <select name="ordem" id="ordem">
                                     <option value="decrescente">Ordem decrescente</option>
                                     <option value="crescente">Ordem crescente</option>
-
                                   </select>
                                 </div>
                               </div>
@@ -149,10 +151,15 @@
                                 @endcan
 
                                 @can('LANCAMENTOS DOCUMENTOS - VER')
-                                    <td>
-                                        <a href="{{ route('google.drive.file.consultardocumento', ['id' => $documento->Nome]) }}" class="btn btn-info" tabindex="-1" role="button" aria-disabled="true">Ver</a>
+                                @if (session('googleUserDrive'))
 
+                                    <td>
+ <a href="{{ route('google.drive.file.consultardocumento', ['id' => $documento->Nome]) }}" class="btn btn-info" tabindex="-1" role="button" aria-disabled="true" target="_blank">Ver</a>
                                     </td>
+
+                                  @endif
+
+
                                 @endcan
 
                                 @can('LANCAMENTOS DOCUMENTOS - EXCLUIR')
