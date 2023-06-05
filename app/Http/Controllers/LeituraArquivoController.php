@@ -825,26 +825,12 @@ if ($linha_data_comparar <= $Data_bloqueada_comparar) {
                 }
 
                 if ($Valor_Negativo) {
-                     $Data_Descricao_Valor = $request->Data_Descricao_Valor;
-                     if($Data_Descricao_Valor){
-                        $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])->where('Descricao', 'like', '%' . trim($Descricao) . '%')
-                        ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
-                        ->where('EmpresaID', $Empresa)
-                        ->where('ContaCreditoID', $Conta)
-                        ->First();
 
-                        if ($lancamento == null){
-                                continue;
-
-                         }
-                     }
-                     else{
                         $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
                         ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
                         ->where('EmpresaID', $Empresa)
                         ->where('ContaCreditoID', $Conta)
                         ->First();
-                     }
 
                     // dd("LANCAMENTO NEGATIVO",$lancamento,$arraydatanova['Data'],$arraydatanova['valor_formatado'],$Empresa,$Conta );
                 }
@@ -891,10 +877,9 @@ if ($linha_data_comparar <= $Data_bloqueada_comparar) {
                             ->where('Descricao', 'like', '%' . substr(trim($Descricao), 0, 30) . '%')
                             ->where('ContaCreditoID', $Conta)
                             ->first();
-                        // dd(substr($Descricao, 0, 30),$historico,trim($Descricao), $Conta,$Empresa,'1088');
                     }
                 }
-                //  dd($historico,trim($Descricao), $Conta,$Empresa,'1094');
+
 
 
                 if ($request->vercriarlancamentocomhistorico) {
