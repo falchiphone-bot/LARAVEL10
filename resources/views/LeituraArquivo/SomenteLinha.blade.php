@@ -52,6 +52,17 @@
                                 <label for="fim">Arquivo de extrato Sicredi pessoa jurídica - PJ e pessoa física -
                                     PF</label>
                                 <br>
+<input type="checkbox" name="DESCONSIDERAR_BLOQUEIOS_EMPRESAS" value='true'>
+<label for="checkbox_enviar">DESCONSIDERAR BLOQUEIOS DA EMPRESA</label>
+<br>
+<input type="checkbox" name="DESCONSIDERAR_BLOQUEIOS_CONTAS" value='true'>
+<label for="checkbox_enviar">DESCONSIDERAR BLOQUEIOS DAS CONTAS</label>
+<br>
+<input type="checkbox" name="Data_Descricao_Valor" value='true'>
+<label for="checkbox_enviar">Conciliar por Data, Descrição e Valor</label>
+<br>
+
+
                                 <input type="file" required class="btn btn-danger" name="arquivo">
                                 <br>
                                 <input type="checkbox" name="vercriarlancamentocomhistorico" value="1">
