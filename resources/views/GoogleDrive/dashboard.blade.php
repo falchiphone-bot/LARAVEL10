@@ -34,6 +34,12 @@
                             @can('GoogleDrive - Opções')
                                 <tr>
                                     <th>
+                                        @can('LANCAMENTOS DOCUMENTOS - LISTAR')
+                                        <div class="col-2">
+                                                        <a class="btn btn-primary" href="/LancamentosDocumentos">Documentos</a>
+                                        </div>
+                                        @endcan
+
                                         @if (session('googleUserDrive'))
                                             <nav class="navbar navbar-red"
                                                 style="background-color: hsla(234, 92%, 47%, 0.096);">
@@ -84,7 +90,7 @@
 
                                                 <a class="btn btn-success" target="_blank"
 
-                                                    href="https://drive.google.com/drive/folders/{{env('FOLDER_DRIVE_GOOGLE')}}">Consultar
+                                                    href="https://drive.google.com/drive/folders/{{ config('services.google_drive.folder') }}">Consultar
                                                     pasta principal do sistema no Google Drive</a>
                                             </nav>
                                         @else

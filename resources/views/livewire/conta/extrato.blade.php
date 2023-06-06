@@ -30,6 +30,13 @@
                              <a class="btn btn-success" href="/Historicos">Históricos para lançamentos</a>
                         </div>
 
+                        @can('LANCAMENTOS DOCUMENTOS - LISTAR')
+                        <div class="col-2">
+                                        <a class="btn btn-primary" href="/LancamentosDocumentos">Documentos</a>
+                        </div>
+                        @endcan
+
+
                     </div>
                 </div>
                 <div class="row">

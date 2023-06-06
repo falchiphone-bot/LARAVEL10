@@ -57,9 +57,15 @@ class HistoricoController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
-    {
-        return view('Historicos.create');
+    public function create(){
+
+    $empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+    ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+    ->OrderBy('Descricao')
+    ->select(['Empresas.ID', 'Empresas.Descricao'])
+    ->get();
+
+        return view('Historicos.create', compact('empresas'));
     }
 
     /**

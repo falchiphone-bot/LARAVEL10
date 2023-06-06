@@ -21,10 +21,10 @@
 
                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                             <a class="btn btn-warning" href="dashboard">Retornar a lista de opções</a>
-
+                            <a href="#" onclick="window.history.back(); return false;">Voltar para página anterior</a>
                         </nav>
                 </div>
-                }
+
             @else
                 <div class="badge bg-warning text-wrap"
                     style="width: 100%; font-size: 24px; color: black; text-align: center;">
@@ -58,7 +58,8 @@
                                         href="{{ session('InformacaoArquivoConsulta')['webContentLink'] ?? null }}">{{ session('InformacaoArquivoConsulta')['webContentLink'] ?? null }}</a>
                                 </p>
 
-                                <p>Descrição do arquivo: {{ session('InformacaoArquivoConsulta')['description'] ?? null }}</p>
+                                <p>Descrição do arquivo: {{ session('InformacaoArquivoConsulta')['description'] ?? null }}
+                                </p>
 
                             </div>
                             {{ session([

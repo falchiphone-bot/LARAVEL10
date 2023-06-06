@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LancamentoDocumento;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Carbon\Carbon;
@@ -13,6 +14,7 @@ use Google_Service_Drive;
 use Google_Service_Drive_DriveFile;
 use Google_Service_Exception;
 use  Google_Service_Drive_Comment;
+use Illuminate\Support\Facades\Auth;
 
 class GoogleDriveController extends Controller
 {
@@ -22,7 +24,7 @@ class GoogleDriveController extends Controller
     {
         // BIBLIOTECAS - https://developers.google.com/identity/protocols/oauth2?hl=pt-br
         $this->gClient = new \Google_Client();
-
+        $this->middleware('auth');
         // $this->gClient->setApplicationName('YOUR APPLICATION NAME'); // ADD YOUR AUTH2 APPLICATION NAME (WHEN YOUR GENERATE SECRATE KEY)
         // $this->gClient->setClientId('154506411439-v35hmhf8t50s6lloljhb6q69blt7vaa0.apps.googleusercontent.com');
         // $this->gClient->setClientSecret('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');
@@ -101,6 +103,15 @@ class GoogleDriveController extends Controller
 
     public function googleDriveFileUpload(Request $request)
     {
+        $complemento = $request->complemento;
+        $quantidadeCaracteres = trim(strlen($complemento));
+        if ($quantidadeCaracteres > 150) {
+            session([
+                'InformacaoArquivo' => 'O complemento possui '. $quantidadeCaracteres . ' caracteres. Quantidade de caracteres maior que o permitido que é 150.'
+            ]);
+            return redirect(route('informacao.arquivos'));
+        }
+
         // https://laravel.com/docs/10.x/filesystem#the-local-driver
 
         $service = new \Google_Service_Drive($this->gClient);
@@ -193,6 +204,22 @@ class GoogleDriveController extends Controller
         ]);
 
         $client = $this->gClient;
+
+
+
+        // dd($result, explode('.', $result->getId()), explode('.', $result->getName())[1]);
+                  $Documentos= LancamentoDocumento::create([
+            'Rotulo' => $Complemento,
+            'LancamentoID' => null,
+            'Nome' => $result->getId(),
+            'Created' => date('d-m-Y H:i:s'),
+            'UsuarioID' => Auth::user()->id,
+            'Ext' => explode('.', $result->getName())[1],
+        ]);
+
+                session([
+                    'InformacaoArquivo' => 'Arquivo enviado com sucesso. O ID do mesmo é '.$result->id,
+                ]);
         ///////////////////////////////////////////////////////////////////////////////// tornar o arquivo privado
         // $fileIdPrivado = '1CaOTqAaD71YtbMMM1g2djuJyXwMuwUAr';
 
@@ -263,9 +290,7 @@ class GoogleDriveController extends Controller
         // return redirect($url);
 
         // dd($result);
-        session([
-            'InformacaoArquivo' => 'Arquivo enviado com sucesso. O ID do mesmo é '.$result->id,
-        ]);
+
         return redirect(route('informacao.arquivos'));
     }
 
@@ -827,5 +852,104 @@ class GoogleDriveController extends Controller
         }
     }
 
+
+    public function googleDriveFileConsultarDocumento(Request $request, $id)
+    {
+        // $service = new \Google_Service_Drive($this->gClient);
+        $service = new Google_Service_Drive($this->gClient);
+        $this->gClient->setAccessToken(session('googleUserDrive'));
+
+        if ($this->gClient->isAccessTokenExpired()) {
+            $request->session()->put('token', false);
+            return redirect('/drive/google/login');
+
+            // SAVE REFRESH TOKEN TO SOME VARIABLE
+            $refreshTokenSaved = $this->gClient->getRefreshToken();
+
+            // UPDATE ACCESS TOKEN
+            $this->gClient->fetchAccessTokenWithRefreshToken($refreshTokenSaved);
+
+            // PASS ACCESS TOKEN TO SOME VARIABLE
+            $updatedAccessToken = $this->gClient->getAccessToken();
+
+            // APPEND REFRESH TOKEN
+            $updatedAccessToken['refresh_token'] = $refreshTokenSaved;
+
+            // SET THE NEW ACCES TOKEN
+            $this->gClient->setAccessToken($updatedAccessToken);
+
+            $user->access_token = $updatedAccessToken;
+
+            $user->save();
+        }
+
+        $client = $this->gClient;
+
+        // ID do arquivo a ser consultado
+        // $fileId = '1HOEUTvekJzsGNchPLJA7MUupY1L_DQgz';
+        $fileIdConsultar = $id;
+
+        try {
+            // Fazer a consulta de metadados do arquivo
+            $file = $service->files->get($fileIdConsultar, ['fields' => 'owners']);
+
+            # Obter informações sobre o arquivo ou pasta
+            $fileArquivoFolder = $service->files->get($fileIdConsultar);
+
+
+
+        //     $fileMetadata = new Google_Service_Drive_DriveFile(array(
+        //         'description' => 'CONTRATO COM  FERNANDO CHAVES EM 10.05.2023, em 7 parcelas de 2000,00'
+        //     ));
+        //     $file = $service->files->update($fileIdConsultar, $fileMetadata, array(
+        //         'fields' => 'description'
+        //     ));
+
+            $fields = 'id,name,mimeType,createdTime,modifiedTime,size,description,webContentLink';
+            $filemetadados = $service->files->get($fileIdConsultar, array(
+                'fields' => $fields
+            ));
+
+
+
+
+            # Verificar se o ID se refere a uma pasta ou arquivo
+            if ($fileArquivoFolder->mimeType == 'application/vnd.google-apps.folder') {
+                session(['InformacaoArquivo' => 'Encontrado o id:' . $fileIdConsultar . '. Ele é uma pasta de nome: ' . $fileArquivoFolder->name]);
+                return redirect(route('informacao.arquivos'));
+            }
+
+            // Verificar se o arquivo existe e mostrar o nome do proprietário
+            if ($file) {
+                $owner = $file->getOwners()[0];
+
+                session([
+                    'avatar' => $owner->getPhotoLink(),
+                ]);
+
+
+                $informacoes = array(
+                    'fileIdConsultar' => $fileIdConsultar,
+                    'ownerDisplayName' => $owner->getDisplayName(),
+                    'emailAddress' => $owner->getEmailAddress(),
+                    'webContentLink' => $filemetadados->getWebContentLink(),
+                    'description' => $filemetadados->getDescription()
+                );
+                // $informacaoArquivo = implode('|', $informacoes);
+                // session(['InformacaoArquivo' => $informacaoArquivo]);
+                session(['InformacaoArquivo' => null]);
+                session(['InformacaoArquivoConsulta' => $informacoes]);
+
+                return redirect(route('informacao.arquivos'));
+            } else {
+                ////////// Quando o id não é localizado no Google Drive é causado uma Exception
+            }
+        } catch (Google_Service_Exception $e) {
+            session([
+                'InformacaoArquivo' => 'Erro de pesquisa. Provávelmente arquivo não encontrado:' . $fileIdConsultar.' Mais informações: '.$e,
+            ]);
+            return redirect(route('informacao.arquivos'));
+        }
+    }
 
 }
