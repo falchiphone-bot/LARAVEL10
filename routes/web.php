@@ -145,6 +145,7 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
 
     #Contas
     Route::get('Contas/Extrato/{contaID}', [App\Http\Controllers\ContaController::class, 'extrato']);
+    Route::get('Contas/GerarExtratoPDF', [App\Http\Livewire\Conta\Extrato::class, 'GerarExtratoPDF'])->name('Extrato.gerarpdf');
     Route::resource('Contas', App\Http\Controllers\ContaController::class);
     Route::resource('ContasCobranca', App\Http\Controllers\ContaCobrancaController::class);
 

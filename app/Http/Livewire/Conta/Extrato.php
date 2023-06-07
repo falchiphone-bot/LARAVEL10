@@ -9,7 +9,9 @@ use App\Models\SolicitacaoExclusao;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
-
+use Dompdf\Dompdf;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Route;
 class Extrato extends Component
 {
     //mudança de empresas e contas
@@ -19,6 +21,9 @@ class Extrato extends Component
     //models carregadas
     public $Conta;
     public $Lancamentos;
+
+    public $LancamentosPDF;
+
     public $Empresa;
 
     //criando lista de exclusão
@@ -41,13 +46,13 @@ class Extrato extends Component
     //resolvendo problema do select2
     public $modal = false;
 
-    protected $listeners = ['selectedSelEmpresaItem', 'selectedSelContaItem', 'search','alterarData'];
+    protected $listeners = ['selectedSelEmpresaItem', 'selectedSelContaItem', 'search', 'alterarData'];
 
-    public function editarLancamento($lancamento_id,$empresa_id = null)
+    public function editarLancamento($lancamento_id, $empresa_id = null)
     {
         $this->editar_lancamento = $lancamento_id;
-        $this->emitTo('lancamento.editar-lancamento', 'alterarIdLancamento', $lancamento_id,$empresa_id);
-        $this->emitTo('lancamento.arquivo-lancamento','resetData',$lancamento_id);
+        $this->emitTo('lancamento.editar-lancamento', 'alterarIdLancamento', $lancamento_id, $empresa_id);
+        $this->emitTo('lancamento.arquivo-lancamento', 'resetData', $lancamento_id);
         $this->dispatchBrowserEvent('abrir-modal');
         $this->modal = true;
     }
@@ -56,7 +61,7 @@ class Extrato extends Component
     {
         $novadadata = Carbon::parse($date);
         foreach ($this->Lancamentos as $lancamento) {
-            if (!$this->temBloqueio($lancamento->ID,$date)) {
+            if (!$this->temBloqueio($lancamento->ID, $date)) {
                 $lancamento->DataContabilidade = $novadadata->format('d-m-Y');
                 $lancamento->save();
             }
@@ -190,7 +195,7 @@ class Extrato extends Component
             if ($this->De) {
                 if ($this->Descricao && $this->DescricaoApartirDe) {
                     $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
-                }else {
+                } else {
                     $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
                 }
                 $lancamentos->where('DataContabilidade', '>=', $de);
@@ -209,11 +214,10 @@ class Extrato extends Component
             }
             if ($this->Conferido != '') {
                 if ($this->Conferido == 'false') {
-                    $lancamentos->where(function ($q)
-                    {
-                        return $q->whereNull('Conferido')->orWhere('Conferido',0);
+                    $lancamentos->where(function ($q) {
+                        return $q->whereNull('Conferido')->orWhere('Conferido', 0);
                     });
-                }else {
+                } else {
                     $lancamentos->where('Conferido', $this->Conferido);
                 }
             }
@@ -229,7 +233,63 @@ class Extrato extends Component
             $this->Lancamentos = null;
         }
     }
+    public function searchPDF()
+    {
+        $contaID = cache('extrato_ContaID') ?? $this->selConta;
+        if ($contaID) {
+            $lancamentos = Lancamento::where(function ($query) use ($contaID) {
+                return $query->where('Lancamentos.ContaDebitoID', $contaID)->orWhere('Lancamentos.ContaCreditoID', $contaID);
+            });
 
+            if ($this->De) {
+                if ($this->Descricao && $this->DescricaoApartirDe) {
+                    $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
+                } else {
+                    $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
+                }
+                $lancamentos->where('DataContabilidade', '>=', $de);
+                cache(['Extrato_De' => $this->De]);
+            }
+            if ($this->Ate) {
+                $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
+                $lancamentos->where('DataContabilidade', '<=', $ate);
+                cache(['Extrato_Ate' => $this->Ate]);
+            }
+
+            if ($this->Descricao) {
+                $lancamentos->where(function ($q) {
+                    $q->where('Lancamentos.Descricao', 'like', "%$this->Descricao%")->orWhere('Historicos.Descricao', 'like', "%$this->Descricao%");
+                });
+            }
+            if ($this->Conferido != '') {
+                if ($this->Conferido == 'false') {
+                    $lancamentos->where(function ($q) {
+                        return $q->whereNull('Conferido')->orWhere('Conferido', 0);
+                    });
+                } else {
+                    $lancamentos->where('Conferido', $this->Conferido);
+                }
+            }
+            if ($this->Notificacao != '') {
+                $lancamentos->where('notificacao', $this->Notificacao);
+            }
+            $this->Lancamentos = $lancamentos
+                ->orderBy('DataContabilidade')
+                ->whereDoesntHave('SolicitacaoExclusao')
+                ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
+                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID', 'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido']);
+
+            return redirect()
+                ->route('Extrato.gerarpdf')
+                ->with('LancamentosPDF', [
+                    'DadosExtrato' => $this->Lancamentos,
+                    'de' => $de,
+                    'ate' => $ate,
+                ]);
+        } else {
+            $this->Lancamentos = null;
+        }
+    }
     public function confirmarLancamento($lancamento_id)
     {
         $lancamento = Lancamento::find($lancamento_id);
@@ -355,5 +415,79 @@ class Extrato extends Component
             ->get(['PlanoContas.Descricao', 'Contas.ID']);
 
         return view('livewire.conta.extrato', compact('empresas', 'contas', 'saldoAnterior'));
+    }
+
+    public function gerarExtratoPdf()
+    {
+        $lancamentosPDF = session('LancamentosPDF');
+
+        $lancamentos = $lancamentosPDF['DadosExtrato'];
+
+        $de = $lancamentosPDF['de'];
+        $dataDividida = explode(" ", $de);
+        $deformatada = $dataDividida[0];
+
+
+        $ate = $lancamentosPDF['de'];
+        $dataDividida = explode(" ", $ate);
+        $ateformatada = $dataDividida[0];
+
+        // Construir a tabela HTML
+        $htmlTable = '
+        <h1>Relatório de Lançamentos</h1>
+        <p>Período: ' .
+            $deformatada .
+            ' à ' .
+            $ateformatada .
+            '</p>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Valor</th>
+                <th>Data</th>
+            </tr>
+        </thead>
+        <tbody>
+';
+
+        foreach ($lancamentosPDF['DadosExtrato'] as $lancamento) {
+            $id = $lancamento->ID;
+            $valor = number_format($lancamento->Valor, 2, ',', '.');
+ 
+            $data = $lancamento->DataContabilidade->format('d/m/Y');
+
+            $htmlTable .=
+                '
+        <tr>
+            <td>' .
+                $id .
+                '</td>
+            <td>' .
+                $valor .
+                '</td>
+            <td>' .
+                $data .
+                '</td>
+        </tr>
+    ';
+        }
+
+        $htmlTable .= '
+        </tbody>
+    </table>
+';
+
+        // Concatenar o cabeçalho e a tabela HTML
+        // $html = sprintf('%s%s', $htmlHeader, $htmlTable);
+
+        $html =   $htmlTable;
+        // Configurar e gerar o PDF com o Dompdf
+        $dompdf = new Dompdf();
+        $dompdf->loadHtml($html);
+        $dompdf->render();
+
+        // Salvar ou exibir o PDF
+        $dompdf->stream('lancamentos.pdf', ['Attachment' => false]);
     }
 }

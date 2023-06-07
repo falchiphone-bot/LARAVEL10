@@ -152,6 +152,9 @@
                     <button id="buscar" wire:click='search()' type="button" class="btn btn-primary btn-sm">
                         <i class="fa fa-dot-circle-o"></i>Buscar informações e atualizar visualização
                     </button>
+                    <button id="buscar" wire:click='searchPDF()' type="button" class="btn btn-danger btn-sm">
+                        <i class="fa fa-dot-circle-o"></i>Buscar informações e gerar PDF
+                    </button>
                 </div>
 
 
