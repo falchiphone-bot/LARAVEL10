@@ -119,15 +119,15 @@ class Extrato extends Component
         $this->data_bloqueio_empresa = $this->Empresa->Bloqueiodataanterior?->format('Y-m-d');
         $this->selConta = $this->Conta->ID;
 
-        $de = Carbon::createFromDate($this->De)->format('d/m/Y 00:00:00');
-        $ate = Carbon::createFromDate($this->Ate)->format('d/m/Y 23:59:59');
+        $de = Carbon::createFromDate($this->De)->format('Y-m-d 00:00:00');
+        $ate = Carbon::createFromDate($this->Ate)->format('Y-m-d 23:59:59');
 
         $lancamentos = Lancamento::where(function ($query) use ($contaID) {
             return $query->where('ContaDebitoID', $contaID)->orWhere('ContaCreditoID', $contaID);
         })
             ->whereDoesntHave('SolicitacaoExclusao')
             ->where(function ($where) use ($de, $ate) {
-                return $where->where('DataContabilidade', '>=', $de)->where('DataContabilidade', '<=', $ate);
+                return $where->where('DataContabilidade', '>=', $de)->where('DataContabilidade', '<=',  $ate);
             });
 
         $this->Lancamentos = $lancamentos->orderBy('DataContabilidade')->get();
@@ -419,7 +419,14 @@ class Extrato extends Component
 
     public function gerarExtratoPdf()
     {
+
+        if(session('LancamentosPDF') == null)
+        {
+            return Redirect::back();
+        }
+
         $lancamentosPDF = session('LancamentosPDF');
+
 
         $lancamentos = $lancamentosPDF['DadosExtrato'];
 
@@ -443,32 +450,41 @@ class Extrato extends Component
     <table>
         <thead>
             <tr>
-                <th>ID</th>
-                <th>Valor</th>
                 <th>Data</th>
+                <th>Descrição</th>
+                <th>Valor</th>
+
             </tr>
         </thead>
         <tbody>
 ';
 
         foreach ($lancamentosPDF['DadosExtrato'] as $lancamento) {
+
             $id = $lancamento->ID;
             $valor = number_format($lancamento->Valor, 2, ',', '.');
- 
+
             $data = $lancamento->DataContabilidade->format('d/m/Y');
 
+            $descricao = $lancamento->Descricao;
+            $descricaoQuebrada = wordwrap($descricao, 50, "<br>", true);
+
+
+            $descricaocompleta = $descricaoQuebrada;
             $htmlTable .=
                 '
         <tr>
+
             <td>' .
-                $id .
+                $data .
+                '</td>
+                <td>' .
+                $descricaocompleta .
                 '</td>
             <td>' .
                 $valor .
                 '</td>
-            <td>' .
-                $data .
-                '</td>
+
         </tr>
     ';
         }
@@ -489,5 +505,16 @@ class Extrato extends Component
 
         // Salvar ou exibir o PDF
         $dompdf->stream('lancamentos.pdf', ['Attachment' => false]);
+
+        // Obter o conteúdo do PDF
+    // $output = $dompdf->output();
+
+    // // Exibir o PDF em uma nova página
+    // return response($output)
+    //     ->header('Content-Type', 'application/pdf')
+    //     ->header('Content-Disposition', 'inline; filename="lancamentos.pdf"');
+
+
+
     }
 }
