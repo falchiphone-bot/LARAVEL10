@@ -696,7 +696,7 @@ class LeituraArquivoController extends Controller
                         'Lancamento' => 'Terminado na linha ' . $linha . '. Saldo no extrato bancário de: ' . number_format($Saldo, 2, '.', ',') . '.' . ' Saldo atual no sistema contábil de ' . number_format($SaldoAtual, 2, '.', ',') . ' = ' . $TextoConciliado . ' Diferença apurada: ' . number_format($DiferençaApurada, 2, '.', ','),
                     ]);
                 }
-                DD($DadosUsados);
+                // DD($DadosUsados);
                 return redirect(route('LeituraArquivo.index'));
             }
 

@@ -33,6 +33,7 @@ class ExtratoConectCarController extends Controller
     public function ExtratoConectar(Request $request)
     {
         $DESCONSIDERAR_BLOQUEIOS = $request->DESCONSIDERAR_BLOQUEIOS;
+        $DesmarcarConferido = $request->DesmarcarConferido;
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         $Mensagem = null;
         /////// aqui fica na pasta temporário /temp/    - apaga
@@ -323,9 +324,26 @@ class ExtratoConectCarController extends Controller
 
             $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
                 ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
+                ->where('Descricao', $arraydatanova['Descricao'])
                 ->where('EmpresaID', $Empresa)
                 ->where('ContaCreditoID', $ContaCartao)
                 ->First();
+
+            if($lancamento == null)
+            {
+                // dd('NÃO LOCALIZADO O LANÇAMENTO ABAIXO: ',$arraydatanova);
+                Lancamento::create([
+                    'Valor' => ($valorString = $valor_formatado),
+                    'EmpresaID' => $Empresa,
+                    'ContaDebitoID' => $DespesaContaDebitoID,
+                    'ContaCreditoID' => $ContaCartao,
+                    'Descricao' => $arraydatanova["Descricao"],
+                    'Usuarios_id' => auth()->user()->id,
+                    'DataContabilidade' => $arraydatanova["Data"],
+                    'HistoricoID' => '',
+                ]);
+            }
+
 
             if ($DESCONSIDERAR_BLOQUEIOS == null) {
                 if ($lancamento) {
@@ -380,23 +398,21 @@ class ExtratoConectCarController extends Controller
             }
 
             if ($lancamento) {
-                // dd($lancamento);
-                // session([
-                //     'Lancamento' =>
-                //         'Nenhum lançamento criado!
-                //  Consultado todos os lançamentos iniciado na linha 11 e terminado na linha ' .
-                //         $linha +
-                //         1 .
-                //         '!',
-                // ]);
-            } else {
-                // if ($request->criarlancamentosemhistorico == true) {
+                $idDoLancamento = $lancamento->ID;
+                if($DesmarcarConferido == null){
+                     Lancamento::where('id', $idDoLancamento)->update([
+                    'Conferido' => true,
+                     ]);
+                }
+                else
+                {
+                    Lancamento::where('id', $idDoLancamento)->update([
+                        'Conferido' => false,
+                         ]);
+                }
 
-                // if ($Parcela) {
-                //     $DescricaoCompleta = $arraydatanova['Descricao'] . ' Parcela ' . $Parcela;
-                // } else {
-                //     $DescricaoCompleta = $arraydatanova['Descricao'];
-                // }
+            } else {
+
 
                 $DescricaoCompleta = $arraydatanova['Descricao'];
                 // dd($arraydatanova);
