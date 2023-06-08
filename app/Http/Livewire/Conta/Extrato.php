@@ -291,6 +291,7 @@ class Extrato extends Component
                     'ate' => $ate,
                     'descricaoconta' => $this->Conta->Planoconta->Descricao,
                     'conta' => $this->Conta->ID,
+                    'empresa' => $this->Conta->EmpresaID,
                 ]);
         } else {
             $this->Lancamentos = null;
@@ -439,12 +440,40 @@ class Extrato extends Component
         $de = $lancamentosPDF['de'];
         $dataDivididade = explode(" ", $de);
         $deformatada = $dataDivididade[0];
-        $descricaoconta =  $lancamentosPDF['descricaoconta'];
+        $descricaoconta = $lancamentosPDF['descricaoconta'];
         $conta = $lancamentosPDF['conta'];
 
         $ate = $lancamentosPDF['ate'];
         $dataDivididaate = explode(" ", $ate);
         $ateformatada = $dataDivididaate[0];
+
+
+        $desa = $de;
+        $contaID =  $conta ;
+        $this->selEmpresa = $lancamentosPDF['empresa'];
+
+        $totalCredito = Lancamento::where(function ($q) use ($desa, $contaID) {
+            return $q
+                ->where('ContaCreditoID', $contaID)
+                ->where('EmpresaID', $this->selEmpresa)
+                ->where('DataContabilidade', '<', $desa);
+        })
+            ->whereDoesntHave('SolicitacaoExclusao')
+            ->sum('Lancamentos.Valor');
+
+        $totalDebito = Lancamento::where(function ($q) use ($desa, $contaID) {
+            return $q
+                ->where('ContaDebitoID', $contaID)
+                ->where('EmpresaID', $this->selEmpresa)
+                ->where('DataContabilidade', '<', $desa);
+        })
+            ->whereDoesntHave('SolicitacaoExclusao')
+            ->sum('Lancamentos.Valor');
+
+        $saldoAnterior = $totalDebito - $totalCredito;
+
+
+
 
         // Construir a tabela HTML
         $htmlTable = '<h1><center><font color="black"><b>RELATÓRIO DE LANÇAMENTOS '  . '</b></font></center></h1>';
@@ -466,8 +495,11 @@ class Extrato extends Component
                      <td colspan="4"><hr></td>
                 </tr>;
                 <tr>
-                     <td colspan="4">SALDO ANTERIOR</td>
+                     <td colspan="3">SALDO ANTERIOR </td>
+                     <td style="text-align: right;">' . ( number_format($saldoAnterior, 2, ',', '.') ) . '</td>
                 </tr>;
+
+
         </thead>
         <tbody>
 ';
@@ -478,9 +510,15 @@ foreach ($lancamentosPDF['DadosExtrato'] as $lancamento) {
     $id = $lancamento->ID;
     $valor = number_format($lancamento->Valor, 2, ',', '.');
     $data = $lancamento->DataContabilidade->format('d/m/Y');
-    $descricao = $lancamento->Descricao;
-    $descricaoQuebrada = wordwrap($descricao, 50, "<br>", true);
+    $descricao = $lancamento['HistoricoDescricao'] . ' ' .$lancamento->Descricao;
+$descricaoQuebrada = wordwrap($descricao, 50, "<br>", true);
+
+if (strlen($descricao) < 50) {
+    $descricaoPreenchida = str_pad($descricao, 50, ' ');
+    $descricaocompleta = $descricaoPreenchida;
+} else {
     $descricaocompleta = $descricaoQuebrada;
+}
 
     if ($conta == $lancamento->ContaDebitoID) {
         $debitoTotal += $lancamento->Valor;
@@ -501,7 +539,7 @@ foreach ($lancamentosPDF['DadosExtrato'] as $lancamento) {
 }
 $debitoTotalFormatado = number_format($debitoTotal, 2, ',', '.');
 $creditoTotalFormatado = number_format($creditoTotal, 2, ',', '.');
-
+$saldoAnteriorFormatado = number_format($saldoAnterior, 2, ',', '.');
 $htmlTable .= '<tr>
     <td colspan="4"><hr></td>
 </tr>';
@@ -518,7 +556,7 @@ $htmlTable .= '<tr>
     $saldo = $debitoTotal - $creditoTotal;
     $saldoFormatado = number_format($saldo, 2, ',', '.');
 
-    $saldo = $debitoTotal - $creditoTotal;
+    $saldo = $saldoAnterior + $debitoTotal - $creditoTotal;
 $saldoFormatado = number_format($saldo, 2, ',', '.');
 
 $htmlTable .= '<tr>
