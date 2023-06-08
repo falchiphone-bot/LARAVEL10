@@ -279,12 +279,18 @@ class Extrato extends Component
                 ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
                 ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID', 'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido']);
 
+
+
+
+
             return redirect()
                 ->route('Extrato.gerarpdf')
                 ->with('LancamentosPDF', [
                     'DadosExtrato' => $this->Lancamentos,
                     'de' => $de,
                     'ate' => $ate,
+                    'descricaoconta' => $this->Conta->Planoconta->Descricao,
+                    'conta' => $this->Conta->ID,
                 ]);
         } else {
             $this->Lancamentos = null;
@@ -427,75 +433,110 @@ class Extrato extends Component
 
         $lancamentosPDF = session('LancamentosPDF');
 
-
+// 1
         $lancamentos = $lancamentosPDF['DadosExtrato'];
 
         $de = $lancamentosPDF['de'];
-        $dataDividida = explode(" ", $de);
-        $deformatada = $dataDividida[0];
+        $dataDivididade = explode(" ", $de);
+        $deformatada = $dataDivididade[0];
+        $descricaoconta =  $lancamentosPDF['descricaoconta'];
+        $conta = $lancamentosPDF['conta'];
 
-
-        $ate = $lancamentosPDF['de'];
-        $dataDividida = explode(" ", $ate);
-        $ateformatada = $dataDividida[0];
+        $ate = $lancamentosPDF['ate'];
+        $dataDivididaate = explode(" ", $ate);
+        $ateformatada = $dataDivididaate[0];
 
         // Construir a tabela HTML
-        $htmlTable = '
-        <h1>Relatório de Lançamentos</h1>
-        <p>Período: ' .
-            $deformatada .
-            ' à ' .
-            $ateformatada .
-            '</p>
+        $htmlTable = '<h1><center><font color="black"><b>RELATÓRIO DE LANÇAMENTOS '  . '</b></font></center></h1>';
+        $htmlTable .= '<h5><center><font color="blue"><b>Conta: ' . $descricaoconta . '</b></font></center></h5>';
+        $htmlTable .= '<h1><center><font color="red"><b>Período de: ' . $deformatada . ' à ' . $ateformatada .  '</b></font></center></h1>';
+        $htmlTable .= '
+
+
     <table>
         <thead>
             <tr>
                 <th>Data</th>
                 <th>Descrição</th>
-                <th>Valor</th>
+                <th>Débito</th>
+                <th>Crédito</th>
+                </tr>
 
-            </tr>
+                <tr>
+                     <td colspan="4"><hr></td>
+                </tr>;
+                <tr>
+                     <td colspan="4">SALDO ANTERIOR</td>
+                </tr>;
         </thead>
         <tbody>
 ';
+$debitoTotal = 0;
+$creditoTotal = 0;
 
-        foreach ($lancamentosPDF['DadosExtrato'] as $lancamento) {
+foreach ($lancamentosPDF['DadosExtrato'] as $lancamento) {
+    $id = $lancamento->ID;
+    $valor = number_format($lancamento->Valor, 2, ',', '.');
+    $data = $lancamento->DataContabilidade->format('d/m/Y');
+    $descricao = $lancamento->Descricao;
+    $descricaoQuebrada = wordwrap($descricao, 50, "<br>", true);
+    $descricaocompleta = $descricaoQuebrada;
 
-            $id = $lancamento->ID;
-            $valor = number_format($lancamento->Valor, 2, ',', '.');
+    if ($conta == $lancamento->ContaDebitoID) {
+        $debitoTotal += $lancamento->Valor;
+    }
 
-            $data = $lancamento->DataContabilidade->format('d/m/Y');
+    if ($conta == $lancamento->ContaCreditoID) {
+        $creditoTotal += $lancamento->Valor;
+    }
 
-            $descricao = $lancamento->Descricao;
-            $descricaoQuebrada = wordwrap($descricao, 50, "<br>", true);
+
+    $htmlTable .= '<tr>
+        <td>' . $data . '</td>
+        <td>' . $descricaocompleta . '</td>
+        <td style="text-align: right;">' . (($conta == $lancamento->ContaDebitoID) ? $valor : '') . '</td>
+        <td style="text-align: right;">' . (($conta == $lancamento->ContaCreditoID) ? $valor : '') . '</td>
+
+    </tr>';
+}
+$debitoTotalFormatado = number_format($debitoTotal, 2, ',', '.');
+$creditoTotalFormatado = number_format($creditoTotal, 2, ',', '.');
+
+$htmlTable .= '<tr>
+    <td colspan="4"><hr></td>
+</tr>';
 
 
-            $descricaocompleta = $descricaoQuebrada;
-            $htmlTable .=
-                '
-        <tr>
+$htmlTable .= '<tr>
 
-            <td>' .
-                $data .
-                '</td>
-                <td>' .
-                $descricaocompleta .
-                '</td>
-            <td>' .
-                $valor .
-                '</td>
+        <td> TOTAL' . '</td>
+        <td>' .  '</td>
+        <td style="text-align: right;">' . (($debitoTotalFormatado) ? $debitoTotalFormatado : '') . '</td>
+        <td style="text-align: right;">' . (($creditoTotalFormatado) ? $creditoTotalFormatado : '') . '</td>
+    </tr>';
 
-        </tr>
-    ';
-        }
+    $saldo = $debitoTotal - $creditoTotal;
+    $saldoFormatado = number_format($saldo, 2, ',', '.');
+
+    $saldo = $debitoTotal - $creditoTotal;
+$saldoFormatado = number_format($saldo, 2, ',', '.');
+
+$htmlTable .= '<tr>
+    <td> SALDO </td>
+    <td></td>
+    <td style="text-align: right;">' . ($saldoFormatado != 0 ? $saldoFormatado : '') . '</td>
+</tr>';
+
+
+
 
         $htmlTable .= '
         </tbody>
     </table>
+
+
 ';
 
-        // Concatenar o cabeçalho e a tabela HTML
-        // $html = sprintf('%s%s', $htmlHeader, $htmlTable);
 
         $html =   $htmlTable;
         // Configurar e gerar o PDF com o Dompdf
