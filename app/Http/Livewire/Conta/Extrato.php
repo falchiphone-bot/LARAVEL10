@@ -597,19 +597,15 @@ $htmlTable .= '<tr>
 
     }
 
-    public function gerarExtratoPdf()
+    public function gerarExtratoPdf_Bordas_Tabelas()
     {
-
-        if(session('LancamentosPDF') == null)
-        {
+        if (session('LancamentosPDF') == null) {
             return Redirect::back();
         }
 
         $lancamentosPDF = session('LancamentosPDF');
 
-// 1
         $lancamentos = $lancamentosPDF['DadosExtrato'];
-
         $de = $lancamentosPDF['de'];
         $dataDivididade = explode(" ", $de);
         $deformatada = $dataDivididade[0];
@@ -620,9 +616,8 @@ $htmlTable .= '<tr>
         $dataDivididaate = explode(" ", $ate);
         $ateformatada = $dataDivididaate[0];
 
-
         $desa = $de;
-        $contaID =  $conta ;
+        $contaID =  $conta;
         $this->selEmpresa = $lancamentosPDF['empresa'];
 
         $totalCredito = Lancamento::where(function ($q) use ($desa, $contaID) {
@@ -645,111 +640,122 @@ $htmlTable .= '<tr>
 
         $saldoAnterior = $totalDebito - $totalCredito;
 
-
-
-
         // Construir a tabela HTML
-        $htmlTable = '<h1><center><font color="black"><b>RELATÓRIO DE LANÇAMENTOS '  . '</b></font></center></h1>';
-        $htmlTable .= '<h5><center><font color="blue"><b>Conta: ' . $descricaoconta . '</b></font></center></h5>';
-        $htmlTable .= '<h1><center><font color="red"><b>Período de: ' . $deformatada . ' à ' . $ateformatada .  '</b></font></center></h1>';
+        $htmlTable = '<style>
+            h1, h5 {
+                text-align: center;
+                margin: 10px 0;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            th, td {
+                padding: 8px;
+                text-align: left;
+                border-bottom: 1px solid #ddd;
+            }
+
+            th {
+                background-color: #f2f2f2;
+            }
+
+            .saldo-anterior {
+                font-weight: bold;
+            }
+
+            .total {
+                font-weight: bold;
+            }
+        </style>';
+
+        $htmlTable .= '<h1>RELATÓRIO DE LANÇAMENTOS</h1>';
+        $htmlTable .= '<h5>Conta: ' . $descricaoconta . '</h5>';
+        $htmlTable .= '<h1>Período de: ' . $deformatada . ' à ' . $ateformatada . '</h1>';
         $htmlTable .= '
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Descrição</th>
+                        <th>Débito</th>
+                        <th>Crédito</th>
+                    </tr>
+                    <tr>
+                        <td colspan="4"><hr></td>
+                    </tr>
+                    <tr class="saldo-anterior">
+                        <td colspan="3">SALDO ANTERIOR</td>
+                        <td>' . number_format($saldoAnterior, 2, ',', '.') . '</td>
+                    </tr>
+                </thead>
+                <tbody>';
 
+        $debitoTotal = 0;
+        $creditoTotal = 0;
 
-    <table>
-        <thead>
-            <tr>
-                <th>Data</th>
-                <th>Descrição</th>
-                <th>Débito</th>
-                <th>Crédito</th>
-                </tr>
+        foreach ($lancamentosPDF['DadosExtrato'] as $lancamento) {
+            $id = $lancamento->ID;
+            $valor = number_format($lancamento->Valor, 2, ',', '.');
+            $data = $lancamento->DataContabilidade->format('d/m/Y');
+            $descricao = $lancamento['HistoricoDescricao'] . ' ' . $lancamento->Descricao;
+            $descricaoQuebrada = wordwrap($descricao, 50, "<br>", true);
 
-                <tr>
-                     <td colspan="4"><hr></td>
-                </tr>;
-                <tr>
-                     <td colspan="3">SALDO ANTERIOR </td>
-                     <td style="text-align: right;">' . ( number_format($saldoAnterior, 2, ',', '.') ) . '</td>
-                </tr>;
+            if (strlen($descricao) < 50) {
+                $descricaoPreenchida = str_pad($descricao, 50, ' ');
+                $descricaocompleta = $descricaoPreenchida;
+            } else {
+                $descricaocompleta = $descricaoQuebrada;
+            }
 
+            if ($conta == $lancamento->ContaDebitoID) {
+                $debitoTotal += $lancamento->Valor;
+            }
 
-        </thead>
-        <tbody>
-';
-$debitoTotal = 0;
-$creditoTotal = 0;
+            if ($conta == $lancamento->ContaCreditoID) {
+                $creditoTotal += $lancamento->Valor;
+            }
 
-foreach ($lancamentosPDF['DadosExtrato'] as $lancamento) {
-    $id = $lancamento->ID;
-    $valor = number_format($lancamento->Valor, 2, ',', '.');
-    $data = $lancamento->DataContabilidade->format('d/m/Y');
-    $descricao = $lancamento['HistoricoDescricao'] . ' ' .$lancamento->Descricao;
-$descricaoQuebrada = wordwrap($descricao, 50, "<br>", true);
+            $htmlTable .= '<tr>
+                <td>' . $data . '</td>
+                <td>' . $descricaocompleta . '</td>
+                <td>' . (($conta == $lancamento->ContaDebitoID) ? $valor : '') . '</td>
+                <td>' . (($conta == $lancamento->ContaCreditoID) ? $valor : '') . '</td>
+            </tr>';
+        }
 
-if (strlen($descricao) < 50) {
-    $descricaoPreenchida = str_pad($descricao, 50, ' ');
-    $descricaocompleta = $descricaoPreenchida;
-} else {
-    $descricaocompleta = $descricaoQuebrada;
-}
+        $debitoTotalFormatado = number_format($debitoTotal, 2, ',', '.');
+        $creditoTotalFormatado = number_format($creditoTotal, 2, ',', '.');
+        $saldoAnteriorFormatado = number_format($saldoAnterior, 2, ',', '.');
 
-    if ($conta == $lancamento->ContaDebitoID) {
-        $debitoTotal += $lancamento->Valor;
-    }
+        $htmlTable .= '<tr>
+            <td colspan="4"><hr></td>
+        </tr>';
 
-    if ($conta == $lancamento->ContaCreditoID) {
-        $creditoTotal += $lancamento->Valor;
-    }
+        $htmlTable .= '<tr class="total">
+            <td> TOTAL</td>
+            <td></td>
+            <td>' . (($debitoTotalFormatado) ? $debitoTotalFormatado : '') . '</td>
+            <td>' . (($creditoTotalFormatado) ? $creditoTotalFormatado : '') . '</td>
+        </tr>';
 
+        $saldo = $saldoAnterior + $debitoTotal - $creditoTotal;
+        $saldoFormatado = number_format($saldo, 2, ',', '.');
 
-    $htmlTable .= '<tr>
-        <td>' . $data . '</td>
-        <td>' . $descricaocompleta . '</td>
-        <td style="text-align: right;">' . (($conta == $lancamento->ContaDebitoID) ? $valor : '') . '</td>
-        <td style="text-align: right;">' . (($conta == $lancamento->ContaCreditoID) ? $valor : '') . '</td>
-
-    </tr>';
-}
-$debitoTotalFormatado = number_format($debitoTotal, 2, ',', '.');
-$creditoTotalFormatado = number_format($creditoTotal, 2, ',', '.');
-$saldoAnteriorFormatado = number_format($saldoAnterior, 2, ',', '.');
-$htmlTable .= '<tr>
-    <td colspan="4"><hr></td>
-</tr>';
-
-
-$htmlTable .= '<tr>
-
-        <td> TOTAL' . '</td>
-        <td>' .  '</td>
-        <td style="text-align: right;">' . (($debitoTotalFormatado) ? $debitoTotalFormatado : '') . '</td>
-        <td style="text-align: right;">' . (($creditoTotalFormatado) ? $creditoTotalFormatado : '') . '</td>
-    </tr>';
-
-    $saldo = $debitoTotal - $creditoTotal;
-    $saldoFormatado = number_format($saldo, 2, ',', '.');
-
-    $saldo = $saldoAnterior + $debitoTotal - $creditoTotal;
-$saldoFormatado = number_format($saldo, 2, ',', '.');
-
-$htmlTable .= '<tr>
-    <td> SALDO </td>
-    <td></td>
-    <td style="text-align: right;">' . ($saldoFormatado != 0 ? $saldoFormatado : '') . '</td>
-</tr>';
-
-
-
+        $htmlTable .= '<tr>
+            <td> SALDO </td>
+            <td></td>
+            <td>' . ($saldoFormatado != 0 ? $saldoFormatado : '') . '</td>
+        </tr>';
 
         $htmlTable .= '
-        </tbody>
-    </table>
+            </tbody>
+        </table>';
 
+        $html = $htmlTable;
 
-';
-
-
-        $html =   $htmlTable;
         // Configurar e gerar o PDF com o Dompdf
         $dompdf = new Dompdf();
         $dompdf->loadHtml($html);
@@ -757,17 +763,238 @@ $htmlTable .= '<tr>
 
         // Salvar ou exibir o PDF
         $dompdf->stream('lancamentos.pdf', ['Attachment' => false]);
+    }
+
+    public function gerarExtratoPdf()
+    {
+        if (session('LancamentosPDF') == null) {
+            return Redirect::back();
+        }
+
+        $lancamentosPDF = session('LancamentosPDF');
+
+        $lancamentos = $lancamentosPDF['DadosExtrato'];
+        $de = $lancamentosPDF['de'];
+        $dataDivididade = explode(" ", $de);
+        $deformatada = $dataDivididade[0];
+        $descricaoconta = $lancamentosPDF['descricaoconta'];
+        $conta = $lancamentosPDF['conta'];
+
+        $ate = $lancamentosPDF['ate'];
+        $dataDivididaate = explode(" ", $ate);
+        $ateformatada = $dataDivididaate[0];
+
+        $desa = $de;
+        $contaID =  $conta;
+        $this->selEmpresa = $lancamentosPDF['empresa'];
+
+        $totalCredito = Lancamento::where(function ($q) use ($desa, $contaID) {
+            return $q
+                ->where('ContaCreditoID', $contaID)
+                ->where('EmpresaID', $this->selEmpresa)
+                ->where('DataContabilidade', '<', $desa);
+        })
+            ->whereDoesntHave('SolicitacaoExclusao')
+            ->sum('Lancamentos.Valor');
+
+        $totalDebito = Lancamento::where(function ($q) use ($desa, $contaID) {
+            return $q
+                ->where('ContaDebitoID', $contaID)
+                ->where('EmpresaID', $this->selEmpresa)
+                ->where('DataContabilidade', '<', $desa);
+        })
+            ->whereDoesntHave('SolicitacaoExclusao')
+            ->sum('Lancamentos.Valor');
+
+        $saldoAnterior = $totalDebito - $totalCredito;
+
+        // Construir a tabela HTML
+        $htmlTable = '<style>
+            @page {
+                margin-top: 50px;
+            }
+
+            h1, h5 {
+                text-align: center;
+                margin: 10px 0;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            th, td {
+                padding: 8px;
+                text-align: left;
+                border-bottom: 1px solid #ddd;
+            }
+
+            th {
+                background-color: #f2f2f2;
+            }
+
+            .saldo-anterior {
+                font-weight: bold;
+            }
+
+            .total {
+                font-weight: bold;
+            }
+
+            .header {
+                position: fixed;
+                top: -40px;
+                left: 0;
+                right: 0;
+                height: 40px;
+                background-color: #f2f2f2;
+                text-align: center;
+                line-height: 40px;
+            }
+        </style>';
+
+
+
+
+        // $htmlTable .= '<div class="header">
+        // <h5>Período de: ' . $deformatada . ' à ' . $ateformatada .  '</h5>
+        // <h5>Conta: ' . $descricaoconta . '</h5>
+        // </div>';
+
+        // $htmlTable .= '<h1>RELATÓRIO DE LANÇAMENTOS</h1>';
+        // $htmlTable .= '<h5>Conta: ' . $descricaoconta . '</h5>';
+        // $htmlTable .= '<h1>Período de: ' . $deformatada . ' à ' . $ateformatada .  '</h1>';
+
+
+
+        $htmlTable .= '
+
+            <table>
+                <thead>
+                    <tr style="background-color: #eaf2ff;">
+                            <th colspan="2" class="saldo-anterior"><h4>Período de: ' . $deformatada . ' à ' . $ateformatada . '</h4></td>
+                            <th colspan="2" class="saldo-anterior"><h4>Conta: ' . $descricaoconta . '</h4></td>
+                    </tr>
+                    <tr>
+                        <th>Data</th>
+                        <th>Descrição</th>
+                        <th>Débito</th>
+                        <th>Crédito</th>
+                    </tr>
+                    <tr>
+                        <td colspan="4"><hr></td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" class="saldo-anterior">SALDO ANTERIOR</td>
+                        <td style="text-align: right;">' . number_format($saldoAnterior, 2, ',', '.') . '</td>
+                    </tr>
+                </thead>
+                <tbody>';
+
+        $debitoTotal = 0;
+        $creditoTotal = 0;
+
+        foreach ($lancamentosPDF['DadosExtrato'] as $lancamento) {
+            $id = $lancamento->ID;
+            $valor = number_format($lancamento->Valor, 2, ',', '.');
+            $data = $lancamento->DataContabilidade->format('d/m/Y');
+            $descricao = $lancamento['HistoricoDescricao'] . ' ' . $lancamento->Descricao;
+            $descricaoQuebrada = wordwrap($descricao, 50, "<br>", true);
+
+            if (strlen($descricao) < 50) {
+                $descricaoPreenchida = str_pad($descricao, 50, ' ');
+                $descricaocompleta = $descricaoPreenchida;
+            } else {
+                $descricaocompleta = $descricaoQuebrada;
+            }
+
+            if ($conta == $lancamento->ContaDebitoID) {
+                $debitoTotal += $lancamento->Valor;
+            }
+
+            if ($conta == $lancamento->ContaCreditoID) {
+                $creditoTotal += $lancamento->Valor;
+            }
+
+            $htmlTable .= '<tr>
+                <td>' . $data . '</td>
+                <td>' . $descricaocompleta . '</td>
+                <td style="text-align: right;">' . (($conta == $lancamento->ContaDebitoID) ? $valor : '') . '</td>
+                <td style="text-align: right;">' . (($conta == $lancamento->ContaCreditoID) ? $valor : '') . '</td>
+            </tr>';
+        }
+
+        $debitoTotalFormatado = number_format($debitoTotal, 2, ',', '.');
+        $creditoTotalFormatado = number_format($creditoTotal, 2, ',', '.');
+        $saldoAnteriorFormatado = number_format($saldoAnterior, 2, ',', '.');
+
+        $htmlTable .= '<tr>
+            <td colspan="4"><hr></td>
+        </tr>';
+
+        $htmlTable .= '<tr class="total">
+            <td> TOTAL</td>
+            <td></td>
+            <td style="text-align: right;">' . (($debitoTotalFormatado) ? $debitoTotalFormatado : '') . '</td>
+            <td style="text-align: right;">' . (($creditoTotalFormatado) ? $creditoTotalFormatado : '') . '</td>
+        </tr>';
+
+        $saldo = $saldoAnterior + $debitoTotal - $creditoTotal;
+        $saldoFormatado = number_format($saldo, 2, ',', '.');
+
+        $htmlTable .= '<tr class="total">
+            <td> SALDO </td>
+            <td></td>
+            <td style="text-align: right;">' . ($saldoFormatado != 0 ? $saldoFormatado : '') . '</td>
+        </tr>';
+
+        $htmlTable .= '
+            </tbody>
+        </table>';
+
+
+
+
+        // Configurar e gerar o PDF com o Dompdf
+        $dompdf = new Dompdf();
+
+
+        // Habilitar opção de cabeçalho
+        $options = $dompdf->getOptions();
+        $options->setIsHtml5ParserEnabled(true);
+        $options->setIsRemoteEnabled(true);
+        $options->setChroot(base_path());
+
+        // Definir o cabeçalho
+        $header = '<div style="text-align: center;">EXTRATO</div>';
+        // $header = '<div style="text-align: center;">
+        // <h5>Período de: ' . $deformatada . ' à ' . $ateformatada .  '</h5>
+        // <h5>Conta: ' . $descricaoconta . '</h5>
+        // </div>';
+        // $options->setPdfBackendOptions(['enable_html5_parser' => true, 'enable_remote' => true]);
+        $dompdf->setOptions($options);
+        $dompdf->setBasePath(base_path());
+        // $dompdf->setHttpContext(new Dompdf\FrameDecorator($header));
+
+
+ $html = $header . $htmlTable;
+
+ $dompdf->loadHtml($html);
+        $dompdf->render();
+
+        // Salvar ou exibir o PDF
+        $dompdf->stream('lancamentos.pdf', ['Attachment' => false]);
 
         // Obter o conteúdo do PDF
-    // $output = $dompdf->output();
+        // $output = $dompdf->output();
 
-    // // Exibir o PDF em uma nova página
-    // return response($output)
-    //     ->header('Content-Type', 'application/pdf')
-    //     ->header('Content-Disposition', 'inline; filename="lancamentos.pdf"');
-
-
-
+        // Exibir o PDF em uma nova página
+        // return response($output)
+        //     ->header('Content-Type', 'application/pdf')
+        //     ->header('Content-Disposition', 'inline; filename="lancamentos.pdf"');
     }
+
+
 
 }
