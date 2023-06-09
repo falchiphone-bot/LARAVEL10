@@ -100,6 +100,10 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
     Route::resource('Representantes', App\Http\Controllers\RepresentantesController::class);
 
 
+ # Posicoes
+ Route::resource('Posicoes', App\Http\Controllers\PosicoesController::class);
+
+
 
     # PLANO DE CONTAS
     Route::get('PlanoContas/pesquisaavancada', [App\Http\Controllers\GoogleCalendarController::class, 'pesquisaavancada'])->name('planocontas.pesquisaavancada');
@@ -211,6 +215,11 @@ Route::resource('LancamentosDocumentos', App\Http\Controllers\LancamentosDocumen
 
     Route::get('/Cobranca', function () {
         return view('Cobranca/dashboard');
+    });
+
+    #Cadastros
+    Route::get('/Cadastros', function () {
+        return view('Cadastros/dashboard');
     });
 });
 

@@ -8,7 +8,7 @@
                     <div class="badge bg-warning text-wrap"
                         style="width: 100%; height: 50px;
                     ; font-size: 24px;align=˜Center˜ ">
-                        Menu Principal do sistema administrativo e contábil - versão: 05.06.2023 07:29
+                        Menu Principal do sistema administrativo e contábil - versão: 09.06.2023 10:46
                     </div>
                 </div>
                 <div class="card-body">
@@ -117,7 +117,17 @@
                             </tr>
                         @endcan
 
+                        @can('CADASTROS- LISTAR')
+                        <tr>
+                            <th>
 
+                                <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                    <a class="btn btn-primary" href="/Cadastros">Cadastros</a>
+                                </nav>
+
+                            </th>
+                        </tr>
+                    @endcan
 
 
 

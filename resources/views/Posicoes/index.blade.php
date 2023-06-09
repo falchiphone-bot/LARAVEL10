@@ -5,7 +5,7 @@
 
             <div class="card">
                 <div class="badge bg-primary text-wrap" style="width: 100%;font-size: 24px;lign=˜Center˜">
-                    REPRESENTANTES PARA SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
+                    POSIÇÕES ESPORTES PARA SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
                 </div>
             </div>
 
@@ -25,13 +25,13 @@
                     <a class="btn btn-warning" href="Cadastros">Retornar a lista de opções</a> </nav>
 
 
-                @can('REPRESENTANTES - INCLUIR')
-                    <a href="{{ route('Representantes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
-                        aria-disabled="true">Incluir representante</a>
+                @can('POSICOES - INCLUIR')
+                    <a href="{{ route('Posicoes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
+                        aria-disabled="true">Incluir posição esportiva</a>
                 @endcan
                 <div class="card-header">
                     <div class="badge bg-info text-wrap" style="width: 100%;font-size: 24px">
-                        <p>Total de representantes cadastrados no sistema de gerenciamento administrativo e contábil:
+                        <p>Total de posições esportivas cadastradas no sistema de gerenciamento administrativo e contábil:
                             {{ $model->count() ?? 0 }}</p>
                     </div>
                 </div>
@@ -45,9 +45,7 @@
                     <thead>
                         <tr>
                             <th scope="col" class="px-6 py-4">NOME</th>
-                            <th scope="col" class="px-6 py-4">TELEFONE</th>
-                            <th scope="col" class="px-6 py-4">EMAIL</th>
-                            <th scope="col" class="px-6 py-4">CPF</th>
+
                             <th scope="col" class="px-6 py-4"></th>
                         </tr>
                     </thead>
@@ -59,33 +57,25 @@
                                 <td class="">
                                     {{ $Model->nome }}
                                 </td>
-                                <td class="">
-                                    {{ $Model->telefone }}
-                                </td>
-                                <td class="">
-                                    {{ $Model->email }}
-                                </td>
-                                <td class="">
-                                    {{ $Model->cpf }}
-                                </td>
 
-                                @can('REPRESENTANTES - EDITAR')
+
+                                @can('POSICOES - EDITAR')
                                     <td>
-                                        <a href="{{ route('Representantes.edit', $Model->id) }}" class="btn btn-success" tabindex="-1"
+                                        <a href="{{ route('Posicoes.edit', $Model->id) }}" class="btn btn-success" tabindex="-1"
                                             role="button" aria-disabled="true">Editar</a>
                                     </td>
                                 @endcan
 
-                                @can('REPRESENTANTES - VER')
+                                @can('POSICOES - VER')
                                     <td>
-                                        <a href="{{ route('Representantes.show', $Model->id) }}" class="btn btn-info" tabindex="-1"
+                                        <a href="{{ route('Posicoes.show', $Model->id) }}" class="btn btn-info" tabindex="-1"
                                             role="button" aria-disabled="true">Ver</a>
                                     </td>
                                 @endcan
 
-                                @can('REPRESENTANTES - EXCLUIR')
+                                @can('POSICOES - EXCLUIR')
                                     <td>
-                                        <form method="POST" action="{{ route('Representantes.destroy', $Model->id) }}">
+                                        <form method="POST" action="{{ route('Posicoes.destroy', $Model->id) }}">
                                             @csrf
                                             <input type="hidden" name="_method" value="DELETE">
                                             <button type="submit" class="btn btn-danger">
