@@ -46,6 +46,9 @@
                         <tr>
                             <th scope="col" class="px-6 py-4">NOME</th>
 
+                            <th scope="col" class="px-6 py-4">ESPORTE</th>
+
+
                             <th scope="col" class="px-6 py-4"></th>
                         </tr>
                     </thead>
@@ -56,6 +59,11 @@
 
                                 <td class="">
                                     {{ $Model->nome }}
+                                </td>
+
+
+                                <td class="">
+                                    {{ $Model->tipo_esporte}}
                                 </td>
 
 
@@ -75,7 +83,7 @@
 
                                 @can('POSICOES - EXCLUIR')
                                     <td>
-                                        <form method="POST" action="{{ route('Posicoes.destroy', $Model->id) }}">
+                                        <form method="POST" action="{{ route('Representantes.destroy', $Model->id) }}">
                                             @csrf
                                             <input type="hidden" name="_method" value="DELETE">
                                             <button type="submit" class="btn btn-danger">

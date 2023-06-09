@@ -21,6 +21,22 @@
                 @enderror
             </div>
 
+            <div class="col-3">
+                <label for="Limite" style="color: black;">Tipo de esportes</label>
+                <select class="form-control select2" id="tipo_esporte" name="tipo_esporte">
+                    <option value="">
+                        Selecionar esporte
+                    </option>
+                    @foreach ($TipoEsporte as $Esporte)
+                        <option @if ($retorno['TipoEsporte'] == $Esporte->id) selected @endif
+                            value="{{ $Esporte->id }}">
+
+                            {{ $Esporte->nome }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
 
 
 

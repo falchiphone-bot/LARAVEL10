@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\PosicoesCreateRequest;
 use App\Models\Posicoes;
+use App\Models\TipoEsporte;
+
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -41,6 +43,7 @@ class PosicoesController extends Controller
      */
     public function create()
     {
+        $TipoEsporte = TipoEsporte::get();
         return view('Posicoes.create');
     }
 
@@ -71,11 +74,12 @@ class PosicoesController extends Controller
      * Show the form for editing the specified resource.
      */
     public function edit(string $id)
+
     {
+        $retorno['TipoEsporte'] = null;
         $model= Posicoes::find($id);
-
-
-        return view('Posicoes.edit',compact('model'));
+        $TipoEsporte = TipoEsporte::get();
+        return view('Posicoes.edit',compact('model', 'TipoEsporte', 'retorno',));
     }
 
     /**
@@ -85,6 +89,8 @@ class PosicoesController extends Controller
     {
 
         $cadastro = Posicoes::find($id);
+
+// dd($request->all());
 
         $cadastro->fill($request->all()) ;
 
