@@ -94,8 +94,12 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
     // Route::get('GoogleLogin', [App\Http\Controllers\EnviaEmailController::class, 'googlelogin'])->name('google.login');
 
     # Feriados
-    // Route::get('/feriados', 'FeriadoController@index');
     Route::resource('Feriados', App\Http\Controllers\FeriadoController::class);
+
+ # Representantes
+    Route::resource('Representantes', App\Http\Controllers\RepresentantesController::class);
+
+
 
     # PLANO DE CONTAS
     Route::get('PlanoContas/pesquisaavancada', [App\Http\Controllers\GoogleCalendarController::class, 'pesquisaavancada'])->name('planocontas.pesquisaavancada');
