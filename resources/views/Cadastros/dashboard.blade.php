@@ -46,6 +46,17 @@
                                         </th>
                                     @endcan
                                 </tr>
+
+                                <tr>
+                                    @can('TIPOESPORTE - LISTAR')
+                                        <th>
+                                            <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                                <a class="btn btn-success" href="/TipoEsporte">Tipo de esportes</a>
+                                            </nav>
+                                        </th>
+                                    @endcan
+                                </tr>
+
                                 <tr>
                                     @can('POSICOES - LISTAR')
                                         <th>

@@ -1,0 +1,112 @@
+<?php
+
+namespace App\Http\Controllers;
+
+
+use App\Http\Requests\PosicoesCreateRequest;
+use App\Http\Requests\TipoEsporteCreateRequest;
+use App\Models\Posicoes;
+use App\Models\TipoEsporte;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+
+
+class TipoEsporteController extends Controller
+{
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware(['permission:TIPOESPORTE - LISTAR'])->only('index');
+        $this->middleware(['permission:POSICOES - INCLUIR'])->only(['create', 'store']);
+        $this->middleware(['permission:POSICOES - EDITAR'])->only(['edit', 'update']);
+        $this->middleware(['permission:POSICOES - VER'])->only(['edit', 'update']);
+        $this->middleware(['permission:POSICOES - EXCLUIR'])->only('destroy');
+    }
+
+    /**
+     * Display a listing of the resource.
+     */
+
+
+
+    public function index()
+    {
+       $model= TipoEsporte::OrderBy('nome')->get();
+
+
+        return view('TipoEsporte.index',compact('model'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        return view('TipoEsporte.create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(TipoEsporteCreateRequest $request)
+    {
+        $model= $request->all();
+
+
+        TipoEsporte::create($model);
+
+        return redirect(route('TipoEsporte.index'));
+
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        $cadastro = TipoEsporte::find($id);
+        return view('TipoEsporte.show',compact('cadastro'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(string $id)
+    {
+        $model= TipoEsporte::find($id);
+
+
+        return view('TipoEsporte.edit',compact('model'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+
+        $cadastro = TipoEsporte::find($id);
+
+        $cadastro->fill($request->all()) ;
+
+
+        $cadastro->save();
+
+
+        return redirect(route('TipoEsporte.index'));
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        $model= TipoEsporte::find($id);
+
+
+        $model->delete();
+        return redirect(route('TipoEsporte.index'));
+
+    }
+}

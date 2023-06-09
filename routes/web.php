@@ -99,6 +99,8 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
  # Representantes
     Route::resource('Representantes', App\Http\Controllers\RepresentantesController::class);
 
+# Tipo de esportes
+Route::resource('TipoEsporte', App\Http\Controllers\TipoEsporteController::class);
 
  # Posicoes
  Route::resource('Posicoes', App\Http\Controllers\PosicoesController::class);
