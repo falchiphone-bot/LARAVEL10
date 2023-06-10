@@ -15,10 +15,18 @@
                     <div class="alert alert-success">
                         {{ session('success') }}
                     </div>
+                    {{ session(['cpf' => NULL])}}
+                 @elseif(session('cpf'))
+                    <div class="alert alert-success">
+                        {{ session('success') }}
+                    </div>
+                    {{ session(['success' => NULL])}}
+
                 @elseif (session('error'))
                     <div class="alert alert-danger">
                         {{ session('error') }}
                     </div>
+                    {{ session(['error' => NULL])}}
                 @endif
 
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">

@@ -1,16 +1,34 @@
 @csrf
 <div class="card">
     <div class="card-body">
+        @if (session('success'))
+        <div class="alert alert-success">
+            {{ session('success') }}
+        </div>
+        {{ session(['success' =>  null ]) }}
+
+    @elseif (session('error'))
+        <div class="alert alert-danger">
+            {{ session('error') }}
+        </div>
+        {{ session(['error' => NULL])}}
+
+    @endif
+
         <div class="row">
 
-            {{-- <div class="col-6">
-                <label for="data">Data</label>
-                <input class="form-control @error('data') is-invalid @else is-valid @enderror" name="data"
-                    type="Date" id="data" value="{{$model->data??null}}">
-                @error('data')
+            <div class="col-6">
+                <label for="cpf">CPF</label>
+                <input required class="form-control @error('cpf') is-invalid @else is-valid @enderror" name="cpf"
+                    type="text" id="cpf" value="{{$model->cpf??null}}">
+                @error('cpf')
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
-            </div> --}}
+            </div>
+
+
+
+
 
             <div class="col-6">
                 <label for="nome">Nome</label>
@@ -21,14 +39,6 @@
                 @enderror
             </div>
 
-            <div class="col-6">
-                <label for="cpf">CPF</label>
-                <input required class="form-control @error('cpf') is-invalid @else is-valid @enderror" name="cpf"
-                    type="text" id="cpf" value="{{$model->cpf??null}}">
-                @error('cpf')
-                    <div class="alert alert-danger">{{ $message }}</div>
-                @enderror
-            </div>
 
             <div class="col-6">
                 <label for="cnpj">CNPJ</label>
@@ -69,3 +79,13 @@
         </div>
     </div>
 </div>
+@push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.6/jquery.inputmask.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        $('#cpf').inputmask('999.999.999-99', { clearMaskOnLostFocus: false });
+    });
+</script>
+@endpush

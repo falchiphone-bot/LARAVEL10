@@ -10,7 +10,11 @@ use App\Models\Representantes;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use App\Helpers\FinancaHelper;
+use App;
+
+
+require_once app_path('helpers.php');
+
 
 class RepresentantesController extends Controller
 {
@@ -27,10 +31,6 @@ class RepresentantesController extends Controller
         $this->middleware(['permission:REPRESENTANTES - EXCLUIR'])->only('destroy');
     }
 
-    /**
-     * Display a listing of the resource.
-     */
-
 
 
     public function index()
@@ -41,26 +41,23 @@ class RepresentantesController extends Controller
         return view('Representantes.index',compact('model'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         return view('Representantes.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(RepresentantesCreateRequest $request)
     {
         $model= $request->all();
 
         $cpf = $request->cpf;
-        if (FinancaHelper::validarCPF($cpf)) {
-           dd("CPF válido!");
-        } else {
-            dd("CPF inválido!");
+
+        if(validarCPF($cpf)){
+            session(['cpf' => "CPF:  ". $request->cpf  .", VALIDADO! "]);
+        }else {
+
+            session(['error' => "CPF:  ". $request->cpf  .", DEVE SER CORRIGIDO! NADA ALTERADO! "]);
+            return redirect(route('Representantes.index'));
         }
 
 
@@ -95,6 +92,36 @@ class RepresentantesController extends Controller
      */
     public function update(Request $request, string $id)
     {
+            $cpf = $request->cpf;
+            $cnpj = $request->cnpj;
+                if($cpf )
+                {
+
+                    if(validarCPF($cpf)){
+                        session(['cpf' => "CPF:  ". $request->cpf  .", VALIDADO! "]);
+                    }else {
+
+                        session(['error' => "CPF:  ". $request->cpf  .", DEVE SER CORRIGIDO! NADA ALTERADO! "]);
+                        return  redirect(route('Representantes.edit', $id));
+                    }
+                }
+
+
+                if($cnpj)
+                {
+
+                    if(validarCNPJ($cnpj)){
+                        session(['cnpj' => "CNPJ:  ". $request->cnpj  .", VALIDADO! "]);
+                    }else {
+
+                        session(['error' => "CNPJ:  ". $request->cnpj  .", DEVE SER CORRIGIDO! NADA ALTERADO! "]);
+                        return  redirect(route('Representantes.edit', $id));
+                    }
+                }
+
+
+
+
 
         $cadastro = Representantes::find($id);
 
