@@ -109,7 +109,6 @@ class RepresentantesController extends Controller
 
                 if($cnpj)
                 {
-
                     if(validarCNPJ($cnpj)){
                         session(['cnpj' => "CNPJ:  ". $request->cnpj  .", VALIDADO! "]);
                     }else {
@@ -127,10 +126,10 @@ class RepresentantesController extends Controller
 
         $cadastro->fill($request->all()) ;
 
-
+ 
         $cadastro->save();
 
-
+        session(['success' => "NOME:  ". $request->nome  .", ALTERADO! "]);
         return redirect(route('Representantes.index'));
     }
 

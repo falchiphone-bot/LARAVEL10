@@ -15,13 +15,17 @@
                     <div class="alert alert-success">
                         {{ session('success') }}
                     </div>
-                    {{ session(['cpf' => NULL])}}
+                     {{ session(['success' => NULL])}}
                  @elseif(session('cpf'))
                     <div class="alert alert-success">
                         {{ session('success') }}
                     </div>
-                    {{ session(['success' => NULL])}}
-
+                    {{ session(['cpf' => NULL])}}
+                    @elseif(session('cnpj'))
+                    <div class="alert alert-success">
+                        {{ session('success') }}
+                    </div>
+                    {{ session(['cnpj' => NULL])}}
                 @elseif (session('error'))
                     <div class="alert alert-danger">
                         {{ session('error') }}

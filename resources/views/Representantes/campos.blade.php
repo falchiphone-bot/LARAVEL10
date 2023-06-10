@@ -27,6 +27,15 @@
             </div>
 
 
+            <div class="col-6">
+                <label for="cnpj">CNPJ</label>
+                <input class="form-control @error('cnpj') is-invalid @else is-valid @enderror" name="cnpj"
+                    type="text" id="cnpj" value="{{$model->cnpj??null}}">
+                @error('cnpj')
+                    <div class="alert alert-danger">{{ $message }}</div>
+                @enderror
+            </div>
+
 
 
 
@@ -40,14 +49,7 @@
             </div>
 
 
-            <div class="col-6">
-                <label for="cnpj">CNPJ</label>
-                <input class="form-control @error('cnpj') is-invalid @else is-valid @enderror" name="cnpj"
-                    type="text" id="cnpj" value="{{$model->cnpj??null}}">
-                @error('cnpj')
-                    <div class="alert alert-danger">{{ $message }}</div>
-                @enderror
-            </div>
+
 
             <div class="col-6">
                 <label for="email">Email</label>
@@ -83,9 +85,15 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.6/jquery.inputmask.min.js"></script>
 
+
+
+
 <script>
     $(document).ready(function() {
         $('#cpf').inputmask('999.999.999-99', { clearMaskOnLostFocus: false });
+        $('#cnpj').inputmask('99.999.999/9999-99', { clearMaskOnLostFocus: false });
     });
 </script>
+
+
 @endpush
