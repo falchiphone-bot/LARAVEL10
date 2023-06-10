@@ -43,8 +43,9 @@ class PosicoesController extends Controller
      */
     public function create()
     {
+        $retorno['TipoEsporte'] = null;
         $TipoEsporte = TipoEsporte::get();
-        return view('Posicoes.create');
+        return view('Posicoes.create', compact('TipoEsporte', 'retorno'));
     }
 
     /**
@@ -52,11 +53,22 @@ class PosicoesController extends Controller
      */
     public function store(PosicoesCreateRequest $request)
     {
-        $model= $request->all();
+
+ 
+        if($request->tipo_esporte === null){
+
+            session(['error' => "TIPO DE ESPORTE:  ". $request->nome  .", DEVE SER SELECIONADO! NADA INCLUÍDO! "]);
+            return redirect(route('Posicoes.index'));
+        }
+
+        $model = $request->all();
 
 
         Posicoes::create($model);
 
+        session(['success' => 'Posição inserida com sucesso!']);
+
+        session(['success' => "TIPO DE ESPORTE:  ". $request->nome  ." INCLUÍDO COM SUCESSO!"]);
         return redirect(route('Posicoes.index'));
 
     }
@@ -76,9 +88,12 @@ class PosicoesController extends Controller
     public function edit(string $id)
 
     {
-        $retorno['TipoEsporte'] = null;
+
         $model= Posicoes::find($id);
+        $retorno['TipoEsporte'] = $model->tipo_esporte;
         $TipoEsporte = TipoEsporte::get();
+
+        // DD($model, $retorno['TipoEsporte']);
         return view('Posicoes.edit',compact('model', 'TipoEsporte', 'retorno',));
     }
 
@@ -88,17 +103,27 @@ class PosicoesController extends Controller
     public function update(Request $request, string $id)
     {
 
+        if($request->tipo_esporte === null){
+
+            session(['error' => "TIPO DE ESPORTE:  ". $request->nome  .", DEVE SER SELECIONADO! NADA FOI ALTERADO! RETORNADO A SITUAÇÃO ANTERIOR. ATENÇÃO!"]);
+            return  redirect(route('Posicoes.edit', $id));
+        }
+        else
+        if($request->nome === null || $request->nome === ''){
+
+            session(['error' => "TIPO DE ESPORTE, DEVE SER PREENCHIDO. NÃO PODE SER VAZIO! NADA ALTERADO! "]);
+             return  redirect(route('Posicoes.edit', $id));
+        }
         $cadastro = Posicoes::find($id);
 
-// dd($request->all());
 
         $cadastro->fill($request->all()) ;
 
 
         $cadastro->save();
 
-
-        return redirect(route('Posicoes.index'));
+        session(['success' => "TIPO DE ESPORTE:  ". $request->nome  ." ALTERADO COM SUCESSO!"]);
+        return  redirect(route('Posicoes.edit', $id));
     }
 
     /**
@@ -106,10 +131,11 @@ class PosicoesController extends Controller
      */
     public function destroy(string $id)
     {
-        $model= Posicoes::find($id);
+        $model = Posicoes::find($id);
 
 
         $model->delete();
+        session(['success' => "TIPO DE ESPORTE:  ". $model->nome  ." EXCLUÍDO COM SUCESSO!"]);
         return redirect(route('Posicoes.index'));
 
     }

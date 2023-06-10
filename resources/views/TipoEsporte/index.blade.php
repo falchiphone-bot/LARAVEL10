@@ -15,10 +15,14 @@
                     <div class="alert alert-success">
                         {{ session('success') }}
                     </div>
+                    {{ session(['success' =>  null ]) }}
+
                 @elseif (session('error'))
                     <div class="alert alert-danger">
                         {{ session('error') }}
                     </div>
+                    {{ session(['error' => NULL])}}
+
                 @endif
 
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
@@ -75,13 +79,24 @@
 
                                 @can('TIPOESPORTE - EXCLUIR')
                                     <td>
-                                        <form method="POST" action="{{ route('TipoEsporte.destroy', $Model->id) }}">
+                                        {{-- <form method="POST" action="{{ route('TipoEsporte.destroy', $Model->id)->with($Model->nome) }}">
                                             @csrf
                                             <input type="hidden" name="_method" value="DELETE">
                                             <button type="submit" class="btn btn-danger">
                                                 Excluir
                                             </button>
+                                        </form> --}}
+
+
+                                        <form method="POST" action="{{ route('TipoEsporte.destroy', [$Model->id]) }}">
+                                            @csrf
+                                            @method('DELETE')
+                                            <input type="hidden" name="nome" value="{{ $Model->nome }}">
+                                            <button type="submit" class="btn btn-danger">
+                                                Excluir
+                                            </button>
                                         </form>
+
                                     </td>
                                 @endcan
                             </tr>

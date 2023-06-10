@@ -3,14 +3,19 @@
     <div class="card-body">
         <div class="row">
 
-            {{-- <div class="col-6">
-                <label for="data">Data</label>
-                <input class="form-control @error('data') is-invalid @else is-valid @enderror" name="data"
-                    type="Date" id="data" value="{{$model->data??null}}">
-                @error('data')
-                    <div class="alert alert-danger">{{ $message }}</div>
-                @enderror
-            </div> --}}
+            @if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+            {{ session(['success' =>  null ]) }}
+
+        @elseif (session('error'))
+            <div class="alert alert-danger">
+                {{ session('error') }}
+            </div>
+            {{ session(['error' => NULL])}}
+
+        @endif
 
             <div class="col-6">
                 <label for="nome">Nome</label>
@@ -28,7 +33,8 @@
                         Selecionar esporte
                     </option>
                     @foreach ($TipoEsporte as $Esporte)
-                        <option @if ($retorno['TipoEsporte'] == $Esporte->id) selected @endif
+
+                        <option @required(true) @if ($retorno['TipoEsporte'] == $Esporte->id) selected @endif
                             value="{{ $Esporte->id }}">
 
                             {{ $Esporte->nome }}

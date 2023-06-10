@@ -19,6 +19,9 @@
                             <p>
                                 NOME: {{ $cadastro->nome }}
                             </p>
+                            <p>
+                                TIPO ESPORTES: {{ $cadastro->MostraNome->nome }}
+                            </p>
 
                         </div>
                         <div class="card-footer">

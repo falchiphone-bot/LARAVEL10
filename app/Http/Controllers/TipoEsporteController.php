@@ -55,7 +55,7 @@ class TipoEsporteController extends Controller
 
 
         TipoEsporte::create($model);
-
+        session(['success' => "TIPO DE ESPORTE:  ". $request->nome  .",  INCLUÍDO COM SUCESSO!"]);
         return redirect(route('TipoEsporte.index'));
 
     }
@@ -100,12 +100,24 @@ class TipoEsporteController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
+
+       $Posicao = Posicoes::where('tipo_esporte', $id)->get();
+
+       if($Posicao->Count() > 0)
+       {
+
+        session(['error' => "TIPO DE ESPORTE:  ". $request->nome  .",  SELECIONADO! NÃO PODE SER EXCLUÍDO POIS ESTÁ SENDO USADO! RETORNADO A SITUAÇÃO ANTERIOR. ATENÇÃO!"]);
+        return redirect(route('TipoEsporte.index'));
+       }
+
+
         $model= TipoEsporte::find($id);
 
-
         $model->delete();
+
+       session(['success' => "TIPO DE ESPORTE:  ". $model->nome  .",  EXCLUÍDO COM SUCESSO!"]);
         return redirect(route('TipoEsporte.index'));
 
     }
