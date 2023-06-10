@@ -26,7 +26,7 @@
                                 CNPJ: {{ $cadastro->cnpj}}
                             </p>
                             <p>
-                                TELEFONE: {{ $cadastro->telefonel}}
+                                TELEFONE: {{ $cadastro->telefone}}
                             </p>
                             <p>
                                 EMAIL: {{ $cadastro->email}}

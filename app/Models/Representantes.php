@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 class Representantes extends Model
 {
     protected $table = 'representantes';
-    public $timestamps = false;
+    public $timestamps = true;
     protected $fillable = ['nome', 'cpf', 'email', 'telefone'];
 
     protected $casts = [

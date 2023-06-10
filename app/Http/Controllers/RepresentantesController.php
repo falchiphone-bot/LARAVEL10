@@ -10,10 +10,13 @@ use App\Models\Representantes;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-
+use App\Helpers\FinancaHelper;
 
 class RepresentantesController extends Controller
 {
+
+
+
     public function __construct()
     {
         $this->middleware('auth');
@@ -52,6 +55,13 @@ class RepresentantesController extends Controller
     public function store(RepresentantesCreateRequest $request)
     {
         $model= $request->all();
+
+        $cpf = $request->cpf;
+        if (FinancaHelper::validarCPF($cpf)) {
+           dd("CPF válido!");
+        } else {
+            dd("CPF inválido!");
+        }
 
 
         Representantes::create($model);
@@ -109,4 +119,7 @@ class RepresentantesController extends Controller
         return redirect(route('Representantes.index'));
 
     }
+
+
+
 }
