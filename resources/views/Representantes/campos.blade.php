@@ -27,10 +27,14 @@
 
                 @can('REPRESENTANTES - LIBERA VALIDAR CPF')
                     <input type="checkbox" name="liberacpf" value="1">
-                    <label for="checkbox_liberacpf">Libera o CPF</label>
+                    <label for="checkbox_liberacpf">Libera validação do CPF</label>
                     <br>
                @endcan
-
+               @can('REPRESENTANTES - LIMPA CAMPO CPF')
+                <input type="checkbox" name="limpacpf" value="1">
+                    <label for="checkbox_limpacpf">Limpa campo do CPF</label>
+                    <br>
+                @endcan
 
 
 
@@ -47,10 +51,14 @@
 
                 @can('REPRESENTANTES - LIBERA VALIDAR CNPJ')
                     <input type="checkbox" name="liberacnpj" value="1">
-                    <label for="checkbox_liberacnpj">Libera o CNPJ</label>
+                    <label for="checkbox_liberacnpj">Libera validação do CNPJ</label>
                     <br>
                @endcan
-
+               @can('REPRESENTANTES - LIMPA CAMPO CNPJ')
+                <input type="checkbox" name="limpacnpj" value="1">
+                <label for="checkbox_limpacnpj">Limpa campo CNPJ</label>
+                <br>
+               @endcan
             </div>
 
 

@@ -48,9 +48,18 @@ class RepresentantesController extends Controller
 
     public function store(RepresentantesCreateRequest $request)
     {
-        $model= $request->all();
+
 
         $cpf = $request->cpf;
+
+        $request["nome"] = strtoupper($request["nome"]);
+
+        $existecadastro = Representantes::where('nome',trim($request["nome"]))->first();
+        if($existecadastro)
+        {
+            session(['error' => "NOME:  ". $request->nome  .", já existe! NADA INCLUÍDO! "]);
+            return redirect(route('Representantes.index'));
+        }
 
         if(validarCPF($cpf)){
             session(['cpf' => "CPF:  ". $request->cpf  .", VALIDADO! "]);
@@ -60,7 +69,12 @@ class RepresentantesController extends Controller
             return redirect(route('Representantes.index'));
         }
 
+        $enderecoEmailIncorreto = $request->email;
+        $enderecoEmailCorrigido = corrigirEnderecoEmail($enderecoEmailIncorreto);
+        $request["email"] = $enderecoEmailCorrigido;
 
+
+        $model= $request->all();
         Representantes::create($model);
 
         return redirect(route('Representantes.index'));
@@ -96,6 +110,9 @@ class RepresentantesController extends Controller
             $cnpj = $request->cnpj;
             $LiberaCPF = $request->liberacpf;
             $LiberaCNPJ = $request->liberacnpj;
+            $limpacpf = $request->limpacpf;
+            $limpacnpj = $request->limpacnpj;
+
 
         if($LiberaCPF == null)
         {
@@ -116,7 +133,10 @@ class RepresentantesController extends Controller
 
         }
         else{
-            $request["cpf"] = "";
+            if($limpacpf){
+                $request["cpf"] = "";
+            }
+
         }
 
 
@@ -138,13 +158,40 @@ class RepresentantesController extends Controller
 
         }
         else{
-            $request["cnpj"] = null;
+            if($limpacnpj){
+                $request["cnpj"] = null;
+            }
+
         }
+
+
+// Obtém o endereço de e-mail do objeto $request
+$email = $request->email;
+
+// Remove caracteres inválidos do endereço de e-mail
+$emailCorrigido = preg_replace('/[^a-zA-Z0-9.@_-]/', '', $email);
+
+// Verifica se o símbolo "@" está presente no endereço corrigido
+if (strpos($emailCorrigido, '@') === false) {
+    // Endereço de e-mail inválido, pode lidar com o erro aqui
+    // Por exemplo, lançar uma exceção ou retornar uma mensagem de erro
+    // ...
+
+    session(['error' => "EMAIL:  ". $request->email  .", DEVE SER CORRIGIDO! NADA ALTERADO! RETORNADO AO VALOR JÁ REGISTRADO! "]);
+    return  redirect(route('Representantes.edit', $id));
+
+    // Definir o endereço de e-mail corrigido como vazio ou null
+    // $emailCorrigido = '';
+}
+
+// Atualiza a propriedade email do objeto $request com o endereço corrigido
+$request["email"] = $emailCorrigido;
+
 
 
 
         $cadastro = Representantes::find($id);
-
+        $request["nome"] = strtoupper($request["nome"]);
         $cadastro->fill($request->all()) ;
 
 

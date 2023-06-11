@@ -1,4 +1,8 @@
 <?php
+
+ 
+
+
 function ValidarCPF($cpf) {
         // Remover caracteres não numéricos
         $cpf = preg_replace('/[^0-9]/', '', $cpf);
