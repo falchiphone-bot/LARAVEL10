@@ -54,12 +54,22 @@ class PosicoesController extends Controller
     public function store(PosicoesCreateRequest $request)
     {
 
- 
+
         if($request->tipo_esporte === null){
 
             session(['error' => "TIPO DE ESPORTE:  ". $request->nome  .", DEVE SER SELECIONADO! NADA INCLUÍDO! "]);
             return redirect(route('Posicoes.index'));
         }
+
+        $request["nome"] = strtoupper($request["nome"]);
+        $existecadastro = Posicoes::where('nome',trim($request["nome"]))->first();
+        if($existecadastro)
+        {
+            session(['error' => "NOME:  ". $request->nome  .", já existe! "]);
+            return redirect(route('Posicoes.index'));
+        }
+
+
 
         $model = $request->all();
 
@@ -114,6 +124,16 @@ class PosicoesController extends Controller
             session(['error' => "TIPO DE ESPORTE, DEVE SER PREENCHIDO. NÃO PODE SER VAZIO! NADA ALTERADO! "]);
              return  redirect(route('Posicoes.edit', $id));
         }
+
+        $request["nome"] = strtoupper($request["nome"]);
+        $existecadastro = Posicoes::where('nome',trim($request["nome"]))->first();
+        if($existecadastro)
+        {
+            session(['error' => "NOME:  ". $request->nome  .", já existe ou não precisa ser alterado! "]);
+            return redirect(route('Posicoes.index'));
+        }
+
+
         $cadastro = Posicoes::find($id);
 
 

@@ -1,6 +1,30 @@
 <?php
 
- 
+function corrigirEnderecoEmail($enderecoEmail) {
+    // Verifica se o endereço de e-mail contém o símbolo "@"
+    if (strpos($enderecoEmail, '@') === false) {
+        // Endereço de e-mail inválido, retorna o endereço original
+        return $enderecoEmail;
+    }
+
+    // Remove caracteres inválidos do endereço de e-mail
+    $enderecoCorrigido = preg_replace('/[^a-zA-Z0-9.@_-]/', '', $enderecoEmail);
+
+    // Obtém o nome do usuário e o domínio do endereço corrigido
+    $partesEndereco = explode('@', $enderecoCorrigido);
+    $usuario = $partesEndereco[0];
+    $dominio = isset($partesEndereco[1]) ? $partesEndereco[1] : '';
+
+    // Remove caracteres inválidos do nome do usuário e do domínio
+    $usuarioCorrigido = preg_replace('/[^a-zA-Z0-9._-]/', '', $usuario);
+    $dominioCorrigido = preg_replace('/[^a-zA-Z0-9.-]/', '', $dominio);
+
+    // Reconstroi o endereço corrigido com o símbolo "@" no local correto
+    $enderecoCorrigido = $usuarioCorrigido . '@' . $dominioCorrigido;
+
+    return $enderecoCorrigido;
+}
+
 
 
 function ValidarCPF($cpf) {

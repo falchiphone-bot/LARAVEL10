@@ -51,6 +51,15 @@ class TipoEsporteController extends Controller
      */
     public function store(TipoEsporteCreateRequest $request)
     {
+        $request["nome"] = strtoupper($request["nome"]);
+        $existecadastro = TipoEsporte::where('nome',trim($request["nome"]))->first();
+        if($existecadastro)
+        {
+            session(['error' => "NOME:  ". $request->nome  .", já existe! NADA INCLUÍDO! "]);
+            return redirect(route('TipoEsporte.index'));
+        }
+
+
         $model= $request->all();
 
 
@@ -85,6 +94,15 @@ class TipoEsporteController extends Controller
      */
     public function update(Request $request, string $id)
     {
+
+        $request["nome"] = strtoupper($request["nome"]);
+        $existecadastro = TipoEsporte::where('nome',trim($request["nome"]))->first();
+        if($existecadastro)
+        {
+            session(['error' => "NOME:  ". $request->nome  .", já existe ou não precisa ser alterado! "]);
+            return redirect(route('TipoEsporte.index'));
+        }
+
 
         $cadastro = TipoEsporte::find($id);
 
