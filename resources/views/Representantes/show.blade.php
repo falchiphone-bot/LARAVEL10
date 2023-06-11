@@ -14,6 +14,11 @@
                     <div class="card">
                         <div class="card-header">
                             EXIBIÇÃO DO REGISTRO
+                            <input type="checkbox" name="vercriarlancamento" value="1">
+                            <label for="checkbox_enviar">
+                                Libera validaçao do CPF
+                            </label>
+                            <br>
                         </div>
                         <div class="card-body">
                             <p>

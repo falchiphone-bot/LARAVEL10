@@ -37,10 +37,7 @@
                     <a class="btn btn-warning" href="Cadastros">Retornar a lista de opções</a> </nav>
 
 
-                @can('REPRESENTANTES - INCLUIR')
-                    <a href="{{ route('Representantes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
-                        aria-disabled="true">Incluir representante</a>
-                @endcan
+
                 <div class="card-header">
                     <div class="badge bg-info text-wrap" style="width: 100%;font-size: 24px">
                         <p>Total de representantes cadastrados no sistema de gerenciamento administrativo e contábil:
@@ -48,18 +45,22 @@
                     </div>
                 </div>
 
-
+  @can('REPRESENTANTES - INCLUIR')
+                    <a href="{{ route('Representantes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
+                        aria-disabled="true">Incluir representante</a>
+                @endcan
 
             </div>
 
             <tbody>
-                <table class="table" style="background-color: rgb(247, 247, 213);">
+                <table class="table" style="background-color: rgb(247, 247, 255);">
                     <thead>
                         <tr>
                             <th scope="col" class="px-6 py-4">NOME</th>
                             <th scope="col" class="px-6 py-4">TELEFONE</th>
                             <th scope="col" class="px-6 py-4">EMAIL</th>
                             <th scope="col" class="px-6 py-4">CPF</th>
+                            <th scope="col" class="px-6 py-4">CNPJ</th>
                             <th scope="col" class="px-6 py-4"></th>
                         </tr>
                     </thead>
@@ -80,7 +81,9 @@
                                 <td class="">
                                     {{ $Model->cpf }}
                                 </td>
-
+                                <td class="">
+                                    {{ $Model->cnpj }}
+                                </td>
                                 @can('REPRESENTANTES - EDITAR')
                                     <td>
                                         <a href="{{ route('Representantes.edit', $Model->id) }}" class="btn btn-success" tabindex="-1"

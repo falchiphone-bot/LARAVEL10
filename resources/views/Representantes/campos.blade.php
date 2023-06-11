@@ -24,6 +24,10 @@
                 @error('cpf')
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
+                <input type="checkbox" name="liberacpf" value="1">
+                <label for="checkbox_liberacpf">Libera o CPF</label>
+                <br>
+
             </div>
 
 
@@ -34,6 +38,9 @@
                 @error('cnpj')
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
+                <input type="checkbox" name="liberacnpj" value="1">
+                <label for="checkbox_liberacnpj">Libera o CNPJ</label>
+                <br>
             </div>
 
 

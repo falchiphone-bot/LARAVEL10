@@ -94,17 +94,35 @@ class RepresentantesController extends Controller
     {
             $cpf = $request->cpf;
             $cnpj = $request->cnpj;
-                if($cpf )
-                {
+            $LiberaCPF = $request->liberacpf;
+            $LiberaCNPJ = $request->liberacnpj;
 
+        if($LiberaCPF == null)
+        {
+
+
+            if($cpf)
+                {
                     if(validarCPF($cpf)){
                         session(['cpf' => "CPF:  ". $request->cpf  .", VALIDADO! "]);
-                    }else {
+                    }else
+                    {
 
                         session(['error' => "CPF:  ". $request->cpf  .", DEVE SER CORRIGIDO! NADA ALTERADO! "]);
                         return  redirect(route('Representantes.edit', $id));
+
                     }
                 }
+
+        }
+        else{
+            $request["cpf"] = "";
+        }
+
+
+
+        if($LiberaCNPJ == null)
+        {
 
 
                 if($cnpj)
@@ -118,7 +136,10 @@ class RepresentantesController extends Controller
                     }
                 }
 
-
+        }
+        else{
+            $request["cnpj"] = null;
+        }
 
 
 
@@ -126,7 +147,7 @@ class RepresentantesController extends Controller
 
         $cadastro->fill($request->all()) ;
 
- 
+
         $cadastro->save();
 
         session(['success' => "NOME:  ". $request->nome  .", ALTERADO! "]);
