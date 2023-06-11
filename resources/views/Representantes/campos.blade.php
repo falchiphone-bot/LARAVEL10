@@ -25,7 +25,7 @@
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
 
-                @can('REPRESENTANTES - LIBERA CPF')
+                @can('REPRESENTANTES - LIBERA VALIDAR CPF')
                     <input type="checkbox" name="liberacpf" value="1">
                     <label for="checkbox_liberacpf">Libera o CPF</label>
                     <br>
@@ -45,7 +45,7 @@
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
 
-                @can('REPRESENTANTES - LIBERA CNPJ')
+                @can('REPRESENTANTES - LIBERA VALIDAR CNPJ')
                     <input type="checkbox" name="liberacnpj" value="1">
                     <label for="checkbox_liberacnpj">Libera o CNPJ</label>
                     <br>
