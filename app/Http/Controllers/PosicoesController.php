@@ -9,6 +9,7 @@ use App\Models\TipoEsporte;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 
@@ -54,7 +55,6 @@ class PosicoesController extends Controller
     public function store(PosicoesCreateRequest $request)
     {
 
-
         if($request->tipo_esporte === null){
 
             session(['error' => "TIPO DE ESPORTE:  ". $request->nome  .", DEVE SER SELECIONADO! NADA INCLUÍDO! "]);
@@ -69,8 +69,7 @@ class PosicoesController extends Controller
             return redirect(route('Posicoes.index'));
         }
 
-
-
+        $request['user_created'] = Auth::user()->email;
         $model = $request->all();
 
 
@@ -113,6 +112,9 @@ class PosicoesController extends Controller
     public function update(Request $request, string $id)
     {
 
+
+
+
         if($request->tipo_esporte === null){
 
             session(['error' => "TIPO DE ESPORTE:  ". $request->nome  .", DEVE SER SELECIONADO! NADA FOI ALTERADO! RETORNADO A SITUAÇÃO ANTERIOR. ATENÇÃO!"]);
@@ -136,7 +138,7 @@ class PosicoesController extends Controller
 
         $cadastro = Posicoes::find($id);
 
-
+        $request['user_updated'] = Auth::user()->email;
         $cadastro->fill($request->all()) ;
 
 

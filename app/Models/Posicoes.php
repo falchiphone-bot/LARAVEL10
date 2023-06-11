@@ -7,11 +7,13 @@ class Posicoes extends Model
 {
     protected $table = 'posicoes';
     public $timestamps = true;
-    protected $fillable = ['nome', 'tipo_esporte' ];
+    protected $fillable = ['nome', 'tipo_esporte', 'user_created', 'user_updated' ];
 
     protected $casts = [
         'nome' => 'string',
         'tipo_esporte' => 'int',
+        'user_created' => 'string',
+        'user_updated' => 'string',
     ];
 
 
