@@ -105,6 +105,8 @@ Route::resource('TipoEsporte', App\Http\Controllers\TipoEsporteController::class
  # Posicoes
  Route::resource('Posicoes', App\Http\Controllers\PosicoesController::class);
 
+# Redes sociais
+Route::resource('RedeSocial', App\Http\Controllers\RedeSocialController::class);
 
 
     # PLANO DE CONTAS

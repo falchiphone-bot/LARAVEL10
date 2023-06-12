@@ -4,8 +4,6 @@
         <div class="container">
 
             <div class="card">
-
-
                 @if (session('Lancamento'))
                     <div class="alert alert-success">
                         {{ session('Lancamento') }}
@@ -20,8 +18,6 @@
                         Menu Principal do sistema administrativo e contábil - CADASTROS
 
                     </div>
-
-
                 </div>
                 <div class="card-body">
                     <table class="table table-success table-striped">
@@ -62,6 +58,16 @@
                                         <th>
                                             <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                                                 <a class="btn btn-success" href="/Posicoes">Posições</a>
+                                            </nav>
+                                        </th>
+                                    @endcan
+                                </tr>
+
+                                <tr>
+                                    @can('REDESOCIAL - LISTAR')
+                                        <th>
+                                            <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                                <a class="btn btn-success" href="/RedeSocial">Redes sociais</a>
                                             </nav>
                                         </th>
                                     @endcan
