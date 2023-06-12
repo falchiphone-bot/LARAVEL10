@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\RedeSocialCreateRequest;
 use App\Models\RedeSocial;
+use App\Models\RedeSocialUsuarios;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -93,7 +94,7 @@ class RedeSocialController  extends Controller
      */
     public function update(Request $request, string $id)
     {
-        
+
         $request["nome"] = strtoupper($request["nome"]);
         $existecadastro = RedeSocial::where('nome',trim($request["nome"]))->first();
         if($existecadastro)
@@ -122,18 +123,17 @@ class RedeSocialController  extends Controller
     public function destroy(Request $request, string $id)
     {
 
-       $RedeSocial = RedeSocial::where('nome', $id)->get();
+       $RedeSocialUsuario = RedeSocialUsuarios::where('RedeSocialRepresentante', $id)->get();
 
-       if($RedeSocial->Count() > 0)
+       if($RedeSocialUsuario->Count() > 0)
        {
-
         session(['error' => "REDE SOCIAL:  ". $request->nome  .",  SELECIONADO NÃO PODE SER EXCLUÍDO POIS ESTÁ SENDO USADO! RETORNADO A SITUAÇÃO ANTERIOR. ATENÇÃO!"]);
         return redirect(route('RedeSocial.index'));
        }
 
 
-        $model= RedeSocial::find($id);
-
+        $model = RedeSocial::find($id);
+ 
         $model->delete();
 
        session(['success' => "REDE SOCIAL:  ". $model->nome  .",  EXCLUÍDO COM SUCESSO!"]);

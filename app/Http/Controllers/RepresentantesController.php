@@ -100,10 +100,9 @@ class RepresentantesController extends Controller
     public function edit(string $id)
     {
         session(['Representante_id' => $id]);
-        $RedeSocial = RedeSocial::get();
+        $RedeSocial = RedeSocial::orderBy('nome')->get();
 
-        $redesocialUsuario = RedeSocialUsuarios::where('RedeSocialRepresentante_id',$id)->get();
-
+        $redesocialUsuario = RedeSocialUsuarios::where('RedeSocialRepresentante_id',$id)->orderBy('RedeSocialRepresentante')->get();
 
 
         $model= Representantes::find($id);
