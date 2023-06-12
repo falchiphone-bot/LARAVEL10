@@ -169,14 +169,20 @@
 
 
                     <tr>
-                        <td>{{ $item->RedeSocialRepresentantes->nome }}:</td>
-                        <td><a href="{{ $item->RedeSocial_complemento }}"
-                                target="_blank">{{ $item->RedeSocial_complemento }}</a></td>
-                                @can('REDESOCIAL - EDITAR')
-                                    <td>
-                                        <a href="{{ route('RedeSocial.edit', $item->id) }}" class="btn btn-success" tabindex="-1"
-                                            role="button" aria-disabled="true">Editar</a>
-                                    </td>
+                        <td>{{ $item->RedeSocialRepresentantes->nome ?? null}}:</td>
+                        <td><a href="{{ $item->RedeSocial_complemento ?? null }}"
+                                target="_blank">{{ $item->RedeSocial_complemento ?? null}}</a></td>
+
+                                @can('REDESOCIALUSUARIO - EXCLUIR')
+                                <td>
+                                    <form method="POST" action="{{ route('RedeSocialUsuarios.destroy', $item->id) }}">
+                                        @csrf
+                                        <input type="hidden" name="_method" value="DELETE">
+                                        <button type="submit" class="btn btn-danger">
+                                            Excluir
+                                        </button>
+                                    </form>
+                                </td>
                                 @endcan
                     </tr>
 

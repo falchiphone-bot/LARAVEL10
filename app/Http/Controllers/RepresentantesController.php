@@ -237,4 +237,29 @@ $request["email"] = $emailCorrigido;
         return redirect(route('Representantes.index'));
 
     }
+
+    // public function UpdateRedeSocialRepresentantes(Request $request, string $id)
+    // {
+
+    //     $cadastro =  RedeSocialUsuarios::find($id);
+    //     $request['user_updated'] = Auth ::user()->email;
+    //     $cadastro->fill($request->all()) ;
+
+    //     $cadastro->save();
+
+    //     return redirect(route('Representantes.index'));
+    // }
+    public function DestroyRedeSocialRepresentantes(string $id)
+    {
+            dd($id);
+
+            $model = RedeSocialUsuarios::find($id);
+
+
+
+        $model->delete();
+        session(['success' => "REDE SOCIAIS:  ". $model->RedeSocialRepresentantes->nome  ." EXCLUÍDO COM SUCESSO!"]);
+        return redirect(route('Representantes.index'));
+    }
+
 }

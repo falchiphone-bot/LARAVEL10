@@ -109,6 +109,8 @@ Route::resource('TipoEsporte', App\Http\Controllers\TipoEsporteController::class
 # Redes sociais
 Route::resource('RedeSocial', App\Http\Controllers\RedeSocialController::class);
 
+# Redes sociais usuários
+Route::resource('RedeSocialUsuarios', App\Http\Controllers\RedeSocialUsuarioController::class);
 
     # PLANO DE CONTAS
     Route::get('PlanoContas/pesquisaavancada', [App\Http\Controllers\GoogleCalendarController::class, 'pesquisaavancada'])->name('planocontas.pesquisaavancada');
