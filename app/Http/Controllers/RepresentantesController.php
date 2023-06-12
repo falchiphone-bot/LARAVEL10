@@ -5,13 +5,16 @@ namespace App\Http\Controllers;
 use App\Http\Requests\FeriadoCreateRequest;
 use App\Http\Requests\FeriadosCreateRequest;
 use App\Http\Requests\RepresentantesCreateRequest;
+use App\Http\Requests\RedeSocialRepresentantesCreateRequest;
 use App\Models\Feriado;
 use App\Models\Representantes;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App;
-
+use App\Models\RedeSocial;
+use App\Models\RedeSocialUsuarios;
+use Illuminate\Support\Facades\Auth;
 
 require_once app_path('helpers.php');
 
@@ -36,6 +39,7 @@ class RepresentantesController extends Controller
     public function index()
     {
        $model= Representantes::OrderBy('nome')->get();
+
 
 
         return view('Representantes.index',compact('model'));
@@ -95,10 +99,19 @@ class RepresentantesController extends Controller
      */
     public function edit(string $id)
     {
+        session(['Representante_id' => $id]);
+        $RedeSocial = RedeSocial::get();
+
+        $redesocialUsuario = RedeSocialUsuarios::where('RedeSocialRepresentante_id',$id)->get();
+
+
+
         $model= Representantes::find($id);
+         $retorno['redesocial'] = $model->RedeSocialRepresentante_id;
+
         // dd($cadastro);
 
-        return view('Representantes.edit',compact('model'));
+        return view('Representantes.edit',compact('model', 'RedeSocial', 'retorno','redesocialUsuario'));
     }
 
     /**
@@ -214,6 +227,14 @@ $request["email"] = $emailCorrigido;
 
     }
 
+    public function CreateRedeSocialRepresentantes(RedeSocialRepresentantesCreateRequest $request)
+    {
 
+        $request['user_created'] = Auth ::user()->email;
+        $model= $request->all();
+        RedeSocialUsuarios::create($model);
 
+        return redirect(route('Representantes.index'));
+
+    }
 }

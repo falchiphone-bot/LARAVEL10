@@ -93,7 +93,7 @@ class RedeSocialController  extends Controller
      */
     public function update(Request $request, string $id)
     {
-
+        
         $request["nome"] = strtoupper($request["nome"]);
         $existecadastro = RedeSocial::where('nome',trim($request["nome"]))->first();
         if($existecadastro)

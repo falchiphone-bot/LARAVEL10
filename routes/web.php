@@ -97,9 +97,10 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
     Route::resource('Feriados', App\Http\Controllers\FeriadoController::class);
 
  # Representantes
+    Route::post('Representantes/CreateRedeSocialRepresentantes', [App\Http\Controllers\RepresentantesController::class, 'CreateRedeSocialRepresentantes'])->name('representantes.RedeSocialRepresentantes');
     Route::resource('Representantes', App\Http\Controllers\RepresentantesController::class);
 
-# Tipo de esportes
+ # Tipo de esportes
 Route::resource('TipoEsporte', App\Http\Controllers\TipoEsporteController::class);
 
  # Posicoes
