@@ -65,7 +65,8 @@
                     {{-- <form action="/LeituraArquivo/GerarPDF" method="post">
                         <button type="submit" name="GerarPDF" value="true">Gerar PDF</button>
                       </form> --}}
-                      <a class="btn btn-danger" href="/LeituraArquivo/GerarPDF">Gerar PDF</a>
+                      <a class="btn btn-danger" href="/LeituraArquivo/GerarPDF" target="_blank">Gerar PDF</a>
+
                     <thead>
                         <tr>
                             <th>#</th>

@@ -232,7 +232,9 @@
                                     <label for="checkbox_enviar">Ver se vai criar lançamento sem histórico
                                         pré-programado</label>
                                     <br>
-
+                                    <input type="checkbox" name="DesmarcarConferido" value="1">
+                                    <label for="checkbox_enviar">Desmarcar lançamento conferido</label>
+                                    <br>
                                     @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA CONCILIACA0 BANCARIA E AUTORIZAR CRIAR
                                         LANCAMENTO')
                                         <input type="checkbox" name="criarlancamentosemhistorico" value="1">

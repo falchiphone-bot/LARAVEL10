@@ -5,9 +5,9 @@
 
             <div class="card">
                 <div class="badge bg-primary text-wrap" style="width: 100%;">
-                    FERIADOS DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
+                   REDES SOCIAIS DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
                 </div>
-                <a href="{{ route('Feriados.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
+                <a href="{{ route('Posicoes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
                     aria-disabled="true">Incluir registros</a>
 
                 <div class="row">
@@ -17,14 +17,15 @@
                         </div>
                         <div class="card-body">
                             <p>
-                                Nome: {{ $cadastro->nome }}
+                                NOME: {{ $cadastro->nome }}
                             </p>
                             <p>
-                                Nome: {{ $cadastro->observacao }}
+                                ENDEREÇO VIRTUAL - URL: <a href="{{ $cadastro->url }}" target="_blank">{{ $cadastro->url }}</a>
                             </p>
+
                         </div>
                         <div class="card-footer">
-                            <a href="{{ route('Feriados.index') }}">Retornar para a lista</a>
+                            <a href="{{ route('RedeSocial.index') }}">Retornar para a lista</a>
                         </div>
                     </div>
                 </div>

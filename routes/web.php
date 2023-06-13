@@ -94,8 +94,23 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
     // Route::get('GoogleLogin', [App\Http\Controllers\EnviaEmailController::class, 'googlelogin'])->name('google.login');
 
     # Feriados
-    // Route::get('/feriados', 'FeriadoController@index');
     Route::resource('Feriados', App\Http\Controllers\FeriadoController::class);
+
+ # Representantes
+    Route::post('Representantes/CreateRedeSocialRepresentantes', [App\Http\Controllers\RepresentantesController::class, 'CreateRedeSocialRepresentantes'])->name('representantes.RedeSocialRepresentantes');
+    Route::resource('Representantes', App\Http\Controllers\RepresentantesController::class);
+
+ # Tipo de esportes
+Route::resource('TipoEsporte', App\Http\Controllers\TipoEsporteController::class);
+
+ # Posicoes
+ Route::resource('Posicoes', App\Http\Controllers\PosicoesController::class);
+
+# Redes sociais
+Route::resource('RedeSocial', App\Http\Controllers\RedeSocialController::class);
+
+# Redes sociais usuários
+Route::resource('RedeSocialUsuarios', App\Http\Controllers\RedeSocialUsuarioController::class);
 
     # PLANO DE CONTAS
     Route::get('PlanoContas/pesquisaavancada', [App\Http\Controllers\GoogleCalendarController::class, 'pesquisaavancada'])->name('planocontas.pesquisaavancada');
@@ -145,6 +160,7 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
 
     #Contas
     Route::get('Contas/Extrato/{contaID}', [App\Http\Controllers\ContaController::class, 'extrato']);
+    Route::get('Contas/GerarExtratoPDF', [App\Http\Livewire\Conta\Extrato::class, 'GerarExtratoPDF'])->name('Extrato.gerarpdf');
     Route::resource('Contas', App\Http\Controllers\ContaController::class);
     Route::resource('ContasCobranca', App\Http\Controllers\ContaCobrancaController::class);
 
@@ -206,6 +222,11 @@ Route::resource('LancamentosDocumentos', App\Http\Controllers\LancamentosDocumen
 
     Route::get('/Cobranca', function () {
         return view('Cobranca/dashboard');
+    });
+
+    #Cadastros
+    Route::get('/Cadastros', function () {
+        return view('Cadastros/dashboard');
     });
 });
 
