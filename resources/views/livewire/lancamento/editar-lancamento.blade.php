@@ -176,7 +176,7 @@
                                     @foreach ($comentarios as $comentario)
                                         <li>{{ $comentario->Descricao }} <br />Em
                                             {{ $comentario->Created->format('d/m/Y H:i:s') }} | Por:
-                                            {{ $comentario->user->name }}</li>
+                                            {{ $comentario->user->name ?? null}}</li>
                                     @endforeach
                                 @endif
                             </p>

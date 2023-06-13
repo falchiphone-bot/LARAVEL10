@@ -327,6 +327,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                 //         1 .
                 //         '!',
                 // ]);
+
             } else {
                 // if ($request->criarlancamentosemhistorico == true) {
 
@@ -360,6 +361,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
 
                 if ($NumeroParcela !== null && $QuantidadeParcela !== null) {
                     if ($NumeroParcela > 1) {
+                        // dd($NumeroParcela, $QuantidadeParcela, $linha );
                         continue;
                     }
 
@@ -386,6 +388,8 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                         $registros[] = $novoRegistroParcelas;
                     }
 
+
+
                     foreach ($registros as $incluirregistros) {
                         $lancamentoregistros = Lancamento::where('DataContabilidade', $incluirregistros['Data'])
                             ->where('Valor', $valorString = $incluirregistros['Valor'])
@@ -398,10 +402,10 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                             // dd('JÁ LANÇADO', $Descricao, $incluirregistros);
                             continue;
                         } else {
-                            if ($request->criarlancamentosemhistorico !== true) {
-                                continue;
-                            }
-
+                            // if ($request->criarlancamentosemhistorico !== true) {
+                            //     continue;
+                            // }
+                            // dd($linha, $Descricao,'400',$lancamentoregistros );
                             Lancamento::create([
                                 'Valor' => $incluirregistros['Valor'],
                                 'EmpresaID' => $incluirregistros['EmpresaID'],
