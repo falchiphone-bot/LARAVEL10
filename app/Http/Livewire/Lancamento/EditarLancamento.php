@@ -115,6 +115,8 @@ class EditarLancamento extends Component
                 'Created' => date('d/m/Y H:i:s'),
                 'Visualizado' => 0,
             ]);
+            $this->comentario = null;
+            $this->comentarios = LancamentoComentario::where('LancamentoID', $this->lancamento->ID)->get();
             session()->flash('message', 'Comentário adicionado.');
         } else {
             $this->addError('save', 'Preecha comentário para salvar!');

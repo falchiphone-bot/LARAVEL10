@@ -83,7 +83,7 @@ class Extrato extends Component
     {
         if ($item) {
             $this->selConta = $item;
-            cache(['extrato_ContaID' => $item]);
+            session(['extrato_ContaID' => $item]);
             $this->Conta = Conta::find($item);
             $this->data_bloqueio_conta = $this->Conta->Bloqueiodataanterior?->format('Y-m-d');
             // $this->emit('search');
@@ -101,9 +101,9 @@ class Extrato extends Component
 
     public function mount($contaID)
     {
-        cache(['extrato_ContaID' => $contaID]);
-        $this->De = cache('Extrato_De') ?? date('Y-m-d');
-        $this->Ate = cache('Extrato_Ate') ?? date('Y-m-d');
+        session(['extrato_ContaID' => $contaID]);
+        $this->De = session('Extrato_De') ?? date('Y-m-d');
+        $this->Ate = session('Extrato_Ate') ?? date('Y-m-d');
 
         $this->Conta = Conta::find($contaID);
         $this->selEmpresa = $this->Conta->EmpresaID;
@@ -181,7 +181,7 @@ class Extrato extends Component
 
     public function search()
     {
-        $contaID = cache('extrato_ContaID') ?? $this->selConta;
+        $contaID = session('extrato_ContaID') ?? $this->selConta;
         if ($contaID) {
             $lancamentos = Lancamento::where(function ($query) use ($contaID) {
                 return $query->where('Lancamentos.ContaDebitoID', $contaID)->orWhere('Lancamentos.ContaCreditoID', $contaID);
@@ -194,12 +194,12 @@ class Extrato extends Component
                     $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
                 }
                 $lancamentos->where('DataContabilidade', '>=', $de);
-                cache(['Extrato_De' => $this->De]);
+                session(['Extrato_De' => $this->De]);
             }
             if ($this->Ate) {
                 $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
                 $lancamentos->where('DataContabilidade', '<=', $ate);
-                cache(['Extrato_Ate' => $this->Ate]);
+                session(['Extrato_Ate' => $this->Ate]);
             }
 
             if ($this->Descricao) {
