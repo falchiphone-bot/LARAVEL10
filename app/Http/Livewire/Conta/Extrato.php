@@ -119,8 +119,8 @@ class Extrato extends Component
         $this->data_bloqueio_empresa = $this->Empresa->Bloqueiodataanterior?->format('Y-m-d');
         $this->selConta = $this->Conta->ID;
 
-        $de = Carbon::createFromDate($this->De)->format('Y-m-d 00:00:00');
-        $ate = Carbon::createFromDate($this->Ate)->format('Y-m-d 23:59:59');
+        $de = Carbon::createFromDate($this->De)->format('d-m-Y 00:00:00');
+        $ate = Carbon::createFromDate($this->Ate)->format('d-m-Y 23:59:59');
 
         $lancamentos = Lancamento::where(function ($query) use ($contaID) {
             return $query->where('ContaDebitoID', $contaID)->orWhere('ContaCreditoID', $contaID);
