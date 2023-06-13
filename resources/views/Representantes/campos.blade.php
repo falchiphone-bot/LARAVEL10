@@ -91,8 +91,21 @@
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
             </div>
+            <div class="col-6">
+                <label for="telefone">Tipo de representante</label>
+            <select class="form-control select2" id="tipo_representante" name="tipo_representante">
+                <option value="">
+                    Tipos de representantes
+                </option>
+                @foreach ($tipor as $item)
+                 <option @required(true) @if ($tiporep['tiporepresentante'] == $item->id) selected @endif
+                    value="{{ $item->id }}">
+                    {{ $item->nome }}
 
-
+                </option>
+            @endforeach
+            </select>
+        </div>
         </div>
 
 

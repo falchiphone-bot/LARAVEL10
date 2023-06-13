@@ -36,6 +36,9 @@
                             <p>
                                 EMAIL: {{ $cadastro->email}}
                             </p>
+                            <p>
+                                TIPO REPRESENTANTE: {{ $cadastro->mostratipo->nome}}
+                            </p>
                         </div>
                         <div class="card-footer">
                             <a href="{{ route('Representantes.index') }}">Retornar para a lista</a>

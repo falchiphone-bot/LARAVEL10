@@ -1,6 +1,7 @@
 <?php
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Representantes extends Model
 {
@@ -13,6 +14,13 @@ class Representantes extends Model
         'cpf' => 'string',
         'cnpj' => 'string',
         'email' => 'string',
-        'telefone' => 'string'
+        'telefone' => 'string',
+        'tipo_representante' => 'int'
     ];
+
+
+    public function MostraTipo(): HasOne
+    {
+        return $this->hasOne(TipoRepresentante::class, 'id', 'tipo_representante');
+    }
 }

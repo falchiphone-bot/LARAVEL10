@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Validator;
 use App;
 use App\Models\RedeSocial;
 use App\Models\RedeSocialUsuarios;
+use App\Models\TipoRepresentante;
 use Illuminate\Support\Facades\Auth;
 
 require_once app_path('helpers.php');
@@ -105,12 +106,17 @@ class RepresentantesController extends Controller
         $redesocialUsuario = RedeSocialUsuarios::where('RedeSocialRepresentante_id',$id)->orderBy('RedeSocialRepresentante')->get();
 
 
-        $model= Representantes::find($id);
-         $retorno['redesocial'] = $model->RedeSocialRepresentante_id;
+        $tipor  = TipoRepresentante::orderBy('nome')->get();
+//  dd($tiporepresentante['0']->id);
 
+        $model= Representantes::find($id);
+         $retorno['redesocial'] = $model->RedeSocialRepresentante_id ;
+         $tiporep['tiporepresentante'] = $model->tipo_representante ;
+
+        // dd($model, $tiporepresentante['tiporepresentante'], $retorno['redesocial'] );
         // dd($cadastro);
 
-        return view('Representantes.edit',compact('model', 'RedeSocial', 'retorno','redesocialUsuario'));
+        return view('Representantes.edit',compact('model', 'RedeSocial', 'retorno','redesocialUsuario','tipor','tiporep'));
     }
 
     /**

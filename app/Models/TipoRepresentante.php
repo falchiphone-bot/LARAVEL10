@@ -4,12 +4,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class TipoRepresentante extends Model
 {
-    protected $table = 'TipoRepresentante';
+    protected $table = 'tiporepresentante';
     public $timestamps = true;
     protected $fillable = ['nome'];
 
     protected $casts = [
         'nome' => 'string',
-        'tipo_representante' => 'int',
+
     ];
 }
