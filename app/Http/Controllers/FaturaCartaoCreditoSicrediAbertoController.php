@@ -124,8 +124,14 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
             $DespesaContaDebitoID = '19426';
             $CashBackContaCreditoID = '19271';
             // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
-        } elseif ($linhas1_7 === 'PEDRO ROBERTO FALCHI-4891.67XX.XXXX.2113') {
-            $ContaCartao = '17458';
+            } elseif ($linhas1_7 === 'SANDRA ELISA MAGOSSI FALCHI-5122.67XX.XXXX.0910') {
+                $ContaCartao = '19468';
+                $Empresa = 11;
+                $DespesaContaDebitoID = '19426';
+                $CashBackContaCreditoID = '19271';
+                // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
+            }elseif ($linhas1_7 === 'PEDRO ROBERTO FALCHI-4891.67XX.XXXX.2113') {
+                    $ContaCartao = '17458';
             $Empresa = 11;
             $DespesaContaDebitoID = '19426';
             $CashBackContaCreditoID = '19271';
