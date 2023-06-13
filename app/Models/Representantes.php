@@ -6,7 +6,7 @@ class Representantes extends Model
 {
     protected $table = 'representantes';
     public $timestamps = true;
-    protected $fillable = ['nome', 'cpf', 'cnpj','email', 'telefone'];
+    protected $fillable = ['nome', 'cpf', 'cnpj','email', 'telefone','tipo_representante'];
 
     protected $casts = [
         'nome' => 'string',
