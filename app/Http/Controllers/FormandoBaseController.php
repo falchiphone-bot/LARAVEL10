@@ -30,6 +30,7 @@ class FormandoBaseController extends Controller
         $this->middleware(['permission:FORMANDOBASE - EDITAR'])->only(['edit', 'update']);
         $this->middleware(['permission:FORMANDOBASE - VER'])->only(['edit', 'update']);
         $this->middleware(['permission:FORMANDOBASE - EXCLUIR'])->only('destroy');
+        $this->middleware(['permission:FORMANDOBASE - VERIFICA FORMANDOS EXCLUIDOS'])->only('indexExcluidos');
     }
 
     public function index()
@@ -49,19 +50,20 @@ class FormandoBaseController extends Controller
        return view('FormandoBase.index',compact('model'));
     }
 
-    public function indexExcluidos(Request $request)
+    public function Excluidos(Request $request)
     {
-
-        if($request->verificaformandosexcluidos){
-            $model = FormandoBase::where('deleted_at', '=', null)
+        if($request['opcao'] ='Excluidos'){
+            $model = FormandoBase::where('deleted_at', '!=', null)
         ->orderBy('nome')
         ->get();
-        }else
+        }
+        elseif($request['opcao'] ='Ativados')
         {
             $model = FormandoBase::where('deleted_at', '=', null)
         ->orderBy('nome')
         ->get();
         }
+
 
 
         $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
@@ -70,7 +72,7 @@ class FormandoBaseController extends Controller
             ->select(['Empresas.ID', 'Empresas.Descricao'])
             ->get();
 
-       return view('FormandoBase.index',compact('model'));
+       return view('FormandoBase.excluidos',compact('model'));
     }
 
     public function create()
@@ -274,7 +276,12 @@ $request["email"] = $emailCorrigido;
     {
         $model= FormandoBase::find($id);
 
+    if ($model['deleted_at'] == null) {
         $model['deleted_at'] = Carbon::now();
+    } else {
+        $model['deleted_at'] = null;
+    }
+
 
         // $model->delete();
         $model->save();

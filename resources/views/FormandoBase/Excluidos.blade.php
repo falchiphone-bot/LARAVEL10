@@ -48,24 +48,15 @@
                         aria-disabled="true">Incluir formandos</a>
                 @endcan
 
-                <form method="GET" action="{{ route('formandobase.excluidos') }}" accept-charset="UTF-8" class="text-center">
+                <form method="GET" action="{{ route('FormandoBase.index') }}" accept-charset="UTF-8" class="text-center">
                     @csrf
-
-                        {{-- <label for="opcao1">
-                          <input type="radio" id="Ativado" name="opcao" value="Ativados" checked>
-                          Formandos ativados
-                        </label><br> --}}
-
-                        <label for="opcao2">
-                          <input type="radio" id="Excluido" name="opcao" value="Excluidos" checked style="display: none;">
-                         {{-- Ver os formandos excluídos --}}
-                        </label><br>
-
-
-                    <br>
                     <div class="row mt-12">
                         <div class="col-12">
-                            <button class="btn btn-danger mx-auto">Filtrar os excluídos</button>
+                            <h1>
+                               Formandos excluídos
+                            </h1>
+                              <br>
+                            <button class="btn btn-danger mx-auto">Ver os ativos</button>
                         </div>
                     </div>
                 </form>
