@@ -100,6 +100,11 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
     Route::post('Representantes/CreateRedeSocialRepresentantes', [App\Http\Controllers\RepresentantesController::class, 'CreateRedeSocialRepresentantes'])->name('representantes.RedeSocialRepresentantes');
     Route::resource('Representantes', App\Http\Controllers\RepresentantesController::class);
 
+
+
+ # Representantes
+ Route::resource('FormandoBase', App\Http\Controllers\FormandoBaseController::class);
+
  # Representantes
  Route::resource('TipoRepresentantes', App\Http\Controllers\TipoRepresentanteController::class);
 

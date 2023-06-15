@@ -774,6 +774,8 @@ $htmlTable .= '<tr>
         $lancamentosPDF = session('LancamentosPDF');
 
         $lancamentos = $lancamentosPDF['DadosExtrato'];
+
+      
         $de = $lancamentosPDF['de'];
         $dataDivididade = explode(" ", $de);
         $deformatada = $dataDivididade[0];
