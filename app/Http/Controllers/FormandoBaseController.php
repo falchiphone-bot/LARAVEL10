@@ -106,14 +106,11 @@ class FormandoBaseController extends Controller
 
         $request['EmpresaID'] = session('Empresa')->ID;
 
-<<<<<<< HEAD
+ 
         $request["EmpresaID"] = $request->EmpresaSelecionada ;
 
         $model= $request->all();
 
-=======
-        $model = $request->all();
->>>>>>> 9271ce9e4d1ce31c066f424c275accdbc8614ccd
 
         FormandoBase::create($model);
 
