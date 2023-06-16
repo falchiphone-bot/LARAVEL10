@@ -82,6 +82,7 @@
                             <th scope="col" class="px-6 py-4">EMAIL</th>
                             <th scope="col" class="px-6 py-4">CPF</th>
                             <th scope="col" class="px-6 py-4">RG</th>
+                            <th scope="col" class="px-6 py-4">NASCIMENTO</th>
                             <th scope="col" class="px-6 py-4"></th>
                         </tr>
                     </thead>
@@ -104,6 +105,9 @@
                                 </td>
                                 <td class="">
                                     {{ $Model->rg }}
+                                </td>
+                                <td class="">
+                                    {{ $Model->nascimento->format('d/m/Y') }}
                                 </td>
                                 @can('FORMANDOBASE - EDITAR')
                                     <td>

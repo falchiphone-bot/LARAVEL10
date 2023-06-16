@@ -18,10 +18,8 @@ use Illuminate\Support\Facades\Auth;
 
 require_once app_path('helpers.php');
 
-
 class FormandoBaseController extends Controller
 {
-
     public function __construct()
     {
         $this->middleware('auth');
@@ -36,35 +34,25 @@ class FormandoBaseController extends Controller
     public function index()
     {
         $model = FormandoBase::where('deleted_at', '=', null)
-        ->orderBy('nome')
-        ->get();
-
-
-
-       $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+            ->join('Contabilidade.EmpresasUsuarios', 'formandobase.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
             ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
-            ->OrderBy('Descricao')
-            ->select(['Empresas.ID', 'Empresas.Descricao'])
+            ->orderBy('nome')
             ->get();
 
-       return view('FormandoBase.index',compact('model'));
+        return view('FormandoBase.index', compact('model'));
     }
 
     public function Excluidos(Request $request)
     {
-        if($request['opcao'] ='Excluidos'){
+        if ($request['opcao'] = 'Excluidos') {
             $model = FormandoBase::where('deleted_at', '!=', null)
-        ->orderBy('nome')
-        ->get();
-        }
-        elseif($request['opcao'] ='Ativados')
-        {
+                ->orderBy('nome')
+                ->get();
+        } elseif ($request['opcao'] = 'Ativados') {
             $model = FormandoBase::where('deleted_at', '=', null)
-        ->orderBy('nome')
-        ->get();
+                ->orderBy('nome')
+                ->get();
         }
-
-
 
         $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
             ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
@@ -72,7 +60,7 @@ class FormandoBaseController extends Controller
             ->select(['Empresas.ID', 'Empresas.Descricao'])
             ->get();
 
-       return view('FormandoBase.excluidos',compact('model'));
+        return view('FormandoBase.excluidos', compact('model'));
     }
 
     public function create()
@@ -88,50 +76,48 @@ class FormandoBaseController extends Controller
             ->select(['Empresas.ID', 'Empresas.Descricao'])
             ->get();
 
-        return view('FormandoBase.create', compact('representantes', 'retorno','Empresas'));
+        return view('FormandoBase.create', compact('representantes', 'retorno', 'Empresas'));
     }
 
     public function store(FormandoBaseCreateRequest $request)
     {
-
-
         $cpf = $request->cpf;
 
-        $request["nome"] = strtoupper($request["nome"]);
+        $request['nome'] = strtoupper($request['nome']);
 
-
-
-        $existecadastro = FormandoBase::where('nome',trim($request["nome"]))->first();
-        if($existecadastro)
-        {
-            session(['error' => "NOME:  ". $request->nome  .", já existe! NADA INCLUÍDO! "]);
+        $existecadastro = FormandoBase::where('nome', trim($request['nome']))->first();
+        if ($existecadastro) {
+            session(['error' => 'NOME:  ' . $request->nome . ', já existe! NADA INCLUÍDO! ']);
             return redirect(route('FormandoBase.index'));
         }
 
-        if(validarCPF($cpf)){
-            session(['cpf' => "CPF:  ". $request->cpf  .", VALIDADO! "]);
-        }else {
-
-            session(['error' => "CPF:  ". $request->cpf  .", DEVE SER CORRIGIDO! NADA ALTERADO! "]);
+        if (validarCPF($cpf)) {
+            session(['cpf' => 'CPF:  ' . $request->cpf . ', VALIDADO! ']);
+        } else {
+            session(['error' => 'CPF:  ' . $request->cpf . ', DEVE SER CORRIGIDO! NADA ALTERADO! ']);
             return redirect(route('FormandoBase.index'));
         }
 
         $enderecoEmailIncorreto = $request->email;
         $enderecoEmailCorrigido = corrigirEnderecoEmail($enderecoEmailIncorreto);
-        $request["email"] = $enderecoEmailCorrigido;
+        $request['email'] = $enderecoEmailCorrigido;
 
-        $request["email"] = strtolower($request->email);
+        $request['email'] = strtolower($request->email);
 
+        $request['EmpresaID'] = session('Empresa')->ID;
 
-        $request["EmpresaID"] = session('Empresa')->ID;
+<<<<<<< HEAD
+        $request["EmpresaID"] = $request->EmpresaSelecionada ;
 
         $model= $request->all();
 
+=======
+        $model = $request->all();
+>>>>>>> 9271ce9e4d1ce31c066f424c275accdbc8614ccd
 
         FormandoBase::create($model);
 
         return redirect(route('FormandoBase.index'));
-
     }
 
     /**
@@ -140,7 +126,7 @@ class FormandoBaseController extends Controller
     public function show(string $id)
     {
         $cadastro = FormandoBase::find($id);
-        return view('FormandoBase.show',compact('cadastro'));
+        return view('FormandoBase.show', compact('cadastro'));
     }
 
     /**
@@ -154,22 +140,20 @@ class FormandoBaseController extends Controller
             ->select(['Empresas.ID', 'Empresas.Descricao'])
             ->get();
 
-
-
         session(['FormandoBase' => $id]);
         $RedeSocial = RedeSocial::orderBy('nome')->get();
 
-        $redesocialUsuario = RedeSocialUsuarios::where('RedeSocialRepresentante_id',$id)->orderBy('RedeSocialRepresentante')->get();
-
+        $redesocialUsuario = RedeSocialUsuarios::where('RedeSocialRepresentante_id', $id)
+            ->orderBy('RedeSocialRepresentante')
+            ->get();
 
         $representantes = Representantes::orderBy('nome')->get();
 
-
-        $model= FormandoBase::find($id);
-         $retorno['redesocial'] = $model->RedeSocialRepresentante_id ;
-         $tiporep['tiporepresentante'] = $model->tipo_representante ;
-         $retorno['EmpresaSelecionada'] = $model->EmpresaID;
-        return view('FormandoBase.edit',compact('model', 'RedeSocial', 'retorno','redesocialUsuario','representantes','tiporep', 'Empresas'));
+        $model = FormandoBase::find($id);
+        $retorno['redesocial'] = $model->RedeSocialRepresentante_id;
+        $tiporep['tiporepresentante'] = $model->tipo_representante;
+        $retorno['EmpresaSelecionada'] = $model->EmpresaID;
+        return view('FormandoBase.edit', compact('model', 'RedeSocial', 'retorno', 'redesocialUsuario', 'representantes', 'tiporep', 'Empresas'));
     }
 
     /**
@@ -177,95 +161,72 @@ class FormandoBaseController extends Controller
      */
     public function update(Request $request, string $id)
     {
-            $cpf = $request->cpf;
-            $cnpj = $request->cnpj;
-            $LiberaCPF = $request->liberacpf;
-            $LiberaCNPJ = $request->liberacnpj;
-            $limpacpf = $request->limpacpf;
-            $limpacnpj = $request->limpacnpj;
+        $cpf = $request->cpf;
+        $cnpj = $request->cnpj;
+        $LiberaCPF = $request->liberacpf;
+        $LiberaCNPJ = $request->liberacnpj;
+        $limpacpf = $request->limpacpf;
+        $limpacnpj = $request->limpacnpj;
 
-
-        if($LiberaCPF == null)
-        {
-
-
-            if($cpf)
-                {
-                    if(validarCPF($cpf)){
-                        session(['cpf' => "CPF:  ". $request->cpf  .", VALIDADO! "]);
-                    }else
-                    {
-
-                        session(['error' => "CPF:  ". $request->cpf  .", DEVE SER CORRIGIDO! NADA ALTERADO! "]);
-                        return  redirect(route('Representantes.edit', $id));
-
-                    }
+        if ($LiberaCPF == null) {
+            if ($cpf) {
+                if (validarCPF($cpf)) {
+                    session(['cpf' => 'CPF:  ' . $request->cpf . ', VALIDADO! ']);
+                } else {
+                    session(['error' => 'CPF:  ' . $request->cpf . ', DEVE SER CORRIGIDO! NADA ALTERADO! ']);
+                    return redirect(route('Representantes.edit', $id));
                 }
-
-        }
-        else{
-            if($limpacpf){
-                $request["cpf"] = "";
             }
-
+        } else {
+            if ($limpacpf) {
+                $request['cpf'] = '';
+            }
         }
 
-
-
-        if($LiberaCNPJ == null)
-        {
-
-
-                if($cnpj)
-                {
-                    if(validarCNPJ($cnpj)){
-                        session(['cnpj' => "CNPJ:  ". $request->cnpj  .", VALIDADO! "]);
-                    }else {
-
-                        session(['error' => "CNPJ:  ". $request->cnpj  .", DEVE SER CORRIGIDO! NADA ALTERADO! "]);
-                        return  redirect(route('Representantes.edit', $id));
-                    }
+        if ($LiberaCNPJ == null) {
+            if ($cnpj) {
+                if (validarCNPJ($cnpj)) {
+                    session(['cnpj' => 'CNPJ:  ' . $request->cnpj . ', VALIDADO! ']);
+                } else {
+                    session(['error' => 'CNPJ:  ' . $request->cnpj . ', DEVE SER CORRIGIDO! NADA ALTERADO! ']);
+                    return redirect(route('Representantes.edit', $id));
                 }
-
-        }
-        else{
-            if($limpacnpj){
-                $request["cnpj"] = null;
             }
-
+        } else {
+            if ($limpacnpj) {
+                $request['cnpj'] = null;
+            }
         }
 
+        // Obtém o endereço de e-mail do objeto $request
+        $email = $request->email;
 
-// Obtém o endereço de e-mail do objeto $request
-$email = $request->email;
+        // Remove caracteres inválidos do endereço de e-mail
+        $emailCorrigido = preg_replace('/[^a-zA-Z0-9.@_-]/', '', $email);
 
-// Remove caracteres inválidos do endereço de e-mail
-$emailCorrigido = preg_replace('/[^a-zA-Z0-9.@_-]/', '', $email);
+        // Verifica se o símbolo "@" está presente no endereço corrigido
+        if (strpos($emailCorrigido, '@') === false) {
+            // Endereço de e-mail inválido, pode lidar com o erro aqui
+            // Por exemplo, lançar uma exceção ou retornar uma mensagem de erro
+            // ...
 
-// Verifica se o símbolo "@" está presente no endereço corrigido
-if (strpos($emailCorrigido, '@') === false) {
-    // Endereço de e-mail inválido, pode lidar com o erro aqui
-    // Por exemplo, lançar uma exceção ou retornar uma mensagem de erro
-    // ...
+            session(['error' => 'EMAIL:  ' . $request->email . ', DEVE SER CORRIGIDO! NADA ALTERADO! RETORNADO AO VALOR JÁ REGISTRADO! ']);
+            return redirect(route('Representantes.edit', $id));
 
-    session(['error' => "EMAIL:  ". $request->email  .", DEVE SER CORRIGIDO! NADA ALTERADO! RETORNADO AO VALOR JÁ REGISTRADO! "]);
-    return  redirect(route('Representantes.edit', $id));
+            // Definir o endereço de e-mail corrigido como vazio ou null
+            // $emailCorrigido = '';
+        }
 
-    // Definir o endereço de e-mail corrigido como vazio ou null
-    // $emailCorrigido = '';
-}
-
-// Atualiza a propriedade email do objeto $request com o endereço corrigido
-$request["email"] = $emailCorrigido;
+        // Atualiza a propriedade email do objeto $request com o endereço corrigido
+        $request['email'] = $emailCorrigido;
 
         $cadastro = FormandoBase::find($id);
-        $request["nome"] = strtoupper($request["nome"]);
-        $cadastro->fill($request->all()) ;
-
+        $request['nome'] = strtoupper($request['nome']);
+        $cadastro->fill($request->all());
 
         $cadastro->save();
 
-        session(['success' => "NOME:  ". $request->nome  .", ALTERADO! "]);
+        session(['success' => 'NOME:  ' . $request->nome . ', ALTERADO! ']);
         return redirect(route('FormandoBase.index'));
     }
 
@@ -274,20 +235,16 @@ $request["email"] = $emailCorrigido;
      */
     public function destroy(string $id)
     {
-        $model= FormandoBase::find($id);
+        $model = FormandoBase::find($id);
 
-    if ($model['deleted_at'] == null) {
-        $model['deleted_at'] = Carbon::now();
-    } else {
-        $model['deleted_at'] = null;
-    }
-
+        if ($model['deleted_at'] == null) {
+            $model['deleted_at'] = Carbon::now();
+        } else {
+            $model['deleted_at'] = null;
+        }
 
         // $model->delete();
         $model->save();
         return redirect(route('FormandoBase.index'));
-
     }
-
-
 }

@@ -7,7 +7,7 @@ class FormandoBase extends Model
 {
     protected $table = 'formandobase';
     public $timestamps = true;
-    protected $fillable = ['nome', 'cpf', 'rg', 'email', 'telefone','representante_id','EmpresaID', 'user_created', 'user_updated', 'deleted_at' ];
+    protected $fillable = ['nome', 'cpf', 'rg', 'email', 'telefone','representante_id','EmpresaID', 'user_created', 'user_updated', 'deleted_at','nascimento' ];
 
     protected $casts = [
         'nome' => 'string',
@@ -19,7 +19,8 @@ class FormandoBase extends Model
         'EmpresaID' => 'int',
         'user_created' => 'string',
         'user_updated' => 'string',
-        'deleted_at' => 'datetime'
+        'deleted_at' => 'datetime',
+        'nascimento' => 'date'
     ];
 
 

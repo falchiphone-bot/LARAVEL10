@@ -15,7 +15,7 @@
 
         <div class="row">
 
-            <div class="col-3">
+            <div class="col-10">
                 <label for="Limite" style="color: black;">Empresas permitidas para o usuário</label>
                 <select class="form-control select2" id="EmpresaSelecionada" name="EmpresaSelecionada">
                     <option value="">
@@ -31,7 +31,7 @@
                 </select>
             </div>
 
-            <div class="col-6">
+            <div class="col-4">
                 <label for="cpf">CPF</label>
                 <input required class="form-control @error('cpf') is-invalid @else is-valid @enderror" name="cpf"
                     type="text" id="cpf" value="{{ $model->cpf ?? null }}">
@@ -56,7 +56,7 @@
 
 
 
-            <div class="col-6">
+            <div class="col-12">
                 <label for="nome">Nome</label>
                 <input required class="form-control @error('nome') is-invalid @else is-valid @enderror" name="nome"
                     type="text" id="nome" value="{{ $model->nome ?? null }}">
@@ -65,7 +65,14 @@
                 @enderror
             </div>
 
-
+            <div class="col-2">
+                <label for="nascimento">Nascimento</label>
+                <input required class="form-control @error('nome') is-invalid @else is-valid @enderror" name="nascimento"
+                    type="date" id="nascimento" value="{{ $model->nascimento ?? null }}">
+                @error('nome')
+                    <div class="alert alert-danger">{{ $message }}</div>
+                @enderror
+            </div>
 
 
             <div class="col-6">
@@ -77,7 +84,7 @@
                 @enderror
             </div>
 
-            <div class="col-6">
+            <div class="col-2">
                 <label for="telefone">Telefone</label>
                 <input required class="form-control @error('telefone') is-invalid @else is-valid @enderror"
                     name="telefone" type="text" id="telefone" value="{{ $model->telefone ?? null }}">
