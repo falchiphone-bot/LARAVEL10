@@ -86,6 +86,7 @@
                             <th scope="col" class="px-6 py-4">CPF</th>
                             <th scope="col" class="px-6 py-4">RG</th>
                             <th scope="col" class="px-6 py-4">NASCIMENTO</th>
+
                             <th scope="col" class="px-6 py-4"></th>
                         </tr>
                     </thead>
@@ -112,6 +113,7 @@
                                 <td class="">
                                     {{ $Model->nascimento->format('d/m/Y') }}
                                 </td>
+                                
                                 @can('FORMANDOBASE - EDITAR')
                                     <td>
                                         <a href="{{ route('FormandoBase.edit', $Model->id) }}" class="btn btn-success" tabindex="-1"
@@ -142,7 +144,7 @@
                                                 @endif
 
                                             </button>
-                                       
+
                                         </form>
                                     </td>
                                 @endcan

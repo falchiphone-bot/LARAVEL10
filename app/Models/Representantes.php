@@ -23,4 +23,10 @@ class Representantes extends Model
     {
         return $this->hasOne(TipoRepresentante::class, 'id', 'tipo_representante');
     }
+    public function MostraEmpresa(): HasOne
+    {
+        return $this->hasOne(Empresa::class, 'id', 'EmpresaID');
+    }
+
+
 }

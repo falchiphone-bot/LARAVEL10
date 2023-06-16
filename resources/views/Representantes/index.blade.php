@@ -58,7 +58,8 @@
                             <th scope="col" class="px-6 py-4">TELEFONE</th>
                             <th scope="col" class="px-6 py-4">EMAIL</th>
                             <th scope="col" class="px-6 py-4">CPF</th>
-                            <th scope="col" class="px-6 py-4">CNPJ</th>
+  <th scope="col" class="px-6 py-4">CNPJ</th>
+  <th scope="col" class="px-6 py-4">CLUBE</th>
                             <th scope="col" class="px-6 py-4"></th>
                         </tr>
                     </thead>
@@ -81,6 +82,9 @@
                                 </td>
                                 <td class="">
                                     {{ $Model->cnpj }}
+                                </td>
+                                <td class="">
+                                    {{ $Model->MostraEmpresa->Descricao }}
                                 </td>
                                 @can('REPRESENTANTES - EDITAR')
                                     <td>
