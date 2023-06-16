@@ -11,7 +11,7 @@
                 <h1 class="text-center">Representantes - Inclusão</h1>
                 <hr>
                 <form method="POST" action="/Representantes" accept-charset="UTF-8">
-                    @include('Representantes.campos')
+                    @include('Representantes.camposincluir')
                 </form>
             </div>
         </div>

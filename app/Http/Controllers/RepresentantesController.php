@@ -48,10 +48,9 @@ class RepresentantesController extends Controller
 
     public function create()
     {
-        $tipor  = TipoRepresentante::orderBy('nome')->get();
-        $tiporep['tiporepresentante'] = null ;
 
-        return view('Representantes.create', compact('tipor','tiporep'));
+
+        return view('Representantes.create');
     }
 
     public function store(RepresentantesCreateRequest $request)
@@ -59,6 +58,11 @@ class RepresentantesController extends Controller
 
 
         $cpf = $request->cpf;
+        $cnpj = $request->cnpj;
+        $LiberaCPF = $request->liberacpf;
+        $LiberaCNPJ = $request->liberacnpj;
+        $limpacpf = $request->limpacpf;
+        $limpacnpj = $request->limpacnpj;
 
         $request["nome"] = strtoupper($request["nome"]);
 
@@ -69,12 +73,54 @@ class RepresentantesController extends Controller
             return redirect(route('Representantes.index'));
         }
 
-        if(validarCPF($cpf)){
-            session(['cpf' => "CPF:  ". $request->cpf  .", VALIDADO! "]);
-        }else {
+        if($LiberaCPF == null)
+        {
 
-            session(['error' => "CPF:  ". $request->cpf  .", DEVE SER CORRIGIDO! NADA ALTERADO! "]);
-            return redirect(route('Representantes.index'));
+
+            if($cpf)
+                {
+                    if(validarCPF($cpf)){
+                        session(['cpf' => "CPF:  ". $request->cpf  .", VALIDADO! "]);
+                    }else
+                    {
+
+                        session(['error' => "CPF:  ". $request->cpf  .", DEVE SER CORRIGIDO! NADA ALTERADO! "]);
+                        return  redirect(route('Representantes.edit', $id));
+
+                    }
+                }
+
+        }
+        else{
+            if($limpacpf){
+                $request["cpf"] = "";
+            }
+
+        }
+
+
+
+        if($LiberaCNPJ == null)
+        {
+
+
+                if($cnpj)
+                {
+                    if(validarCNPJ($cnpj)){
+                        session(['cnpj' => "CNPJ:  ". $request->cnpj  .", VALIDADO! "]);
+                    }else {
+
+                        session(['error' => "CNPJ:  ". $request->cnpj  .", DEVE SER CORRIGIDO! NADA ALTERADO! "]);
+                        return  redirect(route('Representantes.edit', $id));
+                    }
+                }
+
+        }
+        else{
+            if($limpacnpj){
+                $request["cnpj"] = null;
+            }
+
         }
 
         $enderecoEmailIncorreto = $request->email;
@@ -116,7 +162,7 @@ class RepresentantesController extends Controller
          $retorno['redesocial'] = $model->RedeSocialRepresentante_id ;
          $tiporep['tiporepresentante'] = $model->tipo_representante ;
 
-       
+
 
         return view('Representantes.edit',compact('model', 'RedeSocial', 'retorno','redesocialUsuario','tipor','tiporep'));
     }

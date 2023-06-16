@@ -21,7 +21,7 @@
 
 <form method="POST" action="{{route('Representantes.update',$model->id)}}" accept-charset="UTF-8">
     <input type="hidden" name="_method" value="PUT">
-    @include('Representantes.campos')
+    @include('Representantes.camposeditar')
 </form>
 
 @endsection
