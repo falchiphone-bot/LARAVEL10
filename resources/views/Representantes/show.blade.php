@@ -37,7 +37,7 @@
                                 EMAIL: {{ $cadastro->email}}
                             </p>
                             <p>
-                                TIPO REPRESENTANTE: {{ $cadastro->mostratipo->nome}}
+                                TIPO REPRESENTANTE: {{ $cadastro->mostratipo->nome ?? null}}
                             </p>
                         </div>
                         <div class="card-footer">

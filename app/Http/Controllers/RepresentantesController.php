@@ -48,7 +48,10 @@ class RepresentantesController extends Controller
 
     public function create()
     {
-        return view('Representantes.create');
+        $tipor  = TipoRepresentante::orderBy('nome')->get();
+        $tiporep['tiporepresentante'] = null ;
+
+        return view('Representantes.create', compact('tipor','tiporep'));
     }
 
     public function store(RepresentantesCreateRequest $request)
@@ -78,7 +81,7 @@ class RepresentantesController extends Controller
         $enderecoEmailCorrigido = corrigirEnderecoEmail($enderecoEmailIncorreto);
         $request["email"] = $enderecoEmailCorrigido;
 
-
+        $request['user_updated'] = Auth::user()->email;
         $model= $request->all();
         Representantes::create($model);
 
@@ -107,14 +110,13 @@ class RepresentantesController extends Controller
 
 
         $tipor  = TipoRepresentante::orderBy('nome')->get();
-//  dd($tiporepresentante['0']->id);
+
 
         $model= Representantes::find($id);
          $retorno['redesocial'] = $model->RedeSocialRepresentante_id ;
          $tiporep['tiporepresentante'] = $model->tipo_representante ;
 
-        // dd($model, $tiporepresentante['tiporepresentante'], $retorno['redesocial'] );
-        // dd($cadastro);
+       
 
         return view('Representantes.edit',compact('model', 'RedeSocial', 'retorno','redesocialUsuario','tipor','tiporep'));
     }
@@ -210,6 +212,7 @@ $request["email"] = $emailCorrigido;
 
         $cadastro = Representantes::find($id);
         $request["nome"] = strtoupper($request["nome"]);
+        $request['user_updated'] = Auth::user()->email;
         $cadastro->fill($request->all()) ;
 
 
