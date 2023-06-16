@@ -43,12 +43,15 @@
                     </div>
                 </div>
 
-                @can('REPRESENTANTES - INCLUIR')
+                @can('FORMANDOBASE - INCLUIR')
                     <a href="{{ route('FormandoBase.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
                         aria-disabled="true">Incluir formandos</a>
                 @endcan
 
+
+                @can('FORMANDOBASE - VERIFICA FORMANDOS EXCLUIDOS')
                 <form method="GET" action="{{ route('formandobase.excluidos') }}" accept-charset="UTF-8" class="text-center">
+
                     @csrf
 
                         {{-- <label for="opcao1">
@@ -69,7 +72,7 @@
                         </div>
                     </div>
                 </form>
-
+                @endcan
 
             </div>
 
@@ -128,6 +131,8 @@
                                         <form method="POST" action="{{ route('FormandoBase.destroy', $Model->id) }}">
                                             @csrf
                                             <input type="hidden" name="_method" value="DELETE">
+
+
                                             <button type="submit" class="btn btn-danger">
 
                                                 @if ($Model->deleted_at == null)
@@ -137,6 +142,7 @@
                                                 @endif
 
                                             </button>
+                                       
                                         </form>
                                     </td>
                                 @endcan

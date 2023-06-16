@@ -110,19 +110,13 @@
                                     </td>
                                 @endcan
 
-                                @can('FORMANDOBASE - EXCLUIR')
+                              @can('FORMANDOBASE - ATIVAR EXCLUIDOS')
                                     <td>
                                         <form method="POST" action="{{ route('FormandoBase.destroy', $Model->id) }}">
                                             @csrf
                                             <input type="hidden" name="_method" value="DELETE">
                                             <button type="submit" class="btn btn-danger">
-
-                                                @if ($Model->deleted_at == null)
-                                                    Excluir
-                                                @else
-                                                    Ativar
-                                                @endif
-
+                                                Ativar o excluído
                                             </button>
                                         </form>
                                     </td>

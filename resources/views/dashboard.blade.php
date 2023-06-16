@@ -117,7 +117,7 @@
                             </tr>
                         @endcan
 
-                        @can('CADASTROS- LISTAR')
+                        @can('CADASTROS - LISTAR')
                         <tr>
                             <th>
 

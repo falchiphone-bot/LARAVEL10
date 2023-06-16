@@ -26,18 +26,20 @@ class FormandoBaseController extends Controller
         $this->middleware(['permission:FORMANDOBASE - LISTAR'])->only('index');
         $this->middleware(['permission:FORMANDOBASE - INCLUIR'])->only(['create', 'store']);
         $this->middleware(['permission:FORMANDOBASE - EDITAR'])->only(['edit', 'update']);
-        $this->middleware(['permission:FORMANDOBASE - VER'])->only(['edit', 'update']);
+        $this->middleware(['permission:FORMANDOBASE - VER'])->only('show');
         $this->middleware(['permission:FORMANDOBASE - EXCLUIR'])->only('destroy');
         $this->middleware(['permission:FORMANDOBASE - VERIFICA FORMANDOS EXCLUIDOS'])->only('indexExcluidos');
     }
 
     public function index()
     {
-        $model = FormandoBase::where('deleted_at', '=', null)
+            $model = FormandoBase::where('deleted_at', '=', null)
             ->join('Contabilidade.EmpresasUsuarios', 'formandobase.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
             ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
             ->orderBy('nome')
             ->get();
+
+
 
         return view('FormandoBase.index', compact('model'));
     }
@@ -106,7 +108,7 @@ class FormandoBaseController extends Controller
 
         $request['EmpresaID'] = session('Empresa')->ID;
 
- 
+
         $request["EmpresaID"] = $request->EmpresaSelecionada ;
 
         $model= $request->all();
@@ -150,6 +152,7 @@ class FormandoBaseController extends Controller
         $retorno['redesocial'] = $model->RedeSocialRepresentante_id;
         $tiporep['tiporepresentante'] = $model->tipo_representante;
         $retorno['EmpresaSelecionada'] = $model->EmpresaID;
+
         return view('FormandoBase.edit', compact('model', 'RedeSocial', 'retorno', 'redesocialUsuario', 'representantes', 'tiporep', 'Empresas'));
     }
 
@@ -171,7 +174,7 @@ class FormandoBaseController extends Controller
                     session(['cpf' => 'CPF:  ' . $request->cpf . ', VALIDADO! ']);
                 } else {
                     session(['error' => 'CPF:  ' . $request->cpf . ', DEVE SER CORRIGIDO! NADA ALTERADO! ']);
-                    return redirect(route('Representantes.edit', $id));
+                    return redirect(route('FormandoBase.edit', $id));
                 }
             }
         } else {
@@ -186,7 +189,7 @@ class FormandoBaseController extends Controller
                     session(['cnpj' => 'CNPJ:  ' . $request->cnpj . ', VALIDADO! ']);
                 } else {
                     session(['error' => 'CNPJ:  ' . $request->cnpj . ', DEVE SER CORRIGIDO! NADA ALTERADO! ']);
-                    return redirect(route('Representantes.edit', $id));
+                    return redirect(route('FormandoBase.edit', $id));
                 }
             }
         } else {
