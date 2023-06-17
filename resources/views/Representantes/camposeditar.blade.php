@@ -182,7 +182,7 @@
 
 
                     <tr>
-                        <td>{{ $item->RedeSocialRepresentantes->nome ?? null}}:</td>
+                        <td>{{ $item->RedeSociais->nome ?? null}}:</td>
                         <td><a href="{{ $item->RedeSocial_complemento ?? null }}"
                                 target="_blank">{{ $item->RedeSocial_complemento ?? null}}</a></td>
 

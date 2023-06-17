@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App;
 use App\Http\Requests\FormandoBaseCreateRequest as RequestsFormandoBaseCreateRequest;
+use App\Http\Requests\RedeSocialFormandoBaseCreateRequest;
 use App\Models\RedeSocial;
 use App\Models\RedeSocialUsuarios;
 use App\Models\TipoRepresentante;
@@ -142,8 +143,8 @@ class FormandoBaseController extends Controller
         session(['FormandoBase' => $id]);
         $RedeSocial = RedeSocial::orderBy('nome')->get();
 
-        $redesocialUsuario = RedeSocialUsuarios::where('RedeSocialRepresentante_id', $id)
-            ->orderBy('RedeSocialRepresentante')
+        $redesocialUsuario = RedeSocialUsuarios::where('RedeSocialFormandoBase_id', $id)
+            ->orderBy('RedeSocial')
             ->get();
 
         $representantes = Representantes::orderBy('nome')->get();
@@ -247,4 +248,20 @@ class FormandoBaseController extends Controller
         $model->save();
         return redirect(route('FormandoBase.index'));
     }
+
+    public function CreateRedeSocialFormandoBase(RedeSocialFormandoBaseCreateRequest $request)
+    {
+
+        $request['user_created'] = Auth ::user()->email;
+        $model= $request->all();
+
+        $id = $request->RedeSocialFormandoBase_id;
+        RedeSocialUsuarios::create($model);
+
+        return redirect(route('FormandoBase.edit', $id));
+
+    }
+
+
+
 }

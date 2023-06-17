@@ -97,6 +97,7 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
     Route::resource('Feriados', App\Http\Controllers\FeriadoController::class);
 
  # Formandos base
+ Route::post('FormandoBase/CreateRedeSocialFormandoBase', [App\Http\Controllers\FormandoBaseController::class, 'CreateRedeSocialFormandoBase'])->name('representantes.RedeSocialFormandoBase');
 Route::get('FormandoBase/Excluidos', [App\Http\Controllers\FormandoBaseController::class, 'Excluidos'])->name('formandobase.excluidos');
 Route::resource('FormandoBase', App\Http\Controllers\FormandoBaseController::class);
 
