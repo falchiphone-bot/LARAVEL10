@@ -39,9 +39,13 @@ class RepresentantesController extends Controller
 
     public function index()
     {
-       $model= Representantes::OrderBy('nome')->get();
+    //    $model= Representantes::OrderBy('nome')->get();
 
-
+       $model = Representantes::
+        join('Contabilidade.EmpresasUsuarios', 'Representantes.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
+       ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+       ->orderBy('nome')
+       ->get();
 
         return view('Representantes.index',compact('model'));
     }
