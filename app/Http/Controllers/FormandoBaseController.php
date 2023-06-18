@@ -147,6 +147,13 @@ class FormandoBaseController extends Controller
             ->orderBy('RedeSocial')
             ->get();
 
+         $redeSocialExiste = null;
+         foreach ($redesocialUsuario as $usuario) {
+            $redeSocialExiste = $usuario->RedeSocial;
+
+        }
+         
+
         $representantes = Representantes::orderBy('nome')->get();
 
         $model = FormandoBase::find($id);
@@ -154,7 +161,7 @@ class FormandoBaseController extends Controller
         $tiporep['tiporepresentante'] = $model->tipo_representante;
         $retorno['EmpresaSelecionada'] = $model->EmpresaID;
 
-        return view('FormandoBase.edit', compact('model', 'RedeSocial', 'retorno', 'redesocialUsuario', 'representantes', 'tiporep', 'Empresas'));
+        return view('FormandoBase.edit', compact('model', 'RedeSocial', 'retorno', 'redesocialUsuario', 'representantes', 'tiporep', 'Empresas','redeSocialExiste'));
     }
 
     /**
