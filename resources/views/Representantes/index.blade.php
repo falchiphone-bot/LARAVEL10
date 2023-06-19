@@ -27,100 +27,92 @@
                 @endif
 
                 <div class="card">
-                    <div class="badge bg-primary text-wrap" style="width: 100%;font-size: 24px;lign=˜Center˜">
+                    <div class="badge bg-primary text-wrap" style="width: 100%;font-size: 24px;text-align: center;">
                         REPRESENTANTES PARA SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
                     </div>
-                </div
+                </div>
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                    <a class="btn btn-warning" href="Cadastros">Retornar a lista de opções</a> </nav>
-
-
+                    <a class="btn btn-warning" href="Cadastros">Retornar a lista de opções</a>
+                </nav>
 
                 <div class="card-header">
-                    <div class="badge bg-info text-wrap" style="width: 100%;font-size: 24px">
+                    <div class="badge bg-info text-wrap" style="width: 100%;font-size: 24px;text-align: center;">
                         <p>Total de representantes cadastrados no sistema de gerenciamento administrativo e contábil:
                             {{ $model->count() ?? 0 }}</p>
                     </div>
                 </div>
 
-  @can('REPRESENTANTES - INCLUIR')
+                @can('REPRESENTANTES - INCLUIR')
                     <a href="{{ route('Representantes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
                         aria-disabled="true">Incluir representante</a>
                 @endcan
 
             </div>
 
-            <tbody>
-                <table class="table" style="background-color: rgb(247, 247, 255);">
-                    <thead>
+            <table class="table" style="background-color: rgb(247, 247, 255);">
+                <thead>
+                    <tr>
+                        <th scope="col" class="px-6 py-4">NOME</th>
+                        <th scope="col" class="px-6 py-4">TELEFONE</th>
+                        <th scope="col" class="px-6 py-4">EMAIL</th>
+                        <th scope="col" class="px-6 py-4">CPF</th>
+                        <th scope="col" class="px-6 py-4">CNPJ</th>
+                        <th scope="col" class="px-6 py-4">CLUBE</th>
+                        <th scope="col" class="px-6 py-4"></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach ($model as $Model)
                         <tr>
-                            <th scope="col" class="px-6 py-4">NOME</th>
-                            <th scope="col" class="px-6 py-4">TELEFONE</th>
-                            <th scope="col" class="px-6 py-4">EMAIL</th>
-                            <th scope="col" class="px-6 py-4">CPF</th>
-  <th scope="col" class="px-6 py-4">CNPJ</th>
-  <th scope="col" class="px-6 py-4">CLUBE</th>
-                            <th scope="col" class="px-6 py-4"></th>
+                            <td class="">
+                                {{ $Model->nome }}
+                            </td>
+                            <td class="">
+                                {{ $Model->telefone }}
+                            </td>
+                            <td class="">
+                                {{ $Model->email }}
+                            </td>
+                            <td class="">
+                                {{ $Model->cpf }}
+                            </td>
+                            <td class="">
+                                {{ $Model->cnpj }}
+                            </td>
+                            <td class="">
+                                {{ $Model->MostraEmpresa->Descricao }}
+                            </td>
+                            @can('REPRESENTANTES - EDITAR')
+                                <td>
+                                    <a href="{{ route('Representantes.edit', $Model->id) }}" class="btn btn-success" tabindex="-1"
+                                        role="button" aria-disabled="true">Editar</a>
+                                </td>
+                            @endcan
+
+                            @can('REPRESENTANTES - VER')
+                                <td>
+                                    <a href="{{ route('Representantes.show', $Model->id) }}" class="btn btn-info" tabindex="-1"
+                                        role="button" aria-disabled="true">Ver</a>
+                                </td>
+                            @endcan
+
+                            @can('REPRESENTANTES - EXCLUIR')
+                                <td>
+                                    <form method="POST" action="{{ route('Representantes.destroy', $Model->id) }}">
+                                        @csrf
+                                        <input type="hidden" name="_method" value="DELETE">
+                                        <button type="submit" class="btn btn-danger">
+                                            Excluir
+                                        </button>
+                                    </form>
+                                </td>
+                            @endcan
                         </tr>
-                    </thead>
-
-                    <tbody>
-                        @foreach ($model as $Model)
-                            <tr>
-
-                                <td class="">
-                                    {{ $Model->nome }}
-                                </td>
-                                <td class="">
-                                    {{ $Model->telefone }}
-                                </td>
-                                <td class="">
-                                    {{ $Model->email }}
-                                </td>
-                                <td class="">
-                                    {{ $Model->cpf }}
-                                </td>
-                                <td class="">
-                                    {{ $Model->cnpj }}
-                                </td>
-                                <td class="">
-                                    {{ $Model->MostraEmpresa->Descricao }}
-                                </td>
-                                @can('REPRESENTANTES - EDITAR')
-                                    <td>
-                                        <a href="{{ route('Representantes.edit', $Model->id) }}" class="btn btn-success" tabindex="-1"
-                                            role="button" aria-disabled="true">Editar</a>
-                                    </td>
-                                @endcan
-
-                                @can('REPRESENTANTES - VER')
-                                    <td>
-                                        <a href="{{ route('Representantes.show', $Model->id) }}" class="btn btn-info" tabindex="-1"
-                                            role="button" aria-disabled="true">Ver</a>
-                                    </td>
-                                @endcan
-
-                                @can('REPRESENTANTES - EXCLUIR')
-                                    <td>
-                                        <form method="POST" action="{{ route('Representantes.destroy', $Model->id) }}">
-                                            @csrf
-                                            <input type="hidden" name="_method" value="DELETE">
-                                            <button type="submit" class="btn btn-danger">
-                                                Excluir
-                                            </button>
-                                        </form>
-                                    </td>
-                                @endcan
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-                                <div class="badge bg-primary text-wrap" style="width: 100%;">
+                    @endforeach
+                </tbody>
+            </table>
         </div>
-    </div>
-
-    </div>
-    <div class="b-example-divider"></div>
     </div>
 @endsection
 

@@ -5,7 +5,7 @@
         <div class="alert alert-success">
             {{ session('success') }}
         </div>
-        {{ session(['success' =>  null ]) }}
+        {{ session(['success' => null]) }}
         @elseif (session('error'))
         <div class="alert alert-danger">
             {{ session('error') }}
@@ -17,11 +17,11 @@
             <input required class="form-control @error('nome') is-invalid @else is-valid @enderror" name="nome"
                 type="text" id="nome" value="{{$model->nome??null}}">
             @error('nome')
-                <div class="alert alert-danger">{{ $message }}</div>
+            <div class="alert alert-danger">{{ $message }}</div>
             @enderror
         </div>
         <div class="form-group">
-            <label for="tipo_esporte" style="color: black;">Tipo de esportes</label>
+            <label for="Limite" style="color: black;">Tipo de esporte</label>
             <select class="form-control select2" id="tipo_esporte" name="tipo_esporte">
                 <option value="">Selecionar esporte</option>
                 @foreach ($TipoEsporte as $Esporte)
@@ -40,4 +40,3 @@
         </div>
     </div>
 </div>
-
