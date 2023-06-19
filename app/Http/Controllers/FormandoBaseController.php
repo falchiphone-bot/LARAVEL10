@@ -11,7 +11,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App;
 use App\Http\Requests\FormandoBaseCreateRequest as RequestsFormandoBaseCreateRequest;
+use App\Http\Requests\PosicaoFormandoBaseCreateRequest;
 use App\Http\Requests\RedeSocialFormandoBaseCreateRequest;
+use App\Models\FormandoBasePosicoes;
+use App\Models\Posicoes;
 use App\Models\RedeSocial;
 use App\Models\RedeSocialUsuarios;
 use App\Models\TipoRepresentante;
@@ -142,9 +145,14 @@ class FormandoBaseController extends Controller
 
         session(['FormandoBase' => $id]);
         $RedeSocial = RedeSocial::orderBy('nome')->get();
+        $Posicao = Posicoes::orderBy('nome')->get();
 
         $redesocialUsuario = RedeSocialUsuarios::where('RedeSocialFormandoBase_id', $id)
             ->orderBy('RedeSocial')
+            ->get();
+
+         $FormandoBasePosicao = FormandoBasePosicoes::where('FormandoBase_id', $id)
+            ->orderBy('id')
             ->get();
 
          $redeSocialExiste = null;
@@ -152,7 +160,13 @@ class FormandoBaseController extends Controller
             $redeSocialExiste = $usuario->RedeSocial;
 
         }
-         
+        $posicaoExiste = null;
+        foreach ($FormandoBasePosicao as $posicao) {
+           $posicaoExiste = $posicao->posicao_id;
+ 
+       }
+
+
 
         $representantes = Representantes::orderBy('nome')->get();
 
@@ -161,7 +175,8 @@ class FormandoBaseController extends Controller
         $tiporep['tiporepresentante'] = $model->tipo_representante;
         $retorno['EmpresaSelecionada'] = $model->EmpresaID;
 
-        return view('FormandoBase.edit', compact('model', 'RedeSocial', 'retorno', 'redesocialUsuario', 'representantes', 'tiporep', 'Empresas','redeSocialExiste'));
+        return view('FormandoBase.edit', compact('model', 'RedeSocial', 'retorno', 'redesocialUsuario',
+        'representantes', 'tiporep', 'Empresas','redeSocialExiste','Posicao','FormandoBasePosicao','posicaoExiste'));
     }
 
     /**
@@ -268,7 +283,22 @@ class FormandoBaseController extends Controller
         return redirect(route('FormandoBase.edit', $id));
 
     }
+    public function CreatePosicaoFormandoBase(PosicaoFormandoBaseCreateRequest  $request)
+    {
 
+        $request['user_created'] = Auth ::user()->email;
+
+        $model= $request->all();
+
+
+        $id = $request->formandobase_id;
+
+
+        FormandoBasePosicoes::create($model);
+
+        return redirect(route('FormandoBase.edit', $id));
+
+    }
 
 
 }

@@ -77,7 +77,7 @@
                                 @csrf
                                 <input type="hidden" name="_method" value="DELETE">
                                 <button type="submit" class="btn btn-danger">
-                                    Excluir
+                                    Excluir rede social
                                 </button>
                             </form>
                         </td>

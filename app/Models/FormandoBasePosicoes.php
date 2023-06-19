@@ -19,8 +19,8 @@ class FormandoBasePosicoes extends Model
     ];
 
 
-    public function MostraNome(): HasOne
+    public function MostraPosicao(): HasOne
     {
-        return $this->hasOne(TipoEsporte::class, 'id', 'tipo_esporte');
+        return $this->hasOne(Posicoes::class, 'id', 'posicao_id');
     }
 }
