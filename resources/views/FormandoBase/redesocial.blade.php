@@ -1,4 +1,5 @@
-<div class="card-body">
+
+    <div class="card-body" style="background-color: #C8E6C9;">
 
     {{-- ////////////////////////////////////  REDES SOCIAIS --}}
     <form method="POST" action="/FormandoBase/CreateRedeSocialFormandoBase" accept-charset="UTF-8">

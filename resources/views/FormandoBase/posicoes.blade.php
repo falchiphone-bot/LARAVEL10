@@ -1,4 +1,4 @@
-<div class="card-body">
+<div class="card-body" style="background-color: #D0E9F7;">
 
     {{-- ////////////////////////////////////  POSICOES --}}
     <form method="POST" action="/FormandoBase/CreatePosicaoFormandoBase" accept-charset="UTF-8">
