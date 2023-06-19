@@ -70,7 +70,7 @@
 
                     @can('FORMANDOBASEPOSICOES - EXCLUIR')
                         <td>
-                            <form method="POST" action="{{ route('RedeSocialUsuarios.destroy', $item->id) }}">
+                            <form method="POST" action="{{ route('FormandoBasePosicoes.destroy', $item->id) }}">
                                 @csrf
                                 <input type="hidden" name="_method" value="DELETE">
                                 <button type="submit" class="btn btn-danger">

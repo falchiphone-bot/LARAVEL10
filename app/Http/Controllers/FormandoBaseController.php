@@ -163,7 +163,7 @@ class FormandoBaseController extends Controller
         $posicaoExiste = null;
         foreach ($FormandoBasePosicao as $posicao) {
            $posicaoExiste = $posicao->posicao_id;
- 
+
        }
 
 
@@ -286,12 +286,23 @@ class FormandoBaseController extends Controller
     public function CreatePosicaoFormandoBase(PosicaoFormandoBaseCreateRequest  $request)
     {
 
+        $id = $request->formandobase_id;
+        
+        $existe = FormandoBasePosicoes::where('formandobase_id',$request->formandobase_id)
+        ->where('posicao_id',$request->posicao_id)
+        ->First();
+        if($existe){
+
+            session(['error' => "Posição:  " . $existe->MostraPosicao->nome  .",  já existe para este registro!"]);
+            return redirect(route('FormandoBase.edit', $id));
+        }
+
         $request['user_created'] = Auth ::user()->email;
 
-        $model= $request->all();
+        $model = $request->all();
 
 
-        $id = $request->formandobase_id;
+
 
 
         FormandoBasePosicoes::create($model);
