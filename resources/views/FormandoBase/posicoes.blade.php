@@ -1,5 +1,14 @@
+
 <div class="card-body" style="background-color: #D0E9F7;">
 
+    @can('POSICOES - LISTAR')
+
+    <nav class="navbar navbar-info" style="background-color: hsla(234, 92%, 47%, 0.096);">
+        <a class="btn btn-info" href="/Posicoes" style="display: inline-block;" target="_blank">Cadastro de posições</a>
+    </nav>
+
+
+                                    @endcan
     {{-- ////////////////////////////////////  POSICOES --}}
     <form method="POST" action="/FormandoBase/CreatePosicaoFormandoBase" accept-charset="UTF-8">
         @csrf
@@ -88,3 +97,4 @@
 
     {{-- //////////////////////////////////// FIM POSIÇÕES --}}
 </div>
+

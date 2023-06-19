@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 
 use App\Http\Requests\PosicoesCreateRequest;
+use App\Models\FormandoBasePosicoes;
 use App\Models\Posicoes;
 use App\Models\TipoEsporte;
 
@@ -153,7 +154,17 @@ class PosicoesController extends Controller
      */
     public function destroy(string $id)
     {
+
+        $FormandoBasePosicao = FormandoBasePosicoes::where('posicao_id',$id)->first();
+
+        if($FormandoBasePosicao){
+            session(['error' => "POSIÇÃO:  ". $FormandoBasePosicao->MostraPosicao->nome  ." sendo usado!"]);
+            return redirect(route('Posicoes.index'));
+        }
+        
         $model = Posicoes::find($id);
+
+
 
 
         $model->delete();

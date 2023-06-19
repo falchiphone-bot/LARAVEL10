@@ -1,6 +1,11 @@
 
     <div class="card-body" style="background-color: #C8E6C9;">
+        @can('REDESOCIAL - LISTAR')
 
+            <nav class="navbar navbar-info" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                <a class="btn btn-info" href="/RedeSocial" style="display: inline-block;" target="_blank">Cadastro de redes sociais</a>
+            </nav>
+    @endcan
     {{-- ////////////////////////////////////  REDES SOCIAIS --}}
     <form method="POST" action="/FormandoBase/CreateRedeSocialFormandoBase" accept-charset="UTF-8">
         @csrf
