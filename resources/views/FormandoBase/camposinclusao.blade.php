@@ -17,9 +17,9 @@
 
             <div class="col-10">
                 <label for="Limite" style="color: black;">Empresas permitidas para o usuário</label>
-                <select class="form-control select2" id="EmpresaSelecionada" name="EmpresaSelecionada">
-                    <option value="">
-                        Selecionar clube
+                <select required class="form-control select2" id="EmpresaSelecionada" name="EmpresaSelecionada">
+                    <option required value="">
+                        Selecione o clube
                     </option>
                     @foreach ($Empresas as $Empresa)
                         <option @if ($retorno['EmpresaSelecionada'] == $Empresa->ID) selected @endif

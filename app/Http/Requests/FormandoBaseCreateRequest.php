@@ -23,7 +23,7 @@ class FormandoBaseCreateRequest extends FormRequest
     {
         return [
             'nome' =>'required',
-            // 'EmpresaID' =>'required',
+            'EmpresaID' =>'required',
             // 'representante_id' =>'required',
         ];
     }
