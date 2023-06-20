@@ -110,7 +110,7 @@ class FormandoBaseController extends Controller
 
         $request['email'] = strtolower($request->email);
 
-        $request['EmpresaID'] = session('Empresa')->ID;
+        // $request['EmpresaID'] = session('Empresa')->ID;
 
 
         $request["EmpresaID"] = $request->EmpresaSelecionada ;
@@ -287,7 +287,7 @@ class FormandoBaseController extends Controller
     {
 
         $id = $request->formandobase_id;
-        
+
         $existe = FormandoBasePosicoes::where('formandobase_id',$request->formandobase_id)
         ->where('posicao_id',$request->posicao_id)
         ->First();
