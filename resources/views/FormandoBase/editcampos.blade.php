@@ -16,7 +16,7 @@
             <div class="badge bg-primary text-wrap" style="width: 100%; height: 50%; font-size: 24px;">
                 CLUBE
             </div>
-            <select class="form-control select2" id="EmpresaSelecionada" name="EmpresaSelecionada">
+            <select required class="form-control select2" id="EmpresaSelecionada" name="EmpresaSelecionada">
                 <option value="">Selecionar clube</option>
                 @foreach ($Empresas as $Empresa)
                 <option @if ($retorno['EmpresaSelecionada'] == $Empresa->ID) selected @endif

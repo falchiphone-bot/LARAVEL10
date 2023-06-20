@@ -20,7 +20,7 @@
 
         <div class="col-6">
             <label for="Limite" style="color: black;">Incluir posição</label>
-            <select class="form-control select2" id="posicao_id" name="posicao_id">
+            <select required class="form-control select2" id="posicao_id" name="posicao_id">
                 <option value="">
                     Selecionar posição
                 </option>

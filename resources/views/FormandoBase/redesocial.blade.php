@@ -17,7 +17,7 @@
 
         <div class="col-6">
             <label for="Limite" style="color: black;">Incluir redes sociais</label>
-            <select class="form-control select2" id="RedeSocial" name="RedeSocial">
+            <select required class="form-control select2" id="RedeSocial" name="RedeSocial">
                 <option value="">
                     Selecionar rede social
                 </option>
