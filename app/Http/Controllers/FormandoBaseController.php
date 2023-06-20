@@ -12,9 +12,11 @@ use Illuminate\Support\Facades\Validator;
 use App;
 use App\Http\Requests\FormandoBaseCreateRequest as RequestsFormandoBaseCreateRequest;
 use App\Http\Requests\PosicaoFormandoBaseCreateRequest;
+use App\Http\Requests\RecebimentoFormandoBaseCreateRequest;
 use App\Http\Requests\RedeSocialFormandoBaseCreateRequest;
 use App\Models\FormandoBasePosicoes;
 use App\Models\Posicoes;
+use App\Models\RecebimentoFormandoBase;
 use App\Models\RedeSocial;
 use App\Models\RedeSocialUsuarios;
 use App\Models\TipoRepresentante;
@@ -144,6 +146,8 @@ class FormandoBaseController extends Controller
             ->get();
 
         session(['FormandoBase' => $id]);
+
+
         $RedeSocial = RedeSocial::orderBy('nome')->get();
         $Posicao = Posicoes::orderBy('nome')->get();
 
@@ -166,17 +170,25 @@ class FormandoBaseController extends Controller
 
        }
 
+       $recebimentoExiste = null;
+       $FormandoBaseRecebimento = RecebimentoFormandoBase::where('FormandoBase_id', $id)
+            ->orderBy('id')
+            ->get();
 
+            foreach ($FormandoBaseRecebimento as $FormandoBaseRecebimentos) {
+                $recebimentoExiste = $FormandoBaseRecebimentos->id;
 
-        $representantes = Representantes::orderBy('nome')->get();
+            }
 
         $model = FormandoBase::find($id);
         $retorno['redesocial'] = $model->RedeSocialRepresentante_id;
         $tiporep['tiporepresentante'] = $model->tipo_representante;
         $retorno['EmpresaSelecionada'] = $model->EmpresaID;
 
+        $representantes = Representantes::where('EmpresaID',$model->EmpresaID)->orderBy('nome')->get();
+
         return view('FormandoBase.edit', compact('model', 'RedeSocial', 'retorno', 'redesocialUsuario',
-        'representantes', 'tiporep', 'Empresas','redeSocialExiste','Posicao','FormandoBasePosicao','posicaoExiste'));
+        'representantes', 'tiporep', 'Empresas','redeSocialExiste','Posicao','FormandoBasePosicao','posicaoExiste','FormandoBaseRecebimento','recebimentoExiste'));
     }
 
     /**
@@ -306,6 +318,32 @@ class FormandoBaseController extends Controller
 
 
         FormandoBasePosicoes::create($model);
+
+        return redirect(route('FormandoBase.edit', $id));
+
+    }
+
+    public function CreateRecebimentoFormandoBase(RecebimentoFormandoBaseCreateRequest $request)
+    {
+
+        $id = $request->formandobase_id;
+
+        // $existe = RecebimentoFormandoBase::where('formandobase_id',$request->formandobase_id)
+        // ->where('posicao_id',$request->posicao_id)
+        // ->First();
+
+        // if($existe){
+
+        //     session(['error' => "Posição:  " . $existe->MostraPosicao->nome  .",  já existe para este registro!"]);
+        //     return redirect(route('FormandoBase.edit', $id));
+        // }
+
+        $request['user_created'] = Auth ::user()->email;
+
+        $model = $request->all();
+
+
+        RecebimentoFormandoBase::create($model);
 
         return redirect(route('FormandoBase.edit', $id));
 
