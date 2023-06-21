@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\FormandoBase;
 use App\Models\FormandoBasePosicoes;
+use App\Models\Lancamento;
 use App\Models\RecebimentoFormandoBase;
 use App\Models\Representantes;
 use Illuminate\Http\Request;
-
-
+use Illuminate\Support\Facades\Auth;
 
 class FormandoBaseRecebimentosController  extends Controller
 {
@@ -77,16 +77,36 @@ class FormandoBaseRecebimentosController  extends Controller
 
     public function edit(string $id)
     {
-        $representante = Representantes::orderBy('nome')->get();
-        $formandosbase = FormandoBase::orderBy('nome')->get();
-
 
 
         $model= RecebimentoFormandoBase::find($id);
+
+        // if($model->data)
+        // {
+        //     $model['data'] = $model->data->format('Y-m-d');
+        // }
+
+
         $retorno['formandobase'] = $model->formandobase_id;
         $retorno['representante'] = $model->representante_id;
+        $retorno['lancamentos'] = $model->lancamento_id;
 
-        return view('FormandoBaseRecebimentos.edit',compact('model','representante','formandosbase','retorno'));
+        $representante = Representantes::orderBy('nome')->get();
+        $formandosbase = FormandoBase::orderBy('nome')->get();
+
+        $lancamento = null;
+        if($model->data)
+        {
+            $lancamento = Lancamento::where('DataContabilidade', $model->data->format('d/m/Y'))
+        // ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
+        ->where('EmpresaID',  $model->MostraFormandoBase->EmpresaID)
+        // ->where('ContaCreditoID', $ContaCartao)
+        ->OrderBy('DataContabilidade','desc')
+        ->get();
+        }
+
+        session(['success' =>   $model->MostraFormandoBase->nome  . ",  ALTERADO COM SUCESSO!"]);
+        return view('FormandoBaseRecebimentos.edit',compact('model','representante','formandosbase','retorno','lancamento' ));
     }
 
 
@@ -102,17 +122,20 @@ class FormandoBaseRecebimentosController  extends Controller
         // }
 
 
-        // $cadastro = RedeSocial::find($id);
+        $cadastro = RecebimentoFormandoBase::find($id);
 
 
-        // $request['user_updated'] = Auth::user()->email;
-        // $cadastro->fill($request->all()) ;
+
+        $request['patrocinio'] = str_replace(",",".",str_replace('.','',$request ['patrocinio']));
+
+        $request['user_updated'] = Auth::user()->email;
+        $cadastro->fill($request->all()) ;
 
 
-        // $cadastro->save();
+        $cadastro->save();
 
 
-        // return redirect(route('RedeSocial.index'));
+        return redirect(route('FormandoBaseRecebimentos.edit', $id));
     }
 
 

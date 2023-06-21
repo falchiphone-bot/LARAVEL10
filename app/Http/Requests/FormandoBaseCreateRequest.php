@@ -22,8 +22,8 @@ class FormandoBaseCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nome' =>'required',
-            'EmpresaID' =>'required',
+            // 'nome' =>'required',
+            // 'EmpresaID' =>'required',
             // 'representante_id' =>'required',
         ];
     }

@@ -112,14 +112,14 @@ class FormandoBaseController extends Controller
 
         $request['email'] = strtolower($request->email);
 
- 
+
 
 
         $request["EmpresaID"] = $request->EmpresaSelecionada ;
 
         $model= $request->all();
 
-
+      
         FormandoBase::create($model);
 
         return redirect(route('FormandoBase.index'));

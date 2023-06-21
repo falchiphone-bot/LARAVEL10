@@ -7,13 +7,13 @@ class RecebimentoFormandoBase extends Model
 {
     protected $table = 'recebimentoformandobase';
     public $timestamps = true;
-    protected $fillable = ['formandobase_id', 'valor', 'data', 'representante_id',
-    'user_created', 'user_updated' ];
+    protected $fillable = ['formandobase_id', 'data', 'patrocinio','representante_id',
+    'user_created', 'user_updated', 'lancamento_id' ];
 
     protected $casts = [
         'formandobase_id' => 'int',
         'representante_id' => 'int',
-        'valor' => 'decimal',
+        'lancamento_id'=> 'int',
         'data' => 'date',
         'user_created' => 'string',
         'user_updated' => 'string',

@@ -12,6 +12,17 @@
         </div>
         {{ session(['error' => null]) }}
         @endif
+
+
+        @can('FORMANDOBASERECEBIMENTOS - LISTAR')
+            <th>
+                <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                    <a class="btn btn-success" href="/FormandoBaseRecebimentos">Todos recebimentos e representantes</a>
+                    {{-- <a href="{{ route('FormandoBaseRecebimentos.edit', $model->formandobase_id) }}" class="btn btn-success" tabindex="-1" role="button" aria-disabled="true">Editar</a> --}}
+                </nav>
+            </th>
+        @endcan
+
         <div class="form-group">
             <div class="badge bg-primary text-wrap" style="width: 100%; height: 50%; font-size: 24px;">
                 CLUBE
