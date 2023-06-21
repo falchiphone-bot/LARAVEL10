@@ -2,15 +2,15 @@
 <div class="card">
     <div class="card-body">
         @if (session('success'))
-        <div class="alert alert-success">
-            {{ session('success') }}
-        </div>
-        {{ session(['success' =>  null ]) }}
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+              {{ session(['success' =>  null ]) }}
         @elseif (session('error'))
-        <div class="alert alert-danger">
-            {{ session('error') }}
-        </div>
-        {{ session(['error' => NULL])}}
+            <div class="alert alert-danger">
+                {{ session('error') }}
+            </div>
+          {{ session(['error' => NULL])}}
         @endif
 
         @can('FORMANDOBASE - EDITAR')
@@ -19,6 +19,15 @@
                 role="button" aria-disabled="true">Editar ficha do formando</a>
         </td>
         @endcan
+
+        @can('FORMANDOBASERECEBIMENTOS - LISTAR')
+
+            <td>
+                <a href="{{ route('formandoBase.ConsultaFormandoBaseRecebimento', $model->formandobase_id) }}" class="btn btn-success" tabindex="-1"
+                    role="button" aria-disabled="true">Consultar recebimentos e representantes único</a>
+            </td>
+        @endcan
+
 
         <div class="form-group">
             <label for="formandobase_id" style="color: black;">Nome </label>

@@ -35,7 +35,12 @@ class FormandoBaseRecebimentosController  extends Controller
 
         return view('FormandoBaseRecebimentos.index',compact('model'));
     }
+    public function ConsultaFormandoBaseRecebimento(string $id)
+    {
+       $model= RecebimentoFormandoBase::Where('formandobase_id',$id)->OrderBy('created_at')->get();
 
+       return view('FormandoBaseRecebimentos.index',compact('model'));
+    }
     /**
      * Show the form for creating a new resource.
      */
@@ -105,7 +110,7 @@ class FormandoBaseRecebimentosController  extends Controller
         ->get();
         }
 
-        session(['success' =>   $model->MostraFormandoBase->nome  . ",  ALTERADO COM SUCESSO!"]);
+
         return view('FormandoBaseRecebimentos.edit',compact('model','representante','formandosbase','retorno','lancamento' ));
     }
 
@@ -134,7 +139,7 @@ class FormandoBaseRecebimentosController  extends Controller
 
         $cadastro->save();
 
-
+        session(['success' =>   $model->MostraFormandoBase->nome  . ",  ALTERADO COM SUCESSO!"]);
         return redirect(route('FormandoBaseRecebimentos.edit', $id));
     }
 
