@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FormandoBase;
 use App\Models\FormandoBasePosicoes;
 use App\Models\RecebimentoFormandoBase;
+use App\Models\Representantes;
 use Illuminate\Http\Request;
 
 
@@ -28,10 +30,10 @@ class FormandoBaseRecebimentosController  extends Controller
 
     public function index()
     {
-    //    $model= RedeSocial::OrderBy('nome')->get();
+       $model= RecebimentoFormandoBase::OrderBy('created_at')->get();
 
 
-    //     return view('RedeSocial.index',compact('model'));
+        return view('FormandoBaseRecebimentos.index',compact('model'));
     }
 
     /**
@@ -66,29 +68,28 @@ class FormandoBaseRecebimentosController  extends Controller
 
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
         // $cadastro = RedeSocial::find($id);
         // return view('RedeSocial.show',compact('cadastro'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+
     public function edit(string $id)
     {
-        // $model= RedeSocial::find($id);
+        $representante = Representantes::orderBy('nome')->get();
+        $formandosbase = FormandoBase::orderBy('nome')->get();
 
 
-        // return view('RedeSocial.edit',compact('model'));
+
+        $model= RecebimentoFormandoBase::find($id);
+        $retorno['formandobase'] = $model->formandobase_id;
+        $retorno['representante'] = $model->representante_id;
+
+        return view('FormandoBaseRecebimentos.edit',compact('model','representante','formandosbase','retorno'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+
     public function update(Request $request, string $id)
     {
 

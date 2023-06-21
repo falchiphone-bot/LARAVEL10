@@ -112,7 +112,7 @@ class FormandoBaseController extends Controller
 
         $request['email'] = strtolower($request->email);
 
-        // $request['EmpresaID'] = session('Empresa')->ID;
+ 
 
 
         $request["EmpresaID"] = $request->EmpresaSelecionada ;

@@ -22,7 +22,7 @@ class RecebimentoFormandoBase extends Model
 
     public function MostraFormandoBase(): HasOne
     {
-        return $this->hasOne(FormandoBase::class, 'id', 'formando_base');
+        return $this->hasOne(FormandoBase::class, 'id', 'formandobase_id');
     }
     public function MostraRepresentante(): HasOne
     {
