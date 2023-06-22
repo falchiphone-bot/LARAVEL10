@@ -112,6 +112,7 @@ Route::resource('FormandoBaseRecebimentos', App\Http\Controllers\FormandoBaseRec
 
  # Representantes
     Route::post('Representantes/CreateRedeSocialRepresentantes', [App\Http\Controllers\RepresentantesController::class, 'CreateRedeSocialRepresentantes'])->name('representantes.RedeSocialRepresentantes');
+    Route::get('Representantes/RepresentantesCadastro', [App\Http\Controllers\RepresentantesController::class, 'representantecadastro'])->name('representantes.cadastrorepresentante');
     Route::resource('Representantes', App\Http\Controllers\RepresentantesController::class);
 
 

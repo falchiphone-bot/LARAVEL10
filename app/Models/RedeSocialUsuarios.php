@@ -27,7 +27,7 @@ class RedeSocialUsuarios extends Model
 
     public function RedeSociais(): HasOne
     {
-        return $this->hasOne(RedeSocial::class, 'id', 'RedeSocial');
+        return $this->hasOne(RedeSocial::class, 'id', 'RedeSocialRepresentante');
     }
 }
 

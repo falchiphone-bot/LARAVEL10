@@ -16,6 +16,7 @@ class FormandoBaseRecebimentosController  extends Controller
     {
         $this->middleware('auth');
         $this->middleware(['permission:FORMANDOBASERECEBIMENTOS - LISTAR'])->only('index');
+
         $this->middleware(['permission:FORMANDOBASERECEBIMENTOS - INCLUIR'])->only(['create', 'store']);
         $this->middleware(['permission:FORMANDOBASERECEBIMENTOS - EDITAR'])->only(['edit', 'update']);
         $this->middleware(['permission:FORMANDOBASERECEBIMENTOS - VER'])->only(['edit', 'update']);
@@ -139,7 +140,7 @@ class FormandoBaseRecebimentosController  extends Controller
 
         $cadastro->save();
 
-        session(['success' =>   $model->MostraFormandoBase->nome  . ",  ALTERADO COM SUCESSO!"]);
+        session(['success' =>   $cadastro->MostraFormandoBase->nome  . ",  ALTERADO COM SUCESSO!"]);
         return redirect(route('FormandoBaseRecebimentos.edit', $id));
     }
 

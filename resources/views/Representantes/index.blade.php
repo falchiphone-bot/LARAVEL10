@@ -32,7 +32,7 @@
                     </div>
                 </div>
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                    <a class="btn btn-warning" href="Cadastros">Retornar a lista de opções</a>
+                    <a class="btn btn-warning" href="/Cadastros">Retornar a lista de opções</a>
                 </nav>
 
                 <div class="card-header">
@@ -56,7 +56,11 @@
                         <th scope="col" class="px-6 py-4">TELEFONE</th>
                         <th scope="col" class="px-6 py-4">EMAIL</th>
                         <th scope="col" class="px-6 py-4">CPF</th>
+
+
                         <th scope="col" class="px-6 py-4">CNPJ</th>
+
+
                         <th scope="col" class="px-6 py-4">CLUBE</th>
                         <th scope="col" class="px-6 py-4"></th>
                     </tr>

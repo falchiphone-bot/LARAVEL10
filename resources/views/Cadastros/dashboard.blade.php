@@ -44,13 +44,19 @@
                             </tr>
                                 <tr>
                                     @can('REPRESENTANTES - LISTAR')
-
                                         <th>
                                             <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                                                 <a class="btn btn-success" href="/Representantes">Representantes</a>
                                             </nav>
                                         </th>
                                     @endcan
+                                    @can('REPRESENTANTES - CADASTRO DO REPRESENTANTE')
+                                    <th>
+                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                            <a class="btn btn-success" href="/Representantes/RepresentantesCadastro">Cadastro do representante</a>
+                                        </nav>
+                                    </th>
+                                @endcan
                                 </tr>
 
                                 <tr>

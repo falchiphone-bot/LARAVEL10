@@ -48,8 +48,8 @@
                     <tr style="background-color: rgb(150, 180, 220);">
                         <th scope="col" class="px-6 py-4">NOME</th>
                         <th scope="col" class="px-6 py-4">REPRESENTANTE</th>
-                        <th scope="col" class="px-6 py-4"></th>
-                        <th scope="col" class="px-6 py-4"></th>
+                        <th scope="col" class="px-6 py-4">DATA</th>
+                        <th scope="col" class="px-6 py-4">PATROCÍNIO</th>
                         <th scope="col" class="px-6 py-4"></th>
                     </tr>
                 </thead>
@@ -58,6 +58,16 @@
                     <tr>
                         <td class="">{{ $Model->MostraFormandoBase->nome }}</td>
                         <td class="">{{ $Model->MostraRepresentante->nome ?? null }}</td>
+                        <td
+
+                            @if ($Model->data)
+                                class="">{{ $Model->data->format('d/m/Y') ?? null }}
+                            @else
+                                class="">{{ $Model->data ?? null }}
+                            @endif
+                        </td>
+
+                        <td class="">{{ $Model->patrocinio ?? null }}</td>
                         @can('FORMANDOBASERECEBIMENTOS - EDITAR')
                         <td>
                             <a href="{{ route('FormandoBaseRecebimentos.edit', $Model->id) }}" class="btn btn-success" tabindex="-1" role="button" aria-disabled="true">Editar</a>

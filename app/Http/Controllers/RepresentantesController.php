@@ -15,19 +15,24 @@ use App;
 use App\Models\RedeSocial;
 use App\Models\RedeSocialUsuarios;
 use App\Models\TipoRepresentante;
+
+use Google\Service\ServiceControl\Auth as ServiceControlAuth;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
+
+use Illuminate\Foundation\Auth\User as Authenticatable;
+
+use Illuminate\Support\Facades\Gate;
 
 require_once app_path('helpers.php');
 
-
 class RepresentantesController extends Controller
 {
-
-
-
     public function __construct()
     {
         $this->middleware('auth');
+        $this->middleware(['permission:REPRESENTANTES - CADASTRO DO REPRESENTANTE'])->only('representantecadastro');
         $this->middleware(['permission:REPRESENTANTES - LISTAR'])->only('index');
         $this->middleware(['permission:REPRESENTANTES - INCLUIR'])->only(['create', 'store']);
         $this->middleware(['permission:REPRESENTANTES - EDITAR'])->only(['edit', 'update']);
@@ -35,32 +40,38 @@ class RepresentantesController extends Controller
         $this->middleware(['permission:REPRESENTANTES - EXCLUIR'])->only('destroy');
     }
 
-
-
     public function index()
     {
-    //    $model= Representantes::OrderBy('nome')->get();
 
-       $model = Representantes::
-        join('Contabilidade.EmpresasUsuarios', 'Representantes.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
-       ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
-       ->orderBy('nome')
-       ->get();
+                    $model = Representantes::join('Contabilidade.EmpresasUsuarios', 'Representantes.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
+                        ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+                        ->orderBy('nome')
+                        ->get();
+                     return view('Representantes.index', compact('model'));
 
-        return view('Representantes.index',compact('model'));
+
+    }
+
+    public function representantecadastro()
+    {
+        if ($this->middleware('permission:REPRESENTANTES - CADASTRO DO USUARIO')) {
+            $model = Representantes::join('Contabilidade.EmpresasUsuarios', 'Representantes.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
+                ->where('email', 'like', Auth::user()->email)
+                ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+                ->orderBy('nome')
+                ->get();
+                return view('Representantes.index', compact('model'));
+        }
+
     }
 
     public function create()
     {
-
-
         return view('Representantes.create');
     }
 
     public function store(RepresentantesCreateRequest $request)
     {
-
-
         $cpf = $request->cpf;
         $cnpj = $request->cnpj;
         $LiberaCPF = $request->liberacpf;
@@ -68,75 +79,53 @@ class RepresentantesController extends Controller
         $limpacpf = $request->limpacpf;
         $limpacnpj = $request->limpacnpj;
 
-        $request["nome"] = strtoupper($request["nome"]);
+        $request['nome'] = strtoupper($request['nome']);
 
-        $existecadastro = Representantes::where('nome',trim($request["nome"]))->first();
-        if($existecadastro)
-        {
-            session(['error' => "NOME:  ". $request->nome  .", já existe! NADA INCLUÍDO! "]);
+        $existecadastro = Representantes::where('nome', trim($request['nome']))->first();
+        if ($existecadastro) {
+            session(['error' => 'NOME:  ' . $request->nome . ', já existe! NADA INCLUÍDO! ']);
             return redirect(route('Representantes.index'));
         }
 
-        if($LiberaCPF == null)
-        {
-
-
-            if($cpf)
-                {
-                    if(validarCPF($cpf)){
-                        session(['cpf' => "CPF:  ". $request->cpf  .", VALIDADO! "]);
-                    }else
-                    {
-
-                        session(['error' => "CPF:  ". $request->cpf  .", DEVE SER CORRIGIDO! NADA ALTERADO! "]);
-                        return  redirect(route('Representantes.edit', $id));
-
-                    }
+        if ($LiberaCPF == null) {
+            if ($cpf) {
+                if (validarCPF($cpf)) {
+                    session(['cpf' => 'CPF:  ' . $request->cpf . ', VALIDADO! ']);
+                } else {
+                    session(['error' => 'CPF:  ' . $request->cpf . ', DEVE SER CORRIGIDO! NADA ALTERADO! ']);
+                    return redirect(route('Representantes.edit', $id));
                 }
-
-        }
-        else{
-            if($limpacpf){
-                $request["cpf"] = "";
             }
-
+        } else {
+            if ($limpacpf) {
+                $request['cpf'] = '';
+            }
         }
 
-
-
-        if($LiberaCNPJ == null)
-        {
-
-
-                if($cnpj)
-                {
-                    if(validarCNPJ($cnpj)){
-                        session(['cnpj' => "CNPJ:  ". $request->cnpj  .", VALIDADO! "]);
-                    }else {
-
-                        session(['error' => "CNPJ:  ". $request->cnpj  .", DEVE SER CORRIGIDO! NADA ALTERADO! "]);
-                        return  redirect(route('Representantes.edit', $id));
-                    }
+        if ($LiberaCNPJ == null) {
+            if ($cnpj) {
+                if (validarCNPJ($cnpj)) {
+                    session(['cnpj' => 'CNPJ:  ' . $request->cnpj . ', VALIDADO! ']);
+                } else {
+                    session(['error' => 'CNPJ:  ' . $request->cnpj . ', DEVE SER CORRIGIDO! NADA ALTERADO! ']);
+                    return redirect(route('Representantes.edit', $id));
                 }
-
-        }
-        else{
-            if($limpacnpj){
-                $request["cnpj"] = null;
             }
-
+        } else {
+            if ($limpacnpj) {
+                $request['cnpj'] = null;
+            }
         }
 
         $enderecoEmailIncorreto = $request->email;
         $enderecoEmailCorrigido = corrigirEnderecoEmail($enderecoEmailIncorreto);
-        $request["email"] = $enderecoEmailCorrigido;
+        $request['email'] = $enderecoEmailCorrigido;
 
         $request['user_updated'] = Auth::user()->email;
-        $model= $request->all();
+        $model = $request->all();
         Representantes::create($model);
 
         return redirect(route('Representantes.index'));
-
     }
 
     /**
@@ -145,7 +134,7 @@ class RepresentantesController extends Controller
     public function show(string $id)
     {
         $cadastro = Representantes::find($id);
-        return view('Representantes.show',compact('cadastro'));
+        return view('Representantes.show', compact('cadastro'));
     }
 
     /**
@@ -156,19 +145,17 @@ class RepresentantesController extends Controller
         session(['Representante_id' => $id]);
         $RedeSocial = RedeSocial::orderBy('nome')->get();
 
-        $redesocialUsuario = RedeSocialUsuarios::where('RedeSocialRepresentante_id',$id)->orderBy('RedeSocialRepresentante')->get();
+        $redesocialUsuario = RedeSocialUsuarios::where('RedeSocialRepresentante_id', $id)
+            ->orderBy('RedeSocialRepresentante')
+            ->get();
 
+        $tipor = TipoRepresentante::orderBy('nome')->get();
 
-        $tipor  = TipoRepresentante::orderBy('nome')->get();
+        $model = Representantes::find($id);
+        $retorno['redesocial'] = $model->RedeSocialRepresentante_id;
+        $tiporep['tiporepresentante'] = $model->tipo_representante;
 
-
-        $model= Representantes::find($id);
-         $retorno['redesocial'] = $model->RedeSocialRepresentante_id ;
-         $tiporep['tiporepresentante'] = $model->tipo_representante ;
-
-
-
-        return view('Representantes.edit',compact('model', 'RedeSocial', 'retorno','redesocialUsuario','tipor','tiporep'));
+        return view('Representantes.edit', compact('model', 'RedeSocial', 'retorno', 'redesocialUsuario', 'tipor', 'tiporep'));
     }
 
     /**
@@ -176,99 +163,73 @@ class RepresentantesController extends Controller
      */
     public function update(Request $request, string $id)
     {
-            $cpf = $request->cpf;
-            $cnpj = $request->cnpj;
-            $LiberaCPF = $request->liberacpf;
-            $LiberaCNPJ = $request->liberacnpj;
-            $limpacpf = $request->limpacpf;
-            $limpacnpj = $request->limpacnpj;
+        $cpf = $request->cpf;
+        $cnpj = $request->cnpj;
+        $LiberaCPF = $request->liberacpf;
+        $LiberaCNPJ = $request->liberacnpj;
+        $limpacpf = $request->limpacpf;
+        $limpacnpj = $request->limpacnpj;
 
-
-        if($LiberaCPF == null)
-        {
-
-
-            if($cpf)
-                {
-                    if(validarCPF($cpf)){
-                        session(['cpf' => "CPF:  ". $request->cpf  .", VALIDADO! "]);
-                    }else
-                    {
-
-                        session(['error' => "CPF:  ". $request->cpf  .", DEVE SER CORRIGIDO! NADA ALTERADO! "]);
-                        return  redirect(route('Representantes.edit', $id));
-
-                    }
+        if ($LiberaCPF == null) {
+            if ($cpf) {
+                if (validarCPF($cpf)) {
+                    session(['cpf' => 'CPF:  ' . $request->cpf . ', VALIDADO! ']);
+                } else {
+                    session(['error' => 'CPF:  ' . $request->cpf . ', DEVE SER CORRIGIDO! NADA ALTERADO! ']);
+                    return redirect(route('Representantes.edit', $id));
                 }
-
-        }
-        else{
-            if($limpacpf){
-                $request["cpf"] = "";
             }
-
+        } else {
+            if ($limpacpf) {
+                $request['cpf'] = '';
+            }
         }
 
-
-
-        if($LiberaCNPJ == null)
-        {
-
-
-                if($cnpj)
-                {
-                    if(validarCNPJ($cnpj)){
-                        session(['cnpj' => "CNPJ:  ". $request->cnpj  .", VALIDADO! "]);
-                    }else {
-
-                        session(['error' => "CNPJ:  ". $request->cnpj  .", DEVE SER CORRIGIDO! NADA ALTERADO! "]);
-                        return  redirect(route('Representantes.edit', $id));
-                    }
+        if ($LiberaCNPJ == null) {
+            if ($cnpj) {
+                if (validarCNPJ($cnpj)) {
+                    session(['cnpj' => 'CNPJ:  ' . $request->cnpj . ', VALIDADO! ']);
+                } else {
+                    session(['error' => 'CNPJ:  ' . $request->cnpj . ', DEVE SER CORRIGIDO! NADA ALTERADO! ']);
+                    return redirect(route('Representantes.edit', $id));
                 }
-
-        }
-        else{
-            if($limpacnpj){
-                $request["cnpj"] = null;
             }
-
+        } else {
+            if ($limpacnpj) {
+                $request['cnpj'] = null;
+            }
         }
 
+        // Obtém o endereço de e-mail do objeto $request
+        $email = $request->email;
 
-// Obtém o endereço de e-mail do objeto $request
-$email = $request->email;
+        // Remove caracteres inválidos do endereço de e-mail
+        $emailCorrigido = preg_replace('/[^a-zA-Z0-9.@_-]/', '', $email);
 
-// Remove caracteres inválidos do endereço de e-mail
-$emailCorrigido = preg_replace('/[^a-zA-Z0-9.@_-]/', '', $email);
+        // Verifica se o símbolo "@" está presente no endereço corrigido
+        if (strpos($emailCorrigido, '@') === false) {
+            // Endereço de e-mail inválido, pode lidar com o erro aqui
+            // Por exemplo, lançar uma exceção ou retornar uma mensagem de erro
+            // ...
 
-// Verifica se o símbolo "@" está presente no endereço corrigido
-if (strpos($emailCorrigido, '@') === false) {
-    // Endereço de e-mail inválido, pode lidar com o erro aqui
-    // Por exemplo, lançar uma exceção ou retornar uma mensagem de erro
-    // ...
+            session(['error' => 'EMAIL:  ' . $request->email . ', DEVE SER CORRIGIDO! NADA ALTERADO! RETORNADO AO VALOR JÁ REGISTRADO! ']);
+            return redirect(route('Representantes.edit', $id));
 
-    session(['error' => "EMAIL:  ". $request->email  .", DEVE SER CORRIGIDO! NADA ALTERADO! RETORNADO AO VALOR JÁ REGISTRADO! "]);
-    return  redirect(route('Representantes.edit', $id));
+            // Definir o endereço de e-mail corrigido como vazio ou null
+            // $emailCorrigido = '';
+        }
 
-    // Definir o endereço de e-mail corrigido como vazio ou null
-    // $emailCorrigido = '';
-}
-
-// Atualiza a propriedade email do objeto $request com o endereço corrigido
-$request["email"] = $emailCorrigido;
-
-
-
+        // Atualiza a propriedade email do objeto $request com o endereço corrigido
+        $request['email'] = $emailCorrigido;
 
         $cadastro = Representantes::find($id);
-        $request["nome"] = strtoupper($request["nome"]);
+        $request['nome'] = strtoupper($request['nome']);
         $request['user_updated'] = Auth::user()->email;
-        $cadastro->fill($request->all()) ;
-
+        $cadastro->fill($request->all());
 
         $cadastro->save();
 
-        session(['success' => "NOME:  ". $request->nome  .", ALTERADO! "]);
+        session(['success' => 'NOME:  ' . $request->nome . ', ALTERADO! ']);
         return redirect(route('Representantes.index'));
     }
 
@@ -277,23 +238,19 @@ $request["email"] = $emailCorrigido;
      */
     public function destroy(string $id)
     {
-        $model= Representantes::find($id);
-
+        $model = Representantes::find($id);
 
         $model->delete();
         return redirect(route('Representantes.index'));
-
     }
 
     public function CreateRedeSocialRepresentantes(RedeSocialRepresentantesCreateRequest $request)
     {
-
-        $request['user_created'] = Auth ::user()->email;
-        $model= $request->all();
+        $request['user_created'] = Auth::user()->email;
+        $model = $request->all();
         RedeSocialUsuarios::create($model);
 
         return redirect(route('Representantes.index'));
-
     }
 
     // public function UpdateRedeSocialRepresentantes(Request $request, string $id)
@@ -309,15 +266,12 @@ $request["email"] = $emailCorrigido;
     // }
     public function DestroyRedeSocialRepresentantes(string $id)
     {
-            dd($id);
+        dd($id);
 
-            $model = RedeSocialUsuarios::find($id);
-
-
+        $model = RedeSocialUsuarios::find($id);
 
         $model->delete();
-        session(['success' => "REDE SOCIAIS:  ". $model->RedeSocialRepresentantes->nome  ." EXCLUÍDO COM SUCESSO!"]);
+        session(['success' => 'REDE SOCIAIS:  ' . $model->RedeSocialRepresentantes->nome . ' EXCLUÍDO COM SUCESSO!']);
         return redirect(route('Representantes.index'));
     }
-
 }
