@@ -23,9 +23,9 @@ class RedeSocialRepresentantesCreateRequest extends FormRequest
     {
         return [
             'RedeSocialRepresentante_id' =>'required',
-            'RedeSocialRepresentante' =>'required',
+            // 'RedeSocialRepresentante' =>'required',
             'RedeSocial_complemento' =>'required',
+            'RedeSocial' =>'required',
         ];
     }
 }
- 

@@ -7,7 +7,7 @@ class RedeSocialUsuarios extends Model
 {
     protected $table = 'redesocialusuarios';
     public $timestamps = true;
-    protected $fillable = ['RedeSocialRepresentante_id', 'RedeSocialRepresentante', 'RedeSocial_complemento','user_created', 'user_updated', 'RedeSocialFormandoBase_id' ];
+    protected $fillable = ['RedeSocialRepresentante_id', 'RedeSocialRepresentante', 'RedeSocial_complemento','user_created', 'user_updated', 'RedeSocialFormandoBase_id', 'RedeSocial' ];
 
     protected $casts = [
         'RedeSocialRepresentante_id' => 'int',
@@ -27,8 +27,10 @@ class RedeSocialUsuarios extends Model
 
     public function RedeSociais(): HasOne
     {
-        return $this->hasOne(RedeSocial::class, 'id', 'RedeSocialRepresentante');
+        return $this->hasOne(RedeSocial::class, 'id', 'RedeSocial');
     }
+
+
 }
 
 

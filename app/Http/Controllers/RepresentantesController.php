@@ -152,7 +152,7 @@ class RepresentantesController extends Controller
         $tipor = TipoRepresentante::orderBy('nome')->get();
 
         $model = Representantes::find($id);
-        $retorno['redesocial'] = $model->RedeSocialRepresentante_id;
+        $retorno['redesocial'] = $model->RedeSocial;
         $tiporep['tiporepresentante'] = $model->tipo_representante;
 
         return view('Representantes.edit', compact('model', 'RedeSocial', 'retorno', 'redesocialUsuario', 'tipor', 'tiporep'));
@@ -230,7 +230,7 @@ class RepresentantesController extends Controller
         $cadastro->save();
 
         session(['success' => 'NOME:  ' . $request->nome . ', ALTERADO! ']);
-        return redirect(route('Representantes.index'));
+        return redirect(route('Representantes.edit',$id));
     }
 
     /**
@@ -250,7 +250,7 @@ class RepresentantesController extends Controller
         $model = $request->all();
         RedeSocialUsuarios::create($model);
 
-        return redirect(route('Representantes.index'));
+        return redirect(route('Representantes.edit',$request->RedeSocialRepresentante_id));
     }
 
     // public function UpdateRedeSocialRepresentantes(Request $request, string $id)
@@ -272,6 +272,6 @@ class RepresentantesController extends Controller
 
         $model->delete();
         session(['success' => 'REDE SOCIAIS:  ' . $model->RedeSocialRepresentantes->nome . ' EXCLUÍDO COM SUCESSO!']);
-        return redirect(route('Representantes.index'));
+        return redirect(route('Representantes.edit'));
     }
 }

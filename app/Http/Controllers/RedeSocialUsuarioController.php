@@ -134,11 +134,12 @@ class RedeSocialUsuarioController  extends Controller
 
 
         $model= RedeSocialUsuarios::find($id);
+        $RedeSocialRepresentante_id = $model->RedeSocialRepresentante_id;
 
         $model->delete();
 
         session(['success' => "REDE SOCIAL:  ". $model->nome  .",  EXCLUÍDO COM SUCESSO!"]);
-        return redirect(route('Representantes.index'));
+        return redirect(route('Representantes.edit', $RedeSocialRepresentante_id));
 
     }
 }

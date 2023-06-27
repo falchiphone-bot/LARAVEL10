@@ -133,11 +133,11 @@ class RedeSocialController  extends Controller
 
 
         $model = RedeSocial::find($id);
- 
+
         $model->delete();
 
        session(['success' => "REDE SOCIAL:  ". $model->nome  .",  EXCLUÍDO COM SUCESSO!"]);
-        return redirect(route('RedeSocial.index'));
+        return redirect(route('RedeSocial.edit'));
 
     }
 }
