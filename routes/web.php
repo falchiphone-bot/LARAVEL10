@@ -126,6 +126,9 @@ Route::resource('FormandoBaseRecebimentos', App\Http\Controllers\FormandoBaseRec
  # Tipo de esportes
 Route::resource('TipoEsporte', App\Http\Controllers\TipoEsporteController::class);
 
+ # Tipo de arquivos
+ Route::resource('TipoArquivo', App\Http\Controllers\TipoArquivoController::class);
+
  # Posicoes
  Route::resource('Posicoes', App\Http\Controllers\PosicoesController::class);
 
