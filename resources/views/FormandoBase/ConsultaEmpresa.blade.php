@@ -32,7 +32,7 @@
                     </div>
                 </div
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                    <a class="btn btn-warning" href="Cadastros">Retornar a lista de opções</a> </nav>
+                    <a class="btn btn-warning" href="/FormandoBase">Retornar a lista de formandos</a> </nav>
 
 
 
@@ -48,7 +48,6 @@
                         aria-disabled="true">Incluir formandos</a>
                 @endcan
 
-
                 <hr>
                 <style>
                     .card {
@@ -62,12 +61,12 @@
                         @csrf
                 <div class="form-group">
                     <div class="badge bg-info text-wrap" style="width: 100%; height: 50%; font-size: 24px;">
-                        CLUBES
+                        CLUBE
                     </div>
                     <select required class="form-control select2" id="EmpresaSelecionada" name="EmpresaSelecionada">
                         <option value="">Selecionar clube</option>
                         @foreach ($Empresas as $Empresa)
-                        <option
+                        <option @if ($retorno['EmpresaSelecionada'] == $Empresa->ID) selected @endif
                             value="{{ $Empresa->ID }}">
                             {{ $Empresa->Descricao }}
                         </option>

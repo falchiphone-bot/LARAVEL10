@@ -39,7 +39,15 @@ class FormandoBaseController extends Controller
 
     public function index()
     {
-            $model = FormandoBase::where('deleted_at', '=', null)
+        $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+        ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+        ->OrderBy('Descricao')
+        ->select(['Empresas.ID', 'Empresas.Descricao'])
+        ->get();
+
+
+
+        $model = FormandoBase::where('deleted_at', '=', null)
             ->join('Contabilidade.EmpresasUsuarios', 'formandobase.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
             ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
             ->orderBy('nome')
@@ -47,7 +55,30 @@ class FormandoBaseController extends Controller
 
 
 
-        return view('FormandoBase.index', compact('model'));
+
+        return view('FormandoBase.index', compact('model','Empresas'));
+    }
+    public function ConsultaEmpresa(Request $request)
+    {
+
+        $EmpresaSelecionada = $request->EmpresaSelecionada;
+
+        $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+        ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+        ->OrderBy('Descricao')
+        ->select(['Empresas.ID', 'Empresas.Descricao'])
+        ->get();
+
+
+        $model = FormandoBase::where('deleted_at', '=', null)
+            ->where('EmpresaID',  $EmpresaSelecionada)
+            ->orderBy('nome')
+            ->get();
+
+          
+            $retorno['EmpresaSelecionada'] = $EmpresaSelecionada;
+
+            return view('FormandoBase.ConsultaEmpresa', compact('model','retorno','Empresas'));
     }
 
     public function Excluidos(Request $request)
@@ -67,6 +98,8 @@ class FormandoBaseController extends Controller
             ->OrderBy('Descricao')
             ->select(['Empresas.ID', 'Empresas.Descricao'])
             ->get();
+
+
 
         return view('FormandoBase.excluidos', compact('model'));
     }
@@ -119,7 +152,7 @@ class FormandoBaseController extends Controller
 
         $model= $request->all();
 
-      
+
         FormandoBase::create($model);
 
         return redirect(route('FormandoBase.index'));

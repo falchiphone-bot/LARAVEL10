@@ -102,6 +102,7 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
  Route::post('FormandoBase/CreateRedeSocialFormandoBase', [App\Http\Controllers\FormandoBaseController::class, 'CreateRedeSocialFormandoBase'])->name('FormandoBase.RedeSocialFormandoBase');
  Route::post('FormandoBase/CreatePosicaoFormandoBase', [App\Http\Controllers\FormandoBaseController::class, 'CreatePosicaoFormandoBase'])->name('FormandoBase.PosicaoFormandoBase');
 Route::get('FormandoBase/Excluidos', [App\Http\Controllers\FormandoBaseController::class, 'Excluidos'])->name('formandobase.excluidos');
+Route::get('FormandoBase/ConsultaEmpresa', [App\Http\Controllers\FormandoBaseController::class, 'ConsultaEmpresa'])->name('formandobase.consultaempresa');
 Route::resource('FormandoBase', App\Http\Controllers\FormandoBaseController::class);
 Route::resource('FormandoBasePosicoes', App\Http\Controllers\FormandoBasePosicoesController::class);
 
