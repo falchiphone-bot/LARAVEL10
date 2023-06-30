@@ -26,8 +26,8 @@
                 @foreach ($documento as $documentos)
                     <option @required(true)
                         value="{{ $documentos->ID }}">
-                        @if ($documentos->MostraArquivoNome)
-                          {{ $documentos->Rotulo  ." - ". $documentos->MostraArquivoNome->nome }}
+                        @if ($documentos->TipoArquivoNome)
+                          {{ $documentos->Rotulo  ." ->> ". $documentos->TipoArquivoNome->nome }}
                         @else
                              {{ $documentos->Rotulo  }}
                         @endif

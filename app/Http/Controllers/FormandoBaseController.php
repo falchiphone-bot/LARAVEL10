@@ -186,7 +186,7 @@ class FormandoBaseController extends Controller
 
         $RedeSocial = RedeSocial::orderBy('nome')->get();
         $Posicao = Posicoes::orderBy('nome')->get();
-        $documento = LancamentoDocumento::where('tipoarquivo','>',0)->orderBy('ID')->get();
+        $documento = LancamentoDocumento::where('tipoarquivo','>',0)->orderBy('ID', 'desc')->get();
 
 
 
