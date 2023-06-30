@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\MoedaCreateRequest;
 use App\Http\Requests\MoedaValoresCreateRequest;
 use App\Models\LancamentoDocumento;
+use App\Models\TipoArquivo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
@@ -37,9 +38,11 @@ class LancamentosDocumentosController extends Controller
     public function index()
     {
 
-            $documentos = LancamentoDocumento::Limit(100)->OrderBy('ID','DESC' )->get();
+        $documentos = LancamentoDocumento::Limit(100)->OrderBy('ID','DESC' )->get();
+        $tipoarquivo = TipoArquivo::get();
+        $retorno['TipoArquivo'] = null;
 
-        return view('LancamentosDocumentos.index',compact('documentos'));
+        return view('LancamentosDocumentos.index',compact('documentos','tipoarquivo','retorno'));
     }
 
     public function indexpost(string $id)
@@ -59,7 +62,7 @@ class LancamentosDocumentosController extends Controller
     public function pesquisaavancada(Request $Request)
     {
         $CompararDataInicial = $Request->DataInicial;
-
+        $tipoarquivo = TipoArquivo::get();
         $pesquisa =  LancamentoDocumento::Limit($Request->Limite ?? 100);
 
         // $pesquisa = Lancamento::Limit($Request->Limite ?? 100)
@@ -139,6 +142,13 @@ class LancamentosDocumentosController extends Controller
 
         }
 
+        if($Request->SelecionarTipoArquivo)
+        {
+
+            $pesquisa->where('TipoArquivo', '=', $Request->SelecionarTipoArquivo);
+
+        }
+
         if($Request->ordem == 'crescente')
         {
             $pesquisa->OrderBy('ID','ASC');
@@ -153,16 +163,18 @@ class LancamentosDocumentosController extends Controller
         $pesquisaFinal = $pesquisa->get();
         $documentos = $pesquisaFinal;
 
+        $retorno['TipoArquivo'] = $Request->SelecionarTipoArquivo;
         // dd($pesquisa->first()->ContaDebito->PlanoConta);
-        return view('LancamentosDocumentos.index', compact('pesquisa', 'retorno','documentos'  ));
+        return view('LancamentosDocumentos.index', compact('pesquisa', 'retorno','documentos','tipoarquivo'    ));
     }
 
     public function edit(string $id)
     {
         $documento = LancamentoDocumento::find($id);
 
-
-        return view('LancamentosDocumentos.edit',compact('documento'));
+        $tipoarquivo = TipoArquivo::get();
+        $retorno['TipoArquivo'] = $documento->TipoArquivo;
+        return view('LancamentosDocumentos.edit',compact('documento','tipoarquivo','retorno'));
     }
 
     /**
@@ -191,10 +203,11 @@ class LancamentosDocumentosController extends Controller
      */
     public function destroy(string $id)
     {
-        $moedas = Moeda::find($id);
+       dd('PROCEDIMENTO DE EXCLUSÃO AINDA NÃO DEFINIDA!');
+        // $moedas = Moeda::find($id);
 
 
-        $moedas->delete();
+        // $moedas->delete();
         return redirect(route('LancamentosDocumentos.index'));
 
     }

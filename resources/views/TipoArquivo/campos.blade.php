@@ -15,15 +15,7 @@
 
         <div class="row">
 
-            {{-- <div class="col-6">
-                <label for="data">Data</label>
-                <input class="form-control @error('data') is-invalid @else is-valid @enderror" name="data"
-                    type="Date" id="data" value="{{$model->data??null}}">
-                @error('data')
-                    <div class="alert alert-danger">{{ $message }}</div>
-                @enderror
-            </div> --}}
-
+            
             <div class="col-6">
                 <label for="nome">Nome</label>
                 <input required class="form-control @error('nome') is-invalid @else is-valid @enderror" name="nome"

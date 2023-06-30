@@ -5,16 +5,15 @@
 
             <div class="card">
                 <div class="badge bg-primary text-wrap" style="width: 100%;">
-                    MOEDAS DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
+                    DOCUMENTOS DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
                 </div>
 
-                <h1 class="text-center">Moedas - Inclusão</h1>
+                <h1 class="text-center">DOCUMENTOS - Inclusão</h1>
                 <hr>
                 <form method="POST" action="/Moedas" accept-charset="UTF-8">
-                    @include('Moedas.campos')
+                    @include('LancamentosDocumentos.campos')
                 </form>
             </div>
         </div>
     </div>
 @endsection
- 

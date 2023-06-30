@@ -11,12 +11,30 @@
                 @enderror
             </div>
 
+            <div class="form-group">
+                <div class="badge bg-info text-wrap" style="width: 100%; height: 50%; font-size: 24px;">
+                    TIPO DE ARQUIVO
+                </div>
+                <select required class="form-control select2" id="TipoArquivo" name="TipoArquivo">
+                    <option value="">Selecionar tipo de arquivo</option>
+                    @foreach ($tipoarquivo as $Tipoarquivo)
+                    <option @if ($retorno['TipoArquivo'] == $Tipoarquivo->id) selected @endif
+                        value="{{ $Tipoarquivo->id }}">
+                        {{ $Tipoarquivo->nome }}
+                    </option>
+                    @endforeach
+                </select>
+
+
             {{-- <label for="nome">Observação</label>
             <input class="form-control @error('observacao') is-invalid @else is-valid @enderror" name="observacao"
                 type="text" id="observacao" value="{{$LancamentosDocumentos->observacao??null}}">
             @error('observacao')
                 <div class="alert alert-danger">{{ $message }}</div>
             @enderror --}}
+
+
+
         </div>
         </div>
 

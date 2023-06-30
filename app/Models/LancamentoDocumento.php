@@ -20,6 +20,7 @@ class LancamentoDocumento extends Model
         'UsuarioID',
         'Ext',
         'Documento',
+        'TipoArquivo',
     ];
 
     protected $casts = [
@@ -34,5 +35,10 @@ class LancamentoDocumento extends Model
     public function user(): HasOne
     {
         return $this->hasOne(User::class, 'ID', 'UsuarioID');
+    }
+
+    public function TipoArquivoNome(): HasOne
+    {
+        return $this->hasOne(TipoArquivo::class, 'id', 'TipoArquivo');
     }
 }

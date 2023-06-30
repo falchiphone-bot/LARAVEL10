@@ -59,6 +59,21 @@
                                         value="{{ $retorno['Texto'] ?? null }}">
                                 </div>
                             </div>
+
+                            <div class="form-group">
+                                <div class="badge bg-info text-wrap" style="width: 100%; height: 50%; font-size: 24px;">
+                                    TIPO DE ARQUIVO
+                                </div>
+                                <select required class="form-control select2" id="SelecionarTipoArquivo" name="SelecionarTipoArquivo">
+                                    <option value="">Selecionar tipo de arquivo</option>
+                                    @foreach ($tipoarquivo as $Tipoarquivo)
+                                    <option @if ($retorno['TipoArquivo'] == $Tipoarquivo->id) selected @endif
+                                        value="{{ $Tipoarquivo->id }}">
+                                        {{ $Tipoarquivo->nome }}
+                                    </option>
+                                    @endforeach
+                                </select>
+
                             <div class="row">
                                 <div class="col-6">
                                     <input type="checkbox" name="SelecionarSemContabilidade" value="1">
@@ -135,6 +150,14 @@
                             <tr>
                                 <td class="">
                                     {{ $documento->Rotulo }}
+                                    @if($documento->TipoArquivoNome)
+
+                                    <p>
+                                        Tipo do arquivo:
+                                        <span style="color: red;">{{ $documento->TipoArquivoNome->nome }}</span>
+                                    </p>
+
+                                    @endif
                                     </a>
                                 </td>
                                 <td class="">

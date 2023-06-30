@@ -28,6 +28,7 @@ class LancamentoResquest extends FormRequest
             'ContaCreditoID' => 'required',
             'DataContabilidade' => 'required',
             'Descricao' => 'required',
+         
         ];
     }
 }
