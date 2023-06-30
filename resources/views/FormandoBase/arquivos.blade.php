@@ -50,6 +50,7 @@
         @if ($arquivoExiste)
             <tr>
                 <th>Arquivo(s)</th>
+                <th>Tipo de arquivo</th>
                 <th></th>
             </tr>
 
@@ -77,9 +78,9 @@
                 <tr>
                     <td>{{ $item->MostraLancamentoDocumento->Rotulo ?? null }}</td>
 
-                    <td>{{ $item->MostraArquivoNome->nome ?? null  }}</td>
+                    <td>{{ $item->MostraLancamentoDocumento->TipoArquivoNome->nome ?? null  }}</td>
 
-                    {{-- @can('FORMANDOBASEARQUIVOS - EXCLUIR')
+                    @can('FORMANDOBASEARQUIVOS - EXCLUIR')
                         <td>
                             <form method="POST" action="{{ route('FormandoBaseArquivos.destroy', $item->id) }}">
                                 @csrf
@@ -89,7 +90,7 @@
                                 </button>
                             </form>
                         </td>
-                    @endcan --}}
+                    @endcan
                 </tr>
             @endforeach
 
@@ -99,4 +100,5 @@
 
     {{-- //////////////////////////////////// FIM POSIÇÕES --}}
 </div>
+
 

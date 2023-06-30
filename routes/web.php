@@ -105,6 +105,8 @@ Route::get('FormandoBase/Excluidos', [App\Http\Controllers\FormandoBaseControlle
 Route::get('FormandoBase/ConsultaEmpresa', [App\Http\Controllers\FormandoBaseController::class, 'ConsultaEmpresa'])->name('formandobase.consultaempresa');
 Route::resource('FormandoBase', App\Http\Controllers\FormandoBaseController::class);
 Route::resource('FormandoBasePosicoes', App\Http\Controllers\FormandoBasePosicoesController::class);
+Route::resource('FormandoBaseArquivos', App\Http\Controllers\FormandoBaseArquivosController::class);
+
 
 # Formandos base recebimentos
 Route::get('FormandoBase/ConsultaFormandoBaseRecebimento/{id}', [App\Http\Controllers\FormandoBaseRecebimentosController::class, 'ConsultaFormandoBaseRecebimento'])->name('formandoBase.ConsultaFormandoBaseRecebimento');;

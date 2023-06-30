@@ -229,7 +229,7 @@ class FormandoBaseController extends Controller
                      $arquivoExiste = $FormandoBaseArquivos->id;
 
                  }
- 
+
 
         $model = FormandoBase::find($id);
         $retorno['redesocial'] = $model->RedeSocialRepresentante_id;
@@ -406,8 +406,21 @@ class FormandoBaseController extends Controller
     {
 
         $id = $request->formandobase_id;
+        $formandobase_id = $request->formandobase_id;
+        $arquivo_id = $request->arquivo_id;
 
 
+
+        $Existe = FormandoBaseArquivo::where('arquivo_id',$arquivo_id)
+        ->where('formandobase_id',$formandobase_id)
+        ->first();
+
+
+
+        if($Existe){
+            session(['error' => "ARQUIVO EXISTE:  " . $Existe->MostraLancamentoDocumento->Rotulo.  ' do tipo de arquivo: '. $Existe->MostraLancamentoDocumento->TipoArquivoNome->nome .",  já existe para este registro!"]);
+            return redirect(route('FormandoBase.edit', $id));
+        }
 
         $request['user_created'] = Auth ::user()->email;
 
