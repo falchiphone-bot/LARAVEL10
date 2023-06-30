@@ -4,7 +4,7 @@
     @can('FORMANDOBASERECEBIMENTOS - LISTAR')
 
     <nav class="navbar navbar-info" style="background-color: hsla(234, 92%, 47%, 0.096);">
-        <a class="btn btn-info" href="/Recebimentos" style="display: inline-block;" target="_blank">Cadastro de recebimentos e representantes</a>
+        <a class="btn btn-info" href="/FormandoBaseRecebimentos" style="display: inline-block;" target="_blank">Cadastro de recebimentos e representantes</a>
     </nav>
     @endcan
 
