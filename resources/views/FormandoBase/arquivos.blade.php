@@ -18,20 +18,22 @@
 
 
         <div class="col-6">
-            <label for="Limite" style="color: black;">Incluir arquivos</label>
+            <label for="arquivo_id" style="color: black;">Incluir arquivos</label>
             <select required class="form-control select2" id="arquivo_id" name="arquivo_id">
                 <option value="">
                     Selecionar arquivo
                 </option>
                 @foreach ($documento as $documentos)
                     <option @required(true)
-                        value="{{ $documentos->id }}">
-                        {{ $documentos->Rotulo }}
-
+                        value="{{ $documentos->ID }}">
+                        @if ($documentos->MostraArquivoNome)
+                          {{ $documentos->Rotulo  ." - ". $documentos->MostraArquivoNome->nome }}
+                        @else
+                             {{ $documentos->Rotulo  }}
+                        @endif
                     </option>
                 @endforeach
             </select>
-
         </div>
 
         <div class="row mt-2">
@@ -47,13 +49,13 @@
     <table>
         @if ($arquivoExiste)
             <tr>
-                <th>Posição(ões)</th>
+                <th>Arquivo(s)</th>
                 <th></th>
             </tr>
 
 
 
-            @foreach ($FormandoBasePosicao as $item)
+            @foreach ($FormandoBaseArquivo as $item)
                 <style>
                     table {
                         border-collapse: collapse;
@@ -73,10 +75,11 @@
 
 
                 <tr>
-                    <td>{{ $item->MostraArquivoNome->nome ?? null }}</td>
+                    <td>{{ $item->MostraLancamentoDocumento->Rotulo ?? null }}</td>
 
+                    <td>{{ $item->MostraArquivoNome->nome ?? null  }}</td>
 
-                    @can('FORMANDOBASEARQUIVOS - EXCLUIR')
+                    {{-- @can('FORMANDOBASEARQUIVOS - EXCLUIR')
                         <td>
                             <form method="POST" action="{{ route('FormandoBaseArquivos.destroy', $item->id) }}">
                                 @csrf
@@ -86,7 +89,7 @@
                                 </button>
                             </form>
                         </td>
-                    @endcan
+                    @endcan --}}
                 </tr>
             @endforeach
 

@@ -23,4 +23,8 @@ class FormandoBaseArquivo extends Model
     {
         return $this->hasOne(TipoArquivo::class, 'id', 'arquivo_id');
     }
+    public function MostraLancamentoDocumento(): HasOne
+    {
+        return $this->hasOne(LancamentoDocumento::class, 'ID', 'arquivo_id');
+    }
 }

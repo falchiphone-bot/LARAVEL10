@@ -28,4 +28,6 @@ class FormandoBase extends Model
     {
         return $this->hasOne(Representante::class, 'id', 'representante_id');
     }
+     
+
 }

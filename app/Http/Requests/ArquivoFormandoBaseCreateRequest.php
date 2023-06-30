@@ -23,7 +23,7 @@ class ArquivoFormandoBaseCreateRequest extends FormRequest
     {
         return [
             'formandobase_id' =>'required',
-            'tipoarquivo_id' =>'required',
+            'arquivo_id' =>'required',
         ];
     }
 }

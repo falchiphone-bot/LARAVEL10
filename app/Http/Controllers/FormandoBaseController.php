@@ -220,9 +220,16 @@ class FormandoBaseController extends Controller
             }
 
 
-            $arquivoExiste = FormandoBaseArquivo::where('FormandoBase_id', $id)
+            $arquivoExiste = null;
+            $FormandoBaseArquivo = FormandoBaseArquivo::where('FormandoBase_id', $id)
                  ->orderBy('id')
-                 ->first();
+                 ->get();
+
+                 foreach ($FormandoBaseArquivo as $FormandoBaseArquivos) {
+                     $arquivoExiste = $FormandoBaseArquivos->id;
+
+                 }
+ 
 
         $model = FormandoBase::find($id);
         $retorno['redesocial'] = $model->RedeSocialRepresentante_id;
@@ -233,7 +240,7 @@ class FormandoBaseController extends Controller
 
         return view('FormandoBase.edit', compact('model', 'RedeSocial', 'retorno', 'redesocialUsuario',
         'representantes', 'tiporep', 'Empresas','redeSocialExiste','Posicao','FormandoBasePosicao',
-        'posicaoExiste','FormandoBaseRecebimento','recebimentoExiste', 'documento','arquivoExiste'));
+        'posicaoExiste','FormandoBaseRecebimento','recebimentoExiste', 'documento','arquivoExiste','FormandoBaseArquivo'));
     }
 
     /**
@@ -405,7 +412,6 @@ class FormandoBaseController extends Controller
         $request['user_created'] = Auth ::user()->email;
 
         $model = $request->all();
-
 
         FormandoBaseArquivo::create($model);
 
