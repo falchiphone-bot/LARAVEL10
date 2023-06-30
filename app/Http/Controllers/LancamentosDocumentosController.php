@@ -42,6 +42,7 @@ class LancamentosDocumentosController extends Controller
         $tipoarquivo = TipoArquivo::get();
         $retorno['TipoArquivo'] = null;
 
+
         return view('LancamentosDocumentos.index',compact('documentos','tipoarquivo','retorno'));
     }
 
@@ -54,9 +55,9 @@ class LancamentosDocumentosController extends Controller
         {
             $documentos = LancamentoDocumento::Limit(100)->OrderBy('ID','DESC' )->get();
         }
-
-
-        return view('LancamentosDocumentos.index',compact('documentos'));
+        $tipoarquivo = TipoArquivo::get();
+        $retorno['TipoArquivo'] = null;
+        return view('LancamentosDocumentos.index',compact('documentos','tipoarquivo','retorno'));
     }
 
     public function pesquisaavancada(Request $Request)
@@ -174,7 +175,8 @@ class LancamentosDocumentosController extends Controller
 
         $tipoarquivo = TipoArquivo::get();
         $retorno['TipoArquivo'] = $documento->TipoArquivo;
-        return view('LancamentosDocumentos.edit',compact('documento','tipoarquivo','retorno'));
+        $tipoarquivo = TipoArquivo::get();
+        return view('LancamentosDocumentos.edit',compact('documento','tipoarquivo','retorno','tipoarquivo'));
     }
 
     /**

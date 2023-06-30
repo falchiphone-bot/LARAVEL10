@@ -10,11 +10,14 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App;
+use App\Http\Requests\ArquivoFormandoBaseCreateRequest;
 use App\Http\Requests\FormandoBaseCreateRequest as RequestsFormandoBaseCreateRequest;
 use App\Http\Requests\PosicaoFormandoBaseCreateRequest;
 use App\Http\Requests\RecebimentoFormandoBaseCreateRequest;
 use App\Http\Requests\RedeSocialFormandoBaseCreateRequest;
+use App\Models\FormandoBaseArquivo;
 use App\Models\FormandoBasePosicoes;
+use App\Models\LancamentoDocumento;
 use App\Models\Posicoes;
 use App\Models\RecebimentoFormandoBase;
 use App\Models\RedeSocial;
@@ -75,7 +78,7 @@ class FormandoBaseController extends Controller
             ->orderBy('nome')
             ->get();
 
-          
+
             $retorno['EmpresaSelecionada'] = $EmpresaSelecionada;
 
             return view('FormandoBase.ConsultaEmpresa', compact('model','retorno','Empresas'));
@@ -183,6 +186,9 @@ class FormandoBaseController extends Controller
 
         $RedeSocial = RedeSocial::orderBy('nome')->get();
         $Posicao = Posicoes::orderBy('nome')->get();
+        $documento = LancamentoDocumento::where('tipoarquivo','>',0)->orderBy('ID')->get();
+
+
 
         $redesocialUsuario = RedeSocialUsuarios::where('RedeSocialFormandoBase_id', $id)
             ->orderBy('RedeSocial')
@@ -213,6 +219,11 @@ class FormandoBaseController extends Controller
 
             }
 
+
+            $arquivoExiste = FormandoBaseArquivo::where('FormandoBase_id', $id)
+                 ->orderBy('id')
+                 ->first();
+
         $model = FormandoBase::find($id);
         $retorno['redesocial'] = $model->RedeSocialRepresentante_id;
         $tiporep['tiporepresentante'] = $model->tipo_representante;
@@ -221,7 +232,8 @@ class FormandoBaseController extends Controller
         $representantes = Representantes::where('EmpresaID',$model->EmpresaID)->orderBy('nome')->get();
 
         return view('FormandoBase.edit', compact('model', 'RedeSocial', 'retorno', 'redesocialUsuario',
-        'representantes', 'tiporep', 'Empresas','redeSocialExiste','Posicao','FormandoBasePosicao','posicaoExiste','FormandoBaseRecebimento','recebimentoExiste'));
+        'representantes', 'tiporep', 'Empresas','redeSocialExiste','Posicao','FormandoBasePosicao',
+        'posicaoExiste','FormandoBaseRecebimento','recebimentoExiste', 'documento','arquivoExiste'));
     }
 
     /**
@@ -382,5 +394,23 @@ class FormandoBaseController extends Controller
 
     }
 
+
+    public function CreateArquivoFormandoBase(ArquivoFormandoBaseCreateRequest $request)
+    {
+
+        $id = $request->formandobase_id;
+
+
+
+        $request['user_created'] = Auth ::user()->email;
+
+        $model = $request->all();
+
+
+        FormandoBaseArquivo::create($model);
+
+        return redirect(route('FormandoBase.edit', $id));
+
+    }
 
 }
