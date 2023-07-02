@@ -50,6 +50,7 @@
         @if ($arquivoExiste)
             <tr>
                 <th>Arquivo(s)</th>
+                <th></th>
                 <th>Tipo de arquivo</th>
                 <th></th>
             </tr>
@@ -76,7 +77,22 @@
 
 
                 <tr>
-                    <td>{{ $item->MostraLancamentoDocumento->Rotulo ?? null }}</td>
+                    <td>
+                        <a href="https://drive.google.com/file/d/{{ $item->MostraLancamentoDocumento->Nome ?? null }}/view?usp=drive_link" target="_blank">{{ $item->MostraLancamentoDocumento->Rotulo ?? null }}</a>
+
+                    </td>
+                    <td>
+                    <div>
+                        <?php if ($item->MostraLancamentoDocumento->Ext == 'jpg'): ?>
+                          <img src="https://drive.google.com/file/d/{{ $item->MostraLancamentoDocumento->Nome ?? null }}/view?usp=drive_link" alt="{{ $item->MostraLancamentoDocumento->Rotulo }}">
+                        <?php elseif ($item->MostraLancamentoDocumento->Ext == 'pdf'): ?>
+                          <iframe src="https://drive.google.com/file/d/{{ $item->MostraLancamentoDocumento->Nome ?? null }}/view?usp=drive_link" width="100%" height="250"></iframe>
+                        <?php endif; ?>
+                      </div>
+
+
+
+
 
                     <td>{{ $item->MostraLancamentoDocumento->TipoArquivoNome->nome ?? null  }}</td>
 
