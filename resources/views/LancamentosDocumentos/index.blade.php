@@ -24,7 +24,11 @@
                 {{-- <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                     <a class="btn btn-warning" href="/LancamentosDocumentos/dashboard">Retornar a lista de opções</a> </nav> --}}
 
+                    @can('LANCAMENTOS DOCUMENTOS - INCLUIR')
 
+                            <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                <a class="btn btn-primary" href="/TipoArquivo" target="about_blank">Tipos de arquivos</a>
+                    @endcan
                 @can('LANCAMENTOS DOCUMENTOS - INCLUIR')
                     @if (session('googleUserDrive'))
                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">

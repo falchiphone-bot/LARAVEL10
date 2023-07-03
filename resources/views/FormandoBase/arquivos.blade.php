@@ -78,22 +78,23 @@
 
                 <tr>
                     <td>
-                        <a href="https://drive.google.com/file/d/{{ $item->MostraLancamentoDocumento->Nome ?? null }}/view?usp=drive_link" target="_blank">{{ $item->MostraLancamentoDocumento->Rotulo ?? null }}</a>
+                        <a href="https://drive.google.com/file/d/{{ $item->MostraLancamentoDocumento->Nome ?? null }}/view??usp=sharing" target="_blank">{{ $item->MostraLancamentoDocumento->Rotulo ?? null }}</a>
 
                     </td>
-                    <td>
-                    <div>
-                        <?php if ($item->MostraLancamentoDocumento->Ext == 'jpg'): ?>
-                          <img src="https://drive.google.com/file/d/{{ $item->MostraLancamentoDocumento->Nome ?? null }}/view?usp=drive_link" alt="{{ $item->MostraLancamentoDocumento->Rotulo }}">
-                        <?php elseif ($item->MostraLancamentoDocumento->Ext == 'pdf'): ?>
-                          <iframe src="https://drive.google.com/file/d/{{ $item->MostraLancamentoDocumento->Nome ?? null }}/view?usp=drive_link" width="100%" height="250"></iframe>
-                        <?php endif; ?>
-                      </div>
+                    {{-- <td>
+                        <div>
+                            <?php if ($item->MostraLancamentoDocumento->Ext == 'jpeg'): ?>
+                                    @if(isset($item) && isset($item->MostraLancamentoDocumento->Nome))
+                                    <img src="https://drive.google.com/file/d/{{ $item->MostraLancamentoDocumento->Nome }}/?usp=sharing" alt="{{ $item->MostraLancamentoDocumento->Rotulo }}">
+                                    @endif
+
+                            <?php elseif ($item->MostraLancamentoDocumento->Ext == 'pdf'): ?>
+                            <iframe src="https://drive.google.com/file/d/{{ $item->MostraLancamentoDocumento->Nome ?? null }}/?usp=sharing" width="100%" height="250"></iframe>
+                            <?php endif; ?>
+                        </div> --}}
 
 
-
-
-
+                    {{-- <img src="https://lh3.googleusercontent.com/drive-viewer/AFGJ81pZa4Oj2S1PHjJSwO3uKmakwnnwzqpyipCoW9fQ_HdiN5fFkamKBl_FMUEJBV4scPgVVhLmEFtYRdJXtO8QXyWf5PtETw=w1292-h636" alt="{{ $item->MostraLancamentoDocumento->Rotulo }}"> --}}
                     <td>{{ $item->MostraLancamentoDocumento->TipoArquivoNome->nome ?? null  }}</td>
 
                     @can('FORMANDOBASEARQUIVOS - EXCLUIR')
