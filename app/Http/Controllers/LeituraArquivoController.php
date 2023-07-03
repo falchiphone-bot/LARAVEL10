@@ -582,7 +582,7 @@ class LeituraArquivoController extends Controller
         } elseif ($linha_4_coluna_2 === '72334-7') {
             $Conta = '5863';
             $Empresa = 1021;
-            $DespesaContaDebitoID = '1942';
+            $DespesaContaDebitoID = '19422';
             $CashBackContaCreditoID = '19422';
         } elseif ($linha_4_coluna_2 === '72640-0') {
             $Conta = '5921';
