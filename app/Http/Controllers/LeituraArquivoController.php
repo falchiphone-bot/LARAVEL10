@@ -258,7 +258,7 @@ class LeituraArquivoController extends Controller
         $linha_7 = $planilha_ativa->getCell('A' . 7)->getValue();
 
         if ($linha_7 == null) {
-            session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
+            session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento! Erro L261']);
             return redirect(route('LeituraArquivo.index'));
         }
 
@@ -291,6 +291,12 @@ class LeituraArquivoController extends Controller
             $DespesaContaDebitoID = '19426';
             $CashBackContaCreditoID = '19271';
             // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
+        } elseif ($linhas1_7 === 'SANDRA ELISA MAGOSSI FALCHI-5122.67XX.XXXX.0118') {
+                $ContaCartao = '19468';
+                $Empresa = 11;
+                $DespesaContaDebitoID = '19426';
+                $CashBackContaCreditoID = '19271';
+                // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
         } elseif ($linhas1_7 === 'PEDRO ROBERTO FALCHI-4891.67XX.XXXX.2113') {
             $ContaCartao = '17458';
             $Empresa = 11;
@@ -304,7 +310,7 @@ class LeituraArquivoController extends Controller
             $CashBackContaCreditoID = '19271';
             // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
         } else {
-            session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
+            session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento! Erro L307']);
             return redirect(route('LeituraArquivo.index'));
         }
 
@@ -339,7 +345,7 @@ class LeituraArquivoController extends Controller
             $Data = $item[1];
 
             if ($Data == 'Histórico de Despesas') {
-                session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
+                session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento! Erro L348']);
                 return redirect(route('LeituraArquivo.index'));
             }
             $Descricao = $item[2];
@@ -542,14 +548,14 @@ class LeituraArquivoController extends Controller
         ///////////////////////////// DADOS DA LINHA 4 COLUNA 2 PARA DEFINIR CONTAS
         $linha_4_coluna_2 = $planilha_ativa->getCell('B' . 4)->getValue();
         if ($linha_4_coluna_2 == null) {
-            session(['Lancamento' => 'LINHA 4 COLUNA 2 =  NULA. Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
+            session(['Lancamento' => 'LINHA 4 COLUNA 2 =  NULA. Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento! Erro L551']);
             return redirect(route('LeituraArquivo.index'));
         }
 
         ///////////////////////////// DADOS DA LINHA 7 PARA DEFINIR CONTAS
         $linha_7 = $planilha_ativa->getCell('A' . 7)->getValue();
         if ($linha_7 == null) {
-            session(['Lancamento' => 'LINHA 7 = NULA. Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
+            session(['Lancamento' => 'LINHA 7 = NULA. Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento! Erro L558']);
             return redirect(route('LeituraArquivo.index'));
         }
 
@@ -611,7 +617,7 @@ class LeituraArquivoController extends Controller
             $CashBackContaCreditoID = '19426';
             // dd($Empresa,' - ',$Conta, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
         } else {
-            session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
+            session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento! L620']);
             return redirect(route('LeituraArquivo.index'));
         }
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

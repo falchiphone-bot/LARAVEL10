@@ -76,6 +76,8 @@
                     <td>{{ $item->MostraRepresentante->nome ?? null }}</td>
 
 
+                    
+
                     @can('FORMANDOBASERECEBIMENTOS - EXCLUIR')
                         <td>
                             <form method="POST" action="{{ route('FormandoBaseRecebimentos.destroy', $item->id) }}">

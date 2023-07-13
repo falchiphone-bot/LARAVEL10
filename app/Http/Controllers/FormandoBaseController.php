@@ -198,6 +198,8 @@ class FormandoBaseController extends Controller
             ->orderBy('id')
             ->get();
 
+
+
          $redeSocialExiste = null;
          foreach ($redesocialUsuario as $usuario) {
             $redeSocialExiste = $usuario->RedeSocial;
@@ -218,7 +220,7 @@ class FormandoBaseController extends Controller
                 $recebimentoExiste = $FormandoBaseRecebimentos->id;
 
             }
-
+            $TotalRecebido =  $FormandoBaseRecebimento->sum('patrocinio');
 
             $arquivoExiste = null;
             $FormandoBaseArquivo = FormandoBaseArquivo::where('FormandoBase_id', $id)
@@ -240,7 +242,7 @@ class FormandoBaseController extends Controller
 
         return view('FormandoBase.edit', compact('model', 'RedeSocial', 'retorno', 'redesocialUsuario',
         'representantes', 'tiporep', 'Empresas','redeSocialExiste','Posicao','FormandoBasePosicao',
-        'posicaoExiste','FormandoBaseRecebimento','recebimentoExiste', 'documento','arquivoExiste','FormandoBaseArquivo'));
+        'posicaoExiste','FormandoBaseRecebimento','recebimentoExiste', 'documento','arquivoExiste','FormandoBaseArquivo','TotalRecebido'));
     }
 
     /**
