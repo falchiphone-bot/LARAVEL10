@@ -120,7 +120,7 @@
                             <th scope="col" class="px-6 py-4">CPF</th>
                             <th scope="col" class="px-6 py-4">RG</th>
                             <th scope="col" class="px-6 py-4">NASCIMENTO</th>
-                            <th scope="col" class="px-6 py-4">REPRESENTANTE</th>
+                            <th scope="col" class="px-6 py-4">REPRESENTANTE PRINCIPAL</th>
 
                             <th scope="col" class="px-6 py-4"></th>
                         </tr>

@@ -119,6 +119,7 @@
                             <th scope="col" class="px-6 py-4">CPF</th>
                             <th scope="col" class="px-6 py-4">RG</th>
                             <th scope="col" class="px-6 py-4">NASCIMENTO</th>
+                            <th scope="col" class="px-6 py-4">REPRESENTANTE PRINCIPAL</th>
 
                             <th scope="col" class="px-6 py-4"></th>
                         </tr>
@@ -146,7 +147,9 @@
                                 <td class="">
                                     {{ $Model->nascimento->format('d/m/Y') }}
                                 </td>
-
+                                <td class="">
+                                    {{ $Model->MostraRepresentante->nome ?? null }}
+                                </td>
                                 @can('FORMANDOBASE - EDITAR')
                                     <td>
                                         <a href="{{ route('FormandoBase.edit', $Model->id) }}" class="btn btn-success" tabindex="-1"
