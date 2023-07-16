@@ -794,19 +794,20 @@ class LeituraArquivoController extends Controller
                 }
                 continue;
             }
-  
+
+
+            try {
+                $carbon_data = Carbon::createFromFormat('d/m/Y', $Data);
+            } catch (\Exception $e) {
+
+                session(['Lancamento' => 'Ocorreu um erro ao converter a variável em uma data: ' . $e->getMessage() . '. Valor do campo data: '. $Data]);
+                return redirect(route('LeituraArquivo.index'));
+            }
 
 
 
-// Verificar se a variável $data é do tipo data
-if ($Data instanceof Carbon) {
 
-} else {
-    session(['Lancamento' => 'Arquivo considerado não compatível para este procedimento! Apresentado o último enviado. ATENÇÃO!']);
-            return redirect(route('LeituraArquivo.index'));
-}
-
-            $carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $Data);
+            // $carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $Data);
             $linha_data_comparar = $carbon_data->format('Y-m-d');
 
             $carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $Data_bloqueada);
