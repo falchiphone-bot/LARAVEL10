@@ -56,7 +56,10 @@ class FormandoBaseController extends Controller
             ->orderBy('nome')
             ->get();
 
-
+        // foreach($model as $Model)
+        // {
+        //     dd($Model);
+        // }
 
 
         return view('FormandoBase.index', compact('model','Empresas'));
@@ -212,12 +215,14 @@ class FormandoBaseController extends Controller
        }
 
        $recebimentoExiste = null;
+
        $FormandoBaseRecebimento = RecebimentoFormandoBase::where('FormandoBase_id', $id)
             ->orderBy('id')
             ->get();
 
             foreach ($FormandoBaseRecebimento as $FormandoBaseRecebimentos) {
                 $recebimentoExiste = $FormandoBaseRecebimentos->id;
+
 
             }
             $TotalRecebido =  $FormandoBaseRecebimento->sum('patrocinio');

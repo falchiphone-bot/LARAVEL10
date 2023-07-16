@@ -8,7 +8,7 @@
     <hr>
 
     <table>
-        @if ($recebimentoExiste)
+        @if ($TotalRecebido > 0)
             <tr>
                 <th>Data</th>
                 <th>Recebimento</th>

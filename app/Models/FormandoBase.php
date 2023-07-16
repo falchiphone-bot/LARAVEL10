@@ -26,8 +26,8 @@ class FormandoBase extends Model
 
     public function MostraRepresentante(): HasOne
     {
-        return $this->hasOne(Representante::class, 'id', 'representante_id');
+        return $this->hasOne(Representantes::class, 'id', 'representante_id');
     }
-     
+
 
 }

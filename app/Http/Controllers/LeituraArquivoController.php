@@ -496,6 +496,8 @@ class LeituraArquivoController extends Controller
 
     public function SelecionaDatasExtratoSicrediPJ(Request $request)
     {
+
+
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         $DESCONSIDERAR_BLOQUEIOS_EMPRESA = $request->DESCONSIDERAR_BLOQUEIOS_EMPRESAS;
         $DESCONSIDERAR_BLOQUEIOS_CONTAS = $request->DESCONSIDERAR_BLOQUEIOS_CONTAS;
@@ -665,6 +667,7 @@ class LeituraArquivoController extends Controller
 
         // dd($array);
 
+
         foreach ($array as $PegaLinha => $item) {
             $Data = $item[1];
             $Descricao = $item[2];
@@ -791,6 +794,17 @@ class LeituraArquivoController extends Controller
                 }
                 continue;
             }
+  
+
+
+
+// Verificar se a variável $data é do tipo data
+if ($Data instanceof Carbon) {
+
+} else {
+    session(['Lancamento' => 'Arquivo considerado não compatível para este procedimento! Apresentado o último enviado. ATENÇÃO!']);
+            return redirect(route('LeituraArquivo.index'));
+}
 
             $carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $Data);
             $linha_data_comparar = $carbon_data->format('Y-m-d');

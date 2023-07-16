@@ -29,10 +29,10 @@
                     <a class="btn btn-warning" href="Cadastros">Retornar a lista de opções</a> </nav>
 
 
-                @can('FORMANDOBASERECEBIMENTOS - INCLUIR')
-                    <a href="{{ route('Posicoes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
+                {{-- @can('FORMANDOBASERECEBIMENTOS - INCLUIR')
+                    <a href="{{ route('FormandoBaseRecebimentos.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
                         aria-disabled="true">Incluir recebimento e representantes</a>
-                @endcan
+                @endcan --}}
                 <div class="card-header">
                     <div class="badge bg-info text-wrap" style="width: 100%;font-size: 24px">
                         <p>Total de recebimentos e representantes cadastrados no sistema de gerenciamento administrativo e contábil:
