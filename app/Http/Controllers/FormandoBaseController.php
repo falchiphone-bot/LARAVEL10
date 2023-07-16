@@ -56,12 +56,7 @@ class FormandoBaseController extends Controller
             ->orderBy('nome')
             ->get();
 
-        // foreach($model as $Model)
-        // {
-        //     dd($Model);
-        // }
-
-
+   
         return view('FormandoBase.index', compact('model','Empresas'));
     }
     public function ConsultaEmpresa(Request $request)

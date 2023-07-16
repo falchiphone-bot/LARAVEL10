@@ -88,6 +88,35 @@
             <div class="alert alert-danger">{{ $message }}</div>
             @enderror
         </div>
+
+
+
+            <input required
+                class="form-control @error('formandobase_id') is-invalid @else is-valid @enderror d-none"
+                name="formandobase_id" type="text" id="formandobase_id" value="{{ $model->id ?? null }}">
+
+
+            <div class="col-6">
+                <label for="Limite" style="color: black;">Representante principal</label>
+                <select required class="form-control select2" id="representante_id" name="representante_id">
+                    <option value="">
+                        Selecionar representante principal
+                    </option>
+                    @foreach ($representantes as $representante)
+                        <option @required(true)
+                            value="{{ $representante->id }}">
+                            {{ $representante->nome }}
+                        </option>
+                    @endforeach
+                </select>
+
+            </div>
+ 
+
+
+        <hr>
+
+
         <div class="row mt-12">
             <div class="col-12 text-center">
                 <button class="btn btn-primary">Salvar ficha do formando</button>
