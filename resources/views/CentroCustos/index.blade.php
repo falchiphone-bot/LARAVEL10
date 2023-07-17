@@ -15,10 +15,12 @@
                     <div class="alert alert-success">
                         {{ session('success') }}
                     </div>
+                    {{ session(['success' => null]) }}
                 @elseif (session('error'))
                     <div class="alert alert-danger">
                         {{ session('error') }}
                     </div>
+                    {{ session(['error' => null]) }}
                 @endif
 
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
@@ -41,7 +43,7 @@
             </div>
 
             <tbody>
-                <table class="table" style="background-color: rgb(247, 247, 213);">
+                <table class="table" style="background-color: rgb(247, 213, 213);">
                     <thead>
                         <tr>
                             <th scope="col" class="px-6 py-4">NOME</th>

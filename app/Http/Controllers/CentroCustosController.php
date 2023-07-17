@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CentroCustosCreateRequest;
 use App\Models\CentroCustos;
+use App\Models\ContasCentroCustos;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -93,10 +94,10 @@ class CentroCustosController extends Controller
     {
 
         $cadastro = CentroCustos::find($id);
-
+        $DescricaoAnterior = $cadastro->Descricao;
         $cadastro->update(['Descricao'=> $request->Descricao,'Modified' => Carbon::now()->format('d-m-Y H:i:s')]);
 
-
+        session(['success' => ' Registro alterado com sucesso: De '.$DescricaoAnterior.' para '.$request->Descricao]);
         return redirect(route('CentroCustos.index'));
     }
 
@@ -108,8 +109,23 @@ class CentroCustosController extends Controller
         $CentroCustos = CentroCustos::find($id);
 
 
+
+        $contascentrocusto = ContasCentroCustos::where('CentroCustoID',$id)->first();
+
+
+        if($contascentrocusto)
+        {
+            session(['error' => ' Registro sendo usado! Não posso excluir! ']);
+            return redirect(route('CentroCustos.index'));
+        }
+
         $CentroCustos->delete();
+
+        session(['success2' => ' Registro excluído com sucesso ']);
         return redirect(route('CentroCustos.index'));
 
     }
 }
+
+
+
