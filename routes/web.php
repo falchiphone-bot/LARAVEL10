@@ -96,6 +96,10 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
     # Feriados
     Route::resource('Feriados', App\Http\Controllers\FeriadoController::class);
 
+    # Centro de custos
+    Route::get('CentroCustos/dashboard', [App\Http\Controllers\CentroCustosController::class, 'dashboard'])->name('CentroCustos.dashboard');
+    Route::resource('CentroCustos', App\Http\Controllers\CentroCustosController::class);
+
  # Formandos base
  Route::post('FormandoBase/CreateArquivoFormandoBase', [App\Http\Controllers\FormandoBaseController::class, 'CreateArquivoFormandoBase'])->name('FormandoBase.ArquivoFormandoBase');
  Route::post('FormandoBase/CreateRecebimentoFormandoBase', [App\Http\Controllers\FormandoBaseController::class, 'CreateRecebimentoFormandoBase'])->name('FormandoBase.RecebimentoFormandoBase');
