@@ -22,7 +22,7 @@ class CentroCustosCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-             'descricao' =>'required',
+             'Descricao' =>'required',
         ];
     }
 }

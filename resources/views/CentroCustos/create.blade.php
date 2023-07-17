@@ -6,6 +6,11 @@
             <div class="card">
                 <div class="badge bg-primary text-wrap" style="width: 100%;">
                     CENTRO DE CUSTOS DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
+                    @error('Descricao'))
+                    <div class="small text-danger">
+                            {{ $message }}
+                        </div>
+                    @enderror
                 </div>
 
                 <h1 class="text-center">Centro de custos - Inclusão</h1>

@@ -54,6 +54,10 @@ class CentroCustosController extends Controller
     public function store(CentroCustosCreateRequest $request)
     {
         $CentroCustos = $request->all();
+        $CentroCustos['Modified'] = Carbon::now()->format('d/m/Y H:i:s');
+        $CentroCustos['Created'] = Carbon::now()->format('d/m/Y H:i:s');
+        $CentroCustos['UsuarioID'] = auth()->user()->id;
+        $CentroCustos['EmpresaID'] = 0;
 
 
         CentroCustos::create($CentroCustos);
@@ -90,11 +94,7 @@ class CentroCustosController extends Controller
 
         $cadastro = CentroCustos::find($id);
 
-        
-        $cadastro->fill($request->all()) ;
-
-
-        $cadastro->save();
+        $cadastro->update(['Descricao'=> $request->Descricao,'Modified' => Carbon::now()->format('d-m-Y H:i:s')]);
 
 
         return redirect(route('CentroCustos.index'));
