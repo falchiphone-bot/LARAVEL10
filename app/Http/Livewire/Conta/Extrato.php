@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Dompdf\Dompdf;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Route;
 class Extrato extends Component
@@ -413,6 +414,7 @@ class Extrato extends Component
         $empresas = Empresa::whereHas('EmpresaUsuario', function ($query) {
             return $query->where('UsuarioID', Auth::user()->id);
         })
+            ->select(DB::raw("CONCAT(Descricao,' - ',Cnpj) as Descricao"),'ID')
             ->orderBy('Descricao')
             ->pluck('Descricao', 'ID');
         $contas = Conta::where('EmpresaID', $this->selEmpresa)
@@ -775,7 +777,7 @@ $htmlTable .= '<tr>
 
         $lancamentos = $lancamentosPDF['DadosExtrato'];
 
-      
+
         $de = $lancamentosPDF['de'];
         $dataDivididade = explode(" ", $de);
         $deformatada = $dataDivididade[0];
