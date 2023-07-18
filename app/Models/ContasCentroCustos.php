@@ -1,6 +1,7 @@
 <?php
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class ContasCentroCustos extends Model
 {
@@ -12,6 +13,17 @@ class ContasCentroCustos extends Model
     protected $casts = [
         'CentroCustoID' => 'int',
     ];
+
+
+    public function MostraCentroCusto(): HasOne
+    {
+        return $this->hasOne(CentroCustos::class, 'ID', 'CentroCustoID');
+    }
+    public function MostraContaCentroCusto(): HasOne
+    {
+        return $this->hasOne(PlanoConta::class, 'ID', 'ContaID');
+    }
+
 }
 
 
