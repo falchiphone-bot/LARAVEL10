@@ -5,7 +5,7 @@
 
             <div class="card">
                 <div class="badge bg-primary text-wrap" style="width: 100%;font-size: 24px;lign=˜Center˜">
-                    CENTRO DE CUSTOS PARA SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
+                    CONTAS PARA CENTRO DE CUSTOS PARA SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
                 </div>
             </div>
 
@@ -46,6 +46,7 @@
                 <table class="table" style="background-color: rgb(247, 213, 213);">
                     <thead>
                         <tr>
+                            {{-- <th scope="col" class="px-6 py-4">EMPRESA</th> --}}
                             <th scope="col" class="px-6 py-4">CENTRO DE CUSTOS</th>
                             <th scope="col" class="px-6 py-4">CONTAS</th>
 
@@ -56,11 +57,14 @@
                     <tbody>
                         @foreach ($ContasCentroCustos as $ContasCentroCusto)
                             <tr>
+                                {{-- <td class="">
+                                    {{ $ContasCentroCusto->MostraNomeEmpresa->Descricao ?? null}}
+                                </td> --}}
                                 <td class="">
                                     {{ $ContasCentroCusto->MostraCentroCusto->Descricao ?? null}}
                                 </td>
                                 <td class="">
-                                    {{ $ContasCentroCusto->MostraContaCentroCusto->Descricao ?? null }}
+                                    {{ $ContasCentroCusto->MostraContaCentroCusto->PlanoConta->Descricao ?? null }} || {{ $ContasCentroCusto->MostraContaCentroCusto->Empresa?->Descricao }}
                                 </td>
                                 <td class="">
 

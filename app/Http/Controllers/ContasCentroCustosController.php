@@ -4,10 +4,16 @@ namespace App\Http\Controllers;
 
 
 use App\Http\Requests\CentroCustosCreateRequest;
+use App\Http\Requests\ContasCentroCustosCreateRequest;
 use App\Models\CentroCustos;
+use App\Models\Conta;
 use App\Models\ContasCentroCustos;
+use App\Models\Empresa;
+use App\Models\PlanoConta;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 
@@ -46,19 +52,31 @@ class ContasCentroCustosController extends Controller
      */
     public function create()
     {
-        return view('ContasCentroCustos.create');
+        $SeleCentroCusto = CentroCustos::orderby('Descricao')->get();
+
+        $seleConta = Conta::
+        join('Contabilidade.PlanoContas','PlanoContas.ID','=','Contas.Planocontas_id')
+        ->join('Contabilidade.Empresas','Empresas.ID','=','Contas.EmpresaID')
+        ->select('Contas.ID',DB::raw("CONCAT(PlanoContas.Descricao,' | ', Empresas.Descricao) as Descricao"))
+        ->orderby('PlanoContas.Descricao')
+        ->get();
+
+        return view('ContasCentroCustos.create',compact('SeleCentroCusto','seleConta'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(ContasCentroCustosCreateRequest $request)
+    public function store(ContasCentroCustosCreateRequest  $request)
     {
         $ContasCentroCustos = $request->all();
-        $ContasCentroCustos['Modified'] = Carbon::now()->format('d/m/Y H:i:s');
+
+
+
+        // $ContasCentroCustos['Modified'] = Carbon::now()->format('d/m/Y H:i:s');
         $ContasCentroCustos['Created'] = Carbon::now()->format('d/m/Y H:i:s');
         $ContasCentroCustos['UsuarioID'] = auth()->user()->id;
-        $ContasCentroCustos['EmpresaID'] = 0;
+        // $ContasCentroCustos['EmpresaID'] = 0;
 
 
         ContasCentroCustos::create($ContasCentroCustos);
@@ -81,10 +99,34 @@ class ContasCentroCustosController extends Controller
      */
     public function edit(string $id)
     {
-        $ContasCentroCustos= ContasCentroCustos::find($id);
-        // dd($cadastro);
+        $ContasCentroCustos = ContasCentroCustos::find($id);
 
-        return view('ContasCentroCustos.edit',compact('ContasCentroCustos'));
+        $SeleCentroCusto = CentroCustos::orderby('Descricao')->get();
+
+
+        // $seleConta = Conta::join('Contabilidade.PlanoContas', 'Contabilidade.Contas.Planocontas_id', '=', 'Contabilidade.PlanoContas.ID')
+        //  ->select('Contabilidade.Contas.*', 'Contabilidade.PlanoContas.*')
+        // ->get();
+
+
+        $seleConta = Conta::
+        join('Contabilidade.PlanoContas','PlanoContas.ID','=','Contas.Planocontas_id')
+        ->join('Contabilidade.Empresas','Empresas.ID','=','Contas.EmpresaID')
+        ->select('Contas.ID',DB::raw("CONCAT(PlanoContas.Descricao,' | ', Empresas.Descricao) as Descricao"))
+        ->orderby('PlanoContas.Descricao')
+        ->get();
+
+        // $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+        // ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+        // ->OrderBy('Descricao')
+        // ->select(['Empresas.ID', 'Empresas.Descricao'])
+        // ->get();
+
+
+
+
+
+        return view('ContasCentroCustos.edit',compact('ContasCentroCustos','SeleCentroCusto','seleConta'));
     }
 
     /**
@@ -94,10 +136,10 @@ class ContasCentroCustosController extends Controller
     {
 
         $cadastro = ContasCentroCustos::find($id);
-        $DescricaoAnterior = $cadastro->Descricao;
-        $cadastro->update(['Descricao'=> $request->Descricao,'Modified' => Carbon::now()->format('d-m-Y H:i:s')]);
+        $contaAnterior = $cadastro->ContaID;
+        $cadastro->update(['ContaID' => $request->ContaID]);
 
-        session(['success' => ' Registro alterado com sucesso: De '.$DescricaoAnterior.' para '.$request->Descricao]);
+        session(['success' => ' Registro alterado com sucesso: De '.$contaAnterior.' para '.$request->ContaID]);
         return redirect(route('ContasCentroCustos.index'));
     }
 

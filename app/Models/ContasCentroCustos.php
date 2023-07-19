@@ -21,7 +21,7 @@ class ContasCentroCustos extends Model
     }
     public function MostraContaCentroCusto(): HasOne
     {
-        return $this->hasOne(PlanoConta::class, 'ID', 'ContaID');
+        return $this->hasOne(Conta::class, 'ID', 'ContaID');
     }
 
 }

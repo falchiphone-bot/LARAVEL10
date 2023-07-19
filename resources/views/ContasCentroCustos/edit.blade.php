@@ -6,7 +6,7 @@
 
 
 <div class="badge bg-primary text-wrap" style="width: 100%;">
-   CENTRO DE CUSTOS DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL - EDIÇÃO
+   CONTAS PARA CENTRO DE CUSTOS DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL - EDIÇÃO
 </div>
 
 @if ($errors->any())
@@ -19,9 +19,9 @@
     </div>
 @endif
 
-<form method="POST" action="{{route('CentroCustos.update',$CentroCustos->ID)}}" accept-charset="UTF-8">
+<form method="POST" action="{{route('ContasCentroCustos.update',$ContasCentroCustos->ID)}}" accept-charset="UTF-8">
     <input type="hidden" name="_method" value="PUT">
-    @include('CentroCustos.campos')
+    @include('ContasCentroCustos.campos')
 </form>
 
 @endsection

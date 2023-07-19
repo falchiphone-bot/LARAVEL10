@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Conta extends Model
@@ -50,8 +51,13 @@ class Conta extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function PlanoConta()
+    public function PlanoConta(): BelongsTo
     {
         return $this->belongsTo(PlanoConta::class, 'Planocontas_id','ID');
+    }
+
+    public function Empresa(): HasOne
+    {
+        return $this->hasOne(Empresa::class,'ID','EmpresaID');
     }
 }

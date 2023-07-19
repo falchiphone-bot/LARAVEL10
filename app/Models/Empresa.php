@@ -43,4 +43,5 @@ class Empresa extends Model
         return $this->belongsToMany(User::class, 'Contabilidade.EmpresasUsuarios', 'EmpresaID', 'UsuarioID');
     }
 
+   
 }

@@ -22,8 +22,8 @@ class ContasCentroCustosCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-             'CentroCustoID' =>'required',
-             'ContaID' =>'required',
+            //  'CentroCustoID' =>'required',
+            //  'ContaID' =>'required',
         ];
     }
 }
