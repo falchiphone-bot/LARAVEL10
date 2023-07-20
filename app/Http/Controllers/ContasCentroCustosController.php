@@ -41,8 +41,19 @@ class ContasCentroCustosController extends Controller
 
     public function index()
     {
-       $ContasCentroCustos = ContasCentroCustos::OrderBy('CentroCustoID')->get();
+       $ContasCentroCustos = ContasCentroCustos::where('ID','1256')->OrderBy('CentroCustoID')->first();
 
+       $ContasCentroCustosID = $ContasCentroCustos->ID;
+       $CentroCusto = $ContasCentroCustos->CentroCustoID;
+       $Conta = $ContasCentroCustos->ContaID;
+
+       $NomeCentroCustos = $ContasCentroCustos->MostraCentroCusto?->Descricao;
+       $NomeConta = $ContasCentroCustos->MostraContaCentroCusto->PlanoConta?->Descricao;
+       $Empresa = $ContasCentroCustos->MostraContaCentroCusto->Empresa?->Descricao;
+
+
+
+dd($ContasCentroCustosID, $CentroCusto, $NomeCentroCustos, $Conta, $NomeConta, $Empresa);
 
         return view('ContasCentroCustos.index',compact('ContasCentroCustos'));
     }
