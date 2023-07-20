@@ -39,9 +39,18 @@ class ContasCentroCustosController extends Controller
          return view('ContasCentroCustos.dashboard');
      }
 
-    public function index()
+     public function index()
+     {
+        $ContasCentroCustos = ContasCentroCustos::OrderBy('ID','desc')->get();
+
+
+
+         return view('ContasCentroCustos.index',compact('ContasCentroCustos'));
+     }
+
+    public function CalculoContasCentroCustos(string $id)
     {
-       $ContasCentroCustos = ContasCentroCustos::where('ID','1256')->OrderBy('CentroCustoID')->first();
+       $ContasCentroCustos = ContasCentroCustos::find($id);
 
        $ContasCentroCustosID = $ContasCentroCustos->ID;
        $CentroCusto = $ContasCentroCustos->CentroCustoID;

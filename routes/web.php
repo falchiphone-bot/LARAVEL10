@@ -98,6 +98,7 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
 
     # Centro de custos
     Route::get('CentroCustos/dashboard', [App\Http\Controllers\CentroCustosController::class, 'dashboard'])->name('CentroCustos.dashboard');
+    Route::get('ContasCentroCustos/calculocontascentrocustos/{id?}', [App\Http\Controllers\ContasCentroCustosController::class, 'CalculoContasCentroCustos'])->name('ContasCentroCustos.calculocontascentrocustos');
     Route::resource('CentroCustos', App\Http\Controllers\CentroCustosController::class);
     Route::resource('ContasCentroCustos', App\Http\Controllers\ContasCentroCustosController::class);
 

@@ -70,6 +70,12 @@
 
                                 </td>
 
+                                @can('CONTASCENTROCUSTOS - CALCULAR')
+                                <td>
+                                    <a href="{{ route('ContasCentroCustos.calculocontascentrocustos', $ContasCentroCusto->ID) }}" class="btn btn-secondary" tabindex="-1"
+                                        role="button" aria-disabled="true">Calcular</a>
+                                </td>
+                            @endcan
 
 
                                 @can('CONTASCENTROCUSTOS - EDITAR')
