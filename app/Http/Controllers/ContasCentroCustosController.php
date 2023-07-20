@@ -2,16 +2,18 @@
 
 namespace App\Http\Controllers;
 
-
+use App\Helpers\SaldoLancamentoHelper;
 use App\Http\Requests\CentroCustosCreateRequest;
 use App\Http\Requests\ContasCentroCustosCreateRequest;
 use App\Models\CentroCustos;
 use App\Models\Conta;
 use App\Models\ContasCentroCustos;
 use App\Models\Empresa;
+use App\Models\Lancamento;
 use App\Models\PlanoConta;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon as SupportCarbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -50,21 +52,51 @@ class ContasCentroCustosController extends Controller
 
     public function CalculoContasCentroCustos(string $id)
     {
-       $ContasCentroCustos = ContasCentroCustos::find($id);
+       $ContasCentroCustos = ContasCentroCustos::where('ID' , '=', $id)->First();
 
        $ContasCentroCustosID = $ContasCentroCustos->ID;
        $CentroCusto = $ContasCentroCustos->CentroCustoID;
-       $Conta = $ContasCentroCustos->ContaID;
+       $ContaID = $ContasCentroCustos->ContaID;
+       $De = Carbon::now()->format('d/m/Y');
+
+       $EmpresaID = $ContasCentroCustos->MostraContaCentroCusto->EmpresaID;
+
+
 
        $NomeCentroCustos = $ContasCentroCustos->MostraCentroCusto?->Descricao;
        $NomeConta = $ContasCentroCustos->MostraContaCentroCusto->PlanoConta?->Descricao;
        $Empresa = $ContasCentroCustos->MostraContaCentroCusto->Empresa?->Descricao;
 
+    //    $de = Carbon::createFromDate($De);
+    $de = $De;
+       $contaID = $ContaID;
+       $totalCredito = Lancamento::where(function ($q) use ($de, $contaID,$EmpresaID) {
+           return $q
+               ->where('ContaCreditoID', $contaID)
+               ->where('EmpresaID', $EmpresaID)
+               ->where('DataContabilidade', '<', $de);
+       })
+           ->whereDoesntHave('SolicitacaoExclusao')
+           ->sum('Lancamentos.Valor');
+
+       $totalDebito = Lancamento::where(function ($q) use ($de, $contaID, $EmpresaID) {
+           return $q
+               ->where('ContaDebitoID', $contaID)
+               ->where('EmpresaID', $EmpresaID)
+               ->where('DataContabilidade', '<', $de);
+       })
+           ->whereDoesntHave('SolicitacaoExclusao')
+           ->sum('Lancamentos.Valor');
+
+       $saldoAnterior = $totalDebito - $totalCredito;
 
 
-dd($ContasCentroCustosID, $CentroCusto, $NomeCentroCustos, $Conta, $NomeConta, $Empresa);
 
-        return view('ContasCentroCustos.index',compact('ContasCentroCustos'));
+    $SaldoDia = SaldoLancamentoHelper::Dia($de,$contaID, $EmpresaID);
+
+// dd($ContasCentroCustosID, $CentroCusto, $NomeCentroCustos, $ContaID, $NomeConta, $Empresa, $saldoAnterior, $totalDebito, $totalCredito, $SaldoDia);
+
+        return view('ContasCentroCustos.calculoscontascentrocustos',compact('ContasCentroCustos','SaldoDia'));
     }
 
     /**
