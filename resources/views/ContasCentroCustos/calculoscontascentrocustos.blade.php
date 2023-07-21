@@ -42,61 +42,40 @@
 
             </div>
 
-            <tbody>
-                <table class="table" style="background-color: rgb(247, 213, 213);">
-                    <thead>
-                        <tr>
-                            <th scope="col" class="px-6 py-4">SALDO ANTERIOR</th>
-                                <th scope="col" class="px-6 py-4">SALDO DO DIA</th>
-                            <th scope="col" class="px-6 py-4">SALDO ATUAL</th>
-                            <th scope="col" class="px-6 py-4">CENTRO DE CUSTOS</th>
-                            <th scope="col" class="px-6 py-4">CONTAS</th>
-
-                            <th scope="col" class="px-6 py-4"></th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        @foreach ($Resultado as $ContasCentroCusto)
-                            <tr>
- <td class="">{{ $ContasCentroCusto['saldoAnterior'] ?? null}}                 </td>
-  <td class="">{{ $ContasCentroCusto['SaldoDia'] ?? null}}                                 </td>
-
-                                <td class="">
-                                    {{ $ContasCentroCusto['SaldoAtual'] ?? null}}
-                                </td>
-                                <td class="">
-                                    {{ $ContasCentroCusto['NomeCentroCustos'] ?? null}}
-                                </td>
-                                <td class="">
-                                    {{ $ContasCentroCusto['NomeConta']?? null }} || {{ $ContasCentroCusto['Empresa'] ?? null}}
-                                </td>
-                                <td class="">
-
-                                </td>
-
-                            </tr>
-                        @endforeach
+            <table class="table" style="background-color: rgb(247, 213, 213);">
+                <thead>
+                    <tr>
+                        <th scope="col" class="px-6 py-4">SALDO ANTERIOR</th>
+                        <th scope="col" class="px-6 py-4">SALDO DO DIA</th>
+                        <th scope="col" class="px-6 py-4">SALDO ATUAL</th>
+                        <th scope="col" class="px-6 py-4">CENTRO DE CUSTOS</th>
+                        <th scope="col" class="px-6 py-4">CONTAS</th>
+                         <th scope="col" class="px-6 py-4">EMPRESA</th>
+                        <th scope="col" class="px-6 py-4"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($Resultado as $ContasCentroCusto)
+                    <tr>
+                        <td class="">{{ number_format($ContasCentroCusto['saldoAnterior'], 2, ',', '.') ?? null}}</td>
+                        <td class="">{{ number_format($ContasCentroCusto['SaldoDia'], 2, ',', '.') ?? null}}</td>
+                        <td class="">{{ number_format($ContasCentroCusto['SaldoAtual'], 2, ',', '.') ?? null}}</td>
+                        <td class="">{{ $ContasCentroCusto['NomeCentroCustos'] ?? null}}</td>
+                        <td class="">{{ $ContasCentroCusto['NomeConta'] ?? null }}</td>
+                        <td class="">{{ $ContasCentroCusto['Empresa'] ?? null }}</td>
+                        <td class=""></td>
+                    </tr>
+                    @endforeach
+                    <tr class="table" style="background-color: rgb(19, 211, 83);">
+                        <td class="">{{ number_format($somaSaldoAnterior, 2, ',', '.') }}</td>
+                        <td class="">{{ number_format($somaSaldoDia, 2, ',', '.') }}</td>
+                        <td class="">{{ number_format($somaSaldoAtual, 2, ',', '.') ?? null}}</td>
+                    </tr>
+                </tbody>
+            </table>
 
 
-
-                 <tr class=“table” style="background-color: rgb(19, 211, 83);“>
-
-                        <td class="">
-                        {{ $somaSaldoAnterior }}
-                        </td>
-                        <td class="">
-                            {{ $somaSaldoDia }}
-                        </td>
-
-                        <td class="">
-                            {{ $somaSaldoAtual ?? null}}
-                        </td>
-
-                </tr>
-        </tbody>
-        </table>
-                                <div class="badge bg-primary text-wrap" style="width: 100%;">
+            <div class="badge bg-primary text-wrap" style="width: 100%;">
         </div>
     </div>
 
