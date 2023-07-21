@@ -135,14 +135,25 @@ $ResultadoLoop[] = $Resultado;
 
 
     }
-// dd($ResultadoLoop);
-
-
-// dd($ContasCentroCustosID, $CentroCusto, $NomeCentroCustos, $ContaID, $NomeConta, $Empresa, $saldoAnterior, $totalDebito, $totalCredito, $SaldoDia);
 
 $Resultado = $ResultadoLoop;
 
-        return view('ContasCentroCustos.calculoscontascentrocustos',compact('Resultado','SaldoAtual', 'saldoAnterior', 'SaldoDia'));
+$somaSaldoAnterior = 0;
+$somaSaldoAtual = 0;
+$somaSaldoDia = 0;
+
+
+foreach ($ResultadoLoop as
+$registro) {
+    $somaSaldoAtual += $registro['SaldoAtual'];
+    $somaSaldoAnterior += $registro['saldoAnterior'];
+    $somaSaldoDia += $registro['SaldoDia'];
+}
+
+
+
+        return view('ContasCentroCustos.calculoscontascentrocustos',compact('Resultado','SaldoAtual', 'saldoAnterior', 'SaldoDia',
+    'somaSaldoAtual', 'somaSaldoAnterior', 'somaSaldoDia'));
     }
 
     /**

@@ -75,43 +75,27 @@
 
                                 </td>
 
-                                {{-- @can('CONTASCENTROCUSTOS - CALCULAR')
-                                <td>
-                                    <a href="{{ route('ContasCentroCustos.calculocontascentrocustos', $ContasCentroCusto->ID) }}" class="btn btn-secondary" tabindex="-1"
-                                        role="button" aria-disabled="true">Calcular</a>
-                                </td>
-                            @endcan --}}
-
-
-                                {{-- @can('CONTASCENTROCUSTOS - EDITAR')
-                                    <td>
-                                        <a href="{{ route('ContasCentroCustos.edit', $ContasCentroCusto->ID) }}" class="btn btn-success" tabindex="-1"
-                                            role="button" aria-disabled="true">Editar</a>
-                                    </td>
-                                @endcan --}}
-
-                                {{-- @can('CONTASCENTROCUSTOS - VER')
-                                    <td>
-                                        <a href="{{ route('ContasCentroCustos.show', $ContasCentroCusto->ID) }}" class="btn btn-info" tabindex="-1"
-                                            role="button" aria-disabled="true">Ver</a>
-                                    </td>
-                                @endcan --}}
-
-                                {{-- @can('CONTASCENTROCUSTOS - EXCLUIR')
-                                    <td>
-                                        <form method="POST" action="{{ route('ContasCentroCustos.destroy', $ContasCentroCusto->ID) }}">
-                                            @csrf
-                                            <input type="hidden" name="_method" value="DELETE">
-                                            <button type="submit" class="btn btn-danger">
-                                                Excluir
-                                            </button>
-                                        </form>
-                                    </td>
-                                @endcan --}}
                             </tr>
                         @endforeach
-                    </tbody>
-                </table>
+
+
+
+                 <tr class=“table” style="background-color: rgb(19, 211, 83);“>
+
+                        <td class="">
+                        {{ $somaSaldoAnterior }}
+                        </td>
+                        <td class="">
+                            {{ $somaSaldoDia }}
+                        </td>
+
+                        <td class="">
+                            {{ $somaSaldoAtual ?? null}}
+                        </td>
+
+                </tr>
+        </tbody>
+        </table>
                                 <div class="badge bg-primary text-wrap" style="width: 100%;">
         </div>
     </div>
