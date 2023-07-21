@@ -52,8 +52,13 @@ class ContasCentroCustosController extends Controller
 
     public function CalculoContasCentroCustos(string $id)
     {
-       $ContasCentroCustos = ContasCentroCustos::where('ID' , '=', $id)->get();
+       $ContasCentroCustos = ContasCentroCustos::where('CentroCustoID' , '=', $id)->get();
 
+    //    dd($ContasCentroCustos);
+
+
+ $Resultado = array();
+$ResultadoLoop = array();
 
        foreach($ContasCentroCustos as $TodasContas){
 
@@ -97,16 +102,47 @@ class ContasCentroCustosController extends Controller
 
 
 
-         $SaldoDia = SaldoLancamentoHelper::Dia($de,$contaID, $EmpresaID);
+         $SaldoDia = SaldoLancamentoHelper::Dia($de, $contaID, $EmpresaID);
 
-         $SaldoAtual = $saldoAnterior + $SaldoDia;
+$SaldoAtual = $saldoAnterior + $SaldoDia;
+
+/////////////////////// MONTA ARRAY
+          $Resultado['NomeCentroCustos'] = $NomeCentroCustos;
+
+          $Resultado['NomeConta'] = $NomeConta;
+
+
+          $Resultado['Empresa'] = $Empresa;
+
+
+
+          $Resultado['saldoAnterior'] = $saldoAnterior;
+
+
+          $Resultado['totalDebito'] = $totalDebito;
+
+
+          $Resultado['totalCredito'] = $totalCredito;
+
+
+          $Resultado['SaldoDia'] = $SaldoDia;
+
+
+          $Resultado['SaldoAtual'] = $SaldoAtual;
+
+
+$ResultadoLoop[] = $Resultado;
+
+
     }
-
+// dd($ResultadoLoop);
 
 
 // dd($ContasCentroCustosID, $CentroCusto, $NomeCentroCustos, $ContaID, $NomeConta, $Empresa, $saldoAnterior, $totalDebito, $totalCredito, $SaldoDia);
-// $ContasCentroCustos = $TodasContas;
-        return view('ContasCentroCustos.calculoscontascentrocustos',compact('ContasCentroCustos','SaldoAtual', 'saldoAnterior', 'SaldoDia'));
+
+$Resultado = $ResultadoLoop;
+
+        return view('ContasCentroCustos.calculoscontascentrocustos',compact('Resultado','SaldoAtual', 'saldoAnterior', 'SaldoDia'));
     }
 
     /**

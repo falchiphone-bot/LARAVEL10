@@ -57,19 +57,19 @@
                     </thead>
 
                     <tbody>
-                        @foreach ($ContasCentroCustos as $ContasCentroCusto)
+                        @foreach ($Resultado as $ContasCentroCusto)
                             <tr>
- <td class="">      .                       {{ $saldoAnterior ?? null}}                 </td>
-  <td class="">                                     {{ $SaldoDia ?? null}}                                 </td>
+ <td class="">{{ $ContasCentroCusto['saldoAnterior'] ?? null}}                 </td>
+  <td class="">{{ $ContasCentroCusto['SaldoDia'] ?? null}}                                 </td>
 
                                 <td class="">
-                                    {{ $SaldoAtual ?? null}}
+                                    {{ $ContasCentroCusto['SaldoAtual'] ?? null}}
                                 </td>
                                 <td class="">
-                                    {{ $ContasCentroCusto->MostraCentroCusto->Descricao ?? null}}
+                                    {{ $ContasCentroCusto['NomeCentroCustos'] ?? null}}
                                 </td>
                                 <td class="">
-                                    {{ $ContasCentroCusto->MostraContaCentroCusto->PlanoConta->Descricao ?? null }} || {{ $ContasCentroCusto->MostraContaCentroCusto->Empresa?->Descricao }}
+                                    {{ $ContasCentroCusto['NomeConta']?? null }} || {{ $ContasCentroCusto['Empresa'] ?? null}}
                                 </td>
                                 <td class="">
 
