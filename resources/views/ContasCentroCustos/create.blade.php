@@ -11,9 +11,27 @@
                             {{ $message }}
                         </div>
                     @enderror --}}
+
+
+
+
                 </div>
 
                 <h1 class="text-center">Contas para centro de custos - Inclusão</h1>
+
+                @if (session('success'))
+                <div class="alert alert-success">
+                    {{ session('success') }}
+                </div>
+                {{ session(['success' => null]) }}
+            @elseif (session('error'))
+                <div class="alert alert-danger">
+                    {{ session('error') }}
+                </div>
+                {{ session(['error' => null]) }}
+            @endif
+
+
                 <hr>
                 <form method="POST" action="/ContasCentroCustos" accept-charset="UTF-8">
                     @include('ContasCentroCustos.campos')

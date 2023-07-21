@@ -178,8 +178,24 @@ $registro) {
      */
     public function store(ContasCentroCustosCreateRequest  $request)
     {
-        $ContasCentroCustos = $request->all();
 
+        $Existe = ContasCentroCustos::where('CentroCustoID','=', $request->CentroCustoID)
+        ->where('ContaID', '=', $request->ContaID)
+        ->first();
+
+
+        if($Existe){
+            session(['success' => ' Registro já inserido. '
+            .$request->ContaID. ': '. $Existe->MostraContaCentroCusto->PlanoConta->Descricao
+            . ' em '.$request->CentroCustoID.': '. $Existe->MostraCentroCusto->Descricao]
+        );
+            return redirect(route('ContasCentroCustos.create'));
+
+        }
+
+
+
+        $ContasCentroCustos = $request->all();
 
 
         // $ContasCentroCustos['Modified'] = Carbon::now()->format('d/m/Y H:i:s');
