@@ -52,20 +52,25 @@ class ContasCentroCustosController extends Controller
 
     public function CalculoContasCentroCustos(string $id)
     {
-       $ContasCentroCustos = ContasCentroCustos::where('ID' , '=', $id)->First();
+       $ContasCentroCustos = ContasCentroCustos::where('ID' , '=', $id)->get();
 
-       $ContasCentroCustosID = $ContasCentroCustos->ID;
-       $CentroCusto = $ContasCentroCustos->CentroCustoID;
-       $ContaID = $ContasCentroCustos->ContaID;
+
+       foreach($ContasCentroCustos as $TodasContas){
+
+       $ContasCentroCustosID = $TodasContas->ID;
+       $CentroCusto = $TodasContas->CentroCustoID;
+       $ContaID = $TodasContas->ContaID;
+
+
+
        $De = Carbon::now()->format('d/m/Y');
 
-       $EmpresaID = $ContasCentroCustos->MostraContaCentroCusto->EmpresaID;
 
 
-
-       $NomeCentroCustos = $ContasCentroCustos->MostraCentroCusto?->Descricao;
-       $NomeConta = $ContasCentroCustos->MostraContaCentroCusto->PlanoConta?->Descricao;
-       $Empresa = $ContasCentroCustos->MostraContaCentroCusto->Empresa?->Descricao;
+       $EmpresaID = $TodasContas->MostraContaCentroCusto->EmpresaID;
+       $NomeCentroCustos = $TodasContas->MostraCentroCusto?->Descricao;
+       $NomeConta = $TodasContas->MostraContaCentroCusto->PlanoConta?->Descricao;
+       $Empresa = $TodasContas->MostraContaCentroCusto->Empresa?->Descricao;
 
     //    $de = Carbon::createFromDate($De);
     $de = $De;
@@ -92,11 +97,16 @@ class ContasCentroCustosController extends Controller
 
 
 
-    $SaldoDia = SaldoLancamentoHelper::Dia($de,$contaID, $EmpresaID);
+         $SaldoDia = SaldoLancamentoHelper::Dia($de,$contaID, $EmpresaID);
+
+         $SaldoAtual = $saldoAnterior + $SaldoDia;
+    }
+
+
 
 // dd($ContasCentroCustosID, $CentroCusto, $NomeCentroCustos, $ContaID, $NomeConta, $Empresa, $saldoAnterior, $totalDebito, $totalCredito, $SaldoDia);
-
-        return view('ContasCentroCustos.calculoscontascentrocustos',compact('ContasCentroCustos','SaldoDia'));
+// $ContasCentroCustos = $TodasContas;
+        return view('ContasCentroCustos.calculoscontascentrocustos',compact('ContasCentroCustos','SaldoAtual', 'saldoAnterior', 'SaldoDia'));
     }
 
     /**

@@ -24,7 +24,7 @@
                 @endif
 
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                    <a class="btn btn-warning" href="/dashboard">Retornar a lista de opções</a> </nav>
+                    <a class="btn btn-warning" href="CentroCustos/dashboard">Retornar a lista de opções</a> </nav>
 
 
                 @can('CENTROCUSTOS- INCLUIR')

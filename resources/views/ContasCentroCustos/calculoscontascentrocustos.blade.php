@@ -24,7 +24,7 @@
                 @endif
 
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                    <a class="btn btn-warning" href="/dashboard">Retornar a lista de opções</a> </nav>
+                    <a class="btn btn-warning" href="/CentroCustos/dashboard">Retornar a lista de opções</a> </nav>
 
 
                 {{-- @can('CONTASCENTROCUSTOS- INCLUIR')
@@ -46,7 +46,9 @@
                 <table class="table" style="background-color: rgb(247, 213, 213);">
                     <thead>
                         <tr>
-                            <th scope="col" class="px-6 py-4">SALDO DO DIA</th>
+                            <th scope="col" class="px-6 py-4">SALDO ANTERIOR</th>
+                                <th scope="col" class="px-6 py-4">SALDO DO DIA</th>
+                            <th scope="col" class="px-6 py-4">SALDO ATUAL</th>
                             <th scope="col" class="px-6 py-4">CENTRO DE CUSTOS</th>
                             <th scope="col" class="px-6 py-4">CONTAS</th>
 
@@ -57,14 +59,17 @@
                     <tbody>
                         @foreach ($ContasCentroCustos as $ContasCentroCusto)
                             <tr>
+ <td class="">      .                       {{ $saldoAnterior ?? null}}                 </td>
+  <td class="">                                     {{ $SaldoDia ?? null}}                                 </td>
+
                                 <td class="">
-                                    {{ $SaldoDia ?? null}}
+                                    {{ $SaldoAtual ?? null}}
                                 </td>
                                 <td class="">
                                     {{ $ContasCentroCusto->MostraCentroCusto->Descricao ?? null}}
                                 </td>
                                 <td class="">
-                                    {{-- {{ $ContasCentroCusto->MostraContaCentroCusto->PlanoConta->Descricao ?? null }} || {{ $ContasCentroCusto->MostraContaCentroCusto->Empresa?->Descricao }} --}}
+                                    {{ $ContasCentroCusto->MostraContaCentroCusto->PlanoConta->Descricao ?? null }} || {{ $ContasCentroCusto->MostraContaCentroCusto->Empresa?->Descricao }}
                                 </td>
                                 <td class="">
 
