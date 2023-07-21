@@ -261,6 +261,20 @@ $registro) {
     {
 
         $cadastro = ContasCentroCustos::find($id);
+
+        $Existe = ContasCentroCustos::where('CentroCustoID','=', $request->CentroCustoID)
+        ->where('ContaID', '=', $request->ContaID)
+        ->first();
+
+
+        if($Existe){
+            session(['success' => ' Registro já inserido. '
+            .$request->ContaID. ': '. $Existe->MostraContaCentroCusto->PlanoConta->Descricao
+            . ' em '.$request->CentroCustoID.': '. $Existe->MostraCentroCusto->Descricao]
+        );
+            return redirect(route('ContasCentroCustos.index'));
+        }
+
         $contaAnterior = $cadastro->ContaID;
         $cadastro->update(['ContaID' => $request->ContaID]);
 

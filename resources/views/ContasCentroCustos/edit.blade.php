@@ -17,6 +17,19 @@
             @endforeach
         </ul>
     </div>
+
+    @if (session('success'))
+    <div class="alert alert-success">
+        {{ session('success') }}
+    </div>
+    {{ session(['success' => null]) }}
+@elseif (session('error'))
+    <div class="alert alert-danger">
+        {{ session('error') }}
+    </div>
+    {{ session(['error' => null]) }}
+@endif
+
 @endif
 
 <form method="POST" action="{{route('ContasCentroCustos.update',$ContasCentroCustos->ID)}}" accept-charset="UTF-8">
