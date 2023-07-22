@@ -172,8 +172,15 @@ class PlanoContaController extends Controller
      */
     public function store(PlanoContasCreateRequest $request)
     {
+
+
         $dados = $request->all();
-        //dd($dados);
+
+   $dados['Created'] = Carbon::now()->format('d/m/Y H:i:s');
+   $dados['Modified'] = Carbon::now()->format('d/m/Y H:i:s');
+        $dados['UsuarioID'] = auth()->user()->id;
+
+     //dd($dados);
 
         PlanoConta::create($dados);
         return redirect(route('PlanoContas.index'));

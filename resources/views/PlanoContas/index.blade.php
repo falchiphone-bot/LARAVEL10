@@ -125,6 +125,14 @@
                                                 class="btn btn-info btn-sm enabled" tabindex="-1" role="button"
                                                 aria-disabled="true">Ver</a>
                                         @endcan
+
+                                        @can('PLANO DE CONTAS - INCLUIR')
+                                        <a href="{{ route('PlanoContas.edit', $cadastro->ID) }}"
+                                            class="btn btn-success btn-sm enabled" tabindex="-1" role="button"
+                                            aria-disabled="true">Incluir conta</a>
+                                    @endcan
+
+
                                     </div>
                                 </div>
                             </td>

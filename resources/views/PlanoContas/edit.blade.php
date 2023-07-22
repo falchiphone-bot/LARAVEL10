@@ -26,6 +26,15 @@
                 <input type="hidden" name="_method" value="PUT">
                 @include('PlanoContas.campos')
             </form>
+
+
+
+
+
+            <form method="POST" action="/PlanoContas" accept-charset="UTF-8">
+                @include('PlanoContas.camposincluir')
+            </form>
+
         </div>
     </div>
 </div>
