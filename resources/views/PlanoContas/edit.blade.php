@@ -11,6 +11,21 @@
             <h1 class="text-center">Plano de contas padrão para contabilidade</h1>
         <div class="card">
 
+
+            @if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+             {{ session(['success' => NULL])}}
+        @elseif (session('error'))
+            <div class="alert alert-danger">
+                {{ session('error') }}
+            </div>
+            {{ session(['error' => NULL])}}
+        @endif
+
+
+
             <h1 class="text-center">Edição da conta</h1>
             <hr>
             @if ($errors->any())
@@ -33,6 +48,11 @@
 
             <form method="POST" action="/PlanoContas" accept-charset="UTF-8">
                 @include('PlanoContas.camposincluir')
+            </form>
+
+      <form method="POST" action="{{route('PlanoContas.update',$cadastro->ID)}}" accept-charset="UTF-8">
+            <input type="hidden" name="_method" value="PUT">
+                     @include('PlanoContas.incluirconta')
             </form>
 
         </div>

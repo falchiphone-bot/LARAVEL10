@@ -1,10 +1,10 @@
    @csrf
                     <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                    <a class="btn btn-danger" href="CentroCustos/dashboard">Incluir conta abaixo</a> </nav>
+                    <a class="btn btn-danger" href="CentroCustos/dashboard">Incluir conta na empresa abaixo selecionada</a> </nav>
 
     <div class="card">
- .  <div class="card-body" style="background-color: rgb(33, 244, 33)">  
-                    <div class="row">
+          <div class="card-body" style="background-color: rgb(244, 33, 33)">
+            <div class="row">
                 <div class="col-6">
                     <label for="nome">DESCRIÇÃO</label>
                     <input class="form-control @error('Descricao') is-invalid @else is-valid @enderror" name="Descricao"
@@ -49,10 +49,25 @@
                 </div>
             </div>
 
+            <div class="form-group">
+                <div class="badge bg-info text-wrap" style="width: 100%; height: 50%; font-size: 24px;">
+                    CLUBE
+                </div>
+                <select required class="form-control select2" id="EmpresaSelecionada" name="EmpresaSelecionada">
+                    <option value="">Selecionar clube</option>
+                    @foreach ($Empresas as $Empresa)
+                    <option value="{{ $Empresa->ID }}">
+                        {{ $Empresa->Descricao }}
+                    </option>
+                    @endforeach
+                </select>
+
+            </div>
+
 
             <div class="row mt-2">
                 <div class="col-6">
-                    <button class="btn btn-primary">Salvar inclusão de conta</button>
+                    <button class="btn btn-success">Salvar inclusão de conta na empresa acima selecionada</button>
                     {{-- <a href="{{route('PlanoContas.index')}}" class="btn btn-warning">Retornar para lista do plano de contas</a> --}}
                 </div>
             </div>

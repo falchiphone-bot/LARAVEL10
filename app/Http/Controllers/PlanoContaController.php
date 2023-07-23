@@ -204,7 +204,15 @@ class PlanoContaController extends Controller
         $cadastro = PlanoConta::find($id);
         // dd($cadastro);
 
-        return view('PlanoContas.edit', compact('cadastro'));
+        $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+        ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+        ->OrderBy('Descricao')
+        ->select(['Empresas.ID', 'Empresas.Descricao'])
+        ->get();
+
+
+
+        return view('PlanoContas.edit', compact('cadastro','Empresas'));
     }
 
     /**
@@ -212,6 +220,24 @@ class PlanoContaController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $Empresa = $request->EmpresaSelecionada;
+        $Descricao = Empresa::find($Empresa)->Descricao;
+        $Registro = $id;
+        if($Empresa){
+
+            // dd('Empresa: '.$request->EmpresaSelecionada);
+
+            $Conta = Conta::where('EmpresaID','=', $Empresa)
+            ->where('Planocontas_id', '=' ,$id)->first();
+
+            if($Conta){
+                session(['error' => 'A conta já existe para a empresa: '. $Descricao .'!']);
+
+
+                return redirect(route('PlanoContas.edit', $Registro));
+            }
+        }
+
         $cadastro = PlanoConta::find($id);
 
         $cadastro->fill($request->all());
@@ -219,6 +245,8 @@ class PlanoContaController extends Controller
 
         $cadastro->save();
         //dd($cadastro->save());
+
+
 
         return redirect(route('PlanoContas.index'));
     }
