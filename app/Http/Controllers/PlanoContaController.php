@@ -220,35 +220,52 @@ class PlanoContaController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $Empresa = $request->EmpresaSelecionada;
-        $Descricao = Empresa::find($Empresa)->Descricao;
-        $Registro = $id;
-        if($Empresa){
+        $EmpresaID = $request->EmpresaSelecionada;
 
-            // dd('Empresa: '.$request->EmpresaSelecionada);
 
-            $Conta = Conta::where('EmpresaID','=', $Empresa)
+        if($EmpresaID){
+            $Descricao = Empresa::find($EmpresaID)->Descricao;
+            $Registro = $id;
+            $Conta = Conta::where('EmpresaID','=', $EmpresaID)
             ->where('Planocontas_id', '=' ,$id)->first();
 
             if($Conta){
                 session(['error' => 'A conta já existe para a empresa: '. $Descricao .'!']);
-
-
                 return redirect(route('PlanoContas.edit', $Registro));
             }
+
+
+            $Created = Carbon::now()->format('d/m/Y H:i:s');
+            $Modified = Carbon::now()->format('d/m/Y H:i:s');
+            $UsuarioID = auth()->user()->id;
+            $InseridoPor = auth()->user()->email;
+
+            $Contanova = new Conta();
+
+            $Contanova->fill(['EmpresaID' => $EmpresaID,
+            'Planocontas_id' => $id,
+            'Created' => $Created,
+            'Modified' => $Modified,
+            'Usuarios_id' => $UsuarioID,
+            'Contapagamento' => 1,
+            'Nota' => $InseridoPor,]);
+
+
+            $Contanova->save();
+            session(['success' => 'Conta cadastrada para a empresa: '. $Descricao .'!']);
+            return redirect(route('PlanoContas.edit',$id));
+
         }
 
         $cadastro = PlanoConta::find($id);
 
         $cadastro->fill($request->all());
-        //dd($cadastro);
 
         $cadastro->save();
-        //dd($cadastro->save());
 
 
-
-        return redirect(route('PlanoContas.index'));
+        session(['success' => 'Conta alterada!']);
+        return redirect(route('PlanoContas.edit',$id));
     }
 
     /**

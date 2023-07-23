@@ -1,9 +1,9 @@
    @csrf
                     <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                    <a class="btn btn-danger" href="CentroCustos/dashboard">Incluir conta abaixo</a> </nav>
+                    <a class="btn btn-danger" href="">Incluir conta abaixo</a> </nav>
 
     <div class="card">
- .  <div class="card-body" style="background-color: rgb(33, 244, 33)">  
+ .  <div class="card-body" style="background-color: rgb(33, 244, 33)">
                     <div class="row">
                 <div class="col-6">
                     <label for="nome">DESCRIÇÃO</label>

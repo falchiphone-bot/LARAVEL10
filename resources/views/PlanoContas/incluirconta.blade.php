@@ -1,6 +1,6 @@
    @csrf
                     <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                    <a class="btn btn-danger" href="CentroCustos/dashboard">Incluir conta na empresa abaixo selecionada</a> </nav>
+                    <a class="btn btn-danger" href="">Incluir conta na empresa abaixo selecionada</a> </nav>
 
     <div class="card">
           <div class="card-body" style="background-color: rgb(244, 33, 33)">
@@ -73,6 +73,8 @@
             </div>
         </div>
     </div>
+
+
 
 
 
