@@ -75,13 +75,13 @@
                                     <a href="{{ route('ContasCentroCustos.calculocontascentrocustos', $ContasCentroCusto->CentroCustoID) }}" class="btn btn-secondary" tabindex="-1"
                                         role="button" aria-disabled="true">Calcular</a>
                                 </td>
-.                               @endcan
+                             @endcan
 @can('CONTASCENTROCUSTOS - CALCULAR')
 <td>
     <a href="{{ route('ContasCentroCustos.gerarCalculoPDF', $ContasCentroCusto->CentroCustoID) }}" class="btn btn-secondary" tabindex="-1"
         role="button" aria-disabled="true">Calcular em PDF</a>
 </td>
-.                               @endcan
+                             @endcan
 
 
                                 @can('CONTASCENTROCUSTOS - EDITAR')
