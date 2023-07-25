@@ -41,4 +41,9 @@ class LancamentoDocumento extends Model
     {
         return $this->hasOne(TipoArquivo::class, 'id', 'TipoArquivo');
     }
+    // public function MostraFormandoBase(): HasOne
+    // {
+    //     return $this->hasOne(FormandoBaseArquivo::class, 'formandobase_id', 'id');
+    // }
+
 }

@@ -29,5 +29,10 @@ class FormandoBase extends Model
         return $this->hasOne(Representantes::class, 'id', 'representante_id');
     }
 
+    //  public function MostraFormandoBase(): HasOne
+    //  {
+    //     return $this->hasOne(FormandoBaseArquivo::class, 'formandobase_id', 'id');
+    //  }
+
 
 }
