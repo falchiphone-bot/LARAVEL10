@@ -531,8 +531,8 @@ $registro) {
                             <th colspan="2" class="saldo-anterior"><h4>Conta: ' . $SaldoDia . '</h4></td>
                     </tr>
                     <tr>
-                        <th>Data</th>
-                        <th>Descrição</th>
+                        <th>Saldo anterior</th>
+                        <th>Saldo dia</th>
                         <th>Débito</th>
                         <th>Crédito</th>
                     </tr>
@@ -540,8 +540,8 @@ $registro) {
                         <td colspan="4"><hr></td>
                     </tr>
                     <tr>
-                        <td colspan="3" class="saldo-anterior">SALDO ANTERIOR</td>
-                        <td style="text-align: right;">' . number_format($saldoAnterior, 2, ',', '.') . '</td>
+                        // <td colspan="3" class="saldo-anterior">SALDO ANTERIOR</td>
+                        // <td style="text-align: right;">' . number_format($saldoAnterior, 2, ',', '.') . '</td>
                     </tr>
                 </thead>
                 <tbody>';
@@ -578,6 +578,25 @@ $registro) {
         //         <td style="text-align: right;">' . (($conta == $lancamento->ContaCreditoID) ? $valor : '') . '</td>
         //     </tr>';
         // }
+
+        // "NomeCentroCustos" => "SOMATÓRIA DAS CONTAS GRUPO NET RUBI - DISPONÍVEL IMEDIATO"
+        // "NomeConta" => "NET RUBI SERVICOS DE TECNOLOGIA LTDA CONTAS 11382- 9 - AGENCIA 0703- SICREDI"
+        // "Empresa" => "NET RUBI SERVICOS DE TECNOLOGIA LTDA"
+        // "saldoAnterior" => 1.0
+        // "totalDebito" => "6401080.68"
+        // "totalCredito" => "6401079.68"
+        // "SaldoDia" => 8506.51
+        // "SaldoAtual" => 85
+
+        foreach($Resultado as $resultado)
+        {
+            $htmlTable .= '<tr>
+                <td>' . number_format($resultado['saldoAnterior'], 2, ',', '.')  .  '</td>
+                <td>' . number_format($resultado['SaldoDia'], 2, ',', '.')  . '</td>
+                <td style="text-align: right;">' . '</td>
+                 <td style="text-align: right;">' .'</td>
+                 </tr>';
+        }
 
         $debitoTotalFormatado = number_format($debitoTotal, 2, ',', '.');
         $creditoTotalFormatado = number_format($creditoTotal, 2, ',', '.');
