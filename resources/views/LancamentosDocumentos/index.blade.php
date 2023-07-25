@@ -160,6 +160,13 @@
                                         Tipo do arquivo:
                                         <span style="color: red;">{{ $documento->TipoArquivoNome->nome }}</span>
                                     </p>
+                                            @can('FORMANDOBASE - LISTAR')
+                                            <td>
+                                                <a href="{{ route('FormandoBase.index') }}" class="btn btn-secondary" tabindex="-1"
+                                                    role="button" aria-disabled="true">Formando</a>
+                                            </td>
+                                            @endcan
+
 
                                     @endif
                                     </a>
@@ -167,6 +174,9 @@
                                 <td class="">
                                     {{ $documento->LancamentoID }}
                                 </td>
+
+
+
 
 
                                 @can('LANCAMENTOS DOCUMENTOS - EDITAR')
