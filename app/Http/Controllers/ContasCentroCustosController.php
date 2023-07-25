@@ -307,8 +307,113 @@ $registro) {
 
     }
 
-    public function gerarCalculoPdf()
+    public function gerarCalculoPdf(string $id)
     {
+
+        $ContasCentroCustos = ContasCentroCustos::where('CentroCustoID' , '=', $id)->get();
+
+        //    dd($ContasCentroCustos);
+
+
+     $Resultado = array();
+    $ResultadoLoop = array();
+
+           foreach($ContasCentroCustos as $TodasContas){
+
+           $ContasCentroCustosID = $TodasContas->ID;
+           $CentroCusto = $TodasContas->CentroCustoID;
+           $ContaID = $TodasContas->ContaID;
+
+
+
+           $De = Carbon::now()->format('d/m/Y');
+
+
+
+           $EmpresaID = $TodasContas->MostraContaCentroCusto->EmpresaID;
+           $NomeCentroCustos = $TodasContas->MostraCentroCusto?->Descricao;
+           $NomeConta = $TodasContas->MostraContaCentroCusto->PlanoConta?->Descricao;
+           $Empresa = $TodasContas->MostraContaCentroCusto->Empresa?->Descricao;
+
+        //    $de = Carbon::createFromDate($De);
+        $de = $De;
+           $contaID = $ContaID;
+           $totalCredito = Lancamento::where(function ($q) use ($de, $contaID,$EmpresaID) {
+               return $q
+                   ->where('ContaCreditoID', $contaID)
+                   ->where('EmpresaID', $EmpresaID)
+                   ->where('DataContabilidade', '<', $de);
+           })
+               ->whereDoesntHave('SolicitacaoExclusao')
+               ->sum('Lancamentos.Valor');
+
+           $totalDebito = Lancamento::where(function ($q) use ($de, $contaID, $EmpresaID) {
+               return $q
+                   ->where('ContaDebitoID', $contaID)
+                   ->where('EmpresaID', $EmpresaID)
+                   ->where('DataContabilidade', '<', $de);
+           })
+               ->whereDoesntHave('SolicitacaoExclusao')
+               ->sum('Lancamentos.Valor');
+
+           $saldoAnterior = $totalDebito - $totalCredito;
+
+
+
+             $SaldoDia = SaldoLancamentoHelper::Dia($de, $contaID, $EmpresaID);
+
+    $SaldoAtual = $saldoAnterior + $SaldoDia;
+
+    /////////////////////// MONTA ARRAY
+              $Resultado['NomeCentroCustos'] = $NomeCentroCustos;
+
+              $Resultado['NomeConta'] = $NomeConta;
+
+
+              $Resultado['Empresa'] = $Empresa;
+
+
+
+              $Resultado['saldoAnterior'] = $saldoAnterior;
+
+
+              $Resultado['totalDebito'] = $totalDebito;
+
+
+              $Resultado['totalCredito'] = $totalCredito;
+
+
+              $Resultado['SaldoDia'] = $SaldoDia;
+
+
+              $Resultado['SaldoAtual'] = $SaldoAtual;
+
+
+    $ResultadoLoop[] = $Resultado;
+
+
+        }
+
+    $Resultado = $ResultadoLoop;
+
+    $somaSaldoAnterior = 0;
+    $somaSaldoAtual = 0;
+    $somaSaldoDia = 0;
+
+
+    foreach ($ResultadoLoop as
+    $registro) {
+        $somaSaldoAtual += $registro['SaldoAtual'];
+        $somaSaldoAnterior += $registro['saldoAnterior'];
+        $somaSaldoDia += $registro['SaldoDia'];
+    }
+
+
+
+        //     return view('ContasCentroCustos.calculoscontascentrocustos',compact('Resultado','SaldoAtual', 'saldoAnterior', 'SaldoDia',
+        // 'somaSaldoAtual', 'somaSaldoAnterior', 'somaSaldoDia'));
+
+
 
 dd('GerarCalculoPDF');
 
