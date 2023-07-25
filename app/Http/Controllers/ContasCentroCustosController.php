@@ -17,6 +17,7 @@ use Illuminate\Support\Carbon as SupportCarbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+ use Dompdf\Dompdf;
 
 
 class ContasCentroCustosController extends Controller
@@ -415,51 +416,51 @@ $registro) {
 
 
 
-dd('GerarCalculoPDF');
+// dd($Resultado,$SaldoAtual, $saldoAnterior, $SaldoDia, $somaSaldoAtual, $somaSaldoAnterior, $somaSaldoDia);
 
 
-        if (session('LancamentosPDF') == null) {
-            return Redirect::back();
-        }
+        // if (session('LancamentosPDF') == null) {
+        //     return Redirect::back();
+        // }
 
-        $lancamentosPDF = session('LancamentosPDF');
+        // $lancamentosPDF = session('LancamentosPDF');
 
-        $lancamentos = $lancamentosPDF['DadosExtrato'];
+        // $lancamentos = $lancamentosPDF['DadosExtrato'];
 
 
-        $de = $lancamentosPDF['de'];
-        $dataDivididade = explode(" ", $de);
-        $deformatada = $dataDivididade[0];
-        $descricaoconta = $lancamentosPDF['descricaoconta'];
-        $conta = $lancamentosPDF['conta'];
+        // $de = $lancamentosPDF['de'];
+        // $dataDivididade = explode(" ", $de);
+        // $deformatada = $dataDivididade[0];
+        // $descricaoconta = $lancamentosPDF['descricaoconta'];
+        // $conta = $lancamentosPDF['conta'];
 
-        $ate = $lancamentosPDF['ate'];
-        $dataDivididaate = explode(" ", $ate);
-        $ateformatada = $dataDivididaate[0];
+        // $ate = $lancamentosPDF['ate'];
+        // $dataDivididaate = explode(" ", $ate);
+        // $ateformatada = $dataDivididaate[0];
 
-        $desa = $de;
-        $contaID =  $conta;
-        $this->selEmpresa = $lancamentosPDF['empresa'];
+        // $desa = $de;
+        // $contaID =  $conta;
+        // $this->selEmpresa = $lancamentosPDF['empresa'];
 
-        $totalCredito = Lancamento::where(function ($q) use ($desa, $contaID) {
-            return $q
-                ->where('ContaCreditoID', $contaID)
-                ->where('EmpresaID', $this->selEmpresa)
-                ->where('DataContabilidade', '<', $desa);
-        })
-            ->whereDoesntHave('SolicitacaoExclusao')
-            ->sum('Lancamentos.Valor');
+        // $totalCredito = Lancamento::where(function ($q) use ($desa, $contaID) {
+        //     return $q
+        //         ->where('ContaCreditoID', $contaID)
+        //         ->where('EmpresaID', $this->selEmpresa)
+        //         ->where('DataContabilidade', '<', $desa);
+        // })
+        //     ->whereDoesntHave('SolicitacaoExclusao')
+        //     ->sum('Lancamentos.Valor');
 
-        $totalDebito = Lancamento::where(function ($q) use ($desa, $contaID) {
-            return $q
-                ->where('ContaDebitoID', $contaID)
-                ->where('EmpresaID', $this->selEmpresa)
-                ->where('DataContabilidade', '<', $desa);
-        })
-            ->whereDoesntHave('SolicitacaoExclusao')
-            ->sum('Lancamentos.Valor');
+        // $totalDebito = Lancamento::where(function ($q) use ($desa, $contaID) {
+        //     return $q
+        //         ->where('ContaDebitoID', $contaID)
+        //         ->where('EmpresaID', $this->selEmpresa)
+        //         ->where('DataContabilidade', '<', $desa);
+        // })
+        //     ->whereDoesntHave('SolicitacaoExclusao')
+        //     ->sum('Lancamentos.Valor');
 
-        $saldoAnterior = $totalDebito - $totalCredito;
+        // $saldoAnterior = $totalDebito - $totalCredito;
 
         // Construir a tabela HTML
         $htmlTable = '<style>
@@ -526,8 +527,8 @@ dd('GerarCalculoPDF');
             <table>
                 <thead>
                     <tr style="background-color: #eaf2ff;">
-                            <th colspan="2" class="saldo-anterior"><h4>Período de: ' . $deformatada . ' à ' . $ateformatada . '</h4></td>
-                            <th colspan="2" class="saldo-anterior"><h4>Conta: ' . $descricaoconta . '</h4></td>
+                            <th colspan="2" class="saldo-anterior"><h4>Período de: ' . $SaldoAtual . ' à ' . $SaldoAtual . '</h4></td>
+                            <th colspan="2" class="saldo-anterior"><h4>Conta: ' . $SaldoDia . '</h4></td>
                     </tr>
                     <tr>
                         <th>Data</th>
@@ -548,35 +549,35 @@ dd('GerarCalculoPDF');
         $debitoTotal = 0;
         $creditoTotal = 0;
 
-        foreach ($lancamentosPDF['DadosExtrato'] as $lancamento) {
-            $id = $lancamento->ID;
-            $valor = number_format($lancamento->Valor, 2, ',', '.');
-            $data = $lancamento->DataContabilidade->format('d/m/Y');
-            $descricao = $lancamento['HistoricoDescricao'] . ' ' . $lancamento->Descricao;
-            $descricaoQuebrada = wordwrap($descricao, 50, "<br>", true);
+        // foreach ($lancamentosPDF['DadosExtrato'] as $lancamento) {
+        //     $id = $lancamento->ID;
+        //     $valor = number_format($lancamento->Valor, 2, ',', '.');
+        //     $data = $lancamento->DataContabilidade->format('d/m/Y');
+        //     $descricao = $lancamento['HistoricoDescricao'] . ' ' . $lancamento->Descricao;
+        //     $descricaoQuebrada = wordwrap($descricao, 50, "<br>", true);
 
-            if (strlen($descricao) < 50) {
-                $descricaoPreenchida = str_pad($descricao, 50, ' ');
-                $descricaocompleta = $descricaoPreenchida;
-            } else {
-                $descricaocompleta = $descricaoQuebrada;
-            }
+        //     if (strlen($descricao) < 50) {
+        //         $descricaoPreenchida = str_pad($descricao, 50, ' ');
+        //         $descricaocompleta = $descricaoPreenchida;
+        //     } else {
+        //         $descricaocompleta = $descricaoQuebrada;
+        //     }
 
-            if ($conta == $lancamento->ContaDebitoID) {
-                $debitoTotal += $lancamento->Valor;
-            }
+        //     if ($conta == $lancamento->ContaDebitoID) {
+        //         $debitoTotal += $lancamento->Valor;
+        //     }
 
-            if ($conta == $lancamento->ContaCreditoID) {
-                $creditoTotal += $lancamento->Valor;
-            }
+        //     if ($conta == $lancamento->ContaCreditoID) {
+        //         $creditoTotal += $lancamento->Valor;
+        //     }
 
-            $htmlTable .= '<tr>
-                <td>' . $data . '</td>
-                <td>' . $descricaocompleta . '</td>
-                <td style="text-align: right;">' . (($conta == $lancamento->ContaDebitoID) ? $valor : '') . '</td>
-                <td style="text-align: right;">' . (($conta == $lancamento->ContaCreditoID) ? $valor : '') . '</td>
-            </tr>';
-        }
+        //     $htmlTable .= '<tr>
+        //         <td>' . $data . '</td>
+        //         <td>' . $descricaocompleta . '</td>
+        //         <td style="text-align: right;">' . (($conta == $lancamento->ContaDebitoID) ? $valor : '') . '</td>
+        //         <td style="text-align: right;">' . (($conta == $lancamento->ContaCreditoID) ? $valor : '') . '</td>
+        //     </tr>';
+        // }
 
         $debitoTotalFormatado = number_format($debitoTotal, 2, ',', '.');
         $creditoTotalFormatado = number_format($creditoTotal, 2, ',', '.');
