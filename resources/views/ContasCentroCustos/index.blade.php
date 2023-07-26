@@ -39,49 +39,55 @@
                 </div>
 
                 <hr>
-            <form method="POST" action="/ContasCentroCustos/gerarCalculoPDF/"  accept-charset="UTF-8">
-                <div class="card">
-                    <div class="card-body">
-                      <div class="row">
-                        <div class="col-6">
-                          <label for="DataInicial" style="color: black;">Data inicial</label>
-                          <input class="form-control @error('DataInicial') is-invalid @else is-valid @enderror"
-                            name="DataInicial" size="30" type="date" step="1" id="DataInicial"
-                            value="{{ $retorno['DataInicial'] ?? null }}">
+                <form method="POST" action="/ContasCentroCustos/gerarCalculoPDF/" accept-charset="UTF-8">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-6">
+                                    <label for="DataInicial" style="color: black;">Data inicial</label>
+                                    <input class="form-control @error('DataInicial') is-invalid @else is-valid @enderror"
+                                           name="DataInicial" size="30" type="date" step="1" id="DataInicial"
+                                           value="{{ $retorno['DataInicial'] ?? null }}">
+                                </div>
+                                <div class="col-6">
+                                    <label for="DataFinal" style="color: black;">Data final</label>
+                                    <input class="form-control @error('DataFinal') is-invalid @else is-valid @enderror"
+                                           name="DataFinal" size="30" type="date" step="1" id="DataFinal"
+                                           value="{{ $retorno['DataFinal'] ?? null }}">
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-6">
-                          <label for="DataFinal" style="color: black;">Data final</label>
-                          <input class="form-control @error('DataFinal') is-invalid @else is-valid @enderror"
-                            name="DataFinal" size="30" type="date" step="1" id="DataFinal"
-                            value="{{ $retorno['DataFinal'] ?? null }}">
+
+                        <div class="col-sm-6">
+                            <label for="idcusto" style="color: black;">CENTRO PARA CALCULOS</label>
+                            <select required class="form-control select2" id="idcusto" name="idcusto">
+                                <option value="">Selecionar</option>
+                                @foreach ($ContasCentroCustos as $Custo)
+                                    <option value="{{ $Custo->CentroCustoID }}">
+                                        {{ $Custo->MostraCentroCusto->Descricao ?? null }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            <!-- Campos ocultos para armazenar o ID do centro de custo selecionado, data inicial e data final -->
+                            <input type="hidden" id="centroCustoSelecionado" name="centroCustoSelecionado" value="">
+                            <input type="hidden" id="dataInicialSelecionada" name="dataInicialSelecionada" value="">
+                            <input type="hidden" id="dataFinalSelecionada" name="dataFinalSelecionada" value="">
                         </div>
-                      </div>
-                    </div>
 
-                    <div class="col-sm-6">
-                        <label for="idcusto" style="color: black;">CENTRO PARA CALCULOS</label>
-                        <select required class="form-control select2" id="idcusto" name="idcusto">
-                            <option value="">
-                                Selecionar
-                            </option>
-                            @foreach ($ContasCentroCustos as $Custo)
-                                <option
-                                    value="{{ $Custo->CentroCustoID }}">
-                                    {{ $Custo-> MostraCentroCusto->Descricao ?? null  }}
-                                </option>
-                            @endforeach
-
-
-                        </select>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-6">
-                            <button class="btn btn-primary">Calcular usando datas e centro de custo selecionado</button>
+                        <div class="row mt-2">
+                            <div class="col-6">
+                                <!-- Botão alterado para type="button" e adicionado um evento onclick -->
+                                <button class="btn btn-primary" type="button" onclick="prepararEnvioFormulario()">Calcular usando datas e centro de custo selecionado</button>
+                            </div>
                         </div>
                     </div>
-                  </div>
-                </div>
-            </form>
+                </form>
+
+
+
+
+
 
             <tbody>
                 <table class="table" style="background-color: rgb(247, 213, 213);">
@@ -162,6 +168,23 @@
     <div class="b-example-divider"></div>
     </div>
 @endsection
+<script>
+    // Função para preencher os campos ocultos e enviar o formulário
+    function prepararEnvioFormulario() {
+        const idCustoSelecionado = document.getElementById('idcusto').value;
+        const dataInicialSelecionada = document.getElementById('DataInicial').value;
+        const dataFinalSelecionada = document.getElementById('DataFinal').value;
+
+        document.getElementById('centroCustoSelecionado').value = idCustoSelecionado;
+        document.getElementById('dataInicialSelecionada').value = dataInicialSelecionada;
+        document.getElementById('dataFinalSelecionada').value = dataFinalSelecionada;
+
+        document.querySelector('form').submit();
+    }
+</script>
+
+
+
 
 @push('scripts')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
