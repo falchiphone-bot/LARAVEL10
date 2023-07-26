@@ -38,25 +38,50 @@
                     </div>
                 </div>
 
-                            <div class="card-body">
-                                <div class="col-2">
-                                    <label for="DataInicial" style="color: black;">Data inicial</label>
-                                    <input class="form-control @error('DataInicial') is-invalid @else is-valid @enderror"
-                                        name="DataInicial" size="30" type="date" step="1" id="DataInicial"
-                                        value="{{ $retorno['DataInicial'] ?? null }}">
-                                
+                <hr>
+            <form method="POST" action="/ContasCentroCustos/gerarCalculoPDF/"  accept-charset="UTF-8">
+                <div class="card">
+                    <div class="card-body">
+                      <div class="row">
+                        <div class="col-6">
+                          <label for="DataInicial" style="color: black;">Data inicial</label>
+                          <input class="form-control @error('DataInicial') is-invalid @else is-valid @enderror"
+                            name="DataInicial" size="30" type="date" step="1" id="DataInicial"
+                            value="{{ $retorno['DataInicial'] ?? null }}">
+                        </div>
+                        <div class="col-6">
+                          <label for="DataFinal" style="color: black;">Data final</label>
+                          <input class="form-control @error('DataFinal') is-invalid @else is-valid @enderror"
+                            name="DataFinal" size="30" type="date" step="1" id="DataFinal"
+                            value="{{ $retorno['DataFinal'] ?? null }}">
+                        </div>
+                      </div>
+                    </div>
 
-                                    <label for="DataFinal" style="color: black;">Data final</label>
-                                    <input class="form-control @error('DataFinal') is-invalid @else is-valid @enderror"
-                                        name="DataFinal" size="30" type="date" step="1" id="DataFinal"
-                                        value="{{ $retorno['DataFinal'] ?? null }}">
-                                </div>
-                            </div>
+                    <div class="col-sm-6">
+                        <label for="idcusto" style="color: black;">CENTRO PARA CALCULOS</label>
+                        <select required class="form-control select2" id="idcusto" name="idcusto">
+                            <option value="">
+                                Selecionar
+                            </option>
+                            @foreach ($ContasCentroCustos as $Custo)
+                                <option
+                                    value="{{ $Custo->CentroCustoID }}">
+                                    {{ $Custo-> MostraCentroCusto->Descricao ?? null  }}
+                                </option>
+                            @endforeach
 
 
-
-
-            </div>
+                        </select>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <button class="btn btn-primary">Calcular usando datas e centro de custo selecionado</button>
+                        </div>
+                    </div>
+                  </div>
+                </div>
+            </form>
 
             <tbody>
                 <table class="table" style="background-color: rgb(247, 213, 213);">
