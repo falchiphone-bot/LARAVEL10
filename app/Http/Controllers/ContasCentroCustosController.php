@@ -419,49 +419,6 @@ $registro) {
 // dd($Resultado,$SaldoAtual, $saldoAnterior, $SaldoDia, $somaSaldoAtual, $somaSaldoAnterior, $somaSaldoDia);
 
 
-        // if (session('LancamentosPDF') == null) {
-        //     return Redirect::back();
-        // }
-
-        // $lancamentosPDF = session('LancamentosPDF');
-
-        // $lancamentos = $lancamentosPDF['DadosExtrato'];
-
-
-        // $de = $lancamentosPDF['de'];
-        // $dataDivididade = explode(" ", $de);
-        // $deformatada = $dataDivididade[0];
-        // $descricaoconta = $lancamentosPDF['descricaoconta'];
-        // $conta = $lancamentosPDF['conta'];
-
-        // $ate = $lancamentosPDF['ate'];
-        // $dataDivididaate = explode(" ", $ate);
-        // $ateformatada = $dataDivididaate[0];
-
-        // $desa = $de;
-        // $contaID =  $conta;
-        // $this->selEmpresa = $lancamentosPDF['empresa'];
-
-        // $totalCredito = Lancamento::where(function ($q) use ($desa, $contaID) {
-        //     return $q
-        //         ->where('ContaCreditoID', $contaID)
-        //         ->where('EmpresaID', $this->selEmpresa)
-        //         ->where('DataContabilidade', '<', $desa);
-        // })
-        //     ->whereDoesntHave('SolicitacaoExclusao')
-        //     ->sum('Lancamentos.Valor');
-
-        // $totalDebito = Lancamento::where(function ($q) use ($desa, $contaID) {
-        //     return $q
-        //         ->where('ContaDebitoID', $contaID)
-        //         ->where('EmpresaID', $this->selEmpresa)
-        //         ->where('DataContabilidade', '<', $desa);
-        // })
-        //     ->whereDoesntHave('SolicitacaoExclusao')
-        //     ->sum('Lancamentos.Valor');
-
-        // $saldoAnterior = $totalDebito - $totalCredito;
-
         // Construir a tabela HTML
         $htmlTable = '<style>
             @page {
@@ -527,8 +484,8 @@ $registro) {
             <table>
                 <thead>
                     <tr style="background-color: #eaf2ff;">
-                            <th colspan="2" class="saldo-anterior"><h4>Período de: ' . $SaldoAtual . ' à ' . $SaldoAtual . '</h4></td>
-                            <th colspan="2" class="saldo-anterior"><h4>Conta: ' . $SaldoDia . '</h4></td>
+                            // <th colspan="2" class="saldo-anterior"><h4>Período de: ' . $SaldoAtual . ' à ' . $SaldoAtual . '</h4></td>
+                            // <th colspan="2" class="saldo-anterior"><h4>Conta: ' . $SaldoDia . '</h4></td>
                     </tr>
                     <tr>
                         <th>Saldo anterior</th>
@@ -539,37 +496,13 @@ $registro) {
                     <tr>
                         <td colspan="4"><hr></td>
                     </tr>
-                    <tr>
-                        // <td colspan="3" class="saldo-anterior">SALDO ANTERIOR</td>
-                        // <td style="text-align: right;">' . number_format($saldoAnterior, 2, ',', '.') . '</td>
-                    </tr>
+
                 </thead>
                 <tbody>';
 
         $debitoTotal = 0;
         $creditoTotal = 0;
 
-        // foreach ($lancamentosPDF['DadosExtrato'] as $lancamento) {
-        //     $id = $lancamento->ID;
-        //     $valor = number_format($lancamento->Valor, 2, ',', '.');
-        //     $data = $lancamento->DataContabilidade->format('d/m/Y');
-        //     $descricao = $lancamento['HistoricoDescricao'] . ' ' . $lancamento->Descricao;
-        //     $descricaoQuebrada = wordwrap($descricao, 50, "<br>", true);
-
-        //     if (strlen($descricao) < 50) {
-        //         $descricaoPreenchida = str_pad($descricao, 50, ' ');
-        //         $descricaocompleta = $descricaoPreenchida;
-        //     } else {
-        //         $descricaocompleta = $descricaoQuebrada;
-        //     }
-
-        //     if ($conta == $lancamento->ContaDebitoID) {
-        //         $debitoTotal += $lancamento->Valor;
-        //     }
-
-        //     if ($conta == $lancamento->ContaCreditoID) {
-        //         $creditoTotal += $lancamento->Valor;
-        //     }
 
         //     $htmlTable .= '<tr>
         //         <td>' . $data . '</td>
@@ -591,10 +524,10 @@ $registro) {
         foreach($Resultado as $resultado)
         {
             $htmlTable .= '<tr>
-                <td>' . number_format($resultado['saldoAnterior'], 2, ',', '.')  .  '</td>
-                <td>' . number_format($resultado['SaldoDia'], 2, ',', '.')  . '</td>
-                <td style="text-align: right;">' . '</td>
-                 <td style="text-align: right;">' .'</td>
+                <td style="text-align: right;">' . number_format($resultado['saldoAnterior'], 2, ',', '.')  .  '</td>
+                <td style="text-align: right;">' . number_format($resultado['SaldoDia'], 2, ',', '.')  . '</td>
+                <td  style="text-align: right;">' .number_format($resultado['SaldoAtual'], 2, ',', '.') . '</td>
+                <td style="text-align: right;">' .'</td>
                  </tr>';
         }
 
@@ -603,7 +536,7 @@ $registro) {
         $saldoAnteriorFormatado = number_format($saldoAnterior, 2, ',', '.');
 
         $htmlTable .= '<tr>
-            <td colspan="4"><hr></td>
+            <td colspan="0"><hr></td>
         </tr>';
 
         $htmlTable .= '<tr class="total">
@@ -614,12 +547,15 @@ $registro) {
         </tr>';
 
         $saldo = $saldoAnterior + $debitoTotal - $creditoTotal;
-        $saldoFormatado = number_format($saldo, 2, ',', '.');
 
-        $htmlTable .= '<tr class="total">
-            <td> SALDO </td>
-            <td></td>
-            <td style="text-align: right;">' . ($saldoFormatado != 0 ? $saldoFormatado : '') . '</td>
+        $somaSaldoAnteriorFormatado  =  number_format($somaSaldoAnterior, 2, ',', '.');
+        $somaSaldoDiaFormatado   =   number_format($somaSaldoDia, 2, ',', '.');
+        $somaSaldoAtualFormatado = number_format($somaSaldoAtual, 2, ',', '.');
+
+        $htmlTable.='<tr>
+             <td style="text-align: right;">' . ($somaSaldoAnterior != 0 ? $somaSaldoAnterior : '') . '</td> 
+            <td style="text-align: right;">' . ($somaSaldoDiaFormatado != 0 ? $somaSaldoDiaFormatado : '') . '</td>
+            <td style="text-align: right;">' . ($somaSaldoAtualFormatado != 0 ? $somaSaldoAtualFormatado : '') . '</td>
         </tr>';
 
         $htmlTable .= '
@@ -640,7 +576,7 @@ $registro) {
         $options->setChroot(base_path());
 
         // Definir o cabeçalho
-        $header = '<div style="text-align: center;">EXTRATO</div>';
+        $header = '<div style="text-align: center;">SALDO DISPONÍVEL IMEDIATO </div>';
         // $header = '<div style="text-align: center;">
         // <h5>Período de: ' . $deformatada . ' à ' . $ateformatada .  '</h5>
         // <h5>Conta: ' . $descricaoconta . '</h5>
