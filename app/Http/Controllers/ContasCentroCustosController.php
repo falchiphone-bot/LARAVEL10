@@ -484,14 +484,14 @@ $registro) {
             <table>
                 <thead>
                     <tr style="background-color: #eaf2ff;">
-                            // <th colspan="2" class="saldo-anterior"><h4>Período de: ' . $SaldoAtual . ' à ' . $SaldoAtual . '</h4></td>
-                            // <th colspan="2" class="saldo-anterior"><h4>Conta: ' . $SaldoDia . '</h4></td>
+                            <th colspan="2" class="saldo-anterior"><h4>SALDOS NAS CONTAS ABAIXO </h4></td>
+                            <th colspan="2" class="saldo-anterior"><h4> </h4></td>
                     </tr>
                     <tr>
                         <th>Saldo anterior</th>
                         <th>Saldo dia</th>
-                        <th>Débito</th>
-                        <th>Crédito</th>
+                        <th>Atual</th>
+                        <th>Conta</th>
                     </tr>
                     <tr>
                         <td colspan="4"><hr></td>
@@ -527,35 +527,28 @@ $registro) {
                 <td style="text-align: right;">' . number_format($resultado['saldoAnterior'], 2, ',', '.')  .  '</td>
                 <td style="text-align: right;">' . number_format($resultado['SaldoDia'], 2, ',', '.')  . '</td>
                 <td  style="text-align: right;">' .number_format($resultado['SaldoAtual'], 2, ',', '.') . '</td>
-                <td style="text-align: right;">' .'</td>
-                 </tr>';
+                <td  style="text-align: left;">' . $resultado['NomeConta'] . '</td>
+                </tr>';
         }
-
-        $debitoTotalFormatado = number_format($debitoTotal, 2, ',', '.');
-        $creditoTotalFormatado = number_format($creditoTotal, 2, ',', '.');
-        $saldoAnteriorFormatado = number_format($saldoAnterior, 2, ',', '.');
 
         $htmlTable .= '<tr>
             <td colspan="0"><hr></td>
         </tr>';
 
         $htmlTable .= '<tr class="total">
-            <td> TOTAL</td>
-            <td></td>
-            <td style="text-align: right;">' . (($debitoTotalFormatado) ? $debitoTotalFormatado : '') . '</td>
-            <td style="text-align: right;">' . (($creditoTotalFormatado) ? $creditoTotalFormatado : '') . '</td>
-        </tr>';
 
-        $saldo = $saldoAnterior + $debitoTotal - $creditoTotal;
+            </tr>';
+
 
         $somaSaldoAnteriorFormatado  =  number_format($somaSaldoAnterior, 2, ',', '.');
         $somaSaldoDiaFormatado   =   number_format($somaSaldoDia, 2, ',', '.');
         $somaSaldoAtualFormatado = number_format($somaSaldoAtual, 2, ',', '.');
 
         $htmlTable.='<tr>
-             <td style="text-align: right;">' . ($somaSaldoAnterior != 0 ? $somaSaldoAnterior : '') . '</td> 
+             <td style="text-align: right;">' . ($somaSaldoAnterior != 0 ? $somaSaldoAnterior : '') . '</td>
             <td style="text-align: right;">' . ($somaSaldoDiaFormatado != 0 ? $somaSaldoDiaFormatado : '') . '</td>
             <td style="text-align: right;">' . ($somaSaldoAtualFormatado != 0 ? $somaSaldoAtualFormatado : '') . '</td>
+                    <td style="text-align: left;">' . 'SALDOS ' . '</td>
         </tr>';
 
         $htmlTable .= '
@@ -576,7 +569,7 @@ $registro) {
         $options->setChroot(base_path());
 
         // Definir o cabeçalho
-        $header = '<div style="text-align: center;">SALDO DISPONÍVEL IMEDIATO </div>';
+        $header = '<div style="text-align: center;">SALDO DISPONÍVEL IMEDIATO EM  </div>';
         // $header = '<div style="text-align: center;">
         // <h5>Período de: ' . $deformatada . ' à ' . $ateformatada .  '</h5>
         // <h5>Conta: ' . $descricaoconta . '</h5>
