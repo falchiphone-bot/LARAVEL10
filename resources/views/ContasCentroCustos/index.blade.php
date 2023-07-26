@@ -38,6 +38,22 @@
                     </div>
                 </div>
 
+                            <div class="card-body">
+                                <div class="col-2">
+                                    <label for="DataInicial" style="color: black;">Data inicial</label>
+                                    <input class="form-control @error('DataInicial') is-invalid @else is-valid @enderror"
+                                        name="DataInicial" size="30" type="date" step="1" id="DataInicial"
+                                        value="{{ $retorno['DataInicial'] ?? null }}">
+                                
+
+                                    <label for="DataFinal" style="color: black;">Data final</label>
+                                    <input class="form-control @error('DataFinal') is-invalid @else is-valid @enderror"
+                                        name="DataFinal" size="30" type="date" step="1" id="DataFinal"
+                                        value="{{ $retorno['DataFinal'] ?? null }}">
+                                </div>
+                            </div>
+
+
 
 
             </div>
