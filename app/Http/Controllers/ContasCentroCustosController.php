@@ -527,12 +527,26 @@ $registro) {
 
         foreach($Resultado as $resultado)
         {
+
+            if($resultado['SaldoAtual'] < 0){
             $htmlTable .= '<tr>
+                <td style="text-align: right; color: red;">' . number_format($resultado['saldoAnterior'], 2, ',', '.')  .  '</td>
+                <td style="text-align: right; color: red;">' . number_format($resultado['SaldoDia'], 2, ',', '.')  . '</td>
+                <td  style="text-align: right; color: red;">' .number_format($resultado['SaldoAtual'], 2, ',', '.') . '</td>
+                <td  style="text-align: left; color: red;">' . $resultado['NomeConta'] . '</td>
+               </tr>';
+            }
+            else
+            {
+                $htmlTable .= '<tr>
                 <td style="text-align: right;">' . number_format($resultado['saldoAnterior'], 2, ',', '.')  .  '</td>
                 <td style="text-align: right;">' . number_format($resultado['SaldoDia'], 2, ',', '.')  . '</td>
                 <td  style="text-align: right;">' .number_format($resultado['SaldoAtual'], 2, ',', '.') . '</td>
                 <td  style="text-align: left;">' . $resultado['NomeConta'] . '</td>
-                </tr>';
+               </tr>';
+
+            }
+
 
                 $Data = $resultado['Data'];
             }
@@ -550,12 +564,25 @@ $registro) {
         $somaSaldoDiaFormatado   =   number_format($somaSaldoDia, 2, ',', '.');
         $somaSaldoAtualFormatado = number_format($somaSaldoAtual, 2, ',', '.');
 
+        if($somaSaldoAtual < 0){
+            $htmlTable.='<tr>
+            <td style="text-align: right; color: red;">' . ($somaSaldoAnteriorFormatado != 0 ? $somaSaldoAnteriorFormatado : '') . '</td>
+            <td style="text-align: right; color: red;">' . ($somaSaldoDiaFormatado != 0 ? $somaSaldoDiaFormatado : '') . '</td>
+            <td style="text-align: right; color: red;">' . ($somaSaldoAtualFormatado != 0 ? $somaSaldoAtualFormatado : '') . '</td>
+            <td style="text-align: left; color: red;">' . 'SALDOS EM '. $Data . '</td>
+           </tr>';
+        }
+        else{
         $htmlTable.='<tr>
-             <td style="text-align: right;">' . ($somaSaldoAnterior != 0 ? $somaSaldoAnterior : '') . '</td>
-            <td style="text-align: right;">' . ($somaSaldoDiaFormatado != 0 ? $somaSaldoDiaFormatado : '') . '</td>
-            <td style="text-align: right;">' . ($somaSaldoAtualFormatado != 0 ? $somaSaldoAtualFormatado : '') . '</td>
-                    <td style="text-align: left;">' . 'SALDOS EM '. $Data . '</td>
+         <td style="text-align: right; color: blue;">' . ($somaSaldoAnteriorFormatado != 0 ? $somaSaldoAnteriorFormatado : '') . '</td>
+         <td style="text-align: right; color: blue;">' . ($somaSaldoDiaFormatado != 0 ? $somaSaldoDiaFormatado : '') . '</td>
+         <td style="text-align: right; color: blue;">' . ($somaSaldoAtualFormatado != 0 ? $somaSaldoAtualFormatado : '') . '</td>
+         <td style="text-align: left; color: red;">' . 'SALDOS EM '. $Data . '</td>
         </tr>';
+ }
+
+
+
 
         $htmlTable .= '
             </tbody>
@@ -575,7 +602,7 @@ $registro) {
         $options->setChroot(base_path());
 
         // Definir o cabeçalho
-        $header = '<div style="text-align: center;">SALDO DISPONÍVEL IMEDIATO EM ' . $Data .  '</div>';
+        $header = '<div style="text-align: center; color: green;">SALDO DISPONÍVEL IMEDIATO EM ' . $Data .  '</div>';
         // $header = '<div style="text-align: center;">
         // <h5>Período de: ' . $deformatada . ' à ' . $ateformatada .  '</h5>
         // <h5>Conta: ' . $descricaoconta . '</h5>
