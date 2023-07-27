@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\SaldoLancamentoHelper;
 use App\Http\Requests\PlanoContasCreateRequest;
 use App\Models\Conta;
 use App\Models\Empresa;
@@ -50,9 +51,7 @@ class PlanoContaController extends Controller
             session(['entrada' => 'A pesquisa abaixo mostra os 100 últimos lançamentos de todas as empresas autorizadas!']);
             session(['success' => '']);
             session(['error' => '']);
-        }
-        else
-        {
+        } else {
             session(['error' => 'Nenhum lançamento encontrado para as empresas autorizadas!']);
         }
 
@@ -111,9 +110,7 @@ class PlanoContaController extends Controller
 
         if ($pesquisa->count() > 0) {
             session(['success' => 'A pesquisa abaixo mostra os lançamentos de todas as empresas autorizadas conforme a pesquisa proposta!']);
-        }
-        else
-        {
+        } else {
             session(['error' => 'Nenhum lançamento encontrado para as empresas autorizadas!']);
         }
 
@@ -132,6 +129,92 @@ class PlanoContaController extends Controller
 
         // dd($pesquisa->first()->ContaDebito->PlanoConta);
         return view('PlanoContas.pesquisaavancada', compact('pesquisa', 'retorno', 'Empresas'));
+    }
+
+    public function BalanceteEmpresa()
+    {
+        if (!session('Empresa')) {
+            return redirect('/Empresas')->with('error', 'Necessário selecionar uma empresa');
+        } else {
+            $contasEmpresa = Conta::where('EmpresaID', session('Empresa')->ID)
+                ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.planocontas_id')
+                ->orderBy('Codigo', 'asc')
+                ->where('Grau', '=', '5')
+                ->get(['Contas.ID', 'Descricao', 'Codigo', 'Grau']);
+
+            $EmpresaID = session('Empresa')->ID;
+            $Ate = Carbon::now()->format('d/m/Y');
+                $Resultado = [];
+                $ResultadoLoop = [];
+
+            foreach ($contasEmpresa as $contasEmpresa5) {
+                $contaID = $contasEmpresa5->ID;
+
+
+
+                $totalCredito = Lancamento::where(function ($q) use ($Ate, $contaID, $EmpresaID) {
+                    return $q
+                        ->where('ContaCreditoID', $contaID)
+                        ->where('EmpresaID', $EmpresaID)
+                        ->where('DataContabilidade', '<', $Ate);
+                })
+                    ->whereDoesntHave('SolicitacaoExclusao')
+                    ->sum('Lancamentos.Valor');
+
+                $totalDebito = Lancamento::where(function ($q) use ($Ate, $contaID, $EmpresaID) {
+                    return $q
+                        ->where('ContaDebitoID', $contaID)
+                        ->where('EmpresaID', $EmpresaID)
+                        ->where('DataContabilidade', '<', $Ate);
+                })
+                    ->whereDoesntHave('SolicitacaoExclusao')
+                    ->sum('Lancamentos.Valor');
+
+                $saldoAnterior = $totalDebito - $totalCredito;
+
+                $SaldoDia = SaldoLancamentoHelper::Dia($Ate, $contaID, $EmpresaID);
+
+                $SaldoAtual = $saldoAnterior + $SaldoDia;
+
+                /////////////////////// MONTA ARRAY
+                $Resultado['ID'] = $contasEmpresa5->ID;
+
+                $Resultado['Descricao'] = $contasEmpresa5->Descricao;
+
+                $Resultado['Codigo'] = $contasEmpresa5->Codigo;
+
+                $Resultado['Grau'] = $contasEmpresa5->Grau;
+
+                $Resultado['saldoAnterior'] = $saldoAnterior;
+
+                $Resultado['totalDebito'] = $totalDebito;
+
+                $Resultado['totalCredito'] = $totalCredito;
+
+                $Resultado['SaldoDia'] = $SaldoDia;
+
+                $Resultado['SaldoAtual'] = $SaldoAtual;
+
+                $ResultadoLoop[] = $Resultado;
+                // break;
+            }
+
+
+
+            $somaSaldoAnterior = 0;
+            $somaSaldoAtual = 0;
+            $somaSaldoDia = 0;
+
+            foreach ($ResultadoLoop as $registro) {
+                $somaSaldoAtual += $registro['SaldoAtual'];
+                $somaSaldoAnterior += $registro['saldoAnterior'];
+                $somaSaldoDia += $registro['SaldoDia'];
+            }
+        }
+
+
+        $contasEmpresa = $ResultadoLoop;
+        return view('PlanoContas.BalanceteEmpresa', compact('contasEmpresa'));
     }
 
     public function dashboard()
@@ -172,15 +255,13 @@ class PlanoContaController extends Controller
      */
     public function store(PlanoContasCreateRequest $request)
     {
-
-
         $dados = $request->all();
 
-   $dados['Created'] = Carbon::now()->format('d/m/Y H:i:s');
-   $dados['Modified'] = Carbon::now()->format('d/m/Y H:i:s');
+        $dados['Created'] = Carbon::now()->format('d/m/Y H:i:s');
+        $dados['Modified'] = Carbon::now()->format('d/m/Y H:i:s');
         $dados['UsuarioID'] = auth()->user()->id;
 
-     //dd($dados);
+        //dd($dados);
 
         PlanoConta::create($dados);
         return redirect(route('PlanoContas.index'));
@@ -205,14 +286,12 @@ class PlanoContaController extends Controller
         // dd($cadastro);
 
         $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
-        ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
-        ->OrderBy('Descricao')
-        ->select(['Empresas.ID', 'Empresas.Descricao'])
-        ->get();
+            ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+            ->OrderBy('Descricao')
+            ->select(['Empresas.ID', 'Empresas.Descricao'])
+            ->get();
 
-
-
-        return view('PlanoContas.edit', compact('cadastro','Empresas'));
+        return view('PlanoContas.edit', compact('cadastro', 'Empresas'));
     }
 
     /**
@@ -222,18 +301,17 @@ class PlanoContaController extends Controller
     {
         $EmpresaID = $request->EmpresaSelecionada;
 
-
-        if($EmpresaID){
+        if ($EmpresaID) {
             $Descricao = Empresa::find($EmpresaID)->Descricao;
             $Registro = $id;
-            $Conta = Conta::where('EmpresaID','=', $EmpresaID)
-            ->where('Planocontas_id', '=' ,$id)->first();
+            $Conta = Conta::where('EmpresaID', '=', $EmpresaID)
+                ->where('Planocontas_id', '=', $id)
+                ->first();
 
-            if($Conta){
-                session(['error' => 'A conta já existe para a empresa: '. $Descricao .'!']);
+            if ($Conta) {
+                session(['error' => 'A conta já existe para a empresa: ' . $Descricao . '!']);
                 return redirect(route('PlanoContas.edit', $Registro));
             }
-
 
             $Created = Carbon::now()->format('d/m/Y H:i:s');
             $Modified = Carbon::now()->format('d/m/Y H:i:s');
@@ -242,19 +320,11 @@ class PlanoContaController extends Controller
 
             $Contanova = new Conta();
 
-            $Contanova->fill(['EmpresaID' => $EmpresaID,
-            'Planocontas_id' => $id,
-            'Created' => $Created,
-            'Modified' => $Modified,
-            'Usuarios_id' => $UsuarioID,
-            'Contapagamento' => 1,
-            'Nota' => $InseridoPor,]);
-
+            $Contanova->fill(['EmpresaID' => $EmpresaID, 'Planocontas_id' => $id, 'Created' => $Created, 'Modified' => $Modified, 'Usuarios_id' => $UsuarioID, 'Contapagamento' => 1, 'Nota' => $InseridoPor]);
 
             $Contanova->save();
-            session(['success' => 'Conta cadastrada para a empresa: '. $Descricao .'!']);
-            return redirect(route('PlanoContas.edit',$id));
-
+            session(['success' => 'Conta cadastrada para a empresa: ' . $Descricao . '!']);
+            return redirect(route('PlanoContas.edit', $id));
         }
 
         $cadastro = PlanoConta::find($id);
@@ -263,9 +333,8 @@ class PlanoContaController extends Controller
 
         $cadastro->save();
 
-
         session(['success' => 'Conta alterada!']);
-        return redirect(route('PlanoContas.edit',$id));
+        return redirect(route('PlanoContas.edit', $id));
     }
 
     /**
