@@ -534,7 +534,7 @@ $registro) {
                 <td style="text-align: right; color: red;">' . number_format($resultado['saldoAnterior'], 2, ',', '.')  .  '</td>
                 <td style="text-align: right; color: red;">' . number_format($resultado['SaldoDia'], 2, ',', '.')  . '</td>
                 <td  style="text-align: right; color: red;">' .number_format($resultado['SaldoAtual'], 2, ',', '.') . '</td>
-                <td  style="text-align: left; color: red;">' . $resultado['NomeConta'] . '</td>
+                <td  style="text-align: left; color: red;">' . $resultado['NomeConta'] . ' - '. $resultado['Empresa'] . '</td>
                </tr>';
             }
             else
@@ -543,7 +543,7 @@ $registro) {
                 <td style="text-align: right;">' . number_format($resultado['saldoAnterior'], 2, ',', '.')  .  '</td>
                 <td style="text-align: right;">' . number_format($resultado['SaldoDia'], 2, ',', '.')  . '</td>
                 <td  style="text-align: right;">' .number_format($resultado['SaldoAtual'], 2, ',', '.') . '</td>
-                <td  style="text-align: left;">' . $resultado['NomeConta'] . '</td>
+                <td  style="text-align: left;">' . $resultado['NomeConta'] . ' - '. $resultado['Empresa'] . '</td>
                </tr>';
 
             }
@@ -578,7 +578,7 @@ $registro) {
          <td style="text-align: right; color: blue;">' . ($somaSaldoAnteriorFormatado != 0 ? $somaSaldoAnteriorFormatado : '') . '</td>
          <td style="text-align: right; color: blue;">' . ($somaSaldoDiaFormatado != 0 ? $somaSaldoDiaFormatado : '') . '</td>
          <td style="text-align: right; color: blue;">' . ($somaSaldoAtualFormatado != 0 ? $somaSaldoAtualFormatado : '') . '</td>
-         <td style="text-align: left; color: red;">' . 'SALDOS EM '. $Data . '</td>
+         <td style="text-align: left; color: red;">' . 'SALDOS DE ' . $De . ' A ' .  $Ate . '</td>
         </tr>';
  }
 
@@ -848,7 +848,7 @@ $registro) {
                 <td style="text-align: right; color: red;">' . number_format($resultado['saldoAnterior'], 2, ',', '.')  .  '</td>
                 <td style="text-align: right; color: red;">' . number_format($resultado['SaldoDia'], 2, ',', '.')  . '</td>
                 <td  style="text-align: right; color: red;">' .number_format($resultado['SaldoAtual'], 2, ',', '.') . '</td>
-                <td  style="text-align: left; color: red;">' . $resultado['NomeConta'] . '</td>
+                <td  style="text-align: left; color: red;">' . $resultado['NomeConta'] . ' - '. $resultado['Empresa']  .  '</td>
                </tr>';
             }
             else
@@ -857,7 +857,7 @@ $registro) {
                 <td style="text-align: right;">' . number_format($resultado['saldoAnterior'], 2, ',', '.')  .  '</td>
                 <td style="text-align: right;">' . number_format($resultado['SaldoDia'], 2, ',', '.')  . '</td>
                 <td  style="text-align: right;">' .number_format($resultado['SaldoAtual'], 2, ',', '.') . '</td>
-                <td  style="text-align: left;">' . $resultado['NomeConta'] . '</td>
+                <td  style="text-align: left;">' . $resultado['NomeConta'] . ' - '. $resultado['Empresa'] . '</td>
                </tr>';
 
             }
@@ -884,7 +884,7 @@ $registro) {
             <td style="text-align: right; color: red;">' . ($somaSaldoAnteriorFormatado != 0 ? $somaSaldoAnteriorFormatado : '') . '</td>
             <td style="text-align: right; color: red;">' . ($somaSaldoDiaFormatado != 0 ? $somaSaldoDiaFormatado : '') . '</td>
             <td style="text-align: right; color: red;">' . ($somaSaldoAtualFormatado != 0 ? $somaSaldoAtualFormatado : '') . '</td>
-            <td style="text-align: left; color: red;">' . 'SALDOS EM '. $Data . '</td>
+            <td style="text-align: left; color: red;">' . 'SALDOS DE '.  $De . ' A ' .  $Ate . '</td>
            </tr>';
         }
         else{
@@ -894,7 +894,7 @@ $registro) {
          <td style="text-align: right; color: blue;">' . ($somaSaldoAtualFormatado != 0 ? $somaSaldoAtualFormatado : '') . '</td>
          <td style="text-align: left; color: red;">' . 'SALDOS DE '.  $De . ' A ' .  $Ate .  '</td>
         </tr>';
- }
+        }
 
 
 
