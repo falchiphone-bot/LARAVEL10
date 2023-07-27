@@ -647,6 +647,14 @@ $registro) {
         $DataInicial = Carbon::createFromFormat('Y-m-d', $request->DataInicial);
         $DataFinal = Carbon::createFromFormat('Y-m-d', $request->DataFinal);
 
+        if($DataInicial > $DataFinal)
+        {
+           session(['error' => ' Data inicial está maior que a data final ']);
+           return redirect(route('ContasCentroCustos.index'));
+        }
+        
+
+
         $id = $request->idcusto;
 
 
