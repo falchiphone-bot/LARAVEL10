@@ -47,9 +47,17 @@ class ContasCentroCustosController extends Controller
      {
         $ContasCentroCustos = ContasCentroCustos::OrderBy('ID','desc')->get();
 
+        $UnicoContasCentroCustos = ContasCentroCustos::select('ID', 'CentroCustoID', 'ContaID')
+    ->whereIn('ID', function ($query) {
+        $query->selectRaw('MIN(ID)')
+            ->from('Contabilidade.ContasCentroCustos')
+            ->groupBy('CentroCustoID');
+    })
+    ->orderBy('ID','DESC')
+    ->get();
 
 
-         return view('ContasCentroCustos.index',compact('ContasCentroCustos'));
+         return view('ContasCentroCustos.index',compact('ContasCentroCustos', 'UnicoContasCentroCustos'));
      }
 
     public function CalculoContasCentroCustos(string $id)

@@ -63,7 +63,7 @@
                             <label for="idcusto" style="color: black;">CENTRO PARA CALCULOS</label>
                             <select required class="form-control select2" id="idcusto" name="idcusto">
                                 <option value="">Selecionar</option>
-                                @foreach ($ContasCentroCustos as $Custo)
+                                @foreach ($UnicoContasCentroCustos as $Custo)
                                     <option value="{{ $Custo->CentroCustoID }}">
                                         {{ $Custo->MostraCentroCusto->Descricao ?? null }}
                                     </option>
