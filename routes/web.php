@@ -97,6 +97,7 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
     Route::resource('Feriados', App\Http\Controllers\FeriadoController::class);
 
     # Centro de custos
+    Route::post('ContasCentroCustos/gerarCalculoPDFPeriodo', [App\Http\Controllers\ContasCentroCustosController::class, 'gerarCalculoPDFPeriodo'])->name('ContasCentroCustos.gerarCalculoPDFPeriodo');
     Route::get('ContasCentroCustos/gerarCalculoPDF/{id?}', [App\Http\Controllers\ContasCentroCustosController::class, 'gerarCalculoPDF'])->name('ContasCentroCustos.gerarCalculoPDF');
     Route::get('CentroCustos/dashboard', [App\Http\Controllers\CentroCustosController::class, 'dashboard'])->name('CentroCustos.dashboard');
     Route::get('ContasCentroCustos/calculocontascentrocustos/{id?}', [App\Http\Controllers\ContasCentroCustosController::class, 'CalculoContasCentroCustos'])->name('ContasCentroCustos.calculocontascentrocustos');
