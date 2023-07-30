@@ -261,8 +261,10 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
 
             $arraydatanova = compact('Data', 'Descricao', 'valor_formatado');
             // dd($Valor,$Valor_sem_virgula,$Valor_sem_pontos_virgulas,$valor_sem_simbolo ,$valor_numerico,$arraydatanova);
+            $Extrato[] = null;
 
             $rowData = $cellData;
+            //   dd($cellData);
 
             $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
                 ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
@@ -305,6 +307,9 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                     }
                 }
 
+
+
+
                 if ($lancamento) {
                     $data_conta_credito_bloqueio = $lancamento->ContaCredito->Bloqueiodataanterior;
                     if ($data_conta_credito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
@@ -342,8 +347,9 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                 } else {
                     $DescricaoCompleta = $arraydatanova['Descricao'];
                 }
-
+ $arraydatanova['Localizou'] = 'NAO' ;
                 // dd($arraydatanova);
+
                 $historico = Historicos::where('EmpresaID', $Empresa)
                     ->where('Descricao', 'like', '%' . trim($Descricao) . '%')
                     ->where('ContaCreditoID', $ContaCartao)
@@ -422,6 +428,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                                 'DataContabilidade' => $incluirregistros['Data'],
                                 'HistoricoID' => '',
                             ]);
+                         $arraydatanova['Lancou registros'] = 'SIM' ;
                         }
                     }
                 } else {
@@ -438,6 +445,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                         ]);
                         session(['Lancamento' => 'Lancamentos criados com históricos!']);
                         // dd('Criando lançamento com histórico', $historico,session('Lancamento'));
+                         $arraydatanova['Criou com historico'] = 'SIM' ;
                     }
 
                     if ($request->criarlancamentosemhistorico == true) {
@@ -454,6 +462,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                                 'HistoricoID' => '',
                             ]);
                         }
+                         $arraydatanova['CRIOU SEM HISTORICO'] = 'SIM' ;
                         session(['Lancamento' => 'Lancamentos criados sem históricos!']);
                     }
                 }
@@ -462,6 +471,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                 // session(['Lancamento' => 'Lancamentos criados!']);
                 // dd('Criado lançamento com histórico', $historico);
             }
+            $Extrato[] = $arraydatanova;
             // }///////////////retirar - liga com linha 658
         }
         if ($Mensagem) {
@@ -471,9 +481,28 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
             ]);
             $Mensagem = null;
         }
-        $rowData = $cellData;
+
+        /////////////// filtra somente o Localizou = NAO
+$registros = $Extrato;
+
+$registrosNaoLocalizados = array_filter($registros, function ($registro) {
+    return isset($registro['Localizou']) && $registro['Localizou'] === 'NAO';
+});
+
+// Resultado
+
+// dd($registrosNaoLocalizados);
+///////////////////////////////////////////////////////////////////////////////////
+
+
+
         //    $rowData = $novadata;
         // dd("Fim",$Descricao,$lancamento);
+
+        // $rowKCData = $cellData;
+
+        $rowData = ($registrosNaoLocalizados) ;
+
         return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
     }
 }
