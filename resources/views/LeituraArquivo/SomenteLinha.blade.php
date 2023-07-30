@@ -55,6 +55,7 @@
 <input type="checkbox" name="DESCONSIDERAR_BLOQUEIOS_EMPRESAS" value='true'>
 <label for="checkbox_enviar">DESCONSIDERAR BLOQUEIOS DA EMPRESA</label>
 <br>
+
 <input type="checkbox" name="DESCONSIDERAR_BLOQUEIOS_CONTAS" value='true'>
 <label for="checkbox_enviar">DESCONSIDERAR BLOQUEIOS DAS CONTAS</label>
 <br>
@@ -143,6 +144,11 @@
 <input type="checkbox" name="DESCONSIDERAR_BLOQUEIOS" value='true'>
 <label for="checkbox_enviar">DESCONSIDERAR BLOQUEIOS DA EMPRESA E CONTAS</label>
 <br>
+<input type="checkbox" name="filtrarnaolocalizou" value='true'>
+<label for="checkbox_Filtrar_nao_localizou">FILTRAR SOMENTE OS QUE NÃO LOCALIZOU</label>
+<br>
+
+
                                         <input type="checkbox" name="criarlancamentosemhistorico" value='true'>
 
                                         <label for="checkbox_enviar">Autorizar criar lançamento sem histórico pré-programado</label>

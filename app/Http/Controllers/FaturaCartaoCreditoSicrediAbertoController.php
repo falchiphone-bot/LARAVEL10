@@ -124,14 +124,14 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
             $DespesaContaDebitoID = '19426';
             $CashBackContaCreditoID = '19271';
             // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
-            } elseif ($linhas1_7 === 'SANDRA ELISA MAGOSSI FALCHI-5122.67XX.XXXX.0910') {
-                $ContaCartao = '19468';
-                $Empresa = 11;
-                $DespesaContaDebitoID = '19426';
-                $CashBackContaCreditoID = '19271';
-                // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
-            }elseif ($linhas1_7 === 'PEDRO ROBERTO FALCHI-4891.67XX.XXXX.2113') {
-                    $ContaCartao = '17458';
+        } elseif ($linhas1_7 === 'SANDRA ELISA MAGOSSI FALCHI-5122.67XX.XXXX.0910') {
+            $ContaCartao = '19468';
+            $Empresa = 11;
+            $DespesaContaDebitoID = '19426';
+            $CashBackContaCreditoID = '19271';
+            // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
+        } elseif ($linhas1_7 === 'PEDRO ROBERTO FALCHI-4891.67XX.XXXX.2113') {
+            $ContaCartao = '17458';
             $Empresa = 11;
             $DespesaContaDebitoID = '19426';
             $CashBackContaCreditoID = '19271';
@@ -307,9 +307,6 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                     }
                 }
 
-
-
-
                 if ($lancamento) {
                     $data_conta_credito_bloqueio = $lancamento->ContaCredito->Bloqueiodataanterior;
                     if ($data_conta_credito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
@@ -338,7 +335,6 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                 //         1 .
                 //         '!',
                 // ]);
-
             } else {
                 // if ($request->criarlancamentosemhistorico == true) {
 
@@ -347,7 +343,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                 } else {
                     $DescricaoCompleta = $arraydatanova['Descricao'];
                 }
- $arraydatanova['Localizou'] = 'NAO' ;
+                $arraydatanova['Localizou'] = 'NAO';
                 // dd($arraydatanova);
 
                 $historico = Historicos::where('EmpresaID', $Empresa)
@@ -400,8 +396,6 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                         $registros[] = $novoRegistroParcelas;
                     }
 
-
-
                     foreach ($registros as $incluirregistros) {
                         $lancamentoregistros = Lancamento::where('DataContabilidade', $incluirregistros['Data'])
                             ->where('Valor', $valorString = $incluirregistros['Valor'])
@@ -428,7 +422,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                                 'DataContabilidade' => $incluirregistros['Data'],
                                 'HistoricoID' => '',
                             ]);
-                         $arraydatanova['Lancou registros'] = 'SIM' ;
+                            $arraydatanova['Lancou registros'] = 'SIM';
                         }
                     }
                 } else {
@@ -445,7 +439,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                         ]);
                         session(['Lancamento' => 'Lancamentos criados com históricos!']);
                         // dd('Criando lançamento com histórico', $historico,session('Lancamento'));
-                         $arraydatanova['Criou com historico'] = 'SIM' ;
+                        $arraydatanova['Criou com historico'] = 'SIM';
                     }
 
                     if ($request->criarlancamentosemhistorico == true) {
@@ -462,7 +456,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                                 'HistoricoID' => '',
                             ]);
                         }
-                         $arraydatanova['CRIOU SEM HISTORICO'] = 'SIM' ;
+                        $arraydatanova['CRIOU SEM HISTORICO'] = 'SIM';
                         session(['Lancamento' => 'Lancamentos criados sem históricos!']);
                     }
                 }
@@ -482,26 +476,22 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
             $Mensagem = null;
         }
 
-        /////////////// filtra somente o Localizou = NAO
-$registros = $Extrato;
+        if ($request->filtrarnaolocalizou) {
+            /////////////// filtra somente o Localizou = NAO
+            $registros = $Extrato;
 
-$registrosNaoLocalizados = array_filter($registros, function ($registro) {
-    return isset($registro['Localizou']) && $registro['Localizou'] === 'NAO';
-});
+            $registrosNaoLocalizados = array_filter($registros, function ($registro) {
+                return isset($registro['Localizou']) && $registro['Localizou'] === 'NAO';
+            });
 
-// Resultado
+            $rowData = $registrosNaoLocalizados;
+            return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
+            ///////////////////////////////////////////////////////////////////////////////////
+        }
 
-// dd($registrosNaoLocalizados);
-///////////////////////////////////////////////////////////////////////////////////
 
 
-
-        //    $rowData = $novadata;
-        // dd("Fim",$Descricao,$lancamento);
-
-        // $rowKCData = $cellData;
-
-        $rowData = ($registrosNaoLocalizados) ;
+        $rowKCData = $cellData;
 
         return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
     }
