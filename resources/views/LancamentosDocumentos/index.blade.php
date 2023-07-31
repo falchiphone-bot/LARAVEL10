@@ -68,7 +68,7 @@
                                     <div class="badge bg-info text-wrap" style="width: 100%; height: 50%; font-size: 24px;">
                                         TIPO DE ARQUIVO
                                     </div>
-                                    <select required class="form-control select2" id="SelecionarTipoArquivo"
+                                    <select class="form-control select2" id="SelecionarTipoArquivo"
                                         name="SelecionarTipoArquivo">
                                         <option value="">Selecionar tipo de arquivo</option>
                                         @foreach ($tipoarquivo as $Tipoarquivo)
