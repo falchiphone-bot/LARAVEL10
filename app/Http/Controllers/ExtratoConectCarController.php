@@ -329,6 +329,8 @@ class ExtratoConectCarController extends Controller
                 ->where('ContaCreditoID', $ContaCartao)
                 ->First();
 
+                // dd($arraydatanova,  $lancamento);
+
             if($lancamento == null)
             {
                 // dd('NÃO LOCALIZADO O LANÇAMENTO ABAIXO: ',$arraydatanova);
@@ -438,40 +440,40 @@ class ExtratoConectCarController extends Controller
                     dd('VERIFICANDO SE TEM HISTÓRICO!', ' Mensagem: ' . $SituacaoHistorico . ' => ' . $historico, $arraydatanova, $Descricao, $ContaCartao, $DespesaContaDebitoID);
                 }
 
-                if ($historico == true) {
-                    //  dd("Criar com histórico");
+                // if ($historico == true) {
+                //     //  dd("Criar com histórico");
 
-                    Lancamento::create([
-                        'Valor' => ($valorString = $valor_formatado),
-                        'EmpresaID' => $Empresa,
-                        'ContaDebitoID' => $DespesaContaDebitoID,
-                        'ContaCreditoID' => $ContaCartao,
-                        'Descricao' => $DescricaoCompleta,
-                        'Usuarios_id' => auth()->user()->id,
-                        'DataContabilidade' => $Data,
-                        'HistoricoID' => '',
-                    ]);
-                    session(['Lancamento' => 'Lancamentos criados com históricos!']);
-                    // dd('Criando lançamento com histórico', $historico,session('Lancamento'));
-                }
+                //     Lancamento::create([
+                //         'Valor' => ($valorString = $valor_formatado),
+                //         'EmpresaID' => $Empresa,
+                //         'ContaDebitoID' => $DespesaContaDebitoID,
+                //         'ContaCreditoID' => $ContaCartao,
+                //         'Descricao' => $DescricaoCompleta,
+                //         'Usuarios_id' => auth()->user()->id,
+                //         'DataContabilidade' => $Data,
+                //         'HistoricoID' => '',
+                //     ]);
+                //     session(['Lancamento' => 'Lancamentos criados com históricos!']);
+                //     // dd('Criando lançamento com histórico', $historico,session('Lancamento'));
+                // }
 
-                if ($request->criarlancamentosemhistorico == true) {
-                    //  dd("Criando lançamento sem histórico!");
-                    if ($historico === null) {
-                        // dd("Criar SEM histórico");
-                        Lancamento::create([
-                            'Valor' => ($valorString = $valor_formatado),
-                            'EmpresaID' => $Empresa,
-                            'ContaDebitoID' => $DespesaContaDebitoID,
-                            'ContaCreditoID' => $ContaCartao,
-                            'Descricao' => $DescricaoCompleta,
-                            'Usuarios_id' => auth()->user()->id,
-                            'DataContabilidade' => $Data,
-                            'HistoricoID' => '',
-                        ]);
-                    }
-                    session(['Lancamento' => 'Lancamentos criados sem históricos!']);
-                }
+                // if ($request->criarlancamentosemhistorico == true) {
+                //     //  dd("Criando lançamento sem histórico!");
+                //     if ($historico === null) {
+                //         // dd("Criar SEM histórico");
+                //         Lancamento::create([
+                //             'Valor' => ($valorString = $valor_formatado),
+                //             'EmpresaID' => $Empresa,
+                //             'ContaDebitoID' => $DespesaContaDebitoID,
+                //             'ContaCreditoID' => $ContaCartao,
+                //             'Descricao' => $DescricaoCompleta,
+                //             'Usuarios_id' => auth()->user()->id,
+                //             'DataContabilidade' => $Data,
+                //             'HistoricoID' => '',
+                //         ]);
+                //     }
+                //     session(['Lancamento' => 'Lancamentos criados sem históricos!']);
+                // }
 
                 // dd('fim');
                 // session(['Lancamento' => 'Lancamentos criados!']);
