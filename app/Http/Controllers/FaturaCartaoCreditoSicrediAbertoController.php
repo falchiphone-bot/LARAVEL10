@@ -484,6 +484,11 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                 return isset($registro['Localizou']) && $registro['Localizou'] === 'NAO';
             });
 
+            if($registrosNaoLocalizados == null){
+                session(['Lancamento' => 'SEM REGISTROS PARA APRESENTAR!']);
+                return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
+            }
+
             $rowData = $registrosNaoLocalizados;
             if($request->verarray){
                   dd($rowData);
