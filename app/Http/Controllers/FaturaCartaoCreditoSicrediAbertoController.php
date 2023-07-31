@@ -485,6 +485,10 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
             });
 
             $rowData = $registrosNaoLocalizados;
+            if($request->verarray){
+                  dd($rowData);
+            }
+
             return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
             ///////////////////////////////////////////////////////////////////////////////////
         }

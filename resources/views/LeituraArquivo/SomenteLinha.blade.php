@@ -146,6 +146,8 @@
 <br>
 <input type="checkbox" name="filtrarnaolocalizou" value='true'>
 <label for="checkbox_Filtrar_nao_localizou">FILTRAR SOMENTE OS QUE NÃO LOCALIZOU</label>
+<input type="checkbox" name="verarray" value='true'>
+<label for="checkbox_verarray">MOSTRAR TABELA - ARRAY</label>
 <br>
 
 
