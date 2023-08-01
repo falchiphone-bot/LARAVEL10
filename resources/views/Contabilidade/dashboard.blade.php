@@ -49,6 +49,10 @@
                                             <a class="btn btn-success" href="/PlanoContas">Plano de Contas</a>
                                         </nav>
 
+                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                            <a class="btn btn-success" href="/PlanoContas/BalanceteEmpresa">Plano de Contas - Balancete por empresa selecionada</a>
+                                        </nav>
+
                                         @can('FATURAMENTOS - LISTAR')
                                     <tr>
                                         <th>

@@ -10,7 +10,16 @@
           </nav> --}}
 
             <div class="card">
-
+                @can('CONTABILIDADE - LISTAR')
+                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                        <a class="btn btn-success" href="/PlanoContas/BalanceteEmpresa">Plano de Contas - Balancete por empresa selecionada - ATUALIZAR</a>
+                    </nav>
+                @endcan
+                @can('EMPRESAS - LISTAR')
+                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                        <a class="btn btn-primary" href="/Empresas">Selecionar empresa</a>
+                    </nav>
+                @endcan
 
                 <div class="badge bg-success text-wrap" style="width: 100%;">
                     Contas de {{ session('Empresa')->Descricao }}
