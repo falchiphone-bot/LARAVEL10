@@ -12,7 +12,8 @@
             <div class="card">
                 @can('CONTABILIDADE - LISTAR')
                     <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                        <a class="btn btn-success" href="/PlanoContas/BalanceteEmpresa">Plano de Contas - Balancete por empresa selecionada - ATUALIZAR</a>
+                        <a class="btn btn-success" href="/PlanoContas/Balancetes">Balancete por período e empresa
+                            selecionada</a>
                     </nav>
                 @endcan
                 @can('EMPRESAS - LISTAR')
@@ -24,27 +25,13 @@
                 <div class="badge bg-success text-wrap" style="width: 100%;">
                     Contas de {{ session('Empresa')->Descricao }}
                 </div>
+                <div class="badge bg-primary text-wrap" style="width: 100%;">
+                    Período de {{ \Carbon\Carbon::parse($retorno['DataInicial'])->format('d/m/Y') }} a {{ \Carbon\Carbon::parse($retorno['DataFinal'])->format('d/m/Y') }}
+                </div>
 
                 <hr>
-                {{-- @cannot('PLANO DE CONTAS - LISTAR')
-                    <li>
-                        <a href="/dashboard" data-bs-toggle="tooltip" data-bs-placement="center"
-                            data-bs-custom-class="custom-tooltip" data-bs-title="Clique e vá para o início do sistema"
-                            class="botton-link text-black">
-                            <i class="fa-solid fa-house"></i>
-                            <a href="{{ route('dashboard') }}" class="btn btn-danger btn-lg enabled" tabindex="-1"
-                                role="button" aria-disabled="true">SEM PERMISSÃO PARA ESTE SERVIÇO. CONSULTE O ADMINISTRADOR.
-                                Clique e vá para o início do sistema</a>
-                        </a>
-                    </li>
-                @endcan --}}
 
 
-                {{-- @can('PLANO DE CONTAS - INCLUIR')
-                    <a href="{{ route('PlanoContas.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1"
-                        role="button" aria-disabled="true">Incluir contas no plano de contas padrão</a>
-                @endcan --}}
-                {{-- <p>Total de contas: {{ $linhas }}</p> --}}
 
                 <table class="table table-bordered">
 
@@ -66,23 +53,23 @@
                                 @endwhile
 
                                 @if ($conta['Grau'] == '1')
-                                <div class="badge bg-primary text-wrap" style="width: 100%;">
-                                 {{ $conta['Descricao'] }}
-                                </div>
+                                    <div class="badge bg-primary text-wrap" style="width: 100%;">
+                                        {{ $conta['Descricao'] }}
+                                    </div>
                                 @endif
                                 @if ($conta['Grau'] == '2')
-                                {{ $conta['Descricao'] }}
-                               @endif
-                               @if ($conta['Grau'] == '3')
-                               {{ $conta['Descricao'] }}
+                                    {{ $conta['Descricao'] }}
+                                @endif
+                                @if ($conta['Grau'] == '3')
+                                    {{ $conta['Descricao'] }}
                                 @endif
                                 @if ($conta['Grau'] == '4')
-                                {{ $conta['Descricao'] }}
+                                    {{ $conta['Descricao'] }}
                                 @endif
                                 @if ($conta['Grau'] == '5')
-                                 <a href="/Contas/Extrato/{{ $conta['ID'] }}" class="btn btn-link">
-                                    {{ $conta['Descricao'] }}
-                                </a>
+                                    <a href="/Contas/Extrato/{{ $conta['ID'] }}" class="btn btn-link">
+                                        {{ $conta['Descricao'] }}
+                                    </a>
                                 @endif
 
                             </td>
@@ -93,14 +80,14 @@
 
                             <td>
                                 <div class="badge bg-success text-wrap" style="width: 100%;">
-                                {{ $conta['Codigo'] }}
-                                 </div>
+                                    {{ $conta['Codigo'] }}
+                                </div>
                             </td>
 
                             <td>
                                 <div class="badge bg-warning text-wrap" style="width: 100%;">
-                                 {{ $conta['Grau'] }}
-                              </div>
+                                    {{ $conta['Grau'] }}
+                                </div>
                             </td>
                         </tr>
                     @endforeach

@@ -131,8 +131,65 @@ class PlanoContaController extends Controller
         return view('PlanoContas.pesquisaavancada', compact('pesquisa', 'retorno', 'Empresas'));
     }
 
-    public function BalanceteEmpresa()
+    public function Balancetes()
     {
+
+        session(['success' => 'Selecionar empresa e período para pesquisa']);
+
+        $retorno['EmpresaSelecionada'] = null;
+
+        $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+        ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+        ->OrderBy('Descricao')
+        ->select(['Empresas.ID', 'Empresas.Descricao'])
+        ->get();
+
+        return view('PlanoContas.Balancetes', compact('retorno', 'Empresas'));
+
+    }
+
+
+
+    public function BalanceteEmpresa(request $request)
+    {
+
+            $EmpresaID = $request->EmpresaSelecionada;
+
+
+
+            //////////////  converter em data e depois em string data
+            $DataInicialCarbon = Carbon::parse($request->input('DataInicial')) ;
+            $DataFinalCarbon = Carbon::parse($request->input('DataFinal'));
+            $DataInicial = $DataInicialCarbon->format('d/m/Y');
+            $DataFinal = $DataFinalCarbon->format('d/m/Y');
+
+
+            $retorno['EmpresaSelecionada'] = $EmpresaID;
+                $retorno['DataInicial'] = $DataInicialCarbon->format('Y-m-d');
+                $retorno['DataFinal'] = $DataFinalCarbon->format('Y-m-d');
+
+
+            if($DataInicialCarbon > $DataFinalCarbon )
+            {
+                session(['error' => 'Data inicial maior que a data final']);
+                // return redirect(route('planocontas.balancetes'));
+
+
+
+                 $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+                ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+                ->OrderBy('Descricao')
+                ->select(['Empresas.ID', 'Empresas.Descricao'])
+                ->get();
+
+
+
+                return view('PlanoContas.Balancetes', compact('retorno', 'Empresas'));
+            }
+
+
+
+
         if (!session('Empresa')) {
             return redirect('/Empresas')->with('error', 'Necessário selecionar uma empresa');
         } else {
@@ -142,8 +199,11 @@ class PlanoContaController extends Controller
                 ->where('Grau', '=', '5')
                 ->get(['Contas.ID', 'Descricao', 'Codigo', 'Grau']);
 
-            $EmpresaID = session('Empresa')->ID;
+
+
+
             $Ate = Carbon::now()->format('d/m/Y');
+
                 $Resultado = [];
                 $ResultadoLoop = [];
 
@@ -152,20 +212,22 @@ class PlanoContaController extends Controller
 
 
 
-                $totalCredito = Lancamento::where(function ($q) use ($Ate, $contaID, $EmpresaID) {
+                $totalCredito = Lancamento::where(function ($q) use ($DataInicial, $DataFinal, $contaID, $EmpresaID) {
                     return $q
                         ->where('ContaCreditoID', $contaID)
                         ->where('EmpresaID', $EmpresaID)
-                        ->where('DataContabilidade', '<', $Ate);
+                        ->where('DataContabilidade', '>', $DataInicial)
+                        ->where('DataContabilidade', '<', $DataFinal);
                 })
                     ->whereDoesntHave('SolicitacaoExclusao')
                     ->sum('Lancamentos.Valor');
 
-                $totalDebito = Lancamento::where(function ($q) use ($Ate, $contaID, $EmpresaID) {
+                $totalDebito = Lancamento::where(function ($q) use ($DataInicial, $DataFinal, $contaID, $EmpresaID) {
                     return $q
                         ->where('ContaDebitoID', $contaID)
                         ->where('EmpresaID', $EmpresaID)
-                        ->where('DataContabilidade', '<', $Ate);
+                        ->where('DataContabilidade', '>', $DataInicial)
+                        ->where('DataContabilidade', '<', $DataFinal);
                 })
                     ->whereDoesntHave('SolicitacaoExclusao')
                     ->sum('Lancamentos.Valor');
@@ -214,7 +276,18 @@ class PlanoContaController extends Controller
 
 
         $contasEmpresa = $ResultadoLoop;
-        return view('PlanoContas.BalanceteEmpresa', compact('contasEmpresa'));
+
+
+/////////////// filtra somente o valor maior que 0
+        $registros = $contasEmpresa;
+
+        $registrosValores = array_filter($registros, function ($registro) {
+            return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0;
+        });
+
+
+        $contasEmpresa  = $registrosValores;
+        return view('PlanoContas.BalanceteEmpresa', compact('retorno','contasEmpresa'));
     }
 
     public function dashboard()

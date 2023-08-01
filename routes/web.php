@@ -186,7 +186,8 @@ Route::resource('RedeSocialUsuarios', App\Http\Controllers\RedeSocialUsuarioCont
     Route::post('PlanoContas/pesquisaavancada', [App\Http\Controllers\PlanoContaController::class, 'pesquisaavancadapost'])->name('planocontas.pesquisaavancada.post');
     Route::get('PlanoContas/autenticar/{EmpresaID}', [App\Http\Controllers\EmpresaController::class, 'autenticar'])->name('planocontas.autenticar');
     Route::get('PlanoContas/dashboard', [App\Http\Controllers\PlanoContaController::class, 'dashboard'])->name('planocontas.dashboard');
-    Route::get('PlanoContas/BalanceteEmpresa', [App\Http\Controllers\PlanoContaController::class, 'BalanceteEmpresa'])->name('planocontas.dashboard');
+    Route::post('PlanoContas/BalanceteEmpresa', [App\Http\Controllers\PlanoContaController::class, 'BalanceteEmpresa'])->name('planocontas.balanceteempresa');
+    Route::get('PlanoContas/Balancetes', [App\Http\Controllers\PlanoContaController::class, 'Balancetes'])->name('planocontas.balancetes');
     Route::resource('PlanoContas', App\Http\Controllers\PlanoContaController::class);
 
     #Lançamentos
