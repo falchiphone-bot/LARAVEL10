@@ -202,7 +202,7 @@ class PlanoContaController extends Controller
 
 
 
-            $Ate = Carbon::now()->format('d/m/Y');
+            // $Ate = Carbon::now()->format('d/m/Y');
 
                 $Resultado = [];
                 $ResultadoLoop = [];
@@ -234,7 +234,7 @@ class PlanoContaController extends Controller
 
                 $saldoAnterior = $totalDebito - $totalCredito;
 
-                $SaldoDia = SaldoLancamentoHelper::Dia($Ate, $contaID, $EmpresaID);
+                $SaldoDia = SaldoLancamentoHelper::Dia($DataFinal, $contaID, $EmpresaID);
 
                 $SaldoAtual = $saldoAnterior + $SaldoDia;
 
