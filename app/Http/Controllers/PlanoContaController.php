@@ -156,6 +156,16 @@ class PlanoContaController extends Controller
             $EmpresaID = $request->EmpresaSelecionada;
 
 
+            $empresa = Empresa::find($EmpresaID);
+            if ($empresa) {
+                session(['Empresa' => $empresa]);
+
+                // return redirect('/PlanoContas/dashboard');
+            }else {
+                return redirect(route('Empresas.index'))->with('error','Emprese não localizada');
+            }
+
+
 
             //////////////  converter em data e depois em string data
             $DataInicialCarbon = Carbon::parse($request->input('DataInicial')) ;
