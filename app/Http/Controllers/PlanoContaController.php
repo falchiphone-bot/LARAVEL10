@@ -287,7 +287,7 @@ class PlanoContaController extends Controller
 
 
         $contasEmpresa  = $registrosValores;
-        return view('PlanoContas.BalanceteEmpresa', compact('retorno','contasEmpresa'));
+        return view('PlanoContas.BalanceteEmpresa', compact('retorno', 'somaSaldoAtual','contasEmpresa'));
     }
 
     public function dashboard()

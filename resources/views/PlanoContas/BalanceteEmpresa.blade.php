@@ -91,6 +91,21 @@
                             </td>
                         </tr>
                     @endforeach
+                        <tr>
+                            <td>
+                                <div class="badge bg-warning text-wrap" style="width: 100%; text-align: right;">
+                                    SALDO TOTAL
+                                </div>
+
+                                <td>
+                                    <div class="badge bg-warning text-wrap" style="width: 100%; text-align: right;">
+                                        {{ number_format($somaSaldoAtual, 2, ',', '.') }}
+                                    </div>
+                                </td>
+                            </td>
+                        </tr>
+
+
                 </table>
             @endsection
 
