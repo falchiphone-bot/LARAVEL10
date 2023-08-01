@@ -40,9 +40,34 @@
                         <th>Saldo atual</th>
                         <th>Classificação</th>
                         <th>Grau</th>
-
                     </tr>
+                      @php
+                    $Codigo = null
+               @endphp
                     @foreach ($contasEmpresa as $conta)
+
+
+                @php
+                  $Codigoatual = substr($conta['Codigo'], 0, 1)
+                @endphp
+
+                    @if ($Codigo !== $Codigoatual)
+                        <tr>
+                            <td>
+                                <div class="badge bg-warning text-wrap" style="width: 100%; text-align: right;">
+                                     TOTAL DO ATIVO
+                                </div>
+
+                                <td>
+                                    <div class="badge bg-warning text-wrap" style="width: 100%; text-align: right;">
+                                        {{ number_format($somaSaldoAtual, 2, ',', '.') }}
+                                    </div>
+                                </td>
+                            </td>
+                        </tr>
+                    @endif
+
+
                         <tr>
                             <td style="text-align: left;">
 
