@@ -21,6 +21,7 @@ class PlanoConta extends Model
         'Bloqueiodataanterior',
         'X',
         'CalculoHabilitado',
+        'CodigoSkala',
     ];
 
     // protected $casts = [

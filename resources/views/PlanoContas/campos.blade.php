@@ -27,13 +27,24 @@
             <div class="row">
                 <div class="col-6">
                     <label for="Grau">Grau</label>
-                    <input class="form-control @error('Codigo') is-invalid @else is-valid @enderror" name="Grau"
+                    <input class="form-control @error('Grau') is-invalid @else is-valid @enderror" name="Grau"
                         type="text" id="Grau" value="{{$cadastro->Grau??null}}">
                         @error('Grau')
                         <div class="alert alert-danger">{{ $message }}</div>
                     @enderror
                 </div>
             </div>
+            <div class="row">
+                <div class="col-6">
+                    <label for="CodigoSkala">Código Skala</label>
+                    <input class="form-control @error('CodigoSkala') is-invalid @else is-valid @enderror" name="CodigoSkala"
+                        type="text" id="CodigoSkala" value="{{$cadastro->CodigoSkala??null}}">
+                        @error('CodigoSkala')
+                        <div class="alert alert-danger">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
+
             <div class="row mt-2">
                 <div class="col-6">
                     <button class="btn btn-primary">Salvar</button>
