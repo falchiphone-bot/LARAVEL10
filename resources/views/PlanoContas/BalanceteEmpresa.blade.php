@@ -77,7 +77,7 @@
 
                                     <td>
                                         <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
-                                            {{ number_format($somaSaldoAtualPassivo, 2, ',', '.') }}
+                                            {{ number_format(abs($somaSaldoAtualPassivo), 2, ',', '.') }}
                                         </div>
                                     </td>
                                     @elseif($Codigo == 3)
@@ -98,7 +98,7 @@
 
                                     <td>
                                         <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
-                                            {{ number_format($somaSaldoAtualReceitas, 2, ',', '.') }}
+                                            {{ number_format(abs($somaSaldoAtualReceitas), 2, ',', '.') }}
                                         </div>
                                     </td>
                                      @endif
@@ -132,7 +132,7 @@
                             </td>
 
                             <td style="text-align: right;">
-                                {{ number_format($conta['SaldoAtual'], 2, ',', '.') }}
+                                {{ number_format(abs($conta['SaldoAtual']), 2, ',', '.') }}
                             </td>
 
                             <td>
@@ -166,6 +166,20 @@
                                 </td>
                             </td>
                         </tr>
+                        <tr>
+                            <td>
+                                <div class="badge bg-warning text-wrap" style="width: 100%; text-align: right;">
+                                    RECEITAS - DESPESAS
+                                </div>
+
+                                <td>
+                                    <div class="badge bg-success text-wrap" style="width: 100%; text-align: right;">
+                                        {{ number_format($ResultadoReceitasDespesas, 2, ',', '.') }}
+                                    </div>
+                                </td>
+                            </td>
+                        </tr>
+
 
 
                 </table>

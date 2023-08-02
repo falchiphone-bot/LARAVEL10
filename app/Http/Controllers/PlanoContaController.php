@@ -363,7 +363,11 @@ class PlanoContaController extends Controller
             // dd($somaSaldoAtualAtivo, $somaSaldoAtualReceitas, $registro, $ResultadoLoop);
 
         $contasEmpresa  = $registrosValoresTodos;
-        return view('PlanoContas.BalanceteEmpresa', compact('retorno', 'somaSaldoAtual','contasEmpresa', 'somaSaldoAtualAtivo', 'somaSaldoAtualReceitas','somaSaldoAtualDespesas','somaSaldoAtualPassivo'));
+
+//////// resultado entre RECEITAS e DESPESAS
+$ResultadoReceitasDespesas = abs($somaSaldoAtualReceitas) - abs($somaSaldoAtualDespesas);
+
+        return view('PlanoContas.BalanceteEmpresa', compact('retorno', 'somaSaldoAtual','contasEmpresa', 'somaSaldoAtualAtivo', 'somaSaldoAtualReceitas','somaSaldoAtualDespesas','somaSaldoAtualPassivo', 'ResultadoReceitasDespesas'));
     }
 
     public function dashboard()
