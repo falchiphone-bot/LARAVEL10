@@ -291,13 +291,79 @@ class PlanoContaController extends Controller
 /////////////// filtra somente o valor maior que 0
         $registros = $contasEmpresa;
 
-        $registrosValores = array_filter($registros, function ($registro) {
+        $registrosValoresTodos = array_filter($registros, function ($registro) {
             return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0;
         });
+////////////////////////////// /////////////// /////////////// /////////////// ///////////////
+
+            /////////////// filtra somente as contas do ativo = 1.X.XX.XX
+            $registros = $contasEmpresa;
+
+            $registrosValores = array_filter($registros, function ($registro) {
+                return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0 && substr($registro['Codigo'], 0, 1) === '1';
+            });
+
+            $somaSaldoAtualAtivo = 0;
+            foreach ($registrosValores  as $registro) {
+                $somaSaldoAtualAtivo += $registro['SaldoAtual'];
+
+            ////////////////////////////// /////////////// /////////////// /////////////// ///////////////
+            }
+
+////////////////////////////// /////////////// /////////////// /////////////// ///////////////
+
+         /////////////// filtra somente as contas do passivo= 2.X.XX.XX
+         $registros = $contasEmpresa;
+
+         $registrosValores = array_filter($registros, function ($registro) {
+             return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0 && substr($registro['Codigo'], 0, 1) === '2';
+         });
+
+         $somaSaldoAtualPassivo = 0;
+         foreach ($registrosValores  as $registro) {
+             $somaSaldoAtualPassivo += $registro['SaldoAtual'];
+         }
+
+////////////////////////////// /////////////// /////////////// /////////////// ///////////////
 
 
-        $contasEmpresa  = $registrosValores;
-        return view('PlanoContas.BalanceteEmpresa', compact('retorno', 'somaSaldoAtual','contasEmpresa'));
+
+           /////////////// filtra somente as contas do despesas= 3.X.XX.XX
+           $registros = $contasEmpresa;
+
+           $registrosValores = array_filter($registros, function ($registro) {
+               return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0 && substr($registro['Codigo'], 0, 1) === '3';
+           });
+
+           $somaSaldoAtualDespesas = 0;
+           foreach ($registrosValores  as $registro) {
+               $somaSaldoAtualDespesas += $registro['SaldoAtual'];
+           }
+
+////////////////////////////// /////////////// /////////////// /////////////// ///////////////
+
+
+            /////////////// filtra somente as contas do receitas = 4.X.XX.XX
+            $registros = $contasEmpresa;
+
+            $registrosValores = array_filter($registros, function ($registro) {
+                return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0 && substr($registro['Codigo'], 0, 1) === '4';
+            });
+
+            $somaSaldoAtualReceitas = 0;
+            foreach ($registrosValores  as $registro) {
+                $somaSaldoAtualReceitas += $registro['SaldoAtual'];
+            }
+
+ ////////////////////////////// /////////////// /////////////// /////////////// ///////////////
+
+
+
+
+            // dd($somaSaldoAtualAtivo, $somaSaldoAtualReceitas, $registro, $ResultadoLoop);
+
+        $contasEmpresa  = $registrosValoresTodos;
+        return view('PlanoContas.BalanceteEmpresa', compact('retorno', 'somaSaldoAtual','contasEmpresa', 'somaSaldoAtualAtivo', 'somaSaldoAtualReceitas','somaSaldoAtualDespesas','somaSaldoAtualPassivo'));
     }
 
     public function dashboard()

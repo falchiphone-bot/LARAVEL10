@@ -64,7 +64,7 @@
 
                                     <td>
                                         <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
-                                            {{ number_format($somaSaldoAtual, 2, ',', '.') }}
+                                            {{ number_format($somaSaldoAtualAtivo, 2, ',', '.') }}
                                         </div>
                                     </td>
 
@@ -77,7 +77,7 @@
 
                                     <td>
                                         <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
-                                            {{ number_format($somaSaldoAtual, 2, ',', '.') }}
+                                            {{ number_format($somaSaldoAtualPassivo, 2, ',', '.') }}
                                         </div>
                                     </td>
                                     @elseif($Codigo == 3)
@@ -88,18 +88,17 @@
 
                                   <td>
                                       <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
-                                          {{ number_format($somaSaldoAtual, 2, ',', '.') }}
+                                          {{ number_format($somaSaldoAtualDespesas, 2, ',', '.') }}
                                       </div>
                                   </td>
                                   @elseif($Codigo == 4)
-
                                       <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
-                                        TOTAL DO RECEITA
+                                        TOTAL DA RECEITA
                                     </div>
 
                                     <td>
                                         <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
-                                            {{ number_format($somaSaldoAtual, 2, ',', '.') }}
+                                            {{ number_format($somaSaldoAtualReceitas, 2, ',', '.') }}
                                         </div>
                                     </td>
                                      @endif
@@ -157,7 +156,7 @@
                         <tr>
                             <td>
                                 <div class="badge bg-warning text-wrap" style="width: 100%; text-align: right;">
-                                    SALDO TOTAL
+                                    SALDO TOTAL IGUAL A 0,00. SIGNIFICA TUDO CORRETO!
                                 </div>
 
                                 <td>
