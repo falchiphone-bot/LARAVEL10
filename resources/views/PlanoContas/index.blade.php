@@ -43,7 +43,7 @@
                         <th>Grau</th>
                         <th>Bloqueio</th>
                         <th>Bloqueia datas anteriores a</th>
-                        <th>Código Skala/th>
+                        <th>Código Skala</th>
                     </tr>
                     @foreach ($cadastros as $cadastro)
                         <tr>
