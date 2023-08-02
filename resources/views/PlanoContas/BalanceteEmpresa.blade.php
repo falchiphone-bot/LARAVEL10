@@ -42,40 +42,73 @@
                         <th>Grau</th>
                     </tr>
                       @php
-                    $Codigo = null
-               @endphp
+                          $CodigoAtivo = null;
+                          $CodigoPassivo = null;
+                          $Codigoatual = null;
+                      @endphp
+
                     @foreach ($contasEmpresa as $conta)
 
+                            @php
+                             $Codigo = substr($conta['Codigo'], 0, 1)
+                            @endphp
 
-                @php
-                  $Codigoatual = substr($conta['Codigo'], 0, 1)
-                @endphp
-
-                    @if ($Codigo !== $Codigoatual)
-                        <tr>
-                            <td>
-                                <div class="badge bg-warning text-wrap" style="width: 100%; text-align: right;">
-                                     TOTAL DO ATIVO
-                                </div>
-
+                        @if ($Codigo != $Codigoatual)
+                            <tr>
                                 <td>
-                                    <div class="badge bg-warning text-wrap" style="width: 100%; text-align: right;">
-                                        {{ number_format($somaSaldoAtual, 2, ',', '.') }}
+                                    @if($Codigo == 1)
+
+                                      <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
+                                        TOTAL DO ATIVO
                                     </div>
+
+                                    <td>
+                                        <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
+                                            {{ number_format($somaSaldoAtual, 2, ',', '.') }}
+                                        </div>
+                                    </td>
+
+
+                                    @elseif($Codigo == 2)
+
+                                      <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
+                                        TOTAL DO PASSIVO
+                                    </div>
+
+                                    <td>
+                                        <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
+                                            {{ number_format($somaSaldoAtual, 2, ',', '.') }}
+                                        </div>
+                                    </td>
+                                    @elseif($Codigo == 3)
+
+                                    <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
+                                      TOTAL DO DESPESAS
+                                  </div>
+
+                                  <td>
+                                      <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
+                                          {{ number_format($somaSaldoAtual, 2, ',', '.') }}
+                                      </div>
+                                  </td>
+                                  @elseif($Codigo == 4)
+
+                                      <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
+                                        TOTAL DO RECEITA
+                                    </div>
+
+                                    <td>
+                                        <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
+                                            {{ number_format($somaSaldoAtual, 2, ',', '.') }}
+                                        </div>
+                                    </td>
+                                     @endif
                                 </td>
-                            </td>
-                        </tr>
-                    @endif
-
-
+                            </tr>
+                        @endif
                         <tr>
                             <td style="text-align: left;">
 
-                                @php($c = 0)
-                                @while ($c < substr_count($conta['Codigo'], '.'))
-                                    &nbsp;&nbsp;
-                                    @php($c++)
-                                @endwhile
 
                                 @if ($conta['Grau'] == '1')
                                     <div class="badge bg-primary text-wrap" style="width: 100%;">
@@ -115,6 +148,11 @@
                                 </div>
                             </td>
                         </tr>
+
+                            @php
+                             $Codigoatual = substr($conta['Codigo'], 0, 1)
+                            @endphp
+
                     @endforeach
                         <tr>
                             <td>
