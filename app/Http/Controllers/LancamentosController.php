@@ -17,7 +17,11 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\Calculation\DateTimeExcel\Days;
 use Carbon\Carbon;
+use App\Exports\LancamentoExport;
+use LancamentoExport as GlobalLancamentoExport;
 use Maatwebsite\Excel\Facades\Excel;
+
+
 
 class LancamentosController extends Controller
 {
@@ -70,8 +74,6 @@ class LancamentosController extends Controller
 
         public function ExportarSkalaExcelPost(request $request)
         {
-            session(['sucess' => 'Arquivo gerado com sucesso!']);
-            session(['error' => null]);
 
            $EmpresaID = $request->EmpresaSelecionada;
 
@@ -116,29 +118,21 @@ class LancamentosController extends Controller
                 }
 
 
-
-                // Exemplo da coleção $Exportar[]
-                $Exportar = $lancamento;
+                return Excel::download(new LancamentoExport($lancamento), 'lancamento.xlsx');
 
 
 
 
+                session(['success' => 'Arquivo gerado com sucesso!']);
+                session(['error' => null]);
 
-
-
-    session(['sucess' => 'Arquivo gerado com sucesso!']);
-    session(['error' => null]);
-
-    return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
+                return view('Lancamentos.ExportarSkalaExcel', compact('retorno', 'Empresas'));
 
     }
 
 
     public function ExportarSkalaPost(request $request)
     {
-
-session(['sucess' => 'Arquivo gerado com sucesso!']);
-session(['error' => null]);
 
        $EmpresaID = $request->EmpresaSelecionada;
 
@@ -246,7 +240,7 @@ readfile($caminho_arquivo_csv);
 unlink($caminho_arquivo_csv);
 exit();
 
-session(['sucess' => 'Arquivo gerado com sucesso!']);
+session(['success' => 'Arquivo gerado com sucesso!']);
 session(['error' => null]);
 
 return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));

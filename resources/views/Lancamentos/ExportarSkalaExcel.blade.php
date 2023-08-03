@@ -4,8 +4,8 @@
         <div class="container">
 
             <div class="card">
-                <div class="badge bg-secondary text-wrap" style="width: 100%;font-size: 24px;lign=˜Center˜">
-                    EXPORTAR ARQUIVO CSV PARA SKALA DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
+                <div class="badge bg-primary text-wrap" style="width: 100%;font-size: 24px;lign=˜Center˜">
+                    EXPORTAR ARQUIVO EXCEL PARA SKALA DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
                 </div>
             </div>
 
@@ -28,13 +28,13 @@
                 </nav>
 
                 <div class="card-header">
-                    <div class="badge bg-secondary text-wrap" style="width: 100%;font-size: 24px">
+                    <div class="badge bg-success text-wrap" style="width: 100%;font-size: 24px">
                         <p>EXPORTAÇÃO DE ARQUIVO CSV
                     </div>
                 </div>
 
                 <hr>
-                <form method="POST" action="/Lancamentos/ExportarSkalapost" accept-charset="UTF-8">
+                <form method="POST" action="/Lancamentos/ExportarSkalaExcelpost" accept-charset="UTF-8">
                     @csrf
                     <div class="card">
                         <div class="card-body">

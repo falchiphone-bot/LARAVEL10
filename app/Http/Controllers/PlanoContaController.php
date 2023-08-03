@@ -133,7 +133,6 @@ class PlanoContaController extends Controller
 
     public function Balancetes()
     {
-
         session(['success' => 'Selecionar empresa e período para pesquisa']);
 
         $retorno['EmpresaSelecionada'] = null;
@@ -145,7 +144,6 @@ class PlanoContaController extends Controller
         ->get();
 
         return view('PlanoContas.Balancetes', compact('retorno', 'Empresas'));
-
     }
 
 

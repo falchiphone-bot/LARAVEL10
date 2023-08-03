@@ -57,6 +57,10 @@
                                             <a class="btn btn-success" href="/lancamentos/exportarskala">Exportar lançamentos para Skala por período e empresa selecionada</a>
                                         </nav>
 
+                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                            <a class="btn btn-success" href="/lancamentos/exportarskalaexcel">Exportar lançamentos para Skala por período e empresa selecionada no formato EXCEL</a>
+                                        </nav>
+
                                         @can('FATURAMENTOS - LISTAR')
                                     <tr>
                                         <th>
