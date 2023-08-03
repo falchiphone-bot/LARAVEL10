@@ -73,13 +73,13 @@ session(['error' => null]);
            $retorno['DataInicial'] = $DataInicialCarbon->format('Y-m-d');
            $retorno['DataFinal'] = $DataFinalCarbon->format('Y-m-d');
 
-            $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
-            ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
-            ->OrderBy('Descricao')
-            ->select(['Empresas.ID', 'Empresas.Descricao'])
-            ->get();
+            // $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+            // ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+            // ->OrderBy('Descricao')
+            // ->select(['Empresas.ID', 'Empresas.Descricao'])
+            // ->get();
 
-
+            $Empresas = Empresa::find($EmpresaID);
        if($DataInicialCarbon > $DataFinalCarbon)
        {
            session(['error' => 'Data inicial maior que a data final']);
@@ -108,7 +108,9 @@ session(['error' => null]);
             $Exportar = $lancamento;
 
             // Caminho do arquivo .csv que você deseja criar na pasta "storage"
-            $caminho_arquivo_csv = storage_path('lancamentoTanabiEsporteClube.csv');
+            $Arquivo = $Empresas->Descricao . '-' .str_replace('/', '', $DataInicial). '-a-'.str_replace('/', '', $DataFinal).'.csv';
+
+            $caminho_arquivo_csv = storage_path($Arquivo);
 
             // Abrir o arquivo .csv em modo de escrita usando a classe Storage
             $file = fopen($caminho_arquivo_csv, 'w');
@@ -137,7 +139,8 @@ session(['error' => null]);
 
             // Definir os cabeçalhos para o download
 header('Content-Type: text/csv');
-header('Content-Disposition: attachment; filename="lancamentoTanabiEsporteClube.csv"');
+header("Content-Disposition: attachment; filename=\"$Arquivo\"");
+
 
 // Ler e enviar o arquivo para o cliente
 readfile($caminho_arquivo_csv);
@@ -146,10 +149,10 @@ readfile($caminho_arquivo_csv);
 unlink($caminho_arquivo_csv);
 exit();
 
-// session(['sucess' => 'Arquivo gerado com sucesso!']);
-// session(['error' => null]);
+session(['sucess' => 'Arquivo gerado com sucesso!']);
+session(['error' => null]);
 
-// return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
+return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
 
 }
 
