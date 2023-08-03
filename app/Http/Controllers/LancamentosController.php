@@ -73,13 +73,13 @@ session(['error' => null]);
            $retorno['DataInicial'] = $DataInicialCarbon->format('Y-m-d');
            $retorno['DataFinal'] = $DataFinalCarbon->format('Y-m-d');
 
-            // $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
-            // ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
-            // ->OrderBy('Descricao')
-            // ->select(['Empresas.ID', 'Empresas.Descricao'])
-            // ->get();
+            $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+            ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+            ->OrderBy('Descricao')
+            ->select(['Empresas.ID', 'Empresas.Descricao'])
+            ->get();
 
-            $Empresas = Empresa::find($EmpresaID);
+            $EmpresasSelecionada = Empresa::find($EmpresaID);
        if($DataInicialCarbon > $DataFinalCarbon)
        {
            session(['error' => 'Data inicial maior que a data final']);
@@ -108,7 +108,7 @@ session(['error' => null]);
             $Exportar = $lancamento;
 
             // Caminho do arquivo .csv que você deseja criar na pasta "storage"
-            $Arquivo = $Empresas->Descricao . '-' .str_replace('/', '', $DataInicial). '-a-'.str_replace('/', '', $DataFinal).'.csv';
+            $Arquivo = $EmpresasSelecionada->Descricao . '-' .str_replace('/', '', $DataInicial). '-a-'.str_replace('/', '', $DataFinal).'.csv';
 
             $caminho_arquivo_csv = storage_path($Arquivo);
 
