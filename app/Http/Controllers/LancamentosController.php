@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\Calculation\DateTimeExcel\Days;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
 
 class LancamentosController extends Controller
 {
@@ -36,6 +37,22 @@ class LancamentosController extends Controller
         //  $this->middleware(['permission:LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA VISUALIZAR'])->only('SelecionaLinha');
      }
 
+
+     public function ExportarSkalaExcel()
+     {
+        $retorno['DataInicial'] = date('Y-m-d');
+        $retorno['DataFinal'] = date('Y-m-d');
+        $retorno['EmpresaSelecionada'] = null;
+
+         $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+             ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+             ->OrderBy('Descricao')
+             ->select(['Empresas.ID', 'Empresas.Descricao'])
+             ->get();
+
+             return view('lancamentos.ExportarSkalaExcel', compact('retorno','Empresas'));
+        }
+
      public function ExportarSkala()
      {
         $retorno['DataInicial'] = date('Y-m-d');
@@ -49,9 +66,72 @@ class LancamentosController extends Controller
              ->get();
 
              return view('lancamentos.ExportarSkala', compact('retorno','Empresas'));
- }
+        }
+
+        public function ExportarSkalaExcelPost(request $request)
+        {
+            session(['sucess' => 'Arquivo gerado com sucesso!']);
+            session(['error' => null]);
+
+           $EmpresaID = $request->EmpresaSelecionada;
+
+           //////////////  converter em data e depois em string data
+           $DataInicialCarbon = Carbon::parse($request->input('DataInicial')) ;
+           $DataFinalCarbon = Carbon::parse($request->input('DataFinal'));
+           $DataInicial = $DataInicialCarbon->format('d/m/Y');
+           $DataFinal = $DataFinalCarbon->format('d/m/Y');
 
 
+               $retorno['EmpresaSelecionada'] = $EmpresaID;
+               $retorno['DataInicial'] = $DataInicialCarbon->format('Y-m-d');
+               $retorno['DataFinal'] = $DataFinalCarbon->format('Y-m-d');
+
+                $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+                ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+                ->OrderBy('Descricao')
+                ->select(['Empresas.ID', 'Empresas.Descricao'])
+                ->get();
+
+                $EmpresasSelecionada = Empresa::find($EmpresaID);
+           if($DataInicialCarbon > $DataFinalCarbon)
+           {
+               session(['error' => 'Data inicial maior que a data final']);
+               return view('Lancamentos.ExportarSkalaExcel', compact('retorno', 'Empresas'));
+           }
+
+                $lancamento = Lancamento::Where('EmpresaID','=',$EmpresaID)
+                // ->take(30)
+                ->where('DataContabilidade','>',$DataInicial)
+                ->where('DataContabilidade','<',$DataFinal)
+                ->select('DataContabilidade', 'ContaDebitoID','ContaCreditoID','Valor','Descricao')
+                ->orderBy('DataContabilidade', 'ASC')
+                ->get();
+
+                $numeroRegistros = $lancamento->count();
+                if($numeroRegistros == 0)
+                {
+                    // dd('IGUAL A 0');
+                    session(['error' => 'Sem lançamentos no período selecionado para a empresa selecionada']);
+                    return view('Lancamentos.ExportarSkalaExcel', compact('retorno', 'Empresas'));
+                }
+
+
+
+                // Exemplo da coleção $Exportar[]
+                $Exportar = $lancamento;
+
+
+
+
+
+
+
+    session(['sucess' => 'Arquivo gerado com sucesso!']);
+    session(['error' => null]);
+
+    return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
+
+    }
 
 
     public function ExportarSkalaPost(request $request)
@@ -106,6 +186,23 @@ session(['error' => null]);
 
             // Exemplo da coleção $Exportar[]
             $Exportar = $lancamento;
+
+// /////////////// filtra somente o valor maior que 0
+// $registros = $Exportar->toArray();
+
+// $registrosValoresTodos = array_filter($registros, function ($registro) {
+//     // return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0;
+//     return isset($registro['ContaDebitoID']) && empty($registro['ContaDebitoID']);
+// });
+// ////////////////////////////// /////////////// /////////////// /////////////// ///////////////
+
+// $registrosValoresTodos = array_filter($registros, function ($registro) {
+//     // return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0;
+//     return isset($registro['ContaCreditoID']) && !empty(trim($registro['ContaCreditoID']));
+// });
+// ////////////////////////////// /////////////// /////////////// /////////////// ///////////////
+// // dd($registrosValoresTodos);
+// $Exportar = $registrosValoresTodos;
 
             // Caminho do arquivo .csv que você deseja criar na pasta "storage"
             $Arquivo = $EmpresasSelecionada->Descricao . '-' .str_replace('/', '', $DataInicial). '-a-'.str_replace('/', '', $DataFinal).'.csv';

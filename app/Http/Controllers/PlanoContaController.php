@@ -192,27 +192,22 @@ class PlanoContaController extends Controller
                 ->select(['Empresas.ID', 'Empresas.Descricao'])
                 ->get();
 
-
-
                 return view('PlanoContas.Balancetes', compact('retorno', 'Empresas'));
             }
 
 
 
 
-        if (!session('Empresa')) {
-            return redirect('/Empresas')->with('error', 'Necessário selecionar uma empresa');
-        } else {
-            $contasEmpresa = Conta::where('EmpresaID', session('Empresa')->ID)
+            if (!session('Empresa')) {
+                return redirect('/Empresas')->with('error', 'Necessário selecionar uma empresa');
+            } else {
+                $contasEmpresa = Conta::where('EmpresaID', session('Empresa')->ID)
                 ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.planocontas_id')
                 ->orderBy('Codigo', 'asc')
                 ->where('Grau', '=', '5')
                 ->get(['Contas.ID', 'Descricao', 'Codigo', 'Grau']);
 
 
-
-
-            // $Ate = Carbon::now()->format('d/m/Y');
 
                 $Resultado = [];
                 $ResultadoLoop = [];

@@ -18,6 +18,7 @@
         "league/oauth2-client": "^2.6",
         "league/oauth2-google": "^4.0",
         "livewire/livewire": "^2.12",
+        "maatwebsite/excel": "^3.1",
         "masbug/flysystem-google-drive-ext": "^2.0",
         "phpmailer/phpmailer": "^6.8",
         "phpoffice/phpspreadsheet": "^1.28",
