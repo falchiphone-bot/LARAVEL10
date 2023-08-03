@@ -191,13 +191,15 @@ Route::resource('RedeSocialUsuarios', App\Http\Controllers\RedeSocialUsuarioCont
     Route::resource('PlanoContas', App\Http\Controllers\PlanoContaController::class);
 
     #Lançamentos
-    Route::get('Lancamentos/lancamentoinformaprice',[App\Http\Controllers\LancamentosController::class,'lancamentoinformaprice'])->name('lancamentos.lancamentoinformaprice');
+    Route::post('Lancamentos/ExportarSkalapost',[App\Http\Controllers\LancamentosController::class,'ExportarSkalapost'])->name('lancamentos.exportarskalapost');
     Route::post('lancamentos/lancamentotabelaprice',[App\Http\Controllers\LancamentosController::class,'lancamentotabelaprice'])->name('lancamentos.lancamentotabelaprice');
+    Route::get('lancamentos/exportarskala',[App\Http\Controllers\LancamentosController::class,'ExportarSkala'])->name('lancamentos.ExportarSkala');
+    Route::get('Lancamentos/lancamentoinformaprice',[App\Http\Controllers\LancamentosController::class,'lancamentoinformaprice'])->name('lancamentos.lancamentoinformaprice');
     Route::get('Lancamentos/Informaprice',[App\Http\Controllers\LancamentosController::class,'Informaprice'])->name('lancamentos.informaprice');
     Route::post('lancamentos/tabelaprice',[App\Http\Controllers\LancamentosController::class,'tabelaprice'])->name('lancamentos.tabelaprice');
     Route::get('lancamentos/download/{id}',[App\Http\Controllers\LancamentosController::class,'baixarArquivo'])->name('lancamentos.download');
     Route::get('Lancamentos/tabelaprice', function () { return view('Lancamento.tabelaprice');})->name('lancamentos.tabelapriceresultado');
-    Route::get('lancamentos/exportarskala',[App\Http\Controllers\LancamentosController::class,'exportarskala'])->name('lancamentos.exportarskala');
+
 
 
     #Contas

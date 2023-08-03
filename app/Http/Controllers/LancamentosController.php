@@ -36,25 +36,71 @@ class LancamentosController extends Controller
         //  $this->middleware(['permission:LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA VISUALIZAR'])->only('SelecionaLinha');
      }
 
+     public function ExportarSkala()
+     {
+        $retorno['DataInicial'] = date('Y-m-d');
+        $retorno['DataFinal'] = date('Y-m-d');
+        $retorno['EmpresaSelecionada'] = null;
 
-    public function ExportarSkala()
+         $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+             ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+             ->OrderBy('Descricao')
+             ->select(['Empresas.ID', 'Empresas.Descricao'])
+             ->get();
+
+             return view('lancamentos.ExportarSkala', compact('retorno','Empresas'));
+ }
+
+
+
+
+    public function ExportarSkalaPost(request $request)
     {
 
-        $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+session(['sucess' => 'Arquivo gerado com sucesso!']);
+session(['error' => null]);
+
+       $EmpresaID = $request->EmpresaSelecionada;
+
+       //////////////  converter em data e depois em string data
+       $DataInicialCarbon = Carbon::parse($request->input('DataInicial')) ;
+       $DataFinalCarbon = Carbon::parse($request->input('DataFinal'));
+       $DataInicial = $DataInicialCarbon->format('d/m/Y');
+       $DataFinal = $DataFinalCarbon->format('d/m/Y');
+
+
+           $retorno['EmpresaSelecionada'] = $EmpresaID;
+           $retorno['DataInicial'] = $DataInicialCarbon->format('Y-m-d');
+           $retorno['DataFinal'] = $DataFinalCarbon->format('Y-m-d');
+
+            $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
             ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
             ->OrderBy('Descricao')
             ->select(['Empresas.ID', 'Empresas.Descricao'])
             ->get();
 
 
-            $EmpresaID = '1025';
+       if($DataInicialCarbon > $DataFinalCarbon)
+       {
+           session(['error' => 'Data inicial maior que a data final']);
+           return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
+       }
 
             $lancamento = Lancamento::Where('EmpresaID','=',$EmpresaID)
-            ->take(30)
+            // ->take(30)
+            ->where('DataContabilidade','>',$DataInicial)
+            ->where('DataContabilidade','<',$DataFinal)
             ->select('DataContabilidade', 'ContaDebitoID','ContaCreditoID','Valor','Descricao')
-            ->orderBy('ID', 'DESC')
+            ->orderBy('DataContabilidade', 'ASC')
             ->get();
 
+            $numeroRegistros = $lancamento->count();
+            if($numeroRegistros == 0)
+            {
+                // dd('IGUAL A 0');
+                session(['error' => 'Sem lançamentos no período selecionado para a empresa selecionada']);
+                return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
+            }
 
 
 
@@ -98,6 +144,12 @@ readfile($caminho_arquivo_csv);
 
 // Após o readfile, você pode optar por excluir o arquivo temporário, se desejar.
 unlink($caminho_arquivo_csv);
+exit();
+
+// session(['sucess' => 'Arquivo gerado com sucesso!']);
+// session(['error' => null]);
+
+// return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
 
 }
 
