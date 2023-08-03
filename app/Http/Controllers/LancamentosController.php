@@ -73,10 +73,12 @@ class LancamentosController extends Controller
 
             // Escrever os dados da coleção no arquivo
             foreach ($Exportar as $item) {
+                $codigoSkalaDebito = $item->ContaDebito->PlanoConta->CodigoSkala;
+                $codigoSkalaCredito = $item->ContaCredito->PlanoConta->CodigoSkala;
                 $dados = [
                     $item->DataContabilidade->format('d/m/Y'),
-                    $item->ContaDebitoID,
-                    $item->ContaCreditoID,
+                    $codigoSkalaDebito,
+                    $codigoSkalaCredito,
                     $item->Valor,
                     $item->Descricao
                 ];
