@@ -37,10 +37,75 @@ class LancamentosController extends Controller
      }
 
 
+    public function ExportarSkala()
+    {
+
+        $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+            ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+            ->OrderBy('Descricao')
+            ->select(['Empresas.ID', 'Empresas.Descricao'])
+            ->get();
+
+
+            $EmpresaID = '1025';
+
+            $lancamento = Lancamento::Where('EmpresaID','=',$EmpresaID)
+            ->take(30)
+            ->select('DataContabilidade', 'ContaDebitoID','ContaCreditoID','Valor','Descricao')
+            ->orderBy('ID', 'DESC')
+            ->get();
+
+
+
+
+            // Exemplo da coleção $Exportar[]
+            $Exportar = $lancamento;
+
+            // Caminho do arquivo .csv que você deseja criar na pasta "storage"
+            $caminho_arquivo_csv = storage_path('lancamentoTanabiEsporteClube.csv');
+
+            // Abrir o arquivo .csv em modo de escrita usando a classe Storage
+            $file = fopen($caminho_arquivo_csv, 'w');
+
+            // Escrever o cabeçalho no arquivo
+            $campos = ["Data", "Debito", "Credito", "Valor", "Descricao"];
+            fputcsv($file, $campos);
+
+            // Escrever os dados da coleção no arquivo
+            foreach ($Exportar as $item) {
+                $dados = [
+                    $item->DataContabilidade->format('d/m/Y'),
+                    $item->ContaDebitoID,
+                    $item->ContaCreditoID,
+                    $item->Valor,
+                    $item->Descricao
+                ];
+                fputcsv($file, $dados);
+            }
+
+            // Fechar o arquivo
+            fclose($file);
+
+
+            // Definir os cabeçalhos para o download
+header('Content-Type: text/csv');
+header('Content-Disposition: attachment; filename="lancamentoTanabiEsporteClube.csv"');
+
+// Ler e enviar o arquivo para o cliente
+readfile($caminho_arquivo_csv);
+
+// Após o readfile, você pode optar por excluir o arquivo temporário, se desejar.
+unlink($caminho_arquivo_csv);
+
+}
+
     public function Informaprice()
     {
         return view('Lancamentos.informaprice');
     }
+
+
+
 
     public function tabelaprice(Request $Request)
     {
