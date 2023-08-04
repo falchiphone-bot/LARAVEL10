@@ -173,7 +173,7 @@ class LancamentosDocumentosController extends Controller
     {
         $documento = LancamentoDocumento::find($id);
 
-        $tipoarquivo = TipoArquivo::get();
+        $tipoarquivo = TipoArquivo::OrderBy('nome')->get();
         $retorno['TipoArquivo'] = $documento->TipoArquivo;
         $tipoarquivo = TipoArquivo::get();
         return view('LancamentosDocumentos.edit',compact('documento','tipoarquivo','retorno','tipoarquivo'));
