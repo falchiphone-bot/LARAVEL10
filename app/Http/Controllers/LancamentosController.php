@@ -42,20 +42,7 @@ class LancamentosController extends Controller
      }
 
 
-     public function ExportarSkalaExcel()
-     {
-        $retorno['DataInicial'] = date('Y-m-d');
-        $retorno['DataFinal'] = date('Y-m-d');
-        $retorno['EmpresaSelecionada'] = null;
 
-         $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
-             ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
-             ->OrderBy('Descricao')
-             ->select(['Empresas.ID', 'Empresas.Descricao'])
-             ->get();
-
-             return view('lancamentos.ExportarSkalaExcel', compact('retorno','Empresas'));
-        }
 
      public function ExportarSkala()
      {
@@ -72,10 +59,37 @@ class LancamentosController extends Controller
              return view('lancamentos.ExportarSkala', compact('retorno','Empresas'));
         }
 
+
+        public function ExportarSkalaExcel()
+        {
+           $retorno['DataInicial'] = date('Y-m-d');
+           $retorno['DataFinal'] = date('Y-m-d');
+           $retorno['EmpresaSelecionada'] = null;
+           $retorno['ContaSelecionada'] = null;
+
+            $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+                ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+                ->OrderBy('Descricao')
+                ->select(['Empresas.ID', 'Empresas.Descricao'])
+                ->get();
+
+                $Contas = PlanoConta::get();
+
+                return view('lancamentos.ExportarSkalaExcel', compact('retorno','Empresas','Contas'));
+           }
+
         public function ExportarSkalaExcelPost(request $request)
         {
 
            $EmpresaID = $request->EmpresaSelecionada;
+           $ContaID = $request->ContaSelecionada;
+
+           $ContaPequisada = Conta::Where("EmpresaID",'=',"$EmpresaID")
+           ->Where("Planocontas_id",'=',"$ContaID")
+           ->First();
+
+           $ContaGerar =  $ContaPequisada->ID;
+
 
            //////////////  converter em data e depois em string data
            $DataInicialCarbon = Carbon::parse($request->input('DataInicial')) ;
@@ -87,6 +101,7 @@ class LancamentosController extends Controller
                $retorno['EmpresaSelecionada'] = $EmpresaID;
                $retorno['DataInicial'] = $DataInicialCarbon->format('Y-m-d');
                $retorno['DataFinal'] = $DataFinalCarbon->format('Y-m-d');
+               $retorno['ContaSelecionada'] = $ContaID;
 
                 $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
                 ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
@@ -94,39 +109,67 @@ class LancamentosController extends Controller
                 ->select(['Empresas.ID', 'Empresas.Descricao'])
                 ->get();
 
+                $Contas = PlanoConta::get();
+
+
                 $EmpresasSelecionada = Empresa::find($EmpresaID);
            if($DataInicialCarbon > $DataFinalCarbon)
            {
                session(['error' => 'Data inicial maior que a data final']);
-               return view('Lancamentos.ExportarSkalaExcel', compact('retorno', 'Empresas'));
+               return view('Lancamentos.ExportarSkalaExcel', compact('retorno', 'Empresas','Contas'));
            }
 
-                $lancamento = Lancamento::Where('EmpresaID','=',$EmpresaID)
-                // ->take(30)
-                ->where('DataContabilidade','>',$DataInicial)
-                ->where('DataContabilidade','<',$DataFinal)
-                ->select('DataContabilidade', 'ContaDebitoID','ContaCreditoID','Valor','Descricao')
-                ->orderBy('DataContabilidade', 'ASC')
-                ->get();
+
+
+           $lancamento = Lancamento::where('EmpresaID', '=', $EmpresaID)
+           ->where(function ($query) use ($ContaGerar) {
+               $query->where('ContaDebitoID', '=', $ContaGerar)
+                     ->orWhere('ContaCreditoID', '=', $ContaGerar);
+           })
+           ->where('DataContabilidade', '>', $DataInicial)
+           ->where('DataContabilidade', '<', $DataFinal)
+           ->select('DataContabilidade', 'ContaDebitoID', 'ContaCreditoID', 'Valor', 'HistoricoID', 'Descricao')
+           ->orderBy('DataContabilidade', 'ASC')
+           ->get();
 
                 $numeroRegistros = $lancamento->count();
                 if($numeroRegistros == 0)
                 {
                     // dd('IGUAL A 0');
                     session(['error' => 'Sem lançamentos no período selecionado para a empresa selecionada']);
-                    return view('Lancamentos.ExportarSkalaExcel', compact('retorno', 'Empresas'));
+                    return view('Lancamentos.ExportarSkalaExcel', compact('retorno', 'Empresas','Contas'));
                 }
 
 
-                return Excel::download(new LancamentoExport($lancamento), 'lancamento.xlsx');
+                $ExportarLinha = [];
+                $ExportarUnir = [];
+
+                foreach ($lancamento as $item) {
+                    $exportarItem = [
+                        'DataContabilidade' => $item->DataContabilidade->format('d/m/Y'),
+                        'ContaDebitoID' => $item->ContaDebito->PlanoConta->CodigoSkala,
+                        'ContaCreditoID' => $item->ContaCredito->PlanoConta->CodigoSkala,
+                        'Valor' => $item->Valor,
+                        'Historico' => $item->Historico->Descricao??null,
+                        'Descricao' => $item->Descricao,
+                    ];
+
+                    $ExportarLinha[] = $exportarItem;
+                }
+
+                $exportarUnir = collect($ExportarLinha);
+
+
+                // dd($ExportarUnir);
+
+                // Caminho do arquivo .csv que você deseja criar na pasta "storage"
+                $Arquivo = $EmpresasSelecionada->Descricao . '-' .str_replace('/', '', $DataInicial). '-a-'.str_replace('/', '', $DataFinal).'.xlsx';
 
 
 
+                return Excel::download(new LancamentoExport($exportarUnir), "$Arquivo");
 
-                session(['success' => 'Arquivo gerado com sucesso!']);
-                session(['error' => null]);
 
-                return view('Lancamentos.ExportarSkalaExcel', compact('retorno', 'Empresas'));
 
     }
 

@@ -29,7 +29,7 @@
 
                 <div class="card-header">
                     <div class="badge bg-success text-wrap" style="width: 100%;font-size: 24px">
-                        <p>EXPORTAÇÃO DE ARQUIVO CSV
+                        <p>EXPORTAÇÃO DE ARQUIVO XLSX
                     </div>
                 </div>
 
@@ -71,7 +71,21 @@
                                 @endforeach
                             </select>
                         </div>
+                        <div class="col-3">
+                            <label for="Limite" style="color: red;">Contas</label>
+                            <select required class="form-control select2" id="ContaSelecionada" name="ContaSelecionada">
+                                <option value="">
+                                    Selecionar conta
+                                </option>
+                                @foreach ($Contas as $Conta)
+                                    <option @if ($retorno['ContaSelecionada'] == $Conta->ID) selected @endif
+                                        value="{{ $Conta->ID }}">
 
+                                        {{ $Conta->Descricao }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
 
 
                         <div class="row mt-2">

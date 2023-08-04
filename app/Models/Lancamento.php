@@ -71,6 +71,13 @@ class Lancamento extends Model
     {
         return $this->hasMany(LancamentoDocumento::class, 'LancamentoID', 'ID');
     }
+    public function Historico(): HasOne
+    {
+        return $this->hasOne(Historicos::class, 'ID', 'HistoricoID');
+    }
+
+
+
     // public function setDataContabilidadeAttribute($value)
     // {
     //     return Carbon::createFromDate($value)->format('d/m/Y');
