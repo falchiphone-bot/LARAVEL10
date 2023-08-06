@@ -139,6 +139,9 @@ Route::resource('TipoEsporte', App\Http\Controllers\TipoEsporteController::class
  # Tipo de arquivos
  Route::resource('TipoArquivo', App\Http\Controllers\TipoArquivoController::class);
 
+ # Preparadores
+ Route::resource('Preparadores', App\Http\Controllers\PreparadoresController::class);
+
  # Posicoes
  Route::resource('Posicoes', App\Http\Controllers\PosicoesController::class);
 
