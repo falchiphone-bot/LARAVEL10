@@ -103,16 +103,16 @@
                         Selecionar representante principal
                     </option>
                     @foreach ($representantes as $representante)
-                        <option @required(true)
+                        <option @if ($representante ?? null) @if ($model->representante_id == $representante->id) selected @endif
+                            @endif
                             value="{{ $representante->id }}">
                             {{ $representante->nome }}
                         </option>
                     @endforeach
                 </select>
-
             </div>
- 
 
+            
 
         <hr>
 
