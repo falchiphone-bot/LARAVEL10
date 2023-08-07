@@ -56,7 +56,7 @@ class FormandoBaseController extends Controller
             ->orderBy('nome')
             ->get();
 
-   
+
         return view('FormandoBase.index', compact('model','Empresas'));
     }
     public function ConsultaEmpresa(Request $request)
@@ -125,6 +125,9 @@ class FormandoBaseController extends Controller
     {
         $cpf = $request->cpf;
 
+        $LiberaCPF = $request->liberacpf;
+        $limpacpf = $request->limpacpf;
+
         $request['nome'] = strtoupper($request['nome']);
 
         $existecadastro = FormandoBase::where('nome', trim($request['nome']))->first();
@@ -133,11 +136,26 @@ class FormandoBaseController extends Controller
             return redirect(route('FormandoBase.index'));
         }
 
-        if (validarCPF($cpf)) {
-            session(['cpf' => 'CPF:  ' . $request->cpf . ', VALIDADO! ']);
+        // if (validarCPF($cpf)) {
+        //     session(['cpf' => 'CPF:  ' . $request->cpf . ', VALIDADO! ']);
+        // } else {
+        //     session(['error' => 'CPF:  ' . $request->cpf . ', DEVE SER CORRIGIDO! NADA ALTERADO! ']);
+        //     return redirect(route('FormandoBase.index'));
+        // }
+
+        if ($LiberaCPF == null) {
+            if ($cpf) {
+                if (validarCPF($cpf)) {
+                    session(['cpf' => 'CPF:  ' . $request->cpf . ', VALIDADO! ']);
+                } else {
+                    session(['error' => 'CPF:  ' . $request->cpf . ', DEVE SER CORRIGIDO! NADA ALTERADO! ']);
+                    return redirect(route('FormandoBase.edit', $id));
+                }
+            }
         } else {
-            session(['error' => 'CPF:  ' . $request->cpf . ', DEVE SER CORRIGIDO! NADA ALTERADO! ']);
-            return redirect(route('FormandoBase.index'));
+            if ($limpacpf) {
+                $request['cpf'] = '';
+            }
         }
 
         $enderecoEmailIncorreto = $request->email;
