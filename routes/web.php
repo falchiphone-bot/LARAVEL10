@@ -129,6 +129,12 @@ Route::resource('FormandoBaseRecebimentos', App\Http\Controllers\FormandoBaseRec
 
 
 
+# Cargo Profissional
+Route::resource('CargoProfissional', App\Http\Controllers\CargoProfissionalController::class);
+
+# Função Profissional
+Route::resource('FuncaoProfissional', App\Http\Controllers\FuncaoProfissionalController::class);
+
  # Representantes
  Route::resource('TipoRepresentantes', App\Http\Controllers\TipoRepresentanteController::class);
 

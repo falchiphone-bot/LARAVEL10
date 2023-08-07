@@ -17,11 +17,11 @@ class CargoProfissionalController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware(['permission:TIPOESPORTE - LISTAR'])->only('index');
-        $this->middleware(['permission:POSICOES - INCLUIR'])->only(['create', 'store']);
-        $this->middleware(['permission:POSICOES - EDITAR'])->only(['edit', 'update']);
-        $this->middleware(['permission:POSICOES - VER'])->only(['edit', 'update']);
-        $this->middleware(['permission:POSICOES - EXCLUIR'])->only('destroy');
+        $this->middleware(['permission:CARGOPROFISSIONAL - LISTAR'])->only('index');
+        $this->middleware(['permission:CARGOPROFISSIONAL - INCLUIR'])->only(['create', 'store']);
+        $this->middleware(['permission:CARGOPROFISSIONAL - EDITAR'])->only(['edit', 'update']);
+        $this->middleware(['permission:CARGOPROFISSIONAL - VER'])->only(['edit', 'update']);
+        $this->middleware(['permission:CARGOPROFISSIONAL - EXCLUIR'])->only('destroy');
     }
 
     /**
