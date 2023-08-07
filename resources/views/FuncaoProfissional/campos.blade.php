@@ -42,7 +42,7 @@
     <div class="row mt-2">
         <div class="col-6">
             <button class="btn btn-primary">Salvar</button>
-            <a href="{{ route('TipoEsporte.index') }}" class="btn btn-warning">Retornar para lista</a>
+            <a href="{{ route('FuncaoProfissional.index') }}" class="btn btn-warning">Retornar para lista</a>
         </div>
     </div>
 </div>

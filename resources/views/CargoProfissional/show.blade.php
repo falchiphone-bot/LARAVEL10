@@ -5,10 +5,10 @@
 
             <div class="card">
                 <div class="badge bg-primary text-wrap" style="width: 100%;">
-                    POSIÇÃO ESPORTIVA DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
+                    CARGO PROFISSIONAL DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
                 </div>
-                <a href="{{ route('Posicoes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
-                    aria-disabled="true">Incluir registros</a>
+                <a href="{{ route('CargoProfissional.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
+                    aria-disabled="true">Incluir registros de cargo profissional</a>
 
                 <div class="row">
                     <div class="card">
@@ -22,7 +22,7 @@
 
                         </div>
                         <div class="card-footer">
-                            <a href="{{ route('Posicoes.index') }}">Retornar para a lista</a>
+                            <a href="{{ route('CargoProfissional.index') }}">Retornar para a lista</a>
                         </div>
                     </div>
                 </div>

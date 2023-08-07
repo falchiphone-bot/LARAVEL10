@@ -2,7 +2,7 @@
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
-class CaargoProfissional extends Model
+class CargoProfissional extends Model
 {
     protected $table = 'CargoProfissional';
     public $timestamps = true;

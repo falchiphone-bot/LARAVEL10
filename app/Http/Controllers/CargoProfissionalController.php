@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-
-use App\Http\Requests\PosicoesCreateRequest;
-use App\Http\Requests\TipoEsporteCreateRequest;
-use App\Models\Posicoes;
-use App\Models\TipoEsporte;
+use App\Http\Requests\CargoProfissionalCreateRequest;
+use App\Models\CargoProfissional;
+use App\Models\Preparadores;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -32,50 +30,43 @@ class CargoProfissionalController extends Controller
 
     public function index()
     {
-       $model= TipoEsporte::OrderBy('nome')->get();
+       $model= CargoProfissional::OrderBy('nome')->get();
 
 
-        return view('TipoEsporte.index',compact('model'));
+        return view('CargoProfissional.index',compact('model'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        return view('TipoEsporte.create');
+        return view('CargoProfissional.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(TipoEsporteCreateRequest $request)
+
+    public function store(CargoProfissionalCreateRequest $request)
     {
         $request["nome"] = strtoupper($request["nome"]);
-        $existecadastro = TipoEsporte::where('nome',trim($request["nome"]))->first();
+        $existecadastro = CargoProfissional::where('nome',trim($request["nome"]))->first();
         if($existecadastro)
         {
             session(['error' => "NOME:  ". $request->nome  .", já existe! NADA INCLUÍDO! "]);
-            return redirect(route('TipoEsporte.index'));
+            return redirect(route('CargoProfissional.index'));
         }
 
 
         $model= $request->all();
 
 
-        TipoEsporte::create($model);
-        session(['success' => "TIPO DE ESPORTE:  ". $request->nome  .",  INCLUÍDO COM SUCESSO!"]);
-        return redirect(route('TipoEsporte.index'));
+        CargoProfissional::create($model);
+        session(['success' => "Cargo Profissional:  ". $request->nome  .",  INCLUÍDO COM SUCESSO!"]);
+        return redirect(route('CargoProfissional.index'));
 
     }
 
-    /**
-     * Display the specified resource.
-     */
+
     public function show(string $id)
     {
-        $cadastro = TipoEsporte::find($id);
-        return view('TipoEsporte.show',compact('cadastro'));
+        $cadastro = CargoProfissional::find($id);
+        return view('CargoProfissional.show',compact('cadastro'));
     }
 
     /**
@@ -83,10 +74,10 @@ class CargoProfissionalController extends Controller
      */
     public function edit(string $id)
     {
-        $model= TipoEsporte::find($id);
+        $model= CargoProfissional::find($id);
 
 
-        return view('TipoEsporte.edit',compact('model'));
+        return view('CargoProfissional.edit',compact('model'));
     }
 
     /**
@@ -96,15 +87,15 @@ class CargoProfissionalController extends Controller
     {
 
         $request["nome"] = strtoupper($request["nome"]);
-        $existecadastro = TipoEsporte::where('nome',trim($request["nome"]))->first();
-        if($existecadastro)
-        {
-            session(['error' => "NOME:  ". $request->nome  .", já existe ou não precisa ser alterado! "]);
-            return redirect(route('TipoEsporte.index'));
-        }
+        // $existecadastro = CargoProfissional::where('nome',trim($request["nome"]))->first();
+        // if($existecadastro)
+        // {
+        //     session(['error' => "NOME:  ". $request->nome  .", já existe ou não precisa ser alterado! "]);
+        //     return redirect(route('CargoProfissional.index'));
+        // }
 
 
-        $cadastro = TipoEsporte::find($id);
+        $cadastro = CargoProfissional::find($id);
 
         $cadastro->fill($request->all()) ;
 
@@ -112,31 +103,28 @@ class CargoProfissionalController extends Controller
         $cadastro->save();
 
 
-        return redirect(route('TipoEsporte.index'));
+        return redirect(route('CargoProfissional.index'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Request $request, string $id)
     {
 
-       $Posicao = Posicoes::where('tipo_esporte', $id)->get();
+       $Achar = Preparadores::where('CargoProfissional', $id)->get();
 
-       if($Posicao->Count() > 0)
+       if($Achar->Count() > 0)
        {
 
-        session(['error' => "TIPO DE ESPORTE:  ". $request->nome  .",  SELECIONADO! NÃO PODE SER EXCLUÍDO POIS ESTÁ SENDO USADO! RETORNADO A SITUAÇÃO ANTERIOR. ATENÇÃO!"]);
-        return redirect(route('TipoEsporte.index'));
+        session(['error' => "CARGO PROFISSIONAL:  ". $request->nome  .",  SELECIONADO! NÃO PODE SER EXCLUÍDO POIS ESTÁ SENDO USADO! RETORNADO A SITUAÇÃO ANTERIOR. ATENÇÃO!"]);
+        return redirect(route('CargoProfissional.index'));
        }
 
 
-        $model= TipoEsporte::find($id);
+        $model= CargoProfissional::find($id);
 
         $model->delete();
 
-       session(['success' => "TIPO DE ESPORTE:  ". $model->nome  .",  EXCLUÍDO COM SUCESSO!"]);
-        return redirect(route('TipoEsporte.index'));
+       session(['success' => "CARGO PROFISSIONAL:  ". $model->nome  .",  EXCLUÍDO COM SUCESSO!"]);
+        return redirect(route('CargoProfissional.index'));
 
     }
 }

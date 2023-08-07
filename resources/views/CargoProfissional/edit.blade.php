@@ -6,7 +6,7 @@
 
 
 <div class="badge bg-primary text-wrap" style="width: 100%;">
-   TIPO DE ESPORTE DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL - EDIÇÃO
+   CARGO PROFISSIONAL DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL - EDIÇÃO
 </div>
 
 @if ($errors->any())
@@ -19,9 +19,9 @@
     </div>
 @endif
 
-<form method="POST" action="{{route('TipoEsporte.update',$model->id)}}" accept-charset="UTF-8">
+<form method="POST" action="{{route('CargoProfissional.update',$model->id)}}" accept-charset="UTF-8">
     <input type="hidden" name="_method" value="PUT">
-    @include('TipoEsporte.campos')
+    @include('CargoProfissional.campos')
 </form>
 
 @endsection

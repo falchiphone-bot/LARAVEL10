@@ -5,7 +5,7 @@
 
             <div class="card">
                 <div class="badge bg-primary text-wrap" style="width: 100%;font-size: 24px;lign=˜Center˜">
-                    TIPO DE ESPORTES PARA SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
+                    CARGO PROFISSIONAL PARA SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
                 </div>
             </div>
 
@@ -29,13 +29,13 @@
                     <a class="btn btn-warning" href="Cadastros">Retornar a lista de opções</a> </nav>
 
 
-                @can('TIPOESPORTE - INCLUIR')
-                    <a href="{{ route('TipoEsporte.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
-                        aria-disabled="true">Incluir tipo de esporte</a>
+                @can('CARGOPROFISSIONAL - INCLUIR')
+                    <a href="{{ route('CargoProfissional.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
+                        aria-disabled="true">Incluir cargo profissional</a>
                 @endcan
                 <div class="card-header">
                     <div class="badge bg-info text-wrap" style="width: 100%;font-size: 24px">
-                        <p>Total de tipos de esportes cadastrados no sistema de gerenciamento administrativo e contábil:
+                        <p>Total de cargo profissional cadastrados no sistema de gerenciamento administrativo e contábil:
                             {{ $model->count() ?? 0 }}</p>
                     </div>
                 </div>
@@ -63,32 +63,23 @@
                                 </td>
 
 
-                                @can('TIPOESPORTE - EDITAR')
+                                @can('CARGOPROFISSIONAL - EDITAR')
                                     <td>
-                                        <a href="{{ route('TipoEsporte.edit', $Model->id) }}" class="btn btn-success" tabindex="-1"
+                                        <a href="{{ route('CargoProfissional.edit', $Model->id) }}" class="btn btn-success" tabindex="-1"
                                             role="button" aria-disabled="true">Editar</a>
                                     </td>
                                 @endcan
 
-                                @can('TIPOESPORTE - VER')
+                                @can('CARGOPROFISSIONAL - VER')
                                     <td>
-                                        <a href="{{ route('TipoEsporte.show', $Model->id) }}" class="btn btn-info" tabindex="-1"
+                                        <a href="{{ route('CargoProfissional.show', $Model->id) }}" class="btn btn-info" tabindex="-1"
                                             role="button" aria-disabled="true">Ver</a>
                                     </td>
                                 @endcan
 
-                                @can('TIPOESPORTE - EXCLUIR')
+                                @can('CARGOPROFISSIONAL - EXCLUIR')
                                     <td>
-                                        {{-- <form method="POST" action="{{ route('TipoEsporte.destroy', $Model->id)->with($Model->nome) }}">
-                                            @csrf
-                                            <input type="hidden" name="_method" value="DELETE">
-                                            <button type="submit" class="btn btn-danger">
-                                                Excluir
-                                            </button>
-                                        </form> --}}
-
-
-                                        <form method="POST" action="{{ route('TipoEsporte.destroy', [$Model->id]) }}">
+                                        <form method="POST" action="{{ route('CargoProfissional.destroy', [$Model->id]) }}">
                                             @csrf
                                             @method('DELETE')
                                             <input type="hidden" name="nome" value="{{ $Model->nome }}">

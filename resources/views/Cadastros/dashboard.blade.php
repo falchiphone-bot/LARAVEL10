@@ -95,6 +95,28 @@
                                 </tr>
 
                                 <tr>
+                                    @can('CARGOPROFISSIONAL - LISTAR')
+
+                                        <th>
+                                            <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                                <a class="btn btn-success" href="/CargoProfissional">Cargo profissional</a>
+                                            </nav>
+                                        </th>
+                                    @endcan
+                                </tr>
+
+                                <tr>
+                                    @can('FUNCAOPROFISSIONAL - LISTAR')
+
+                                        <th>
+                                            <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                                <a class="btn btn-success" href="/FuncaoProfissional">Função profissional</a>
+                                            </nav>
+                                        </th>
+                                    @endcan
+                                </tr>
+
+                                <tr>
                                     @can('TIPOARQUIVO - LISTAR')
 
                                         <th>
