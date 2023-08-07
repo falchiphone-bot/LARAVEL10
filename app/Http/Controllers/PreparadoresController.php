@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\PreparadoresCreateRequest;
 use App\Models\CargoProfissional;
 use App\Models\FuncaoProfissional;
+use App\Models\LancamentoDocumento;
 use App\Models\Preparadores;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -82,10 +83,22 @@ class PreparadoresController extends Controller
 
         $cargoprofissional = CargoProfissional::OrderBy('nome')->get();
         $funcaoprofissional = FuncaoProfissional::OrderBy('nome')->get();
+        $documento = LancamentoDocumento::where('tipoarquivo','>',0)->orderBy('ID', 'desc')->get();
+
+
+        $arquivoExiste = null;
+        // $FormandoBaseArquivo = FormandoBaseArquivo::where('FormandoBase_id', $id)
+        //      ->orderBy('id')
+        //      ->get();
+
+        //      foreach ($FormandoBaseArquivo as $FormandoBaseArquivos) {
+        //          $arquivoExiste = $FormandoBaseArquivos->id;
+
+        //      }
 
 
         // dd( $cargoprofissional , $funcaoprofissional );
-        return view('Preparadores.edit',compact('model','cargoprofissional','funcaoprofissional'));
+        return view('Preparadores.edit',compact('model','cargoprofissional','funcaoprofissional','documento','arquivoExiste'));
     }
 
     /**

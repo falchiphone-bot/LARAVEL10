@@ -67,6 +67,9 @@
                 </select>
             </div>
 
+
+
+
             <div class="col-sm-6">
                 <label for="FuncaoProfissional" style="color: black;">Função profissional</label>
                 <select required class="form-control select2" id="FuncaoProfissional" name="FuncaoProfissional">
@@ -85,6 +88,9 @@
                 </select>
             </div>
 
+ {{-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// --}}
+ @include('Preparadores.arquivos')
+ {{-- //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// --}}
 
 
 
