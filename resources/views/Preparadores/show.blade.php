@@ -21,15 +21,21 @@
                             </p>
 
                             <p>
-                                NOME: {{ $cadastro->email }}
+                                EMAIL: {{ $cadastro->email }}
                             </p>
 
                             <p>
-                                NOME: {{ $cadastro->telefone }}
+                                TELEFONE: {{ $cadastro->telefone }}
                             </p>
 
                             <p>
-                                NOME: {{ $cadastro->licencaCBF }}
+                                LICENÇA CBF: {{ $cadastro->licencaCBF }}
+                            </p>
+                            <p>
+                                CARGO PROFISSIONAL: {{ $cadastro->mostraCargoProfissional->nome }}
+                            </p>
+                            <p>
+                                FUNCAO PROFISSIONAL: {{ $cadastro->mostraFuncaoProfissional->nome }}
                             </p>
 
                         </div>

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\PreparadoresCreateRequest;
+use App\Models\CargoProfissional;
+use App\Models\FuncaoProfissional;
 use App\Models\Preparadores;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -75,10 +77,15 @@ class PreparadoresController extends Controller
      */
     public function edit(string $id)
     {
+
         $model= Preparadores::find($id);
 
+        $cargoprofissional = CargoProfissional::OrderBy('nome')->get();
+        $funcaoprofissional = FuncaoProfissional::OrderBy('nome')->get();
 
-        return view('Preparadores.edit',compact('model'));
+
+        // dd( $cargoprofissional , $funcaoprofissional );
+        return view('Preparadores.edit',compact('model','cargoprofissional','funcaoprofissional'));
     }
 
     /**
@@ -88,16 +95,20 @@ class PreparadoresController extends Controller
     {
 
         $request["nome"] = strtoupper($request["nome"]);
-        $existecadastro = Preparadores::where('nome',trim($request["nome"]))->first();
-        if($existecadastro)
-        {
-            session(['error' => "NOME:  ". $request->nome  .", já existe ou não precisa ser alterado! "]);
-            return redirect(route('Preparadores.index'));
-        }
+        // $existecadastro = Preparadores::where('nome',trim($request["nome"]))->first();
+        // if($existecadastro)
+        // {
+        //     session(['error' => "NOME:  ". $request->nome  .", já existe ou não precisa ser alterado! "]);
+        //     return redirect(route('Preparadores.index'));
+        // }
 
 
         $cadastro = Preparadores::find($id);
 
+        // $request['cargoProfissional'] = $request->cargoprofissional;
+        // $request['FuncaoProfissional'] = $request->funcaoprofissional;
+
+        // dd($request);
         $cadastro->fill($request->all()) ;
 
 
