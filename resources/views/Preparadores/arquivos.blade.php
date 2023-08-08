@@ -1,20 +1,12 @@
 
 <div class="card-body" style="background-color: #f7e7d0;">
-
-    {{-- @can('FORMANDOBASEARQUIVOS - INCLUIR')
-
-    <nav class="navbar navbar-info" style="background-color: hsla(234, 92%, 47%, 0.096);">
-        <a class="btn btn-info" href="/LANCAMENTOSDOCUMENTOS" style="display: inline-block;" target="_blank">Cadastro de arquivos</a>
-    </nav>
-   @endcan --}}
-
     {{-- ////////////////////////////////////  ARQUIVOS--}}
-    <form method="POST" action="/FormandoBase/CreateArquivoFormandoBase" accept-charset="UTF-8">
+    <form method="POST" action="/Preparadores/CreateArquivoPreparadores" accept-charset="UTF-8">
         @csrf
 
         <input required
-            class="form-control @error('formandobase_id') is-invalid @else is-valid @enderror d-none"
-            name="formandobase_id" type="text" id="formandobase_id" value="{{ $model->id ?? null }}">
+            class="form-control @error('preparadores_id') is-invalid @else is-valid @enderror d-none"
+            name="preparadores_id" type="text" id="preparadores_id" value="{{ $model->id ?? null }}">
 
 
         <div class="col-6">
@@ -39,7 +31,6 @@
         <div class="row mt-2">
             <div class="col-2">
                 <button class="btn btn-success">Salvar arquivo</button>
-
             </div>
         </div>
     </form>
@@ -57,7 +48,7 @@
 
 
 
-            @foreach ($FormandoBaseArquivo as $item)
+            @foreach ($PreparadoresArquivo as $item)
                 <style>
                     table {
                         border-collapse: collapse;
@@ -96,9 +87,9 @@
 
                       <td>{{ $item->MostraLancamentoDocumento->TipoArquivoNome->nome ?? null  }}</td>
 
-                    @can('FORMANDOBASEARQUIVOS - EXCLUIR')
+                    @can('PREPARADORESARQUIVOS - EXCLUIR')
                         <td>
-                            <form method="POST" action="{{ route('FormandoBaseArquivos.destroy', $item->id) }}">
+                            <form method="POST" action="{{ route('PreparadoresArquivos.destroy', $item->id) }}">
                                 @csrf
                                 <input type="hidden" name="_method" value="DELETE">
                                 <button type="submit" class="btn btn-danger">

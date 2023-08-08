@@ -146,7 +146,9 @@ Route::resource('TipoEsporte', App\Http\Controllers\TipoEsporteController::class
  Route::resource('TipoArquivo', App\Http\Controllers\TipoArquivoController::class);
 
  # Preparadores
+ Route::post('Preparadores/CreateArquivoPreparadores', [App\Http\Controllers\PreparadoresController::class, 'CreateArquivoPreparadores'])->name('Preparadores.ArquivoPreparadores');
  Route::resource('Preparadores', App\Http\Controllers\PreparadoresController::class);
+ Route::resource('PreparadoresArquivos', App\Http\Controllers\PreparadoresArquivosController::class);
 
  # Posicoes
  Route::resource('Posicoes', App\Http\Controllers\PosicoesController::class);

@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ArquivoPreparadoresCreateRequest;
 use App\Http\Requests\PreparadoresCreateRequest;
 use App\Models\CargoProfissional;
 use App\Models\FuncaoProfissional;
 use App\Models\LancamentoDocumento;
 use App\Models\Preparadores;
+use App\Models\PreparadoresArquivo;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 
 class PreparadoresController extends Controller
@@ -87,18 +90,18 @@ class PreparadoresController extends Controller
 
 
         $arquivoExiste = null;
-        // $FormandoBaseArquivo = FormandoBaseArquivo::where('FormandoBase_id', $id)
-        //      ->orderBy('id')
-        //      ->get();
+        $PreparadoresArquivo = PreparadoresArquivo::where('preparadores_id', $id)
+             ->orderBy('id')
+             ->get();
 
-        //      foreach ($FormandoBaseArquivo as $FormandoBaseArquivos) {
-        //          $arquivoExiste = $FormandoBaseArquivos->id;
+             foreach ($PreparadoresArquivo as $PreparadoresArquivos) {
+                 $arquivoExiste = $PreparadoresArquivos->id;
 
-        //      }
+             }
 
 
         // dd( $cargoprofissional , $funcaoprofissional );
-        return view('Preparadores.edit',compact('model','cargoprofissional','funcaoprofissional','documento','arquivoExiste'));
+        return view('Preparadores.edit',compact('model','cargoprofissional','funcaoprofissional','documento','arquivoExiste','PreparadoresArquivo'));
     }
 
     /**
@@ -117,14 +120,11 @@ class PreparadoresController extends Controller
 
 
         $cadastro = Preparadores::find($id);
-
         // $request['cargoProfissional'] = $request->cargoprofissional;
         // $request['FuncaoProfissional'] = $request->funcaoprofissional;
 
         // dd($request);
         $cadastro->fill($request->all()) ;
-
-
         $cadastro->save();
 
 
@@ -158,4 +158,38 @@ class PreparadoresController extends Controller
         return redirect(route('Preparadores.index'));
 
     }
+
+    public function CreateArquivoPreparadores(ArquivoPreparadoresCreateRequest $request)
+    {
+
+
+        $id = $request->preparadores_id;
+        $preparadores_id = $request->preparadores_id;
+        $arquivo_id = $request->arquivo_id;
+
+
+        $Existe = PreparadoresArquivo::where('arquivo_id',$arquivo_id)
+        ->where('preparadores_id',$preparadores_id)
+        ->first();
+
+
+
+        if($Existe){
+            session(['error' => "ARQUIVO EXISTE:  " . $Existe->MostraLancamentoDocumento->Rotulo.  ' do tipo de arquivo: '. $Existe->MostraLancamentoDocumento->TipoArquivoNome->nome .",  já existe para este registro!"]);
+            return redirect(route('FormandoBase.edit', $id));
+        }
+
+        $request['user_created'] = Auth ::user()->email;
+
+        $model = $request->all();
+
+
+        PreparadoresArquivo::create($model);
+
+        return redirect(route('Preparadores.edit', $id));
+
+    }
+
+
+
 }
