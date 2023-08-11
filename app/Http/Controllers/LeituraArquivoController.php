@@ -292,11 +292,11 @@ class LeituraArquivoController extends Controller
             $CashBackContaCreditoID = '19271';
             // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
         } elseif ($linhas1_7 === 'SANDRA ELISA MAGOSSI FALCHI-5122.67XX.XXXX.0118') {
-                $ContaCartao = '19468';
-                $Empresa = 11;
-                $DespesaContaDebitoID = '19426';
-                $CashBackContaCreditoID = '19271';
-                // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
+            $ContaCartao = '19468';
+            $Empresa = 11;
+            $DespesaContaDebitoID = '19426';
+            $CashBackContaCreditoID = '19271';
+            // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
         } elseif ($linhas1_7 === 'PEDRO ROBERTO FALCHI-4891.67XX.XXXX.2113') {
             $ContaCartao = '17458';
             $Empresa = 11;
@@ -496,8 +496,6 @@ class LeituraArquivoController extends Controller
 
     public function SelecionaDatasExtratoSicrediPJ(Request $request)
     {
-
-
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         $DESCONSIDERAR_BLOQUEIOS_EMPRESA = $request->DESCONSIDERAR_BLOQUEIOS_EMPRESAS;
         $DESCONSIDERAR_BLOQUEIOS_CONTAS = $request->DESCONSIDERAR_BLOQUEIOS_CONTAS;
@@ -652,20 +650,11 @@ class LeituraArquivoController extends Controller
         $Saldo = 0;
 
         $UltimoDia = null;
-        $DadosUsados = [];
-        $rowDataSelecao = null;
+        $DadosUsados[] = [];
+        $rowDataSelecao[] = null;
         $Valor_No_Registro_Anterior = null;
 
         $array = $novadata;
-
-        //    usort($array, function($a, $b) {
-        //     if ($a["4"] == $b["4"]) {
-        //         return 0;
-        //     }
-        //     return ($a["4"] < $b["4"]) ? -1 : 1;
-        // });
-
-        // dd($array);
 
 
         foreach ($array as $PegaLinha => $item) {
@@ -674,7 +663,7 @@ class LeituraArquivoController extends Controller
             $linha = $PegaLinha + 10; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
 
             if ($Data == '') {
-                $DadosUsados = $rowDataSelecao;
+                $rowData = $cellData;
                 $SaldoAnterior = SaldoLancamentoHelper::Anterior($UltimoDia, $Conta, $Empresa);
                 $SaldoDia = SaldoLancamentoHelper::Dia($UltimoDia, $Conta, $Empresa);
 
@@ -705,7 +694,32 @@ class LeituraArquivoController extends Controller
                         'Lancamento' => 'Terminado na linha ' . $linha . '. Saldo no extrato bancário de: ' . number_format($Saldo, 2, '.', ',') . '.' . ' Saldo atual no sistema contábil de ' . number_format($SaldoAtual, 2, '.', ',') . ' = ' . $TextoConciliado . ' Diferença apurada: ' . number_format($DiferençaApurada, 2, '.', ','),
                     ]);
                 }
-                // DD($DadosUsados);
+
+                // if ($request->filtrarnaolocalizou) {
+                //     /////////////// filtra somente o Localizou = NAO
+                //     $registros = $DadosUsados;
+
+
+                //     $registrosNaoLocalizados = array_filter($registros, function ($registro) {
+                //         return isset($registro['Localizou']) && $registro['Localizou'] === 'NAO';
+                //     });
+
+                //     if ($registrosNaoLocalizados == null) {
+                //         session(['Lancamento' => 'SEM REGISTROS PARA APRESENTAR!']);
+                //         return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
+                //     }
+
+                //     $rowData = $registrosNaoLocalizados;
+                //     if ($request->verarray) {
+                //         dd($rowData);
+                //     }
+
+                //     return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
+                //     ///////////////////////////////////////////////////////////////////////////////////
+                // }
+
+
+
                 return redirect(route('LeituraArquivo.index'));
             }
 
@@ -751,8 +765,9 @@ class LeituraArquivoController extends Controller
             $valor_formatado = number_format($valor_numerico, 2, '.', '');
 
             $valor_formatado = abs($valor_formatado);
+            $Localizou = 'NAO';
 
-            $arraydatanova = compact('Data', 'Descricao', 'valor_formatado');
+            $arraydatanova = compact('Data', 'Descricao', 'valor_formatado', 'Localizou');
 
             if (strpos($Descricao, 'CREDITO CASH BACK') !== false) {
                 //// se contiver, conter o texto na variável
@@ -795,17 +810,12 @@ class LeituraArquivoController extends Controller
                 continue;
             }
 
-
             try {
                 $carbon_data = Carbon::createFromFormat('d/m/Y', $Data);
             } catch (\Exception $e) {
-
-                session(['Lancamento' => 'Ocorreu um erro ao converter a variável em uma data: ' . $e->getMessage() . '. Valor do campo data: '. $Data]);
+                session(['Lancamento' => 'Ocorreu um erro ao converter a variável em uma data: ' . $e->getMessage() . '. Valor do campo data: ' . $Data]);
                 return redirect(route('LeituraArquivo.index'));
             }
-
-
-
 
             // $carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $Data);
             $linha_data_comparar = $carbon_data->format('Y-m-d');
@@ -861,20 +871,18 @@ class LeituraArquivoController extends Controller
             $LancamentoAnterior = null;
             $idDoLancamento = null;
             $CONSULTOU = 'NAO';
+            $registrosLocalizados[] = null;
             if ($lancamento) {
-                if($lancamento->Conferido)
-                {
-                    $CONSULTOU = "SIM";
+                if ($lancamento->Conferido) {
+                    $CONSULTOU = 'SIM';
                 }
 
                 Lancamento::where('id', $lancamento->ID)->update([
                     'Conferido' => true,
                 ]);
 
-
-
                 ///////////////////////////////////////////////////////////////////////////////////////////////////  registra em array para conferir após terminar
-                $rowValues = array(); //cria um novo array vazio para armazenar os valores da linha
+                $rowValues = []; //cria um novo array vazio para armazenar os valores da linha
                 $rowValues['Linha'] = $linha;
                 $rowValues['Data'] = $Data; //adiciona cada valor de célula ao array de valores de linha
                 $rowValues['Descricao'] = $Descricao;
@@ -884,15 +892,14 @@ class LeituraArquivoController extends Controller
                 $rowValues['Consultou'] = $CONSULTOU;
                 $rowValues['Conciliar_Data_Descricao_Valor'] = $Conciliar_Data_Descricao_Valor;
                 $rowValues['Valor_No_Registro_Anterior'] = $Valor_No_Registro_Anterior;
-
-                if($lancamento->Descricao != $Descricao){
+                $rowValues['Localizou'] = 'SIM';
+                if ($lancamento->Descricao != $Descricao) {
                     $rowValues['Conciliado'] = 'SIM';
                 }
 
                 $rowDataSelecao[] = $rowValues; //adiciona o array de valores de linha ao array de dados de linha
 
-
-                // $DadosUsados =  $rowDataSelecao;
+                $DadosUsados =  $rowDataSelecao;
                 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
                 $LancamentoAnterior = $lancamento->ID;
@@ -903,6 +910,14 @@ class LeituraArquivoController extends Controller
                 } else {
                     $DescricaoCompleta = $arraydatanova['Descricao'];
                 }
+                $arraydatanova['Localizou'] = 'NAO';
+                // $rowDataSelecao['Localizou'] = 'NAO';
+
+                if ($request->filtrarnaolocalizou) {
+                     dd($arraydatanova,'917');
+                }
+
+
 
                 if ($Valor_Positivo) {
                     $historico = Historicos::where('EmpresaID', $Empresa)
@@ -1040,6 +1055,7 @@ class LeituraArquivoController extends Controller
                         'Conferido' => true,
                         'HistoricoID' => $historico->ID,
                     ]);
+                    $arraydatanova['Localizou'] = 'SIM';
                     session(['Lancamento' => 'Lançamentos criados com históricos!']);
                 } elseif ($request->criarlancamentosemhistorico) {
                     if ($request->vercriarlancamento) {
@@ -1066,37 +1082,15 @@ class LeituraArquivoController extends Controller
                         'Conferido' => false,
                         'HistoricoID' => null,
                     ]);
+                    $arraydatanova['Localizou'] = 'SIM';
                 }
                 session(['Lancamento' => 'Lançamentos criados sem histórico!']);
             }
 
             $Valor_No_Registro_Anterior = $valor_formatado;
+            $DadosUsados[] = $arraydatanova;
+
         }
-
-        if ($request->filtrarnaolocalizou) {
-            /////////////// filtra somente o Localizou = NAO
-            $registros = $array;
-
-            $registrosNaoLocalizados = array_filter($registros, function ($registro) {
-                return isset($registro['Localizou']) && $registro['Localizou'] === 'NAO';
-            });
-
-            if($registrosNaoLocalizados == null){
-                session(['Lancamento' => 'SEM REGISTROS PARA APRESENTAR!']);
-                return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
-            }
-
-            $rowData = $registrosNaoLocalizados;
-            if($request->verarray){
-                  dd($rowData);
-            }
-
-            return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
-            ///////////////////////////////////////////////////////////////////////////////////
-        }
-
-
-
 
         // $rowData = $cellData;
         //    $rowData = $novadata;
