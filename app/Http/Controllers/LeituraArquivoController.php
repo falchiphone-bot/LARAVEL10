@@ -1073,6 +1073,31 @@ class LeituraArquivoController extends Controller
             $Valor_No_Registro_Anterior = $valor_formatado;
         }
 
+        if ($request->filtrarnaolocalizou) {
+            /////////////// filtra somente o Localizou = NAO
+            $registros = $array;
+
+            $registrosNaoLocalizados = array_filter($registros, function ($registro) {
+                return isset($registro['Localizou']) && $registro['Localizou'] === 'NAO';
+            });
+
+            if($registrosNaoLocalizados == null){
+                session(['Lancamento' => 'SEM REGISTROS PARA APRESENTAR!']);
+                return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
+            }
+
+            $rowData = $registrosNaoLocalizados;
+            if($request->verarray){
+                  dd($rowData);
+            }
+
+            return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
+            ///////////////////////////////////////////////////////////////////////////////////
+        }
+
+
+
+
         // $rowData = $cellData;
         //    $rowData = $novadata;
         return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);

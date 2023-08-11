@@ -59,6 +59,13 @@
 <input type="checkbox" name="DESCONSIDERAR_BLOQUEIOS_CONTAS" value='true'>
 <label for="checkbox_enviar">DESCONSIDERAR BLOQUEIOS DAS CONTAS</label>
 <br>
+<input type="checkbox" name="filtrarnaolocalizou" value='true'>
+<label for="checkbox_Filtrar_nao_localizou">FILTRAR SOMENTE OS QUE NÃO LOCALIZOU</label>
+<input type="checkbox" name="verarray" value='true'>
+<label for="checkbox_verarray">MOSTRAR TABELA - ARRAY</label>
+<br>
+
+
 <input type="checkbox" name="Conciliar_Data_Descricao_Valor" value='true'>
 <label for="checkbox_enviar">Conciliar por Data, Descrição e Valor</label>
 <br>
