@@ -59,7 +59,7 @@
                             <th>
 
                                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                    <a class="btn btn-primary" href="/Tradeidea">Investimentoss</a>
+                                    <a class="btn btn-primary" href="/Tradeidea">Investimentos</a>
                                 </nav>
 
                             </th>
