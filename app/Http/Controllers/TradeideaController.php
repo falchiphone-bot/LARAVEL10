@@ -257,7 +257,7 @@ foreach ($novadata as $item) {
            $Dados1[] = $novoItem;
     }
 
- 
+
 
 }
 
@@ -266,6 +266,20 @@ foreach ($novadata as $item) {
         $model = $Dados1;
         return view('Tradeidea.index',  compact('model'));
     }
+
+      public function salvarTradeidea(Request $request)
+    {
+        $modeloCompleto = json_decode($request->input('modelo_completo'), true);
+
+
+        dd($modeloCompleto);
+        // Agora você pode acessar as propriedades da model como $modeloCompleto['Cliente'], $modeloCompleto['Assessor'], etc.
+
+        // Faça a lógica de salvar no banco de dados aqui
+
+        // Redirecione de volta para a página ou faça qualquer ação necessária
+    }
+
 
 
 

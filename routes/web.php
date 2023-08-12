@@ -251,6 +251,7 @@ Route::resource('LancamentosDocumentos', App\Http\Controllers\LancamentosDocumen
 
 
     #TRADEIDEA
+    Route::post('/salvarTradeidea', [App\Http\Controllers\TradeideaController::class,'salvarTradeidea'])->name('salvar.tradeidea');
     Route::post('Tradeidea/ImportaArquivoExcelTradeIdea', [App\Http\Controllers\TradeideaController::class,
                 'ImportaArquivoExcelTradeIdea'])->name('Tradeidea.ImportaArquivoExcelTradeIdea');
     Route::get('Tradeidea/Importaexceltradeidea', function () { return view('Tradeidea.importarexceltradeidea');})->name('Tradeidea.importarexceltradeidea');
