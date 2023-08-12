@@ -249,6 +249,14 @@ Route::resource('LancamentosDocumentos', App\Http\Controllers\LancamentosDocumen
     Route::resource('LeituraArquivo', App\Http\Controllers\LeituraArquivoController::class);
 
 
+
+    #TRADEIDEA
+    Route::post('Tradeidea/ImportaArquivoExcelTradeIdea', [App\Http\Controllers\TradeideaController::class,
+                'ImportaArquivoExcelTradeIdea'])->name('Tradeidea.ImportaArquivoExcelTradeIdea');
+    Route::get('Tradeidea/Importaexceltradeidea', function () { return view('Tradeidea.importarexceltradeidea');})->name('Tradeidea.importarexceltradeidea');
+    Route::resource('Tradeidea', App\Http\Controllers\TradeideaController::class);
+
+
     #EXTRATO CONECTCAR
     Route::post('ConectCar/ExtratoConectCar', [App\Http\Controllers\ExtratoConectCarController::class, 'ExtratoConectar'])->name('ConectCar.ExtratoConectCar');
 
