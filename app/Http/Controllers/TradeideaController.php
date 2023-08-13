@@ -281,6 +281,37 @@ foreach ($novadata as $item) {
 
         foreach ($modeloCompleto as $model) {
             $model['user_created'] = Auth::user()->email;
+
+            $id = $model['id']??null;
+            $cliente = $model['cliente'];
+            $entrada = $model['entrada'];
+            $quantidade = $model['quantidade'];
+            $preco_entrada = $model['preco_entrada'];
+            $Id_Tradeidea = $model['Id_Tradeidea'];
+            $assessor = $model['assessor'];
+            $valor_aportado = $model['valor_aportado'];
+
+
+            $Existir =Tradeidea::
+              where('cliente',$cliente)
+            ->where('entrada',$entrada)
+            ->where('preco_entrada',$preco_entrada)
+            ->where('quantidade',$quantidade)
+            ->where('assessor',$assessor)
+            ->where('valor_aportado',$valor_aportado)
+            ->where('Id_Tradeidea',$Id_Tradeidea)
+            ->first();
+
+            if($Existir){
+                $tradeidea = Tradeidea::findOrFail($id);
+                $tradeidea->update($model);
+                    // Tradeidea::where('Id_Tradeidea', $id)->update($modeloCompleto);
+                session(['error' => "Registro não incluído, pois já existe! NADA INCLUÍDO, porém alterado! "]);
+                return redirect(route('Tradeidea.index'));
+            }
+
+            dd($Existir, $model );
+
             Tradeidea::create($model);
          }
 
