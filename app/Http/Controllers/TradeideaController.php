@@ -307,16 +307,20 @@ foreach ($novadata as $item) {
                 $tradeidea->update($model);
                     // Tradeidea::where('Id_Tradeidea', $id)->update($modeloCompleto);
                 session(['error' => "Registro não incluído, pois já existe! NADA INCLUÍDO, porém alterado! "]);
-                return redirect(route('Tradeidea.index'));
+                // return redirect(route('Tradeidea.index'));
+            }
+            else
+            {
+                 Tradeidea::create($model);
+                 session(['success' => "REGISTROS INCLUÍDOS!"]);
             }
 
+
+
+         }
             dd($Existir, $model );
 
-            Tradeidea::create($model);
-         }
 
-
-        session(['success' => "REGISTROS INCLUÍDOS COM SUCESSO!"]);
 
         return redirect(route('Tradeidea.index'));
     }
