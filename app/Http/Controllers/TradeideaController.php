@@ -15,7 +15,7 @@ use PhpParser\Node\Stmt\Continue_;
 use Ramsey\Uuid\Type\Decimal;
 use Illuminate\Support\Facades\File;
 use Dompdf\Dompdf;
-
+use Illuminate\Support\Facades\Auth;
 
 
 class TradeideaController  extends Controller
@@ -239,20 +239,20 @@ foreach ($novadata as $item) {
 
     if ($Cliente !== null) {
             $novoItem = array(
-                "Cliente" => $Cliente,
-                "Assessor" => $Assessor,
+                "cliente" => $Cliente,
+                "assessor" => $Assessor,
                 "Id_Tradeidea" => $Id_tradeidea,
-                "Tradeidea" => $Tradeidea,
-                "Analista" => $Analista,
-                "Valor_aportado" => $Valor_aportado,
-                "Valor_liquidado" => $Valor_liquidado,
-                "Lucro_prejuizo" => $Lucro_prejuizo,
-                "Quantidade" => $Quantidade,
-                "Preco_entrada" => $Preco_entrada,
-                "Entrada" => $Entrada,
-                "Preco_encerramento" => $Preco_encerramento,
-                "Encerramento" => $Encerramento,
-                "Motivo" => $Motivo,
+                "tradeidea" => $Tradeidea,
+                "analista" => $Analista,
+                "valor_aportado" => $Valor_aportado,
+                "valor_liquidado" => $Valor_liquidado,
+                "lucro_prejuizo" => $Lucro_prejuizo,
+                "quantidade" => $Quantidade,
+                "preco_entrada" => $Preco_entrada,
+                "entrada" => $Entrada,
+                "preco_encerramento" => $Preco_encerramento,
+                "encerramento" => $Encerramento,
+                "motivo" => $Motivo,
             );
            $Dados1[] = $novoItem;
     }
@@ -272,12 +272,22 @@ foreach ($novadata as $item) {
         $modeloCompleto = json_decode($request->input('modelo_completo'), true);
 
 
-        dd($modeloCompleto);
+        // dd($modeloCompleto);
         // Agora você pode acessar as propriedades da model como $modeloCompleto['Cliente'], $modeloCompleto['Assessor'], etc.
 
         // Faça a lógica de salvar no banco de dados aqui
 
         // Redirecione de volta para a página ou faça qualquer ação necessária
+
+        foreach ($modeloCompleto as $model) {
+            $model['user_created'] = Auth::user()->email;
+            Tradeidea::create($model);
+         }
+
+
+        session(['success' => "REGISTROS INCLUÍDOS COM SUCESSO!"]);
+
+        return redirect(route('Tradeidea.index'));
     }
 
 

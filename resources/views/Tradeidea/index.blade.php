@@ -60,33 +60,33 @@
             <tbody>
                 @foreach ($model as $Model)
                 <tr>
-                    <td class="text-end">{{ $Model['Cliente'] }}</td>
-                    <td class="text-end">{{ $Model['Assessor'] }}</td>
+                    <td class="text-end">{{ $Model['cliente'] }}</td>
+                    <td class="text-end">{{ $Model['assessor'] }}</td>
                     <td class="text-end">{{ $Model['Id_Tradeidea'] }}</td>
-                    <td class="text-end">{{ $Model['Tradeidea'] }}</td>
-                    <td class="text-end">{{ $Model['Analista'] }}</td>
+                    <td class="text-end">{{ $Model['tradeidea'] }}</td>
+                    <td class="text-end">{{ $Model['analista'] }}</td>
 
 
 
-                    <td class="text-end">{{ number_format($Model['Valor_aportado'], 2, ',', '.') }}</td>
+                    <td class="text-end">{{ number_format($Model['valor_aportado'], 2, ',', '.') }}</td>
 
 
-                    <td class="text-end">{{ number_format($Model['Valor_liquidado'], 2, ',', '.') }}</td>
+                    <td class="text-end">{{ number_format($Model['valor_liquidado'], 2, ',', '.') }}</td>
 
 
-                    <td  class="text-end">{{ number_format($Model['Lucro_prejuizo'], 2, ',', '.') }}</td>
+                    <td  class="text-end">{{ number_format($Model['lucro_prejuizo'], 2, ',', '.') }}</td>
 
-                    <td  class="text-end">{{ $Model['Quantidade'] }}</td>
+                    <td  class="text-end">{{ $Model['quantidade'] }}</td>
 
-                    <td  class="text-end">{{ number_format($Model['Preco_entrada'], 2, ',', '.') }}</td>
+                    <td  class="text-end">{{ number_format($Model['preco_entrada'], 2, ',', '.') }}</td>
 
-                    <td class="">{{ $Model['Entrada'] }}</td>
+                    <td class="">{{ $Model['entrada'] }}</td>
 
 
-                    <td class="text-end">{{ number_format($Model['Preco_encerramento'], 2, ',', '.') }}</td>
+                    <td class="text-end">{{ number_format($Model['preco_encerramento'], 2, ',', '.') }}</td>
 
-                    <td class="text-end">{{ $Model['Encerramento'] }}</td>
-                    <td class="text-end">{{ $Model['Motivo'] }}</td>
+                    <td class="text-end">{{ $Model['encerramento'] }}</td>
+                    <td class="text-end">{{ $Model['motivo'] }}</td>
                     <td>
                         {{-- Add your action buttons here --}}
                     </td>
