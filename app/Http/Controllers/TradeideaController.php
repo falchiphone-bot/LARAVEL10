@@ -318,11 +318,11 @@ foreach ($novadata as $item) {
 
 
          }
-            dd($Existir, $model );
+            // dd($Existir, $model );
 
 
 
-        return redirect(route('Tradeidea.index'));
+            return view('Tradeidea.index',compact('model'));
     }
 
 
