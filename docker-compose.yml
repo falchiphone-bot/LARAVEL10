@@ -3,6 +3,8 @@ version: '3.6'
 services:
    app:
     container_name: laravel10
+    image: laravel10
+    restart: always
     build: .
     ports:
       - 82:80
