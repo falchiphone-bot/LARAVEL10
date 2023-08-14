@@ -37,7 +37,8 @@
 
         </div>
 
-        <table class="table" style="background-color: rgb(185, 215, 240);">
+        <table class="table" style="background-color: rgb(144, 238, 144);">
+
             <thead>
                 <tr>
                     <th scope="col" class="px-6 py-4">CLIENTE</th>
@@ -93,7 +94,7 @@
                 </tr>
                 @endforeach
 
-                <!-- <tr>
+                <tr>
                     <td>
                         <form action="{{ route('salvar.tradeidea') }}" method="POST">
                             @csrf
@@ -101,7 +102,7 @@
                             <button type="submit" class="btn btn-primary">Salvar</button>
                         </form>
                     </td>
-                 </tr> -->
+                 </tr>
 
 
             </tbody>

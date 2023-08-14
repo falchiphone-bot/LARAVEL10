@@ -264,10 +264,10 @@ foreach ($novadata as $item) {
 
 
         $model = $Dados1;
-        return view('Tradeidea.index',  compact('model'));
+        return view('Tradeidea.mostraexceltradeidea',  compact('model'));
     }
 
-      public function salvarTradeidea(Request $request)
+    public function salvarTradeidea(Request $request)
     {
         $modeloCompleto = json_decode($request->input('modelo_completo'), true);
 
@@ -302,27 +302,27 @@ foreach ($novadata as $item) {
             ->where('Id_Tradeidea',$Id_Tradeidea)
             ->first();
 
-            if($Existir){
-                $tradeidea = Tradeidea::findOrFail($id);
-                $tradeidea->update($model);
-                    // Tradeidea::where('Id_Tradeidea', $id)->update($modeloCompleto);
-                session(['error' => "Registro não incluído, pois já existe! NADA INCLUÍDO, porém alterado! "]);
-                // return redirect(route('Tradeidea.index'));
-            }
-            else
-            {
-                 Tradeidea::create($model);
-                 session(['success' => "REGISTROS INCLUÍDOS!"]);
-            }
+             
+                // dd($model );
+            //  return redirect(route('Tradeidea.index'));
 
+                if ($Existir) {
+                    // $tradeidea = Tradeidea::findOrFail($id);
+                    // $tradeidea->update($model);
+                    // // Tradeidea::where('Id_Tradeidea', $id)->update($modeloCompleto);
+                    //  session(['error' => "Registro não incluído, pois já existe! NADA INCLUÍDO, porém alterado! "]);
+               
+                    //   continue;
+                 
+                } else {
+                    Tradeidea::create($model);
+                    session(['success' => "REGISTROS INCLUÍDOS!"]);
+                }
+           }
 
+            // return view('Tradeidea.index',compact('model'));
 
-         }
-            // dd($Existir, $model );
-
-
-
-            return view('Tradeidea.index',compact('model'));
+            return redirect(route('Tradeidea.index'));
     }
 
 

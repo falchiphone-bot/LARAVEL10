@@ -255,6 +255,7 @@ Route::resource('LancamentosDocumentos', App\Http\Controllers\LancamentosDocumen
     Route::post('Tradeidea/ImportaArquivoExcelTradeIdea', [App\Http\Controllers\TradeideaController::class,
                 'ImportaArquivoExcelTradeIdea'])->name('Tradeidea.ImportaArquivoExcelTradeIdea');
     Route::get('Tradeidea/Importaexceltradeidea', function () { return view('Tradeidea.importarexceltradeidea');})->name('Tradeidea.importarexceltradeidea');
+    Route::get('Tradeidea/Mostraexceltradeidea', function () { return view('Tradeidea.mostraexceltradeidea');})->name('Tradeidea.mostraexceltradeidea');
     Route::resource('Tradeidea', App\Http\Controllers\TradeideaController::class);
 
 
