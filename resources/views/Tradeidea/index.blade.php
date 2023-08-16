@@ -47,7 +47,8 @@
                     <th scope="col" class="px-6 py-4">ANALISTA</th>
                     <th scope="col" class="px-6 py-4">VALOR APORTADO</th>
                     <th scope="col" class="px-6 py-4">VALOR LIQUIDADO</th>
-                    <th scope="col" class="px-6 py-4">LUCRO/PREJUIZO</th>
+                       <th scope="col" class="px-6 py-4">LUCRO/PREJUIZO - VALOR</th> .               
+                    <th scope="col" class="px-6 py-4">LUCRO/PREJUIZO %</th>
                     <th scope="col" class="px-6 py-4">QUANTIDADE</th>
                     <th scope="col" class="px-6 py-4">PRECO ENTRADA</th>
                     <th scope="col" class="px-6 py-4">ENTRADA</th>
@@ -73,6 +74,8 @@
 
                     <td class="text-end">{{ number_format($Model['valor_liquidado'], 2, ',', '.') }}</td>
 
+
+                     <td  class="text-end">{{ number_format($Model['valor_liquidado'] - $Model['valor_aportado'], 2, ',', '.') }}</td>
 
                     <td  class="text-end">{{ number_format($Model['lucro_prejuizo'], 2, ',', '.') }}</td>
 
@@ -100,9 +103,10 @@
                 <td class="text-end">TOTAL</td>
 
 
- 
-                <td class="text-end">{{ number_format($totalValorAportado, 2, ',', '.') }}</td>
+
+                <td class="text-end">{{ number_format( $totalValorAportado , 2, ',', '.') }}</td>
                 <td class="text-end">{{ number_format( $totalValorliquidado, 2, ',', '.') }}</td>
+                 <td  class="text-end">{{ number_format($totalvalorLucroprejuizo, 2, ',', '.') }}</td>
                 <td class="text-end">{{ number_format($totalLucroprejuizo, 2, ',', '.') }}</td>
 
 

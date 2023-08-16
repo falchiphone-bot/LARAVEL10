@@ -40,9 +40,12 @@ class TradeideaController  extends Controller
        $totalValorAportado = $model->sum('valor_aportado');
        $totalValorliquidado = $model->sum('valor_liquidado');
        $totalLucroprejuizo = $model->sum('lucro_prejuizo');
+       
+       $totalvalorLucroprejuizo = $totalValorliquidado - $totalValorAportado;
 
-
-        return view('Tradeidea.index',compact('model','totalValorAportado', 'totalValorliquidado', 'totalLucroprejuizo'));
+        return view('Tradeidea.index',
+        compact('model','totalValorAportado',
+         'totalValorliquidado', 'totalLucroprejuizo', 'totalvalorLucroprejuizo'));
     }
 
 
@@ -297,7 +300,9 @@ class TradeideaController  extends Controller
 
         foreach ($modeloCompleto as $model) {
             $model['user_created'] = Auth::user()->email;
+            $model['user_created_id'] = Auth::user()->id;
 
+           
             $id = $model['id']??null;
             $cliente = $model['cliente'];
             $entrada = $model['entrada'];

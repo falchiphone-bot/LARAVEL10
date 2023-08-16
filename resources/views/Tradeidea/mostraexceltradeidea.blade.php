@@ -48,7 +48,7 @@
                     <th scope="col" class="px-6 py-4">ANALISTA</th>
                     <th scope="col" class="px-6 py-4">VALOR APORTADO</th>
                     <th scope="col" class="px-6 py-4">VALOR LIQUIDADO</th>
-                    <th scope="col" class="px-6 py-4">LUCRO/PREJUIZO</th>
+                    <th scope="col" class="px-6 py-4">LUCRO/PREJUIZO %</th>
                     <th scope="col" class="px-6 py-4">QUANTIDADE</th>
                     <th scope="col" class="px-6 py-4">PRECO ENTRADA</th>
                     <th scope="col" class="px-6 py-4">ENTRADA</th>

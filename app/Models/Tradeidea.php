@@ -27,6 +27,7 @@ class Tradeidea extends Model
 
       'motivo',
       'user_created',
+      'user_created_id',
       'user_updated'
     ];
 
