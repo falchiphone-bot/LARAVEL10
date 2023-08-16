@@ -34,8 +34,15 @@ class TradeideaController  extends Controller
     {
        $model = Tradeidea::OrderBy('created_at')->get();
 
+     
 
-        return view('Tradeidea.index',compact('model'));
+
+       $totalValorAportado = $model->sum('valor_aportado');
+       $totalValorliquidado = $model->sum('valor_liquidado');
+       $totalLucroprejuizo = $model->sum('lucro_prejuizo');
+
+
+        return view('Tradeidea.index',compact('model','totalValorAportado', 'totalValorliquidado', 'totalLucroprejuizo'));
     }
 
 
@@ -219,52 +226,61 @@ class TradeideaController  extends Controller
 
         $Dados1 = array();
 
-foreach ($novadata as $item) {
-    $Cliente = $item[1];
-    $Assessor = $item[2];
-    $Id_tradeidea = $item[3];
-    $Tradeidea = $item[4];
-    $Analista = $item[5];
-    $Valor_aportado = $item[6];
-    $Valor_liquidado = $item[7];
-    $Lucro_prejuizo = $item[8];
-    $Quantidade = $item[9];
-    $Preco_entrada = $item[10];
-    $Entrada = $item[11];
-    $Preco_encerramento = $item[12];
-    $Encerramento = $item[13];
-     $Motivo = $item[14];
+            foreach ($novadata as $item) {
+                $Cliente = $item[1];
+                $Assessor = $item[2];
+                $Id_tradeidea = $item[3];
+                $Tradeidea = $item[4];
+                $Analista = $item[5];
+                $Valor_aportado = $item[6];
+                $Valor_liquidado = $item[7];
+                $Lucro_prejuizo = $item[8];
+                $Quantidade = $item[9];
+                $Preco_entrada = $item[10];
+                $Entrada = $item[11];
+                $Preco_encerramento = $item[12];
+                $Encerramento = $item[13];
+                $Motivo = $item[14];
 
-    // Crie um novo array associativo com os valores de Cliente e Assessor
+                // Crie um novo array associativo com os valores de Cliente e Assessor
 
-    if ($Cliente !== null) {
-            $novoItem = array(
-                "cliente" => $Cliente,
-                "assessor" => $Assessor,
-                "Id_Tradeidea" => $Id_tradeidea,
-                "tradeidea" => $Tradeidea,
-                "analista" => $Analista,
-                "valor_aportado" => $Valor_aportado,
-                "valor_liquidado" => $Valor_liquidado,
-                "lucro_prejuizo" => $Lucro_prejuizo,
-                "quantidade" => $Quantidade,
-                "preco_entrada" => $Preco_entrada,
-                "entrada" => $Entrada,
-                "preco_encerramento" => $Preco_encerramento,
-                "encerramento" => $Encerramento,
-                "motivo" => $Motivo,
-            );
-           $Dados1[] = $novoItem;
-    }
-
-
-
-}
+                if ($Cliente !== null) {
+                        $novoItem = array(
+                            "cliente" => $Cliente,
+                            "assessor" => $Assessor,
+                            "Id_Tradeidea" => $Id_tradeidea,
+                            "tradeidea" => $Tradeidea,
+                            "analista" => $Analista,
+                            "valor_aportado" => $Valor_aportado,
+                            "valor_liquidado" => $Valor_liquidado,
+                            "lucro_prejuizo" => $Lucro_prejuizo,
+                            "quantidade" => $Quantidade,
+                            "preco_entrada" => $Preco_entrada,
+                            "entrada" => $Entrada,
+                            "preco_encerramento" => $Preco_encerramento,
+                            "encerramento" => $Encerramento,
+                            "motivo" => $Motivo,
+                        );
+                    $Dados1[] = $novoItem;
+                }
 
 
 
-        $model = $Dados1;
-        return view('Tradeidea.mostraexceltradeidea',  compact('model'));
+            }
+
+     $model = $Dados1;
+
+      
+            $totalValorAportado = collect($model)->sum('valor_aportado');
+
+            $totalValorliquidado = collect($model)->sum('valor_liquidado');
+            $totalLucroprejuizo = collect($model)->sum('lucro_prejuizo');
+
+    
+
+
+       
+        return view('Tradeidea.mostraexceltradeidea', compact('model','totalValorAportado', 'totalValorliquidado', 'totalLucroprejuizo'));
     }
 
     public function salvarTradeidea(Request $request)

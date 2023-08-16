@@ -32,7 +32,8 @@ Route::get('/dashboard', function () {
 //Para autenticar no sistema sem usuario ou com usuário do google
 Route::get('auth/google/', [GoogleController::class, 'redirectToGoogle']);
 Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
-
+ 
+Route::get('auth/register', [App\Http\Controllers\RegisteredUserController::class, 'create'])->name('auth.register');
 Route::middleware('auth')->group(function () {
 
 

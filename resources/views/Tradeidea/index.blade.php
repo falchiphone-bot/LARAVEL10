@@ -93,6 +93,19 @@
                 </tr>
                 @endforeach
 
+                <td class="text-end"></td>
+                <td class="text-end"></td>
+                <td class="text-end"></td>
+                <td class="text-end"></td>
+                <td class="text-end">TOTAL</td>
+
+
+ 
+                <td class="text-end">{{ number_format($totalValorAportado, 2, ',', '.') }}</td>
+                <td class="text-end">{{ number_format( $totalValorliquidado, 2, ',', '.') }}</td>
+                <td class="text-end">{{ number_format($totalLucroprejuizo, 2, ',', '.') }}</td>
+
+
                 <!-- <tr>
                     <td>
                         <form action="{{ route('salvar.tradeidea') }}" method="POST">
