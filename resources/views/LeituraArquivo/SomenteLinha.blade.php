@@ -89,6 +89,9 @@
                                     <br>
                                 @endcan
 
+                                <input type="checkbox" name="bloquearconta" value='true'>
+                                <label for="checkbox_verarray">Bloquear conta</label>
+                                <br>
 
                                 <p class="my-2">
                                     <button type="submit" class="btn btn-danger">Enviar o arquivo extrato PJ para a pasta

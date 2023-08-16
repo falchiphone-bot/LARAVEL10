@@ -496,11 +496,15 @@ class LeituraArquivoController extends Controller
 
     public function SelecionaDatasExtratoSicrediPJ(Request $request)
     {
+       
+     
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         $DESCONSIDERAR_BLOQUEIOS_EMPRESA = $request->DESCONSIDERAR_BLOQUEIOS_EMPRESAS;
         $DESCONSIDERAR_BLOQUEIOS_CONTAS = $request->DESCONSIDERAR_BLOQUEIOS_CONTAS;
         $Conciliar_Data_Descricao_Valor = $request->Conciliar_Data_Descricao_Valor;
-
+        $BloquearConta = $request->bloquearconta;
+        $BloquearContaBD = null;
+       
         $vercriarlancamentocomhistorico = $request->vercriarlancamentocomhistorico;
 
         /////// aqui fica na pasta temporário /temp/    - apaga
@@ -675,6 +679,22 @@ class LeituraArquivoController extends Controller
 
                 if ($DiferecaSaldo == 0) {
                     $TextoConciliado = 'CONCILIAÇÃO COM EXATIDÃO DE SALDOS.';
+
+                    if($BloquearConta)
+                    {
+ 
+                            $BloqueandoConta = Conta::where('EmpresaID',$Empresa)
+                            ->where('ID',$Conta)
+                            ->first();
+
+                            $BloqueandoConta->Bloqueiodataanterior = date('Y-m-d', strtotime('-1 day'));
+                            $BloqueandoConta->save();
+
+                            // dd($BloqueandoConta,$Empresa, $Conta, $BloqueandoConta->Bloqueiodataanterior );
+ 
+                    }
+            
+                    
                 } else {
                     $TextoConciliado = 'SALDOS NÃO CONFEREM! VERIFIQUE!';
                 }
@@ -903,6 +923,9 @@ class LeituraArquivoController extends Controller
                 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
                 $LancamentoAnterior = $lancamento->ID;
+
+                
+
                 // session(['Lancamento' => 'Nenhum lançamento criado!']);
             } else {
                 if ($Parcela) {
@@ -1094,6 +1117,8 @@ class LeituraArquivoController extends Controller
 
         // $rowData = $cellData;
         //    $rowData = $novadata;
+        
+
         return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
     }
 
