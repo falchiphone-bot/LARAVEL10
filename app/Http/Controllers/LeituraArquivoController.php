@@ -688,10 +688,13 @@ class LeituraArquivoController extends Controller
                             ->first();
 
                             $BloqueandoConta->Bloqueiodataanterior = date('Y-m-d', strtotime('-1 day'));
-                            $BloqueandoConta->save();
+                            $bloqueioData = $BloqueandoConta->Bloqueiodataanterior->format('d/m/Y');
 
+                            $BloqueandoConta->save();
+                            session(['DataBloqueio' => 'Bloqueado com a data de ' . $bloqueioData ]) ;
+                      
                             // dd($BloqueandoConta,$Empresa, $Conta, $BloqueandoConta->Bloqueiodataanterior );
- 
+                        // dd(session('DataBloqueio'));
                     }
             
                     

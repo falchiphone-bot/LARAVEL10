@@ -28,6 +28,12 @@
                     </div>
                     {{session(['Lancamento' => null]) }}
                 @endif
+                @if (session('DataBloqueio'))
+                    <div class="alert alert-success">
+                        {{ session('DataBloqueio') }}
+                    </div>
+                    {{ session(['DataBloqueio' => null]) }}
+                @endif
 
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                     <a class="btn btn-warning" href="/Contabilidade">Retornar a lista de opções</a>

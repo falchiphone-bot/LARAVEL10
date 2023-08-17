@@ -10,6 +10,12 @@
                     </div>
                     {{ session(['Lancamento' => null]) }}
                 @endif
+                @if (session('DataBloqueio'))
+                    <div class="alert alert-success">
+                        {{ session('DataBloqueio') }}
+                    </div>
+                    {{ session(['DataBloqueio' => null]) }}
+                @endif
                 <div class="badge bg-primary text-wrap" style="width: 100%;
                 ;font-size: 24px; lign=˜Center˜">
                     SELECIONAR SOMENTE LINHA DETERMINADA NO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
