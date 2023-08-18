@@ -677,6 +677,7 @@ class LeituraArquivoController extends Controller
 
                 $DiferecaSaldo = number_format($Saldo - $SaldoAtual);
 
+                session(['LancamentoConciliado' => null]) ;
                 if ($DiferecaSaldo == 0) {
                     $TextoConciliado = 'CONCILIAÇÃO COM EXATIDÃO DE SALDOS.';
 
@@ -692,6 +693,8 @@ class LeituraArquivoController extends Controller
 
                             $BloqueandoConta->save();
                             session(['DataBloqueio' => 'Bloqueado com a data de ' . $bloqueioData ]) ;
+                            session(['LancamentoConciliado' => 'Bloqueado com a data de ' . $bloqueioData ]) ;
+                            
                       
                             // dd($BloqueandoConta,$Empresa, $Conta, $BloqueandoConta->Bloqueiodataanterior );
                         // dd(session('DataBloqueio'));

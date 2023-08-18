@@ -22,12 +22,24 @@
                     </div>
                     {{session(['error' => null]) }}
                 @endif
-                @if (session('Lancamento'))
-                    <div class="alert alert-danger">
-                        {{ session('Lancamento') }}
-                    </div>
-                    {{session(['Lancamento' => null]) }}
+
+                @if (session('LancamentoConciliado'))
+                    @if (session('Lancamento'))
+                        <div class="alert alert-success">
+                            {{ session('Lancamento') }}
+                        </div>
+                        {{session(['Lancamento' => null]) }}
+                    @endif
                 @endif
+                @if (session('LancamentoConciliado') == null)
+                    @if (session('Lancamento'))
+                        <div class="alert alert-danger">
+                            {{ session('Lancamento') }}
+                        </div>
+                        {{session(['Lancamento' => null]) }}
+                    @endif
+                @endif
+
                 @if (session('DataBloqueio'))
                     <div class="alert alert-success">
                         {{ session('DataBloqueio') }}
