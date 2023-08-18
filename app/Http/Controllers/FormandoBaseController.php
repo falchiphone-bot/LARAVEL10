@@ -15,7 +15,9 @@ use App\Http\Requests\FormandoBaseCreateRequest as RequestsFormandoBaseCreateReq
 use App\Http\Requests\PosicaoFormandoBaseCreateRequest;
 use App\Http\Requests\RecebimentoFormandoBaseCreateRequest;
 use App\Http\Requests\RedeSocialFormandoBaseCreateRequest;
+use App\Http\Requests\AvaliacaoFormandoBaseCreateRequest;
 use App\Models\FormandoBaseArquivo;
+use App\Models\FormandoBaseAvaliacao;
 use App\Models\FormandoBasePosicoes;
 use App\Models\LancamentoDocumento;
 use App\Models\Posicoes;
@@ -214,6 +216,9 @@ class FormandoBaseController extends Controller
             ->orderBy('id')
             ->get();
 
+            $FormandoBaseAvaliacao = FormandoBaseAvaliacao::where('FormandoBase_id', $id)
+            ->orderBy('id')
+            ->get();
 
 
          $redeSocialExiste = null;
@@ -221,14 +226,20 @@ class FormandoBaseController extends Controller
             $redeSocialExiste = $usuario->RedeSocial;
 
         }
+
         $posicaoExiste = null;
         foreach ($FormandoBasePosicao as $posicao) {
            $posicaoExiste = $posicao->posicao_id;
-
        }
 
-       $recebimentoExiste = null;
+       $avaliacaoExiste = null;
+       if($FormandoBaseAvaliacao)
+       {
+        $avaliacaoExiste = true;
+       }
+         
 
+       $recebimentoExiste = null;
        $FormandoBaseRecebimento = RecebimentoFormandoBase::where('FormandoBase_id', $id)
             ->orderBy('id')
             ->get();
@@ -259,8 +270,9 @@ class FormandoBaseController extends Controller
         $representantes = Representantes::where('EmpresaID',$model->EmpresaID)->orderBy('nome')->get();
 
         return view('FormandoBase.edit', compact('model', 'RedeSocial', 'retorno', 'redesocialUsuario',
-        'representantes', 'tiporep', 'Empresas','redeSocialExiste','Posicao','FormandoBasePosicao',
-        'posicaoExiste','FormandoBaseRecebimento','recebimentoExiste', 'documento','arquivoExiste','FormandoBaseArquivo','TotalRecebido'));
+        'representantes', 'tiporep', 'Empresas','redeSocialExiste','Posicao','FormandoBasePosicao', 'FormandoBaseAvaliacao',
+        'posicaoExiste', 'avaliacaoExiste','FormandoBaseRecebimento',
+        'recebimentoExiste', 'documento','arquivoExiste','FormandoBaseArquivo','TotalRecebido'));
     }
 
     /**
@@ -451,5 +463,35 @@ class FormandoBaseController extends Controller
         return redirect(route('FormandoBase.edit', $id));
 
     }
+
+    public function CreateAvaliacaoFormandoBase(AvaliacaoFormandoBaseCreateRequest $request)
+    {
+
+        $id = $request->formandobase_id;
+
+        // $existe = FormandoBaseAvaliacao::where('formandobase_id',$request->formandobase_id)
+        // ->where('posicao_id',$request->posicao_id)
+        // ->First();
+        // if($existe){
+
+        //     session(['error' => "Posição:  " . $existe->MostraPosicao->nome  .",  já existe para este registro!"]);
+        //     return redirect(route('FormandoBase.edit', $id));
+        // }
+
+        $request['user_created'] = Auth ::user()->email;
+
+        $model = $request->all();
+
+
+
+
+
+        FormandoBaseAvaliacao::create($model);
+
+        return redirect(route('FormandoBase.edit', $id));
+
+    }
+
+
 
 }
