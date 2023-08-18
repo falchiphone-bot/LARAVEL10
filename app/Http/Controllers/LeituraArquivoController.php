@@ -688,11 +688,26 @@ class LeituraArquivoController extends Controller
                             ->where('ID',$Conta)
                             ->first();
 
+                            $JaBloqueandoConta = $BloqueandoConta->Bloqueiodataanterior->format('d/m/Y');
+
                             $BloqueandoConta->Bloqueiodataanterior = date('Y-m-d', strtotime('-1 day'));
                             $bloqueioData = $BloqueandoConta->Bloqueiodataanterior->format('d/m/Y');
 
                             $BloqueandoConta->save();
-                            session(['DataBloqueio' => 'Bloqueado com a data de ' . $bloqueioData ]) ;
+
+                            if($JaBloqueandoConta === $bloqueioData){
+                                session(['DataBloqueio' => 'Já bloqueado com a data de ' . $bloqueioData ]) ;
+                            }
+                            else
+                            {
+                                session(['DataBloqueio' => 'Bloqueado com a data de ' . $bloqueioData ]) ;
+                            }
+
+
+
+
+
+                            
                             session(['LancamentoConciliado' => 'Bloqueado com a data de ' . $bloqueioData ]) ;
                             
                       
