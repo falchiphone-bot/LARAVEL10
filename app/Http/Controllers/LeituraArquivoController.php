@@ -496,15 +496,15 @@ class LeituraArquivoController extends Controller
 
     public function SelecionaDatasExtratoSicrediPJ(Request $request)
     {
-       
-     
+
+
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         $DESCONSIDERAR_BLOQUEIOS_EMPRESA = $request->DESCONSIDERAR_BLOQUEIOS_EMPRESAS;
         $DESCONSIDERAR_BLOQUEIOS_CONTAS = $request->DESCONSIDERAR_BLOQUEIOS_CONTAS;
         $Conciliar_Data_Descricao_Valor = $request->Conciliar_Data_Descricao_Valor;
         $BloquearConta = $request->bloquearconta;
         $BloquearContaBD = null;
-       
+
         $vercriarlancamentocomhistorico = $request->vercriarlancamentocomhistorico;
 
         /////// aqui fica na pasta temporário /temp/    - apaga
@@ -683,7 +683,7 @@ class LeituraArquivoController extends Controller
 
                     if($BloquearConta)
                     {
- 
+
                             $BloqueandoConta = Conta::where('EmpresaID',$Empresa)
                             ->where('ID',$Conta)
                             ->first();
@@ -705,17 +705,17 @@ class LeituraArquivoController extends Controller
 
 
 
+// dd($BloqueandoConta);
 
 
-                            
                             session(['LancamentoConciliado' => 'Bloqueado com a data de ' . $bloqueioData ]) ;
-                            
-                      
+
+
                             // dd($BloqueandoConta,$Empresa, $Conta, $BloqueandoConta->Bloqueiodataanterior );
                         // dd(session('DataBloqueio'));
                     }
-            
-                    
+
+
                 } else {
                     $TextoConciliado = 'SALDOS NÃO CONFEREM! VERIFIQUE!';
                 }
@@ -945,7 +945,7 @@ class LeituraArquivoController extends Controller
 
                 $LancamentoAnterior = $lancamento->ID;
 
-                
+
 
                 // session(['Lancamento' => 'Nenhum lançamento criado!']);
             } else {
@@ -1138,7 +1138,7 @@ class LeituraArquivoController extends Controller
 
         // $rowData = $cellData;
         //    $rowData = $novadata;
-        
+
 
         return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
     }

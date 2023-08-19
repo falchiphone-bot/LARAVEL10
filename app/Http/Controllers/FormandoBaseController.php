@@ -237,7 +237,7 @@ class FormandoBaseController extends Controller
        {
         $avaliacaoExiste = true;
        }
-         
+
 
        $recebimentoExiste = null;
        $FormandoBaseRecebimento = RecebimentoFormandoBase::where('FormandoBase_id', $id)
@@ -341,6 +341,8 @@ class FormandoBaseController extends Controller
 
         $cadastro = FormandoBase::find($id);
         $request['nome'] = strtoupper($request['nome']);
+        // $cadastro->avaliacao = round($request->avaliacao, 2);  
+
         $cadastro->fill($request->all());
 
         $cadastro->save();

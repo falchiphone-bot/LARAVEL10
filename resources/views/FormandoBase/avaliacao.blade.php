@@ -11,10 +11,11 @@
             name="formandobase_id" type="text" id="formandobase_id" value="{{ $model->id ?? null }}">
 
             <div class="form-group">
-            <label for="avaliacao">Avaliação em número de 01 a 100. Quanto mais alto melhor.</label>
+            <label for="avaliacao">Avaliação em número de 01 a 10. Quanto mais alto melhor.</label>
             <input required class="form-control @error('avaliacao') is-invalid @else is-valid @enderror" name="avaliacao"
-                type="text" id="avaliacao" value="{{ $model->avaliacao ?? null }}">
-            @error('telefone')
+       type="number" step="0.01" id="avaliacao" min="1" max="10" value="{{ number_format($model->avaliacao ?? null, 2, '.', '') }}">
+
+            @error('avaliacao')
                 <div class="alert alert-danger">{{ $message }}</div>
             @enderror
         </div>
@@ -63,9 +64,7 @@
 
                 <td>{{ \Carbon\Carbon::parse($item->created_at)->format('d/m/Y H:i:s') }}</td>
 
-
-                <td>{{ $item->avaliacao ?? null }}</td>
-
+                <td> {{  $item->avaliacao }} </td>
 
                     @can('FORMANDOBASEAVALIACAO - EXCLUIR')
                         <td>

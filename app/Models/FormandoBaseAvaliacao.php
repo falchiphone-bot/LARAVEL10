@@ -11,7 +11,7 @@ class FormandoBaseAvaliacao extends Model
 
     protected $casts = [
         'formandobase_id' => 'int',
-        'avaliacao' => 'int',
+        'avaliacao' => 'float',
         'created_at' => 'string',
         'updated_at' => 'string',
         'user_created' => 'string',
