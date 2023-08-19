@@ -64,7 +64,7 @@
 
                 <td>{{ \Carbon\Carbon::parse($item->created_at)->format('d/m/Y H:i:s') }}</td>
 
-                <td> {{  $item->avaliacao }} </td>
+                <td> {{  number_format($item->avaliacao,2) }} </td>
 
                     @can('FORMANDOBASEAVALIACAO - EXCLUIR')
                         <td>
