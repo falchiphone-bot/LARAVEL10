@@ -29,10 +29,10 @@ class FormandoBaseAvaliacaoController  extends Controller
 
     public function index()
     {
-    //    $model= RedeSocial::OrderBy('nome')->get();
+       $model= FormandoBaseAvaliacao::OrderBy('created_at')->get();
 
 
-    //     return view('RedeSocial.index',compact('model'));
+        return view('FormandoBaseAvaliacao.index',compact('model'));
     }
 
     /**

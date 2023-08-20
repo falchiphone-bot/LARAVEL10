@@ -43,7 +43,7 @@ class PermissionController extends Controller
     public function store(PermissionCreateRequest $request)
     {
         $dados = $request->all();
-        //dd($dados);
+        // dd($dados);
 
         Permission::create($dados);
 

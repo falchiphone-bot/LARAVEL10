@@ -19,8 +19,8 @@ class FormandoBaseAvaliacao extends Model
     ];
 
 
-//     public function MostraPosicao(): HasOne
-//     {
-//         return $this->hasOne(Posicoes::class, 'id', 'posicao_id');
-//     }
+    public function MostraFormando(): HasOne
+    {
+        return $this->hasOne(FormandoBase::class, 'id', 'formandobase_id');
+    }
 }
