@@ -96,9 +96,9 @@
 
 
                                 <td class="">
-                                    {{ $Model->MostraFormando->nome }}
-                                </td>
-
+                                    <a href="{{ route('FormandoBaseAvaliacao.index', ['formandobase_id' => $Model->MostraFormando->id]) }}">
+                                     {{ $Model->MostraFormando->nome }}
+                                 </td>
 
 
                                 <!-- @can('FERIADOS- EDITAR')

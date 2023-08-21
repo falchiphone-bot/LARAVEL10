@@ -54,6 +54,11 @@ class FormandoBaseAvaliacaoController  extends Controller
         }
     }
 
+    if ($request->has('formandobase_id')) {
+        $formandobaseId = $request->input('formandobase_id');
+        $model->where('formandobase_id', $formandobaseId);
+    }
+
     $model = $model->get();
 
 
