@@ -48,6 +48,10 @@
                         aria-disabled="true">Incluir formandos</a>
                 @endcan
 
+                @can('FORMANDOBASEAVALIACAO - LISTAR')
+                <a href="{{ route('FormandoBaseAvaliacao.index', ['sort' => 'datenew']) }}" class="btn btn-primary mt-2">Listagem de notas em geral</a>
+                @endcan
+
 
                 <hr>
                 <style>

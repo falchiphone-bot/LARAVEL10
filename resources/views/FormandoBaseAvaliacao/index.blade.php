@@ -22,7 +22,11 @@
                 @endif
 
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                    <a class="btn btn-warning" href="/dashboard">Retornar a lista de opções</a> </nav>
+                <nav>
+    <a class="btn btn-warning" href="{{ route('FormandoBase.index') }}">Cadastro de formandos/atletas</a>
+</nav>
+
+
 
 
                 <!-- @can('FERIADOS- INCLUIR')
