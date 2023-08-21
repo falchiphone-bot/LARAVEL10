@@ -27,9 +27,34 @@ class FormandoBaseAvaliacaoController  extends Controller
 
 
 
-    public function index()
+    public function index(Request $request)
     {
-       $model= FormandoBaseAvaliacao::OrderBy('created_at')->get();
+    //    $model= FormandoBaseAvaliacao::OrderBy('created_at')->get();
+
+
+    $model = FormandoBaseAvaliacao::query();
+
+    if ($request->has('sort')) {
+        $sortOption = $request->input('sort');
+
+        switch ($sortOption) {
+            case 'datenew':
+                $model->orderBy('created_at', 'desc');
+                break;
+            case 'date':
+                $model->orderBy('created_at', 'asc');
+                break;
+            case 'score':
+                $model->orderBy('avaliacao', 'desc');
+                break;
+            case 'name':
+                $model->join('FormandoBase', 'FormandoBase.id', '=', 'FormandoBaseAvaliacao.formandobase_id')
+                      ->orderBy('FormandoBase.nome', 'asc');
+                break;
+        }
+    }
+
+    $model = $model->get();
 
 
         return view('FormandoBaseAvaliacao.index',compact('model'));

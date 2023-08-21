@@ -40,6 +40,34 @@
 
             </div>
 
+
+           <div class="card bg-success text-white">
+            <form method="GET" action="{{ route('FormandoBaseAvaliacao.index') }}">
+            <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="sort" id="sort-by-new" value="datenew">
+        <label class="form-check-label" for="sort-by-new">Ordem de data decrescente - últimos inseridos</label>
+    </div>
+
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="sort" id="sort-by-date" value="date">
+        <label class="form-check-label" for="sort-by-date">Ordem de data crescente</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="sort" id="sort-by-score" value="score">
+        <label class="form-check-label" for="sort-by-score">Ordem de notas</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="sort" id="sort-by-name" value="name">
+        <label class="form-check-label" for="sort-by-name">Ordem de nome</label>
+    </div>
+    <button type="submit" class="btn btn-primary">Executar a escolha para visualizar relatório</button>
+</form>
+</div>
+
+
+
+
+
             <tbody>
                 <table class="table" style="background-color: rgb(247, 247, 213);">
                     <thead>
