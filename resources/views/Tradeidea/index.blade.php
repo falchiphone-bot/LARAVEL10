@@ -47,7 +47,7 @@
                     <th scope="col" class="px-6 py-4">ANALISTA</th>
                     <th scope="col" class="px-6 py-4">VALOR APORTADO</th>
                     <th scope="col" class="px-6 py-4">VALOR LIQUIDADO</th>
-                       <th scope="col" class="px-6 py-4">LUCRO/PREJUIZO - VALOR</th> .               
+                       <th scope="col" class="px-6 py-4">LUCRO/PREJUIZO - VALOR</th> .
                     <th scope="col" class="px-6 py-4">LUCRO/PREJUIZO %</th>
                     <th scope="col" class="px-6 py-4">QUANTIDADE</th>
                     <th scope="col" class="px-6 py-4">PRECO ENTRADA</th>
@@ -64,7 +64,7 @@
                     <td class="text-end">{{ $Model['cliente'] }}</td>
                     <td class="text-end">{{ $Model['assessor'] }}</td>
                     <td class="text-end">{{ $Model['Id_Tradeidea'] }}</td>
-                    <td class="text-end">{{ $Model['tradeidea'] }}</td>
+<td class="text-end">{{ $Model['tradeidea'] }}</td>
                     <td class="text-end">{{ $Model['analista'] }}</td>
 
 
@@ -124,7 +124,65 @@
             </tbody>
         </table>
 
-        <!-- Add your additional elements here -->
+
+
+        <table class="table" style="background-color: rgb(185, 215, 200);">
+            <thead>
+                <tr>
+                <th scope="col" class="px-6 py-4">TRADEIDEA</th>
+                <th scope="col" class="px-6 py-4">ANALISTA</th>
+                <th scope="col" class="px-6 py-4">VALOR APORTADO</th>
+                    <th scope="col" class="px-6 py-4">VALOR LIQUIDADO</th>
+                    <th scope="col" class="px-6 py-4"></th>
+                </tr>
+            </thead>
+            <tbody>
+            <div class="badge bg-primary text-wrap" style="width: 100%; font-size: 24px; text-align: center;">
+                RESULTADOS
+            </div>
+            <div class="badge bg-danger text-wrap" style="width: 100%; font-size: 24px; text-align: center;">
+                CARTEIRA SWING TRADE
+            </div>
+                @foreach ($model as $Model)
+                <tr>
+
+                <td class="text-start">{{ $Model['tradeidea'] }}</td>
+<td class="text-start">{{ $Model['analista'] }}</td>
+<td class="text-start">{{ number_format($Model['valor_aportado'], 2, ',', '.') }}</td>
+<td class="text-start">{{ number_format($Model['valor_liquidado'], 2, ',', '.') }}</td>
+
+
+                </tr>
+                @endforeach
+
+
+
+
+        <table>
+                <div class="badge bg-success text-wrap" style="width: 100%; font-size: 24px; text-align: center;">
+                     Resultado das operações
+               </div>
+               <table class="table" style="background-color: rgb(185, 215, 200);">
+
+                @foreach ($model as $Model)
+                <tr>
+                    <td class="text-end">{{ $Model['tradeidea'] }}</td>
+                    <td  class="text-end">{{ number_format($Model['valor_liquidado'] - $Model['valor_aportado'], 2, ',', '.') }}</td>
+                </tr>
+                @endforeach
+        </table>
+
+                <table class="table" style="background-color: rgb(185, 200, 200);">
+                 <thead>
+                <tr>
+                <p class="text-end">TOTAL APURADO ATÉ {{ now()->format('d/m/Y H:i:s') }}</p>
+
+                 <td  class="text-end">{{ number_format($totalvalorLucroprejuizo, 2, ',', '.') }}</td>
+
+
+                </table>
+            </tbody>
+
 
     </div>
 </div>
