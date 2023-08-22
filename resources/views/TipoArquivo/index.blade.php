@@ -39,9 +39,11 @@
                             {{ $model->count() ?? 0 }}</p>
                     </div>
                 </div>
-
-
-
+                @can('LANCAMENTOS DOCUMENTOS - LISTAR')
+                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                            <a class="btn btn-primary" href="/LancamentosDocumentos">Últimos 100 documentos enviados</a>
+                        </nav>
+                    @endcan
             </div>
 
             <tbody>

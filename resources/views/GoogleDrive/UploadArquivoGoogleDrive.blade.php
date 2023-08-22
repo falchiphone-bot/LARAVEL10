@@ -25,6 +25,11 @@
                             </nav>
                       </div>
 
+                      @can('LANCAMENTOS DOCUMENTOS - LISTAR')
+                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                            <a class="btn btn-primary" href="/LancamentosDocumentos">Últimos 100 documentos enviados</a>
+                        </nav>
+                    @endcan
                 </div>
                         <div class="card-body">
                             <div class="row">
