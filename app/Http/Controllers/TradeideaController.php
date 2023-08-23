@@ -30,17 +30,34 @@ class TradeideaController  extends Controller
         $this->middleware(['permission:TRADEIDEA - EXCLUIR'])->only('destroy');
     }
 
-    public function index()
+    public function index(Request $request)
     {
-       $model = Tradeidea::OrderBy('created_at')->get();
+    $model = Tradeidea::OrderBy('created_at')->get();
 
-     
+    if($request->input('start_date_entrada'))
+    {
+       $start_date = $request->input('start_date_entrada') ;
+       $end_date = $request->input('end_date_entrada') ;
+       $start_date = Carbon::createFromFormat('Y-m-d', $start_date)->format('d/m/Y');
+       $end_date = Carbon::createFromFormat('Y-m-d', $end_date)->format('d/m/Y');
+       $model = TradeIdea::whereBetween('entrada', [$start_date, $end_date])->get();
+
+    }
+    else if($request->input('start_date_encerramento'))
+    {
+       $start_date = $request->input('start_date_encerramento') ;
+       $end_date = $request->input('end_date_encerramento') ;
+       $start_date = Carbon::createFromFormat('Y-m-d', $start_date)->format('d/m/Y');
+       $end_date = Carbon::createFromFormat('Y-m-d', $end_date)->format('d/m/Y');
+       $model = TradeIdea::whereBetween('encerramento', [$start_date, $end_date])->get();
+
+    }
 
 
        $totalValorAportado = $model->sum('valor_aportado');
        $totalValorliquidado = $model->sum('valor_liquidado');
        $totalLucroprejuizo = $model->sum('lucro_prejuizo');
-       
+
        $totalvalorLucroprejuizo = $totalValorliquidado - $totalValorAportado;
 
         return view('Tradeidea.index',
@@ -273,16 +290,16 @@ class TradeideaController  extends Controller
 
      $model = $Dados1;
 
-      
+
             $totalValorAportado = collect($model)->sum('valor_aportado');
 
             $totalValorliquidado = collect($model)->sum('valor_liquidado');
             $totalLucroprejuizo = collect($model)->sum('lucro_prejuizo');
 
-    
 
 
-       
+
+
         return view('Tradeidea.mostraexceltradeidea', compact('model','totalValorAportado', 'totalValorliquidado', 'totalLucroprejuizo'));
     }
 
@@ -302,7 +319,7 @@ class TradeideaController  extends Controller
             $model['user_created'] = Auth::user()->email;
             $model['user_created_id'] = Auth::user()->id;
 
-           
+
             $id = $model['id']??null;
             $cliente = $model['cliente'];
             $entrada = $model['entrada'];
@@ -323,7 +340,7 @@ class TradeideaController  extends Controller
             ->where('Id_Tradeidea',$Id_Tradeidea)
             ->first();
 
-             
+
                 // dd($model );
             //  return redirect(route('Tradeidea.index'));
 
@@ -332,9 +349,9 @@ class TradeideaController  extends Controller
                     // $tradeidea->update($model);
                     // // Tradeidea::where('Id_Tradeidea', $id)->update($modeloCompleto);
                     //  session(['error' => "Registro não incluído, pois já existe! NADA INCLUÍDO, porém alterado! "]);
-               
+
                     //   continue;
-                 
+
                 } else {
                     Tradeidea::create($model);
                     session(['success' => "REGISTROS INCLUÍDOS!"]);

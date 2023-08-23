@@ -36,6 +36,28 @@
             @endcan --}}
 
         </div>
+        <nav class="navbar navbar-secondary" style="background-color: hsla(244, 92%, 27%, 0.096);">
+                        <form action="{{ route('Tradeidea.index') }}" method="get">
+                                <label for="start_date_entrada">Data inicial entrada:</label>
+                                <input required type="date" id="start_date_entrada" name="start_date_entrada">
+
+                                <label for="end_date_entrada">Data final entrada:</label>
+                                <input required type="date" id="end_date_entrada" name="end_date_entrada">
+
+                                <button type="submit" class="btn btn-primary">Pesquisar/selecionar por data de entrada</button>
+                        </form>
+         </nav>
+         <nav class="navbar navbar-secondary" style="background-color: hsla(244, 92%, 27%, 0.096);">
+                        <form action="{{ route('Tradeidea.index') }}" method="get">
+                                <label for="start_date_encerramento">Data inicial entrada:</label>
+                                <input required type="date" id="start_date_encerramento" name="start_date_encerramento">
+
+                                <label for="end_date_encerramento">Data final entrada:</label>
+                                <input required type="date" id="end_date_encerramento" name="end_date_encerramento">
+
+                                <button type="submit" class="btn btn-primary">Pesquisar/selecionar por data de encerramento</button>
+                        </form>
+         </nav>
 
         <table class="table" style="background-color: rgb(185, 215, 240);">
             <thead>
@@ -83,12 +105,17 @@
 
                     <td  class="text-end">{{ number_format($Model['preco_entrada'], 2, ',', '.') }}</td>
 
-                    <td class="">{{ $Model['entrada'] }}</td>
-
+                    <td class="">
+                        {{  $Model['entrada'] ?? '' }}
+                    </td>
 
                     <td class="text-end">{{ number_format($Model['preco_encerramento'], 2, ',', '.') }}</td>
 
-                    <td class="text-end">{{ $Model['encerramento'] }}</td>
+
+                    <td class="">
+                      {{  $Model['encerramento'] ?? '' }}
+                    </td>
+
                     <td class="text-end">{{ $Model['motivo'] }}</td>
                     <td>
                         {{-- Add your action buttons here --}}
