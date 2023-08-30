@@ -126,8 +126,8 @@ class LancamentosController extends Controller
                $query->where('ContaDebitoID', '=', $ContaGerar)
                      ->orWhere('ContaCreditoID', '=', $ContaGerar);
            })
-           ->where('DataContabilidade', '>', $DataInicial)
-           ->where('DataContabilidade', '<', $DataFinal)
+           ->where('DataContabilidade', '>=', $DataInicial)
+           ->where('DataContabilidade', '<=', $DataFinal)
            ->select('DataContabilidade', 'ContaDebitoID', 'ContaCreditoID', 'Valor', 'HistoricoID', 'Descricao')
            ->orderBy('DataContabilidade', 'ASC')
            ->get();
