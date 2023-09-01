@@ -61,6 +61,36 @@ class FormandoBaseController extends Controller
 
         return view('FormandoBase.index', compact('model','Empresas'));
     }
+
+    public function indexBusca(Request $request)
+    {
+        $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+        ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+        ->OrderBy('Descricao')
+        ->select(['Empresas.ID', 'Empresas.Descricao'])
+        ->get();
+
+
+
+        $model = FormandoBase::where('deleted_at', '=', null)
+            ->join('Contabilidade.EmpresasUsuarios', 'formandobase.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
+            ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+           ->orderBy('nome')
+            ->get();
+
+            if ($request->BuscaNome) {
+                $texto = $request->BuscaNome;
+
+                $model->where('nome', 'like', '%' . $texto . '%');
+            }
+
+ $retorno =$request->all();
+
+ DD($retorno);
+        return view('FormandoBase.index', compact('model','Empresas', 'retorno'));
+    }
+
+
     public function ConsultaEmpresa(Request $request)
     {
 

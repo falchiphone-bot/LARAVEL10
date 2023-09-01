@@ -64,55 +64,27 @@
 
                  <form method="GET" action="{{ route('formandobase.consultaempresa') }}" accept-charset="UTF-8" class="text-center">
                         @csrf
-                    <div class="form-group">
-                        <div class="badge bg-info text-wrap" style="width: 100%; height: 50%; font-size: 24px;">
-                            CLUBES
-                        </div>
-                        <select required class="form-control select2" id="EmpresaSelecionada" name="EmpresaSelecionada">
-                            <option value="">Selecionar clube</option>
-                            @foreach ($Empresas as $Empresa)
-                            <option
-                                value="{{ $Empresa->ID }}">
-                                {{ $Empresa->Descricao }}
-                            </option>
-                            @endforeach
-                        </select>
+                <div class="form-group">
+                    <div class="badge bg-info text-wrap" style="width: 100%; height: 50%; font-size: 24px;">
+                        CLUBES
+                    </div>
+                    <select required class="form-control select2" id="EmpresaSelecionada" name="EmpresaSelecionada">
+                        <option value="">Selecionar clube</option>
+                        @foreach ($Empresas as $Empresa)
+                        <option
+                            value="{{ $Empresa->ID }}">
+                            {{ $Empresa->Descricao }}
+                        </option>
+                        @endforeach
+                    </select>
 
-                            <div class="row mt-2">
-                                <div class="col-4">
-                                    <button class="btn btn-success mx-auto">Filtrar por clube selecionado</button>
-                                </div>
+                        <div class="row mt-2">
+                            <div class="col-4">
+                                <button class="btn btn-success mx-auto">Filtrar por clube selecionado</button>
                             </div>
+                        </div>
                     </form>
                 </div>
-
-                <div class="card">
-
-<form method="POST" action="{{ route('FormandoBase.indexBusca') }}" accept-charset="UTF-8" class="text-center">
-       @csrf
-   <div class="form-group">
-       <div class="badge bg-info text-wrap" style="width: 100%; height: 50%; font-size: 24px;">
-           BUSCAR POR NOME
-       </div>
-
-       <div class="col-6">
-
-            <label for="Texto" style="color: black;">sequência de texto a pesquisar</label>
-            <input class="form-control @error('Descricao') is-invalid @else is-valid @enderror"
-                name="BuscarNome" size="70" type="text" id="BuscarNome"
-                value="{{ $retorno['BuscaNome'] ?? null }}">
-            </div>
-
-
-           <div class="row mt-2">
-               <div class="col-4">
-                   <button class="btn btn-success mx-auto">Filtrar por texto no nome</button>
-               </div>
-           </div>
-   </form>
-</div>
-
-
             </div>
 
                 @can('FORMANDOBASE - VERIFICA FORMANDOS EXCLUIDOS')
