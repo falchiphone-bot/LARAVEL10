@@ -12,7 +12,11 @@
             </div>
             {{ session(['error' => null]) }}
         @endif
-
+        <div class="row mt-12">
+            <div class="col-12 d-flex justify-content-center">
+                <a href="{{ route('FormandoBase.index') }}" class="btn btn-warning">Retornar para lista de formandos/atletas</a>
+            </div>
+        </div>
 
         @can('FORMANDOBASERECEBIMENTOS - LISTAR')
             <th>
@@ -155,8 +159,8 @@
 
         <div class="row mt-12">
             <div class="col-12 d-flex justify-content-center">
-                <a href="{{ route('FormandoBase.index') }}" class="btn btn-warning">Retornar para lista</a>
-            </div>
+                        <a href="{{ route('FormandoBase.index') }}" class="btn btn-warning">Retornar para lista de formandos/atletas</a> 
+        </div>
         </div>
     </div>
 </div>

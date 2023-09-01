@@ -341,14 +341,14 @@ class FormandoBaseController extends Controller
 
         $cadastro = FormandoBase::find($id);
         $request['nome'] = strtoupper($request['nome']);
-        // $cadastro->avaliacao = round($request->avaliacao, 2);  
+        // $cadastro->avaliacao = round($request->avaliacao, 2);
 
         $cadastro->fill($request->all());
 
         $cadastro->save();
 
         session(['success' => 'NOME:  ' . $request->nome . ', ALTERADO! ']);
-        return redirect(route('FormandoBase.index'));
+        return redirect(route('FormandoBase.edit',$id));
     }
 
     /**
