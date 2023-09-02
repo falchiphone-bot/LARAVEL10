@@ -38,8 +38,9 @@
 
                 <div class="card-header">
                     <div class="badge bg-info text-wrap" style="width: 100%;font-size: 24px">
-                        <p>Total de representantes cadastrados no sistema de gerenciamento administrativo e contábil:
-                            {{ $model->count() ?? 0 }}</p>
+                                             <p>Total de formandos pesquisados no cadastro  do sistema de gerenciamento administrativo e contábil:
+                                              {{ $model->count() ?? 0 }}
+                                            </p>
                     </div>
                 </div>
 

@@ -38,8 +38,9 @@
 
                 <div class="card-header">
                     <div class="badge bg-info text-wrap" style="width: 100%;font-size: 24px">
-                        <p>Total de representantes cadastrados no sistema de gerenciamento administrativo e contábil:
+                        <p>Total de formandos pesquisados no cadastro  do sistema de gerenciamento administrativo e contábil:
                             {{ $model->count() ?? 0 }}</p>
+                        <p>Esta tela está limitada a 100 registros. Pesquise pelas opções abaixo caso possua para você.</p>
                     </div>
                 </div>
 
@@ -92,7 +93,7 @@
        @csrf
    <div class="form-group">
        <div class="badge bg-info text-wrap" style="width: 100%; height: 50%; font-size: 24px;">
-           BUSCAR POR NOME
+           BUSCAR POR NOME EM TODOS CLUBES PERMITIDOS AO USUÁRIO
        </div>
 
        <div class="col-6">

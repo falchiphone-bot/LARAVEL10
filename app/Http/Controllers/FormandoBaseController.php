@@ -50,9 +50,10 @@ class FormandoBaseController extends Controller
         ->select(['Empresas.ID', 'Empresas.Descricao'])
         ->get();
 
+        $limite = 100;
 
-
-        $model = FormandoBase::where('deleted_at', '=', null)
+        $model = FormandoBase::limit($limite)
+        ->where('deleted_at', '=', null)
             ->join('Contabilidade.EmpresasUsuarios', 'formandobase.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
             ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
             ->orderBy('nome')
@@ -64,6 +65,8 @@ class FormandoBaseController extends Controller
 
     public function indexBusca(Request $request)
     {
+
+        $limite = 50;
         $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
         ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
         ->OrderBy('Descricao')
@@ -72,21 +75,34 @@ class FormandoBaseController extends Controller
 
 
 
-        $model = FormandoBase::where('deleted_at', '=', null)
-            ->join('Contabilidade.EmpresasUsuarios', 'formandobase.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
-            ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
-           ->orderBy('nome')
-            ->get();
 
-            if ($request->BuscaNome) {
-                $texto = $request->BuscaNome;
+            if ($request->BuscarNome) {
+                $texto = $request->BuscarNome;
+                $model = FormandoBase::limit($limite)
+                ->where('deleted_at', '=', null)
+                ->join('Contabilidade.EmpresasUsuarios', 'formandobase.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
+                ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+                ->where('nome', 'like', '%' . $texto . '%')
+                ->orderBy('nome', 'asc')
+                ->get();
 
-                $model->where('nome', 'like', '%' . $texto . '%');
+
             }
+            else{
+
+                $model = FormandoBase::limit($limite)
+                ->where('deleted_at', '=', null)
+                ->join('Contabilidade.EmpresasUsuarios', 'formandobase.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
+                ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+               ->orderBy('nome', 'asc')
+                ->get();
+
+            }
+
 
  $retorno =$request->all();
 
- DD($retorno);
+//  DD($retorno);
         return view('FormandoBase.index', compact('model','Empresas', 'retorno'));
     }
 
