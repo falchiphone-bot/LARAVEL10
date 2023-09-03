@@ -101,8 +101,17 @@
             <label for="Texto" style="color: black;">sequência de texto a pesquisar</label>
             <input class="form-control @error('Descricao') is-invalid @else is-valid @enderror"
                 name="BuscarNome" size="70" type="text" id="BuscarNome"
-                value="{{ $retorno['BuscaNome'] ?? null }}">
+                value="{{ $retorno['BuscarNome'] ?? null }}">
             </div>
+
+                            <div class="col-3">
+
+                <label for="Limite" style="color: black;">Limite de registros para retorno</label>
+                <input class="form-control @error('limite') is-invalid @else is-valid @enderror"
+                    name="Limite" size="10" type="number" step="1" id="Limite"
+                    value="{{ $retorno['Limite'] ?? null }}">
+                </div>
+
 
 
            <div class="row mt-2">
