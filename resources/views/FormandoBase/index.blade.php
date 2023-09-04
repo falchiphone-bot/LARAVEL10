@@ -40,7 +40,11 @@
                     <div class="badge bg-info text-wrap" style="width: 100%;font-size: 24px">
                         <p>Total de formandos pesquisados no cadastro  do sistema de gerenciamento administrativo e contábil:
                             {{ $model->count() ?? 0 }}</p>
-                        <p>Esta tela está limitada a 100 registros. Pesquise pelas opções abaixo caso possua para você.</p>
+
+                        @if($retorno['Limite'] == null)
+
+                                 <p>Esta tela está limitada a 100 registros, caso não foi efetuada pesquisa. Pesquise pelas opções abaixo caso possua para você.</p>
+                        @endif
                     </div>
                 </div>
 

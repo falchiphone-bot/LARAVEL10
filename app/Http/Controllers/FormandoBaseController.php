@@ -66,7 +66,21 @@ class FormandoBaseController extends Controller
     public function indexBusca(Request $request)
     {
 
-        $limite = $request->Limite;
+
+        $limite = null;
+        if($request->Limite >= 1){
+            $limite = $request->Limite;
+        }
+        else{
+            $request['Limite'] = null;
+        }
+
+
+
+
+
+
+
         $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
         ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
         ->OrderBy('Descricao')
