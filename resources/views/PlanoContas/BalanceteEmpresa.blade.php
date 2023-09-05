@@ -30,14 +30,16 @@
                 </div>
 
                 <hr>
-
+                <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                        VALOR TOTAL RECEBIDO NO PERÍODO: {{ number_format($ValorRecebido , 2, ',', '.') }}
+                </nav>
 
 
                 <table class="table table-bordered">
 
                     <tr>
                         <th>Descrição</th>
-                        <th>%</th>
+                        <th>% S/Recebimentos</th>
                         <th>Saldo atual</th>
                         <th>Classificação</th>
                         <th>Grau</th>
@@ -56,6 +58,9 @@
 
                         @if ($Codigo != $Codigoatual)
                             <tr>
+                                    <td>
+
+                                    </td>
                                 <td>
                                     @if($Codigo == 1)
 
@@ -159,6 +164,9 @@
 
                     @endforeach
                         <tr>
+                                <td>
+
+                                </td>
                             <td>
                                 <div class="badge bg-warning text-wrap" style="width: 100%; text-align: right;">
                                     SALDO TOTAL IGUAL A 0,00. SIGNIFICA TUDO CORRETO!
@@ -172,6 +180,10 @@
                             </td>
                         </tr>
                         <tr>
+
+                                <td>
+
+                                </td>
                             <td>
                                 <div class="badge bg-warning text-wrap" style="width: 100%; text-align: right;">
                                     RECEITAS - DESPESAS

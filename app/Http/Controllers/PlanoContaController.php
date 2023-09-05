@@ -157,7 +157,7 @@ class PlanoContaController extends Controller
             $Despesas = $request->Despesas;
             $Receitas = $request->Receitas;
 
-            $ValorRecebido = 1752890.08;
+
 
             // dd($Ativo, $Passivo, $Despesas, $Receitas, $request->all() );
             $empresa = Empresa::find($EmpresaID);
@@ -205,6 +205,80 @@ class PlanoContaController extends Controller
             if (!session('Empresa')) {
                 return redirect('/Empresas')->with('error', 'Necessário selecionar uma empresa');
             } else {
+
+                $C172 = 172;
+
+                $C19104 = 19104;
+
+                $C5920 = 5920;
+                $C19497 = 19497;
+                $C129 = 129;
+                $C97 = 97;
+
+                $soma5 = Lancamento::
+                        where('EmpresaID', "=", 5)
+                        ->where(function($query) use ($C172) {
+                        $query->where('ContaCreditoID', "=", $C172);
+                        })
+                        ->where('DataContabilidade', '>=', $DataInicial)
+                        ->where('DataContabilidade', '<=', $DataFinal)
+                        ->sum('Valor');
+
+                $soma1021 = Lancamento::
+                        where('EmpresaID', "=", 1021)
+                        ->where(function($query) use ($C5920) {
+                        $query->where('ContaCreditoID', "=", $C5920);
+                        })
+                        ->where('DataContabilidade', '>=', $DataInicial)
+                        ->where('DataContabilidade', '<=', $DataFinal)
+                        ->sum('Valor');
+
+                 $soma1021TANABI = Lancamento::
+                        where('EmpresaID', "=", 1021)
+                        ->where(function($query) use ($C19497) {
+                        $query->where('ContaCreditoID', "=", $C19497);
+                        })
+                        ->where('DataContabilidade', '>=', $DataInicial)
+                        ->where('DataContabilidade', '<=', $DataFinal)
+                        ->sum('Valor');
+
+
+
+                $soma1027 = Lancamento::
+                        where('EmpresaID', "=", 1027)
+                        ->where(function($query) use ($C19104) {
+                        $query->where('ContaCreditoID', "=", $C19104);
+                        })
+                        ->where('DataContabilidade', '>=', $DataInicial)
+                        ->where('DataContabilidade', '<=', $DataFinal)
+                        ->sum('Valor');
+
+                $soma4 = Lancamento::
+                        where('EmpresaID', "=", 4)
+                        ->where(function($query) use ($C129) {
+                        $query->where('ContaCreditoID', "=", $C129);
+                        })
+                        ->where('DataContabilidade', '>=', $DataInicial)
+                        ->where('DataContabilidade', '<=', $DataFinal)
+                        ->sum('Valor');
+
+                $soma3 = Lancamento::
+                        where('EmpresaID', "=", 3)
+                        ->where(function($query) use ($C97) {
+                        $query->where('ContaCreditoID', "=", $C97);
+                        })
+                        ->where('DataContabilidade', '>=', $DataInicial)
+                        ->where('DataContabilidade', '<=', $DataFinal)
+                        ->sum('Valor');
+
+                $ValorRecebido = $soma5 + $soma1027 + $soma1021 + $soma4 + $soma3 + $soma1021TANABI;
+                // dd($ValorRecebido, $soma5, $soma1027, $soma1021, $soma4, $soma3, $soma1021TANABI);
+
+
+
+                // $ValorRecebido = 1752890.08;
+
+
                 $contasEmpresa = Conta::where('EmpresaID', session('Empresa')->ID)
                 ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.planocontas_id')
                 ->orderBy('Codigo', 'asc')
@@ -241,8 +315,8 @@ class PlanoContaController extends Controller
                     return $q
                         ->where('ContaCreditoID', $contaID)
                         ->where('EmpresaID', $EmpresaID)
-                        ->where('DataContabilidade', '>', $DataInicial)
-                        ->where('DataContabilidade', '<', $DataFinal);
+                        ->where('DataContabilidade', '>=', $DataInicial)
+                        ->where('DataContabilidade', '<=', $DataFinal);
                 })
                     ->whereDoesntHave('SolicitacaoExclusao')
                     ->sum('Lancamentos.Valor');
@@ -386,7 +460,7 @@ class PlanoContaController extends Controller
                 //////// resultado entre RECEITAS e DESPESAS
                 $ResultadoReceitasDespesas = abs($somaSaldoAtualReceitas) - abs($somaSaldoAtualDespesas);
 
-        return view('PlanoContas.BalanceteEmpresa', compact('retorno', 'somaSaldoAtual','contasEmpresa', 'somaSaldoAtualAtivo', 'somaSaldoAtualReceitas','somaSaldoAtualDespesas','somaSaldoAtualPassivo', 'ResultadoReceitasDespesas'));
+        return view('PlanoContas.BalanceteEmpresa', compact('retorno', "ValorRecebido",'somaSaldoAtual','contasEmpresa', 'somaSaldoAtualAtivo', 'somaSaldoAtualReceitas','somaSaldoAtualDespesas','somaSaldoAtualPassivo', 'ResultadoReceitasDespesas'));
     }
 
     public function dashboard()
