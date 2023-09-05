@@ -152,8 +152,12 @@ class PlanoContaController extends Controller
     {
 
             $EmpresaID = $request->EmpresaSelecionada;
+            $Ativo = $request->Ativo;
+            $Passivo = $request->Passivo;
+            $Despesas = $request->Despesas;
+            $Receitas = $request->Receitas;
 
-
+            // dd($Ativo, $Passivo, $Despesas, $Receitas, $request->all() );
             $empresa = Empresa::find($EmpresaID);
             if ($empresa) {
                 session(['Empresa' => $empresa]);
@@ -202,10 +206,38 @@ class PlanoContaController extends Controller
                 $contasEmpresa = Conta::where('EmpresaID', session('Empresa')->ID)
                 ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.planocontas_id')
                 ->orderBy('Codigo', 'asc')
-                ->where('Grau', '=', '5')
-                ->get(['Contas.ID', 'Descricao', 'Codigo', 'Grau']);
+                ->where('Grau', '=', '5');
+                // ->select(['Contas.ID', 'Descricao', 'Codigo', 'Grau']);
 
 
+
+
+                if($Ativo){
+                    $contasEmpresa->where(function ($query) {
+                        $query->whereRaw("SUBSTRING(PlanoContas.Codigo, 1, 1) = '1'");
+                    });
+                }
+                if($Passivo){
+                    $contasEmpresa->orWhere(function ($query) {
+                        $query->whereRaw("SUBSTRING(PlanoContas.Codigo, 1, 1) = '2'");
+                    });
+                }
+
+                if($Despesas){
+
+                    $contasEmpresa->orWhere(function ($query) {
+                        $query->whereRaw("SUBSTRING(PlanoContas.Codigo, 1, 1) = '3'");
+                    });
+
+                }
+
+                if($Receitas){
+                    $contasEmpresa->orWhere(function ($query) {
+                        $query->whereRaw("SUBSTRING(PlanoContas.Codigo, 1, 1) = '4'");
+                    });
+                }
+
+                $contasEmpresa = $contasEmpresa->get(['Contas.ID', 'Descricao', 'Codigo', 'Grau']);
 
                 $Resultado = [];
                 $ResultadoLoop = [];
@@ -343,9 +375,9 @@ class PlanoContaController extends Controller
                 return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0 && substr($registro['Codigo'], 0, 1) === '4';
             });
 
-            $somaSaldoAtualReceitas = 0;
-            foreach ($registrosValores  as $registro) {
-                $somaSaldoAtualReceitas += $registro['SaldoAtual'];
+                    $somaSaldoAtualReceitas = 0;
+                    foreach ($registrosValores  as $registro) {
+                        $somaSaldoAtualReceitas += $registro['SaldoAtual'];
             }
 
  ////////////////////////////// /////////////// /////////////// /////////////// ///////////////
@@ -353,12 +385,12 @@ class PlanoContaController extends Controller
 
 
 
-            // dd($somaSaldoAtualAtivo, $somaSaldoAtualReceitas, $registro, $ResultadoLoop);
+                            // dd($somaSaldoAtualAtivo, $somaSaldoAtualReceitas, $registro, $ResultadoLoop);
 
-        $contasEmpresa  = $registrosValoresTodos;
+                        $contasEmpresa  = $registrosValoresTodos;
 
-//////// resultado entre RECEITAS e DESPESAS
-$ResultadoReceitasDespesas = abs($somaSaldoAtualReceitas) - abs($somaSaldoAtualDespesas);
+                //////// resultado entre RECEITAS e DESPESAS
+                $ResultadoReceitasDespesas = abs($somaSaldoAtualReceitas) - abs($somaSaldoAtualDespesas);
 
         return view('PlanoContas.BalanceteEmpresa', compact('retorno', 'somaSaldoAtual','contasEmpresa', 'somaSaldoAtualAtivo', 'somaSaldoAtualReceitas','somaSaldoAtualDespesas','somaSaldoAtualPassivo', 'ResultadoReceitasDespesas'));
     }

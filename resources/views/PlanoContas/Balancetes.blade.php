@@ -57,19 +57,17 @@
                                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                                     <div class="row">
                                         <div class="col-12">
-                                                <input type="checkbox" id="Ativo" value="{{ $retorno['Ativo'] ?? null }}">
+                                                <input type="checkbox" name="Ativo" id="Ativo" value="true">
                                                 <label for="ativoCheckbox">Ativo</label>
 
-                                                <input type="checkbox" id="Passivo" value="{{ $retorno['Passivo'] ?? null }}">
+                                                <input type="checkbox" name="Passivo" id="Passivo" value="true"">
                                                 <label for="passivoCheckbox">Passivo</label>
 
-                                                    <input type="checkbox" id="Despesas"
-                                                    value="{{ $retorno['Despesas'] ?? null }}">
+                                                    <input type="checkbox" name="Despesas" id="Despesas" value="true">
                                                     <label for="despesasCheckbox">Despesas</label>
 
 
-                                                    <input type="checkbox" id="Receitas"
-                                                 value="{{ $retorno['Receitas'] ?? null }}">
+                                                    <input type="checkbox" name="Receitas" id="Receitas" value="true"">
                                                 <label for="receitasCheckbox">Receitas</label>
                                         </div>
                                     </div>
