@@ -206,38 +206,26 @@ class PlanoContaController extends Controller
                 $contasEmpresa = Conta::where('EmpresaID', session('Empresa')->ID)
                 ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.planocontas_id')
                 ->orderBy('Codigo', 'asc')
-                ->where('Grau', '=', '5');
-                // ->select(['Contas.ID', 'Descricao', 'Codigo', 'Grau']);
+                ->where('Grau', '=', '5')
+                ->select(['Contas.ID', 'Descricao', 'Codigo', 'Grau']);
 
 
-
-
-                if($Ativo){
-                    $contasEmpresa->where(function ($query) {
-                        $query->whereRaw("SUBSTRING(PlanoContas.Codigo, 1, 1) = '1'");
-                    });
+            $contasEmpresa->where(function ($query) use ($Ativo, $Passivo, $Despesas, $Receitas) {
+                if ($Ativo) {
+                    $query->whereRaw("SUBSTRING(PlanoContas.Codigo, 1, 1) = '1'");
                 }
-                if($Passivo){
-                    $contasEmpresa->orWhere(function ($query) {
-                        $query->whereRaw("SUBSTRING(PlanoContas.Codigo, 1, 1) = '2'");
-                    });
+                if ($Passivo) {
+                    $query->orWhereRaw("SUBSTRING(PlanoContas.Codigo, 1, 1) = '2'");
                 }
-
-                if($Despesas){
-
-                    $contasEmpresa->orWhere(function ($query) {
-                        $query->whereRaw("SUBSTRING(PlanoContas.Codigo, 1, 1) = '3'");
-                    });
-
+                if ($Despesas) {
+                    $query->orWhereRaw("SUBSTRING(PlanoContas.Codigo, 1, 1) = '3'");
                 }
-
-                if($Receitas){
-                    $contasEmpresa->orWhere(function ($query) {
-                        $query->whereRaw("SUBSTRING(PlanoContas.Codigo, 1, 1) = '4'");
-                    });
+                if ($Receitas) {
+                    $query->orWhereRaw("SUBSTRING(PlanoContas.Codigo, 1, 1) = '4'");
                 }
+            });
 
-                $contasEmpresa = $contasEmpresa->get(['Contas.ID', 'Descricao', 'Codigo', 'Grau']);
+                $contasEmpresa = $contasEmpresa->get();
 
                 $Resultado = [];
                 $ResultadoLoop = [];
