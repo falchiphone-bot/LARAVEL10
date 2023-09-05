@@ -53,6 +53,27 @@
                                         name="DataFinal" size="30" type="date" step="1" id="DataFinal"
                                         value="{{ $retorno['DataFinal'] ?? null }}">
                                 </div>
+
+                                <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                    <div class="row">
+                                        <div class="col-12">
+                                                <input type="checkbox" id="Ativo" value="{{ $retorno['Ativo'] ?? null }}">
+                                                <label for="ativoCheckbox">Ativo</label>
+
+                                                <input type="checkbox" id="Passivo" value="{{ $retorno['Passivo'] ?? null }}">
+                                                <label for="passivoCheckbox">Passivo</label>
+
+                                                    <input type="checkbox" id="Despesas"
+                                                    value="{{ $retorno['Despesas'] ?? null }}">
+                                                    <label for="despesasCheckbox">Despesas</label>
+
+
+                                                    <input type="checkbox" id="Receitas"
+                                                 value="{{ $retorno['Receitas'] ?? null }}">
+                                                <label for="receitasCheckbox">Receitas</label>
+                                        </div>
+                                    </div>
+                                </nav>
                             </div>
                         </div>
 
