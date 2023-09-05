@@ -157,6 +157,8 @@ class PlanoContaController extends Controller
             $Despesas = $request->Despesas;
             $Receitas = $request->Receitas;
 
+            $ValorRecebido = 1752890.08;
+
             // dd($Ativo, $Passivo, $Despesas, $Receitas, $request->all() );
             $empresa = Empresa::find($EmpresaID);
             if ($empresa) {
@@ -279,6 +281,10 @@ class PlanoContaController extends Controller
                 $Resultado['SaldoDia'] = $SaldoDia;
 
                 $Resultado['SaldoAtual'] = $SaldoAtual;
+
+                $Resultado['ValorRecebido'] = $ValorRecebido;
+
+                $Resultado['PercentualValorRecebido'] = ($SaldoAtual/$ValorRecebido)*100;
 
                 $ResultadoLoop[] = $Resultado;
                 // break;

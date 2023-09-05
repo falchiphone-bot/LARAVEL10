@@ -37,6 +37,7 @@
 
                     <tr>
                         <th>Descrição</th>
+                        <th>%</th>
                         <th>Saldo atual</th>
                         <th>Classificação</th>
                         <th>Grau</th>
@@ -129,6 +130,10 @@
                                     </a>
                                 @endif
 
+                            </td>
+
+                            <td style="text-align: right;">
+                                {{ number_format(abs($conta['PercentualValorRecebido']), 2, ',', '.') }}
                             </td>
 
                             <td style="text-align: right;">
