@@ -278,8 +278,9 @@ class PlanoContaController extends Controller
 
                 // $ValorRecebido = 1752890.08;
 
+                $EmpresasID = [5,1027,3,4,1021];
 
-                $contasEmpresa = Conta::where('EmpresaID', session('Empresa')->ID)
+                $contasEmpresa = Conta::whereIn('EmpresaID',$EmpresasID)
                 ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.planocontas_id')
                 ->orderBy('Codigo', 'asc')
                 ->where('Grau', '=', '5')
@@ -310,21 +311,20 @@ class PlanoContaController extends Controller
                 $contaID = $contasEmpresa5->ID;
 
 
-
-                $totalCredito = Lancamento::where(function ($q) use ($DataInicial, $DataFinal, $contaID, $EmpresaID) {
+                $totalCredito = Lancamento::where(function ($q) use ($DataInicial, $DataFinal, $contaID, $EmpresasID) {
                     return $q
                         ->where('ContaCreditoID', $contaID)
-                        ->where('EmpresaID', $EmpresaID)
+                        ->whereIn('EmpresaID', $EmpresasID)
                         ->where('DataContabilidade', '>=', $DataInicial)
                         ->where('DataContabilidade', '<=', $DataFinal);
                 })
                     ->whereDoesntHave('SolicitacaoExclusao')
                     ->sum('Lancamentos.Valor');
 
-                $totalDebito = Lancamento::where(function ($q) use ($DataInicial, $DataFinal, $contaID, $EmpresaID) {
+                $totalDebito = Lancamento::where(function ($q) use ($DataInicial, $DataFinal, $contaID, $EmpresasID) {
                     return $q
                         ->where('ContaDebitoID', $contaID)
-                        ->where('EmpresaID', $EmpresaID)
+                        ->whereIn('EmpresaID', $EmpresasID)
                         ->where('DataContabilidade', '>', $DataInicial)
                         ->where('DataContabilidade', '<', $DataFinal);
                 })
@@ -361,7 +361,7 @@ class PlanoContaController extends Controller
                 $Resultado['PercentualValorRecebido'] = ($SaldoAtual/$ValorRecebido)*100;
 
                 $ResultadoLoop[] = $Resultado;
-                // break;
+                // selecionar se já existe. Se existir acumular.;
             }
 
 
