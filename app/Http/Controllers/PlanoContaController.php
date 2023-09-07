@@ -455,7 +455,40 @@ class PlanoContaController extends Controller
 
                             // dd($somaSaldoAtualAtivo, $somaSaldoAtualReceitas, $registro, $ResultadoLoop);
 
-                        $contasEmpresa  = $registrosValoresTodos;
+                        $dados  = $registrosValoresTodos;
+
+
+// Inicialize um array para armazenar os registros agrupados por 'Descricao'
+$registrosAgrupados = [];
+
+// Percorra o array original
+foreach ($dados as $registro) {
+    $descricao = $registro["Descricao"];
+
+    // Verifique se a descrição já existe no array de registros agrupados
+    if (array_key_exists($descricao, $registrosAgrupados)) {
+        // Se existir, some os campos relevantes
+        $registrosAgrupados[$descricao]["SaldoAtual"] += floatval($registro["SaldoAtual"]);
+        $registrosAgrupados[$descricao]["ValorRecebido"] += floatval($registro["ValorRecebido"]);
+        // Adicione qualquer outro campo que você queira somar ou manipular aqui
+    } else {
+        // Se não existir, crie um novo registro no array de registros agrupados
+        $registrosAgrupados[$descricao] = $registro;
+    }
+}
+
+// Agora, $registrosAgrupados contém os registros agrupados por 'Descricao' com as somas dos campos relevantes
+
+// Exemplo de impressão do resultado
+// foreach ($registrosAgrupados as $descricao => $registro) {
+//     echo "Descrição: $descricao\n";
+//     echo "Saldo Atual: " . $registro["SaldoAtual"] . "\n";
+//     echo "Valor Recebido: " . $registro["ValorRecebido"] . "\n";
+//     // Exiba qualquer outro campo que você deseja aqui
+//     echo "\n";
+// }
+
+$contasEmpresa = $registrosAgrupados;
 
                 //////// resultado entre RECEITAS e DESPESAS
                 $ResultadoReceitasDespesas = abs($somaSaldoAtualReceitas) - abs($somaSaldoAtualDespesas);
