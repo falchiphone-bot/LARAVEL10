@@ -470,10 +470,13 @@ foreach ($dados as $registro) {
         // Se existir, some os campos relevantes
         $registrosAgrupados[$descricao]["SaldoAtual"] += floatval($registro["SaldoAtual"]);
         $registrosAgrupados[$descricao]["ValorRecebido"] += floatval($registro["ValorRecebido"]);
+        $registrosAgrupados[$descricao]["PercentualValorRecebido"] = ( $registrosAgrupados[$descricao]["SaldoAtual"]/$ValorRecebido)*100;
         // Adicione qualquer outro campo que você queira somar ou manipular aqui
     } else {
         // Se não existir, crie um novo registro no array de registros agrupados
+        // $registro["PercentualValorRecebido"] = floatval(($SaldoAtual/$ValorRecebido)*100);
         $registrosAgrupados[$descricao] = $registro;
+
     }
 }
 
