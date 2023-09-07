@@ -58,9 +58,7 @@
 
                         @if ($Codigo != $Codigoatual)
                             <tr>
-                                    <td>
 
-                                    </td>
                                 <td>
                                     @if($Codigo == 1)
 
@@ -101,6 +99,13 @@
                                       <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
                                         TOTAL DA RECEITA
                                     </div>
+
+                                    <td>
+                                        <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
+                                                {{ number_format(abs($somaPercentual), 2, ',', '.') }}
+                                            </div>
+
+                                        </td>
 
                                     <td>
                                         <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">

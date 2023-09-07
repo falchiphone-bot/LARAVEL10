@@ -474,9 +474,8 @@ foreach ($dados as $registro) {
         // Adicione qualquer outro campo que você queira somar ou manipular aqui
     } else {
         // Se não existir, crie um novo registro no array de registros agrupados
-        // $registro["PercentualValorRecebido"] = floatval(($SaldoAtual/$ValorRecebido)*100);
+      
         $registrosAgrupados[$descricao] = $registro;
-
     }
 }
 
@@ -491,12 +490,23 @@ foreach ($dados as $registro) {
 //     echo "\n";
 // }
 
+$somaPercentual = 0;
+foreach($registrosAgrupados as $soma)
+{
+    $Valor = $soma["PercentualValorRecebido"];
+    $somaPercentual +=  $Valor;
+
+}
+
 $contasEmpresa = $registrosAgrupados;
 
                 //////// resultado entre RECEITAS e DESPESAS
                 $ResultadoReceitasDespesas = abs($somaSaldoAtualReceitas) - abs($somaSaldoAtualDespesas);
 
-        return view('PlanoContas.BalanceteEmpresa', compact('retorno', "ValorRecebido",'somaSaldoAtual','contasEmpresa', 'somaSaldoAtualAtivo', 'somaSaldoAtualReceitas','somaSaldoAtualDespesas','somaSaldoAtualPassivo', 'ResultadoReceitasDespesas'));
+        return view('PlanoContas.BalanceteEmpresa', compact('retorno',
+        "ValorRecebido",'somaSaldoAtual','contasEmpresa',
+        'somaSaldoAtualAtivo', 'somaSaldoAtualReceitas','somaSaldoAtualDespesas','somaSaldoAtualPassivo',
+        'ResultadoReceitasDespesas','somaPercentual'));
     }
 
     public function dashboard()
