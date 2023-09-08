@@ -18,6 +18,7 @@ use Nette\Utils\Strings;
 use PHPUnit\Framework\Constraint\Count;
 use Dompdf\Dompdf;
 use Dompdf\Options;
+use PhpParser\Node\Stmt\Else_;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class PlanoContaController extends Controller
@@ -155,7 +156,8 @@ class PlanoContaController extends Controller
 
     public function BalanceteEmpresa(request $request)
     {
-
+            $pdf = $request->pdf;
+            $pdfvisualizar = $request->pdfvisualizar;
             $EmpresaID = $request->EmpresaSelecionada;
             $Ativo = $request->Ativo;
             $Passivo = $request->Passivo;
@@ -519,59 +521,64 @@ if($Despesas && $Receitas)
                 //////// resultado entre RECEITAS e DESPESAS
                 $ResultadoReceitasDespesas = abs($somaSaldoAtualReceitas) - abs($somaSaldoAtualDespesas);
 }
-        // return view('PlanoContas.BalanceteEmpresa', compact('retorno',
-        // "ValorRecebido",'somaSaldoAtual','contasEmpresa',
-        // 'somaSaldoAtualAtivo', 'somaSaldoAtualReceitas','somaSaldoAtualDespesas','somaSaldoAtualPassivo',
-        // 'ResultadoReceitasDespesas','somaPercentual'));
 
 
-        $view = view('PlanoContas.BalanceteEmpresa', compact('retorno',
-        "ValorRecebido",'somaSaldoAtual','contasEmpresa',
-        'somaSaldoAtualAtivo', 'somaSaldoAtualReceitas','somaSaldoAtualDespesas','somaSaldoAtualPassivo',
-        'ResultadoReceitasDespesas','somaPercentual'))->render();
+        if ($pdf || $pdfvisualizar  ) {
+            $view = view('PlanoContas.BalanceteEmpresa', compact(
+                'retorno',
+                "ValorRecebido",
+                'somaSaldoAtual',
+                'contasEmpresa',
+                'somaSaldoAtualAtivo',
+                'somaSaldoAtualReceitas',
+                'somaSaldoAtualDespesas',
+                'somaSaldoAtualPassivo',
+                'ResultadoReceitasDespesas',
+                'somaPercentual'
+            ))->render();
 
+            ob_start();
+            $suaView = $view;
+            // Imprima o conteúdo HTML
+            echo $suaView;
 
-        
-     // Inicie o buffer de saída
-     ob_start();
+            $conteudoHTML = ob_get_clean();
 
+            $options = new Options();
+            $options->set('isHtml5ParserEnabled', true);
+            $options->set('isPhpEnabled', true);
+            $pdf = new Dompdf($options);
 
-     // $suaView = '<html><body><h1>teste view</h1><p>Conteúdo da View...</p></body></html>';
-     $suaView = $view ;
-     // Imprima o conteúdo HTML
-     echo $suaView;
+            $suaView = $conteudoHTML;
 
-     // Capture o conteúdo HTML na variável
-     $conteudoHTML = ob_get_clean();
+            $pdf->loadHtml($suaView);
 
-     // Agora $conteudoHTML contém o HTML da sua view
+            $pdf->render();
 
-
-
-     // Crie uma nova instância do Dompdf
-     $options = new Options();
-     $options->set('isHtml5ParserEnabled', true);
-     $options->set('isPhpEnabled', true);
-     $pdf = new Dompdf($options);
-
-
-
-     // Suponha que $suaView seja o conteúdo HTML da sua view
-     $suaView = $conteudoHTML;
-
-     // Carregue o conteúdo HTML no Dompdf
-     $pdf->loadHtml($suaView);
-
-     // Renderize o PDF (opcional)
-     $pdf->render();
-
-     // Saída do PDF
-     $pdf->stream('nome_do_arquivo.pdf', ['Attachment' => 0]);
+             if($pdfvisualizar){
+                $pdf->stream('pdf_de_balancete.pdf' , array("Attachment" => false));
+             }
+             else{
+                $pdf->stream('pdf_de_balancete.pdf' , array("Attachment" => true));
+             }
 
 
 
-        return redirect()->route('planocontas.Balancetesgerarpdf')->with('html', $view);
-
+            // return redirect()->route('planocontas.Balancetesgerarpdf')->with('html', $view);
+        } else {
+            return view('PlanoContas.BalanceteEmpresa', compact(
+                'retorno',
+                "ValorRecebido",
+                'somaSaldoAtual',
+                'contasEmpresa',
+                'somaSaldoAtualAtivo',
+                'somaSaldoAtualReceitas',
+                'somaSaldoAtualDespesas',
+                'somaSaldoAtualPassivo',
+                'ResultadoReceitasDespesas',
+                'somaPercentual'
+            ));
+        }
 
 
     }
