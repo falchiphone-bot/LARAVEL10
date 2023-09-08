@@ -20,6 +20,8 @@ use Dompdf\Dompdf;
 use Dompdf\Options;
 use PhpParser\Node\Stmt\Else_;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Illuminate\Support\Facades\Response;
+
 
 class PlanoContaController extends Controller
 {
@@ -156,8 +158,16 @@ class PlanoContaController extends Controller
 
     public function BalanceteEmpresa(request $request)
     {
-            $pdf = $request->pdf;
-            $pdfvisualizar = $request->pdfvisualizar;
+
+            $pdfgerar = $request->pdfgerar;
+
+            $tela = $request->tela;
+
+            if($tela){
+                $pdfgerar = null;
+            }
+            // $pdfdownload =  $request->pdfdownload;
+            // $pdfvisualizar = $request->pdfvisualizar;
             $EmpresaID = $request->EmpresaSelecionada;
             $Ativo = $request->Ativo;
             $Passivo = $request->Passivo;
@@ -523,7 +533,7 @@ if($Despesas && $Receitas)
 }
 
 
-        if ($pdf || $pdfvisualizar  ) {
+        if ($pdfgerar) {
             $view = view('PlanoContas.BalanceteEmpresa', compact(
                 'retorno',
                 "ValorRecebido",
@@ -555,12 +565,40 @@ if($Despesas && $Receitas)
 
             $pdf->render();
 
-             if($pdfvisualizar){
-                $pdf->stream('pdf_de_balancete.pdf' , array("Attachment" => false));
-             }
-             else{
-                $pdf->stream('pdf_de_balancete.pdf' , array("Attachment" => true));
-             }
+
+            if ($_SERVER["REQUEST_METHOD"] == "POST") {
+                // Verifique se o campo "pdfgerar" está definido na solicitação POST
+                if (isset($_POST["pdfgerar"])) {
+                    // Acesse o valor selecionado com base no atributo "name"
+                    $pdfgerado = $_POST["pdfgerar"];
+
+                    if ($pdfgerado === "pdfdownload") {
+                        // Ação para o radio button com "value" igual a "pdfdownload"
+                        // Faça o que for necessário aqui
+                        $pdf->stream('pdf_de_balancete.pdf', array("Attachment" => true));
+                    } elseif ($pdfgerado === "pdfvisualizar") {
+                        // Ação para o radio button com "value" igual a "pdfvisualizar"
+                        // Faça o que for necessário aqui
+                        $pdf->stream('pdf_de_balancete.pdf', array("Attachment" => false));
+                    }
+                }
+            }
+
+
+
+                    // if ($pdfgerar === "pdfdownload") {
+                    //     // Faz o download do arquivo PDF com o parâmetro "Attachment" definido como true
+                    //     dd("download");
+                    //     $pdf->stream('pdf_de_balancete.pdf', array("Attachment" => true));
+                    // }
+
+                    // if($pdfgerar === "pdfvisualizar"){
+                    //     dd("visualizar");
+                    //     // Não faz o download do arquivo PDF, apenas o exibe no navegador
+                    //     $pdf->stream('pdf_de_balancete.pdf', array("Attachment" => false));
+                    // }
+
+
 
 
 

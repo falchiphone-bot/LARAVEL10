@@ -67,11 +67,18 @@
 
 
                                     <div class="col-12">
-                                        <input type="radio" name="pdf" id="pdf" value="true" >
+
+                                        <input type="checkbox" name="tela" id="tela" value="tela" checked>
+                                        <label for="visualizarCheckbox">Visualizar na tela</label>
+
+
+                                        <input type="radio" name="pdfgerar" id="pdfdownload" value="pdfdownload" >
                                         <label for="pdfCheckbox">Gerar pdf e fazer download do arquivo</label>
 
-                                        <input type="radio" name="pdf" id="pdfvisualizar" value="true" checked>
+                                        <input type="radio" name="pdfgerar" id="pdfvisualizar" value="pdfvisualizar">
                                         <label for="pdfvisualizarCheckbox">Gerar pdf e visualizar primeiro</label>
+
+
                                     </div>
 
 
