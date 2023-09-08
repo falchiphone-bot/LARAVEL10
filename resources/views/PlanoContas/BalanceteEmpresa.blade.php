@@ -65,6 +65,11 @@
                                       <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
                                         TOTAL DO ATIVO
                                     </div>
+                                    <td>
+                                        <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
+                                                {{ number_format(abs($somaPercentual), 2, ',', '.') }}
+                                            </div>
+                                    </td>
 
                                     <td>
                                         <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
@@ -74,10 +79,14 @@
 
 
                                     @elseif($Codigo == 2)
-
                                       <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
                                         TOTAL DO PASSIVO
                                     </div>
+                                    <td>
+                                        <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
+                                                {{ number_format(abs($somaPercentual), 2, ',', '.') }}
+                                            </div>
+                                    </td>
 
                                     <td>
                                         <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
@@ -89,6 +98,11 @@
                                     <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
                                       TOTAL DO DESPESAS
                                   </div>
+                                  <td>
+                                        <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
+                                                {{ number_format(abs($somaPercentual), 2, ',', '.') }}
+                                            </div>
+                                    </td>
 
                                   <td>
                                       <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
@@ -104,9 +118,7 @@
                                         <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
                                                 {{ number_format(abs($somaPercentual), 2, ',', '.') }}
                                             </div>
-
-                                        </td>
-
+                                    </td>
                                     <td>
                                         <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
                                             {{ number_format(abs($somaSaldoAtualReceitas), 2, ',', '.') }}

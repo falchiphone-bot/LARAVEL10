@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use App\Helpers\SaldoLancamentoHelper;
 use App\Http\Requests\PlanoContasCreateRequest;
 use App\Models\Conta;
@@ -10,15 +11,19 @@ use App\Models\EmpresaUsuario;
 use App\Models\Lancamento;
 use App\Models\PlanoConta;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Nette\Utils\Strings;
 use PHPUnit\Framework\Constraint\Count;
+use Dompdf\Dompdf;
+use Dompdf\Options;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class PlanoContaController extends Controller
 {
+
+
     public function __construct()
     {
         $this->middleware('auth');
@@ -156,8 +161,11 @@ class PlanoContaController extends Controller
             $Passivo = $request->Passivo;
             $Despesas = $request->Despesas;
             $Receitas = $request->Receitas;
-
-
+            $somaSaldoAtualDespesas = 0;
+            $somaSaldoAtualPassivo = 0;
+            $somaSaldoAtualAtivo = 0;
+            $somaSaldoAtualReceitas = 0;
+            $ResultadoReceitasDespesas = 0;
 
             // dd($Ativo, $Passivo, $Despesas, $Receitas, $request->all() );
             $empresa = Empresa::find($EmpresaID);
@@ -404,21 +412,25 @@ class PlanoContaController extends Controller
             }
 
 ////////////////////////////// /////////////// /////////////// /////////////// ///////////////
+if($Passivo) {
+            /////////////// filtra somente as contas do passivo= 2.X.XX.XX
+            $registros = $contasEmpresa;
 
-         /////////////// filtra somente as contas do passivo= 2.X.XX.XX
-         $registros = $contasEmpresa;
+            $registrosValores = array_filter($registros, function ($registro) {
+                return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0 && substr($registro['Codigo'], 0, 1) === '2';
+            });
 
-         $registrosValores = array_filter($registros, function ($registro) {
-             return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0 && substr($registro['Codigo'], 0, 1) === '2';
-         });
+            $somaSaldoAtualPassivo = 0;
+            foreach ($registrosValores  as $registro) {
+                $somaSaldoAtualPassivo += $registro['SaldoAtual'];
+            }
+            ////////////////////////////// /////////////// /////////////// /////////////// ///////////////
+}
 
-         $somaSaldoAtualPassivo = 0;
-         foreach ($registrosValores  as $registro) {
-             $somaSaldoAtualPassivo += $registro['SaldoAtual'];
-         }
 
-////////////////////////////// /////////////// /////////////// /////////////// ///////////////
 
+
+if($Despesas){
 
 
            /////////////// filtra somente as contas do despesas= 3.X.XX.XX
@@ -432,10 +444,11 @@ class PlanoContaController extends Controller
            foreach ($registrosValores  as $registro) {
                $somaSaldoAtualDespesas += $registro['SaldoAtual'];
            }
+            ////////////////////////////// /////////////// /////////////// /////////////// ///////////////
+}
 
-////////////////////////////// /////////////// /////////////// /////////////// ///////////////
 
-
+if($Receitas){
             /////////////// filtra somente as contas do receitas = 4.X.XX.XX
             $registros = $contasEmpresa;
 
@@ -448,8 +461,9 @@ class PlanoContaController extends Controller
                         $somaSaldoAtualReceitas += $registro['SaldoAtual'];
             }
 
- ////////////////////////////// /////////////// /////////////// /////////////// ///////////////
+        ////////////////////////////// /////////////// /////////////// /////////////// ///////////////
 
+}
 
 
 
@@ -474,7 +488,7 @@ foreach ($dados as $registro) {
         // Adicione qualquer outro campo que você queira somar ou manipular aqui
     } else {
         // Se não existir, crie um novo registro no array de registros agrupados
-      
+
         $registrosAgrupados[$descricao] = $registro;
     }
 }
@@ -500,13 +514,66 @@ foreach($registrosAgrupados as $soma)
 
 $contasEmpresa = $registrosAgrupados;
 
+if($Despesas && $Receitas)
+{
                 //////// resultado entre RECEITAS e DESPESAS
                 $ResultadoReceitasDespesas = abs($somaSaldoAtualReceitas) - abs($somaSaldoAtualDespesas);
+}
+        // return view('PlanoContas.BalanceteEmpresa', compact('retorno',
+        // "ValorRecebido",'somaSaldoAtual','contasEmpresa',
+        // 'somaSaldoAtualAtivo', 'somaSaldoAtualReceitas','somaSaldoAtualDespesas','somaSaldoAtualPassivo',
+        // 'ResultadoReceitasDespesas','somaPercentual'));
 
-        return view('PlanoContas.BalanceteEmpresa', compact('retorno',
+
+        $view = view('PlanoContas.BalanceteEmpresa', compact('retorno',
         "ValorRecebido",'somaSaldoAtual','contasEmpresa',
         'somaSaldoAtualAtivo', 'somaSaldoAtualReceitas','somaSaldoAtualDespesas','somaSaldoAtualPassivo',
-        'ResultadoReceitasDespesas','somaPercentual'));
+        'ResultadoReceitasDespesas','somaPercentual'))->render();
+
+
+        
+     // Inicie o buffer de saída
+     ob_start();
+
+
+     // $suaView = '<html><body><h1>teste view</h1><p>Conteúdo da View...</p></body></html>';
+     $suaView = $view ;
+     // Imprima o conteúdo HTML
+     echo $suaView;
+
+     // Capture o conteúdo HTML na variável
+     $conteudoHTML = ob_get_clean();
+
+     // Agora $conteudoHTML contém o HTML da sua view
+
+
+
+     // Crie uma nova instância do Dompdf
+     $options = new Options();
+     $options->set('isHtml5ParserEnabled', true);
+     $options->set('isPhpEnabled', true);
+     $pdf = new Dompdf($options);
+
+
+
+     // Suponha que $suaView seja o conteúdo HTML da sua view
+     $suaView = $conteudoHTML;
+
+     // Carregue o conteúdo HTML no Dompdf
+     $pdf->loadHtml($suaView);
+
+     // Renderize o PDF (opcional)
+     $pdf->render();
+
+     // Saída do PDF
+     $pdf->stream('nome_do_arquivo.pdf', ['Attachment' => 0]);
+
+
+
+        return redirect()->route('planocontas.Balancetesgerarpdf')->with('html', $view);
+
+
+
     }
 
     public function dashboard()
@@ -530,6 +597,7 @@ $contasEmpresa = $registrosAgrupados;
         //$cadastros = DB::table('PlanoConta')->get();        $num_rows = count($cadastros);
 
         $linhas = count($cadastros);
+
 
         return view('PlanoContas.index', compact('cadastros', 'linhas'));
     }
@@ -637,5 +705,47 @@ $contasEmpresa = $registrosAgrupados;
         $cadastro = PlanoConta::find($id);
         $cadastro->delete();
         return redirect(route('PlanoContas.index'));
+    }
+
+    public function Balancetesgerarpdf(Request $request)
+    {
+                    $html = $request->view;
+
+                    // Inicie o buffer de saída
+                    ob_start();
+
+
+                    // $suaView = '<html><body><h1>teste view</h1><p>Conteúdo da View...</p></body></html>';
+                    $suaView = $html;
+                    // Imprima o conteúdo HTML
+                    echo $suaView;
+
+                    // Capture o conteúdo HTML na variável
+                    $conteudoHTML = ob_get_clean();
+
+                    // Agora $conteudoHTML contém o HTML da sua view
+
+
+
+                    // Crie uma nova instância do Dompdf
+                    $options = new Options();
+                    $options->set('isHtml5ParserEnabled', true);
+                    $options->set('isPhpEnabled', true);
+                    $pdf = new Dompdf($options);
+
+
+
+                    // Suponha que $suaView seja o conteúdo HTML da sua view
+                    $suaView = $conteudoHTML;
+
+                    // Carregue o conteúdo HTML no Dompdf
+                    $pdf->loadHtml($suaView);
+
+                    // Renderize o PDF (opcional)
+                    $pdf->render();
+
+                    // Saída do PDF
+                    $pdf->stream('nome_do_arquivo.pdf', ['Attachment' => 0]);
+
     }
 }
