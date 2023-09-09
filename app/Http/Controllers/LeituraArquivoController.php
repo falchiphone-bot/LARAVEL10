@@ -924,17 +924,20 @@ class LeituraArquivoController extends Controller
 
                 if (strpos(trim($Descricao), 'LIQ.COBRANCA SIMPLES') !== false) {
 
-                    Lancamento::where('id', $lancamento->ID)->update([
-                        'Valor' => $valor_formatado
-                ]);
-                    if($request->veralteradoliqcobrancasimples)
-                    {
-                        echo $Descricao, "Valor alterado para: " . number_format($valor_formatado, 2, ',', '.');
+
+                    if ($lancamento->Valor != $valor_formatado) {
+
+                        Lancamento::where('id', $lancamento->ID)->update([
+                            'Valor' => $valor_formatado
+                        ]);
+
+                        if ($request->veralteradoliqcobrancasimples) {
+                            echo $Descricao , 'O valor ' . $lancamento->Valor . ' foi alterado para: ' . number_format($valor_formatado, 2, ',', '.');
 
 
-                         dd('Forçado a alterar o valor para : '.number_format($valor_formatado, 2, ',', '.'));
+                            dd('Forçado a alterar o valor para : ' . number_format($valor_formatado, 2, ',', '.'));
+                        }
                     }
-
                 }
 
 
