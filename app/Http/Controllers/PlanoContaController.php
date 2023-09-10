@@ -534,7 +534,7 @@ if($Despesas && $Receitas)
 
 
         if ($pdfgerar) {
-            $view = view('PlanoContas.BalanceteEmpresa', compact(
+            $view = view('PlanoContas.BalanceteEmpresaphp', compact(
                 'retorno',
                 "ValorRecebido",
                 'somaSaldoAtual',
@@ -583,22 +583,6 @@ if($Despesas && $Receitas)
                     }
                 }
             }
-
-
-
-                    // if ($pdfgerar === "pdfdownload") {
-                    //     // Faz o download do arquivo PDF com o parâmetro "Attachment" definido como true
-                    //     dd("download");
-                    //     $pdf->stream('pdf_de_balancete.pdf', array("Attachment" => true));
-                    // }
-
-                    // if($pdfgerar === "pdfvisualizar"){
-                    //     dd("visualizar");
-                    //     // Não faz o download do arquivo PDF, apenas o exibe no navegador
-                    //     $pdf->stream('pdf_de_balancete.pdf', array("Attachment" => false));
-                    // }
-
-
 
 
 
