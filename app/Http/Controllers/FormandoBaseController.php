@@ -51,7 +51,7 @@ class FormandoBaseController extends Controller
         ->get();
 
         $limite = 100;
-
+        $retorno['Limite'] = $limite;
         $model = FormandoBase::limit($limite)
         ->where('deleted_at', '=', null)
             ->join('Contabilidade.EmpresasUsuarios', 'formandobase.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
@@ -60,7 +60,7 @@ class FormandoBaseController extends Controller
             ->get();
 
 
-        return view('FormandoBase.index', compact('model','Empresas'));
+        return view('FormandoBase.index', compact('model','Empresas', 'retorno'));
     }
 
     public function indexBusca(Request $request)
@@ -541,6 +541,11 @@ class FormandoBaseController extends Controller
         // }
 
         $request['user_created'] = Auth ::user()->email;
+
+        $avaliacao = str_replace(',', '.', $request['avaliacao']);
+        $request['avaliacao'] =  $avaliacao;
+
+
 
         $model = $request->all();
 

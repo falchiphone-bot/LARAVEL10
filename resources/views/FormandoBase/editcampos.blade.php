@@ -159,7 +159,7 @@
 
         <div class="row mt-12">
             <div class="col-12 d-flex justify-content-center">
-                        <a href="{{ route('FormandoBase.index') }}" class="btn btn-warning">Retornar para lista de formandos/atletas</a> 
+                        <a href="{{ route('FormandoBase.index') }}" class="btn btn-warning">Retornar para lista de formandos/atletas</a>
         </div>
         </div>
     </div>
@@ -218,6 +218,15 @@
             $('#cnpj').inputmask('99.999.999/9999-99', {
                 clearMaskOnLostFocus: false
             });
+        });
+    </script>
+@endpush
+@push('scripts')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.js"></script>
+    <script>
+
+        $(document).ready(function() {
+            $('.money').mask('000.000.000.000.000,00', {reverse: true});
         });
     </script>
 @endpush

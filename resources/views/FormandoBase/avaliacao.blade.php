@@ -11,9 +11,13 @@
             name="formandobase_id" type="text" id="formandobase_id" value="{{ $model->id ?? null }}">
 
             <div class="form-group">
-            <label for="avaliacao">Avaliação em número de 01 a 10. Quanto mais alto melhor.</label>
-            <input required class="form-control @error('avaliacao') is-invalid @else is-valid @enderror" name="avaliacao"
-       type="number" step="0.01" id="avaliacao" min="1" max="10" value="{{ number_format($model->avaliacao ?? null, 2, '.', '') }}">
+            <label for="avaliacao">Avaliação em número de 1,00 a 10,00. Quanto mais alto melhor.</label>
+            <!-- <input required class="form-control @error('avaliacao') is-invalid @else is-valid @enderror" name="avaliacao" -->
+            <!-- type="number" step="0.01" id="avaliacao" min="1" max="10" value="{{ number_format($model->avaliacao ?? null, 2, '.', '') }}"> -->
+
+            <input required class="form-control money @error('avaliacao') is-invalid @else is-valid @enderror" name="avaliacao"
+                    type="decimal" step="0.01" id="avaliacao" min="1" max="10" value="{{ $mmodel->avaliacao ?? null }}">
+
 
             @error('avaliacao')
                 <div class="alert alert-danger">{{ $message }}</div>
