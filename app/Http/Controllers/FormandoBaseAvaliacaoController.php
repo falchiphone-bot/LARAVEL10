@@ -61,8 +61,21 @@ class FormandoBaseAvaliacaoController  extends Controller
 
     $model = $model->get();
 
+    $GerarPdf = null;
+    if ($request->has('pdf')) {
+        $GerarPdf = $request->input('pdf');
+    }
+    if($GerarPdf){
+    return view('FormandoBaseAvaliacao.indexpdf',compact('model'));
+    }
+    else{
+      return view('FormandoBaseAvaliacao.index',compact('model'));
+    }
 
-        return view('FormandoBaseAvaliacao.index',compact('model'));
+
+
+
+
     }
 
     /**
