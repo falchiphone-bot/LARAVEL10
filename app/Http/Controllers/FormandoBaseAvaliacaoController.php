@@ -93,25 +93,9 @@ class FormandoBaseAvaliacaoController  extends Controller
       $pdf->loadHtml($suaView);
 
       $pdf->render();
+      $pdf->stream('pdf_de_avaliacoes_formandos.pdf', array("Attachment" => false));
+     
 
-
-      if ($_SERVER["REQUEST_METHOD"] == "POST") {
-          // Verifique se o campo "pdfgerar" está definido na solicitação POST
-          if (isset($_POST["pdfgerar"])) {
-              // Acesse o valor selecionado com base no atributo "name"
-              $pdfgerado = $_POST["pdfgerar"];
-
-              if ($pdfgerado === "pdfdownload") {
-                  // Ação para o radio button com "value" igual a "pdfdownload"
-                  // Faça o que for necessário aqui
-                  $pdf->stream('pdf_de_avaliacoes_formandos.pdf', array("Attachment" => true));
-              } elseif ($pdfgerado === "pdfvisualizar") {
-                  // Ação para o radio button com "value" igual a "pdfvisualizar"
-                  // Faça o que for necessário aqui
-                  $pdf->stream('pdf_de_avaliacoes_formandos.pdf', array("Attachment" => false));
-              }
-          }
-      }
 
 
 

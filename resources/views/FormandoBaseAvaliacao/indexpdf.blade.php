@@ -22,10 +22,8 @@
                 </div>
 
         </div>
-
-
-        <tbody>
-
+ 
+<head>
     <style>
         /* Estilo para a tabela */
         table {
