@@ -86,9 +86,7 @@
                         <th scope="col" class="px-6 py-4">DATA</th>
                         <th scope="col" class="px-6 py-4">NOTA</th>
                         <th scope="col" class="px-6 py-4">NOME</th>
-                        <th scope="col" class="px-6 py-4"></th>
-                        <th scope="col" class="px-6 py-4"></th>
-                        <th scope="col" class="px-6 py-4"></th>
+
                     </tr>
                 </thead>
 
@@ -101,8 +99,12 @@
 
                         <td> {{ number_format($Model->avaliacao,2) }} </td>
 
+                        <td class="">
+                                    <a href="{{ route('FormandoBaseAvaliacao.index', ['formandobase_id' => $Model->MostraFormando->id]) }}">
+                                     {{ $Model->MostraFormando->nome }}
+                                 </td>
 
-                        @endforeach
+                    @endforeach
                 </tbody>
             </table>
             <div class="badge bg-primary text-wrap" style="width: 100%;">

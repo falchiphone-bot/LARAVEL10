@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\FormandoBaseAvaliacao;
 use App\Models\FormandoBasePosicoes;
-
+use Dompdf\Dompdf;
+use Dompdf\Options;
+use Dompdf\FrameDecorator;
 use Illuminate\Http\Request;
 
 
@@ -62,14 +64,57 @@ class FormandoBaseAvaliacaoController  extends Controller
     $model = $model->get();
 
     $GerarPdf = null;
-    if ($request->has('pdf')) {
-        $GerarPdf = $request->input('pdf');
+    if ($request->has('pdfgerar')) {
+        $GerarPdf = $request->input('pdfgerar');
     }
-    if($GerarPdf){
-    return view('FormandoBaseAvaliacao.indexpdf',compact('model'));
+    if(!$GerarPdf){
+      return view('FormandoBaseAvaliacao.index',compact('model'));
     }
     else{
-      return view('FormandoBaseAvaliacao.index',compact('model'));
+       $view = view('FormandoBaseAvaliacao.indexpdf',compact('model'))->render();
+
+
+      ob_start();
+      $suaView = $view;
+      // Imprima o conteúdo HTML
+      echo $suaView;
+
+// dd('parado');
+
+      $conteudoHTML = ob_get_clean();
+
+      $options = new Options();
+      $options->set('isHtml5ParserEnabled', true);
+      $options->set('isPhpEnabled', true);
+      $pdf = new Dompdf($options);
+
+      $suaView = $conteudoHTML;
+
+      $pdf->loadHtml($suaView);
+
+      $pdf->render();
+
+
+      if ($_SERVER["REQUEST_METHOD"] == "POST") {
+          // Verifique se o campo "pdfgerar" está definido na solicitação POST
+          if (isset($_POST["pdfgerar"])) {
+              // Acesse o valor selecionado com base no atributo "name"
+              $pdfgerado = $_POST["pdfgerar"];
+
+              if ($pdfgerado === "pdfdownload") {
+                  // Ação para o radio button com "value" igual a "pdfdownload"
+                  // Faça o que for necessário aqui
+                  $pdf->stream('pdf_de_avaliacoes_formandos.pdf', array("Attachment" => true));
+              } elseif ($pdfgerado === "pdfvisualizar") {
+                  // Ação para o radio button com "value" igual a "pdfvisualizar"
+                  // Faça o que for necessário aqui
+                  $pdf->stream('pdf_de_avaliacoes_formandos.pdf', array("Attachment" => false));
+              }
+          }
+      }
+
+
+
     }
 
 
