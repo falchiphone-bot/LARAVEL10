@@ -105,9 +105,11 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
     Route::resource('CentroCustos', App\Http\Controllers\CentroCustosController::class);
     Route::resource('ContasCentroCustos', App\Http\Controllers\ContasCentroCustosController::class);
 
+
+ # Contas a pagar
+ 
  # Formandos base
  Route::post('FormandoBase/indexBusca', [App\Http\Controllers\FormandoBaseController::class, 'indexBusca'])->name('FormandoBase.indexBusca');
-
  Route::post('FormandoBase/CreateArquivoFormandoBase', [App\Http\Controllers\FormandoBaseController::class, 'CreateArquivoFormandoBase'])->name('FormandoBase.ArquivoFormandoBase');
  Route::post('FormandoBase/CreateRecebimentoFormandoBase', [App\Http\Controllers\FormandoBaseController::class, 'CreateRecebimentoFormandoBase'])->name('FormandoBase.RecebimentoFormandoBase');
  Route::post('FormandoBase/CreateRedeSocialFormandoBase', [App\Http\Controllers\FormandoBaseController::class, 'CreateRedeSocialFormandoBase'])->name('FormandoBase.RedeSocialFormandoBase');
@@ -119,6 +121,8 @@ Route::resource('FormandoBase', App\Http\Controllers\FormandoBaseController::cla
 Route::resource('FormandoBasePosicoes', App\Http\Controllers\FormandoBasePosicoesController::class);
 Route::resource('FormandoBaseArquivos', App\Http\Controllers\FormandoBaseArquivosController::class);
 Route::resource('FormandoBaseAvaliacao', App\Http\Controllers\FormandoBaseAvaliacaoController::class);
+Route::resource('ContasPagar', App\Http\Controllers\ContasPagarController::class);
+
 
 # Formandos base recebimentos
 Route::get('FormandoBase/ConsultaFormandoBaseRecebimento/{id}', [App\Http\Controllers\FormandoBaseRecebimentosController::class, 'ConsultaFormandoBaseRecebimento'])->name('formandoBase.ConsultaFormandoBaseRecebimento');;

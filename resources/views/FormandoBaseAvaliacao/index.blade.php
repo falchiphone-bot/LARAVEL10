@@ -67,7 +67,7 @@
                 </div>
                 <p>
                 <div class="form-check form-check-inline">
-                    <input class="form-checkbox-input" type="checkbox" name="pdf" id="sort-by-pdf" value="pdf">
+                    <input class="form-checkbox-input" type="checkbox" name="pdfgerar" id="pdfgerar" value="pdfvisualizar">
                     <label class="form-checkbox-label" for="sort-by-name">Gerar arquivo PDF</label>
                 </div>
                 </p>

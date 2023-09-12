@@ -897,6 +897,31 @@ class LeituraArquivoController extends Controller
                 //     ]);
                 //     return redirect(route('LeituraArquivo.index'));
                 // }
+                $lancamentoCobranca = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
+                    ->where('EmpresaID', $Empresa)
+                    ->where('ContaDebitoID', $Conta)
+                    ->First();
+
+                    if ($lancamentoCobranca) {
+                        if (strpos(trim($Descricao), 'LIQ.COBRANCA SIMPLES') !== false) {
+
+
+                            if ($lancamentoCobranca->Valor != $valor_formatado) {
+
+                                Lancamento::where('id', $lancamentoCobranca->ID)->update([
+                                    'Valor' => $valor_formatado, 'Conferido' => true,]);
+
+                                if ($request->veralteradoliqcobrancasimples) {
+                                    echo $Descricao , 'O valor ' . $lancamentoCobranca->Valor . ' foi alterado para: ' . number_format($valor_formatado, 2, ',', '.');
+
+
+                                    dd('Forçado a alterar o valor para : ' . number_format($valor_formatado, 2, ',', '.'));
+                                }
+                            }
+                        }
+                    }
+
+
             }
 
             if ($Valor_Negativo) {
@@ -913,6 +938,11 @@ class LeituraArquivoController extends Controller
             $idDoLancamento = null;
             $CONSULTOU = 'NAO';
             $registrosLocalizados[] = null;
+
+
+
+
+
             if ($lancamento) {
                 if ($lancamento->Conferido) {
                     $CONSULTOU = 'SIM';
@@ -922,23 +952,7 @@ class LeituraArquivoController extends Controller
                     'Conferido' => true,
                 ]);
 
-                if (strpos(trim($Descricao), 'LIQ.COBRANCA SIMPLES') !== false) {
 
-
-                    if ($lancamento->Valor != $valor_formatado) {
-
-                        Lancamento::where('id', $lancamento->ID)->update([
-                            'Valor' => $valor_formatado
-                        ]);
-
-                        if ($request->veralteradoliqcobrancasimples) {
-                            echo $Descricao , 'O valor ' . $lancamento->Valor . ' foi alterado para: ' . number_format($valor_formatado, 2, ',', '.');
-
-
-                            dd('Forçado a alterar o valor para : ' . number_format($valor_formatado, 2, ',', '.'));
-                        }
-                    }
-                }
 
 
 
