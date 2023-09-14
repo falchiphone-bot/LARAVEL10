@@ -45,14 +45,7 @@ class ContasPagar extends Model
     protected $casts = [
         'EmpresaID' => 'integer',
         'Created' => 'integer',
-        'Modified' => 'integer',
-        'Planocontas_id' => 'integer',
-        'Usuarios_id' => 'integer',
-        'Bloqueiodataanterior' => 'date',
-        'Contapagamento' => 'integer',
-        'BalancoEncerrado' => 'integer',
-        'ContaPublica' => 'integer',
-        'Nota' => 'integer',
+
     ];
 
 
@@ -61,8 +54,18 @@ class ContasPagar extends Model
     //     return $this->belongsTo(PlanoConta::class, 'Planocontas_id','ID');
     // }
 
-    // public function Empresa(): HasOne
-    // {
-    //     return $this->hasOne(Empresa::class,'ID','EmpresaID');
-    // }
+    public function Empresa(): HasOne
+    {
+        return $this->hasOne(Empresa::class, 'ID', 'EmpresaID');
+    }
+
+    public function ContaDebito(): HasOne
+    {
+        return $this->hasOne(Conta::class, 'ID', 'ContaFornecedorID');
+    }
+
+    public function ContaCredito(): HasOne
+    {
+        return $this->hasOne(Conta::class, 'ID', 'ContaPagamentoID');
+    }
 }

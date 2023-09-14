@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\ContasPagar;
+use App\Models\Empresa;
+use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class ContasPagarController extends Controller
 {
@@ -22,11 +25,91 @@ class ContasPagarController extends Controller
 
     public function index()
     {
-        $contasPagar = ContasPagar::limit(200)->OrderBy('ID','desc')->get();
+        $contasPagar = ContasPagar::limit(100)->OrderBy('ID','desc')->get();
 
+        if ($contasPagar->count() > 0) {
+            session(['entrada' => 'A pesquisa abaixo mostra os 100 últimos lançamentos de todas as empresas autorizadas!']);
+            session(['success' => '']);
+            session(['error' => '']);
+        } else {
+            session(['error' => 'Nenhum lançamento encontrado para as empresas autorizadas!']);
+        }
 
-        return view('ContaPagar.index', compact('contasPagar'));
+        $retorno['DataInicial'] = date('Y-m-d');
+        $retorno['DataFinal'] = date('Y-m-d');
+        $retorno['EmpresaSelecionada'] = null;
+
+        $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+            ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+            ->OrderBy('Descricao')
+            ->select(['Empresas.ID', 'Empresas.Descricao'])
+            ->get();
+
+        return view('ContaPagar.index', compact('contasPagar', 'retorno', 'Empresas'));
     }
+
+    public function indexpost(Request $Request)
+    {
+        $CompararDataInicial = $Request->DataInicial;
+
+        $contasPagar = ContasPagar::Limit($Request->Limite ?? 100)
+            ->join('Contabilidade.EmpresasUsuarios', 'Lancamentos.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
+            ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', '=', 'Lancamentos.HistoricoID')
+            ->Where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+            ->select(['Lancamentos.ID', 'DataContabilidade', 'Lancamentos.Descricao', 'Lancamentos.EmpresaID', 'Contabilidade.Lancamentos.Valor', 'Historicos.Descricao as DescricaoHistorico', 'Lancamentos.ContaDebitoID', 'Lancamentos.ContaCreditoID'])
+            ->orderBy('Lancamentos.ID', 'desc');
+
+        if ($Request->Texto) {
+            $texto = $Request->Texto;
+            $contasPagar->where(function ($query) use ($texto) {
+                return $query->where('Lancamentos.Descricao', 'like', '%' . $texto . '%')->orWhere('Historicos.Descricao', 'like', '%' . $texto . '%');
+            });
+        }
+
+        if ($Request->Valor) {
+            $contasPagar->where('Lancamentos.Valor', '=', $Request->Valor);
+        }
+
+        if ($Request->DataInicial) {
+            $DataInicial = Carbon::createFromFormat('Y-m-d', $Request->DataInicial);
+            $contasPagar->where('DataContabilidade', '>=', $DataInicial->format('d/m/Y'));
+        }
+
+        if ($Request->DataFinal) {
+            $DataFinal = Carbon::createFromFormat('Y-m-d', $Request->DataFinal);
+            $contasPagar->where('DataContabilidade', '<=', $DataFinal->format('d/m/Y'));
+        }
+
+        $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+            ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+            ->OrderBy('Descricao')
+            ->select(['Empresas.ID', 'Empresas.Descricao'])
+            ->get();
+
+        $retorno = $Request->all();
+
+        if ($contasPagar->count() > 0) {
+            session(['success' => 'A pesquisa abaixo mostra os lançamentos de todas as empresas autorizadas conforme a pesquisa proposta!']);
+        } else {
+            session(['error' => 'Nenhum lançamento encontrado para as empresas autorizadas!']);
+        }
+
+        if ($Request->DataInicial && $Request->DataFinal) {
+            if ($DataInicial > $DataFinal) {
+                session(['error' => 'Data de início MAIOR que a final. VERIFIQUE!']);
+                return view('ContasPagar.index', compact('$contasPagar', 'retorno', 'Empresas'));
+            }
+        }
+
+        if ($Request->EmpresaSelecionada) {
+            $contasPagar->where('Lancamentos.EmpresaID', $Request->EmpresaSelecionada);
+        }
+
+        $contasPagar = $contasPagar->get();
+
+        return view('PlanoContas.pesquisaavancada', compact('pesquisa', 'retorno', 'Empresas'));
+    }
+
 
     public function create()
     {

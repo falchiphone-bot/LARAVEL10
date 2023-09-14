@@ -108,7 +108,8 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
 
  # Contas a pagar
  Route::resource('ContasPagar', App\Http\Controllers\ContasPagarController::class);
- 
+ Route::post('ContasPagar/indexpost', [App\Http\Controllers\ContasPagarController::class, 'indexpost'])->name('contaspagar.index.post');
+
  # Formandos base
  Route::post('FormandoBase/indexBusca', [App\Http\Controllers\FormandoBaseController::class, 'indexBusca'])->name('FormandoBase.indexBusca');
  Route::post('FormandoBase/CreateArquivoFormandoBase', [App\Http\Controllers\FormandoBaseController::class, 'CreateArquivoFormandoBase'])->name('FormandoBase.ArquivoFormandoBase');

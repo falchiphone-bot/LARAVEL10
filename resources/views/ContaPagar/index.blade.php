@@ -44,10 +44,93 @@
 
             </div>
 
+            <form method="POST" action="{{ route('contaspagar.index.post') }}" accept-charset="UTF-8">
+                    @csrf
+
+                    <div class="card">
+                        <div class="card-body" style="background-color: rgb(33, 244, 33)">
+                            <div class="row">
+                                <div class="col-6">
+
+                                    <label for="Texto" style="color: black;">Texto a pesquisar</label>
+                                    <input class="form-control @error('Descricao') is-invalid @else is-valid @enderror"
+                                        name="Texto" size="70" type="text" id="Texto"
+                                        value="{{ $retorno['Texto'] ?? null }}">
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-2">
+
+                                    <label for="Valor" style="color: black;">Valor a pesquisar</label>
+                                    <input class="form-control @error('Valor') is-invalid @else is-valid @enderror"
+                                        name="Valor" size="30" type="number" step="0.01" id="Valor"
+                                        value="{{ $retorno['Valor'] ?? null }}">
+                                </div>
+
+                                <div class="col-2">
+
+                                    <label for="DataInicial" style="color: black;">Data inicial</label>
+                                    <input class="form-control @error('DataInicial') is-invalid @else is-valid @enderror"
+                                        name="DataInicial" size="30" type="date" step="1" id="DataInicial"
+                                        value="{{ $retorno['DataInicial'] ?? null }}">
+                                </div>
+
+                                <div class="col-2">
+
+                                    <label for="DataFinal" style="color: black;">Data final</label>
+                                    <input class="form-control @error('DataFinal') is-invalid @else is-valid @enderror"
+                                        name="DataFinal" size="30" type="date" step="1" id="DataFinal"
+                                        value="{{ $retorno['DataFinal'] ?? null }}">
+                                </div>
+
+                                <div class="col-3">
+
+                                    <label for="Limite" style="color: black;">Limite de registros para retorno</label>
+                                    <input class="form-control @error('limite') is-invalid @else is-valid @enderror"
+                                        name="Limite" size="30" type="number" step="1" id="Limite"
+                                        value="{{ $retorno['Limite'] ?? null }}">
+                                </div>
+
+
+                                <div class="col-3">
+                                    <label for="Limite" style="color: black;">Empresas permitidas para o usuário</label>
+                                    <select class="form-control select2" id="EmpresaSelecionada" name="EmpresaSelecionada">
+                                        <option value="">
+                                            Selecionar empresa
+                                        </option>
+                                        @foreach ($Empresas as $Empresa)
+                                            <option @if ($retorno['EmpresaSelecionada'] == $Empresa->ID) selected @endif
+                                                value="{{ $Empresa->ID }}">
+
+                                                {{ $Empresa->Descricao }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-6">
+                                    <button class="btn btn-primary">Pesquisar conforme informações constantes do
+                                        formulário</button>
+
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+
+                </form>
+
+
+
             <table class="table">
 
                             <tr>
-                                <th scope="col" class="px-6 py-4">EmpresaID</th>
+                                <th scope="col" class="px-6 py-4">Empresa</th>
 
                                 <th scope="col" class="px-6 py-4">Programado/Contabilidade</th>
                                 <th scope="col" class="px-6 py-4">Valor</th>
@@ -62,23 +145,23 @@
 
                             <tr>
                                     <td class="">
-                                        {{ $conta->EmpresaID }}
+                                        {{ $conta->Empresa->Descricao }}
                                     </td>
 
                                     <td class="">
                                       {{ \Carbon\Carbon::createFromFormat('Y-m-d', $conta->DataProgramacao)->format('d/m/Y') }}
 
                                     </td>
-                                    <td class="">
-                                        {{ $conta->Valor }}
+                                    <td class="text-end">
+                                         {{ number_format($conta->Valor, 2, ',', '.') }}
                                     </td>
                                     </td>
                                     <td class="">
-                                        {{ $conta->ContaFornecedorID }}
+                                        {{ $conta->ContaDebito->PlanoConta->Descricao}}
                                     </td>
 
                                     <td class="">
-                                        {{ $conta->ContaPagamentoID }}
+                                        {{ $conta->ContaCredito->PlanoConta->Descricao }}
                                     </td>
                                     <td class="">
                                         {{ \Carbon\Carbon::createFromFormat('Y-m-d', $conta->DataVencimento)->format('d/m/Y') }}
