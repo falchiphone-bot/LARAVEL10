@@ -107,6 +107,7 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
 
 
  # Contas a pagar
+ Route::resource('ContasPagar', App\Http\Controllers\ContasPagarController::class);
  
  # Formandos base
  Route::post('FormandoBase/indexBusca', [App\Http\Controllers\FormandoBaseController::class, 'indexBusca'])->name('FormandoBase.indexBusca');
@@ -121,7 +122,7 @@ Route::resource('FormandoBase', App\Http\Controllers\FormandoBaseController::cla
 Route::resource('FormandoBasePosicoes', App\Http\Controllers\FormandoBasePosicoesController::class);
 Route::resource('FormandoBaseArquivos', App\Http\Controllers\FormandoBaseArquivosController::class);
 Route::resource('FormandoBaseAvaliacao', App\Http\Controllers\FormandoBaseAvaliacaoController::class);
-Route::resource('ContasPagar', App\Http\Controllers\ContasPagarController::class);
+
 
 
 # Formandos base recebimentos

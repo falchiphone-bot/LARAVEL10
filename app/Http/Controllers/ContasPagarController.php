@@ -22,10 +22,10 @@ class ContasPagarController extends Controller
 
     public function index()
     {
-        $contasPagar = ContasPagar::limit(200)->get();
+        $contasPagar = ContasPagar::limit(200)->OrderBy('ID','desc')->get();
 
 
-        return view('ContasPagar.index', compact('contasPagar'));
+        return view('ContaPagar.index', compact('contasPagar'));
     }
 
     public function create()

@@ -4,20 +4,21 @@
         <div class="container">
 
 
+
             <div class="card">
                 <div class="card-header">
                     <div class="badge bg-success text-wrap" style="width: 100%;">
-                        CONTAS COBRANCA PARA O SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
+                        CONTAS A PAGAR PARA O SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
                     </div>
                 </div>
 
-                @can('CONTASCOBRANCA - INCLUIR')
-                    <a href="{{ route('ContasCobranca.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
-                        aria-disabled="true">Incluir Conta de Cobrança</a>
+                @can('CONTASPAGAR - INCLUIR')
+                    <a href="{{ route('ContasPagar.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
+                        aria-disabled="true">Incluir Contas a pagar  </a>
                 @endcan
 
                 <div class="card-body">
-                    <a href="/Cobranca" class="btn btn-warning">Retornar para opções anteriores</a>
+                    <a href="/dashboard" class="btn btn-warning">Retornar para opções anteriores</a>
 
                     @if (session('success'))
                         <div class="alert alert-success">
@@ -29,7 +30,7 @@
                         </div>
                     @endif
                     <div class="card-header mix-blend-color-burn">
-                    <p>Total de Contas cobrança: {{ $contasCobrancas->count() }}</p>
+                    <p>Total de Contas a pagar: {{ $contasPagar->count() }}</p>
                 </div>
                     <div class="card-header">
                     <div class="badge bg-warning text-wrap" style="width: 100%;">
@@ -49,9 +50,11 @@
                         </thead>
 
                         <tbody>
-                            @foreach ($contasCobrancas as $conta)
+                            @foreach ($contasPagar as $conta)
+
+                            @DD($conta)
                                 <tr>
-                                    <td class="">
+                                    <!-- <td class="">
                                         {{ $conta->Empresa->Descricao }}
                                     </td>
                                     <td class="">
@@ -67,12 +70,12 @@
                                         {{ $conta->associadobeneficiario }}
                                     </td>
                                     <td>
-                                        @can('CONTASCOBRANCA - EDITAR')
-                                            <a href="{{ route('ContasCobranca.edit', $conta->id) }}" class="btn btn-success"
+                                        @can('CONTASPAGAR - EDITAR')
+                                            <a href="{{ route('ContasPagar.edit', $conta->id) }}" class="btn btn-success"
                                                 tabindex="-1" role="button" aria-disabled="true">Editar</a>
                                         @endcan
                                     </td>
-                                </tr>
+                                </tr> -->
                             @endforeach
                         </tbody>
                     </table>
