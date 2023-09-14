@@ -53,31 +53,30 @@ class ContasPagarController extends Controller
         $CompararDataInicial = $Request->DataInicial;
 
         $contasPagar = ContasPagar::Limit($Request->Limite ?? 100)
-            ->join('Contabilidade.EmpresasUsuarios', 'Lancamentos.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
-            ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', '=', 'Lancamentos.HistoricoID')
+            ->join('Contabilidade.EmpresasUsuarios', 'ContasPagar.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
             ->Where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
-            ->select(['Lancamentos.ID', 'DataContabilidade', 'Lancamentos.Descricao', 'Lancamentos.EmpresaID', 'Contabilidade.Lancamentos.Valor', 'Historicos.Descricao as DescricaoHistorico', 'Lancamentos.ContaDebitoID', 'Lancamentos.ContaCreditoID'])
-            ->orderBy('Lancamentos.ID', 'desc');
+            // ->select(['Lancamentos.ID', 'DataContabilidade', 'Lancamentos.Descricao', 'Lancamentos.EmpresaID', 'Contabilidade.Lancamentos.Valor', 'Historicos.Descricao as DescricaoHistorico', 'Lancamentos.ContaDebitoID', 'Lancamentos.ContaCreditoID'])
+            ->orderBy('ContasPagar.ID', 'desc');
 
         if ($Request->Texto) {
             $texto = $Request->Texto;
             $contasPagar->where(function ($query) use ($texto) {
-                return $query->where('Lancamentos.Descricao', 'like', '%' . $texto . '%')->orWhere('Historicos.Descricao', 'like', '%' . $texto . '%');
+                return $query->where('ContasPagar.Descricao', 'like', '%' . $texto . '%');
             });
         }
 
         if ($Request->Valor) {
-            $contasPagar->where('Lancamentos.Valor', '=', $Request->Valor);
+            $contasPagar->where('ContasPagar.Valor', '=', $Request->Valor);
         }
 
         if ($Request->DataInicial) {
             $DataInicial = Carbon::createFromFormat('Y-m-d', $Request->DataInicial);
-            $contasPagar->where('DataContabilidade', '>=', $DataInicial->format('d/m/Y'));
+            $contasPagar->where('ContasPagar.DataProgramacao', '>=', $DataInicial->format('d/m/Y'));
         }
 
         if ($Request->DataFinal) {
             $DataFinal = Carbon::createFromFormat('Y-m-d', $Request->DataFinal);
-            $contasPagar->where('DataContabilidade', '<=', $DataFinal->format('d/m/Y'));
+            $contasPagar->where('ContasPagar.DataProgramacao', '<=', $DataFinal->format('d/m/Y'));
         }
 
         $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
@@ -102,12 +101,12 @@ class ContasPagarController extends Controller
         }
 
         if ($Request->EmpresaSelecionada) {
-            $contasPagar->where('Lancamentos.EmpresaID', $Request->EmpresaSelecionada);
+            $contasPagar->where('ContasPagar.EmpresaID', $Request->EmpresaSelecionada);
         }
 
         $contasPagar = $contasPagar->get();
 
-        return view('PlanoContas.pesquisaavancada', compact('pesquisa', 'retorno', 'Empresas'));
+        return view('ContaPagar.index', compact('contasPagar', 'retorno', 'Empresas'));
     }
 
 
