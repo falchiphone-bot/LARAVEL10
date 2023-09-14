@@ -41,41 +41,41 @@
                         <thead>
                             <tr>
                                 <th scope="col" class="px-6 py-4">EmpresaID</th>
-                                <th scope="col" class="px-6 py-4">Conta</th>
-                                <th scope="col" class="px-6 py-4">Agencia</th>
-                                <th scope="col" class="px-6 py-4">Posto</th>
-                                <th scope="col" class="px-6 py-4">Associado Beneficiário</th>
-                                <th scope="col" class="px-6 py-4">#</th>
+                                <th scope="col" class="px-6 py-4">Data</th>
+                                <th scope="col" class="px-6 py-4">Conta Pagar</th>
+                                <th scope="col" class="px-6 py-4">Conta de pagamento</th>
+                                <th scope="col" class="px-6 py-4">Vencimento</th>
+                                <th scope="col" class="px-6 py-4">Programado</th>
                             </tr>
                         </thead>
 
                         <tbody>
                             @foreach ($contasPagar as $conta)
 
-                            @DD($conta)
+                            <!-- @DD($conta) -->
                                 <tr>
-                                    <!-- <td class="">
-                                        {{ $conta->Empresa->Descricao }}
+                                    <td class="">
+                                        {{ $conta->EmpresaID }}
                                     </td>
                                     <td class="">
-                                        {{ $conta->conta }}
+                                        {{ $conta->DataDocumento }}
                                     </td>
                                     <td class="">
-                                        {{ $conta->agencia }}
+                                        {{ $conta->ContaFornecedorID }}
                                     </td>
                                     <td class="">
-                                        {{ $conta->posto }}
+                                        {{ $conta->ContaPagamentoID }}
                                     </td>
                                     <td class="">
-                                        {{ $conta->associadobeneficiario }}
+                                        {{ $conta->DataProgramacao }}
                                     </td>
                                     <td>
                                         @can('CONTASPAGAR - EDITAR')
-                                            <a href="{{ route('ContasPagar.edit', $conta->id) }}" class="btn btn-success"
+                                            <a href="{{ route('ContasPagar.edit', $conta->ID) }}" class="btn btn-success"
                                                 tabindex="-1" role="button" aria-disabled="true">Editar</a>
                                         @endcan
                                     </td>
-                                </tr> -->
+                                </tr>
                             @endforeach
                         </tbody>
                     </table>
