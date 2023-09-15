@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\ContasPagar;
 use App\Models\Empresa;
+use App\Models\Lancamento;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -18,7 +19,7 @@ class ContasPagarController extends Controller
         $this->middleware(['permission:CONTASPAGAR - LISTAR'])->only('index');
         $this->middleware(['permission:CONTASPAGAR - INCLUIR'])->only(['create', 'store']);
         $this->middleware(['permission:CONTASPAGAR - EDITAR'])->only(['edit', 'update']);
-        $this->middleware(['permission:CONTASPAGAR - VER'])->only(['edit', 'update']);
+        $this->middleware(['permission:CONTASPAGAR - VER'])->only(['show', ]);
         $this->middleware(['permission:CONTASPAGAR - EXCLUIR'])->only('destroy');
     }
 
@@ -153,7 +154,54 @@ class ContasPagarController extends Controller
 
 
 
+        $LancamentoID = $contasPagar->LancamentoID;
 
+        $Lancamento = Lancamento::find($LancamentoID);
+        if($Lancamento){
+
+
+            $DataContabilidade = $request->input('DataProgramacao');
+            if ($DataContabilidade) {
+
+                $carbonData = Carbon::createFromFormat('Y-m-d', $DataContabilidade);
+
+
+                $dataContabilidade = $carbonData->format('d/m/Y');
+            } else {
+                $dataContabilidade = null; // Define $dataContabilidade como nulo se a data da solicitação for nula
+            }
+
+            $EmpresaBloqueada = Empresa::where('ID', '=', $Lancamento->EmpresaID)->first();
+
+            $data_lancamento_bloqueio_empresa = $EmpresaBloqueada->Bloqueiodataanterior;
+            if ($data_lancamento_bloqueio_empresa->greaterThanOrEqualTo($DataContabilidade)) {
+                session([
+                    'Lancamento' =>
+                        'Conta DÉBITO: ' .
+                        $EmpresaBloqueada->Descricao .
+                        ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                     da empresa para seguir este procedimento. Bloqueada para até ' .
+                        $EmpresaBloqueada.  '  - CÓDIGO L198'
+
+                ]);
+                return redirect()->route('ContasPagar.edit',$id);
+            }
+
+
+
+
+
+            $Lancamento->update([
+                'Descricao' => $request->input('Descricao'),
+                'Valor' => $request->input('Valor'),
+                'DataContabilidade' =>  $DataContabilidade,
+                'NumTitulo' => $request->input('NumTitulo') ?? null,
+            ]);
+            $Lancamento->save();
+        }else{
+           ;
+            session(['contabilidade' => 'Lançamento não encontrado na contabilidade!']);
+        };
 
         $contasPagar->update([
             'Descricao' => $request->input('Descricao'),
@@ -164,10 +212,9 @@ class ContasPagarController extends Controller
             'NumTitulo' => $request->input('NumTitulo') ?? null,
         ]);
 
-
         $contasPagar->save();
 
-        return redirect()->route('ContasPagar.edit',$id)->with('success', 'Conta a pagar atualizada com sucesso!');
+        return redirect()->route('ContasPagar.edit',$id)->with('success', 'Conta a pagar atualizada com sucesso!','error');
     }
 
     public function destroy($id)
