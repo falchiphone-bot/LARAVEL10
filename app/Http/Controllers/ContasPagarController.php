@@ -2,12 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+
 use App\Models\ContasPagar;
+use App\Helpers\SaldoLancamentoHelper;
+use App\Http\Requests\CentroCustosCreateRequest;
+use App\Http\Requests\ContasCentroCustosCreateRequest;
+use App\Models\CentroCustos;
+use App\Models\Conta;
+use App\Models\ContasCentroCustos;
 use App\Models\Empresa;
 use App\Models\Lancamento;
-use Illuminate\Support\Facades\Auth;
+use App\Models\PlanoConta;
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon as SupportCarbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+ use Dompdf\Dompdf;
 
 class ContasPagarController extends Controller
 {
@@ -137,8 +150,17 @@ class ContasPagarController extends Controller
             ->get();
 
 
-        // DD($contasPagar);
-        return view('ContaPagar.edit', compact('contasPagar', 'Empresas', 'id'));
+            $ContaDebito = Conta::
+        join('Contabilidade.PlanoContas','PlanoContas.ID','=','Contas.Planocontas_id')
+        ->join('Contabilidade.Empresas','Empresas.ID','=','Contas.EmpresaID')
+        ->where ('Contas.EmpresaID','=',$contasPagar->EmpresaID)
+        ->select('Contas.ID',DB::raw("CONCAT(PlanoContas.Descricao,' | ', Empresas.Descricao) as Descricao"))
+        ->orderby('PlanoContas.Descricao')
+        ->get();
+
+
+
+        return view('ContaPagar.edit', compact('contasPagar', 'Empresas', 'id','ContaDebito'));
 
     }
 
