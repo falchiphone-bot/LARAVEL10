@@ -70,7 +70,8 @@ class ContasPagarController extends Controller
             ->join('Contabilidade.EmpresasUsuarios', 'ContasPagar.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
             ->Where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
             // ->select(['Lancamentos.ID', 'DataContabilidade', 'Lancamentos.Descricao', 'Lancamentos.EmpresaID', 'Contabilidade.Lancamentos.Valor', 'Historicos.Descricao as DescricaoHistorico', 'Lancamentos.ContaDebitoID', 'Lancamentos.ContaCreditoID'])
-            ->orderBy('ContasPagar.ID', 'desc');
+            ->select(['ContasPagar.ID', 'DataProgramacao', 'ContasPagar.Descricao', 'ContasPagar.EmpresaID', 'ContasPagar.Valor', 'ContasPagar.DataVencimento', 'ContasPagar.DataDocumento', 'ContasPagar.NumTitulo', 'ContasPagar.ContaFornecedorID', 'ContasPagar.ContaPagamentoID'])
+            ;
 
         if ($Request->Texto) {
             $texto = $Request->Texto;
@@ -80,7 +81,7 @@ class ContasPagarController extends Controller
         }
 
         if ($Request->Valor) {
-            $contasPagar->where('ContasPagar.Valor', '=', $Request->Valor);
+            $contasPagar->where('ContasPagar.Valor', '>=', $Request->Valor);
         }
 
         if ($Request->DataInicial) {
@@ -118,7 +119,9 @@ class ContasPagarController extends Controller
             $contasPagar->where('ContasPagar.EmpresaID', $Request->EmpresaSelecionada);
         }
 
-        $contasPagar = $contasPagar->get();
+        $contasPagar = $contasPagar
+        ->orderBy('Valor', 'asc')
+        ->get();
 
         return view('ContaPagar.index', compact('contasPagar', 'retorno', 'Empresas'));
     }
@@ -139,20 +142,25 @@ class ContasPagarController extends Controller
         // Lógica para exibir um registro específico
     }
 
-    public function edit($id)
+    public function edit($id, Request $request)
     {
+
+        // $id = $request->ID;
         $contasPagar = ContasPagar::find($id);
+
+        if ($contasPagar == null) {
+
+            session(['error' => 'ID não localizado. VERIFIQUE! CÓDIGO L233']);
+
+            return redirect()->route('ContasPagar.index');
+        }
+
 
         $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
             ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
             ->OrderBy('Descricao')
             ->select(['Empresas.ID', 'Empresas.Descricao'])
             ->get();
-
-
-
-
-
 
 
             $ContaFornecedor = Conta::

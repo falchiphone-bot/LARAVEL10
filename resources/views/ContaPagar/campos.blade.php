@@ -1,7 +1,15 @@
    @csrf
    <div class="card">
        <div class="card-body">
-
+       <div class="row">
+               <div class="col-12">
+                   <label for="ID" Empresa</label>
+                       <input class="form-control @error('ID') is-invalid @else is-valid @enderror" name="ID" type="int" id="ID" value="{{$contasPagar->ID??null}}" disabled>
+                       @error('EmpresaID')
+                       <div class="alert alert-danger">{{ $message }}</div>
+                       @enderror
+               </div>
+           </div>
            <div class="row">
                <div class="col-12">
                    <label for="EmpresaID" Empresa</label>
@@ -100,7 +108,7 @@
                    @endif
                </select>
            </div>
- 
+
 
            <div class="row mt-2">
                <div class="col-6">

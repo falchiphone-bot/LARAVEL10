@@ -168,8 +168,7 @@
 
                                     </td>
                                     <td class="">
-
-                                    {{ \Carbon\Carbon::createFromFormat('Y-m-d', substr($conta->DataVencimento, 0, 9))->format('d/m/Y') }}
+                                          {{ \Carbon\Carbon::createFromFormat('Y-m-d', substr($conta->DataVencimento, 0, 9))->format('d/m/Y') }}
                                     </td>
                                     <td>
                                         @can('CONTASPAGAR - EDITAR')
