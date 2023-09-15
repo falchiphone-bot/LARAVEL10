@@ -150,7 +150,12 @@ class ContasPagarController extends Controller
             ->get();
 
 
-            $ContaDebito = Conta::
+
+
+
+
+
+            $ContaFornecedor = Conta::
         join('Contabilidade.PlanoContas','PlanoContas.ID','=','Contas.Planocontas_id')
         ->join('Contabilidade.Empresas','Empresas.ID','=','Contas.EmpresaID')
         ->where ('Contas.EmpresaID','=',$contasPagar->EmpresaID)
@@ -159,8 +164,16 @@ class ContasPagarController extends Controller
         ->get();
 
 
+        $ContaPagamento = Conta::
+        join('Contabilidade.PlanoContas','PlanoContas.ID','=','Contas.Planocontas_id')
+        ->join('Contabilidade.Empresas','Empresas.ID','=','Contas.EmpresaID')
+        ->where ('Contas.EmpresaID','=',$contasPagar->EmpresaID)
+        ->select('Contas.ID',DB::raw("CONCAT(PlanoContas.Descricao,' | ', Empresas.Descricao) as Descricao"))
+        ->orderby('PlanoContas.Descricao')
+        ->get();
 
-        return view('ContaPagar.edit', compact('contasPagar', 'Empresas', 'id','ContaDebito'));
+
+        return view('ContaPagar.edit', compact('contasPagar', 'Empresas', 'id','ContaFornecedor','ContaPagamento'));
 
     }
 
@@ -193,6 +206,39 @@ class ContasPagarController extends Controller
                 $dataContabilidade = null; // Define $dataContabilidade como nulo se a data da solicitação for nula
             }
 
+
+
+            $data_lancamento_bloqueio_debito = $contasPagar->ContaDebito->Bloqueiodataanterior;
+
+
+            if ($data_lancamento_bloqueio_debito !== null && $data_lancamento_bloqueio_debito->greaterThanOrEqualTo($DataContabilidade)) {
+                // O código aqui será executado se $data_lancamento_bloqueio_debito não for nulo e for maior ou igual a $DataContabilidade
+                session([
+                    'Lancamento' =>
+                        'Conta DÉBITO: ' .
+                        $contasPagar->ContaDebito->PlanoConta->Descricao .
+                        ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                     da conta para seguir este procedimento. Bloqueada para até ' .
+                        $data_lancamento_bloqueio_debito->format('d/m/Y').  '  - CÓDIGO L233'
+                ]);
+                return redirect()->route('ContasPagar.edit', $id);
+            }
+
+            $data_lancamento_bloqueio_credito = $contasPagar->ContaCredito->Bloqueiodataanterior;
+            if ($data_lancamento_bloqueio_credito !== null && $data_lancamento_bloqueio_credito->greaterThanOrEqualTo($DataContabilidade)) {
+                // O código aqui será executado se $data_lancamento_bloqueio_debito não for nulo e for maior ou igual a $DataContabilidade
+                session([
+                    'Lancamento' =>
+                        'Conta CRÉDITO: ' .
+                        $contasPagar->ContaCredito->PlanoConta->Descricao .
+                        ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                     da conta para seguir este procedimento. Bloqueada para até ' .
+                        $data_lancamento_bloqueio_credito->format('d/m/Y').  '  - CÓDIGO L236'
+                ]);
+                return redirect()->route('ContasPagar.edit', $id);
+            }
+
+
             $EmpresaBloqueada = Empresa::where('ID', '=', $Lancamento->EmpresaID)->first();
 
             $data_lancamento_bloqueio_empresa = $EmpresaBloqueada->Bloqueiodataanterior;
@@ -212,12 +258,13 @@ class ContasPagarController extends Controller
 
 
 
-
             $Lancamento->update([
                 'Descricao' => $request->input('Descricao'),
                 'Valor' => $request->input('Valor'),
                 'DataContabilidade' =>  $DataContabilidade,
                 'NumTitulo' => $request->input('NumTitulo') ?? null,
+                'ContaDebitoID' => $request->input('ContaFornecedorID') ?? null,
+                'ContaCreditoID' => $request->input('ContaPagamentoID') ?? null,
             ]);
             $Lancamento->save();
         }else{
@@ -232,6 +279,8 @@ class ContasPagarController extends Controller
             'DataVencimento' => $request->input('DataVencimento')   ?? null,
             'DataDocumento' =>  $request->input('DataDocumento') ?? null,
             'NumTitulo' => $request->input('NumTitulo') ?? null,
+            'ContaFornecedorID' => $request->input('ContaFornecedorID') ?? null,
+            'ContaPagamentoID' => $request->input('ContaPagamentoID') ?? null,
         ]);
 
         $contasPagar->save();
