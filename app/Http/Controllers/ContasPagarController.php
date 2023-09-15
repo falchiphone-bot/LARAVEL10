@@ -127,12 +127,47 @@ class ContasPagarController extends Controller
 
     public function edit($id)
     {
-        // Lógica para exibir o formulário de edição
+        $contasPagar = ContasPagar::find($id);
+
+        $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+            ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+            ->OrderBy('Descricao')
+            ->select(['Empresas.ID', 'Empresas.Descricao'])
+            ->get();
+
+
+        // DD($contasPagar);
+        return view('ContaPagar.edit', compact('contasPagar', 'Empresas', 'id'));
+
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, string $id)
     {
-        // Lógica para atualizar um registro específico
+
+
+        $contasPagar = ContasPagar::find($id);
+
+        if (!$contasPagar) {
+             dd('Conta a pagar não encontrada!', 'ID: ' . $id, 'ContasPagarController@update');
+        }
+
+
+
+
+
+        $contasPagar->update([
+            'Descricao' => $request->input('Descricao'),
+            'Valor' => $request->input('Valor'),
+            'DataProgramacao' => $request->input('DataProgramacao') ?? null,
+            'DataVencimento' => $request->input('DataVencimento')   ?? null,
+            'DataDocumento' =>  $request->input('DataDocumento') ?? null,
+            'NumTitulo' => $request->input('NumTitulo') ?? null,
+        ]);
+
+
+        $contasPagar->save();
+
+        return redirect()->route('ContasPagar.edit',$id)->with('success', 'Conta a pagar atualizada com sucesso!');
     }
 
     public function destroy($id)

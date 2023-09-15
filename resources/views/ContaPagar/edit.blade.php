@@ -9,8 +9,18 @@
             </ol>
           </nav> --}}
 
+          @if (session('success'))
+                <div class="alert alert-success">
+                    {{ session('success') }}
+                </div>
+                @elseif (session('error'))
+                <div class="alert alert-danger">
+                    {{ session('error') }}
+                </div>
+                @endif
+
         <div class="card">
-        <h1 class="text-center">Edição da conta</h1>
+        <h1 class="text-center">Edição de Contas a pagar</h1>
 <hr>
 @if ($errors->any())
     <div class="alert alert-danger">
@@ -21,9 +31,11 @@
         </ul>
     </div>
 @endif
-<form method="POST" action="{{route('Contas.update',$cadastro->ID)}}" accept-charset="UTF-8">
+
+
+<form method="POST" action="{{route('ContasPagar.update', $contasPagar->ID)}}" accept-charset="UTF-8"> 
     <input type="hidden" name="_method" value="PUT">
-    @include('Contas.campos')
+    @include('ContaPagar.campos')
 </form>
 
 @endsection
