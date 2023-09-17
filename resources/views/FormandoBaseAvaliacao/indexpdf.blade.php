@@ -9,7 +9,7 @@
 
         /* Estilo para as células do cabeçalho */
         th {
-            background-color: #007BFF;
+            background-color: green;
             /* Cor de fundo do cabeçalho */
             color: white;
             /* Cor do texto do cabeçalho */
