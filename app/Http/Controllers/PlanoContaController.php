@@ -505,16 +505,6 @@ foreach ($dados as $registro) {
     }
 }
 
-// Agora, $registrosAgrupados contém os registros agrupados por 'Descricao' com as somas dos campos relevantes
-
-// Exemplo de impressão do resultado
-// foreach ($registrosAgrupados as $descricao => $registro) {
-//     echo "Descrição: $descricao\n";
-//     echo "Saldo Atual: " . $registro["SaldoAtual"] . "\n";
-//     echo "Valor Recebido: " . $registro["ValorRecebido"] . "\n";
-//     // Exiba qualquer outro campo que você deseja aqui
-//     echo "\n";
-// }
 
 $somaPercentual = 0;
 foreach($registrosAgrupados as $soma)
@@ -533,8 +523,13 @@ if($Despesas && $Receitas)
 }
 
 
+$pdf1 = null;
+
         if ($pdfgerar) {
-            $view = view('PlanoContas.BalanceteEmpresaphp', compact(
+
+            if($pdf1)
+{
+  $view = view('PlanoContas.BalanceteEmpresaphp', compact(
                 'retorno',
                 "ValorRecebido",
                 'somaSaldoAtual',
@@ -547,7 +542,27 @@ if($Despesas && $Receitas)
                 'somaPercentual'
             ))->render();
 
-            ob_start();
+}
+
+
+
+            $view = view('PlanoContas.BalanceteEmpresapdfpaginado', compact(
+                'retorno',
+                "ValorRecebido",
+                'somaSaldoAtual',
+                'contasEmpresa',
+                'somaSaldoAtualAtivo',
+                'somaSaldoAtualReceitas',
+                'somaSaldoAtualDespesas',
+                'somaSaldoAtualPassivo',
+                'ResultadoReceitasDespesas',
+                'somaPercentual'
+            ))->render();
+
+
+IF($pdf1)
+{
+    ob_start();
             $suaView = $view;
             // Imprima o conteúdo HTML
             echo $suaView;
@@ -565,8 +580,7 @@ if($Despesas && $Receitas)
 
             $pdf->render();
 
-
-            if ($_SERVER["REQUEST_METHOD"] == "POST") {
+  if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // Verifique se o campo "pdfgerar" está definido na solicitação POST
                 if (isset($_POST["pdfgerar"])) {
                     // Acesse o valor selecionado com base no atributo "name"
@@ -583,6 +597,34 @@ if($Despesas && $Receitas)
                     }
                 }
             }
+
+
+
+        }
+
+        ob_start();
+        $suaView = $view;
+        // Imprima o conteúdo HTML
+        echo $suaView;
+
+  // dd('parado');
+
+        $conteudoHTML = ob_get_clean();
+
+        $options = new Options();
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isPhpEnabled', true);
+        $pdf = new Dompdf($options);
+
+        $suaView = $conteudoHTML;
+
+        $pdf->loadHtml($suaView);
+
+        $pdf->render();
+        $pdf->stream('Balancete.pdf', array("Attachment" => false));
+
+
+
 
 
 

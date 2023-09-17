@@ -1,115 +1,98 @@
+<!DOCTYPE html>
+<html>
 
-{{-- <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-              <li class="breadcrumb-item"><a href="#">Permissions</a></li>
-              <li class="breadcrumb-item active" aria-current="page">edit</li>
-            </ol>
-          </nav> --}}
+<head>
+    <style>
+        /* Estilo para a tabela */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
 
-<div class="card">
+        /* Estilo para as células do cabeçalho */
+        th {
+            background-color: green;
+            /* Cor de fundo do cabeçalho */
+            color: white;
+            /* Cor do texto do cabeçalho */
+            border: 2px solid #333;
+            /* Borda do cabeçalho */
+            padding: 10px;
+            /* Espaçamento interno do cabeçalho */
+        }
 
+        /* Estilo para as células dos dados */
+        td {
+            background-color: #F2F2F2;
+            /* Cor de fundo das células de dados */
+            border: 1px solid #333;
+            /* Borda das células de dados */
+            padding: 8px;
+            /* Espaçamento interno das células de dados */
+        }
 
-    <!DOCTYPE html>
-    <html>
+        /* Estilo para o cabeçalho repetido em cada página */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: green;
+            color: white;
+            text-align: center;
+            padding: 10px;
+        }
 
-    <head>
-        <style>
-            table {
-                background-color: #e0f2e9;
-                /* Fundo verde claro */
-                border-collapse: collapse;
-                width: 100%;
-            }
+        /* Estilo para o rodapé repetido em cada página */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: green;
+            color: white;
+            text-align: center;
+            padding: 10px;
+        }
 
-            th,
-            td {
-                border: 3px solid #dddddd;
-                text-align: left;
-                padding: 3px;
-            }
+        /* Define os cabeçalhos e rodapés nas páginas impressas */
+        @page {
+            margin: 100px 25px 100px 25px;
+        }
 
-            th {
-                background-color: #e6f7ff;
-                /* Fundo azul claro para cabeçalho */
-                color: #003366;
-                /* Texto em azul escuro para cabeçalho */
-            }
+        @page :first {
+            margin-top: 0;
+        }
+    </style>
+</head>
 
-            td {
-                background-color: #ffffff;
-                /* Fundo branco para células de dados */
-                color: #003366;
-                /* Texto em azul escuro para células de dados */
-            }
-        </style>
-    </head>
+<body>
+    <!-- Cabeçalho -->
+    <div class="header">
+        <h3>BALANCETE DE TODAS EMPRESAS</h3>
+        <h4>Período de {{ \Carbon\Carbon::parse($retorno['DataInicial'])->format('d/m/Y') }} a {{ \Carbon\Carbon::parse($retorno['DataFinal'])->format('d/m/Y') }}</h4>
+        <h5>VALOR TOTAL RECEBIDO NO PERÍODO: {{ number_format($ValorRecebido , 2, ',', '.') }}</h5>
+    </div>
 
-    <body>
-
-        <table>
-            <tr>
-                <th colspan="3">
-                    <h1>BALANCETE DE TODAS EMPRESAS</h1>
-                </th>
-            </tr>
-            <tr>
-                <td colspan="3">
-                    <h2>Período de {{ \Carbon\Carbon::parse($retorno['DataInicial'])->format('d/m/Y') }} a {{ \Carbon\Carbon::parse($retorno['DataFinal'])->format('d/m/Y') }}</h2>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="3">
-                    <h3>VALOR TOTAL RECEBIDO NO PERÍODO: {{ number_format($ValorRecebido , 2, ',', '.') }}</h3>
-                </td>
-            </tr>
-        </table>
-
-    </body>
-
-    </html>
-
-
-    <hr>
-
-    <head>
-        <style>
-            /* Estilo para adicionar bordas */
-            table {
-                border-collapse: collapse;
-                width: 100%;
-                border: 1px solid #ccc;
-            }
-
-            th,
-            td {
-                border: 1px solid #ccc;
-                padding: 8px;
-                text-align: left;
-            }
-
-            /* Estilo para realçar a primeira linha como cabeçalho */
-            th {
-                background-color: #e0eaf0;
-            }
-        </style>
-    </head>
-
-    <body>
-
-        <table class="table table-bordered">
-
+    <!-- Tabela de dados -->
+    <table class="table table-bordered">
+        <thead>
             <tr>
                 <th>Descrição</th>
                 <th>% S/Recebimentos</th>
                 <th>Saldo atual</th>
-                <hr>
             </tr>
+        </thead>
+        @php
+        $CodigoAtivo = null;
+        $CodigoPassivo = null;
+        $Codigoatual = null;
+        @endphp
 
-            @php
-            $CodigoAtivo = null;
-            $CodigoPassivo = null;
-            $Codigoatual = null;
-            @endphp
+
+
+        <tbody>
+            <!-- Seu conteúdo da tabela aqui -->
 
             @foreach ($contasEmpresa as $conta)
 
@@ -127,32 +110,29 @@
                         TOTAL DO ATIVO
                     </div>
                 <td>
-                <div class="badge text-wrap" style="width: 100%; text-align: center; color: red;">
+                    <div class="badge text-wrap" style="width: 100%; text-align: center; color: red;">
                         {{ number_format(abs($somaPercentual), 2, ',', '.') }}
                     </div>
                 </td>
 
 
                 <td>
-                <div class="badge text-wrap" style="width: 100%; text-align: center; color: green;">
+                    <div class="badge text-wrap" style="width: 100%; text-align: center; color: green;">
                         {{ number_format(abs($somaPercentual), 2, ',', '.') }}
                     </div>
                 </td>
-
-
-
                 @elseif($Codigo == 2)
                 <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
                     TOTAL DO PASSIVO
                 </div>
                 <td>
-                <div class="badge text-wrap" style="width: 100%; text-align: center; color: red;">
+                    <div class="badge text-wrap" style="width: 100%; text-align: center; color: red;">
                         {{ number_format(abs($somaPercentual), 2, ',', '.') }}
                     </div>
                 </td>
 
                 <td>
-                <div class="badge text-wrap" style="width: 100%; text-align: center; color: green;">
+                    <div class="badge text-wrap" style="width: 100%; text-align: center; color: green;">
                         {{ number_format(abs($somaSaldoAtualPassivo), 2, ',', '.') }}
                     </div>
                 </td>
@@ -162,13 +142,13 @@
                     TOTAL DO DESPESAS
                 </div>
                 <td>
-                <div class="badge text-wrap" style="width: 100%; text-align: center; color: red;">
+                    <div class="badge text-wrap" style="width: 100%; text-align: center; color: red;">
                         {{ number_format(abs($somaPercentual), 2, ',', '.') }}
                     </div>
                 </td>
 
                 <td>
-                <div class="badge text-wrap" style="width: 100%; text-align: center; color: green;">
+                    <div class="badge text-wrap" style="width: 100%; text-align: center; color: green;">
                         {{ number_format($somaSaldoAtualDespesas, 2, ',', '.') }}
                     </div>
                 </td>
@@ -178,12 +158,12 @@
                 </div>
 
                 <td>
-                     <div class="badge text-wrap" style="width: 100%; text-align: center; color: red;">
+                    <div class="badge text-wrap" style="width: 100%; text-align: center; color: red;">
                         {{ number_format(abs($somaPercentual), 2, ',', '.') }}
                     </div>
                 </td>
                 <td>
-                <div class="badge text-wrap" style="width: 100%; text-align: center; color: green;">
+                    <div class="badge text-wrap" style="width: 100%; text-align: center; color: green;">
                         {{ number_format(abs($somaSaldoAtualReceitas), 2, ',', '.') }}
                     </div>
                 </td>
@@ -191,13 +171,12 @@
                 </td>
             </tr>
             @endif
-
             <tr>
                 <td style="text-align: left;">
                     @if ($conta['Grau'] == '5')
-                        <div class="badge text-wrap" style="width: 100%; text-align: left; color: black;">
-                            {{ $conta['Descricao'] }}
-                        </div>
+                    <div class="badge text-wrap" style="width: 100%; text-align: left; color: black;">
+                        {{ $conta['Descricao'] }}
+                    </div>
                     @endif
 
                 </td>
@@ -209,19 +188,23 @@
                 </td>
 
                 <td style="text-align: right;">
-                     <div class="badge text-wrap" style="width: 100%; text-align: center; color: green;">
-                       {{ number_format(abs($conta['SaldoAtual']), 2, ',', '.') }}
+                    <div class="badge text-wrap" style="width: 100%; text-align: center; color: green;">
+                        {{ number_format(abs($conta['SaldoAtual']), 2, ',', '.') }}
                     </div>
                 </td>
 
 
             </tr>
-
-            @php
-            $Codigoatual = substr($conta['Codigo'], 0, 1)
-            @endphp
+                @php
+                $Codigoatual = substr($conta['Codigo'], 0, 1)
+                @endphp
 
             @endforeach
+            </tbody>
+    </table>
+
+    <table class="table table-bordered">
+    <tbody>
             <tr>
                 <td>
 
@@ -247,19 +230,21 @@
                     <div class="badge bg-warning text-wrap" style="width: 100%; text-align: right;">
                         RECEITAS - DESPESAS
                     </div>
-
+                </td>
                 <td>
                     <div class="badge bg-success text-wrap" style="width: 100%; text-align: right;">
                         {{ number_format($ResultadoReceitasDespesas, 2, ',', '.') }}
                     </div>
                 </td>
-                </td>
+
             </tr>
+        </tbody>
+    </table>
 
-
-
-        </table>
-        <hr>
-
-</div>
+    <!-- Rodapé -->
+    <div class="footer">
+        Gerado em {{ \Carbon\Carbon::now()->format('d/m/Y H:i:s') }}
+    </div>
 </body>
+
+</html>
