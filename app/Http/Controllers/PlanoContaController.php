@@ -620,7 +620,14 @@ IF($pdf1)
 
         $pdf->loadHtml($suaView);
 
-        $pdf->render();
+
+        $pdf->setPaper('A4', 'portrait'); // Tamanho do papel e orientação
+$pdf->render();
+
+// Adicione números de página ao PDF
+$canvas = $pdf->getCanvas();
+$canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
+
         $pdf->stream('Balancete.pdf', array("Attachment" => false));
 
 

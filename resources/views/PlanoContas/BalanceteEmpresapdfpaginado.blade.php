@@ -75,7 +75,7 @@
     </style>
 </head>
 <div style="text-align: center;">
-  Página 1
+    <h3>BALANCETE DE TODAS EMPRESAS</h3>
 </div>
 
 <body>
@@ -87,11 +87,17 @@
     <table class="table table-bordered">
         <thead>
             <tr>
-            <h3>BALANCETE DE TODAS EMPRESAS</h3>
-        <h4>Período de {{ \Carbon\Carbon::parse($retorno['DataInicial'])->format('d/m/Y') }} a {{ \Carbon\Carbon::parse($retorno['DataFinal'])->format('d/m/Y') }}</h4>
-        <h5>VALOR TOTAL RECEBIDO NO PERÍODO: {{ number_format($ValorRecebido , 2, ',', '.') }}</h5>
+                <th><h4>Período de
+                     {{ \Carbon\Carbon::parse($retorno['DataInicial'])
+                        ->format('d/m/Y') }} a {{ \Carbon\Carbon::parse($retorno['DataFinal'])
+                            ->format('d/m/Y') }}</h4></td>
+                <th>
+                    <h5>VALOR TOTAL RECEBIDO NO PERÍODO:
 
-
+                </th>
+                <th>
+                      {{ number_format($ValorRecebido , 2, ',', '.') }}</h5>
+                </th>
             </tr>
             <tr>
                 <th>Descrição</th>
@@ -253,13 +259,6 @@
             </tr>
         </tbody>
     </table>
-
-    <!-- Rodapé -->
-    <div class="footer">
-        <span class="page-number"></span>
-        <br>
-        <!-- Gerado em {{ \Carbon\Carbon::now()->format('d/m/Y H:i:s') }} -->
-    </div>
 </body>
 
 </html>
