@@ -11,7 +11,7 @@
 
         /* Estilo para as células do cabeçalho */
         th {
-            background-color: green;
+            background-color: blue;
             /* Cor de fundo do cabeçalho */
             color: white;
             /* Cor do texto do cabeçalho */
@@ -34,10 +34,10 @@
         /* Estilo para o cabeçalho repetido em cada página */
         .header {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background-color: green;
+            top: 5;
+            left: 5;
+            right: 5;
+            background-color: blue;
             color: white;
             text-align: center;
             padding: 10px;
@@ -46,10 +46,10 @@
         /* Estilo para o rodapé repetido em cada página */
         .footer {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: green;
+            bottom: 5;
+            left: 5;
+            right: 5;
+            background-color: blue;
             color: white;
             text-align: center;
             padding: 10px;
@@ -58,11 +58,20 @@
         /* Define os cabeçalhos e rodapés nas páginas impressas */
         @page {
             margin: 100px 25px 100px 25px;
+            counter-increment: page;
+            /* Incrementa o número da página */
         }
+
 
         @page :first {
             margin-top: 0;
         }
+
+        .page-number::before {
+            content: "Página " counter(page);
+            /* Insere o número da página */
+        }
+
     </style>
 </head>
 
@@ -88,9 +97,6 @@
         $CodigoPassivo = null;
         $Codigoatual = null;
         @endphp
-
-
-
         <tbody>
             <!-- Seu conteúdo da tabela aqui -->
 
@@ -243,7 +249,9 @@
 
     <!-- Rodapé -->
     <div class="footer">
-        Gerado em {{ \Carbon\Carbon::now()->format('d/m/Y H:i:s') }}
+        <span class="page-number"></span>
+        <br>
+        <!-- Gerado em {{ \Carbon\Carbon::now()->format('d/m/Y H:i:s') }} -->
     </div>
 </body>
 
