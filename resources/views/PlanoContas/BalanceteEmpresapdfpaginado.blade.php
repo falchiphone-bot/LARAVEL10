@@ -7,6 +7,7 @@
         table {
             border-collapse: collapse;
             width: 100%;
+            margin-top: 35px;
         }
 
         /* Estilo para as células do cabeçalho */
@@ -61,11 +62,10 @@
             counter-increment: page;
             /* Incrementa o número da página */
         }
-
-
         @page :first {
-            margin-top: 0;
+        margin-top: 5px;
         }
+
 
         .page-number::before {
             content: "Página " counter(page);
@@ -74,18 +74,25 @@
 
     </style>
 </head>
+<div style="text-align: center;">
+  Página 1
+</div>
 
 <body>
     <!-- Cabeçalho -->
-    <div class="header">
-        <h3>BALANCETE DE TODAS EMPRESAS</h3>
-        <h4>Período de {{ \Carbon\Carbon::parse($retorno['DataInicial'])->format('d/m/Y') }} a {{ \Carbon\Carbon::parse($retorno['DataFinal'])->format('d/m/Y') }}</h4>
-        <h5>VALOR TOTAL RECEBIDO NO PERÍODO: {{ number_format($ValorRecebido , 2, ',', '.') }}</h5>
-    </div>
+    <!-- <div class="header">
+    </div> -->
 
     <!-- Tabela de dados -->
     <table class="table table-bordered">
         <thead>
+            <tr>
+            <h3>BALANCETE DE TODAS EMPRESAS</h3>
+        <h4>Período de {{ \Carbon\Carbon::parse($retorno['DataInicial'])->format('d/m/Y') }} a {{ \Carbon\Carbon::parse($retorno['DataFinal'])->format('d/m/Y') }}</h4>
+        <h5>VALOR TOTAL RECEBIDO NO PERÍODO: {{ number_format($ValorRecebido , 2, ',', '.') }}</h5>
+
+
+            </tr>
             <tr>
                 <th>Descrição</th>
                 <th>% S/Recebimentos</th>
