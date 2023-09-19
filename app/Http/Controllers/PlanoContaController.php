@@ -514,7 +514,27 @@ foreach($registrosAgrupados as $soma)
 
 }
 
+
+// dd($contasEmpresa);
+
+uasort($registrosAgrupados, function($a, $b) {
+    $saldoA = floatval($a['SaldoAtual']);
+    $saldoB = floatval($b['SaldoAtual']);
+
+    if ($saldoA > $saldoB) {
+        return -1;
+    } elseif ($saldoA < $saldoB) {
+        return 1;
+    } else {
+        return 0;
+    }
+});
+
+
 $contasEmpresa = $registrosAgrupados;
+
+
+
 
 if($Despesas && $Receitas)
 {
