@@ -93,7 +93,6 @@
                 <a href="{{ route('Representantes.index') }}" class="btn btn-warning">Retornar para lista</a>
             </div>
         </div>
-
     </div>
 </div>
 @push('scripts')

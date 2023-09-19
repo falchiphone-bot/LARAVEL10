@@ -7,6 +7,7 @@ use App\Models\ContasPagar;
 use App\Helpers\SaldoLancamentoHelper;
 use App\Http\Requests\CentroCustosCreateRequest;
 use App\Http\Requests\ContasCentroCustosCreateRequest;
+use App\Http\Requests\ContasPagarCreateRequest;
 use App\Models\CentroCustos;
 use App\Models\Conta;
 use App\Models\ContasCentroCustos;
@@ -20,7 +21,7 @@ use Illuminate\Support\Carbon as SupportCarbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
- use Dompdf\Dompdf;
+use Dompdf\Dompdf;
 
 class ContasPagarController extends Controller
 {
@@ -32,14 +33,14 @@ class ContasPagarController extends Controller
         $this->middleware(['permission:CONTASPAGAR - LISTAR'])->only('index');
         $this->middleware(['permission:CONTASPAGAR - INCLUIR'])->only(['create', 'store']);
         $this->middleware(['permission:CONTASPAGAR - EDITAR'])->only(['edit', 'update']);
-        $this->middleware(['permission:CONTASPAGAR - VER'])->only(['show', ]);
+        $this->middleware(['permission:CONTASPAGAR - VER'])->only(['show',]);
         $this->middleware(['permission:CONTASPAGAR - EXCLUIR'])->only('destroy');
     }
 
 
     public function index()
     {
-        $contasPagar = ContasPagar::limit(100)->OrderBy('ID','desc')->get();
+        $contasPagar = ContasPagar::limit(100)->OrderBy('ID', 'desc')->get();
 
         if ($contasPagar->count() > 0) {
             session(['entrada' => 'A pesquisa abaixo mostra os 100 últimos lançamentos de todas as empresas autorizadas!']);
@@ -70,8 +71,7 @@ class ContasPagarController extends Controller
             ->join('Contabilidade.EmpresasUsuarios', 'ContasPagar.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
             ->Where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
             // ->select(['Lancamentos.ID', 'DataContabilidade', 'Lancamentos.Descricao', 'Lancamentos.EmpresaID', 'Contabilidade.Lancamentos.Valor', 'Historicos.Descricao as DescricaoHistorico', 'Lancamentos.ContaDebitoID', 'Lancamentos.ContaCreditoID'])
-            ->select(['ContasPagar.ID', 'DataProgramacao', 'ContasPagar.Descricao', 'ContasPagar.EmpresaID', 'ContasPagar.Valor', 'ContasPagar.DataVencimento', 'ContasPagar.DataDocumento', 'ContasPagar.NumTitulo', 'ContasPagar.ContaFornecedorID', 'ContasPagar.ContaPagamentoID'])
-            ;
+            ->select(['ContasPagar.ID', 'DataProgramacao', 'ContasPagar.Descricao', 'ContasPagar.EmpresaID', 'ContasPagar.Valor', 'ContasPagar.DataVencimento', 'ContasPagar.DataDocumento', 'ContasPagar.NumTitulo', 'ContasPagar.ContaFornecedorID', 'ContasPagar.ContaPagamentoID']);
 
         if ($Request->Texto) {
             $texto = $Request->Texto;
@@ -120,8 +120,8 @@ class ContasPagarController extends Controller
         }
 
         $contasPagar = $contasPagar
-        ->orderBy('Valor', 'asc')
-        ->get();
+            ->orderBy('Valor', 'asc')
+            ->get();
 
         return view('ContaPagar.index', compact('contasPagar', 'retorno', 'Empresas'));
     }
@@ -129,12 +129,137 @@ class ContasPagarController extends Controller
 
     public function create()
     {
-        // Lógica para exibir o formulário de criação
+        $contasPagar = new ContasPagar;
+
+        $retorno['EmpresaSelecionada'] = null;
+        $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+            ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+            ->OrderBy('Descricao')
+            ->select(['Empresas.ID', 'Empresas.Descricao'])
+            ->get();
+
+
+        $ContaFornecedor = Conta::join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.Planocontas_id')
+            ->join('Contabilidade.Empresas', 'Empresas.ID', '=', 'Contas.EmpresaID')
+            ->where('Contabilidade.PlanoContas.Grau', '=', '5')
+            ->select('Contas.ID', DB::raw("CONCAT(PlanoContas.Descricao,' | ', Empresas.Descricao) as Descricao"))
+            ->orderby('PlanoContas.Descricao')
+            ->get();
+
+            $ContaPagamento = Conta::
+            join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.Planocontas_id')
+            ->join('Contabilidade.Empresas', 'Empresas.ID', '=', 'Contas.EmpresaID')
+            ->where('Contabilidade.PlanoContas.Grau', '=', '5')
+            ->select('Contas.ID', DB::raw("CONCAT(PlanoContas.Descricao,' | ', Empresas.Descricao) as Descricao"))
+            ->orderby('PlanoContas.Descricao')
+            ->get();
+
+
+        return view('ContaPagar.create', compact('contasPagar', 'Empresas', 'ContaFornecedor', 'ContaPagamento'));
     }
 
-    public function store(Request $request)
+    public function store(ContasPagarCreateRequest $request)
     {
-        // Lógica para salvar uma nova entrada na tabela
+
+        // $Existe = ContasCentroCustos::where('CentroCustoID','=', $request->CentroCustoID)
+        // ->where('ContaID', '=', $request->ContaID)
+        // ->first();
+
+
+        // if($Existe){
+        //     session(['success' => ' Registro já inserido. '
+        //     .$request->ContaID. ': '. $Existe->MostraContaCentroCusto->PlanoConta->Descricao
+        //     . ' em '.$request->CentroCustoID.': '. $Existe->MostraCentroCusto->Descricao]
+        // );
+        //     return redirect(route('ContasCentroCustos.create'));
+
+        // }
+
+
+            $contasPagar = $request->all();
+
+
+            $DataContabilidade = $request->input('DataProgramacao');
+            if ($DataContabilidade) {
+                $carbonData = Carbon::createFromFormat('Y-m-d', $DataContabilidade);
+                $dataContabilidade = $carbonData->format('d/m/Y');
+            } else {
+                $dataContabilidade = null;
+            }
+
+
+            $ContaDebito = Conta::find($request->ContaFornecedorID);
+            $ContaCredito = Conta::find($request->ContaPagamentoID);
+
+
+
+            $data_lancamento_bloqueio_debito = $ContaDebito->Bloqueiodataanterior;
+            if ($data_lancamento_bloqueio_debito !== null && $data_lancamento_bloqueio_debito->greaterThanOrEqualTo($DataContabilidade)) {
+
+                session([
+                    'Lancamento' =>
+                    'Conta DÉBITO: ' .
+                        $ContaDebito->PlanoConta->Descricao .
+                        ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                     da conta para seguir este procedimento. Bloqueada para até ' .
+                        $data_lancamento_bloqueio_debito->format('d/m/Y') .  '  - CÓDIGO L233'
+                ]);
+                return redirect()->route('ContasPagar.create');
+            }
+
+            $data_lancamento_bloqueio_credito = $ContaCredito->Bloqueiodataanterior;
+            if ($data_lancamento_bloqueio_credito !== null && $data_lancamento_bloqueio_credito->greaterThanOrEqualTo($DataContabilidade)) {
+                // O código aqui será executado se $data_lancamento_bloqueio_debito não for nulo e for maior ou igual a $DataContabilidade
+                session([
+                    'Lancamento' =>
+                    'Conta CRÉDITO: ' .
+                        $ContaCredito->PlanoConta->Descricao .
+                        ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                     da conta para seguir este procedimento. Bloqueada para até ' .
+                        $data_lancamento_bloqueio_credito->format('d/m/Y') .  '  - CÓDIGO L236'
+                ]);
+                return redirect()->route('ContasPagar.create');
+            }
+
+
+            $EmpresaBloqueada = Empresa::where('ID', '=', $request->EmpresaID)->first();
+
+            $data_lancamento_bloqueio_empresa = $EmpresaBloqueada->Bloqueiodataanterior;
+            if ($data_lancamento_bloqueio_empresa->greaterThanOrEqualTo($DataContabilidade)) {
+                session([
+                    'Lancamento' =>
+                    'Conta DÉBITO: ' .
+                        $EmpresaBloqueada->Descricao .
+                        ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                     da empresa para seguir este procedimento. Bloqueada para até ' .
+                        $EmpresaBloqueada .  '  - CÓDIGO L198'
+
+                ]);
+                return redirect()->route('ContasPagar.create');
+            }
+
+
+            dd('SALVAR');
+
+
+            $contasPagar->create([
+            'Descricao' => $request->input('Descricao'),
+            'Valor' => $request->input('Valor'),
+            'DataProgramacao' => $request->input('DataProgramacao') ?? null,
+            'DataVencimento' => $request->input('DataVencimento')   ?? null,
+            'DataDocumento' =>  $request->input('DataDocumento') ?? null,
+            'NumTitulo' => $request->input('NumTitulo') ?? null,
+            'ContaFornecedorID' => $request->input('ContaFornecedorID') ?? null,
+            'ContaPagamentoID' => $request->input('ContaPagamentoID') ?? null,
+        ]);
+
+        $contasPagar->save();
+
+        return redirect()->route('ContasPagar.edit', $id)->with('success', 'Conta a pagar atualizada com sucesso!', 'error');
+
+
+
+
     }
 
     public function show($id)
@@ -163,26 +288,23 @@ class ContasPagarController extends Controller
             ->get();
 
 
-            $ContaFornecedor = Conta::
-        join('Contabilidade.PlanoContas','PlanoContas.ID','=','Contas.Planocontas_id')
-        ->join('Contabilidade.Empresas','Empresas.ID','=','Contas.EmpresaID')
-        ->where ('Contas.EmpresaID','=',$contasPagar->EmpresaID)
-        ->select('Contas.ID',DB::raw("CONCAT(PlanoContas.Descricao,' | ', Empresas.Descricao) as Descricao"))
-        ->orderby('PlanoContas.Descricao')
-        ->get();
+        $ContaFornecedor = Conta::join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.Planocontas_id')
+            ->join('Contabilidade.Empresas', 'Empresas.ID', '=', 'Contas.EmpresaID')
+            ->where('Contas.EmpresaID', '=', $contasPagar->EmpresaID)
+            ->select('Contas.ID', DB::raw("CONCAT(PlanoContas.Descricao,' | ', Empresas.Descricao) as Descricao"))
+            ->orderby('PlanoContas.Descricao')
+            ->get();
 
 
-        $ContaPagamento = Conta::
-        join('Contabilidade.PlanoContas','PlanoContas.ID','=','Contas.Planocontas_id')
-        ->join('Contabilidade.Empresas','Empresas.ID','=','Contas.EmpresaID')
-        ->where ('Contas.EmpresaID','=',$contasPagar->EmpresaID)
-        ->select('Contas.ID',DB::raw("CONCAT(PlanoContas.Descricao,' | ', Empresas.Descricao) as Descricao"))
-        ->orderby('PlanoContas.Descricao')
-        ->get();
+        $ContaPagamento = Conta::join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.Planocontas_id')
+            ->join('Contabilidade.Empresas', 'Empresas.ID', '=', 'Contas.EmpresaID')
+            ->where('Contas.EmpresaID', '=', $contasPagar->EmpresaID)
+            ->select('Contas.ID', DB::raw("CONCAT(PlanoContas.Descricao,' | ', Empresas.Descricao) as Descricao"))
+            ->orderby('PlanoContas.Descricao')
+            ->get();
 
 
-        return view('ContaPagar.edit', compact('contasPagar', 'Empresas', 'id','ContaFornecedor','ContaPagamento'));
-
+        return view('ContaPagar.edit', compact('contasPagar', 'Empresas', 'id', 'ContaFornecedor', 'ContaPagamento'));
     }
 
     public function update(Request $request, string $id)
@@ -192,7 +314,7 @@ class ContasPagarController extends Controller
         $contasPagar = ContasPagar::find($id);
 
         if (!$contasPagar) {
-             dd('Conta a pagar não encontrada!', 'ID: ' . $id, 'ContasPagarController@update');
+            dd('Conta a pagar não encontrada!', 'ID: ' . $id, 'ContasPagarController@update');
         }
 
 
@@ -200,7 +322,7 @@ class ContasPagarController extends Controller
         $LancamentoID = $contasPagar->LancamentoID;
 
         $Lancamento = Lancamento::find($LancamentoID);
-        if($Lancamento){
+        if ($Lancamento) {
 
 
             $DataContabilidade = $request->input('DataProgramacao');
@@ -223,11 +345,11 @@ class ContasPagarController extends Controller
                 // O código aqui será executado se $data_lancamento_bloqueio_debito não for nulo e for maior ou igual a $DataContabilidade
                 session([
                     'Lancamento' =>
-                        'Conta DÉBITO: ' .
+                    'Conta DÉBITO: ' .
                         $contasPagar->ContaDebito->PlanoConta->Descricao .
                         ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
                      da conta para seguir este procedimento. Bloqueada para até ' .
-                        $data_lancamento_bloqueio_debito->format('d/m/Y').  '  - CÓDIGO L233'
+                        $data_lancamento_bloqueio_debito->format('d/m/Y') .  '  - CÓDIGO L233'
                 ]);
                 return redirect()->route('ContasPagar.edit', $id);
             }
@@ -237,11 +359,11 @@ class ContasPagarController extends Controller
                 // O código aqui será executado se $data_lancamento_bloqueio_debito não for nulo e for maior ou igual a $DataContabilidade
                 session([
                     'Lancamento' =>
-                        'Conta CRÉDITO: ' .
+                    'Conta CRÉDITO: ' .
                         $contasPagar->ContaCredito->PlanoConta->Descricao .
                         ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
                      da conta para seguir este procedimento. Bloqueada para até ' .
-                        $data_lancamento_bloqueio_credito->format('d/m/Y').  '  - CÓDIGO L236'
+                        $data_lancamento_bloqueio_credito->format('d/m/Y') .  '  - CÓDIGO L236'
                 ]);
                 return redirect()->route('ContasPagar.edit', $id);
             }
@@ -253,14 +375,14 @@ class ContasPagarController extends Controller
             if ($data_lancamento_bloqueio_empresa->greaterThanOrEqualTo($DataContabilidade)) {
                 session([
                     'Lancamento' =>
-                        'Conta DÉBITO: ' .
+                    'Conta DÉBITO: ' .
                         $EmpresaBloqueada->Descricao .
                         ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
                      da empresa para seguir este procedimento. Bloqueada para até ' .
-                        $EmpresaBloqueada.  '  - CÓDIGO L198'
+                        $EmpresaBloqueada .  '  - CÓDIGO L198'
 
                 ]);
-                return redirect()->route('ContasPagar.edit',$id);
+                return redirect()->route('ContasPagar.edit', $id);
             }
 
 
@@ -275,8 +397,7 @@ class ContasPagarController extends Controller
                 'ContaCreditoID' => $request->input('ContaPagamentoID') ?? null,
             ]);
             $Lancamento->save();
-        }else{
-           ;
+        } else {;
             session(['contabilidade' => 'Lançamento não encontrado na contabilidade!']);
         };
 
@@ -293,7 +414,7 @@ class ContasPagarController extends Controller
 
         $contasPagar->save();
 
-        return redirect()->route('ContasPagar.edit',$id)->with('success', 'Conta a pagar atualizada com sucesso!','error');
+        return redirect()->route('ContasPagar.edit', $id)->with('success', 'Conta a pagar atualizada com sucesso!', 'error');
     }
 
     public function destroy($id)
@@ -301,4 +422,3 @@ class ContasPagarController extends Controller
         // Lógica para excluir um registro específico
     }
 }
-
