@@ -5,7 +5,7 @@
            <div class="row">
                <div class="col-sm-12">
                    <label for="EmpresaID" style="color: black;">Empresa</label>
-                   <select required class="form-control select2" id="ContaFornecedorID" name="EmpresaID">
+                   <select required class="form-control select2" id="EmpresaID" name="EmpresaID">
                        <option value="">Selecionar empresa</option>
 
                        @foreach ($Empresas as $item)

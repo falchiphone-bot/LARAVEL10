@@ -176,7 +176,8 @@ class ContasPagarController extends Controller
         // }
 
 
-            $contasPagar = $request->all();
+            // $contasPagar = $request->all();
+
 
 
             $DataContabilidade = $request->input('DataProgramacao');
@@ -191,6 +192,17 @@ class ContasPagarController extends Controller
             $ContaDebito = Conta::find($request->ContaFornecedorID);
             $ContaCredito = Conta::find($request->ContaPagamentoID);
 
+
+
+                if($ContaDebito->EmpresaID != $request['EmpresaID']){
+                    session(['error' => 'A contas DÉBITO não pertence a empresa!']);
+                    return back();
+                }
+
+                if($ContaCredito->EmpresaID != $request['EmpresaID']){
+                    session(['error' => 'A contas CRÉDITO não pertence a empresa!']);
+                    return back();
+                }
 
 
             $data_lancamento_bloqueio_debito = $ContaDebito->Bloqueiodataanterior;
@@ -258,24 +270,49 @@ class ContasPagarController extends Controller
                 // return redirect()->route('ContasPagar.create');
             }
 
+            // $DEB = $ContaDebito->Planocontas_id;
+            // $CRED = $ContaCredito->Planocontas_id;
 
-            dd($contasPagar);
+            // $DEBIT = PlanoConta::where('ID', '=', $DEB)
+            // ->first();
 
 
-            $contasPagar->create([
+            // $CREDIT = PlanoConta::where('ID', '=',$CRED)
+            // ->first();
+
+
+
+            $request['ContaFornecedorID'] = $ContaDebito->ID;
+            $request['ContaPagamentoID'] = $ContaCredito->ID;
+            $request['UsuarioID'] = Auth::user()->id;
+            $request['Created'] = Carbon::now()->format('Y-m-d');
+
+
+
+            $contasPagar = collect($request->all());
+
+            
+dd($contasPagar,293);
+
+        $data = [
+            'EmpresaID' => $request->input('EmpresaID'),
             'Descricao' => $request->input('Descricao'),
             'Valor' => $request->input('Valor'),
-            'DataProgramacao' => $request->input('DataProgramacao') ?? null,
-            'DataVencimento' => $request->input('DataVencimento')   ?? null,
-            'DataDocumento' =>  $request->input('DataDocumento') ?? null,
-            'NumTitulo' => $request->input('NumTitulo') ?? null,
-            'ContaFornecedorID' => $request->input('ContaFornecedorID') ?? null,
-            'ContaPagamentoID' => $request->input('ContaPagamentoID') ?? null,
-        ]);
+            'DataProgramacao' => $request->input('DataProgramacao'),
+            'DataVencimento' => $request->input('DataVencimento'),
+            'DataDocumento' => $request->input('DataDocumento'),
+            'NumTitulo' => $request->input('NumTitulo'),
+            'ContaFornecedorID' => $request->input('ContaFornecedorID'),
+            'ContaPagamentoID' => $request->input('ContaPagamentoID'),
+            'UsuarioID' => $request->input('UsuarioID'),
+            'Created' => $request->input('Created'),
+        ];
 
-        $contasPagar->save();
+        ContasPagar::create($data);
 
-        return redirect()->route('ContasPagar.index')->with('success', 'Conta a pagar atualizada com sucesso!', 'error');
+        session(['success' => 'Conta a pagar inserida com sucesso!']);
+
+        return redirect()->route('ContasPagar.index');
 
 
 
