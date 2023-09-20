@@ -64,7 +64,7 @@
            <div class="row">
                <div class="col-6">
                    <label for="Valor">VALOR</label>
-                   <input class="form-control @error('Valor') is-invalid @else is-valid @enderror" name="Valor" type="text" id="Valor" value="{{$contasPagar->Valor??null}}">
+                   <input class="form-control money @error('Valor') is-invalid @else is-valid @enderror" name="Valor" type="text" id="Valor" value="{{$contasPagar->Valor??null}}">
                    @error('Valor')
                    <div class="alert alert-danger">{{ $message }}</div>
                    @enderror
@@ -141,6 +141,7 @@
        </div>
    </div>
    @push('scripts')
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.js"></script>
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -181,5 +182,10 @@
                }
            });
        });
+
+
+       $(document).ready(function() {
+            $('.money').mask('000.000.000.000.000,00', {reverse: true});
+        });
    </script>
    @endpush

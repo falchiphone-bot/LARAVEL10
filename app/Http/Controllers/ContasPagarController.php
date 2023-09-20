@@ -291,7 +291,9 @@ class ContasPagarController extends Controller
 
             $contasPagar = collect($request->all());
 
-            
+            $request['Valor'] = str_replace(",",".",str_replace('.','',$request['Valor']));
+
+
 dd($contasPagar,293);
 
         $data = [
@@ -468,6 +470,8 @@ if ($data_lancamento_bloqueio_empresa->greaterThanOrEqualTo($DataContabilidade))
         } else {;
             session(['contabilidade' => 'Lançamento não encontrado na contabilidade!']);
         };
+
+        $request['Valor'] = str_replace(",",".",str_replace('.','',$request['Valor']));
 
         $contasPagar->update([
             'Descricao' => $request->input('Descricao'),

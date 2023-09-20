@@ -137,7 +137,9 @@
                                 <th scope="col" class="px-6 py-4">Conta Pagar</th>
                                 <th scope="col" class="px-6 py-4">Conta de pagamento</th>
                                 <th scope="col" class="px-6 py-4">Vencimento</th>
-                                <th scope="col" class="px-6 py-4">Data</th>
+                                <th scope="col" class="px-6 py-4">Data do documento </th>
+                                <th scope="col" class="px-6 py-4">Contabilidade</th>
+           
                             </tr>
 
 
@@ -168,7 +170,10 @@
 
                                     </td>
                                     <td class="">
-                                          {{ \Carbon\Carbon::createFromFormat('Y-m-d', substr($conta->DataVencimento, 0, 9))->format('d/m/Y') }}
+                                          {{ \Carbon\Carbon::createFromFormat('Y-m-d', substr($conta->DataDocumento, 0, 9))->format('d/m/Y') }}
+                                    </td>
+                                    <td class="">
+                                          {{ $conta->LancamentoID }}
                                     </td>
                                     <td>
                                         @can('CONTASPAGAR - EDITAR')
