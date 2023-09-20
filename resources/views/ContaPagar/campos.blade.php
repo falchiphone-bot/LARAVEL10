@@ -1,18 +1,39 @@
    @csrf
    <div class="card">
        <div class="card-body">
-       <div class="row">
+            <div class="row">
                <div class="col-12">
-                   <label for="ID" Empresa</label>
+                   <label for="ID"> ID</label>
                        <input class="form-control @error('ID') is-invalid @else is-valid @enderror" name="ID" type="int" id="ID" value="{{$contasPagar->ID??null}}" disabled>
+                       @error('ID')
+                       <div class="alert alert-danger">{{ $message }}</div>
+                       @enderror
+               </div>
+           </div>
+
+           <div class="row">
+               <div class="col-12">
+                   <label for="ID">ID CONTABIL</label>
+                       <input class="form-control @error('ID') is-invalid @else is-valid @enderror" name="ID" type="int" id="ID" value="{{$contasPagar->LancamentoID??null}}" disabled>
+                       @error('LancamentoID')
+                       <div class="alert alert-danger">{{ $message }}</div>
+                       @enderror
+               </div>
+           </div>
+
+           <div class="row">
+               <div class="col-12">
+                   <label for="ID">ID DA EMPRESA</label>
+                       <input class="form-control @error('ID') is-invalid @else is-valid @enderror" name="ID" type="int" id="ID" value="{{$contasPagar->EmpresaID??null}}" disabled>
                        @error('EmpresaID')
                        <div class="alert alert-danger">{{ $message }}</div>
                        @enderror
                </div>
            </div>
+
            <div class="row">
                <div class="col-12">
-                   <label for="EmpresaID" Empresa</label>
+                   <label for="EmpresaID"> Empresa</label>
                        <input class="form-control @error('EmpresaID') is-invalid @else is-valid @enderror" name="EmpresaID" type="int" id="EmpresaID" value="{{$contasPagar->Empresa->Descricao??null}}" disabled>
                        @error('EmpresaID')
                        <div class="alert alert-danger">{{ $message }}</div>

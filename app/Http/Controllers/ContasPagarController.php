@@ -372,18 +372,29 @@ class ContasPagarController extends Controller
             $EmpresaBloqueada = Empresa::where('ID', '=', $Lancamento->EmpresaID)->first();
 
             $data_lancamento_bloqueio_empresa = $EmpresaBloqueada->Bloqueiodataanterior;
-            if ($data_lancamento_bloqueio_empresa->greaterThanOrEqualTo($DataContabilidade)) {
-                session([
-                    'Lancamento' =>
-                    'Conta DÉBITO: ' .
-                        $EmpresaBloqueada->Descricao .
-                        ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
-                     da empresa para seguir este procedimento. Bloqueada para até ' .
-                        $EmpresaBloqueada .  '  - CÓDIGO L198'
+$dataLimite = $data_lancamento_bloqueio_empresa;
 
-                ]);
-                return redirect()->route('ContasPagar.edit', $id);
-            }
+if ($DataContabilidade <> $dataLimite) {
+    // A data de lançamento é maior do que a data limite permitida
+    session([
+        'Lancamento' =>
+        'A data de lançamento não pode ser maior do que ' . $data_lancamento_bloqueio_empresa->format('d/m/Y') . ' que é a data limite do bloqueio. - CÓDIGO L198'
+    ]);
+    return redirect()->route('ContasPagar.edit', $id);
+}
+
+if ($data_lancamento_bloqueio_empresa->greaterThanOrEqualTo($DataContabilidade)) {
+    // Data da empresa bloqueada
+    session([
+        'Lancamento' =>
+        'EMPRESA BLOQUEADA: ' .
+            $EmpresaBloqueada->Descricao .
+            ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+             da empresa para seguir este procedimento. Bloqueada para até ' .
+            $EmpresaBloqueada .  '  - CÓDIGO L198'
+    ]);
+    return redirect()->route('ContasPagar.edit', $id);
+}
 
 
 
