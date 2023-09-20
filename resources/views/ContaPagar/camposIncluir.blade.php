@@ -1,7 +1,7 @@
    @csrf
    <div class="card">
        <div class="card-body">
-       CONTAS A PAGAR DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL - INCLUSÃO
+           CONTAS A PAGAR DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL - INCLUSÃO
            <div class="row">
                <div class="col-sm-12">
                    <label for="EmpresaID" style="color: black;">Empresa</label>
@@ -85,8 +85,7 @@
                    <option value="">Selecionar contas DÉBITO</option>
 
                    @foreach ($ContaFornecedor as $item)
-                   <option
-                       value="{{ $item->ID }}">
+                   <option value="{{ $item->ID }}">
                        {{ $item->Descricao }}
                    </option>
                    @endforeach
@@ -100,8 +99,7 @@
                    <option value="">Selecionar contas CRÉDITO</option>
                    @if ($ContaPagamento)
                    @foreach ($ContaPagamento as $item)
-                   <option
-                       value="{{ $item->ID }}">
+                   <option value="{{ $item->ID }}">
                        {{ $item->Descricao }}
                    </option>
                    @endforeach
@@ -120,10 +118,13 @@
        </div>
    </div>
    @push('scripts')
+   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
    <script>
        $(document).ready(function() {
            $('.select2').select2();
@@ -157,6 +158,32 @@
                        // $.alert('Cancelar!');
                    },
 
+               }
+           });
+       });
+
+
+       $(document).ready(function() {
+           // Verifique se há valores nos campos e armazene-os no localStorage
+           $('form').on('submit', function() {
+               // Especifique os nomes dos campos que você deseja manter
+               var camposParaManter = ["ID","EmpresaID","NumTitulo","Descricao", "Valor", "DataProgramacao", "DataVencimento", "DataDocumento", "ContaFornecedorID", "ContaPagamentoID"];
+
+
+
+               camposParaManter.forEach(function(nomeDoCampo) {
+                   var inputValue = $('[name="' + nomeDoCampo + '"]').val();
+                   localStorage.setItem(nomeDoCampo, inputValue);
+               });
+           });
+
+           // Verifique se há valores armazenados no localStorage e preencha os campos
+           var camposParaManter = ["ID","EmpresaID","NumTitulo","Descricao", "Valor", "DataProgramacao", "DataVencimento", "DataDocumento", "ContaFornecedorID", "ContaPagamentoID"];
+
+           camposParaManter.forEach(function(nomeDoCampo) {
+               var storedValue = localStorage.getItem(nomeDoCampo);
+               if (storedValue !== null) {
+                   $('[name="' + nomeDoCampo + '"]').val(storedValue);
                }
            });
        });

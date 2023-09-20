@@ -194,6 +194,10 @@ class ContasPagarController extends Controller
 
 
             $data_lancamento_bloqueio_debito = $ContaDebito->Bloqueiodataanterior;
+
+
+
+
             if ($data_lancamento_bloqueio_debito !== null && $data_lancamento_bloqueio_debito->greaterThanOrEqualTo($DataContabilidade)) {
 
                 session([
@@ -204,7 +208,8 @@ class ContasPagarController extends Controller
                      da conta para seguir este procedimento. Bloqueada para até ' .
                         $data_lancamento_bloqueio_debito->format('d/m/Y') .  '  - CÓDIGO L233'
                 ]);
-                return redirect()->route('ContasPagar.create');
+                return back();
+                // return redirect()->route('ContasPagar.create');
             }
 
             $data_lancamento_bloqueio_credito = $ContaCredito->Bloqueiodataanterior;
@@ -218,13 +223,27 @@ class ContasPagarController extends Controller
                      da conta para seguir este procedimento. Bloqueada para até ' .
                         $data_lancamento_bloqueio_credito->format('d/m/Y') .  '  - CÓDIGO L236'
                 ]);
-                return redirect()->route('ContasPagar.create');
+                return back();
+                // return redirect()->route('ContasPagar.create');
             }
 
 
             $EmpresaBloqueada = Empresa::where('ID', '=', $request->EmpresaID)->first();
 
             $data_lancamento_bloqueio_empresa = $EmpresaBloqueada->Bloqueiodataanterior;
+
+            $dataLimite = $data_lancamento_bloqueio_empresa;
+
+            if ($DataContabilidade <= $dataLimite) {
+                // A data de lançamento é maior do que a data limite permitida
+                session([
+                    'Lancamento' =>
+                    'A data de lançamento não pode ser MENOR ou IGUAL a ' . $data_lancamento_bloqueio_empresa->format('d/m/Y') . ' que é a data limite do bloqueio. - CÓDIGO L198'
+                ]);
+                return back();
+                // return redirect()->route('ContasPagar.create');
+            }
+
             if ($data_lancamento_bloqueio_empresa->greaterThanOrEqualTo($DataContabilidade)) {
                 session([
                     'Lancamento' =>
@@ -235,11 +254,12 @@ class ContasPagarController extends Controller
                         $EmpresaBloqueada .  '  - CÓDIGO L198'
 
                 ]);
-                return redirect()->route('ContasPagar.create');
+                return back();
+                // return redirect()->route('ContasPagar.create');
             }
 
 
-            dd('SALVAR');
+            dd($contasPagar);
 
 
             $contasPagar->create([
@@ -255,7 +275,7 @@ class ContasPagarController extends Controller
 
         $contasPagar->save();
 
-        return redirect()->route('ContasPagar.edit', $id)->with('success', 'Conta a pagar atualizada com sucesso!', 'error');
+        return redirect()->route('ContasPagar.index')->with('success', 'Conta a pagar atualizada com sucesso!', 'error');
 
 
 
