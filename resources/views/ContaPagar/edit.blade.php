@@ -51,6 +51,7 @@
 
             <form method="POST" action="{{route('ContasPagar.update', $contasPagar->ID), $contasPagar->LancamentoID}}" accept-charset="UTF-8">
                 <input type="hidden" name="_method" value="PUT">
+                <a href="{{route('ContasPagar.index')}}" class="btn btn-warning">Retornar para lista de contas</a>
                 @include('ContaPagar.campos')
             </form>
 

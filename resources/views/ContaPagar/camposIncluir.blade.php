@@ -2,16 +2,24 @@
    <div class="card">
        <div class="card-body">
            CONTAS A PAGAR DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL - INCLUSÃO
-            
+
+           <br>
+           Empresa selecionada {{ session('EmpresaID')}}
+           <br>
+           Débito {{ session('ContaFornecedorID') }}
+           <br>
+           Crédito {{ session('ContaPagamentoID') }}
 
 
            <div class="col-sm-12">
-               <label for="ContaPagamentoID" style="color: black;">Empresa</label>
-               <select required class="form-control select2" id="ContaPagamentoID" name="ContaPagamentoID">
-                   <option value="">Selecionar contas CRÉDITO</option>
+               <label for="EmpresaID" style="color: blue;">EMPRESA</label>
+
+               <select required class="form-control select2" id="EmpresaID" name="EmpresaID">
+               <option value="">Selecionar empresa</option>
                    @if ($Empresas)
                    @foreach ($Empresas as $item)
-                   <option @if ($item->EmpresasID  == $contasPagar->EmpresaID) selected @endif
+                   <option
+                   @if ($item->ID  == $contasPagar->EmpresaID) selected @endif
                        value="{{ $item->ID }}">
                        {{ $item->Descricao }}
                    </option>
@@ -21,9 +29,12 @@
            </div>
 
 
+
+
+
            <div class="row">
                <div class="col-12">
-                   <label for="nome">DESCRIÇÃO</label>
+                   <label for="nome" style="color: blue;">DESCRIÇÃO</label>
                    <input class="form-control @error('Descricao') is-invalid @else is-valid @enderror" name="Descricao" type="text" id="Descricao" value="{{$contasPagar->Descricao??null}}">
                    @error('nome')
                    <div class="alert alert-danger">{{ $message }}</div>
@@ -33,7 +44,7 @@
 
            <div class="row">
                <div class="col-6">
-                   <label for="NumTitulo">TITULO</label>
+                   <label for="NumTitulo" style="color: blue;">TITULO</label>
                    <input class="form-control @error('NumTitulo') is-invalid @else is-valid @enderror" name="NumTitulo" type="text" id="NumTitulo" value="{{$contasPagar->NumTitulo??null}}">
                    @error('nome')
                    <div class="alert alert-danger">{{ $message }}</div>
@@ -43,7 +54,7 @@
 
            <div class="row">
                <div class="col-6">
-                   <label for="Valor">VALOR</label>
+                   <label for="Valor" style="color: blue;"> VALOR</label>
                    <input required class="form-control money @error('Valor') is-invalid @else is-valid @enderror" name="Valor"
                        type="decimal" step="0.01" id="Valor" value="{{ $contasPagar->Valor ?? null }}">
                    @error('Valor')
@@ -53,7 +64,7 @@
            </div>
            <div class="row">
                <div class="col-6">
-                   <label for="DataProgramacao">Data programação/contabilidade</label>
+                   <label for="DataProgramacao" style="color: blue;">Data programação/contabilidade</label>
                    <input class="form-control @error('DataProgramacao') is-invalid @else is-valid @enderror" name="DataProgramacao" type="date" id="DataProgramacao" value="{{$contasPagar->DataProgramacao??null}}">
                    @error('DataProgramacao')
                    <div class="alert alert-danger">{{ $message }}</div>
@@ -62,7 +73,7 @@
            </div>
            <div class="row">
                <div class="col-6">
-                   <label for="DataVencimento">Data vencimento</label>
+                   <label for="DataVencimento" style="color: blue;">Data vencimento</label>
                    <input class="form-control @error('DataVencimento') is-invalid @else is-valid @enderror" name="DataVencimento" type="date" id="DataVencimento" value="{{$contasPagar->DataVencimento??null}}">
                    @error('DataVencimento')
                    <div class="alert alert-danger">{{ $message }}</div>
@@ -72,7 +83,7 @@
 
            <div class="row">
                <div class="col-6">
-                   <label for="DataDocumento">Data documento</label>
+                   <label for="DataDocumento" style="color: blue;">Data documento</label>
                    <input class="form-control @error('DataDocumento') is-invalid @else is-valid @enderror" name="DataDocumento" type="date" id="DataDocumento" value="{{$contasPagar->DataDocumento??null}}">
                    @error('DataDocumento')
                    <div class="alert alert-danger">{{ $message }}</div>
@@ -82,26 +93,28 @@
 
 
            <div class="col-sm-12">
-               <label for="ContaFornecedorID" style="color: black;">Contas DÉBITO</label>
+               <label for="ContaFornecedorID" style="color: blue;">Contas DÉBITO</label>
                <select required class="form-control select2" id="ContaFornecedorID" name="ContaFornecedorID">
                    <option value="">Selecionar contas DÉBITO</option>
 
-                   @foreach ($ContaFornecedor as $item)
-                   <option value="{{ $item->ID }}">
-                       {{ $item->Descricao }}
-                   </option>
-                   @endforeach
+                    @foreach ($ContaFornecedor as $item)
+                    <option @if ($item->ID  == $contasPagar->ContaFornecedorID) selected @endif
+                        value="{{ $item->ID }}">
+                        {{ $item->Descricao }}
+                    </option>
+                    @endforeach
 
                </select>
            </div>
 
            <div class="col-sm-12">
-               <label for="ContaPagamentoID" style="color: black;">Contas CRÉDITO</label>
+               <label for="ContaPagamentoID" style="color: blue;">Contas CRÉDITO</label>
                <select required class="form-control select2" id="ContaPagamentoID" name="ContaPagamentoID">
                    <option value="">Selecionar contas CRÉDITO</option>
                    @if ($ContaPagamento)
                    @foreach ($ContaPagamento as $item)
-                   <option value="{{ $item->ID }}">
+                   <option @if ($item->ID  == $contasPagar->ContaPagamentoID) selected @endif
+                       value="{{ $item->ID }}">
                        {{ $item->Descricao }}
                    </option>
                    @endforeach
@@ -165,7 +178,7 @@
            });
        });
 
-
+       var EmpresaSelecionada;
        $(document).ready(function() {
            // Verifique se há valores nos campos e armazene-os no localStorage
            $('form').on('submit', function() {
@@ -181,7 +194,8 @@
            });
 
            // Verifique se há valores armazenados no localStorage e preencha os campos
-           var camposParaManter = ["ID","EmpresaID","NumTitulo","Descricao", "Valor", "DataProgramacao", "DataVencimento", "DataDocumento", "ContaFornecedorID", "ContaPagamentoID"];
+              var camposParaManter = ["ID","EmpresaID","NumTitulo","Descricao", "Valor", "DataProgramacao", "DataVencimento", "DataDocumento", "ContaFornecedorID", "ContaPagamentoID"];
+
 
            camposParaManter.forEach(function(nomeDoCampo) {
                var storedValue = localStorage.getItem(nomeDoCampo);
@@ -189,11 +203,17 @@
                    $('[name="' + nomeDoCampo + '"]').val(storedValue);
                }
            });
-       });
 
-       $(document).ready(function() {
+           var EmpresaSelecionada = 1;
+            //   console.log(camposParaManter);
+        });
+
+
+        $(document).ready(function() {
             $('.money').mask('000.000.000.000.000,00', {reverse: true});
         });
+
+
 
 
    </script>

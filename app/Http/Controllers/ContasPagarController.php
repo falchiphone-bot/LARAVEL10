@@ -133,7 +133,7 @@ class ContasPagarController extends Controller
     {
         $contasPagar = new ContasPagar;
 
-        $retorno['EmpresaSelecionada'] = null;
+
         $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
             ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
             ->OrderBy('Descricao')
@@ -181,6 +181,17 @@ class ContasPagarController extends Controller
             // $contasPagar = $request->all();
 
 
+
+$EmpresaSelecionada = $request->input('EmpresaID');
+
+
+session(['EmpresaID' =>  $request->input('EmpresaID')]);
+session(['ContaFornecedorID' => $request['ContaFornecedorID']]);
+session(['ContaPagamentoID' => $request['ContaPagamentoID']]);
+
+
+$ContasPagar = $request->input('EmpresaID');
+
 /////////////////////////////////////////////////////////////////////////////////////////////// feriado e dia da semana
             $DataContabilidade = $request->input('DataProgramacao');
 
@@ -217,12 +228,13 @@ class ContasPagarController extends Controller
 
 
 
-                if($ContaDebito->EmpresaID != $request['EmpresaID']){
+                if($ContaDebito->EmpresaID != $EmpresaSelecionada){
+
                     session(['error' => 'A contas DÉBITO não pertence a empresa!']);
                     return back();
                 }
 
-                if($ContaCredito->EmpresaID != $request['EmpresaID']){
+                if($ContaCredito->EmpresaID != $EmpresaSelecionada){
                     session(['error' => 'A contas CRÉDITO não pertence a empresa!']);
                     return back();
                 }
@@ -308,6 +320,7 @@ class ContasPagarController extends Controller
 
 
 
+// dd(session['Empresalecionada'], session['ContaFornecedorID'], session['ContaPagamentoID']);
 
         $data = [
             'EmpresaID' => $request->input('EmpresaID'),
@@ -323,7 +336,8 @@ class ContasPagarController extends Controller
             'Created' => $request->input('Created'),
         ];
 
-        ContasPagar::create($data);
+        $ContasPagar = $data;
+        // ContasPagar::create($data);
 
         session(['success' => 'Conta a pagar inserida com sucesso!']);
 
