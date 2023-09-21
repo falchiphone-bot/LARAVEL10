@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ContasPagar;
 use App\Helpers\SaldoLancamentoHelper;
+USE App\Helpers\FinancaHelper;
 use App\Http\Requests\CentroCustosCreateRequest;
 use App\Http\Requests\ContasCentroCustosCreateRequest;
 use App\Http\Requests\ContasPagarCreateRequest;
@@ -12,6 +13,7 @@ use App\Models\CentroCustos;
 use App\Models\Conta;
 use App\Models\ContasCentroCustos;
 use App\Models\Empresa;
+use App\Models\Feriado;
 use App\Models\Lancamento;
 use App\Models\PlanoConta;
 use Carbon\Carbon;
@@ -179,8 +181,10 @@ class ContasPagarController extends Controller
             // $contasPagar = $request->all();
 
 
-
+/////////////////////////////////////////////////////////////////////////////////////////////// feriado e dia da semana
             $DataContabilidade = $request->input('DataProgramacao');
+
+
             if ($DataContabilidade) {
                 $carbonData = Carbon::createFromFormat('Y-m-d', $DataContabilidade);
                 $dataContabilidade = $carbonData->format('d/m/Y');
@@ -188,7 +192,26 @@ class ContasPagarController extends Controller
                 $dataContabilidade = null;
             }
 
+            $feriado = Feriado::where('data', $carbonData)->first();
+            while ($feriado ) {
+                $carbonData->addDay(1);
+                $feriado = Feriado::where('data', $carbonData->format('Y-m-d'))->first();
+            }
 
+
+            $diasemana = date('l', strtotime($DataContabilidade));
+
+
+            if($diasemana == 'Saturday'){
+                $carbonData->addDay(2);
+            }
+            if($diasemana == 'Sunday'){
+                $carbonData->addDay(1);
+            }
+
+            $DataContabilidade = $carbonData->format('Y-m-d');
+
+///////////////////////////////////////////////////////////////////////////////////////////////
             $ContaDebito = Conta::find($request->ContaFornecedorID);
             $ContaCredito = Conta::find($request->ContaPagamentoID);
 
@@ -270,23 +293,13 @@ class ContasPagarController extends Controller
                 // return redirect()->route('ContasPagar.create');
             }
 
-            // $DEB = $ContaDebito->Planocontas_id;
-            // $CRED = $ContaCredito->Planocontas_id;
-
-            // $DEBIT = PlanoConta::where('ID', '=', $DEB)
-            // ->first();
-
-
-            // $CREDIT = PlanoConta::where('ID', '=',$CRED)
-            // ->first();
-
 
 
             $request['ContaFornecedorID'] = $ContaDebito->ID;
             $request['ContaPagamentoID'] = $ContaCredito->ID;
             $request['UsuarioID'] = Auth::user()->id;
             $request['Created'] = Carbon::now()->format('Y-m-d');
-
+            $request['DataProgramacao'] = $DataContabilidade;
 
 
             $contasPagar = collect($request->all());
@@ -294,7 +307,7 @@ class ContasPagarController extends Controller
             $request['Valor'] = str_replace(",",".",str_replace('.','',$request['Valor']));
 
 
-dd($contasPagar,293);
+ 
 
         $data = [
             'EmpresaID' => $request->input('EmpresaID'),
