@@ -2,22 +2,23 @@
    <div class="card">
        <div class="card-body">
            CONTAS A PAGAR DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL - INCLUSÃO
-           <div class="row">
-               <div class="col-sm-12">
-                   <label for="EmpresaID" style="color: black;">Empresa</label>
-                   <select required class="form-control select2" id="EmpresaID" name="EmpresaID">
-                       <option value="">Selecionar empresa</option>
+            
 
-                       @foreach ($Empresas as $item)
-                       <option @if ($item->ID == $contasPagar->EmpresaID) selected @endif
-                           value="{{ $item->ID }}">
-                           {{ $item->Descricao }}
-                       </option>
-                       @endforeach
-                   </select>
-               </div>
+
+           <div class="col-sm-12">
+               <label for="ContaPagamentoID" style="color: black;">Empresa</label>
+               <select required class="form-control select2" id="ContaPagamentoID" name="ContaPagamentoID">
+                   <option value="">Selecionar contas CRÉDITO</option>
+                   @if ($Empresas)
+                   @foreach ($Empresas as $item)
+                   <option @if ($item->EmpresasID  == $contasPagar->EmpresaID) selected @endif
+                       value="{{ $item->ID }}">
+                       {{ $item->Descricao }}
+                   </option>
+                   @endforeach
+                   @endif
+               </select>
            </div>
-
 
 
            <div class="row">
