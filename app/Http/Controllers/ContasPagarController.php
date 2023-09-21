@@ -307,7 +307,7 @@ class ContasPagarController extends Controller
             $request['Valor'] = str_replace(",",".",str_replace('.','',$request['Valor']));
 
 
- 
+
 
         $data = [
             'EmpresaID' => $request->input('EmpresaID'),
@@ -389,25 +389,47 @@ class ContasPagarController extends Controller
             dd('Conta a pagar não encontrada!', 'ID: ' . $id, 'ContasPagarController@update');
         }
 
+/////////////////////////////////////////////////////////////////////////////////////////////// feriado e dia da semana
+$DataContabilidade = $request->input('DataProgramacao');
+if ($DataContabilidade) {
+    $carbonData = Carbon::createFromFormat('Y-m-d', $DataContabilidade);
+    $dataContabilidade = $carbonData->format('d/m/Y');
+} else {
+    $dataContabilidade = null;
+}
+
+$feriado = Feriado::where('data', $carbonData)->first();
+while ($feriado ) {
+    $carbonData->addDay(1);
+    $feriado = Feriado::where('data', $carbonData->format('Y-m-d'))->first();
+}
+
+$diasemana = date('l', strtotime($DataContabilidade));
+
+if($diasemana == 'Saturday'){
+    $carbonData->addDay(2);
+}
+if($diasemana == 'Sunday'){
+    $carbonData->addDay(1);
+}
+$DataContabilidade = $carbonData->format('Y-m-d');
+$request['DataProgramacao'] = $DataContabilidade;
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
         $LancamentoID = $contasPagar->LancamentoID;
 
         $Lancamento = Lancamento::find($LancamentoID);
         if ($Lancamento) {
-
-
             $DataContabilidade = $request->input('DataProgramacao');
             if ($DataContabilidade) {
-
                 $carbonData = Carbon::createFromFormat('Y-m-d', $DataContabilidade);
-
-
                 $dataContabilidade = $carbonData->format('d/m/Y');
             } else {
                 $dataContabilidade = null; // Define $dataContabilidade como nulo se a data da solicitação for nula
             }
-
 
 
             $data_lancamento_bloqueio_debito = $contasPagar->ContaDebito->Bloqueiodataanterior;
