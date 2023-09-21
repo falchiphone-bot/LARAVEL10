@@ -4,7 +4,8 @@
            CONTAS A PAGAR DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL - INCLUSÃO
 
            <br>
-           Empresa selecionada {{ session('EmpresaID')}}
+           Empresa selecionada {{ session('EmpresaID')  }}
+           Nome da empresa {{ session('NomeEmpresa') }}
            <br>
            Débito {{ session('ContaFornecedorID') }}
            <br>
@@ -17,13 +18,13 @@
                <select required class="form-control select2" id="EmpresaID" name="EmpresaID">
                <option value="">Selecionar empresa</option>
                    @if ($Empresas)
-                   @foreach ($Empresas as $item)
-                   <option
-                   @if ($item->ID  == $contasPagar->EmpresaID) selected @endif
-                       value="{{ $item->ID }}">
-                       {{ $item->Descricao }}
-                   </option>
-                   @endforeach
+                    @foreach ($Empresas as $item)
+                    <option
+                    @if ($item->ID  == $contasPagar->EmpresaID) selected @endif
+                        value="{{ $item->ID }}" >
+                        {{ $item->Descricao }}
+                    </option>
+                    @endforeach
                    @endif
                </select>
            </div>
@@ -142,9 +143,6 @@
 
 
    <script>
-       $(document).ready(function() {
-           $('.select2').select2();
-       });
 
        $('form').submit(function(e) {
            e.preventDefault();
@@ -211,6 +209,8 @@
 
         $(document).ready(function() {
             $('.money').mask('000.000.000.000.000,00', {reverse: true});
+
+           $('.select2').select2();
         });
 
 

@@ -184,6 +184,9 @@ class ContasPagarController extends Controller
 
 $EmpresaSelecionada = $request->input('EmpresaID');
 
+$EmpresaBloqueada = Empresa::where('ID', '=', $request->EmpresaID)->first();
+
+            session(['NomeEmpresa' => $EmpresaBloqueada->Descricao]);
 
 session(['EmpresaID' =>  $request->input('EmpresaID')]);
 session(['ContaFornecedorID' => $request['ContaFornecedorID']]);
@@ -275,8 +278,9 @@ $ContasPagar = $request->input('EmpresaID');
             }
 
 
-            $EmpresaBloqueada = Empresa::where('ID', '=', $request->EmpresaID)->first();
+            // $EmpresaBloqueada = Empresa::where('ID', '=', $request->EmpresaID)->first();
 
+            // session(['NomeEmpresa' => $EmpresaBloqueada->Descricao]);
             $data_lancamento_bloqueio_empresa = $EmpresaBloqueada->Bloqueiodataanterior;
 
             $dataLimite = $data_lancamento_bloqueio_empresa;
