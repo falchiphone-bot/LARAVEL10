@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ContasPagar;
 use App\Helpers\SaldoLancamentoHelper;
-USE App\Helpers\FinancaHelper;
+use App\Helpers\FinancaHelper;
 use App\Http\Requests\CentroCustosCreateRequest;
 use App\Http\Requests\ContasCentroCustosCreateRequest;
 use App\Http\Requests\ContasPagarCreateRequest;
@@ -148,8 +148,7 @@ class ContasPagarController extends Controller
             ->orderby('PlanoContas.Descricao')
             ->get();
 
-            $ContaPagamento = Conta::
-            join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.Planocontas_id')
+        $ContaPagamento = Conta::join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.Planocontas_id')
             ->join('Contabilidade.Empresas', 'Empresas.ID', '=', 'Contas.EmpresaID')
             ->where('Contabilidade.PlanoContas.Grau', '=', '5')
             ->select('Contas.ID', DB::raw("CONCAT(PlanoContas.Descricao,' | ', Empresas.Descricao) as Descricao"))
@@ -178,153 +177,153 @@ class ContasPagarController extends Controller
         // }
 
 
-            // $contasPagar = $request->all();
+        // $contasPagar = $request->all();
 
 
 
-$EmpresaSelecionada = $request->input('EmpresaID');
+        $EmpresaSelecionada = $request->input('EmpresaID');
 
-$EmpresaBloqueada = Empresa::where('ID', '=', $request->EmpresaID)->first();
+        $EmpresaBloqueada = Empresa::where('ID', '=', $request->EmpresaID)->first();
 
-            session(['NomeEmpresa' => $EmpresaBloqueada->Descricao]);
+        session(['NomeEmpresa' => $EmpresaBloqueada->Descricao]);
 
-session(['EmpresaID' =>  $request->input('EmpresaID')]);
-session(['ContaFornecedorID' => $request['ContaFornecedorID']]);
-session(['ContaPagamentoID' => $request['ContaPagamentoID']]);
-
-
-$ContasPagar = $request->input('EmpresaID');
-
-/////////////////////////////////////////////////////////////////////////////////////////////// feriado e dia da semana
-            $DataContabilidade = $request->input('DataProgramacao');
+        session(['EmpresaID' =>  $request->input('EmpresaID')]);
+        session(['ContaFornecedorID' => $request['ContaFornecedorID']]);
+        session(['ContaPagamentoID' => $request['ContaPagamentoID']]);
 
 
-            if ($DataContabilidade) {
-                $carbonData = Carbon::createFromFormat('Y-m-d', $DataContabilidade);
-                $dataContabilidade = $carbonData->format('d/m/Y');
-            } else {
-                $dataContabilidade = null;
-            }
+        $ContasPagar = $request->input('EmpresaID');
 
-            $feriado = Feriado::where('data', $carbonData)->first();
-            while ($feriado ) {
-                $carbonData->addDay(1);
-                $feriado = Feriado::where('data', $carbonData->format('Y-m-d'))->first();
-            }
+        /////////////////////////////////////////////////////////////////////////////////////////////// feriado e dia da semana
+        $DataContabilidade = $request->input('DataProgramacao');
 
 
-            $diasemana = date('l', strtotime($DataContabilidade));
+        if ($DataContabilidade) {
+            $carbonData = Carbon::createFromFormat('Y-m-d', $DataContabilidade);
+            $dataContabilidade = $carbonData->format('d/m/Y');
+        } else {
+            $dataContabilidade = null;
+        }
+
+        $feriado = Feriado::where('data', $carbonData)->first();
+        while ($feriado) {
+            $carbonData->addDay(1);
+            $feriado = Feriado::where('data', $carbonData->format('Y-m-d'))->first();
+        }
 
 
-            if($diasemana == 'Saturday'){
-                $carbonData->addDay(2);
-            }
-            if($diasemana == 'Sunday'){
-                $carbonData->addDay(1);
-            }
-
-            $DataContabilidade = $carbonData->format('Y-m-d');
-
-///////////////////////////////////////////////////////////////////////////////////////////////
-            $ContaDebito = Conta::find($request->ContaFornecedorID);
-            $ContaCredito = Conta::find($request->ContaPagamentoID);
+        $diasemana = date('l', strtotime($DataContabilidade));
 
 
+        if ($diasemana == 'Saturday') {
+            $carbonData->addDay(2);
+        }
+        if ($diasemana == 'Sunday') {
+            $carbonData->addDay(1);
+        }
 
-                if($ContaDebito->EmpresaID != $EmpresaSelecionada){
+        $DataContabilidade = $carbonData->format('Y-m-d');
 
-                    session(['error' => 'A contas DÉBITO não pertence a empresa!']);
-                    return back();
-                }
-
-                if($ContaCredito->EmpresaID != $EmpresaSelecionada){
-                    session(['error' => 'A contas CRÉDITO não pertence a empresa!']);
-                    return back();
-                }
-
-
-            $data_lancamento_bloqueio_debito = $ContaDebito->Bloqueiodataanterior;
+        ///////////////////////////////////////////////////////////////////////////////////////////////
+        $ContaDebito = Conta::find($request->ContaFornecedorID);
+        $ContaCredito = Conta::find($request->ContaPagamentoID);
 
 
 
+        if ($ContaDebito->EmpresaID != $EmpresaSelecionada) {
 
-            if ($data_lancamento_bloqueio_debito !== null && $data_lancamento_bloqueio_debito->greaterThanOrEqualTo($DataContabilidade)) {
+            session(['error' => 'A contas DÉBITO não pertence a empresa!']);
+            return back();
+        }
 
-                session([
-                    'Lancamento' =>
-                    'Conta DÉBITO: ' .
-                        $ContaDebito->PlanoConta->Descricao .
-                        ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+        if ($ContaCredito->EmpresaID != $EmpresaSelecionada) {
+            session(['error' => 'A contas CRÉDITO não pertence a empresa!']);
+            return back();
+        }
+
+
+        $data_lancamento_bloqueio_debito = $ContaDebito->Bloqueiodataanterior;
+
+
+
+
+        if ($data_lancamento_bloqueio_debito !== null && $data_lancamento_bloqueio_debito->greaterThanOrEqualTo($DataContabilidade)) {
+
+            session([
+                'Lancamento' =>
+                'Conta DÉBITO: ' .
+                    $ContaDebito->PlanoConta->Descricao .
+                    ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
                      da conta para seguir este procedimento. Bloqueada para até ' .
-                        $data_lancamento_bloqueio_debito->format('d/m/Y') .  '  - CÓDIGO L233'
-                ]);
-                return back();
-                // return redirect()->route('ContasPagar.create');
-            }
+                    $data_lancamento_bloqueio_debito->format('d/m/Y') .  '  - CÓDIGO L233'
+            ]);
+            return back();
+            // return redirect()->route('ContasPagar.create');
+        }
 
-            $data_lancamento_bloqueio_credito = $ContaCredito->Bloqueiodataanterior;
-            if ($data_lancamento_bloqueio_credito !== null && $data_lancamento_bloqueio_credito->greaterThanOrEqualTo($DataContabilidade)) {
-                // O código aqui será executado se $data_lancamento_bloqueio_debito não for nulo e for maior ou igual a $DataContabilidade
-                session([
-                    'Lancamento' =>
-                    'Conta CRÉDITO: ' .
-                        $ContaCredito->PlanoConta->Descricao .
-                        ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+        $data_lancamento_bloqueio_credito = $ContaCredito->Bloqueiodataanterior;
+        if ($data_lancamento_bloqueio_credito !== null && $data_lancamento_bloqueio_credito->greaterThanOrEqualTo($DataContabilidade)) {
+            // O código aqui será executado se $data_lancamento_bloqueio_debito não for nulo e for maior ou igual a $DataContabilidade
+            session([
+                'Lancamento' =>
+                'Conta CRÉDITO: ' .
+                    $ContaCredito->PlanoConta->Descricao .
+                    ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
                      da conta para seguir este procedimento. Bloqueada para até ' .
-                        $data_lancamento_bloqueio_credito->format('d/m/Y') .  '  - CÓDIGO L236'
-                ]);
-                return back();
-                // return redirect()->route('ContasPagar.create');
-            }
+                    $data_lancamento_bloqueio_credito->format('d/m/Y') .  '  - CÓDIGO L236'
+            ]);
+            return back();
+            // return redirect()->route('ContasPagar.create');
+        }
 
 
-            // $EmpresaBloqueada = Empresa::where('ID', '=', $request->EmpresaID)->first();
+        // $EmpresaBloqueada = Empresa::where('ID', '=', $request->EmpresaID)->first();
 
-            // session(['NomeEmpresa' => $EmpresaBloqueada->Descricao]);
-            $data_lancamento_bloqueio_empresa = $EmpresaBloqueada->Bloqueiodataanterior;
+        // session(['NomeEmpresa' => $EmpresaBloqueada->Descricao]);
+        $data_lancamento_bloqueio_empresa = $EmpresaBloqueada->Bloqueiodataanterior;
 
-            $dataLimite = $data_lancamento_bloqueio_empresa;
+        $dataLimite = $data_lancamento_bloqueio_empresa;
 
-            if ($DataContabilidade <= $dataLimite) {
-                // A data de lançamento é maior do que a data limite permitida
-                session([
-                    'Lancamento' =>
-                    'A data de lançamento não pode ser MENOR ou IGUAL a ' . $data_lancamento_bloqueio_empresa->format('d/m/Y') . ' que é a data limite do bloqueio. - CÓDIGO L198'
-                ]);
-                return back();
-                // return redirect()->route('ContasPagar.create');
-            }
+        if ($DataContabilidade <= $dataLimite) {
+            // A data de lançamento é maior do que a data limite permitida
+            session([
+                'Lancamento' =>
+                'A data de lançamento não pode ser MENOR ou IGUAL a ' . $data_lancamento_bloqueio_empresa->format('d/m/Y') . ' que é a data limite do bloqueio. - CÓDIGO L198'
+            ]);
+            return back();
+            // return redirect()->route('ContasPagar.create');
+        }
 
-            if ($data_lancamento_bloqueio_empresa->greaterThanOrEqualTo($DataContabilidade)) {
-                session([
-                    'Lancamento' =>
-                    'Conta DÉBITO: ' .
-                        $EmpresaBloqueada->Descricao .
-                        ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+        if ($data_lancamento_bloqueio_empresa->greaterThanOrEqualTo($DataContabilidade)) {
+            session([
+                'Lancamento' =>
+                'Conta DÉBITO: ' .
+                    $EmpresaBloqueada->Descricao .
+                    ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
                      da empresa para seguir este procedimento. Bloqueada para até ' .
-                        $EmpresaBloqueada .  '  - CÓDIGO L198'
+                    $EmpresaBloqueada .  '  - CÓDIGO L198'
 
-                ]);
-                return back();
-                // return redirect()->route('ContasPagar.create');
-            }
-
-
-
-            $request['ContaFornecedorID'] = $ContaDebito->ID;
-            $request['ContaPagamentoID'] = $ContaCredito->ID;
-            $request['UsuarioID'] = Auth::user()->id;
-            $request['Created'] = Carbon::now()->format('Y-m-d');
-            $request['DataProgramacao'] = $DataContabilidade;
-
-
-            $contasPagar = collect($request->all());
-
-            $request['Valor'] = str_replace(",",".",str_replace('.','',$request['Valor']));
+            ]);
+            return back();
+            // return redirect()->route('ContasPagar.create');
+        }
 
 
 
-// dd(session['Empresalecionada'], session['ContaFornecedorID'], session['ContaPagamentoID']);
+        $request['ContaFornecedorID'] = $ContaDebito->ID;
+        $request['ContaPagamentoID'] = $ContaCredito->ID;
+        $request['UsuarioID'] = Auth::user()->id;
+        $request['Created'] = Carbon::now()->format('Y-m-d');
+        $request['DataProgramacao'] = $DataContabilidade;
+
+
+        $contasPagar = collect($request->all());
+
+        $request['Valor'] = str_replace(",", ".", str_replace('.', '', $request['Valor']));
+
+
+
+        // dd(session['Empresalecionada'], session['ContaFornecedorID'], session['ContaPagamentoID']);
 
         $data = [
             'EmpresaID' => $request->input('EmpresaID'),
@@ -341,15 +340,11 @@ $ContasPagar = $request->input('EmpresaID');
         ];
 
         $ContasPagar = $data;
-        // ContasPagar::create($data);
+        ContasPagar::create($data);
 
         session(['success' => 'Conta a pagar inserida com sucesso!']);
 
         return redirect()->route('ContasPagar.index');
-
-
-
-
     }
 
     public function show($id)
@@ -407,33 +402,33 @@ $ContasPagar = $request->input('EmpresaID');
             dd('Conta a pagar não encontrada!', 'ID: ' . $id, 'ContasPagarController@update');
         }
 
-/////////////////////////////////////////////////////////////////////////////////////////////// feriado e dia da semana
-$DataContabilidade = $request->input('DataProgramacao');
-if ($DataContabilidade) {
-    $carbonData = Carbon::createFromFormat('Y-m-d', $DataContabilidade);
-    $dataContabilidade = $carbonData->format('d/m/Y');
-} else {
-    $dataContabilidade = null;
-}
+        /////////////////////////////////////////////////////////////////////////////////////////////// feriado e dia da semana
+        $DataContabilidade = $request->input('DataProgramacao');
+        if ($DataContabilidade) {
+            $carbonData = Carbon::createFromFormat('Y-m-d', $DataContabilidade);
+            $dataContabilidade = $carbonData->format('d/m/Y');
+        } else {
+            $dataContabilidade = null;
+        }
 
-$feriado = Feriado::where('data', $carbonData)->first();
-while ($feriado ) {
-    $carbonData->addDay(1);
-    $feriado = Feriado::where('data', $carbonData->format('Y-m-d'))->first();
-}
+        $feriado = Feriado::where('data', $carbonData)->first();
+        while ($feriado) {
+            $carbonData->addDay(1);
+            $feriado = Feriado::where('data', $carbonData->format('Y-m-d'))->first();
+        }
 
-$diasemana = date('l', strtotime($DataContabilidade));
+        $diasemana = date('l', strtotime($DataContabilidade));
 
-if($diasemana == 'Saturday'){
-    $carbonData->addDay(2);
-}
-if($diasemana == 'Sunday'){
-    $carbonData->addDay(1);
-}
-$DataContabilidade = $carbonData->format('Y-m-d');
-$request['DataProgramacao'] = $DataContabilidade;
+        if ($diasemana == 'Saturday') {
+            $carbonData->addDay(2);
+        }
+        if ($diasemana == 'Sunday') {
+            $carbonData->addDay(1);
+        }
+        $DataContabilidade = $carbonData->format('Y-m-d');
+        $request['DataProgramacao'] = $DataContabilidade;
 
-///////////////////////////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -484,29 +479,29 @@ $request['DataProgramacao'] = $DataContabilidade;
             $EmpresaBloqueada = Empresa::where('ID', '=', $Lancamento->EmpresaID)->first();
 
             $data_lancamento_bloqueio_empresa = $EmpresaBloqueada->Bloqueiodataanterior;
-$dataLimite = $data_lancamento_bloqueio_empresa;
+            $dataLimite = $data_lancamento_bloqueio_empresa;
 
-if ($DataContabilidade <> $dataLimite) {
-    // A data de lançamento é maior do que a data limite permitida
-    session([
-        'Lancamento' =>
-        'A data de lançamento não pode ser maior do que ' . $data_lancamento_bloqueio_empresa->format('d/m/Y') . ' que é a data limite do bloqueio. - CÓDIGO L198'
-    ]);
-    return redirect()->route('ContasPagar.edit', $id);
-}
+            if ($DataContabilidade <> $dataLimite) {
+                // A data de lançamento é maior do que a data limite permitida
+                session([
+                    'Lancamento' =>
+                    'A data de lançamento não pode ser maior do que ' . $data_lancamento_bloqueio_empresa->format('d/m/Y') . ' que é a data limite do bloqueio. - CÓDIGO L198'
+                ]);
+                return redirect()->route('ContasPagar.edit', $id);
+            }
 
-if ($data_lancamento_bloqueio_empresa->greaterThanOrEqualTo($DataContabilidade)) {
-    // Data da empresa bloqueada
-    session([
-        'Lancamento' =>
-        'EMPRESA BLOQUEADA: ' .
-            $EmpresaBloqueada->Descricao .
-            ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+            if ($data_lancamento_bloqueio_empresa->greaterThanOrEqualTo($DataContabilidade)) {
+                // Data da empresa bloqueada
+                session([
+                    'Lancamento' =>
+                    'EMPRESA BLOQUEADA: ' .
+                        $EmpresaBloqueada->Descricao .
+                        ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
              da empresa para seguir este procedimento. Bloqueada para até ' .
-            $EmpresaBloqueada .  '  - CÓDIGO L198'
-    ]);
-    return redirect()->route('ContasPagar.edit', $id);
-}
+                        $EmpresaBloqueada .  '  - CÓDIGO L198'
+                ]);
+                return redirect()->route('ContasPagar.edit', $id);
+            }
 
 
 
@@ -518,13 +513,15 @@ if ($data_lancamento_bloqueio_empresa->greaterThanOrEqualTo($DataContabilidade))
                 'NumTitulo' => $request->input('NumTitulo') ?? null,
                 'ContaDebitoID' => $request->input('ContaFornecedorID') ?? null,
                 'ContaCreditoID' => $request->input('ContaPagamentoID') ?? null,
+                'UsuarioID' => $request->input('UsuarioID'),
+                 'Created' => $request->input('Created'),
             ]);
             $Lancamento->save();
         } else {;
             session(['contabilidade' => 'Lançamento não encontrado na contabilidade!']);
         };
 
-        $request['Valor'] = str_replace(",",".",str_replace('.','',$request['Valor']));
+        $request['Valor'] = str_replace(",", ".", str_replace('.', '', $request['Valor']));
 
         $contasPagar->update([
             'Descricao' => $request->input('Descricao'),
@@ -545,5 +542,138 @@ if ($data_lancamento_bloqueio_empresa->greaterThanOrEqualTo($DataContabilidade))
     public function destroy($id)
     {
         // Lógica para excluir um registro específico
+    }
+
+    public function IncluirLancamentoContasPagar($id)
+    {
+
+        $contasPagar = ContasPagar::find($id);
+
+        if ($contasPagar == null) {
+
+            session(['error' => 'ID não localizado. VERIFIQUE! CÓDIGO L557']);
+
+            return redirect()->route('ContasPagar.index');
+        }
+
+
+
+        $LancamentoID = $contasPagar->LancamentoID;
+
+        $Lancamento = Lancamento::find($LancamentoID);
+        if (!$Lancamento) {
+            $DataContabilidade = $contasPagar->DataProgramacao;
+            if ($DataContabilidade) {
+                $carbonData = Carbon::createFromFormat('Y-m-d', $DataContabilidade);
+                $dataContabilidade = $carbonData->format('d/m/Y');
+            } else {
+                $dataContabilidade = null; // Define $dataContabilidade como nulo se a data da solicitação for nula
+            }
+
+
+            $data_lancamento_bloqueio_debito = $contasPagar->ContaDebito->Bloqueiodataanterior;
+
+
+            if ($data_lancamento_bloqueio_debito !== null && $data_lancamento_bloqueio_debito->greaterThanOrEqualTo($DataContabilidade)) {
+                // O código aqui será executado se $data_lancamento_bloqueio_debito não for nulo e for maior ou igual a $DataContabilidade
+                session([
+                    'Lancamento' =>
+                    'Conta DÉBITO: ' .
+                        $contasPagar->ContaDebito->PlanoConta->Descricao .
+                        ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                     da conta para seguir este procedimento. Bloqueada para até ' .
+                        $data_lancamento_bloqueio_debito->format('d/m/Y') .  '  - CÓDIGO L233'
+                ]);
+                return redirect()->route('ContasPagar.edit', $id);
+            }
+
+            $data_lancamento_bloqueio_credito = $contasPagar->ContaCredito->Bloqueiodataanterior;
+            if ($data_lancamento_bloqueio_credito !== null && $data_lancamento_bloqueio_credito->greaterThanOrEqualTo($DataContabilidade)) {
+                // O código aqui será executado se $data_lancamento_bloqueio_debito não for nulo e for maior ou igual a $DataContabilidade
+                session([
+                    'Lancamento' =>
+                    'Conta CRÉDITO: ' .
+                        $contasPagar->ContaCredito->PlanoConta->Descricao .
+                        ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                     da conta para seguir este procedimento. Bloqueada para até ' .
+                        $data_lancamento_bloqueio_credito->format('d/m/Y') .  '  - CÓDIGO L597'
+                ]);
+                return redirect()->route('ContasPagar.edit', $id);
+            }
+
+
+            $EmpresaBloqueada = Empresa::where('ID', '=', $contasPagar->EmpresaID)->first();
+
+            $data_lancamento_bloqueio_empresa = $EmpresaBloqueada->Bloqueiodataanterior;
+            $dataLimite = $data_lancamento_bloqueio_empresa;
+
+            if ($DataContabilidade < $dataLimite) {
+                // A data de lançamento é maior do que a data limite permitida
+                session([
+                    'Lancamento' =>
+                    'A data de lançamento não pode ser menor do que ' . $data_lancamento_bloqueio_empresa->format('d/m/Y') . ' que é a data limite do bloqueio. - CÓDIGO L612'
+                ]);
+                return redirect()->route('ContasPagar.edit', $id);
+            }
+
+            if ($data_lancamento_bloqueio_empresa->greaterThanOrEqualTo($DataContabilidade)) {
+                // Data da empresa bloqueada
+                session([
+                    'Lancamento' =>
+                    'EMPRESA BLOQUEADA: ' .
+                        $EmpresaBloqueada->Descricao .
+                        ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+             da empresa para seguir este procedimento. Bloqueada para até ' .
+                        $EmpresaBloqueada .  '  - CÓDIGO L198'
+                ]);
+                return redirect()->route('ContasPagar.edit', $id);
+            }
+
+
+            $Lancamento = [
+                'EmpresaID' => $contasPagar->EmpresaID,
+                'Descricao' => $contasPagar->Descricao,
+                'Valor' => $contasPagar->Valor,
+                'DataContabilidade' =>  $DataContabilidade,
+                'NumTitulo' => $contasPagar->NumTitulo,
+                'ContaDebitoID' => $contasPagar->ContaFornecedorID,
+                'ContaCreditoID' => $contasPagar->ContaPagamentoID,
+                'Usuarios_id' => Auth::user()->id,
+                'Created' => Carbon::now()->format('Y-m-d'),
+            ];
+
+
+
+
+    $duplicadoconsulta = Lancamento::where([
+        'EmpresaID' => $contasPagar->EmpresaID,
+        'Descricao' => $contasPagar->Descricao,
+        'Valor' => $contasPagar->Valor,
+        'DataContabilidade' => $dataContabilidade,
+        'ContaDebitoID' => $contasPagar->ContaFornecedorID,
+        'ContaCreditoID' => $contasPagar->ContaPagamentoID,
+    ])->first();
+
+
+
+    if ($duplicadoconsulta) {
+
+        $contasPagar = ContasPagar::find($id);
+        $contasPagar->update([
+            'LancamentoID' => $duplicadoconsulta->ID,
+        ]);
+        session(['contabilidade' => 'Lançamento já inserido na contabilidade!']);
+
+    } else {
+        Lancamento::create($Lancamento);
+        session(['success' => 'Lançamento incluído na contabilidade!']);
+    }
+
+
+        } ;
+
+        session(['success' => 'Lançamento incluído na contabilidade!']);
+
+        return redirect()->route('ContasPagar.edit', $id);
     }
 }

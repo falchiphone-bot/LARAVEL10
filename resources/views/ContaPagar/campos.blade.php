@@ -43,6 +43,14 @@
                </div>
            </div>
 
+
+
+                                        @if(!$contasPagar->LancamentoID)
+                                                @can('CONTASPAGAR - INCLUIRLANCAMENTO')
+                                                <a href="{{ route('contaspagar.IncluirLancamentoContasPagar', $contasPagar->ID) }}" class="btn btn-primary btn-sm"
+                                                    tabindex="-1" role="button" aria-disabled="true">Lançar contabilidade</a>
+                                            @endcan
+                                        @endif
            <div class="row">
                <div class="col-12">
                    <label for="nome">DESCRIÇÃO</label>

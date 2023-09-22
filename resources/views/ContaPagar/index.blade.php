@@ -139,7 +139,7 @@
                                 <th scope="col" class="px-6 py-4">Vencimento</th>
                                 <th scope="col" class="px-6 py-4">Data do documento </th>
                                 <th scope="col" class="px-6 py-4">Contabilidade</th>
-           
+
                             </tr>
 
 
@@ -180,6 +180,14 @@
                                             <a href="{{ route('ContasPagar.edit', $conta->ID) }}" class="btn btn-success"
                                                 tabindex="-1" role="button" aria-disabled="true">Editar</a>
                                         @endcan
+                                        @if(!$conta->LancamentoID)
+                                                @can('CONTASPAGAR - INCLUIRLANCAMENTO')
+                                                <a href="{{ route('contaspagar.IncluirLancamentoContasPagar', $conta->ID) }}" class="btn btn-warning"
+                                                    tabindex="-1" role="button" aria-disabled="true">Lançar contabilidade</a>
+                                            @endcan
+                                        @endif
+
+
                                     </td>
                             </tr>
 
