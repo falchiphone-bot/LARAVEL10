@@ -42,7 +42,9 @@ class ContasPagarController extends Controller
 
     public function index()
     {
-        $contasPagar = ContasPagar::limit(100)->OrderBy('ID', 'desc')->get();
+        $contasPagar = ContasPagar::join('Contabilidade.EmpresasUsuarios', 'ContasPagar.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
+        ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+        ->limit(100)->OrderBy('ContasPagar.ID', 'desc')->get();
 
         if ($contasPagar->count() > 0) {
             session(['entrada' => 'A pesquisa abaixo mostra os 100 últimos lançamentos de todas as empresas autorizadas!']);
@@ -72,8 +74,7 @@ class ContasPagarController extends Controller
         $contasPagar = ContasPagar::Limit($Request->Limite ?? 100)
             ->join('Contabilidade.EmpresasUsuarios', 'ContasPagar.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
             ->Where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
-            // ->select(['Lancamentos.ID', 'DataContabilidade', 'Lancamentos.Descricao', 'Lancamentos.EmpresaID', 'Contabilidade.Lancamentos.Valor', 'Historicos.Descricao as DescricaoHistorico', 'Lancamentos.ContaDebitoID', 'Lancamentos.ContaCreditoID'])
-            ->select(['ContasPagar.ID', 'DataProgramacao', 'ContasPagar.Descricao', 'ContasPagar.EmpresaID', 'ContasPagar.Valor', 'ContasPagar.DataVencimento', 'ContasPagar.DataDocumento', 'ContasPagar.NumTitulo', 'ContasPagar.ContaFornecedorID', 'ContasPagar.ContaPagamentoID']);
+             ->select(['ContasPagar.ID', 'DataProgramacao', 'ContasPagar.Descricao', 'ContasPagar.EmpresaID', 'ContasPagar.Valor', 'ContasPagar.DataVencimento', 'ContasPagar.DataDocumento', 'ContasPagar.NumTitulo', 'ContasPagar.ContaFornecedorID', 'ContasPagar.ContaPagamentoID']);
 
         if ($Request->Texto) {
             $texto = $Request->Texto;
@@ -514,7 +515,7 @@ class ContasPagarController extends Controller
                 'ContaDebitoID' => $request->input('ContaFornecedorID') ?? null,
                 'ContaCreditoID' => $request->input('ContaPagamentoID') ?? null,
                 'UsuarioID' => $request->input('UsuarioID'),
-                 'Created' => $request->input('Created'),
+                'Created' => $request->input('Created'),
             ]);
             $Lancamento->save();
         } else {;
@@ -645,34 +646,30 @@ class ContasPagarController extends Controller
 
 
 
-    $duplicadoconsulta = Lancamento::where([
-        'EmpresaID' => $contasPagar->EmpresaID,
-        'Descricao' => $contasPagar->Descricao,
-        'Valor' => $contasPagar->Valor,
-        'DataContabilidade' => $dataContabilidade,
-        'ContaDebitoID' => $contasPagar->ContaFornecedorID,
-        'ContaCreditoID' => $contasPagar->ContaPagamentoID,
-    ])->first();
+            $duplicadoconsulta = Lancamento::where([
+                'EmpresaID' => $contasPagar->EmpresaID,
+                'Descricao' => $contasPagar->Descricao,
+                'Valor' => $contasPagar->Valor,
+                'DataContabilidade' => $dataContabilidade,
+                'ContaDebitoID' => $contasPagar->ContaFornecedorID,
+                'ContaCreditoID' => $contasPagar->ContaPagamentoID,
+            ])->first();
 
 
 
-    if ($duplicadoconsulta) {
+            if ($duplicadoconsulta) {
 
-        $contasPagar = ContasPagar::find($id);
-        $contasPagar->update([
-            'LancamentoID' => $duplicadoconsulta->ID,
-        ]);
-        session(['contabilidade' => 'Lançamento já inserido na contabilidade!']);
+                $contasPagar = ContasPagar::find($id);
+                $contasPagar->update([
+                    'LancamentoID' => $duplicadoconsulta->ID,
+                ]);
+                session(['contabilidade' => 'Lançamento já inserido na contabilidade!']);
+            } else {
+                Lancamento::create($Lancamento);
+                session(['success' => 'Lançamento incluído na contabilidade!']);
+            }
+        };
 
-    } else {
-        Lancamento::create($Lancamento);
-        session(['success' => 'Lançamento incluído na contabilidade!']);
-    }
-
-
-        } ;
-
-        session(['success' => 'Lançamento incluído na contabilidade!']);
 
         return redirect()->route('ContasPagar.edit', $id);
     }
