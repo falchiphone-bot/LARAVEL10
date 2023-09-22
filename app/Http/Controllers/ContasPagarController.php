@@ -6,15 +6,18 @@ namespace App\Http\Controllers;
 use App\Models\ContasPagar;
 use App\Helpers\SaldoLancamentoHelper;
 use App\Helpers\FinancaHelper;
+use App\Http\Requests\ArquivoContasPagarCreateRequest;
 use App\Http\Requests\CentroCustosCreateRequest;
 use App\Http\Requests\ContasCentroCustosCreateRequest;
 use App\Http\Requests\ContasPagarCreateRequest;
 use App\Models\CentroCustos;
 use App\Models\Conta;
 use App\Models\ContasCentroCustos;
+use App\Models\ContasPagarArquivo;
 use App\Models\Empresa;
 use App\Models\Feriado;
 use App\Models\Lancamento;
+use App\Models\LancamentoDocumento;
 use App\Models\PlanoConta;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
@@ -402,8 +405,19 @@ class ContasPagarController extends Controller
             ->orderby('PlanoContas.Descricao')
             ->get();
 
+            $documento = LancamentoDocumento::where('tipoarquivo','>',0)->orderBy('ID', 'desc')->get();
+            $arquivoExiste = null;
+            $ContasPagarArquivo = ContasPagarArquivo::where('contaspagar_id', $id)
+                 ->orderBy('id')
+                 ->get();
 
-        return view('ContaPagar.edit', compact('contasPagar', 'Empresas', 'id', 'ContaFornecedor', 'ContaPagamento'));
+                 foreach ($ContasPagarArquivo as $ContasPagarArquivos) {
+                     $arquivoExiste = $ContasPagarArquivos->id;
+
+                 }
+
+
+        return view('ContaPagar.edit', compact('contasPagar', 'Empresas', 'id', 'ContaFornecedor', 'ContaPagamento','documento','arquivoExiste'));
     }
 
     public function update(Request $request, string $id)
@@ -688,5 +702,29 @@ class ContasPagarController extends Controller
 
 
         return redirect()->route('ContasPagar.edit', $id);
+    }
+
+    public function CreateArquivoContasPagar(ArquivoContasPagarCreateRequest $request)
+    {
+        $id = $request->contaspagar_id;
+        $contaspagar_id = $request->contaspagar_id;
+        $arquivo_id = $request->arquivo_id;
+
+        $Existe = ContasPagarArquivo::where('arquivo_id',$arquivo_id)
+        ->where('contaspagar_id',$contaspagar_id)
+        ->first();
+
+        if($Existe){
+            session(['error' => "ARQUIVO EXISTE:  "
+            . $Existe->MostraLancamentoDocumento->Rotulo.  ' do tipo de arquivo: '
+            . $Existe->MostraLancamentoDocumento->TipoArquivoNome->nome
+            .",  já existe para este registro!"]);
+            return redirect(route('FormandoBase.edit', $id));
+        }
+
+        $request['user_created'] = Auth ::user()->email;
+        $model = $request->all();
+        ContasPagarArquivo::create($model);
+        return redirect(route('ContasPagar.edit', $id));
     }
 }
