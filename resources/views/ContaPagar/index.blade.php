@@ -20,6 +20,19 @@
             <a href="{{ route('ContasPagar.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button" aria-disabled="true">Incluir Contas a pagar </a>
             @endcan
 
+
+            @can('LANCAMENTOS DOCUMENTOS - LISTAR')
+                            <tr>
+                                <th>
+
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-success" href="/LancamentosDocumentos">Enviar documentos</a>
+                                    </nav>
+
+                                </th>
+                            </tr>
+             @endcan
+
             <div class="card-body">
                 <a href="/dashboard" class="btn btn-warning">Retornar para opções anteriores</a>
 
@@ -170,7 +183,7 @@
 
                                     </td>
                                     <td class="">
-                                          {{ \Carbon\Carbon::createFromFormat('Y-m-d', substr($conta->DataDocumento, 0, 9))->format('d/m/Y') }}
+                                          {{ \Carbon\Carbon::createFromFormat('Y-m-d', substr($conta->DataDocumento, 0, 10))->format('d/m/Y') }}
                                     </td>
                                     <td class="">
                                           {{ $conta->LancamentoID }}
@@ -180,12 +193,14 @@
                                             <a href="{{ route('ContasPagar.edit', $conta->ID) }}" class="btn btn-success"
                                                 tabindex="-1" role="button" aria-disabled="true">Editar</a>
                                         @endcan
-                                        @if(!$conta->LancamentoID)
-                                                @can('CONTASPAGAR - INCLUIRLANCAMENTO')
+
+                                        @if ($conta->LancamentoID == 0 || $conta->LancamentoID == null)
+                                            @can('CONTASPAGAR - INCLUIRLANCAMENTO')
                                                 <a href="{{ route('contaspagar.IncluirLancamentoContasPagar', $conta->ID) }}" class="btn btn-warning"
                                                     tabindex="-1" role="button" aria-disabled="true">Lançar contabilidade</a>
                                             @endcan
-                                        @endif
+                                         @endif
+
 
 
                                     </td>

@@ -42,9 +42,17 @@ class ContasPagarController extends Controller
 
     public function index()
     {
-        $contasPagar = ContasPagar::join('Contabilidade.EmpresasUsuarios', 'ContasPagar.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
-        ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
-        ->limit(100)->OrderBy('ContasPagar.ID', 'desc')->get();
+        $contasPagar = ContasPagar::Limit(100)
+        ->join('Contabilidade.EmpresasUsuarios', 'ContasPagar.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
+        ->Where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+         ->select(['ContasPagar.ID', 'DataProgramacao', 'ContasPagar.Descricao', 'ContasPagar.LancamentoID', 'ContasPagar.Created',
+          'ContasPagar.EmpresaID', 'ContasPagar.Valor', 'ContasPagar.DataVencimento',
+           'ContasPagar.DataDocumento', 'ContasPagar.NumTitulo', 'ContasPagar.ContaFornecedorID', 'ContasPagar.ContaPagamentoID'])
+        ->orderBy('Created', 'desc')
+        ->OrderBy('Valor', 'desc')
+
+         ->get();
+
 
         if ($contasPagar->count() > 0) {
             session(['entrada' => 'A pesquisa abaixo mostra os 100 últimos lançamentos de todas as empresas autorizadas!']);
@@ -74,7 +82,10 @@ class ContasPagarController extends Controller
         $contasPagar = ContasPagar::Limit($Request->Limite ?? 100)
             ->join('Contabilidade.EmpresasUsuarios', 'ContasPagar.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
             ->Where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
-             ->select(['ContasPagar.ID', 'DataProgramacao', 'ContasPagar.Descricao', 'ContasPagar.EmpresaID', 'ContasPagar.Valor', 'ContasPagar.DataVencimento', 'ContasPagar.DataDocumento', 'ContasPagar.NumTitulo', 'ContasPagar.ContaFornecedorID', 'ContasPagar.ContaPagamentoID']);
+             ->select(['ContasPagar.ID', 'DataProgramacao', 'ContasPagar.Descricao', 'ContasPagar.LancamentoID','ContasPagar.Created',
+              'ContasPagar.EmpresaID', 'ContasPagar.Valor', 'ContasPagar.DataVencimento',
+              'ContasPagar.DataDocumento', 'ContasPagar.NumTitulo', 'ContasPagar.ContaFornecedorID',
+              'ContasPagar.ContaPagamentoID']);
 
         if ($Request->Texto) {
             $texto = $Request->Texto;
@@ -123,8 +134,10 @@ class ContasPagarController extends Controller
         }
 
         $contasPagar = $contasPagar
-            ->orderBy('Valor', 'asc')
-            ->get();
+        ->orderBy('Created', 'desc')
+        ->get();
+
+
 
         return view('ContaPagar.index', compact('contasPagar', 'retorno', 'Empresas'));
     }
@@ -639,6 +652,8 @@ class ContasPagarController extends Controller
                 'NumTitulo' => $contasPagar->NumTitulo,
                 'ContaDebitoID' => $contasPagar->ContaFornecedorID,
                 'ContaCreditoID' => $contasPagar->ContaPagamentoID,
+                'LancamentoID' => $contasPagar->LancamentoID,
+                'Created' => $contasPagar->Created,
                 'Usuarios_id' => Auth::user()->id,
                 'Created' => Carbon::now()->format('Y-m-d'),
             ];
@@ -663,9 +678,10 @@ class ContasPagarController extends Controller
                 $contasPagar->update([
                     'LancamentoID' => $duplicadoconsulta->ID,
                 ]);
-                session(['contabilidade' => 'Lançamento já inserido na contabilidade!']);
+                session(['contabilidade' => 'Lançamento já inserido na contabilidade! Autalizei o Contas a Pagar neste registro!']);
             } else {
                 Lancamento::create($Lancamento);
+                Lancamento::saved($Lancamento);
                 session(['success' => 'Lançamento incluído na contabilidade!']);
             }
         };
