@@ -125,6 +125,7 @@
                 <button class="btn btn-primary">Salvar ficha do formando</button>
             </div>
         </div>
+    </div>
  </form>
         <hr>
 

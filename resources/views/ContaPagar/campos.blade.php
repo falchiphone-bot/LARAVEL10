@@ -163,26 +163,30 @@
            </select>
        </div>
 
-       {{-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// --}}
-        @include('ContaPagar.arquivos')
-        {{-- //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// --}}
-
-
-
-
-
 
        <div class="row mt-2">
            <div class="col-6">
 
-               <button class="btn btn-primary">Salvar</button>
+               <button class="btn btn-primary">Salvar a edição do registro</button>
                <a href="{{route('ContasPagar.index')}}" class="btn btn-warning">Retornar para lista de contas</a>
            </div>
        </div>
    </div>
    </div>
+
+</form>
+
+   {{-- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// --}}
+   @include('ContaPagar.arquivos')
+   {{-- //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// --}}
+
+
+
+
+
    @push('scripts')
-   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.6/jquery.inputmask.min.js"></script>
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -223,8 +227,22 @@
                }
            });
        });
+   </script>
 
-
+   <script>
+       $(document).ready(function() {
+           $('#cpf').inputmask('999.999.999-99', {
+               clearMaskOnLostFocus: false
+           });
+           $('#cnpj').inputmask('99.999.999/9999-99', {
+               clearMaskOnLostFocus: false
+           });
+       });
+   </script>
+   @endpush
+   @push('scripts')
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.js"></script>
+   <script>
        $(document).ready(function() {
            $('.money').mask('000.000.000.000.000,00', {
                reverse: true

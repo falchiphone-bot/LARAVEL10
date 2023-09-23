@@ -407,7 +407,7 @@ class ContasPagarController extends Controller
 
             $documento = LancamentoDocumento::where('tipoarquivo','>',0)->orderBy('ID', 'desc')->get();
             $arquivoExiste = null;
-            $ContasPagarArquivo = ContasPagarArquivo::where('contaspagar_id', $id)
+            $ContasPagarArquivo = ContasPagarArquivo::where('contaspagar_id','=', $id)
                  ->orderBy('id')
                  ->get();
 
@@ -417,7 +417,7 @@ class ContasPagarController extends Controller
                  }
 
 
-        return view('ContaPagar.edit', compact('contasPagar', 'Empresas', 'id', 'ContaFornecedor', 'ContaPagamento','documento','arquivoExiste'));
+        return view('ContaPagar.edit', compact('contasPagar', 'Empresas', 'id', 'ContaFornecedor', 'ContaPagamento','documento','arquivoExiste', 'ContasPagarArquivo'));
     }
 
     public function update(Request $request, string $id)
@@ -707,11 +707,12 @@ class ContasPagarController extends Controller
     public function CreateArquivoContasPagar(ArquivoContasPagarCreateRequest $request)
     {
         $id = $request->contaspagar_id;
-        $contaspagar_id = $request->contaspagar_id;
+
         $arquivo_id = $request->arquivo_id;
 
+
         $Existe = ContasPagarArquivo::where('arquivo_id',$arquivo_id)
-        ->where('contaspagar_id',$contaspagar_id)
+        ->where('contaspagar_id',$id)
         ->first();
 
         if($Existe){
@@ -719,10 +720,12 @@ class ContasPagarController extends Controller
             . $Existe->MostraLancamentoDocumento->Rotulo.  ' do tipo de arquivo: '
             . $Existe->MostraLancamentoDocumento->TipoArquivoNome->nome
             .",  já existe para este registro!"]);
-            return redirect(route('FormandoBase.edit', $id));
+            return redirect(route('ContasPagar.edit', $id));
         }
 
         $request['user_created'] = Auth ::user()->email;
+
+        // dd($request->all());
         $model = $request->all();
         ContasPagarArquivo::create($model);
         return redirect(route('ContasPagar.edit', $id));

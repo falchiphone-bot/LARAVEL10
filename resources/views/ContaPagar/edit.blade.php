@@ -13,7 +13,7 @@
         <div class="alert alert-success">
             {{ session('success') }}
         </div>
-          {{ session(['success' => null]) }}
+        {{ session(['success' => null]) }}
         @elseif (session('error'))
         <div class="alert alert-danger">
             {{ session('error') }}
@@ -22,16 +22,16 @@
         @endif
 
         @if (session('contabilidade'))
-            <div class="alert alert-danger">
-                {{ session('contabilidade') }}
-            </div>
-            {{ session(['contabilidade' => null]) }}
+        <div class="alert alert-danger">
+            {{ session('contabilidade') }}
+        </div>
+        {{ session(['contabilidade' => null]) }}
         @endif
         @if (session('Lancamento'))
-            <div class="alert alert-danger">
-                {{ session('Lancamento') }}
-            </div>
-            {{ session(['Lancamento' => null]) }}
+        <div class="alert alert-danger">
+            {{ session('Lancamento') }}
+        </div>
+        {{ session(['Lancamento' => null]) }}
         @endif
 
 
@@ -49,10 +49,12 @@
             @endif
 
 
-            <form method="POST" action="{{route('ContasPagar.update', $contasPagar->ID), $contasPagar->LancamentoID}}" accept-charset="UTF-8">
+            <form method="POST" action="{{route('ContasPagar.update', $contasPagar->ID)}}" accept-charset="UTF-8">
                 <input type="hidden" name="_method" value="PUT">
                 <a href="{{route('ContasPagar.index')}}" class="btn btn-warning">Retornar para lista de contas</a>
                 @include('ContaPagar.campos')
+                <hr>
             </form>
-
-            @endsection
+        </div>
+    </div>
+    @endsection

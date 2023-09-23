@@ -10,11 +10,13 @@
 
     {{-- ////////////////////////////////////  ARQUIVOS--}}
     <form method="POST" action="/ContasPagar/CreateArquivoContasPagar" accept-charset="UTF-8">
+    <!-- <form method="POST" action="{{route('contaspagar.ArquivoContasPagar', $contasPagar->ID), $contasPagar->LancamentoID}}" accept-charset="UTF-8"> -->
+
         @csrf
 
         <input required
-            class="form-control @error('contaspagar_id') is-invalid @else is-valid @enderror d-none"
-            name="contaspagar_id" type="text" id="contaspagar_id" value="{{ $model->id ?? null }}">
+            class="form-control @error('contaspagarid') is-invalid @else is-valid @enderror d-none"
+            name="contaspagar_id" type="text" id="contaspagar_id" value="{{ $contasPagar->ID ?? null }}">
 
 
         <div class="col-6">
@@ -38,8 +40,7 @@
 
         <div class="row mt-2">
             <div class="col-2">
-                <button class="btn btn-success">Salvar arquivo</button>
-
+                <button class="btn btn-success">Salvar arquivo associando a este registro.</button>
             </div>
         </div>
     </form>

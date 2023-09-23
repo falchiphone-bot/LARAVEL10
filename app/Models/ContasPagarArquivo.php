@@ -7,7 +7,7 @@ class ContasPagarArquivo extends Model
 {
     protected $table = 'ContasPagarArquivo';
     public $timestamps = true;
-    protected $fillable = ['ContasPagar_id', 'arquivo_id', 'user_created', 'user_updated' ];
+    protected $fillable = ['contaspagar_id', 'arquivo_id', 'user_created', 'user_updated' ];
 
     protected $casts = [
         'contaspagar_id' => 'int',
