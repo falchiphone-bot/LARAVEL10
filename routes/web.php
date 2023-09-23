@@ -163,6 +163,10 @@ Route::resource('TipoEsporte', App\Http\Controllers\TipoEsporteController::class
  Route::resource('Preparadores', App\Http\Controllers\PreparadoresController::class);
  Route::resource('PreparadoresArquivos', App\Http\Controllers\PreparadoresArquivosController::class);
 
+
+# Agrupamentos de contas
+Route::resource('AgrupamentosContas', App\Http\Controllers\AgrupamentosContasController::class);
+
  # Posicoes
  Route::resource('Posicoes', App\Http\Controllers\PosicoesController::class);
 
