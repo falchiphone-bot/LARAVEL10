@@ -321,6 +321,13 @@
                                                 class="btn-sm btn btn-outline-danger bd-highlight">
                                                 <i class="fa fa-arrow-right"></i>
                                             </button>
+
+                                            @can('CONTASPAGAR - EDITAR')
+                                                <a href="{{ route('ContasPagar.edit',  $lancamento->ContasPagarArquivo->ID ) }}" class="btn btn-success"
+                                                    tabindex="-1" role="button" aria-disabled="true" target="_blank">Editar Contas pagar/ver Documentos</a>
+                                            @endcan
+
+
                                         </td>
                                     </tr>
                                     <tr class="tr-{{ $lancamento->ID }}">

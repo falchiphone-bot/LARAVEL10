@@ -75,7 +75,10 @@ class Lancamento extends Model
     {
         return $this->hasOne(Historicos::class, 'ID', 'HistoricoID');
     }
-
+    public function ContasPagarArquivo(): HasOne
+    {
+        return $this->hasOne(ContasPagar::class, 'LancamentoID', 'ID');
+    }
 
 
     // public function setDataContabilidadeAttribute($value)
