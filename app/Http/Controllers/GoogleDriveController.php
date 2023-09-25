@@ -104,6 +104,22 @@ class GoogleDriveController extends Controller
     public function googleDriveFileUpload(Request $request)
     {
         $complemento = $request->complemento;
+
+        if($complemento == 'RETIRAR PONTOABCDEFG.')
+        {
+
+            $complemento_sem_pontos = str_replace('.', '', $complemento);
+
+            session([
+                'InformacaoArquivo' => 'O complemento possui  caracteres  com pontos. RETIRADO! QUALQUER DÚVIDA CONSULTE O ADMINISTRADOR DO SISTEMA. TEXTO:' . $complemento_sem_pontos
+            ]);
+            return redirect(route('informacao.arquivos'));
+        }
+
+        $complemento_sem_pontos = str_replace('.', '', $complemento);
+        $complemento =  $complemento_sem_pontos;
+
+
         $quantidadeCaracteres = trim(strlen($complemento));
         if ($quantidadeCaracteres > 150) {
             session([
@@ -187,6 +203,12 @@ class GoogleDriveController extends Controller
         // // $nome_arquivo = Carbon::now().'-(100)-'.$request->file('arquivo')->getClientOriginalName();
 
         $nome_arquivo = Carbon::now() . '-' . $request->file('arquivo')->getClientOriginalName();
+
+
+        // $nome_arquivo_sem_pontos = str_replace('.', '', $nome_arquivo);
+        // $nome_arquivo =  $nome_arquivo_sem_pontos;
+
+
         // preg_match('/\((\d+)\)/', $nome_arquivo, $matches);
         // $numero =  $matches[1];
 
@@ -194,6 +216,8 @@ class GoogleDriveController extends Controller
 
         // $file = new \Google_Service_Drive_DriveFile(array('name' => 'piso1.jpg','parents' => array($folder->id)));
         $file = new \Google_Service_Drive_DriveFile(['name' => $nome_arquivo, 'parents' => [$folder]]);
+
+
 
         $result = $service->files->create($file, [
             // dd(Storage::path('contabilidade/sample.pdf')),

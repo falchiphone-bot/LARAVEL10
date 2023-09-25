@@ -14,6 +14,18 @@
 
         @csrf
 
+        @can('LANCAMENTOS DOCUMENTOS - LISTAR')
+                            <tr>
+                                <th>
+
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-danger" href="/LancamentosDocumentos">Enviar documentos</a>
+                                    </nav>
+
+                                </th>
+                            </tr>
+             @endcan
+
         <input required
             class="form-control @error('contaspagarid') is-invalid @else is-valid @enderror d-none"
             name="contaspagar_id" type="text" id="contaspagar_id" value="{{ $contasPagar->ID ?? null }}">
@@ -98,7 +110,7 @@
                     {{-- <img src="https://lh3.googleusercontent.com/drive-viewer/AFGJ81pZa4Oj2S1PHjJSwO3uKmakwnnwzqpyipCoW9fQ_HdiN5fFkamKBl_FMUEJBV4scPgVVhLmEFtYRdJXtO8QXyWf5PtETw=w1292-h636" alt="{{ $item->MostraLancamentoDocumento->Rotulo }}"> --}}
                     <td>{{ $item->MostraLancamentoDocumento->TipoArquivoNome->nome ?? null  }}</td>
 
-                    @can('FORMANDOBASEARQUIVOS - EXCLUIR')
+                    @can('CONTASPAGAR - EXCLUIR')
                         <td>
                             <form method="POST" action="{{ route('FormandoBaseArquivos.destroy', $item->id) }}">
                                 @csrf

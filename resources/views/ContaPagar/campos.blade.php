@@ -35,7 +35,7 @@
            <div class="card">
                <div class="badge bg-primary text-wrap" style="width: 100%;font-size: 24px;lign=˜Center˜">
                    @can('LANCAMENTOS DOCUMENTOS - LISTAR')
-                   <a class="btn btn-success" href="/LancamentosDocumentos">Enviar documentos</a>
+                   <a class="btn btn-danger" href="/LancamentosDocumentos">Enviar documentos</a>
                    @endcan
                </div>
            </div>

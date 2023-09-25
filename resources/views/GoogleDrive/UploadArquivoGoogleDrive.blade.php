@@ -35,7 +35,7 @@
                             <div class="row">
                                 <form method="POST" action="google-drive/file-upload" enctype="multipart/form-data">
                                     @csrf
-                                    <label for="fim">Complemento para o arquivo</label>
+                                    <label for="fim">Complemento para o arquivo. LIMITADO A 150 CARACTERES.</label>
 
 
 

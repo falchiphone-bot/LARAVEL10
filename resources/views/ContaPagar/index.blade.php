@@ -191,7 +191,7 @@
                                     <td>
                                         @can('CONTASPAGAR - EDITAR')
                                             <a href="{{ route('ContasPagar.edit', $conta->ID) }}" class="btn btn-success"
-                                                tabindex="-1" role="button" aria-disabled="true">Editar</a>
+                                                tabindex="-1" role="button" aria-disabled="true" target="_blank">Editar</a>
                                         @endcan
 
                                         @if ($conta->LancamentoID == 0 || $conta->LancamentoID == null)
