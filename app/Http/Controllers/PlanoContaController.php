@@ -164,6 +164,9 @@ class PlanoContaController extends Controller
 
             $tela = $request->tela;
 
+            $Agrupar = $request->Agrupar;
+
+
             if($tela){
                 $pdfgerar = null;
             }
@@ -501,23 +504,49 @@ if($Receitas){
 // Inicialize um array para armazenar os registros agrupados por 'Descricao'
 $registrosAgrupados = [];
 
-// Percorra o array original
-foreach ($dados as $registro) {
-    $descricao = $registro["Descricao"];
+if($Agrupar == 'Descricao')
+{
+    // Percorra o array original
+    foreach ($dados as $registro) {
+        $descricao = $registro["Descricao"];
 
-    // Verifique se a descrição já existe no array de registros agrupados
-    if (array_key_exists($descricao, $registrosAgrupados)) {
-        // Se existir, some os campos relevantes
-        $registrosAgrupados[$descricao]["SaldoAtual"] += floatval($registro["SaldoAtual"]);
-        $registrosAgrupados[$descricao]["ValorRecebido"] += floatval($registro["ValorRecebido"]);
-        $registrosAgrupados[$descricao]["PercentualValorRecebido"] = ( $registrosAgrupados[$descricao]["SaldoAtual"]/$ValorRecebido)*100;
-        // Adicione qualquer outro campo que você queira somar ou manipular aqui
-    } else {
-        // Se não existir, crie um novo registro no array de registros agrupados
+        // Verifique se a descrição já existe no array de registros agrupados
+        if (array_key_exists($descricao, $registrosAgrupados)) {
+            // Se existir, some os campos relevantes
+            $registrosAgrupados[$descricao]["SaldoAtual"] += floatval($registro["SaldoAtual"]);
+            $registrosAgrupados[$descricao]["ValorRecebido"] += floatval($registro["ValorRecebido"]);
+            $registrosAgrupados[$descricao]["PercentualValorRecebido"] = ( $registrosAgrupados[$descricao]["SaldoAtual"]/$ValorRecebido)*100;
+            // Adicione qualquer outro campo que você queira somar ou manipular aqui
+        } else {
+            // Se não existir, crie um novo registro no array de registros agrupados
 
-        $registrosAgrupados[$descricao] = $registro;
+            $registrosAgrupados[$descricao] = $registro;
+        }
     }
+    // dd('Descricao',$registrosAgrupados[$descricao]);
 }
+elseif($Agrupar == 'Agrupamento')
+{
+    // Percorra o array original
+    foreach ($dados as $registro) {
+        $agrupamento = $registro["Agrupamento"];
+
+        // Verifique se a descrição já existe no array de registros agrupados
+        if (array_key_exists($agrupamento, $registrosAgrupados)) {
+            // Se existir, some os campos relevantes
+            $registrosAgrupados[$agrupamento]["SaldoAtual"] += floatval($registro["SaldoAtual"]);
+            $registrosAgrupados[$agrupamento]["ValorRecebido"] += floatval($registro["ValorRecebido"]);
+            $registrosAgrupados[$agrupamento]["PercentualValorRecebido"] = ( $registrosAgrupados[$agrupamento]["SaldoAtual"]/$ValorRecebido)*100;
+            // Adicione qualquer outro campo que você queira somar ou manipular aqui
+        } else {
+            // Se não existir, crie um novo registro no array de registros agrupados
+
+            $registrosAgrupados[$agrupamento] = $registro;
+        }
+    }
+    // dd('Agrupamento', $registrosAgrupados[$Agrupamento]);
+}
+
 
 
 $somaPercentual = 0;

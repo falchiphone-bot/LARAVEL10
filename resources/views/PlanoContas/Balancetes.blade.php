@@ -81,6 +81,15 @@
 
                                     </div>
 
+                                    <div class="col-12">
+                                            <input type="radio" name="Agrupar" id="Descricao" value="Descricao" >
+                                            <label for="pdfCheckbox">Gerar e agrupar por descrição</label>
+
+                                            <input type="radio" name="Agrupar" id="Agrupamento" value="Agrupamento">
+                                            <label for="pdfvisualizarCheckbox">Gerar por agrupar por agrupamento</label>
+                                    </div>
+
+
 
                                 </div>
                             </nav>
