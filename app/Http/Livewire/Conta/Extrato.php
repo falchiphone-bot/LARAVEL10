@@ -281,9 +281,6 @@ class Extrato extends Component
                 ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID', 'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido']);
 
 
-
-
-
             return redirect()
                 ->route('Extrato.gerarpdf')
                 ->with('LancamentosPDF', [

@@ -322,11 +322,12 @@
                                                 <i class="fa fa-arrow-right"></i>
                                             </button>
 
-                                            @can('CONTASPAGAR - EDITAR')
-                                                <a href="{{ route('ContasPagar.edit',  $lancamento->ContasPagarArquivo->ID ) }}" class="btn btn-success"
-                                                    tabindex="-1" role="button" aria-disabled="true" target="_blank">Editar Contas pagar/ver Documentos</a>
-                                            @endcan
-
+                                            @if($lancamento->ContasPagarArquivo)
+                                                @can('CONTASPAGAR - EDITAR')
+                                                    <a href="{{ route('ContasPagar.edit',  $lancamento->ContasPagarArquivo->ID ) }}" class="btn btn-success"
+                                                        tabindex="-1" role="button" aria-disabled="true" target="_blank">Editar Contas pagar/ver Documentos</a>
+                                                @endcan
+                                            @endif
 
                                         </td>
                                     </tr>

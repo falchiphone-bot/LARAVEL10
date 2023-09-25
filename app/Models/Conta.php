@@ -26,6 +26,7 @@ class Conta extends Model
         'BalancoEncerrado',
         'ContaPublica',
         'Nota',
+        
     ];
 
     /**

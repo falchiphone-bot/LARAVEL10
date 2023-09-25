@@ -305,7 +305,10 @@ class PlanoContaController extends Controller
                 ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.planocontas_id')
                 ->orderBy('Codigo', 'asc')
                 ->where('Grau', '=', '5')
-                ->select(['Contas.ID', 'Descricao', 'Codigo', 'Grau']);
+                // ->where('Agrupamento', '>', '0')
+                ->select(['Contas.ID', 'Descricao', 'Codigo', 'Grau','Agrupamento']);
+
+
 
 
             $contasEmpresa->where(function ($query) use ($Ativo, $Passivo, $Despesas, $Receitas) {
@@ -325,13 +328,14 @@ class PlanoContaController extends Controller
 
                 $contasEmpresa = $contasEmpresa->get();
 
+//  echo $contasEmpresa;
                 $Resultado = [];
                 $ResultadoLoop = [];
 
             foreach ($contasEmpresa as $contasEmpresa5) {
                 $contaID = $contasEmpresa5->ID;
 
-
+                $Agrupamento = $contasEmpresa5->Agrupamento;
                 $totalCredito = Lancamento::where(function ($q) use ($DataInicial, $DataFinal, $contaID, $EmpresasID) {
                     return $q
                         ->where('ContaCreditoID', $contaID)
@@ -359,6 +363,15 @@ class PlanoContaController extends Controller
                 $SaldoAtual = $saldoAnterior + $SaldoDia;
 
                 /////////////////////// MONTA ARRAY
+                if($Agrupamento)
+                {
+                    $Resultado['Agrupamento'] = $Agrupamento;
+                }
+                else
+                {
+                    $Resultado['Agrupamento'] = null;
+                }
+
                 $Resultado['ID'] = $contasEmpresa5->ID;
 
                 $Resultado['Descricao'] = $contasEmpresa5->Descricao;
@@ -401,7 +414,7 @@ class PlanoContaController extends Controller
 
         $contasEmpresa = $ResultadoLoop;
 
-
+// echo collect($contasEmpresa);
 /////////////// filtra somente o valor maior que 0
         $registros = $contasEmpresa;
 
@@ -516,7 +529,7 @@ foreach($registrosAgrupados as $soma)
 }
 
 
-// dd($contasEmpresa);
+
 
 uasort($registrosAgrupados, function($a, $b) {
     $saldoA = floatval($a['SaldoAtual']);
@@ -533,6 +546,8 @@ uasort($registrosAgrupados, function($a, $b) {
 
 
 $contasEmpresa = $registrosAgrupados;
+
+// echo collect($contasEmpresa);
 
 
 
@@ -800,7 +815,7 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
 
         $cadastro->save();
 
-        
+
 
         session(['success' => 'Conta alterada!']);
         return redirect(route('PlanoContas.edit', $id));
