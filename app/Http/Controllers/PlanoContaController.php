@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Helpers\SaldoLancamentoHelper;
 use App\Http\Requests\PlanoContasCreateRequest;
+use App\Models\AgrupamentosContas;
 use App\Models\Conta;
 use App\Models\Empresa;
 use App\Models\EmpresaUsuario;
@@ -749,7 +750,9 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
             ->select(['Empresas.ID', 'Empresas.Descricao'])
             ->get();
 
-        return view('PlanoContas.edit', compact('cadastro', 'Empresas'));
+        $Agrupamentos = AgrupamentosContas::orderBy('nome', 'asc')->get();
+
+        return view('PlanoContas.edit', compact('cadastro', 'Empresas','Agrupamentos'));
     }
 
     /**
@@ -778,7 +781,13 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
 
             $Contanova = new Conta();
 
-            $Contanova->fill(['EmpresaID' => $EmpresaID, 'Planocontas_id' => $id, 'Created' => $Created, 'Modified' => $Modified, 'Usuarios_id' => $UsuarioID, 'Contapagamento' => 1, 'Nota' => $InseridoPor]);
+            $Contanova->fill(['EmpresaID' => $EmpresaID,
+            'Planocontas_id' => $id,
+            'Created' => $Created,
+            'Modified' => $Modified,
+            'Usuarios_id' => $UsuarioID,
+            'Contapagamento' => 1,
+            'Nota' => $InseridoPor]);
 
             $Contanova->save();
             session(['success' => 'Conta cadastrada para a empresa: ' . $Descricao . '!']);
@@ -790,6 +799,8 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
         $cadastro->fill($request->all());
 
         $cadastro->save();
+
+        
 
         session(['success' => 'Conta alterada!']);
         return redirect(route('PlanoContas.edit', $id));

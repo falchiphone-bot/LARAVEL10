@@ -22,6 +22,7 @@ class PlanoConta extends Model
         'X',
         'CalculoHabilitado',
         'CodigoSkala',
+        'Agrupamento',
     ];
 
     // protected $casts = [

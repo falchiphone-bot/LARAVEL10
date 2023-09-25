@@ -26,6 +26,7 @@
                         </div>
                         <div class="card-footer">
                             <a href="{{ route('AgrupamentosContas.index') }}">Retornar para a lista</a>
+                            
                         </div>
                     </div>
                 </div>

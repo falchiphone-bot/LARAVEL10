@@ -9,7 +9,13 @@
             </ol>
           </nav> --}}
 
+
+
             <div class="card">
+            @can('AGRUPAMENTOS CONTAS - LISTAR')
+                    <a href="{{ route('AgrupamentosContas.index') }}" class="btn btn-secondary btn-lg enabled" tabindex="-1" role="button"
+                        aria-disabled="true">Agrupamento de contas</a>
+           @endcan
                 <h1 class="text-center">Plano de contas padrão para contabilidade</h1>
                 <hr>
                 {{-- @cannot('PLANO DE CONTAS - LISTAR')
