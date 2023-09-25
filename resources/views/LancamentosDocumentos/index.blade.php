@@ -139,6 +139,14 @@
 
             </div>
 
+            @if (session('ContaPagarID'))
+                @can('CONTASPAGAR - EDITAR')
+                                            <a href="{{ route('ContasPagar.edit', session('ContaPagarID')) }}" class="btn btn-success"
+                                                tabindex="-1" role="button" aria-disabled="true">Ir para a edição do registro de contas a pagar oriundo deste documento</a>
+                 @endcan
+             @endif
+
+
             <tbody>
                 <table class="table" style="background-color: rgb(247, 247, 213);">
                     <thead>

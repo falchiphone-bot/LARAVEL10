@@ -372,6 +372,11 @@ class ContasPagarController extends Controller
     public function edit($id, Request $request)
     {
 
+
+        session(['ContaPagarID' => $id ]);
+
+        // dd(trim(session('ContaPagarID')));
+
         // $id = $request->ID;
         $contasPagar = ContasPagar::find($id);
 

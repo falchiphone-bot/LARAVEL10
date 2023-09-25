@@ -28,6 +28,19 @@
 
             <h1 class="text-center">Edição da conta</h1>
             <hr>
+
+            @can('LANCAMENTOS DOCUMENTOS - LISTAR')
+                            <tr>
+                                <th>
+
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-success" href="/LancamentosDocumentos">Enviar documentos</a>
+                                    </nav>
+
+                                </th>
+                            </tr>
+             @endcan
+
             @if ($errors->any())
                 <div class="alert alert-danger">
                     <ul>
