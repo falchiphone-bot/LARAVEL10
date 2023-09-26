@@ -1,9 +1,10 @@
 <?php
 /// efetuado por Pedro Roberto Falchi
 namespace App\Models;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class PlanoConta extends Model
 {
@@ -30,5 +31,8 @@ class PlanoConta extends Model
     // ];
 
     public $timestamps = false;
+
+
+     
 
 }

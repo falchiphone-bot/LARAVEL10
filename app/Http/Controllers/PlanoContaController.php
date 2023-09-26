@@ -304,12 +304,15 @@ class PlanoContaController extends Controller
 
                 $EmpresasID = [5,1027,3,4,1021];
 
-                $contasEmpresa = Conta::whereIn('EmpresaID',$EmpresasID)
+                $contasEmpresa = Conta::whereIn('EmpresaID', $EmpresasID)
                 ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.planocontas_id')
+                ->join('Contabilidade.Agrupamentos', 'PlanoContas.Agrupamento', '=', 'Agrupamentos.id') // Corrigido o join
                 ->orderBy('Codigo', 'asc')
                 ->where('Grau', '=', '5')
-                // ->where('Agrupamento', '>', '0')
-                ->select(['Contas.ID', 'Descricao', 'Codigo', 'Grau','Agrupamento']);
+                ->where('Agrupamento', '>', '0')
+                ->select(['Contas.ID', 'Descricao', 'Codigo', 'Grau', 'Agrupamento', 'Agrupamentos.nome']); // Corrigido o nome do campo
+
+
 
 
 
@@ -339,6 +342,10 @@ class PlanoContaController extends Controller
                 $contaID = $contasEmpresa5->ID;
 
                 $Agrupamento = $contasEmpresa5->Agrupamento;
+$NomeAgrupamento = $contasEmpresa5->nome;
+
+
+
                 $totalCredito = Lancamento::where(function ($q) use ($DataInicial, $DataFinal, $contaID, $EmpresasID) {
                     return $q
                         ->where('ContaCreditoID', $contaID)
@@ -369,10 +376,13 @@ class PlanoContaController extends Controller
                 if($Agrupamento)
                 {
                     $Resultado['Agrupamento'] = $Agrupamento;
+
+                    $Resultado['NomeAgrupamento'] = $NomeAgrupamento;
                 }
                 else
                 {
                     $Resultado['Agrupamento'] = null;
+                    $Resultado['NomeAgrupamento'] = null;
                 }
 
                 $Resultado['ID'] = $contasEmpresa5->ID;
