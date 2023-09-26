@@ -57,7 +57,7 @@
                                         <input type="checkbox" name="Passivo" id="Passivo" value="true"">
                                         <label for=" passivoCheckbox">Passivo</label>
 
-                                        <input type="checkbox" name="Despesas" id="Despesas" value="true">
+                                        <input type="checkbox" name="Despesas" id="Despesas" value="true" checked>
                                         <label for="despesasCheckbox">Despesas</label>
 
 
@@ -90,6 +90,10 @@
                                     </div>
 
                                     <div class="col-12">
+
+                                            <input type="radio" name="Selecao" id="Todas" value="Todas" checked>
+                                            <label for="pdfCheckbox">Selecionar todas com saldos sem agrupamento</label>
+
                                             <input type="radio" name="Selecao" id="Nulos" value="Nulos">
                                             <label for="pdfCheckbox">Selecionar os nulos</label>
 

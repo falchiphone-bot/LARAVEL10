@@ -142,7 +142,7 @@ class PlanoContaController extends Controller
 
     public function Balancetes()
     {
-        session(['success' => 'Selecionar empresa e período para pesquisa']);
+        // session(['success' => 'Selecionar empresa e período para pesquisa']);
 
         $retorno['EmpresaSelecionada'] = null;
 
@@ -170,6 +170,16 @@ class PlanoContaController extends Controller
             if($tela){
                 $pdfgerar = null;
             }
+
+            if(!$pdfgerar){
+
+                return redirect('/PlanoContas/Balancetes')->with('error', 'Selecionar > Gerar e agrupar por descrição ou  Gerar por agrupar por agrupamento');
+
+            }
+
+
+
+
             // $pdfdownload =  $request->pdfdownload;
             // $pdfvisualizar = $request->pdfvisualizar;
             $EmpresaID = $request->EmpresaSelecionada;
