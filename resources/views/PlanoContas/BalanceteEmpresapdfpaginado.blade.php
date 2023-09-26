@@ -194,7 +194,7 @@
                 <td style="text-align: left;">
                     @if ($conta['Grau'] == '5')
                     <div class="badge text-wrap" style="width: 100%; text-align: left; color: black;">
-                        {{$conta['Agrupamento'] . ' - ' . $conta['Descricao']  }}
+                        {{$conta['NomeAgrupamento']   }}
                     </div>
                     @endif
                 </td>

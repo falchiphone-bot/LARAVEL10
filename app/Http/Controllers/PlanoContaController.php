@@ -304,17 +304,22 @@ class PlanoContaController extends Controller
 
                 $EmpresasID = [5,1027,3,4,1021];
 
-                $contasEmpresa = Conta::whereIn('EmpresaID', $EmpresasID)
-                ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.planocontas_id')
-                ->join('Contabilidade.Agrupamentos', 'PlanoContas.Agrupamento', '=', 'Agrupamentos.id') // Corrigido o join
-                ->orderBy('Codigo', 'asc')
-                ->where('Grau', '=', '5')
-                ->where('Agrupamento', '>', '0')
-                ->select(['Contas.ID', 'Descricao', 'Codigo', 'Grau', 'Agrupamento', 'Agrupamentos.nome']); // Corrigido o nome do campo
+            $contasEmpresa = Conta::whereIn('EmpresaID', $EmpresasID)
+            ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.planocontas_id')
+            ->join('Contabilidade.Agrupamentos', 'PlanoContas.Agrupamento', '=', 'Agrupamentos.id')
+            ->orderBy('Codigo', 'asc')
+            ->where('Grau', '=', '5');
 
+            if ($request->Selecao == "Nulos") {
+                $contasEmpresa->where(function ($query) {
+                    $query->where('Agrupamento', '=', '0')
+                    ->orWhereNull('Agrupamento');
+                });
+            } else {
+                $contasEmpresa->where('Agrupamento', '>', '0');
+            }
 
-
-
+            $contasEmpresa->select(['Contas.ID', 'Descricao', 'Codigo', 'Grau', 'Agrupamento', 'Agrupamentos.nome']);
 
 
             $contasEmpresa->where(function ($query) use ($Ativo, $Passivo, $Despesas, $Receitas) {

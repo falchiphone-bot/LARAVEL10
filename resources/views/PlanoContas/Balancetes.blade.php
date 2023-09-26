@@ -71,14 +71,14 @@
                                         <input type="checkbox" name="tela" id="tela" value="tela" checked>
                                         <label for="visualizarCheckbox">Visualizar na tela</label>
 
+                                    </div>
 
+                                    <div class="col-12">
                                         <input type="radio" name="pdfgerar" id="pdfdownload" value="pdfdownload" >
                                         <label for="pdfCheckbox">Gerar pdf e fazer download do arquivo</label>
 
                                         <input type="radio" name="pdfgerar" id="pdfvisualizar" value="pdfvisualizar">
                                         <label for="pdfvisualizarCheckbox">Gerar pdf e visualizar primeiro</label>
-
-
                                     </div>
 
                                     <div class="col-12">
@@ -89,6 +89,13 @@
                                             <label for="pdfvisualizarCheckbox">Gerar por agrupar por agrupamento</label>
                                     </div>
 
+                                    <div class="col-12">
+                                            <input type="radio" name="Selecao" id="Nulos" value="Nulos">
+                                            <label for="pdfCheckbox">Selecionar os nulos</label>
+
+                                            <input type="radio" name="Selecao" id="Agrupados" value="Agrupados">
+                                            <label for="pdfvisualizarCheckbox">Selecionar os agrupados</label>
+                                    </div>
 
 
                                 </div>
