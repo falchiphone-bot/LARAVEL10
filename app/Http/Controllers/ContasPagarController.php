@@ -538,16 +538,22 @@ class ContasPagarController extends Controller
 
 
 
+            $Valor = $request->input('Valor');
+            $ValorFloat = (float) $Valor; // Converte a string em um número de ponto flutuante
+            $ValorDecimal = number_format($ValorFloat, 2, '.', ''); // Formata com duas casas decimais
+
+           
+
 
             $Lancamento->update([
                 'Descricao' => $request->input('Descricao'),
-                'Valor' => $request->input('Valor'),
+                'Valor' => $ValorDecimal,
                 'DataContabilidade' =>  $DataContabilidade,
                 'NumTitulo' => $request->input('NumTitulo') ?? null,
                 'ContaDebitoID' => $request->input('ContaFornecedorID') ?? null,
                 'ContaCreditoID' => $request->input('ContaPagamentoID') ?? null,
-                'UsuarioID' => $request->input('UsuarioID'),
-                'Created' => $request->input('Created'),
+                'Usuarios_id' => $auth = Auth::user()->id,
+                'Created' => $now = Carbon::now()->format('Y-m-d'),
             ]);
             $Lancamento->save();
         } else {;
