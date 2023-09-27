@@ -272,7 +272,7 @@ class ContasPagarController extends Controller
                     $ContaDebito->PlanoConta->Descricao .
                     ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
                      da conta para seguir este procedimento. Bloqueada para até ' .
-                    $data_lancamento_bloqueio_debito->format('d/m/Y') .  '  - CÓDIGO L233'
+                    $data_lancamento_bloqueio_debito->format('d/m/Y') .  '  - CÓDIGO L275'
             ]);
             return back();
             // return redirect()->route('ContasPagar.create');
@@ -287,7 +287,7 @@ class ContasPagarController extends Controller
                     $ContaCredito->PlanoConta->Descricao .
                     ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
                      da conta para seguir este procedimento. Bloqueada para até ' .
-                    $data_lancamento_bloqueio_credito->format('d/m/Y') .  '  - CÓDIGO L236'
+                    $data_lancamento_bloqueio_credito->format('d/m/Y') .  '  - CÓDIGO L290'
             ]);
             return back();
             // return redirect()->route('ContasPagar.create');
@@ -305,7 +305,7 @@ class ContasPagarController extends Controller
             // A data de lançamento é maior do que a data limite permitida
             session([
                 'Lancamento' =>
-                'A data de lançamento não pode ser MENOR ou IGUAL a ' . $data_lancamento_bloqueio_empresa->format('d/m/Y') . ' que é a data limite do bloqueio. - CÓDIGO L198'
+                'A data de lançamento não pode ser MENOR ou IGUAL a ' . $data_lancamento_bloqueio_empresa->format('d/m/Y') . ' que é a data limite do bloqueio. - CÓDIGO L308'
             ]);
             return back();
             // return redirect()->route('ContasPagar.create');
@@ -318,7 +318,7 @@ class ContasPagarController extends Controller
                     $EmpresaBloqueada->Descricao .
                     ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
                      da empresa para seguir este procedimento. Bloqueada para até ' .
-                    $EmpresaBloqueada .  '  - CÓDIGO L198'
+                    $EmpresaBloqueada .  '  - CÓDIGO L321'
 
             ]);
             return back();
@@ -382,7 +382,7 @@ class ContasPagarController extends Controller
 
         if ($contasPagar == null) {
 
-            session(['error' => 'ID não localizado. VERIFIQUE! CÓDIGO L233']);
+            session(['error' => 'ID não localizado. VERIFIQUE! CÓDIGO L385']);
 
             return redirect()->route('ContasPagar.index');
         }
@@ -489,7 +489,7 @@ class ContasPagarController extends Controller
                         $contasPagar->ContaDebito->PlanoConta->Descricao .
                         ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
                      da conta para seguir este procedimento. Bloqueada para até ' .
-                        $data_lancamento_bloqueio_debito->format('d/m/Y') .  '  - CÓDIGO L233'
+                        $data_lancamento_bloqueio_debito->format('d/m/Y') .  '  - CÓDIGO L492'
                 ]);
                 return redirect()->route('ContasPagar.edit', $id);
             }
@@ -503,7 +503,7 @@ class ContasPagarController extends Controller
                         $contasPagar->ContaCredito->PlanoConta->Descricao .
                         ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
                      da conta para seguir este procedimento. Bloqueada para até ' .
-                        $data_lancamento_bloqueio_credito->format('d/m/Y') .  '  - CÓDIGO L236'
+                        $data_lancamento_bloqueio_credito->format('d/m/Y') .  '  - CÓDIGO L506'
                 ]);
                 return redirect()->route('ContasPagar.edit', $id);
             }
@@ -514,11 +514,11 @@ class ContasPagarController extends Controller
             $data_lancamento_bloqueio_empresa = $EmpresaBloqueada->Bloqueiodataanterior;
             $dataLimite = $data_lancamento_bloqueio_empresa;
 
-            if ($DataContabilidade <> $dataLimite) {
+            if ($DataContabilidade <= $dataLimite) {
                 // A data de lançamento é maior do que a data limite permitida
                 session([
                     'Lancamento' =>
-                    'A data de lançamento não pode ser maior do que ' . $data_lancamento_bloqueio_empresa->format('d/m/Y') . ' que é a data limite do bloqueio. - CÓDIGO L198'
+                    'A data de lançamento não pode ser maior do que ' . $data_lancamento_bloqueio_empresa->format('d/m/Y') . ' que é a data limite do bloqueio. - CÓDIGO L521'
                 ]);
                 return redirect()->route('ContasPagar.edit', $id);
             }
@@ -531,7 +531,7 @@ class ContasPagarController extends Controller
                         $EmpresaBloqueada->Descricao .
                         ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
              da empresa para seguir este procedimento. Bloqueada para até ' .
-                        $EmpresaBloqueada .  '  - CÓDIGO L198'
+                        $EmpresaBloqueada .  '  - CÓDIGO L534'
                 ]);
                 return redirect()->route('ContasPagar.edit', $id);
             }
@@ -584,7 +584,7 @@ class ContasPagarController extends Controller
 
         if ($contasPagar == null) {
 
-            session(['error' => 'ID não localizado. VERIFIQUE! CÓDIGO L557']);
+            session(['error' => 'ID não localizado. VERIFIQUE! CÓDIGO L587']);
 
             return redirect()->route('ContasPagar.index');
         }
@@ -615,7 +615,7 @@ class ContasPagarController extends Controller
                         $contasPagar->ContaDebito->PlanoConta->Descricao .
                         ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
                      da conta para seguir este procedimento. Bloqueada para até ' .
-                        $data_lancamento_bloqueio_debito->format('d/m/Y') .  '  - CÓDIGO L233'
+                        $data_lancamento_bloqueio_debito->format('d/m/Y') .  '  - CÓDIGO L618'
                 ]);
                 return redirect()->route('ContasPagar.edit', $id);
             }
@@ -644,7 +644,7 @@ class ContasPagarController extends Controller
                 // A data de lançamento é maior do que a data limite permitida
                 session([
                     'Lancamento' =>
-                    'A data de lançamento não pode ser menor do que ' . $data_lancamento_bloqueio_empresa->format('d/m/Y') . ' que é a data limite do bloqueio. - CÓDIGO L612'
+                    'A data de lançamento não pode ser menor do que ' . $data_lancamento_bloqueio_empresa->format('d/m/Y') . ' que é a data limite do bloqueio. - CÓDIGO L647'
                 ]);
                 return redirect()->route('ContasPagar.edit', $id);
             }
@@ -657,7 +657,7 @@ class ContasPagarController extends Controller
                         $EmpresaBloqueada->Descricao .
                         ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
              da empresa para seguir este procedimento. Bloqueada para até ' .
-                        $EmpresaBloqueada .  '  - CÓDIGO L198'
+                        $EmpresaBloqueada .  '  - CÓDIGO L660'
                 ]);
                 return redirect()->route('ContasPagar.edit', $id);
             }
