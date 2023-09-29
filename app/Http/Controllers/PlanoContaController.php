@@ -329,7 +329,7 @@ class PlanoContaController extends Controller
                 $contasEmpresa->where('Agrupamento', '>', '0');
             }
 
-            $contasEmpresa->select(['Contas.ID', 'Descricao', 'Codigo', 'Grau', 'Agrupamento', 'Agrupamentos.nome']);
+
 
 
             $contasEmpresa->where(function ($query) use ($Ativo, $Passivo, $Despesas, $Receitas) {
@@ -346,10 +346,12 @@ class PlanoContaController extends Controller
                     $query->orWhereRaw("SUBSTRING(PlanoContas.Codigo, 1, 1) = '4'");
                 }
             });
-
+                $contasEmpresa->select(['Contas.ID', 'Descricao', 'Codigo', 'Grau', 'Agrupamento', 'Agrupamentos.nome']);
                 $contasEmpresa = $contasEmpresa->get();
 
-//  echo $contasEmpresa;
+// dd($contasEmpresa, $Ativo, $Passivo, $Despesas, $Receitas);
+
+
                 $Resultado = [];
                 $ResultadoLoop = [];
 
@@ -357,7 +359,7 @@ class PlanoContaController extends Controller
                 $contaID = $contasEmpresa5->ID;
 
                 $Agrupamento = $contasEmpresa5->Agrupamento;
-$NomeAgrupamento = $contasEmpresa5->nome;
+                $NomeAgrupamento = $contasEmpresa5->nome;
 
 
 
@@ -601,7 +603,7 @@ uasort($registrosAgrupados, function($a, $b) {
 
 $contasEmpresa = $registrosAgrupados;
 
-// echo collect($contasEmpresa);
+// dd($contasEmpresa);
 
 
 

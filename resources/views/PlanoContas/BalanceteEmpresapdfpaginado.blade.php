@@ -62,8 +62,9 @@
             counter-increment: page;
             /* Incrementa o número da página */
         }
+
         @page :first {
-        margin-top: 5px;
+            margin-top: 5px;
         }
 
 
@@ -71,7 +72,6 @@
             content: "Página " counter(page);
             /* Insere o número da página */
         }
-
     </style>
 </head>
 <div style="text-align: center;">
@@ -87,16 +87,19 @@
     <table class="table table-bordered">
         <thead>
             <tr>
-                <th><h4>Período de
-                     {{ \Carbon\Carbon::parse($retorno['DataInicial'])
+                <th>
+                    <h4>Período de
+                        {{ \Carbon\Carbon::parse($retorno['DataInicial'])
                         ->format('d/m/Y') }} a {{ \Carbon\Carbon::parse($retorno['DataFinal'])
-                            ->format('d/m/Y') }}</h4></td>
+                            ->format('d/m/Y') }}
+                    </h4>
+                    </td>
                 <th>
                     <h5>VALOR TOTAL RECEBIDO NO PERÍODO:
 
                 </th>
                 <th>
-                      {{ number_format($ValorRecebido , 2, ',', '.') }}</h5>
+                    {{ number_format($ValorRecebido , 2, ',', '.') }}</h5>
                 </th>
             </tr>
             <tr>
@@ -194,7 +197,7 @@
                 <td style="text-align: left;">
                     @if ($conta['Grau'] == '5')
                     <div class="badge text-wrap" style="width: 100%; text-align: left; color: black;">
-                        {{$conta['NomeAgrupamento']   }}
+                        {{$conta['NomeAgrupamento'] }}
                     </div>
                     @endif
                 </td>
@@ -213,16 +216,16 @@
 
 
             </tr>
-                @php
-                $Codigoatual = substr($conta['Codigo'], 0, 1)
-                @endphp
+            @php
+            $Codigoatual = substr($conta['Codigo'], 0, 1)
+            @endphp
 
             @endforeach
-            </tbody>
+        </tbody>
     </table>
 
     <table class="table table-bordered">
-    <tbody>
+        <tbody>
             <tr>
                 <td>
 

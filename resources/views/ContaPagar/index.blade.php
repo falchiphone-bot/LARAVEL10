@@ -21,17 +21,35 @@
             @endcan
 
 
-            @can('LANCAMENTOS DOCUMENTOS - LISTAR')
-                            <tr>
-                                <th>
+            <style>
+  /* Estilo para o fundo azul claro da tabela */
+  table {
+    background-color: #e6f7ff; /* Azul claro (substitua pela cor desejada) */
+    width: 100%; /* 100% de largura para preencher a largura da página */
+  }
+</style>
+            <table class="table">
+  <tr>
+    <td>
+      @can('LANCAMENTOS DOCUMENTOS - LISTAR')
+      <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+        <a class="btn btn-success" href="/LancamentosDocumentos">Enviar documentos</a>
+      </nav>
+      @endcan
+    </td>
+    <td>
+      @can('CONTABILIDADE - LISTAR')
+      <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+        <a class="btn btn-primary" href="/Contabilidade">Contabilidade</a>
+      </nav>
+      @endcan
+    </td>
+  </tr>
+</table>
 
-                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                        <a class="btn btn-success" href="/LancamentosDocumentos">Enviar documentos</a>
-                                    </nav>
 
-                                </th>
-                            </tr>
-             @endcan
+
+
 
             <div class="card-body">
                 <a href="/dashboard" class="btn btn-warning">Retornar para opções anteriores</a>
@@ -58,159 +76,147 @@
             </div>
 
             <form method="POST" action="{{ route('contaspagar.index.post') }}" accept-charset="UTF-8">
-                    @csrf
+                @csrf
 
-                    <div class="card">
-                        <div class="card-body" style="background-color: rgb(33, 244, 33)">
-                            <div class="row">
-                                <div class="col-6">
+                <div class="card">
+                    <div class="card-body" style="background-color: rgb(33, 244, 33)">
+                        <div class="row">
+                            <div class="col-6">
 
-                                    <label for="Texto" style="color: black;">Texto a pesquisar</label>
-                                    <input class="form-control @error('Descricao') is-invalid @else is-valid @enderror"
-                                        name="Texto" size="70" type="text" id="Texto"
-                                        value="{{ $retorno['Texto'] ?? null }}">
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-2">
-
-                                    <label for="Valor" style="color: black;">Valor a pesquisar</label>
-                                    <input class="form-control @error('Valor') is-invalid @else is-valid @enderror"
-                                        name="Valor" size="30" type="number" step="0.01" id="Valor"
-                                        value="{{ $retorno['Valor'] ?? null }}">
-                                </div>
-
-                                <div class="col-2">
-
-                                    <label for="DataInicial" style="color: black;">Data inicial</label>
-                                    <input class="form-control @error('DataInicial') is-invalid @else is-valid @enderror"
-                                        name="DataInicial" size="30" type="date" step="1" id="DataInicial"
-                                        value="{{ $retorno['DataInicial'] ?? null }}">
-                                </div>
-
-                                <div class="col-2">
-
-                                    <label for="DataFinal" style="color: black;">Data final</label>
-                                    <input class="form-control @error('DataFinal') is-invalid @else is-valid @enderror"
-                                        name="DataFinal" size="30" type="date" step="1" id="DataFinal"
-                                        value="{{ $retorno['DataFinal'] ?? null }}">
-                                </div>
-
-                                <div class="col-3">
-
-                                    <label for="Limite" style="color: black;">Limite de registros para retorno</label>
-                                    <input class="form-control @error('limite') is-invalid @else is-valid @enderror"
-                                        name="Limite" size="30" type="number" step="1" id="Limite"
-                                        value="{{ $retorno['Limite'] ?? null }}">
-                                </div>
-
-
-                                <div class="col-3">
-                                    <label for="Limite" style="color: black;">Empresas permitidas para o usuário</label>
-                                    <select class="form-control select2" id="EmpresaSelecionada" name="EmpresaSelecionada">
-                                        <option value="">
-                                            Selecionar empresa
-                                        </option>
-                                        @foreach ($Empresas as $Empresa)
-                                            <option @if ($retorno['EmpresaSelecionada'] == $Empresa->ID) selected @endif
-                                                value="{{ $Empresa->ID }}">
-
-                                                {{ $Empresa->Descricao }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                            </div>
-                            <div class="row mt-2">
-                                <div class="col-6">
-                                    <button class="btn btn-primary">Pesquisar conforme informações constantes do
-                                        formulário</button>
-
-                                </div>
+                                <label for="Texto" style="color: black;">Texto a pesquisar</label>
+                                <input class="form-control @error('Descricao') is-invalid @else is-valid @enderror" name="Texto" size="70" type="text" id="Texto" value="{{ $retorno['Texto'] ?? null }}">
                             </div>
                         </div>
 
+                        <div class="row">
+                            <div class="col-2">
+
+                                <label for="Valor" style="color: black;">Valor a pesquisar</label>
+                                <input class="form-control @error('Valor') is-invalid @else is-valid @enderror" name="Valor" size="30" type="number" step="0.01" id="Valor" value="{{ $retorno['Valor'] ?? null }}">
+                            </div>
+
+                            <div class="col-2">
+
+                                <label for="DataInicial" style="color: black;">Data inicial</label>
+                                <input class="form-control @error('DataInicial') is-invalid @else is-valid @enderror" name="DataInicial" size="30" type="date" step="1" id="DataInicial" value="{{ $retorno['DataInicial'] ?? null }}">
+                            </div>
+
+                            <div class="col-2">
+
+                                <label for="DataFinal" style="color: black;">Data final</label>
+                                <input class="form-control @error('DataFinal') is-invalid @else is-valid @enderror" name="DataFinal" size="30" type="date" step="1" id="DataFinal" value="{{ $retorno['DataFinal'] ?? null }}">
+                            </div>
+
+                            <div class="col-3">
+
+                                <label for="Limite" style="color: black;">Limite de registros para retorno</label>
+                                <input class="form-control @error('limite') is-invalid @else is-valid @enderror" name="Limite" size="30" type="number" step="1" id="Limite" value="{{ $retorno['Limite'] ?? null }}">
+                            </div>
+
+
+                            <div class="col-3">
+                                <label for="Limite" style="color: black;">Empresas permitidas para o usuário</label>
+                                <select class="form-control select2" id="EmpresaSelecionada" name="EmpresaSelecionada">
+                                    <option value="">
+                                        Selecionar empresa
+                                    </option>
+                                    @foreach ($Empresas as $Empresa)
+                                    <option @if ($retorno['EmpresaSelecionada']==$Empresa->ID) selected @endif
+                                        value="{{ $Empresa->ID }}">
+
+                                        {{ $Empresa->Descricao }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-6">
+                                <button class="btn btn-primary">Pesquisar conforme informações constantes do
+                                    formulário</button>
+
+                            </div>
+                        </div>
                     </div>
 
+                </div>
 
 
-                </form>
+
+            </form>
 
 
 
             <table class="table">
 
-                            <tr>
-                                <th scope="col" class="px-6 py-4">Empresa</th>
+                <tr>
+                    <th scope="col" class="px-6 py-4">Empresa</th>
 
-                                <th scope="col" class="px-6 py-4">Programado/Contabilidade</th>
-                                <th scope="col" class="px-6 py-4">Valor</th>
-                                <th scope="col" class="px-6 py-4">Conta Pagar</th>
-                                <th scope="col" class="px-6 py-4">Conta de pagamento</th>
-                                <th scope="col" class="px-6 py-4">Vencimento</th>
-                                <th scope="col" class="px-6 py-4">Data do documento </th>
-                                <th scope="col" class="px-6 py-4">Contabilidade</th>
+                    <th scope="col" class="px-6 py-4">Programado/Contabilidade</th>
+                    <th scope="col" class="px-6 py-4">Valor</th>
+                    <th scope="col" class="px-6 py-4">Conta Pagar</th>
+                    <th scope="col" class="px-6 py-4">Conta de pagamento</th>
+                    <th scope="col" class="px-6 py-4">Vencimento</th>
+                    <th scope="col" class="px-6 py-4">Data do documento </th>
+                    <th scope="col" class="px-6 py-4">Contabilidade</th>
 
-                            </tr>
+                </tr>
 
 
-                            @foreach ($contasPagar as $conta)
+                @foreach ($contasPagar as $conta)
 
-                            <tr>
-                                    <td class="">
-                                        {{ $conta->Empresa->Descricao }}
-                                    </td>
+                <tr>
+                    <td class="">
+                        {{ $conta->Empresa->Descricao }}
+                    </td>
 
-                                    <td class="">
-                                      {{ \Carbon\Carbon::createFromFormat('Y-m-d', $conta->DataProgramacao)->format('d/m/Y') }}
+                    <td class="">
+                        {{ \Carbon\Carbon::createFromFormat('Y-m-d', $conta->DataProgramacao)->format('d/m/Y') }}
 
-                                    </td>
-                                    <td class="text-end">
-                                         {{ number_format($conta->Valor, 2, ',', '.') }}
-                                    </td>
-                                    </td>
-                                    <td class="">
-                                        {{ $conta->ContaDebito->PlanoConta->Descricao}}
-                                    </td>
+                    </td>
+                    <td class="text-end">
+                        {{ number_format($conta->Valor, 2, ',', '.') }}
+                    </td>
+                    </td>
+                    <td class="">
+                        {{ $conta->ContaDebito->PlanoConta->Descricao}}
+                    </td>
 
-                                    <td class="">
-                                        {{ $conta->ContaCredito->PlanoConta->Descricao }}
-                                    </td>
-                                    <td class="">
-                                        {{ \Carbon\Carbon::createFromFormat('Y-m-d', $conta->DataVencimento)->format('d/m/Y') }}
+                    <td class="">
+                        {{ $conta->ContaCredito->PlanoConta->Descricao }}
+                    </td>
+                    <td class="">
+                        {{ \Carbon\Carbon::createFromFormat('Y-m-d', $conta->DataVencimento)->format('d/m/Y') }}
 
-                                    </td>
-                                    <td class="">
-                                          {{ \Carbon\Carbon::createFromFormat('Y-m-d', substr($conta->DataDocumento, 0, 10))->format('d/m/Y') }}
-                                    </td>
-                                    <td class="">
-                                          {{ $conta->LancamentoID }}
-                                    </td>
-                                    <td>
-                                        @can('CONTASPAGAR - EDITAR')
-                                            <a href="{{ route('ContasPagar.edit', $conta->ID) }}" class="btn btn-success"
-                                                tabindex="-1" role="button" aria-disabled="true" target="_blank">Editar</a>
-                                        @endcan
+                    </td>
+                    <td class="">
+                        {{ \Carbon\Carbon::createFromFormat('Y-m-d', substr($conta->DataDocumento, 0, 10))->format('d/m/Y') }}
+                    </td>
+                    <td class="">
+                        {{ $conta->LancamentoID }}
+                    </td>
+                    <td>
+                        @can('CONTASPAGAR - EDITAR')
+                        <a href="{{ route('ContasPagar.edit', $conta->ID) }}" class="btn btn-success" tabindex="-1" role="button" aria-disabled="true" target="_blank">Editar</a>
+                        @endcan
 
-                                        @if ($conta->LancamentoID == 0 || $conta->LancamentoID == null)
-                                            @can('CONTASPAGAR - INCLUIRLANCAMENTO')
-                                                <a href="{{ route('contaspagar.IncluirLancamentoContasPagar', $conta->ID) }}" class="btn btn-warning"
-                                                    tabindex="-1" role="button" aria-disabled="true">Lançar contabilidade</a>
-                                            @endcan
-                                         @endif
+                        @if ($conta->LancamentoID == 0 || $conta->LancamentoID == null)
+                        @can('CONTASPAGAR - INCLUIRLANCAMENTO')
+                        <a href="{{ route('contaspagar.IncluirLancamentoContasPagar', $conta->ID) }}" class="btn btn-warning" tabindex="-1" role="button" aria-disabled="true">Lançar contabilidade</a>
+                        @endcan
+                        @endif
 
 
 
-                                    </td>
-                            </tr>
+                    </td>
+                </tr>
 
 
 
-                            @endforeach
+                @endforeach
 
-                    </table>
+            </table>
 
         </div>
 
