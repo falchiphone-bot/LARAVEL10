@@ -142,9 +142,12 @@ class PlanoContaController extends Controller
 
     public function Balancetes()
     {
-        // session(['success' => 'Selecionar empresa e período para pesquisa']);
 
-        $retorno['EmpresaSelecionada'] = null;
+
+        $retorno['EmpresaSelecionada'] = 5;
+
+        $retorno['DataInicial'] = date('Y-m-d');
+        $retorno['DataFinal'] =     date('Y-m-d');
 
         $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
         ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
@@ -165,18 +168,18 @@ class PlanoContaController extends Controller
             $tela = $request->tela;
 
             $Agrupar = $request->Agrupar;
-
+            $Selecao = $request->Selecao;
 
             if($tela){
                 $pdfgerar = null;
             }
-
+            else
             if(!$pdfgerar){
 
-                return redirect('/PlanoContas/Balancetes')->with('error', 'Selecionar > Gerar e agrupar por descrição ou  Gerar por agrupar por agrupamento');
+                return redirect('/PlanoContas/Balancetes')->with('error', 'Selecionar > Gerar e agrupar por descrição ou  Gerar por agrupar por agrupamento - L176', 'retorno', 'Empresas');
 
             }
-
+            // dd('PAREI AQUI - 179');
 
 
 
@@ -193,6 +196,16 @@ class PlanoContaController extends Controller
             $somaSaldoAtualReceitas = 0;
             $ResultadoReceitasDespesas = 0;
 
+               //////////////  converter em data e depois em string data
+            $DataInicialCarbon = Carbon::parse($request->input('DataInicial')) ;
+            $DataFinalCarbon = Carbon::parse($request->input('DataFinal'));
+            $DataInicial = $DataInicialCarbon->format('d/m/Y');
+            $DataFinal = $DataFinalCarbon->format('d/m/Y');
+            $retorno['EmpresaSelecionada'] = $EmpresaID;
+                $retorno['DataInicial'] = $DataInicialCarbon->format('Y-m-d');
+                $retorno['DataFinal'] = $DataFinalCarbon->format('Y-m-d');
+
+
             // dd($Ativo, $Passivo, $Despesas, $Receitas, $request->all() );
             $empresa = Empresa::find($EmpresaID);
             if ($empresa) {
@@ -204,17 +217,6 @@ class PlanoContaController extends Controller
             }
 
 
-
-            //////////////  converter em data e depois em string data
-            $DataInicialCarbon = Carbon::parse($request->input('DataInicial')) ;
-            $DataFinalCarbon = Carbon::parse($request->input('DataFinal'));
-            $DataInicial = $DataInicialCarbon->format('d/m/Y');
-            $DataFinal = $DataFinalCarbon->format('d/m/Y');
-
-
-            $retorno['EmpresaSelecionada'] = $EmpresaID;
-                $retorno['DataInicial'] = $DataInicialCarbon->format('Y-m-d');
-                $retorno['DataFinal'] = $DataFinalCarbon->format('Y-m-d');
 
 
             if($DataInicialCarbon > $DataFinalCarbon )
@@ -320,15 +322,21 @@ class PlanoContaController extends Controller
             ->orderBy('Codigo', 'asc')
             ->where('Grau', '=', '5');
 
-            if ($request->Selecao == "Nulos") {
+            if ($Selecao == "Nulos") {
                 $contasEmpresa->where(function ($query) {
                     $query->where('Agrupamento', '=', '0')
                     ->orWhereNull('Agrupamento');
                 });
-            } else {
-                $contasEmpresa->where('Agrupamento', '>', '0');
-            }
 
+            } else
+            if ($Selecao == "Agrupados") {
+                $contasEmpresa->where('Agrupamento', '>', '0');
+
+            }
+            if ($Selecao == "Todas") {
+                $contasEmpresa = $contasEmpresa;
+
+            }
 
 
 
@@ -739,7 +747,9 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
                 'somaSaldoAtualDespesas',
                 'somaSaldoAtualPassivo',
                 'ResultadoReceitasDespesas',
-                'somaPercentual'
+                'somaPercentual',
+                'Agrupar',
+                'Selecao',
             ));
         }
 

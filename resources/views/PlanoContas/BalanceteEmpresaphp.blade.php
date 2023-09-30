@@ -62,6 +62,7 @@
                     <h3>VALOR TOTAL RECEBIDO NO PERÍODO: {{ number_format($ValorRecebido , 2, ',', '.') }}</h3>
                 </td>
             </tr>
+           
         </table>
 
     </body>

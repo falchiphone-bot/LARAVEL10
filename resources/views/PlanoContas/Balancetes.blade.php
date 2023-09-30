@@ -41,11 +41,13 @@
                         <div class="row">
                             <div class="col-6">
                                 <label for="DataInicial" style="color: black;">Data inicial</label>
-                                <input required class="form-control @error('DataInicial') is-invalid @else is-valid @enderror" name="DataInicial" size="30" type="date" step="1" id="DataInicial" value="{{ $retorno['DataInicial'] ?? null }}">
+                                <input required class="form-control @error('DataInicial') is-invalid @else is-valid @enderror"
+                                 name="DataInicial" size="30" type="date" step="1" id="DataInicial" value="{{ $retorno['DataInicial'] ?? null }}">
                             </div>
                             <div class="col-6">
                                 <label for="DataFinal" style="color: black;">Data final</label>
-                                <input required class="form-control @error('DataFinal') is-invalid @else is-valid @enderror" name="DataFinal" size="30" type="date" step="1" id="DataFinal" value="{{ $retorno['DataFinal'] ?? null }}">
+                                <input required class="form-control @error('DataFinal') is-invalid @else is-valid @enderror"
+                                name="DataFinal" size="30" type="date" step="1" id="DataFinal" value="{{ $retorno['DataFinal'] ?? null }}">
                             </div>
 
                             <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
@@ -86,7 +88,7 @@
                                             <label for="pdfCheckbox">Gerar e agrupar por descrição</label>
 
                                             <input type="radio" name="Agrupar" id="Agrupamento" value="Agrupamento">
-                                            <label for="pdfvisualizarCheckbox">Gerar por agrupar por agrupamento</label>
+                                            <label for="pdfvisualizarCheckbox">Gerar e agrupar por agrupamento</label>
                                     </div>
 
                                     <div class="col-12">
@@ -110,7 +112,7 @@
                     <div class="col-3">
                         <label for="Limite" style="color: black;">Empresas permitidas para o usuário</label>
                         <select required class="form-control select2" id="EmpresaSelecionada" name="EmpresaSelecionada">
-                            <option value="">
+                            <option value="{{ $retorno['EmpresaSelecionada'] }}">
                                 Selecionar empresa
                             </option>
                             @foreach ($Empresas as $Empresa)

@@ -29,6 +29,14 @@
                     Período de {{ \Carbon\Carbon::parse($retorno['DataInicial'])->format('d/m/Y') }} a {{ \Carbon\Carbon::parse($retorno['DataFinal'])->format('d/m/Y') }}
                 </div>
 
+                <div class="badge bg-danger text-wrap" style="width: 100%;">
+                    <h3>Selecão: {{ $Selecao }}</h3>
+                    <p><h3>Agrupamento: {{ $Agrupar }}</h3></p>
+                    <p><h2>Ordem de % S/Recebimentos</h2></p>
+                </div>
+
+
+
                 <hr>
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                         VALOR TOTAL RECEBIDO NO PERÍODO: {{ number_format($ValorRecebido , 2, ',', '.') }}
