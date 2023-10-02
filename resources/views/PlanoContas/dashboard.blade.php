@@ -45,6 +45,8 @@
 
                     <tr>
                         <th>Descrição</th>
+                        <th>ID </th>
+
                         <th>Classificação</th>
                         <th>Grau</th>
 
@@ -80,7 +82,12 @@
                                 @endif
 
                             </td>
-
+                            <td>
+                                <div class="badge bg-success text-wrap" style="width: 100%;">
+                                {{ $conta->ID }}
+                                 </div>
+                            </td>
+                             
                             <td>
                                 <div class="badge bg-success text-wrap" style="width: 100%;">
                                 {{ $conta->Codigo }}

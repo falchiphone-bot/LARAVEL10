@@ -22,7 +22,7 @@ use Dompdf\Options;
 use PhpParser\Node\Stmt\Else_;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Illuminate\Support\Facades\Response;
-
+use PHPUnit\TextUI\XmlConfiguration\CodeCoverage\Report\Php;
 
 class PlanoContaController extends Controller
 {
@@ -169,6 +169,7 @@ class PlanoContaController extends Controller
 
             $Agrupar = $request->Agrupar;
             $Selecao = $request->Selecao;
+            $MostrarValorRecebido = $request->MostrarValorRecebido;
 
             if($tela){
                 $pdfgerar = null;
@@ -195,6 +196,7 @@ class PlanoContaController extends Controller
             $somaSaldoAtualAtivo = 0;
             $somaSaldoAtualReceitas = 0;
             $ResultadoReceitasDespesas = 0;
+
 
                //////////////  converter em data e depois em string data
             $DataInicialCarbon = Carbon::parse($request->input('DataInicial')) ;
@@ -242,20 +244,25 @@ class PlanoContaController extends Controller
                 return redirect('/Empresas')->with('error', 'Necessário selecionar uma empresa');
             } else {
 
-                $C172 = 172;
+                $C172 = 172; ///  LIQUIDACAO DE COBRANCA INFRANET
 
-                $C19104 = 19104;
+                $C19104 = 19104; //// LIQUIDACAO DE COBRANCA NET RUBI SERVICOS
+                $C19268 = 19268; //// RECEBIMENTO DA CIELO NET RUBI SERVICOS
 
-                $C5920 = 5920;
-                $C19497 = 19497;
-                $C129 = 129;
-                $C97 = 97;
+                $C5920 = 5920;//// LIQUIDACAO DE COBRANCA DA PRF PROVEDOR DE INTERNET LTDA.
+                $C19497 = 19497;//// LIQUIDACAO DE COBRANCA DE TANABI - PARTE NET RUBI
+                $C19495 = 19495;//// LIQUIDACAO DE COBRANCA DE AMERICO DE CAMPOS - PARTE NET RUBI
+                $C129 = 129; //// LIQUIDACAO DE COBRANCA DA FIBRA INTERNET
+                $C97 = 97;//// LIQUIDACAO DE COBRANCA DA STTARMAAKE INTERNET LTDA
+
+
 
                 $soma5 = Lancamento::
                         where('EmpresaID', "=", 5)
                         ->where(function($query) use ($C172) {
                         $query->where('ContaCreditoID', "=", $C172);
                         })
+                        ->whereDoesntHave('SolicitacaoExclusao')
                         ->where('DataContabilidade', '>=', $DataInicial)
                         ->where('DataContabilidade', '<=', $DataFinal)
                         ->sum('Valor');
@@ -265,6 +272,7 @@ class PlanoContaController extends Controller
                         ->where(function($query) use ($C5920) {
                         $query->where('ContaCreditoID', "=", $C5920);
                         })
+                        ->whereDoesntHave('SolicitacaoExclusao')
                         ->where('DataContabilidade', '>=', $DataInicial)
                         ->where('DataContabilidade', '<=', $DataFinal)
                         ->sum('Valor');
@@ -274,17 +282,37 @@ class PlanoContaController extends Controller
                         ->where(function($query) use ($C19497) {
                         $query->where('ContaCreditoID', "=", $C19497);
                         })
+                        ->whereDoesntHave('SolicitacaoExclusao')
                         ->where('DataContabilidade', '>=', $DataInicial)
                         ->where('DataContabilidade', '<=', $DataFinal)
                         ->sum('Valor');
 
-
+                $soma1021AMERICOCAMPOS = Lancamento::
+                        where('EmpresaID', "=", 1021)
+                        ->where(function($query) use ($C19495) {
+                        $query->where('ContaCreditoID', "=", $C19495);
+                        })
+                        ->whereDoesntHave('SolicitacaoExclusao')
+                        ->where('DataContabilidade', '>=', $DataInicial)
+                        ->where('DataContabilidade', '<=', $DataFinal)
+                        ->sum('Valor');
 
                 $soma1027 = Lancamento::
                         where('EmpresaID', "=", 1027)
                         ->where(function($query) use ($C19104) {
                         $query->where('ContaCreditoID', "=", $C19104);
                         })
+                        ->whereDoesntHave('SolicitacaoExclusao')
+                        ->where('DataContabilidade', '>=', $DataInicial)
+                        ->where('DataContabilidade', '<=', $DataFinal)
+                        ->sum('Valor');
+
+                $soma1027CIELO = Lancamento::
+                        where('EmpresaID', "=", 1027)
+                        ->where(function($query) use ($C19268) {
+                        $query->where('ContaCreditoID', "=", $C19268);
+                        })
+                        ->whereDoesntHave('SolicitacaoExclusao')
                         ->where('DataContabilidade', '>=', $DataInicial)
                         ->where('DataContabilidade', '<=', $DataFinal)
                         ->sum('Valor');
@@ -294,6 +322,7 @@ class PlanoContaController extends Controller
                         ->where(function($query) use ($C129) {
                         $query->where('ContaCreditoID', "=", $C129);
                         })
+                        ->whereDoesntHave('SolicitacaoExclusao')
                         ->where('DataContabilidade', '>=', $DataInicial)
                         ->where('DataContabilidade', '<=', $DataFinal)
                         ->sum('Valor');
@@ -303,24 +332,66 @@ class PlanoContaController extends Controller
                         ->where(function($query) use ($C97) {
                         $query->where('ContaCreditoID', "=", $C97);
                         })
+                        ->whereDoesntHave('SolicitacaoExclusao')
                         ->where('DataContabilidade', '>=', $DataInicial)
                         ->where('DataContabilidade', '<=', $DataFinal)
                         ->sum('Valor');
 
-                $ValorRecebido = $soma5 + $soma1027 + $soma1021 + $soma4 + $soma3 + $soma1021TANABI;
-                // dd($ValorRecebido, $soma5, $soma1027, $soma1021, $soma4, $soma3, $soma1021TANABI);
+                $ValorRecebido = $soma5 + $soma1027 + $soma1021 + $soma4 + $soma3 + $soma1021TANABI + $soma1021AMERICOCAMPOS + $soma1027CIELO;
+
+
+
+    if ($MostrarValorRecebido) {
+        echo " Total Recebido Geral : "   . number_format(abs($ValorRecebido), 2, ',', '.') . "<br>". "<br>";
+        echo "INFRANET              : " . number_format(abs($soma5), 2, ',', '.')     . "<br>". "<br>";
+
+
+
+
+        echo "FIBRA NET RUBI        : " . number_format(abs($soma4), 2, ',', '.')     . "<br>". "<br>";
+
+        echo "STTARMAAKE            : " . number_format(abs($soma3), 2, ',', '.')     . "<br>". "<br>";
+
+
+        echo "PRF TANABI            : " . number_format(abs($soma1021TANABI), 2, ',', '.')     . "<br>";
+        echo "PRF AMERICO DE CAMPO  : " . number_format(abs($soma1021AMERICOCAMPOS), 2, ',', '.')     . "<br>";
+        echo "PRF                   : " . number_format(abs($soma1021), 2, ',', '.')     . "<br>" . "<br>";
+
+
+        echo "NET RUBI SERVICOS     :  " . number_format(abs($soma1027), 2, ',', '.')     . "<br>";
+        echo "NET RUBI SERVICO CIELO: " . number_format(abs($soma1027CIELO), 2, ',', '.')     . "<br>". "<br>";
+
+        dd();
+    }
+
+
+
+
 
 
 
                 // $ValorRecebido = 1752890.08;
 
-                $EmpresasID = [5,1027,3,4,1021];
+                // $EmpresasID = [5,1027,3,4,1021];
 
+            // $contasEmpresa = Conta::whereIn('EmpresaID', $EmpresasID)
+            // ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.planocontas_id')
+            // ->join('Contabilidade.Agrupamentos', 'PlanoContas.Agrupamento', '=', 'Agrupamentos.id')
+            // ->orderBy('Codigo', 'asc')
+            // ->where('Grau', '=', '5');
+
+
+            $EmpresasID = [5,1027,3,4,1021];
             $contasEmpresa = Conta::whereIn('EmpresaID', $EmpresasID)
-            ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.planocontas_id')
-            ->join('Contabilidade.Agrupamentos', 'PlanoContas.Agrupamento', '=', 'Agrupamentos.id')
-            ->orderBy('Codigo', 'asc')
+            ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.planocontas_id');
+            if($Selecao != "Todas"){
+                $contasEmpresa->join('Contabilidade.Agrupamentos', 'PlanoContas.Agrupamento', '=', 'Agrupamentos.id');
+            }
+
+            $contasEmpresa->orderBy('Codigo', 'asc')
             ->where('Grau', '=', '5');
+
+
 
             if ($Selecao == "Nulos") {
                 $contasEmpresa->where(function ($query) {
@@ -355,6 +426,9 @@ class PlanoContaController extends Controller
                 }
             });
                 $contasEmpresa->select(['Contas.ID', 'Descricao', 'Codigo', 'Grau', 'Agrupamento', 'Agrupamentos.nome']);
+
+                $contasEmpresa->select(['Contas.ID', 'Descricao', 'Codigo', 'Grau']);
+
                 $contasEmpresa = $contasEmpresa->get();
 
 // dd($contasEmpresa, $Ativo, $Passivo, $Despesas, $Receitas);

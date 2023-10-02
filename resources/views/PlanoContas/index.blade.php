@@ -44,6 +44,7 @@
 
                     <tr>
                         <th>Descrição</th>
+                        <th>ID</th>
                         <th>Tipo</th>
                         <th>Código</th>
                         <th>Grau</th>
@@ -83,7 +84,9 @@
                             @endif
 
 
-
+                            <td>
+                                {{ $cadastro->ID }}
+                            </td>
                             <td>
                                 {{ $cadastro->Tipo }}
                             </td>

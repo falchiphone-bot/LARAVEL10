@@ -68,11 +68,12 @@
                                     </div>
 
 
-                                    <div class="col-12">
+                                    <div class="col-6">
 
                                         <input type="checkbox" name="tela" id="tela" value="tela" checked>
                                         <label for="visualizarCheckbox">Visualizar na tela</label>
-
+                                        <input type="checkbox" name="MostrarValorRecebido" id="MostrarValorRecebido" value="MostrarValorRecebido" >
+                                        <label for="visualizarCheckbox">Mostrar saldos de valores recebidos - resumo</label>
                                     </div>
 
                                     <div class="col-12">
