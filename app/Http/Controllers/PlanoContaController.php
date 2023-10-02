@@ -364,13 +364,6 @@ class PlanoContaController extends Controller
 
         dd();
     }
-
-
-
-
-
-
-
                 // $ValorRecebido = 1752890.08;
 
                 // $EmpresasID = [5,1027,3,4,1021];
@@ -402,15 +395,12 @@ class PlanoContaController extends Controller
 
             } else
             if ($Selecao == "Agrupados") {
-                $contasEmpresa->where('Agrupamento', '>', '0');
-
+                $contasEmpresa->where('Agrupamento', '>', 0);
             }
             if ($Selecao == "Todas") {
                 $contasEmpresa = $contasEmpresa;
 
             }
-
-
 
             $contasEmpresa->where(function ($query) use ($Ativo, $Passivo, $Despesas, $Receitas) {
                 if ($Ativo) {
@@ -566,12 +556,7 @@ if($Passivo) {
             ////////////////////////////// /////////////// /////////////// /////////////// ///////////////
 }
 
-
-
-
 if($Despesas){
-
-
            /////////////// filtra somente as contas do despesas= 3.X.XX.XX
            $registros = $contasEmpresa;
 
@@ -585,8 +570,6 @@ if($Despesas){
            }
             ////////////////////////////// /////////////// /////////////// /////////////// ///////////////
 }
-
-
 if($Receitas){
             /////////////// filtra somente as contas do receitas = 4.X.XX.XX
             $registros = $contasEmpresa;
@@ -603,14 +586,10 @@ if($Receitas){
         ////////////////////////////// /////////////// /////////////// /////////////// ///////////////
 
 }
-
-
-
                             // dd($somaSaldoAtualAtivo, $somaSaldoAtualReceitas, $registro, $ResultadoLoop);
-
                         $dados  = $registrosValoresTodos;
 
-
+                        dd($dados);
 // Inicialize um array para armazenar os registros agrupados por 'Descricao'
 $registrosAgrupados = [];
 
@@ -619,7 +598,6 @@ if($Agrupar == 'Descricao')
     // Percorra o array original
     foreach ($dados as $registro) {
         $descricao = $registro["Descricao"];
-
         // Verifique se a descrição já existe no array de registros agrupados
         if (array_key_exists($descricao, $registrosAgrupados)) {
             // Se existir, some os campos relevantes
@@ -629,7 +607,6 @@ if($Agrupar == 'Descricao')
             // Adicione qualquer outro campo que você queira somar ou manipular aqui
         } else {
             // Se não existir, crie um novo registro no array de registros agrupados
-
             $registrosAgrupados[$descricao] = $registro;
         }
     }
@@ -650,13 +627,12 @@ elseif($Agrupar == 'Agrupamento')
             // Adicione qualquer outro campo que você queira somar ou manipular aqui
         } else {
             // Se não existir, crie um novo registro no array de registros agrupados
-
             $registrosAgrupados[$agrupamento] = $registro;
         }
     }
-    // dd('Agrupamento', $registrosAgrupados[$Agrupamento]);
-}
 
+}
+//   dd('Agrupamento', $registrosAgrupados[$Agrupamento]);
 
 
 $somaPercentual = 0;
