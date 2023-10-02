@@ -254,7 +254,7 @@ class PlanoContaController extends Controller
                 $C19495 = 19495;//// LIQUIDACAO DE COBRANCA DE AMERICO DE CAMPOS - PARTE NET RUBI
                 $C129 = 129; //// LIQUIDACAO DE COBRANCA DA FIBRA INTERNET
                 $C97 = 97;//// LIQUIDACAO DE COBRANCA DA STTARMAAKE INTERNET LTDA
-
+                $C878 = 878;//// LIQUIDACAO DE COBRANCA DA STTARMAAKE INTERNET LTDA DE AMERICO DE CAMPOS - PARTE NET RUBI
 
 
                 $soma5 = Lancamento::
@@ -329,8 +329,9 @@ class PlanoContaController extends Controller
 
                 $soma3 = Lancamento::
                         where('EmpresaID', "=", 3)
-                        ->where(function($query) use ($C97) {
+                        ->where(function($query) use ($C97, $C878) {
                         $query->where('ContaCreditoID', "=", $C97);
+                        $query->OrWhere('ContaCreditoID', "=", $C878);
                         })
                         ->whereDoesntHave('SolicitacaoExclusao')
                         ->where('DataContabilidade', '>=', $DataInicial)
