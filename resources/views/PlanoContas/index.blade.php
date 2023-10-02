@@ -12,10 +12,7 @@
 
 
             <div class="card">
-            @can('AGRUPAMENTOS CONTAS - LISTAR')
-                    <a href="{{ route('AgrupamentosContas.index') }}" class="btn btn-secondary btn-lg enabled" tabindex="-1" role="button"
-                        aria-disabled="true">Agrupamento de contas</a>
-           @endcan
+
                 <h1 class="text-center">Plano de contas padrão para contabilidade</h1>
                 <hr>
                 {{-- @cannot('PLANO DE CONTAS - LISTAR')
@@ -34,6 +31,11 @@
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                     <a class="btn btn-warning" href="/Contabilidade">Retornar e ou ir para Contabilidade</a>
                 </nav>
+                @can('AGRUPAMENTOS CONTAS - LISTAR')
+                    <a href="{{ route('AgrupamentosContas.index') }}" class="btn btn-success btn-lg enabled" tabindex="-1" role="button"
+                        aria-disabled="true">Agrupamento de contas</a>
+           @endcan
+
                 @can('PLANO DE CONTAS - INCLUIR')
                     <a href="{{ route('PlanoContas.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1"
                         role="button" aria-disabled="true">Incluir contas no plano de contas padrão</a>
@@ -51,6 +53,7 @@
                         <th>Bloqueio</th>
                         <th>Bloqueia datas anteriores a</th>
                         <th>Código Skala</th>
+                        <th>Agrupamento</th>
                     </tr>
                     @foreach ($cadastros as $cadastro)
                         <tr>
@@ -113,6 +116,9 @@
                             </td>
                             <td>
                                 {{ $cadastro->CodigoSkala }}
+                            </td>
+                            <td>
+                                {{ $cadastro->MostraNome->nome ?? null }}
                             </td>
 
                             <td>

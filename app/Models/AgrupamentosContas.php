@@ -1,6 +1,7 @@
 <?php
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class AgrupamentosContas extends Model
 {
@@ -11,4 +12,6 @@ class AgrupamentosContas extends Model
     protected $casts = [
         'nome' => 'string',
     ];
+
+     
 }
