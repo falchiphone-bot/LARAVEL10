@@ -418,8 +418,6 @@ class PlanoContaController extends Controller
             });
                 $contasEmpresa->select(['Contas.ID', 'Descricao', 'Codigo', 'Grau', 'Agrupamento', 'Agrupamentos.nome']);
 
-                $contasEmpresa->select(['Contas.ID', 'Descricao', 'Codigo', 'Grau']);
-
                 $contasEmpresa = $contasEmpresa->get();
 
 // dd($contasEmpresa, $Ativo, $Passivo, $Despesas, $Receitas);
@@ -589,7 +587,7 @@ if($Receitas){
                             // dd($somaSaldoAtualAtivo, $somaSaldoAtualReceitas, $registro, $ResultadoLoop);
                         $dados  = $registrosValoresTodos;
 
-                        dd($dados);
+
 // Inicialize um array para armazenar os registros agrupados por 'Descricao'
 $registrosAgrupados = [];
 
@@ -615,6 +613,7 @@ if($Agrupar == 'Descricao')
 elseif($Agrupar == 'Agrupamento')
 {
     // Percorra o array original
+ 
     foreach ($dados as $registro) {
         $agrupamento = $registro["Agrupamento"];
 
