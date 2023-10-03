@@ -159,7 +159,7 @@
                                     <a href="/Contas/Extrato/{{ $conta['ID'] }}" class="btn btn-link">
                                     @if($Agrupamentovazio == 'Agrupadosvazio')
                                              {{$conta['Descricao'] }}
-                                    else
+                                    @else
                                             @if ($Agrupar == 'Descricao')
                                                  {{ $conta['Agrupamento'] }}   -  {{$conta['Descricao'] }}
                                             @elseif ($Agrupar == 'Agrupamento')
