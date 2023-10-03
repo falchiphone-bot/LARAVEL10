@@ -541,7 +541,7 @@ if($Ativo) {
     $registros = $contasEmpresa;
 
             $registrosValores = array_filter($registros, function ($registro) {
-                return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0 && substr($registro['Codigo'], 1, 1) === '1';
+                return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0 && substr($registro['Codigo'], 0, 1) === '1';
             });
 
             $somaSaldoAtualAtivo = 0;
@@ -557,7 +557,7 @@ if($Passivo) {
             $registros = $contasEmpresa;
 
             $registrosValores = array_filter($registros, function ($registro) {
-                return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0 && substr($registro['Codigo'], 1, 1) === '2';
+                return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0 && substr($registro['Codigo'], 0, 1) === '2';
             });
 
             $somaSaldoAtualPassivo = 0;
@@ -572,7 +572,7 @@ if($Despesas){
            $registros = $contasEmpresa;
 
            $registrosValores = array_filter($registros, function ($registro) {
-               return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0 && substr($registro['Codigo'], 1, 1) === '3';
+               return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0 && substr($registro['Codigo'], 0, 1) === '3';
            });
 
            $somaSaldoAtualDespesas = 0;
@@ -586,7 +586,7 @@ if($Receitas){
             $registros = $contasEmpresa;
 
             $registrosValores = array_filter($registros, function ($registro) {
-                return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0 && substr($registro['Codigo'], 1, 1) === '4';
+                return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0 && substr($registro['Codigo'], 0, 1) === '4';
             });
 
                     $somaSaldoAtualReceitas = 0;
@@ -703,7 +703,9 @@ $pdf1 = null;
                 'somaSaldoAtualDespesas',
                 'somaSaldoAtualPassivo',
                 'ResultadoReceitasDespesas',
-                'somaPercentual'
+                'somaPercentual',
+                'Agrupar',
+                'Selecao'
             ))->render();
 
 }
@@ -720,7 +722,9 @@ $pdf1 = null;
                 'somaSaldoAtualDespesas',
                 'somaSaldoAtualPassivo',
                 'ResultadoReceitasDespesas',
-                'somaPercentual'
+                'somaPercentual',
+                'Agrupar',
+                'Selecao'
             ))->render();
 
 
