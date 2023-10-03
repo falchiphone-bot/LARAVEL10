@@ -379,6 +379,7 @@ class PlanoContaController extends Controller
             $EmpresasID = [5,1027,3,4,1021];
             $contasEmpresa = Conta::whereIn('EmpresaID', $EmpresasID)
             ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.planocontas_id');
+
             if($Selecao != "Todas"){
                 $contasEmpresa->join('Contabilidade.Agrupamentos', 'PlanoContas.Agrupamento', '=', 'Agrupamentos.id');
             }
@@ -432,7 +433,7 @@ class PlanoContaController extends Controller
 
                 $contasEmpresa = $contasEmpresa->get();
 
-// dd($contasEmpresa, $Ativo, $Passivo, $Despesas, $Receitas);
+
 
 
                 $Resultado = [];
@@ -529,6 +530,8 @@ class PlanoContaController extends Controller
 
                 $ResultadoLoop[] = $Resultado;
                 // selecionar se já existe. Se existir acumular.;
+
+                // dd($contasEmpresa5,$Resultado, $Ativo, $Passivo, $Despesas, $Receitas);
             }
 
 
@@ -673,7 +676,7 @@ elseif($Agrupar == 'Agrupamento')
 
         }
     }
-//   dd('Agrupamento', $registrosAgrupados);
+  dd('Agrupamento', $registrosAgrupados);
 }
 
 

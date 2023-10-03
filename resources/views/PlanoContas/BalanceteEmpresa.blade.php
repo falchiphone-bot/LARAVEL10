@@ -31,7 +31,7 @@
 
                 <div class="badge bg-danger text-wrap" style="width: 100%;">
                     <h3>Selecão: {{ $Selecao }}</h3>
-                    <p><h3>Agrupamento: {{ $Agrupar }}</h3></p>
+                    <p><h3>Agrupar: {{ $Agrupar }}</h3></p>
                     <p><h2>Ordem de % S/Recebimentos</h2></p>
                 </div>
 
@@ -39,7 +39,7 @@
 
                 <hr>
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                        VALOR TOTAL RECEBIDO NO PERÍODO: {{ number_format($ValorRecebido , 2, ',', '.') }}
+                       VALOR TOTAL RECEBIDO NO PERÍODO: {{ number_format($ValorRecebido , 2, ',', '.') }}
                 </nav>
 
 
@@ -157,11 +157,11 @@
                                 @if ($conta['Grau'] == '5')
                                     <a href="/Contas/Extrato/{{ $conta['ID'] }}" class="btn btn-link">
                                     @if ($Agrupar == 'Descricao')
-                                       {{ $conta['Descricao'] }}
+                                       {{ $conta['Agrupamento'] }}   -  {{$conta['Descricao'] }}
                                     @elseif ($Agrupar == 'Agrupamento')
                                          {{ $conta['NomeAgrupamento'] }}
                                     @endif
-                                    </a>
+                                </a>
                                 @endif
 
                             </td>

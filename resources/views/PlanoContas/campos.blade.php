@@ -39,29 +39,32 @@
            <div class="row">
                <div class="col-6">
                    <label for="CodigoSkala">Código Skala</label>
-                   <input class="form-control @error('CodigoSkala') is-invalid @else is-valid @enderror" name="CodigoSkala" type="text" id="CodigoSkala" value="{{$cadastro->CodigoSkala??null}}">
+                   <input class="form-control @error('CodigoSkala') is-invalid @else is-valid @enderror"
+                   name="CodigoSkala" type="text" id="CodigoSkala" value="{{$cadastro->CodigoSkala??null}}">
                    @error('CodigoSkala')
                    <div class="alert alert-danger">{{ $message }}</div>
                    @enderror
                </div>
            </div>
 
-           <div class="form-group">
-               <div class="badge bg-info text-wrap" style="width: 100%; height: 50%; font-size: 24px;">
-                   AGRUPAMENTO
-               </div>
-               <select required class="form-control select2" id="Agrupamento" name="Agrupamento">
-                   <option value="">Selecionar</option>
-                   @foreach ($Agrupamentos as $item)
-                   <option @if ($item->id == $cadastro->Agrupamento) selected @endif
-                       value="{{ $item->id }}">
-                       {{ $item->nome }}
-                   </option>
-                   @endforeach
-               </select>
 
-           </div>
+           @if ($cadastro->Grau == 5)
+                <div class="form-group">
+                    <div class="badge bg-info text-wrap" style="width: 100%; height: 50%; font-size: 24px;">
+                        AGRUPAMENTO
+                    </div>
+                    <select required class="form-control select2" id="Agrupamento" name="Agrupamento">
+                        <option value="">Selecionar</option>
+                        @foreach ($Agrupamentos as $item)
+                        <option @if ($item->id == $cadastro->Agrupamento) selected @endif
+                            value="{{ $item->id }}">
+                            {{ $item->nome }}
+                        </option>
+                        @endforeach
+                    </select>
 
+                </div>
+            @endif
 
 
 
