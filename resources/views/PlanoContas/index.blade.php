@@ -54,6 +54,7 @@
                         <th>Bloqueia datas anteriores a</th>
                         <th>Código Skala</th>
                         <th>Agrupamento</th>
+                        <th>Nome do Agrupamento</th>
                     </tr>
                     @foreach ($cadastros as $cadastro)
                         <tr>
@@ -118,7 +119,14 @@
                                 {{ $cadastro->CodigoSkala }}
                             </td>
                             <td>
-                                {{ $cadastro->MostraNome->nome ?? null }}
+                                {{   $cadastro->MostraNome->id ?? null
+
+                                 }}
+                            </td>
+                            <td>
+                                {{   $cadastro->MostraNome->nome ?? null
+
+                                 }}
                             </td>
 
                             <td>

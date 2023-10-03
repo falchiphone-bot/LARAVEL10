@@ -156,7 +156,7 @@
                                 @endif
                                 @if ($conta['Grau'] == '5')
                                     <a href="/Contas/Extrato/{{ $conta['ID'] }}" class="btn btn-link">
-                                        {{ $conta['Descricao'] }}
+                                        {{ $conta['NomeAgrupamento'] }}
                                     </a>
                                 @endif
 

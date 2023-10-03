@@ -416,7 +416,18 @@ class PlanoContaController extends Controller
                     $query->orWhereRaw("SUBSTRING(PlanoContas.Codigo, 1, 1) = '4'");
                 }
             });
+            if($Agrupar == 'Descricao' && $Selecao == "Agrupados" || $Selecao == "Todas" )
+            {
+                $contasEmpresa->select(['Contas.ID', 'Descricao', 'Codigo', 'Grau', 'Agrupamento']);
+
+            }
+            else
+            if($Agrupar == 'Agrupamento' && $Selecao == "Agrupados")
+            {
                 $contasEmpresa->select(['Contas.ID', 'Descricao', 'Codigo', 'Grau', 'Agrupamento', 'Agrupamentos.nome']);
+
+            }
+
 
                 $contasEmpresa = $contasEmpresa->get();
 
@@ -524,11 +535,13 @@ class PlanoContaController extends Controller
         });
 ////////////////////////////// /////////////// /////////////// /////////////// ///////////////
 
-            /////////////// filtra somente as contas do ativo = 1.X.XX.XX
-            $registros = $contasEmpresa;
+/////////////// filtra somente as contas do ativo = 1.X.XX.XX
+
+if($Ativo) {
+    $registros = $contasEmpresa;
 
             $registrosValores = array_filter($registros, function ($registro) {
-                return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0 && substr($registro['Codigo'], 0, 1) === '1';
+                return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0 && substr($registro['Codigo'], 1, 1) === '1';
             });
 
             $somaSaldoAtualAtivo = 0;
@@ -537,14 +550,14 @@ class PlanoContaController extends Controller
 
             ////////////////////////////// /////////////// /////////////// /////////////// ///////////////
             }
-
+}
 ////////////////////////////// /////////////// /////////////// /////////////// ///////////////
 if($Passivo) {
             /////////////// filtra somente as contas do passivo= 2.X.XX.XX
             $registros = $contasEmpresa;
 
             $registrosValores = array_filter($registros, function ($registro) {
-                return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0 && substr($registro['Codigo'], 0, 1) === '2';
+                return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0 && substr($registro['Codigo'], 1, 1) === '2';
             });
 
             $somaSaldoAtualPassivo = 0;
@@ -559,7 +572,7 @@ if($Despesas){
            $registros = $contasEmpresa;
 
            $registrosValores = array_filter($registros, function ($registro) {
-               return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0 && substr($registro['Codigo'], 0, 1) === '3';
+               return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0 && substr($registro['Codigo'], 1, 1) === '3';
            });
 
            $somaSaldoAtualDespesas = 0;
@@ -573,7 +586,7 @@ if($Receitas){
             $registros = $contasEmpresa;
 
             $registrosValores = array_filter($registros, function ($registro) {
-                return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0 && substr($registro['Codigo'], 0, 1) === '4';
+                return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0 && substr($registro['Codigo'], 1, 1) === '4';
             });
 
                     $somaSaldoAtualReceitas = 0;
@@ -613,25 +626,26 @@ if($Agrupar == 'Descricao')
 elseif($Agrupar == 'Agrupamento')
 {
     // Percorra o array original
- 
+
     foreach ($dados as $registro) {
-        $agrupamento = $registro["Agrupamento"];
+        $nomeagrupamento = $registro["NomeAgrupamento"];
 
         // Verifique se a descrição já existe no array de registros agrupados
-        if (array_key_exists($agrupamento, $registrosAgrupados)) {
+        if (array_key_exists($nomeagrupamento, $registrosAgrupados)) {
             // Se existir, some os campos relevantes
-            $registrosAgrupados[$agrupamento]["SaldoAtual"] += floatval($registro["SaldoAtual"]);
-            $registrosAgrupados[$agrupamento]["ValorRecebido"] += floatval($registro["ValorRecebido"]);
-            $registrosAgrupados[$agrupamento]["PercentualValorRecebido"] = ( $registrosAgrupados[$agrupamento]["SaldoAtual"]/$ValorRecebido)*100;
+            $registrosAgrupados[$nomeagrupamento]["SaldoAtual"] += floatval($registro["SaldoAtual"]);
+            $registrosAgrupados[$nomeagrupamento]["ValorRecebido"] += floatval($registro["ValorRecebido"]);
+            $registrosAgrupados[$nomeagrupamento]["PercentualValorRecebido"] = ( $registrosAgrupados[$nomeagrupamento]["SaldoAtual"]/$ValorRecebido)*100;
             // Adicione qualquer outro campo que você queira somar ou manipular aqui
         } else {
             // Se não existir, crie um novo registro no array de registros agrupados
-            $registrosAgrupados[$agrupamento] = $registro;
+            $registrosAgrupados[$nomeagrupamento] = $registro;
+
         }
     }
-
+//   dd('Agrupamento', $registrosAgrupados);
 }
-//   dd('Agrupamento', $registrosAgrupados[$Agrupamento]);
+
 
 
 $somaPercentual = 0;

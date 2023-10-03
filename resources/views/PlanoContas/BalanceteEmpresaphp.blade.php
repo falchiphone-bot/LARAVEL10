@@ -62,7 +62,7 @@
                     <h3>VALOR TOTAL RECEBIDO NO PERÍODO: {{ number_format($ValorRecebido , 2, ',', '.') }}</h3>
                 </td>
             </tr>
-           
+
         </table>
 
     </body>
@@ -197,7 +197,7 @@
                 <td style="text-align: left;">
                     @if ($conta['Grau'] == '5')
                         <div class="badge text-wrap" style="width: 100%; text-align: left; color: black;">
-                            {{ $conta['Descricao'] }}
+                            {{ $conta['NomeAgrupamento'] }}
                         </div>
                     @endif
 
