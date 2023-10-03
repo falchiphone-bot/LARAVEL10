@@ -461,8 +461,8 @@ class PlanoContaController extends Controller
                     return $q
                         ->where('ContaDebitoID', $contaID)
                         ->whereIn('EmpresaID', $EmpresasID)
-                        ->where('DataContabilidade', '>', $DataInicial)
-                        ->where('DataContabilidade', '<', $DataFinal);
+                        ->where('DataContabilidade', '>=', $DataInicial)
+                        ->where('DataContabilidade', '<=', $DataFinal);
                 })
                     ->whereDoesntHave('SolicitacaoExclusao')
                     ->sum('Lancamentos.Valor');
@@ -478,12 +478,14 @@ class PlanoContaController extends Controller
                         return $q
                             ->where('ContaDebitoID', $contaID)
                             ->whereIn('EmpresaID', $EmpresasID)
-                            ->where('DataContabilidade', '>', $DataInicial)
-                            ->where('DataContabilidade', '<', $DataFinal);
+                            ->where('DataContabilidade', '>=', $DataInicial)
+                            ->where('DataContabilidade', '<=', $DataFinal);
                     })
                         ->whereDoesntHave('SolicitacaoExclusao')
                         ->sum('Lancamentos.Valor');
                 }
+
+
 
 
 
@@ -531,6 +533,8 @@ class PlanoContaController extends Controller
 
 
 
+
+
             $somaSaldoAnterior = 0;
             $somaSaldoAtual = 0;
             $somaSaldoDia = 0;
@@ -545,7 +549,10 @@ class PlanoContaController extends Controller
 
         $contasEmpresa = $ResultadoLoop;
 
-// echo collect($contasEmpresa);
+// dd( $contasEmpresa);
+
+
+
 /////////////// filtra somente o valor maior que 0
         $registros = $contasEmpresa;
 
@@ -634,6 +641,7 @@ if($Agrupar == 'Descricao')
         if (array_key_exists($descricao, $registrosAgrupados)) {
             // Se existir, some os campos relevantes
             $registrosAgrupados[$descricao]["SaldoAtual"] += floatval($registro["SaldoAtual"]);
+            $registrosAgrupados[$descricao]["SaldoAtualPassivo"] += floatval($registro["SaldoAtualPassivo"]);
             $registrosAgrupados[$descricao]["ValorRecebido"] += floatval($registro["ValorRecebido"]);
             $registrosAgrupados[$descricao]["PercentualValorRecebido"] = ( $registrosAgrupados[$descricao]["SaldoAtual"]/$ValorRecebido)*100;
             // Adicione qualquer outro campo que você queira somar ou manipular aqui

@@ -155,7 +155,7 @@
 
                 <td>
                     <div class="badge text-wrap" style="width: 100%; text-align: center; color: green;">
-                        {{ number_format(abs($somaSaldoAtualPassivo), 2, ',', '.') }}
+                        {{ number_format(abs($SaldoAtualPassivo), 2, ',', '.') }}
                     </div>
                 </td>
                 @elseif($Codigo == 3)
@@ -196,9 +196,11 @@
             <tr>
                 <td style="text-align: left;">
                     @if ($conta['Grau'] == '5')
-                    <div class="badge text-wrap" style="width: 100%; text-align: left; color: black;">
-                        {{$conta['NomeAgrupamento'] }}
-                    </div>
+                    @if ($Agrupar == 'Descricao')
+                                       {{ $conta['Descricao'] }}
+                                    @elseif ($Agrupar == 'Agrupamento')
+                                         {{ $conta['NomeAgrupamento'] }}
+                                    @endif
                     @endif
                 </td>
 
@@ -209,9 +211,11 @@
                 </td>
 
                 <td style="text-align: right;">
-                    <div class="badge text-wrap" style="width: 100%; text-align: center; color: green;">
-                        {{ number_format(abs($conta['SaldoAtual']), 2, ',', '.') }}
-                    </div>
+                @if ($Passivo)
+                                          {{ number_format(abs($conta['SaldoAtualPassivo']), 2, ',', '.') }}
+                                @else
+                                    {{ number_format(abs($conta['SaldoAtual']), 2, ',', '.') }}
+                               @endif
                 </td>
 
 
@@ -224,7 +228,7 @@
         </tbody>
     </table>
 
-    <table class="table table-bordered">
+    <!-- <table class="table table-bordered">
         <tbody>
             <tr>
                 <td>
@@ -260,7 +264,7 @@
 
             </tr>
         </tbody>
-    </table>
+    </table> -->
 </body>
 
 </html>

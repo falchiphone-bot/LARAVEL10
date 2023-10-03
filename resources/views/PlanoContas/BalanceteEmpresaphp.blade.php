@@ -154,7 +154,7 @@
 
                 <td>
                 <div class="badge text-wrap" style="width: 100%; text-align: center; color: green;">
-                        {{ number_format(abs($somaSaldoAtualPassivo), 2, ',', '.') }}
+                        {{ number_format(abs($SaldoAtualPassivo), 2, ',', '.') }}
                     </div>
                 </td>
                 @elseif($Codigo == 3)
