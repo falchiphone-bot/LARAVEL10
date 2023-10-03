@@ -106,7 +106,10 @@
                                             <input type="radio" name="Selecao" id="Agrupados" value="Agrupados">
                                             <label for="pdfvisualizarCheckbox">Selecionar os agrupados</label>
                                     </div>
-
+                                    <div class="col-12">
+                                                <input type="radio" name="Agrupamentovazio" id="Agrupadosvazio" value="Agrupadosvazio">
+                                                <label for="pdfvisualizarCheckbox">Selecionar os agrupados vazios - sem definir nome de agrupamento</label>
+                                    </div>
 
                                 </div>
                             </nav>

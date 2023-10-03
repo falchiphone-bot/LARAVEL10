@@ -30,6 +30,7 @@
                 </div>
 
                 <div class="badge bg-danger text-wrap" style="width: 100%;">
+                    <h3>Agrupamentos sem definição: {{ $Agrupamentovazio }}</h3>
                     <h3>Selecão: {{ $Selecao }}</h3>
                     <p><h3>Agrupar: {{ $Agrupar }}</h3></p>
                     <p><h2>Ordem de % S/Recebimentos</h2></p>
@@ -156,10 +157,14 @@
                                 @endif
                                 @if ($conta['Grau'] == '5')
                                     <a href="/Contas/Extrato/{{ $conta['ID'] }}" class="btn btn-link">
-                                    @if ($Agrupar == 'Descricao')
-                                       {{ $conta['Agrupamento'] }}   -  {{$conta['Descricao'] }}
-                                    @elseif ($Agrupar == 'Agrupamento')
-                                         {{ $conta['NomeAgrupamento'] }}
+                                    @if($Agrupamentovazio == 'Agrupadovazio')
+                                        {{ $conta['NomeAgrupamento'] }}
+                                    else
+                                            @if ($Agrupar == 'Descricao')
+                                                 {{ $conta['Agrupamento'] }}   -  {{$conta['Descricao'] }}
+                                            @elseif ($Agrupar == 'Agrupamento')
+                                                        {{ $conta['NomeAgrupamento'] }}
+                                            @endif
                                     @endif
                                 </a>
                                 @endif

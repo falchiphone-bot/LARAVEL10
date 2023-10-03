@@ -53,7 +53,7 @@
                     <div class="badge bg-info text-wrap" style="width: 100%; height: 50%; font-size: 24px;">
                         AGRUPAMENTO
                     </div>
-                    <select required class="form-control select2" id="Agrupamento" name="Agrupamento">
+                    <select class="form-control select2" id="Agrupamento" name="Agrupamento">
                         <option value="">Selecionar</option>
                         @foreach ($Agrupamentos as $item)
                         <option @if ($item->id == $cadastro->Agrupamento) selected @endif

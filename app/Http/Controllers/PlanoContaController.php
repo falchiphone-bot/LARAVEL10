@@ -169,6 +169,7 @@ class PlanoContaController extends Controller
 
             $Agrupar = $request->Agrupar;
             $Selecao = $request->Selecao;
+            $Agrupamentovazio = $request->Agrupamentovazio;
             $MostrarValorRecebido = $request->MostrarValorRecebido;
 
             if($tela){
@@ -376,7 +377,7 @@ class PlanoContaController extends Controller
             // ->where('Grau', '=', '5');
 
 
-            $EmpresasID = [5,1027,3,4,1021];
+            $EmpresasID = [5,11,1027,3,4,1021];
             $contasEmpresa = Conta::whereIn('EmpresaID', $EmpresasID)
             ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.planocontas_id');
 
@@ -740,7 +741,8 @@ $pdf1 = null;
                 'somaPercentual',
                 'Agrupar',
                 'Passivo',
-                'Selecao'
+                'Selecao',
+                'Agrupamentovazio'
             ))->render();
 
 }
@@ -761,7 +763,8 @@ $pdf1 = null;
                 'somaPercentual',
                 'Agrupar',
                 'Passivo',
-                'Selecao'
+                'Selecao',
+                'Agrupamentovazio'
             ))->render();
 
 
@@ -857,6 +860,7 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
                 'Agrupar',
                 'Selecao',
                 'Passivo',
+                'Agrupamentovazio'
             ));
         }
 
