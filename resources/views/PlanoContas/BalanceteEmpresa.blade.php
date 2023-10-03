@@ -157,7 +157,7 @@
                                 @endif
                                 @if ($conta['Grau'] == '5')
                                     <a href="/Contas/Extrato/{{ $conta['ID'] }}" class="btn btn-link">
-                                    @if($Agrupamentovazio == 'Agrupadovazio')
+                                    @if($Agrupamentovazio == 'Agrupadosvazio')
                                              {{$conta['Descricao'] }}
                                     else
                                             @if ($Agrupar == 'Descricao')
