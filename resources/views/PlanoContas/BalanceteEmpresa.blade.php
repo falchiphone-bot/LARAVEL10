@@ -98,7 +98,7 @@
 
                                     <td>
                                         <div class="badge bg-secondary text-wrap" style="width: 100%; text-align: right;">
-                                            {{ number_format(abs($somaSaldoAtualPassivo), 2, ',', '.') }}
+                                            {{ number_format(abs($SaldoAtualPassivo), 2, ',', '.') }}
                                         </div>
                                     </td>
                                     @elseif($Codigo == 3)
@@ -171,7 +171,12 @@
                             </td>
 
                             <td style="text-align: right;">
-                                {{ number_format(abs($conta['SaldoAtual']), 2, ',', '.') }}
+
+                                @if ($Passivo)
+                                         PASSIVO{{ number_format(abs($conta['SaldoAtualPassivo']), 2, ',', '.') }}
+                                @else
+                                    {{ number_format(abs($conta['SaldoAtual']), 2, ',', '.') }}
+                               @endif
                             </td>
 
                             <td>

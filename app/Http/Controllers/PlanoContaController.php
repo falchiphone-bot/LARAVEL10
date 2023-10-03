@@ -196,7 +196,8 @@ class PlanoContaController extends Controller
             $somaSaldoAtualAtivo = 0;
             $somaSaldoAtualReceitas = 0;
             $ResultadoReceitasDespesas = 0;
-
+            $totalDebitoPassivo = 0;
+            $SaldoAtualPassivo = 0;
 
                //////////////  converter em data e depois em string data
             $DataInicialCarbon = Carbon::parse($request->input('DataInicial')) ;
@@ -455,6 +456,7 @@ class PlanoContaController extends Controller
                     ->whereDoesntHave('SolicitacaoExclusao')
                     ->sum('Lancamentos.Valor');
 
+
                 $totalDebito = Lancamento::where(function ($q) use ($DataInicial, $DataFinal, $contaID, $EmpresasID) {
                     return $q
                         ->where('ContaDebitoID', $contaID)
@@ -470,6 +472,20 @@ class PlanoContaController extends Controller
                 $SaldoDia = SaldoLancamentoHelper::Dia($DataFinal, $contaID, $EmpresaID);
 
                 $SaldoAtual = $saldoAnterior + $SaldoDia;
+
+                if($Passivo){
+                    $totalDebitoPassivo = Lancamento::where(function ($q) use ($DataInicial, $DataFinal, $contaID, $EmpresasID) {
+                        return $q
+                            ->where('ContaDebitoID', $contaID)
+                            ->whereIn('EmpresaID', $EmpresasID)
+                            ->where('DataContabilidade', '>', $DataInicial)
+                            ->where('DataContabilidade', '<', $DataFinal);
+                    })
+                        ->whereDoesntHave('SolicitacaoExclusao')
+                        ->sum('Lancamentos.Valor');
+                }
+
+
 
                 /////////////////////// MONTA ARRAY
                 if($Agrupamento)
@@ -499,6 +515,9 @@ class PlanoContaController extends Controller
                 $Resultado['totalCredito'] = $totalCredito;
 
                 $Resultado['SaldoDia'] = $SaldoDia;
+
+
+                $Resultado['SaldoAtualPassivo'] = $totalDebitoPassivo;
 
                 $Resultado['SaldoAtual'] = $SaldoAtual;
 
@@ -561,8 +580,10 @@ if($Passivo) {
             });
 
             $somaSaldoAtualPassivo = 0;
+            $SaldoAtualPassivo = 0;
             foreach ($registrosValores  as $registro) {
                 $somaSaldoAtualPassivo += $registro['SaldoAtual'];
+                $SaldoAtualPassivo += $registro['SaldoAtualPassivo'];
             }
             ////////////////////////////// /////////////// /////////////// /////////////// ///////////////
 }
@@ -634,6 +655,7 @@ elseif($Agrupar == 'Agrupamento')
         if (array_key_exists($nomeagrupamento, $registrosAgrupados)) {
             // Se existir, some os campos relevantes
             $registrosAgrupados[$nomeagrupamento]["SaldoAtual"] += floatval($registro["SaldoAtual"]);
+            $registrosAgrupados[$nomeagrupamento]["SaldoAtualPassivo"] += floatval($registro["SaldoAtualPassivo"]);
             $registrosAgrupados[$nomeagrupamento]["ValorRecebido"] += floatval($registro["ValorRecebido"]);
             $registrosAgrupados[$nomeagrupamento]["PercentualValorRecebido"] = ( $registrosAgrupados[$nomeagrupamento]["SaldoAtual"]/$ValorRecebido)*100;
             // Adicione qualquer outro campo que você queira somar ou manipular aqui
@@ -697,6 +719,7 @@ $pdf1 = null;
                 'retorno',
                 "ValorRecebido",
                 'somaSaldoAtual',
+                'SaldoAtualPassivo',
                 'contasEmpresa',
                 'somaSaldoAtualAtivo',
                 'somaSaldoAtualReceitas',
@@ -705,6 +728,7 @@ $pdf1 = null;
                 'ResultadoReceitasDespesas',
                 'somaPercentual',
                 'Agrupar',
+                'Passivo',
                 'Selecao'
             ))->render();
 
@@ -716,6 +740,7 @@ $pdf1 = null;
                 'retorno',
                 "ValorRecebido",
                 'somaSaldoAtual',
+                'SaldoAtualPassivo',
                 'contasEmpresa',
                 'somaSaldoAtualAtivo',
                 'somaSaldoAtualReceitas',
@@ -724,6 +749,7 @@ $pdf1 = null;
                 'ResultadoReceitasDespesas',
                 'somaPercentual',
                 'Agrupar',
+                'Passivo',
                 'Selecao'
             ))->render();
 
@@ -809,6 +835,7 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
                 'retorno',
                 "ValorRecebido",
                 'somaSaldoAtual',
+                'SaldoAtualPassivo',
                 'contasEmpresa',
                 'somaSaldoAtualAtivo',
                 'somaSaldoAtualReceitas',
@@ -818,6 +845,7 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
                 'somaPercentual',
                 'Agrupar',
                 'Selecao',
+                'Passivo',
             ));
         }
 
