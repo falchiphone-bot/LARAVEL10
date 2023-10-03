@@ -90,6 +90,9 @@
 
                                             <input type="radio" name="Agrupar" id="Agrupamento" value="Agrupamento">
                                             <label for="pdfvisualizarCheckbox">Gerar e agrupar por agrupamento</label>
+
+                                            <input type="radio" name="Agrupar" id="Nada" value="Nada">
+                                            <label for="pdfvisualizarCheckbox">Nenhuma das duas opções anteriores</label>
                                     </div>
 
                                     <div class="col-12">

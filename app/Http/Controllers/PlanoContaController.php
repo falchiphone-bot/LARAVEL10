@@ -676,7 +676,7 @@ elseif($Agrupar == 'Agrupamento')
 
         }
     }
-  dd('Agrupamento', $registrosAgrupados);
+//   dd('Agrupamento', $registrosAgrupados);
 }
 
 
