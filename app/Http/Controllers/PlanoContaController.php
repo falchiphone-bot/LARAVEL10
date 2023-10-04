@@ -197,9 +197,10 @@ class PlanoContaController extends Controller
             $somaSaldoAtualAtivo = 0;
             $somaSaldoAtualReceitas = 0;
             $ResultadoReceitasDespesas = 0;
+            $totalDebitoAtivo = 0;
             $totalDebitoPassivo = 0;
             $SaldoAtualPassivo = 0;
-
+            $SaldoAtualAtivo = 0;
                //////////////  converter em data e depois em string data
             $DataInicialCarbon = Carbon::parse($request->input('DataInicial')) ;
             $DataFinalCarbon = Carbon::parse($request->input('DataFinal'));
@@ -485,7 +486,7 @@ class PlanoContaController extends Controller
 
                 $SaldoAtual = $saldoAnterior + $SaldoDia;
 
-                if($Passivo){
+                if($Passivo  ){
                     $totalDebitoPassivo = Lancamento::where(function ($q) use ($DataInicial, $DataFinal, $contaID, $EmpresasID) {
                         return $q
                             ->where('ContaDebitoID', $contaID)
@@ -497,6 +498,17 @@ class PlanoContaController extends Controller
                         ->sum('Lancamentos.Valor');
                 }
 
+                if($Ativo){
+                    $totalDebitoAtivo = Lancamento::where(function ($q) use ($DataInicial, $DataFinal, $contaID, $EmpresasID) {
+                        return $q
+                            ->where('ContaDebitoID', $contaID)
+                            ->whereIn('EmpresaID', $EmpresasID)
+                            ->where('DataContabilidade', '>=', $DataInicial)
+                            ->where('DataContabilidade', '<=', $DataFinal);
+                    })
+                        ->whereDoesntHave('SolicitacaoExclusao')
+                        ->sum('Lancamentos.Valor');
+                }
 
 
 
@@ -532,6 +544,8 @@ class PlanoContaController extends Controller
 
 
                 $Resultado['SaldoAtualPassivo'] = $totalDebitoPassivo;
+
+                $Resultado['SaldoAtualAtivo'] = $totalDebitoAtivo;
 
                 $Resultado['SaldoAtual'] = $SaldoAtual;
 
@@ -585,8 +599,10 @@ if($Ativo) {
             });
 
             $somaSaldoAtualAtivo = 0;
+            $SaldoAtualAtivo = 0;
             foreach ($registrosValores  as $registro) {
                 $somaSaldoAtualAtivo += $registro['SaldoAtual'];
+                $SaldoAtualAtivo += $registro['SaldoAtualAtivo'];
 
             ////////////////////////////// /////////////// /////////////// /////////////// ///////////////
             }
@@ -754,14 +770,17 @@ $pdf1 = null;
                 "ValorRecebido",
                 'somaSaldoAtual',
                 'SaldoAtualPassivo',
+                'SaldoAtualAtivo',
                 'contasEmpresa',
                 'somaSaldoAtualAtivo',
                 'somaSaldoAtualReceitas',
                 'somaSaldoAtualDespesas',
+                'somaSaldoAtualAtivo',
                 'somaSaldoAtualPassivo',
                 'ResultadoReceitasDespesas',
                 'somaPercentual',
                 'Agrupar',
+                'Ativo',
                 'Passivo',
                 'Selecao',
                 'Agrupamentovazio'
@@ -776,14 +795,17 @@ $pdf1 = null;
                 "ValorRecebido",
                 'somaSaldoAtual',
                 'SaldoAtualPassivo',
+                'SaldoAtualAtivo',
                 'contasEmpresa',
                 'somaSaldoAtualAtivo',
                 'somaSaldoAtualReceitas',
                 'somaSaldoAtualDespesas',
+                'somaSaldoAtualAtivo',
                 'somaSaldoAtualPassivo',
                 'ResultadoReceitasDespesas',
                 'somaPercentual',
                 'Agrupar',
+                'Ativo',
                 'Passivo',
                 'Selecao',
                 'Agrupamentovazio'
@@ -872,15 +894,18 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
                 "ValorRecebido",
                 'somaSaldoAtual',
                 'SaldoAtualPassivo',
+                'SaldoAtualAtivo',
                 'contasEmpresa',
                 'somaSaldoAtualAtivo',
                 'somaSaldoAtualReceitas',
                 'somaSaldoAtualDespesas',
+                'somaSaldoAtualAtivo',
                 'somaSaldoAtualPassivo',
                 'ResultadoReceitasDespesas',
                 'somaPercentual',
                 'Agrupar',
                 'Selecao',
+                'Ativo',
                 'Passivo',
                 'Agrupamentovazio'
             ));
