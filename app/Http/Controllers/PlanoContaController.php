@@ -376,8 +376,18 @@ class PlanoContaController extends Controller
             // ->orderBy('Codigo', 'asc')
             // ->where('Grau', '=', '5');
 
+            if($EmpresaID == 5)
+            {
+                $EmpresasID = [5,11,1027,3,4,1021];
+            }
+            else
+            {
+                $EmpresasID = $request->EmpresaSelecionada;
+                dd($EmpresasID);
+            }
 
-            $EmpresasID = [5,11,1027,3,4,1021];
+
+
             $contasEmpresa = Conta::whereIn('EmpresaID', $EmpresasID)
             ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.planocontas_id');
 
@@ -705,6 +715,18 @@ uasort($registrosAgrupados, function($a, $b) {
         return 0;
     }
 });
+
+if ($Agrupamentovazio == 'Agrupadosvazio') {
+    // Itera pelos registros em $registrosAgrupados
+    foreach ($registrosAgrupados as $indice => $registro) {
+        // Verifica se o campo 'Agrupamento' é diferente de nulo
+        if ($registro['Agrupamento'] !== null) {
+            // Remove o registro do array $registrosAgrupados
+            unset($registrosAgrupados[$indice]);
+        }
+    }
+}
+
 
 
 $contasEmpresa = $registrosAgrupados;
