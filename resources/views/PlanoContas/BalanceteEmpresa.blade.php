@@ -181,10 +181,10 @@
 
                     <td style="text-align: right;">
 
-                        @if ($Passivo)
-                                 {{ number_format(abs($conta['somaSaldoAtualPassivo']), 2, ',', '.') }}
-                        @elseif ($Ativo)
-                                 {{ number_format(abs($conta['somaSaldoAtualAtivo']), 2, ',', '.') }}
+                        @if ($Ativo)
+                                 {{ number_format(abs($conta['SaldoAtualAtivo']), 2, ',', '.') }}
+                        @elseif ($Passivo)
+                                 {{ number_format(abs($conta['SaldoAtualPassivo']), 2, ',', '.') }}
                         @else
                              {{ number_format(abs($conta['SaldoAtual']), 2, ',', '.') }}
                         @endif

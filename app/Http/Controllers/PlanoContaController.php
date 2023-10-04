@@ -593,7 +593,6 @@ class PlanoContaController extends Controller
 
 if($Ativo) {
     $registros = $contasEmpresa;
-
             $registrosValores = array_filter($registros, function ($registro) {
                 return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0 && substr($registro['Codigo'], 0, 1) === '1';
             });
@@ -603,7 +602,6 @@ if($Ativo) {
             foreach ($registrosValores  as $registro) {
                 $somaSaldoAtualAtivo += $registro['SaldoAtual'];
                 $SaldoAtualAtivo += $registro['SaldoAtualAtivo'];
-
             ////////////////////////////// /////////////// /////////////// /////////////// ///////////////
             }
 }
@@ -693,6 +691,7 @@ elseif($Agrupar == 'Agrupamento')
         if (array_key_exists($nomeagrupamento, $registrosAgrupados)) {
             // Se existir, some os campos relevantes
             $registrosAgrupados[$nomeagrupamento]["SaldoAtual"] += floatval($registro["SaldoAtual"]);
+            $registrosAgrupados[$nomeagrupamento]["SaldoAtualAtivo"] += floatval($registro["SaldoAtualAtivo"]);
             $registrosAgrupados[$nomeagrupamento]["SaldoAtualPassivo"] += floatval($registro["SaldoAtualPassivo"]);
             $registrosAgrupados[$nomeagrupamento]["ValorRecebido"] += floatval($registro["ValorRecebido"]);
             $registrosAgrupados[$nomeagrupamento]["PercentualValorRecebido"] = ( $registrosAgrupados[$nomeagrupamento]["SaldoAtual"]/$ValorRecebido)*100;
