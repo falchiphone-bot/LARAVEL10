@@ -277,6 +277,10 @@ Route::resource('LancamentosDocumentos', App\Http\Controllers\LancamentosDocumen
     Route::resource('Tradeidea', App\Http\Controllers\TradeideaController::class);
 
 
+#PLANILHA EXCEL CAIXA
+Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::class, 'ExtratoCaixa'])->name('Caixa.ExtratoCaixa');
+
+
     #EXTRATO CONECTCAR
     Route::post('ConectCar/ExtratoConectCar', [App\Http\Controllers\ExtratoConectCarController::class, 'ExtratoConectar'])->name('ConectCar.ExtratoConectCar');
 

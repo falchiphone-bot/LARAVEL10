@@ -268,6 +268,53 @@
                 @endcan
 
 
+                @can('EXTRATO CONECTCAR - ENVIAR')
+                <div class="row">
+                    <form method="POST" action="/Caixa/ExtratoCaixa" enctype="multipart/form-data">
+                        @csrf
+                        <label for="fim"></label>
+                        <div class="badge bg-secondary text-wrap" style="width: 100%; font-size: 24px; color: white; text-align: center;">
+
+                            <label for="fim">Planilha CAIXA</label>
+                            <br>
+                            <input type="file" required class="btn btn-success" name="arquivo">
+                            <br>
+                            <input type="checkbox" name="DESCONSIDERAR_BLOQUEIOS" value='true'>
+                            <label for="checkbox_enviar">DESCONSIDERAR BLOQUEIOS DA EMPRESA E CONTAS</label>
+                            <br>
+                            <input type="checkbox" name="vercriarlancamentocomhistorico" value="1">
+                            <label for="checkbox_enviar">Ver se vai criar lançamento com histórico ou não</label>
+                            <br>
+                            <input type="checkbox" name="vercriarlancamento" value="1">
+                            <label for="checkbox_enviar">Ver se vai criar lançamento sem histórico
+                                pré-programado</label>
+                            <br>
+                            <input type="checkbox" name="DesmarcarConferido" value="1">
+                            <label for="checkbox_enviar">Desmarcar lançamento conferido</label>
+                            <br>
+                            {{-- @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA CONCILIACA0 BANCARIA E AUTORIZAR CRIAR
+                                        LANCAMENTO')
+                                        <input type="checkbox" name="criarlancamentosemhistorico" value="1">
+                                        <label for="checkbox_enviar">Autorizar criar lançamento sem histórico
+                                            pré-programado</label>
+                                        <br>
+                                    @endcan --}}
+
+
+                            <p class="my-2">
+                                <button type="submit" class="btn btn-success">Enviar o arquivo EXCEL para a pasta
+                                    do sistema e
+                                    consulta o arquivo total.</button>
+                            </p>
+                    </form>
+                </div>
+                @endcan
+
+
+
+
+
+
             </div>
         </div>
 
