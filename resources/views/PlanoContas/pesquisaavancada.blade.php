@@ -169,14 +169,14 @@
                             <td align="left">
 
                                 <a style="padding-left: 10px; Color:rgb(255, 0, 13); font-size: 18px;"
-                                    href="/Contas/Extrato/{{ $lancamentos->ContaDebito->ID }}">
+                                    href="/Contas/Extrato/{{ $lancamentos->ContaDebito->ID  ?? NULL}}">
                                     {{ $lancamentos->ContaDebito->PlanoConta->Descricao }}
                                 </a>
                             </td>
                             <td align="left">
 
                                 <a style="padding-left: 10px; Color:blue; font-size: 18px;"
-                                    href="/Contas/Extrato/{{ $lancamentos->ContaCredito->ID }}">
+                                    href="/Contas/Extrato/{{ $lancamentos->ContaCredito->ID ?? NULL }}">
                                     {{ $lancamentos->ContaCredito->PlanoConta->Descricao }}
                                 </a>
 

@@ -121,9 +121,9 @@ $linha_1A = $planilha_ativa->getCell('A' . 1)->getValue();
         // $linhas1_7 = $linha_1 . '-' . $result_linha7;
 
         if ($linha_1A === 'CAIXA') {
-            $ContaCartao = '10609';
+            $ContaCartao = '19424';
             $Empresa = 1025;
-            $DespesaContaDebitoID = '531';
+            $DespesaContaDebitoID = '19554';
             // $CashBackContaCreditoID = '19271';
             //  dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
         } else {
@@ -199,7 +199,7 @@ $linha_1A = $planilha_ativa->getCell('A' . 1)->getValue();
             }
             /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-            $linha = $PegaLinha + 29; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
+            $linha = $PegaLinha + 2; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
 
             if ($Data == '') {
                 session([
