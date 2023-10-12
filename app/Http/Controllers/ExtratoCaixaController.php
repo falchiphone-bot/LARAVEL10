@@ -122,9 +122,9 @@ class ExtratoCaixaController extends Controller
         // $linhas1_7 = $linha_1 . '-' . $result_linha7;
 
         if ($linha_1A === 'CAIXA') {
-            $ContaCartao = '19424';
+            $ContaCartao = '19554';
             $Empresa = 1025;
-            $DespesaContaDebitoID = '19554';
+            $DespesaContaDebitoID = '19424';
             // $CashBackContaCreditoID = '19271';
             //  dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
         } else {
