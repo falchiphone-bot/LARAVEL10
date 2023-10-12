@@ -36,6 +36,7 @@ class ExtratoCaixaController extends Controller
 
         $DESCONSIDERAR_BLOQUEIOS = $request->DESCONSIDERAR_BLOQUEIOS;
         $DesmarcarConferido = $request->DesmarcarConferido;
+        $criarlancamentos = $request->criarlancamentos;
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         $Mensagem = null;
         /////// aqui fica na pasta temporário /temp/    - apaga
@@ -82,7 +83,7 @@ class ExtratoCaixaController extends Controller
 
         // Obter a planilha ativa (por exemplo, a primeira planilha)
         $planilha_ativa = $spreadsheet->getActiveSheet();
-$linha_1A = $planilha_ativa->getCell('A' . 1)->getValue();
+        $linha_1A = $planilha_ativa->getCell('A' . 1)->getValue();
 
         ///////////////////////////// DADOS DA LINHA 1 PARA DEFINIR CONTAS
         $linha_1 = $planilha_ativa->getCell('B' . 1)->getValue();
@@ -253,7 +254,7 @@ $linha_1A = $planilha_ativa->getCell('A' . 1)->getValue();
                 if ($linha_data_comparar <= $Data_bloqueada_comparar) {
                     session([
                         'Lancamento' =>
-                            'Empresa bloqueada no sistema para o lançamento
+                        'Empresa bloqueada no sistema para o lançamento
                         solicitado! Deverá desbloquear a data de bloqueio
                         da empresa para seguir este procedimento. Bloqueada para até ' .
                             $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y') .
@@ -296,129 +297,135 @@ $linha_1A = $planilha_ativa->getCell('A' . 1)->getValue();
 
             $rowData = $cellData;
 
-            $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
-                ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
-                ->where('Descricao', $arraydatanova['Descricao'])
-                ->where('EmpresaID', $Empresa)
-                ->where('ContaCreditoID', $ContaCartao)
-                ->First();
+
+            if ($criarlancamentos) {
+
+
+                $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
+                    ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
+                    ->where('Descricao', $arraydatanova['Descricao'])
+                    ->where('EmpresaID', $Empresa)
+                    ->where('ContaCreditoID', $ContaCartao)
+                    ->First();
 
                 // dd($arraydatanova,  $lancamento);
 
-            if($lancamento == null)
-            {
-                // dd('NÃO LOCALIZADO O LANÇAMENTO ABAIXO: ',$arraydatanova);
-                Lancamento::create([
-                    'Valor' => ($valorString = $valor_formatado),
-                    'EmpresaID' => $Empresa,
-                    'ContaDebitoID' => $DespesaContaDebitoID,
-                    'ContaCreditoID' => $ContaCartao,
-                    'Descricao' => $arraydatanova["Descricao"],
-                    'Usuarios_id' => auth()->user()->id,
-                    'DataContabilidade' => $arraydatanova["Data"],
-                    'HistoricoID' => '',
+                if ($lancamento == null) {
+                    // dd('NÃO LOCALIZADO O LANÇAMENTO ABAIXO: ',$arraydatanova);
+                    Lancamento::create([
+                        'Valor' => ($valorString = $valor_formatado),
+                        'EmpresaID' => $Empresa,
+                        'ContaDebitoID' => $DespesaContaDebitoID,
+                        'ContaCreditoID' => $ContaCartao,
+                        'Descricao' => $arraydatanova["Descricao"],
+                        'Usuarios_id' => auth()->user()->id,
+                        'DataContabilidade' => $arraydatanova["Data"],
+                        'HistoricoID' => '',
+                    ]);
+                }
+
+
+                if ($DESCONSIDERAR_BLOQUEIOS == null) {
+                    if ($lancamento) {
+                        $dataLancamento_carbon = Carbon::createFromDate($lancamento->DataContabilidade);
+                        $dataLancamento = $dataLancamento_carbon->format('Y/m/d');
+                        $data_conta_debito_bloqueio = $lancamento->ContaDebito->Bloqueiodataanterior;
+                        if ($data_conta_debito_bloqueio == null) {
+                            session([
+                                'Lancamento' =>
+                                'Conta DÉBITO: ' .
+                                    $lancamento->ContaDebito->PlanoConta->Descricao .
+                                    ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                                da conta para seguir este procedimento. Bloqueada para até NULA' .
+                                    '! Encontrado lançamento na linha ' .
+                                    $linha +
+                                    1,
+                            ]);
+                            return redirect(route('LeituraArquivo.index'));
+                        }
+
+                        if ($data_conta_debito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
+                            session([
+                                'Lancamento' =>
+                                'Conta DÉBITO: ' .
+                                    $lancamento->ContaDebito->PlanoConta->Descricao .
+                                    ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                                da conta para seguir este procedimento. Bloqueada para até ' .
+                                    $data_conta_debito_bloqueio->format('d/m/Y') .
+                                    '! Encontrado lançamento na linha ' .
+                                    $linha,
+                            ]);
+                            return redirect(route('LeituraArquivo.index'));
+                        }
+                    }
+
+                    if ($lancamento) {
+                        $data_conta_credito_bloqueio = $lancamento->ContaCredito->Bloqueiodataanterior;
+                        if ($data_conta_credito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
+                            session([
+                                'Lancamento' =>
+                                'Conta CRÉDITO: ' .
+                                    $lancamento->ContaCredito->PlanoConta->Descricao .
+                                    ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio da
+                                conta para seguir este procedimento. Bloqueada para até ' .
+                                    $data_conta_credito_bloqueio->format('d/m/Y') .
+                                    '! Encontrado lançamento na linha ' .
+                                    $linha,
+                            ]);
+                            return redirect(route('LeituraArquivo.index'));
+                        }
+                    }
+                }
+
+                if ($lancamento) {
+                    $idDoLancamento = $lancamento->ID;
+                    if ($DesmarcarConferido == null) {
+                        Lancamento::where('id', $idDoLancamento)->update([
+                            'Conferido' => true,
+                        ]);
+                    } else {
+                        Lancamento::where('id', $idDoLancamento)->update([
+                            'Conferido' => false,
+                        ]);
+                    }
+                } else {
+
+
+                    // $DescricaoCompleta = $arraydatanova['Descricao'];
+                    // // dd($arraydatanova);
+                    // $TextoHistorico = $Veiculo . '-PAGAMENTOS DE PEDAGIOS';
+                    // $historico = Historicos::where('EmpresaID', $Empresa)
+                    //     ->where('Descricao', 'like', '%' . trim($TextoHistorico) . '%')
+                    //     ->where('ContaCreditoID', $ContaCartao)
+                    //     ->first();
+
+                    // if ($historico) {
+                    //     $DespesaContaDebitoID = $historico->ContaDebitoID;
+                    // } else {
+                    //     if ($request->vercriarlancamento == true) {
+                    //         dd('Sem histórico!', $historico, $arraydatanova, $Descricao, $ContaCartao, $DespesaContaDebitoID);
+                    //     }
+                    // }
+
+                    if ($request->verhistorico == true) {
+                        $SituacaoHistorico = 'HISTÓRICO CADASTRADO!';
+                        // if ($historico == null) {
+                        //     $SituacaoHistorico = ' O ABAIXO PRECISA SER CADASTRADO EM HISTÓRICOS PRÉ PROGRAMADO CASO QUEIRA LANÇAR POR HISTÓRICO, POIS NÃO TEM CADASTRO!';
+                        // }
+                        dd('VERIFICANDO SE TEM HISTÓRICO!', ' Mensagem: ' . $SituacaoHistorico . ' => ' . $historico, $arraydatanova, $Descricao, $ContaCartao, $DespesaContaDebitoID);
+                    }
+                }
+
+                session([
+                    'Lancamento' => 'Conferi lançamentos ou lancei!',
                 ]);
             }
-
-
-            if ($DESCONSIDERAR_BLOQUEIOS == null) {
-                if ($lancamento) {
-                    $dataLancamento_carbon = Carbon::createFromDate($lancamento->DataContabilidade);
-                    $dataLancamento = $dataLancamento_carbon->format('Y/m/d');
-                    $data_conta_debito_bloqueio = $lancamento->ContaDebito->Bloqueiodataanterior;
-                    if ($data_conta_debito_bloqueio == null) {
-                        session([
-                            'Lancamento' =>
-                                'Conta DÉBITO: ' .
-                                $lancamento->ContaDebito->PlanoConta->Descricao .
-                                ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
-                                da conta para seguir este procedimento. Bloqueada para até NULA' .
-                                '! Encontrado lançamento na linha ' .
-                                $linha +
-                                1,
-                        ]);
-                        return redirect(route('LeituraArquivo.index'));
-                    }
-
-                    if ($data_conta_debito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
-                        session([
-                            'Lancamento' =>
-                                'Conta DÉBITO: ' .
-                                $lancamento->ContaDebito->PlanoConta->Descricao .
-                                ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
-                                da conta para seguir este procedimento. Bloqueada para até ' .
-                                $data_conta_debito_bloqueio->format('d/m/Y') .
-                                '! Encontrado lançamento na linha ' .
-                                $linha,
-                        ]);
-                        return redirect(route('LeituraArquivo.index'));
-                    }
-                }
-
-                if ($lancamento) {
-                    $data_conta_credito_bloqueio = $lancamento->ContaCredito->Bloqueiodataanterior;
-                    if ($data_conta_credito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
-                        session([
-                            'Lancamento' =>
-                                'Conta CRÉDITO: ' .
-                                $lancamento->ContaCredito->PlanoConta->Descricao .
-                                ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio da
-                                conta para seguir este procedimento. Bloqueada para até ' .
-                                $data_conta_credito_bloqueio->format('d/m/Y') .
-                                '! Encontrado lançamento na linha ' .
-                                $linha,
-                        ]);
-                        return redirect(route('LeituraArquivo.index'));
-                    }
-                }
+            else
+            {
+                session([
+                    'Lancamento' => 'Não efetuado nenhum lançamento ou conferido!',
+                ]);
             }
-
-            if ($lancamento) {
-                $idDoLancamento = $lancamento->ID;
-                if($DesmarcarConferido == null){
-                     Lancamento::where('id', $idDoLancamento)->update([
-                    'Conferido' => true,
-                     ]);
-                }
-                else
-                {
-                    Lancamento::where('id', $idDoLancamento)->update([
-                        'Conferido' => false,
-                         ]);
-                }
-
-            } else {
-
-
-                // $DescricaoCompleta = $arraydatanova['Descricao'];
-                // // dd($arraydatanova);
-                // $TextoHistorico = $Veiculo . '-PAGAMENTOS DE PEDAGIOS';
-                // $historico = Historicos::where('EmpresaID', $Empresa)
-                //     ->where('Descricao', 'like', '%' . trim($TextoHistorico) . '%')
-                //     ->where('ContaCreditoID', $ContaCartao)
-                //     ->first();
-
-                // if ($historico) {
-                //     $DespesaContaDebitoID = $historico->ContaDebitoID;
-                // } else {
-                //     if ($request->vercriarlancamento == true) {
-                //         dd('Sem histórico!', $historico, $arraydatanova, $Descricao, $ContaCartao, $DespesaContaDebitoID);
-                //     }
-                // }
-
-                if ($request->verhistorico == true) {
-                    $SituacaoHistorico = 'HISTÓRICO CADASTRADO!';
-                    // if ($historico == null) {
-                    //     $SituacaoHistorico = ' O ABAIXO PRECISA SER CADASTRADO EM HISTÓRICOS PRÉ PROGRAMADO CASO QUEIRA LANÇAR POR HISTÓRICO, POIS NÃO TEM CADASTRO!';
-                    // }
-                    dd('VERIFICANDO SE TEM HISTÓRICO!', ' Mensagem: ' . $SituacaoHistorico . ' => ' . $historico, $arraydatanova, $Descricao, $ContaCartao, $DespesaContaDebitoID);
-                }
-
-
-
-
-            }
-
         }
 
         if ($Mensagem) {
@@ -462,21 +469,21 @@ $linha_1A = $planilha_ativa->getCell('A' . 1)->getValue();
                 <thead>
                     <tr>
                         <th>#</th>';
-    foreach (range(1, count($cellData[1])) as $column) {
-        $html .= '<th>Column ' . $column . '</th>';
-    }
-    $html .= '</tr>
+        foreach (range(1, count($cellData[1])) as $column) {
+            $html .= '<th>Column ' . $column . '</th>';
+        }
+        $html .= '</tr>
                 </thead>
                 <tbody>';
-    foreach ($cellData as $rowIndex => $rowData) {
-        $html .= '<tr>
+        foreach ($cellData as $rowIndex => $rowData) {
+            $html .= '<tr>
                         <td>' . $rowIndex . '</td>';
-        foreach ($rowData as $cellValue) {
-            $html .= '<td>' . $cellValue . '</td>';
+            foreach ($rowData as $cellValue) {
+                $html .= '<td>' . $cellValue . '</td>';
+            }
+            $html .= '</tr>';
         }
-        $html .= '</tr>';
-    }
-    $html .= '</tbody>
+        $html .= '</tbody>
             </table>
         </body>
         </html>
@@ -484,8 +491,8 @@ $linha_1A = $planilha_ativa->getCell('A' . 1)->getValue();
 
 
 
-         // Renderize o HTML do relatório
-         $dompdf->loadHtml($html);
+        // Renderize o HTML do relatório
+        $dompdf->loadHtml($html);
 
 
         // Renderize o PDF

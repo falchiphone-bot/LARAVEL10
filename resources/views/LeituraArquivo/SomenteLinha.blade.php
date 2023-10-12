@@ -282,6 +282,10 @@
                             <input type="checkbox" name="DESCONSIDERAR_BLOQUEIOS" value='true'>
                             <label for="checkbox_enviar">DESCONSIDERAR BLOQUEIOS DA EMPRESA E CONTAS</label>
                             <br>
+                            <input type="checkbox" name="criarlancamentos" value='true'>
+
+                            <label for="checkbox_enviar">Autorizar criar lançamentos</label>
+                            <br>
                             <input type="checkbox" name="vercriarlancamentocomhistorico" value="1">
                             <label for="checkbox_enviar">Ver se vai criar lançamento com histórico ou não</label>
                             <br>
