@@ -83,7 +83,7 @@ class ExtratoCaixaController extends Controller
 
         // Obter a planilha ativa (por exemplo, a primeira planilha)
         $planilha_ativa = $spreadsheet->getActiveSheet();
-        $linha_1A = $planilha_ativa->getCell('A' . 1)->getValue();
+        $linha_1B = $planilha_ativa->getCell('B' . 1)->getValue();
 
         ///////////////////////////// DADOS DA LINHA 1 PARA DEFINIR CONTAS
         $linha_1 = $planilha_ativa->getCell('B' . 1)->getValue();
@@ -121,13 +121,17 @@ class ExtratoCaixaController extends Controller
         // $result_linha7 = trim($parts[0]);
         // $linhas1_7 = $linha_1 . '-' . $result_linha7;
 
-        if ($linha_1A === 'CAIXA') {
+        if ($linha_1B === 'CAIXA ENTRADA') {
             $ContaCartao = '19554';
             $Empresa = 1025;
             $DespesaContaDebitoID = '19424';
-            // $CashBackContaCreditoID = '19271';
-            //  dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
-        } else {
+        }
+        elseif($linha_1B === 'CAIXA SAIDA'){
+            $ContaCartao = '19424';
+            $Empresa = 1025;
+            $DespesaContaDebitoID = '19554';
+        }
+        else {
             session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
             return redirect(route('LeituraArquivo.index'));
         }
