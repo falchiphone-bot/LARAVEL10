@@ -242,7 +242,7 @@ class ExtratoCaixaController extends Controller
                     ]);
                 }
 
-                dd($Empresa, $Data, $Descricao, $Saldo, $Data_bloqueada);
+                // dd($Empresa, $Data, $Descricao, $Saldo, $Data_bloqueada);
                 return redirect(route('LeituraArquivo.index'));
             }
 

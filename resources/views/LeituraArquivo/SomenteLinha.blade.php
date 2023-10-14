@@ -275,7 +275,11 @@
                         <label for="fim"></label>
                         <div class="badge bg-secondary text-wrap" style="width: 100%; font-size: 24px; color: white; text-align: center;">
 
-                            <label for="fim">Planilha CAIXA</label>
+                            <label for="fim">Planilha CAIXA</labe>
+                            <img src="{{ asset('storage/caixa/caixa_entrada.png') }}" alt="CAIXA ENTRADA">
+                            <img src="{{ asset('storage/caixa/caixa_saida.png') }}" alt="CAIXA ENTRADA">
+
+
                             <br>
                             <input type="file" required class="btn btn-success" name="arquivo">
                             <br>
