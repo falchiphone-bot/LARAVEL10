@@ -135,7 +135,7 @@ class ExtratoCaixaController extends Controller
             session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
             return redirect(route('LeituraArquivo.index'));
         }
-
+// DD($linha_1B, $Empresa, $ContaCartao, $DespesaContaDebitoID);
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         // Array que irá armazenar os dados das células
@@ -303,29 +303,51 @@ class ExtratoCaixaController extends Controller
 
 
             if ($criarlancamentos) {
+                 if ($linha_1B === 'CAIXA ENTRADA') {
+                    $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
+                        ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
+                        ->where('Descricao', $arraydatanova['Descricao'])
+                        ->where('EmpresaID', $Empresa)
+                        ->where('ContaCreditoID', $ContaCartao)
+                        ->First();
+                    }
+                    elseif($linha_1B === 'CAIXA SAIDA'){
+                        $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
+                        ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
+                        ->where('Descricao', $arraydatanova['Descricao'])
+                        ->where('EmpresaID', $Empresa)
+                        ->where('ContaDebitoID', $ContaCartao)
+                        ->First();
+                    }
 
-
-                $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
-                    ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
-                    ->where('Descricao', $arraydatanova['Descricao'])
-                    ->where('EmpresaID', $Empresa)
-                    ->where('ContaCreditoID', $ContaCartao)
-                    ->First();
-
-                // dd($arraydatanova,  $lancamento);
 
                 if ($lancamento == null) {
                     // dd('NÃO LOCALIZADO O LANÇAMENTO ABAIXO: ',$arraydatanova);
-                    Lancamento::create([
-                        'Valor' => ($valorString = $valor_formatado),
-                        'EmpresaID' => $Empresa,
-                        'ContaDebitoID' => $DespesaContaDebitoID,
-                        'ContaCreditoID' => $ContaCartao,
-                        'Descricao' => $arraydatanova["Descricao"],
-                        'Usuarios_id' => auth()->user()->id,
-                        'DataContabilidade' => $arraydatanova["Data"],
-                        'HistoricoID' => '',
-                    ]);
+                    if ($linha_1B === 'CAIXA ENTRADA') {
+                        Lancamento::create([
+                            'Valor' => ($valorString = $valor_formatado),
+                            'EmpresaID' => $Empresa,
+                            'ContaDebitoID' => $DespesaContaDebitoID,
+                            'ContaCreditoID' => $ContaCartao,
+                            'Descricao' => $arraydatanova["Descricao"],
+                            'Usuarios_id' => auth()->user()->id,
+                            'DataContabilidade' => $arraydatanova["Data"],
+                            'HistoricoID' => '',
+                        ]);
+                     }
+                     if ($linha_1B === 'CAIXA SAIDA') {
+                        // dd($linha_1B,$arraydatanova,  $lancamento);
+                        Lancamento::create([
+                            'Valor' => ($valorString = $valor_formatado),
+                            'EmpresaID' => $Empresa,
+                            'ContaDebitoID' => $ContaCartao,
+                            'ContaCreditoID' => $DespesaContaDebitoID,
+                            'Descricao' => $arraydatanova["Descricao"],
+                            'Usuarios_id' => auth()->user()->id,
+                            'DataContabilidade' => $arraydatanova["Data"],
+                            'HistoricoID' => '',
+                        ]);
+                     }
                 }
 
 
