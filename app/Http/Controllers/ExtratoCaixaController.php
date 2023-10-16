@@ -124,7 +124,7 @@ class ExtratoCaixaController extends Controller
         if ($linha_1B === 'CAIXA ENTRADA') {
             $ContaCartao = '19554';
             $Empresa = 1025;
-            $DespesaContaDebitoID = '19424';
+            $DespesaContaDebitoID = '19085';
         }
         elseif($linha_1B === 'CAIXA SAIDA'){
             $ContaCartao = '19424';

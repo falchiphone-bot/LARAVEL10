@@ -88,8 +88,14 @@
                         </div>
 
 
+
+
                         <div class="row mt-2">
+
                             <div class="col-6">
+                              <label for="checkbox_enviar">Verificar se tem sem classifição contábil SKALA</label>
+                              <input type="checkbox" name="Verificanulo" value='true'>
+                              <br>
                                 <button class="btn btn-primary">Gerar arquivo exportação da empresa selecionada</button>
 
                             </div>

@@ -83,6 +83,8 @@ class LancamentosController extends Controller
 
            $EmpresaID = $request->EmpresaSelecionada;
            $ContaID = $request->ContaSelecionada;
+           $Verificanulo = $request->Verificanulo;
+
 
            $ContaPequisada = Conta::Where("EmpresaID",'=',"$EmpresaID")
            ->Where("Planocontas_id",'=',"$ContaID")
@@ -153,6 +155,18 @@ class LancamentosController extends Controller
                         'Historico' => $item->Historico->Descricao??null,
                         'Descricao' => $item->Descricao,
                     ];
+
+                    if($Verificanulo)
+                    {
+                       if( $item->ContaDebito->PlanoConta->CodigoSkala == null)
+                        {
+                            dd($exportarItem);
+                        } else
+                        {
+                            dd("NADA LOCALIZADO. DESMARCAR OPÇÃO PARA SEGUIR!");
+                        }
+                    }
+
 
                     $ExportarLinha[] = $exportarItem;
                 }
