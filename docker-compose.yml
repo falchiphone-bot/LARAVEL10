@@ -7,6 +7,14 @@ services:
     build: .
     ports:
       - 82:80
+      - 83:83
+      - 4040:4040
       - 443:443
     volumes:
       - .:/var/www
+    networks:
+      - ngrok_network
+
+networks:
+  ngrok_network:
+    driver: bridge
