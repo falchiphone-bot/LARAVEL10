@@ -19,4 +19,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+route::post('/whatsapp', [ApiController::class,'index']);
 route::get('/whatsapp', [ApiController::class,'index']);
+

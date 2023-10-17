@@ -17,11 +17,13 @@ class ApiController extends Controller
 
 
         $data = $r->all();
+        $request_type = $r->method();
         $dataString = json_encode($data);
-        webhook::create(['webhook' => $dataString, 'type'=>'123']);
 
-        return $data['hub_challenge'];
+        webhook::create(['webhook' => $dataString, 'type'=>$request_type]);
 
-        return ['sucess' => true];
+        // return $data['hub_challenge'];
+
+        // return ['sucess' => true];
     }
 }
