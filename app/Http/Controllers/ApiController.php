@@ -68,29 +68,45 @@ class ApiController extends Controller
 
           if (isset($value['contacts']) && is_array($value['contacts']) && count($value['contacts']) > 0) {
             $contacts = $value['contacts'][0];
-            $messages = $value['messages'][0];
 
-            $from = $messages['from'];
-            $messageId = $messages['id'];
-            $timestamp = $messages['timestamp'];
-            $text = $messages['text'];
-            $body = $text['body'];
-            $messageType = $messages['type'];
             // Agora você pode acessar $contacts e outros campos dentro dele.
         } else {
             // Lida com o caso em que 'contacts' não está definido ou é um array vazio.
             $contacts = null;
+
+
+            $messageType = null;
+        }
+
+         
+        if (isset($value['messages']) && is_array($value['messages']) && count($value['messages']) > 0){
+            $messages = $value['messages'][0];
+            $messageType = $messages['type'];
+            $from = $messages['from'];
+            $messageId = $messages['id'];
+            $timestamp = $messages['timestamp'];
+
+
+            if (isset($value['text']) && is_array($value['text']) && count($value['text']) > 0){
+                $text = $messages['text'];
+                $body = $text['body'];
+            }
+            else
+            {
+                $text = null;
+                $body = null;
+            }
+
+        } else {
+            // Lida com o caso em que 'contacts' não está definido ou é um array vazio.
+            $text = null;
+            $body = null;
             $messages = null;
             $from = null;
             $messageId = null;
             $timestamp = null;
             $text = null;
-            $body = null;
-            $messageType = null;
-
-
         }
-
 
 
           if (isset($contacts['profile']) && is_array($contacts['profile']) && count($contacts['profile']) > 0) {
