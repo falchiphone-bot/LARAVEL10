@@ -32,6 +32,28 @@ class ApiController extends Controller
     public function registro(string $id)
     {
 
+        $field = null ;
+        $messagingProduct = null ;
+        $metadata = null ;
+        $displayPhoneNumber = null ;
+        $phoneNumberId = null ;
+        $profile = null ;
+        $contactName = null ;
+        $waId = null ;
+        $from = null ;
+        $messageId = null ;
+        $body = null ;
+        $messageType = null ;
+        $status = null ;
+        $filename = null ;
+        $animated  = null ;
+        $mime_type = null ;
+        $sha256 = null ;
+        $iddocument  = null ;
+        $caption = null ;
+
+
+
         $model = webhook::find($id);
 
         $jsonData =  $model->webhook;
@@ -69,17 +91,17 @@ class ApiController extends Controller
             $contacts = $value['contacts'][0];
 
             // Agora você pode acessar $contacts e outros campos dentro dele.
-        } else {
-            // Lida com o caso em que 'contacts' não está definido ou é um array vazio.
-            $contacts = null;
-
-
-            $messageType = null;
         }
 
 
         if (isset($value['messages']) && is_array($value['messages']) && count($value['messages']) > 0) {
             $messages = $value['messages'][0];
+            if (isset($messages['text']) && is_array($messages['text']) && count($messages['text']) > 0) {
+                $text = $messages['text'];
+                $body = $text['body'];
+
+            }
+
             $messageType = $messages['type'];
             $from = $messages['from'];
             $messageId = $messages['id'];
@@ -87,23 +109,7 @@ class ApiController extends Controller
 
 
 
-            if (isset($value['text']) && is_array($value['text']) && count($value['text']) > 0) {
-                $text = $messages['text'];
-                $body = $text['body'];
-            } else {
-                $text = null;
-                $body = null;
-            }
-        } else {
-            // Lida com o caso em que 'contacts' não está definido ou é um array vazio.
-            $text = null;
-            $body = null;
-            $messages = null;
-            $from = null;
-            $messageId = null;
-            $timestamp = null;
-            $text = null;
-            $document = null;
+
         }
 
         if (isset($messages['document']) && is_array($messages['document']) && count($messages['document']) > 0) {
@@ -112,29 +118,28 @@ class ApiController extends Controller
             $mime_type = $document['mime_type'];
             $sha256 = $document['sha256'];
             $iddocument = $document['id'];
-        } else {
-            $document = null;
-            $filename = null;
-            $mime_type = null;
-            $sha256 = null;
-            $iddocument  = null;
         }
-        // dd($data, $document );
+
         if (isset($messages['image']) && is_array($messages['image']) && count($messages['image']) > 0) {
             $document = $messages['image'];
+
+                 $caption = $document['caption'];
+// dd($data, $document,  $caption );
+
 
             $mime_type = $document['mime_type'];
             $sha256 = $document['sha256'];
             $iddocument = $document['id'];
-        } else {
-            $document = null;
-            $filename = null;
-            $mime_type = null;
-            $sha256 = null;
-            $iddocument  = null;
         }
 
+        if (isset($messages['sticker']) && is_array($messages['sticker']) && count($messages['sticker']) > 0) {
 
+            $document = $messages['sticker'];
+            $mime_type = $document['mime_type'];
+            $sha256 = $document['sha256'];
+            $iddocument = $document['id'];
+            $animated = $document['animated'];
+        }
 
 
 
@@ -143,17 +148,7 @@ class ApiController extends Controller
             $contactName = $profile['name'];
             $waId = $contacts['wa_id'];
             // Agora você pode acessar $contacts e outros campos dentro dele.
-        } else {
-            // Lida com o caso em que 'contacts' não está definido ou é um array vazio.
-            $profile = null;
-            $contactName = null;
-            $waId = null;
         }
-
-
-
-
-
 
         $model = $data;
 
@@ -173,9 +168,11 @@ class ApiController extends Controller
             "messageType",
             "status",
             "filename",
+            "animated",
             "mime_type",
             "sha256",
-            "iddocument"
+            "iddocument",
+            "caption"
         ];
 
         // Crie um array associativo com chaves fornecidas e valores padrão (vazios)
@@ -194,9 +191,12 @@ class ApiController extends Controller
         $newData["messageType"] = $messageType;
         $newData["status"] = $status;
         $newData["filename"] = $filename;
+        $newData["animated"] = $animated;
         $newData["mime_type"] = $mime_type;
         $newData["sha256"] = $sha256;
         $newData["iddocument"] = $iddocument;
+        $newData["caption"] = $caption;
+
         // $newData[""] = $;
 
         // Mesclar o novo array com o modelo existente
