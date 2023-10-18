@@ -56,6 +56,10 @@
                             <p>
                                Tipo da mensagem: {{ $messageType }}
                             </p>
+                            <p>
+                               Status da mensagem: {{  $status }}
+                            </p>
+
                         </div>
                         <div class="card-footer">
                             <a href="{{ route('whatsapp.indexlista') }}">Retornar para a lista</a>
