@@ -59,34 +59,26 @@
 
                     <tr>
                         <td class="">
-                                {{ $models[0]["created_at"]  }}
-                           </td>
-                        <td class="">
-
-                         {{ $models[0]["type"] }}
-
-
+                            {{ $models ['created_at'] }}
                         </td>
                         <td class="">
-                                   {{ $models['contactName']}}
+                            {{ $models["type"] }}
                         </td>
                         <td class="">
-                                   {{ $models['waId']}}
+                            {{ $models['contactName'] }}
+                        </td>
+                        <td class="">
+                            {{ $models['waId'] }}
                         </td>
                         @can('CATEGORIAS - VER')
                         <td>
-
-                            <a href="{{ route('whatsapp.registro', $models[0]->id) }}" class="btn btn-info" tabindex="-1" role="button" aria-disabled="true">Ver</a>
-
-
-
-
+                            <a href="{{ route('whatsapp.registro', $models['id']) }}" class="btn btn-info" tabindex="-1" role="button" aria-disabled="true">Ver</a>
                         </td>
                         @endcan
-
-
                     </tr>
                     @endforeach
+
+
                 </tbody>
             </table>
             <div class="badge bg-primary text-wrap" style="width: 100%;">
