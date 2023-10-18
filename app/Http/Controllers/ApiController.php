@@ -87,7 +87,7 @@ class ApiController extends Controller
             $text = null;
             $body = null;
             $messageType = null;
-           
+
 
         }
 
@@ -111,68 +111,6 @@ class ApiController extends Controller
 
 
           $model = $data;
-
-
-
-
-//   $jsonData = '{
-//     "object": "whatsapp_business_account",
-//     "entry": [
-//       {
-//         "id": "126533890548013",
-//         "changes": [
-//           {
-//             "value": {
-//               "messaging_product": "whatsapp",
-//               "metadata": {
-//                 "display_phone_number": "15550875457",
-//                 "phone_number_id": "125892007279954"
-//               },
-//               "statuses": [
-//                 {
-//                   "id": "wamid.HBgNNTUxNzk5NjE2NTg1MRUCABEYEkE5RDYyNTQxMDU2NEUzQzA0QwA=",
-//                   "status": "read",
-//                   "timestamp": "1697584941",
-//                   "recipient_id": "5517996165851"
-//                 }
-//               ]
-//             },
-//             "field": "messages"
-//           }
-//         ]
-//       }
-//     ]
-//   }';
-
-//   $data = json_decode($jsonData, true); // Decodifica o JSON em um array associativo
-
-//   if (isset($data['entry']) && is_array($data['entry'])) {
-//       $conversations = [];
-//       foreach ($data['entry'] as $entry) {
-//           $conversation = [
-//               'id' => $entry['id'],
-//               'messaging_product' => $entry['changes'][0]['value']['messaging_product'],
-//               'phone_number' => $entry['changes'][0]['value']['metadata']['display_phone_number'],
-//               'phone_number_id' => $entry['changes'][0]['value']['metadata']['phone_number_id'],
-//               'statuses' => [],
-//           ];
-
-//           foreach ($entry['changes'][0]['value']['statuses'] as $status) {
-//               $conversation['statuses'][] = [
-//                   'id' => $status['id'],
-//                   'status' => $status['status'],
-//                   'timestamp' => $status['timestamp'],
-//                   'recipient_id' => $status['recipient_id'],
-//               ];
-//           }
-
-//           $conversations[] = $conversation;
-//       }
-
-//       // Agora, $conversations contém os dados da conversa em um formato de array em PHP
-//       print_r($conversations);
-//   }
-
 
 
 
