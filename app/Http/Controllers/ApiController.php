@@ -28,61 +28,58 @@ class ApiController extends Controller
         $contactName = null;
         $waId = null;
         $from = null;
-
-
-
         $model = webhook::orderBy("id", "desc")->get();
 
+////////////////************************************/
+                                    $mergedData = array(); // Inicialize o array $mergedData fora do loop foreach
+
+                            foreach ($model as $registro) {
+                                    $jsonData =  $registro->webhook;
+                                    $data = json_decode($jsonData, true);
+
+
+                                    $entry = $data['entry'][0];
+
+                                    $id = $entry['id'];
+                                    $changes = $entry['changes'][0];
+
+                                    $value = $changes['value'];
+
+                                    $contacts = $value['contacts'][0];
+
+
+                                    $profile = $contacts['profile'] ;
+                                    $contactName = $profile['name'] ;
+                                    $waId = $contacts['wa_id'] ;
+
+                            //  dd($data, $entry, $changes, $value, $contacts, $profile, $waId);
+
+
+                                // $newKeys = [
+                                //     "profile",
+                                //     "contactName",
+                                //     "waId",
+                                // ];
+
+                                // Crie um array associativo com chaves fornecidas e valores correspondentes
+                                $newData = [
+                                    // "profile" => $profile,
+                                    "contactName" => $contactName,
+                                    "waId" => $waId,
+                                ];
+
+
+                                $mergedData = array($registro) + $newData;
 
 
 
-//         $mergedData = array(); // Inicialize o array $mergedData fora do loop foreach
+                                $model = array($mergedData);
+ 
+                                return view('Api.indexlista', compact('model'));
 
-// foreach ($model as $registro) {
-//         $jsonData =  $registro->webhook;
-//         $data = json_decode($jsonData, true);
+                            }
 
-
-//         $entry = $data['entry'][0];
-
-//         $id = $entry['id'];
-//         $changes = $entry['changes'][0];
-
-//         $value = $changes['value'];
-
-//         $contacts = $value['contacts'][0];
-
-
-//         $profile = $contacts['profile'] ;
-//         $contactName = $profile['name'] ;
-//         $waId = $contacts['wa_id'] ;
-
-// //  dd($data, $entry, $changes, $value, $contacts, $profile, $waId);
-
-
-//     $newKeys = [
-//         "profile",
-//         "contactName",
-//         "waId",
-//     ];
-
-//     // Crie um array associativo com chaves fornecidas e valores correspondentes
-//     $newData = [
-//         // "profile" => $profile,
-//         "contactName" => $contactName,
-//         "waId" => $waId,
-//     ];
-
-//     $mergedData = array_merge(array($registro), $newData);
-//     $model = $mergedData;
-
-
-
-//     return view('Api.indexlista', compact('model'));
-
-// }
-
-
+////////////////************************************/
 
 // $model = $mergedData;
 

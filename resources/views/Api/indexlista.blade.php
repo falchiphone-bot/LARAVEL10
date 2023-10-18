@@ -45,9 +45,9 @@
                     <tr>
                         <th scope="col" class="px-6 py-4">DATA</th>
                         <th scope="col" class="px-6 py-4">TIPO</th>
-                        <th scope="col" class="px-6 py-4">MENSAGEM</th>
+                        <th scope="col" class="px-6 py-4">CONTATO</th>
 
-                        <th scope="col" class="px-6 py-4"></th>
+                        <th scope="col" class="px-6 py-4">TELEFONE</th>
                         <th scope="col" class="px-6 py-4"></th>
                     </tr>
                 </thead>
@@ -59,25 +59,24 @@
 
                     <tr>
                         <td class="">
-                                {{ $models["created_at"]  }}
+                                {{ $models[0]["created_at"]  }}
                            </td>
                         <td class="">
 
-                                                    {{ $models->type }}
+                         {{ $models[0]["type"] }}
 
 
                         </td>
                         <td class="">
-
-
-                                   {{ $models->webhook}}
-
+                                   {{ $models['contactName']}}
                         </td>
-
+                        <td class="">
+                                   {{ $models['waId']}}
+                        </td>
                         @can('CATEGORIAS - VER')
                         <td>
 
-                            <a href="{{ route('whatsapp.registro', $models->id) }}" class="btn btn-info" tabindex="-1" role="button" aria-disabled="true">Ver</a>
+                            <a href="{{ route('whatsapp.registro', $models[0]->id) }}" class="btn btn-info" tabindex="-1" role="button" aria-disabled="true">Ver</a>
 
 
 
