@@ -113,6 +113,13 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
  Route::get('ContasPagar/IncluirLancamentoContasPagar/{id}',[App\Http\Controllers\ContasPagarController::class,'IncluirLancamentoContasPagar'])->name('contaspagar.IncluirLancamentoContasPagar');
 
 
+ # API WHATSAPP
+
+ Route::get('/whatsapp/registro/{id}', [App\Http\Controllers\ApiController::class, 'registro'])->name('whatsapp.registro');
+
+ Route::get('/whatsapp', [ApiController::class,'indexlista']);
+ Route::get('/whatsapp/indexlista', [App\Http\Controllers\ApiController::class, 'indexlista'])->name('whatsapp.indexlista');
+
  # Formandos base
  Route::post('FormandoBase/indexBusca', [App\Http\Controllers\FormandoBaseController::class, 'indexBusca'])->name('FormandoBase.indexBusca');
  Route::post('FormandoBase/CreateArquivoFormandoBase', [App\Http\Controllers\FormandoBaseController::class, 'CreateArquivoFormandoBase'])->name('FormandoBase.ArquivoFormandoBase');
