@@ -17,47 +17,73 @@
                         <div class="card-body">
 
                             <p>
-                               IDENTIFICAÇÃO DA MENSAGEM: {{ $messageId }}
+                               IDENTIFICAÇÃO DA MENSAGEM: {{ $model['messageId'] }}
                             </p>
                             <p>
-                                Objeto: {{ $data['object'] }}
+                                Objeto: {{ $model['object'] }}
                             </p>
                             <p>
-                                Identificação do registro: {{ htmlspecialchars($data['entry'][0]['id']) }}
-                            </p>
-
-                            <p>
-                                Produto: {{ $messagingProduct }}
-                            </p>
-                            <p>
-                                Telefone: {{ $displayPhoneNumber }}
-                            </p>
-                            <p>
-                                Id Telefone: {{ $phoneNumberId  }}
-                            </p>
-
-
-                            <p>
-                                Contato: {{   $contactName }}
-                            </p>
-                            <p>
-                               Telefone: {{ $waId }}
-                            </p>
-                            <p>
-                               De: {{ $from }}
-                            </p>
-                            <p>
-                               Tipo de arquivo: {{ $field }}
+                                Identificação do registro: {{ htmlspecialchars($model['entry'][0]['id']) }}
                             </p>
 
                             <p>
-                               Mensagem: {{ $body }}
+                                Produto: {{ $model['messagingProduct']}}
                             </p>
                             <p>
-                               Tipo da mensagem: {{ $messageType }}
+                                Telefone: {{ $model['displayPhoneNumber'] }}
                             </p>
                             <p>
-                               Status da mensagem: {{  $status }}
+                                Id Telefone: {{ $model['phoneNumberId'] }}
+                            </p>
+
+
+                            <p>
+                                Contato: {{   $model['contactName']  }}
+                            </p>
+                            <p>
+                               Telefone: {{ $model['waId']  }}
+                            </p>
+                            <p>
+                               De: {{ $model['from']  }}
+                            </p>
+                            <p>
+                               Tipo de arquivo: {{ $model['field']   }}
+                            </p>
+
+
+ @if(isset($model['messageType']))
+
+
+                            <p>
+                               Tipo da mensagem: {{ $model['messageType']   }}
+                            </p>
+
+                            <p>
+                               Mensagem: {{ $model['body']   }}
+                            </p>
+
+@endif
+
+
+
+    <p>
+        Nome do documento: {{ $model['filename'] }}
+    </p>
+    <p>
+        Tipo do documento: {{ $model['mime_type'] }}
+    </p>
+    <p>
+        Tipo do documento: {{ $model['sha256'] }}
+    </p>
+    <p>
+        Id do documento: {{ $model['iddocument'] }}
+    </p>
+ 
+
+
+
+                            <p>
+                               Status da mensagem: {{  $model['status']   }}
                             </p>
 
                         </div>
