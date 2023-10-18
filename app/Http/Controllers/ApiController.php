@@ -24,7 +24,68 @@ class ApiController extends Controller
 
     public function indexlista()
     {
+        $profile = null;
+        $contactName = null;
+        $waId = null;
+        $from = null;
+
+
+
         $model = webhook::orderBy("id", "desc")->get();
+
+
+
+
+//         $mergedData = array(); // Inicialize o array $mergedData fora do loop foreach
+
+// foreach ($model as $registro) {
+//         $jsonData =  $registro->webhook;
+//         $data = json_decode($jsonData, true);
+
+
+//         $entry = $data['entry'][0];
+
+//         $id = $entry['id'];
+//         $changes = $entry['changes'][0];
+
+//         $value = $changes['value'];
+
+//         $contacts = $value['contacts'][0];
+
+
+//         $profile = $contacts['profile'] ;
+//         $contactName = $profile['name'] ;
+//         $waId = $contacts['wa_id'] ;
+
+// //  dd($data, $entry, $changes, $value, $contacts, $profile, $waId);
+
+
+//     $newKeys = [
+//         "profile",
+//         "contactName",
+//         "waId",
+//     ];
+
+//     // Crie um array associativo com chaves fornecidas e valores correspondentes
+//     $newData = [
+//         // "profile" => $profile,
+//         "contactName" => $contactName,
+//         "waId" => $waId,
+//     ];
+
+//     $mergedData = array_merge(array($registro), $newData);
+//     $model = $mergedData;
+
+
+
+//     return view('Api.indexlista', compact('model'));
+
+// }
+
+
+
+// $model = $mergedData;
+
 
         return view('Api.indexlista', compact('model'));
     }
@@ -32,25 +93,25 @@ class ApiController extends Controller
     public function registro(string $id)
     {
 
-        $field = null ;
-        $messagingProduct = null ;
-        $metadata = null ;
-        $displayPhoneNumber = null ;
-        $phoneNumberId = null ;
-        $profile = null ;
-        $contactName = null ;
-        $waId = null ;
-        $from = null ;
-        $messageId = null ;
-        $body = null ;
-        $messageType = null ;
-        $status = null ;
-        $filename = null ;
-        $animated  = null ;
-        $mime_type = null ;
-        $sha256 = null ;
-        $iddocument  = null ;
-        $caption = null ;
+        $field = null;
+        $messagingProduct = null;
+        $metadata = null;
+        $displayPhoneNumber = null;
+        $phoneNumberId = null;
+        $profile = null;
+        $contactName = null;
+        $waId = null;
+        $from = null;
+        $messageId = null;
+        $body = null;
+        $messageType = null;
+        $status = null;
+        $filename = null;
+        $animated  = null;
+        $mime_type = null;
+        $sha256 = null;
+        $iddocument  = null;
+        $caption = null;
 
 
 
@@ -99,17 +160,12 @@ class ApiController extends Controller
             if (isset($messages['text']) && is_array($messages['text']) && count($messages['text']) > 0) {
                 $text = $messages['text'];
                 $body = $text['body'];
-
             }
 
             $messageType = $messages['type'];
             $from = $messages['from'];
             $messageId = $messages['id'];
             $timestamp = $messages['timestamp'];
-
-
-
-
         }
 
         if (isset($messages['document']) && is_array($messages['document']) && count($messages['document']) > 0) {
@@ -123,8 +179,8 @@ class ApiController extends Controller
         if (isset($messages['image']) && is_array($messages['image']) && count($messages['image']) > 0) {
             $document = $messages['image'];
 
-                 $caption = $document['caption'];
-// dd($data, $document,  $caption );
+            $caption = $document['caption'];
+            // dd($data, $document,  $caption );
 
 
             $mime_type = $document['mime_type'];
