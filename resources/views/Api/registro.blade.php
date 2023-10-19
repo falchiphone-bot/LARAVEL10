@@ -11,10 +11,24 @@
 
             <div class="row">
                 <div class="card">
+                <div class="card-footer">
+                        <a href="{{ route('whatsapp.indexlista') }}">Retornar para a lista</a>
+                    </div>
                     <div class="card-header">
                         EXIBIÇÃO DO REGISTRO
                     </div>
                     <div class="card-body">
+
+                        <p>
+                        <?php
+
+                        $dateString = $model['created_at'];
+                        $dateTime = new DateTime($dateString);
+                        $formattedDate = $dateTime->format("d/m/Y H:i:s");
+                        ?>
+
+                            Data registro: {{ $formattedDate }}
+                        </p>
 
                         <p>
                             IDENTIFICAÇÃO DA MENSAGEM: {{ $model['messageId'] }}

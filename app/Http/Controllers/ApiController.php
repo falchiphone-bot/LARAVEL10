@@ -24,16 +24,28 @@ class ApiController extends Controller
 
     public function indexlista()
     {
-        $profile = null;
-        $contactName = null;
-        $waId = null;
-        $from = null;
+        date_default_timezone_set('UTC');
+
+
+
         $model = webhook::orderBy("id", "desc")->get();
+
+        // $model = webhook::where("id",52)->orderBy("id", "desc")->get();
 
         $mergedData = array(); // Inicialize o array $mergedData fora do loop foreach
 
 
         foreach ($model as $registro) {
+            $profile = null;
+            $contactName = null;
+            $waId = null;
+            $from = null;
+            $body = null;
+            $document = null;
+            $filename = null;
+            $mime_type = null;
+            $image_mime_type = null;
+
             $jsonData = $registro->webhook;
             $data = json_decode($jsonData, true);
 
@@ -46,6 +58,27 @@ class ApiController extends Controller
                 if ($changes) {
                     $value = $changes['value'] ?? null;
                     $contacts = $value['contacts'][0] ?? null;
+                    $messages = $value['messages'][0] ?? null;
+
+
+                        if ($messages) {
+                            $text = $messages['text'] ?? null;
+                            $body = $text['body'] ?? null;
+
+                            $document = $messages['document'] ?? null ;
+
+                            $filename = $document['filename'] ?? null;
+                            $mime_type = $document['mime_type'] ?? null;
+                            $image = $messages['image']  ?? null;
+
+                            $image_mime_type = $image['mime_type'] ?? null;
+
+
+
+
+                      }
+
+
 
                     if ($contacts) {
                         $profile = $contacts['profile'] ?? null;
@@ -56,7 +89,13 @@ class ApiController extends Controller
                         $newData = [
                             "contactName" => $contactName,
                             "waId" => $waId,
+                            "body" => $body,
+                            "mime_type" => $mime_type,
+                            "filename" => $filename,
+                            "image_mime_type" => $image_mime_type
                         ];
+
+
 
                         $mergedData[] = array_merge($registro->toArray(), $newData);
                     }
@@ -98,9 +137,11 @@ $model =   $mergedData;
 
         $model = webhook::find($id);
 
+        $created_at = $model->created_at;
+
         $jsonData =  $model->webhook;
         $data = json_decode($jsonData, true); // Converte o JSON em um array associativo
-
+dd($data);
         // Agora você pode acessar as variáveis da seguinte forma:
         $object = $data['object'];
 
@@ -160,7 +201,7 @@ $model =   $mergedData;
         if (isset($messages['image']) && is_array($messages['image']) && count($messages['image']) > 0) {
             $document = $messages['image'];
 
-            $caption = $document['caption'];
+            $caption = $document['caption'] ?? null;
             // dd($data, $document,  $caption );
 
 
@@ -187,10 +228,12 @@ $model =   $mergedData;
             // Agora você pode acessar $contacts e outros campos dentro dele.
         }
 
+
         $model = $data;
 
         // Chaves fornecidas
         $newKeys = [
+            "created_at",
             "field",
             "messagingProduct",
             "metadata",
@@ -214,6 +257,7 @@ $model =   $mergedData;
 
         // Crie um array associativo com chaves fornecidas e valores padrão (vazios)
         $newData = [];
+        $newData["created_at"] =  $created_at;
         $newData["field"] = $field;
         $newData["messagingProduct"] = $messagingProduct;
         $newData["metadata"] = $metadata;

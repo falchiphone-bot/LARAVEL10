@@ -48,18 +48,29 @@
                         <th scope="col" class="px-6 py-4">CONTATO</th>
 
                         <th scope="col" class="px-6 py-4">TELEFONE</th>
-                        <th scope="col" class="px-6 py-4"></th>
+                        <th scope="col" class="px-6 py-4">MENSAGEM</th>
+                        <th scope="col" class="px-6 py-4">ANEXO</th>
+                        <th scope="col" class="px-6 py-4">NOME ANEXO</th>
+
                     </tr>
                 </thead>
 
                 <tbody>
 
                     @foreach ($model as $models)
+                    <?php
 
+                        $dateString = $models['created_at'];
+                        $dateTime = new DateTime($dateString);
+                        $formattedDate = $dateTime->format("d/m/Y H:i:s");
+                    ?>
 
                     <tr>
                         <td class="">
-                            {{ $models ['created_at'] }}
+                            {{
+                                $formattedDate
+                            }}
+
                         </td>
                         <td class="">
                             {{ $models["type"] }}
@@ -70,6 +81,20 @@
                         <td class="">
                             {{ $models['waId'] }}
                         </td>
+                        <td class="">
+                            {{ $models['body'] ?? null }}
+                        </td>
+                        <td class="">
+                            @if($models['image_mime_type'])
+                                {{ $models['image_mime_type'] ?? null }}
+                            @elseif ( $models['mime_type'])
+                             {{ $models['mime_type'] ?? null }}
+                            @endif
+                        </td>
+                        <td class="">
+                            {{ $models['filename'] ?? null }}
+                        </td>
+
                         @can('CATEGORIAS - VER')
                         <td>
                             <a href="{{ route('whatsapp.registro', $models['id']) }}" class="btn btn-info" tabindex="-1" role="button" aria-disabled="true">Ver</a>
