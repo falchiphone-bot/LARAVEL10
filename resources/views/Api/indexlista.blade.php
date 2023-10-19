@@ -82,7 +82,13 @@
                             {{ $models['waId'] }}
                         </td>
                         <td class="">
-                            {{ $models['body'] ?? null }}
+                             @if($models['caption'])
+                                {{ $models['caption'] ?? null }}
+                            @elseif ( $models['mime_type'])
+                                 {{ $models['body'] ?? null }}
+                             @elseif ( $models['body'])
+                                 {{ $models['body'] ?? null }}
+                            @endif
                         </td>
                         <td class="">
                             @if($models['image_mime_type'])

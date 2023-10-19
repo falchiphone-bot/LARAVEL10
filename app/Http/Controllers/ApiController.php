@@ -62,9 +62,9 @@ class ApiController extends Controller
 
 
                         if ($messages) {
-                            $text = $messages['text'] ?? null;
-                            $body = $text['body'] ?? null;
 
+                            $text = $messages['text'] ?? null ;
+                            $body = $text['body'] ?? null;
                             $document = $messages['document'] ?? null ;
 
                             $filename = $document['filename'] ?? null;
@@ -73,7 +73,7 @@ class ApiController extends Controller
 
                             $image_mime_type = $image['mime_type'] ?? null;
 
-
+                            $caption = $image['caption'] ?? null;
 
 
                       }
@@ -90,9 +90,12 @@ class ApiController extends Controller
                             "contactName" => $contactName,
                             "waId" => $waId,
                             "body" => $body,
+                            "text" => $text,
                             "mime_type" => $mime_type,
                             "filename" => $filename,
-                            "image_mime_type" => $image_mime_type
+                            "image_mime_type" => $image_mime_type,
+                            "caption" => $caption
+
                         ];
 
 
@@ -141,7 +144,7 @@ $model =   $mergedData;
 
         $jsonData =  $model->webhook;
         $data = json_decode($jsonData, true); // Converte o JSON em um array associativo
-dd($data);
+ 
         // Agora você pode acessar as variáveis da seguinte forma:
         $object = $data['object'];
 
