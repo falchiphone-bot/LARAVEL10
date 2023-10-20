@@ -12,15 +12,110 @@ class ApiController extends Controller
     public function index(Request $r)
     {
 
+        // date_default_timezone_set('UTC');
         $data = $r->all();
         $request_type = $r->method();
         $dataString = json_encode($data);
+//////////////////////////////////////////////////////////////////////////
+    $mergedData = array();
+    $profile = null;
+    $contactName = null;
+    $waId = null;
+    $from = null;
+    $body = null;
+    $document = null;
+    $filename = null;
+    $mime_type = null;
+    $image_mime_type = null;
+    $statuses = null;
+    $status =  'received';
+    $recipient_id =  null;
+    $conversation_id = null;
+    $messages_id = null;
 
-        webhook::create(['webhook' => $dataString, 'type' => $request_type]);
+    $jsonData = $dataString;
+    $data = json_decode($jsonData, true);
+    $entry = $data['entry'][0] ?? null;
 
-        // return $data['hub_challenge'];
+    if ($entry) {
 
-        // return ['sucess' => true];
+        $id = $entry['id'] ?? null;
+        $changes = $entry['changes'][0] ?? null;
+
+        if ($changes) {
+            $value = $changes['value'] ?? null;
+            $contacts = $value['contacts'][0] ?? null;
+            $messages = $value['messages'][0] ?? null;
+            $statuses = $value['statuses'][0] ?? null;
+
+
+
+            if ($messages) {
+                $messages_id = $messages['id'] ?? null;
+                $text = $messages['text'] ?? null;
+                $body = $text['body'] ?? null;
+                $document = $messages['document'] ?? null;
+
+                $filename = $document['filename'] ?? null;
+                $mime_type = $document['mime_type'] ?? null;
+                $image = $messages['image']  ?? null;
+
+                $image_mime_type = $image['mime_type'] ?? null;
+
+                $caption = $image['caption'] ?? null;
+            }
+
+
+
+            if ($contacts) {
+                $profile = $contacts['profile'] ?? null;
+                $contactName = $profile['name'] ?? null;
+                $waId = $contacts['wa_id'] ?? null;
+            }
+
+            if ($statuses) {
+                $status = $statuses['status'] ?? null;
+                $recipient_id = $statuses['recipient_id'] ?? null;
+                $conversation_id = $statuses['id'] ?? null;
+            }
+                    $contactName = $contactName ?? null;
+                    $waId = $waId ?? null;
+                    $body = $body ?? null;
+                    $text = $text ?? null;
+                    $mime_type = $mime_type ?? null;
+                    $filename = $filename ?? null;
+                    $image_mime_type = $image_mime_type ?? null;
+                    $caption = $caption ?? null;
+                    $status = $status ?? null;
+                    $recipient_id = $recipient_id ?? null;
+                    $conversation_id = $conversation_id ?? null;
+                    $messages_id = $messages_id ?? null;
+        }
+    }
+//////////////////////////////////////////////////////////////////////////
+if($status == null)
+{
+    $status = 'received';
+}
+
+
+        webhook::create(['webhook' => $dataString,
+         'type' => $request_type,
+         'contactName' => $contactName,
+         'waId' => $waId,
+         'body' => $body,
+         'text' => $text,
+         'mime_type' => $mime_type,
+         'filename' => $filename,
+         'image_mime_type' => $image_mime_type,
+         'caption' => $caption,
+         'status' => $status,
+         'recipient_id' => $recipient_id,
+         'conversation_id' => $conversation_id,
+         'messages_id' => $messages_id,
+        ]);
+
+        dd("Gravou!");
     }
 
     public function enviarMensagemNova()
@@ -152,7 +247,7 @@ class ApiController extends Controller
                     $value = $changes['value'] ?? null;
                     $contacts = $value['contacts'][0] ?? null;
                     $messages = $value['messages'][0] ?? null;
-                    $statuses = $value['statuses'][0] ?? null;
+                    // $statuses = $value['statuses'][0] ?? null;
 
 
 
@@ -195,24 +290,18 @@ class ApiController extends Controller
                             "filename" => $filename ?? null,
                             "image_mime_type" => $image_mime_type ?? null,
                             "caption" => $caption ?? null,
-                            "status" => $status ?? null,
+                            // "status" => $status ?? null,
                             "recipient_id" => $recipient_id ?? null,
                             "conversation_id" => $conversation_id ?? null,
                             "messages_id" => $messages_id ?? null,
 
                         ];
-
-                        $mergedData[] = array_merge($registro->toArray(), $newData);
-
-
-
+                       $mergedData[] = array_merge($registro->toArray(), $newData);
                 }
             }
         }
 
         $model =   $mergedData;
-
-
 
         return view('Api.indexlista', compact('model'));
     }
