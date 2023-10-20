@@ -115,15 +115,11 @@ class ApiController extends Controller
     public function indexlista()
     {
         date_default_timezone_set('UTC');
-
-
-
         $model = webhook::orderBy("id", "desc")->get();
+        // $model = webhook::where("id",100)->orderBy("id", "desc")->get();
 
-        // $model = webhook::where("id",52)->orderBy("id", "desc")->get();
 
         $mergedData = array(); // Inicialize o array $mergedData fora do loop foreach
-
 
         foreach ($model as $registro) {
             $profile = null;
@@ -135,13 +131,20 @@ class ApiController extends Controller
             $filename = null;
             $mime_type = null;
             $image_mime_type = null;
+            $statuses = null;
+            $status =  null;
+            $recipient_id =  null;
+            $conversation_id = null;
+            $messages_id = null;
 
             $jsonData = $registro->webhook;
             $data = json_decode($jsonData, true);
 
             $entry = $data['entry'][0] ?? null;
 
+
             if ($entry) {
+
                 $id = $entry['id'] ?? null;
                 $changes = $entry['changes'][0] ?? null;
 
@@ -149,10 +152,12 @@ class ApiController extends Controller
                     $value = $changes['value'] ?? null;
                     $contacts = $value['contacts'][0] ?? null;
                     $messages = $value['messages'][0] ?? null;
+                    $statuses = $value['statuses'][0] ?? null;
+
 
 
                     if ($messages) {
-
+                        $messages_id = $messages['id'] ?? null;
                         $text = $messages['text'] ?? null;
                         $body = $text['body'] ?? null;
                         $document = $messages['document'] ?? null;
@@ -172,24 +177,35 @@ class ApiController extends Controller
                         $profile = $contacts['profile'] ?? null;
                         $contactName = $profile['name'] ?? null;
                         $waId = $contacts['wa_id'] ?? null;
+                    }
 
-                        // Crie um array associativo com chaves fornecidas e valores correspondentes
-                        $newData = [
-                            "contactName" => $contactName,
-                            "waId" => $waId,
-                            "body" => $body,
-                            "text" => $text,
-                            "mime_type" => $mime_type,
-                            "filename" => $filename,
-                            "image_mime_type" => $image_mime_type,
-                            "caption" => $caption
+                    if ($statuses) {
+                        $status = $statuses['status'] ?? null;
+                        $recipient_id = $statuses['recipient_id'] ?? null;
+                        $conversation_id = $statuses['id'] ?? null;
+                    }
+
+
+                    $newData = [
+                            "contactName" => $contactName ?? null,
+                            "waId" => $waId ?? null,
+                            "body" => $body ?? null,
+                            "text" => $text ?? null,
+                            "mime_type" => $mime_type ?? null,
+                            "filename" => $filename ?? null,
+                            "image_mime_type" => $image_mime_type ?? null,
+                            "caption" => $caption ?? null,
+                            "status" => $status ?? null,
+                            "recipient_id" => $recipient_id ?? null,
+                            "conversation_id" => $conversation_id ?? null,
+                            "messages_id" => $messages_id ?? null,
 
                         ];
 
-
-
                         $mergedData[] = array_merge($registro->toArray(), $newData);
-                    }
+
+
+
                 }
             }
         }

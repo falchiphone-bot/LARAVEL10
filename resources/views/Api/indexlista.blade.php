@@ -55,6 +55,7 @@
                     <tr>
                         <th scope="col" class="px-6 py-4">DATA</th>
                         <th scope="col" class="px-6 py-4">TIPO</th>
+                        <th scope="col" class="px-6 py-4">status</th>
                         <th scope="col" class="px-6 py-4">CONTATO</th>
 
                         <th scope="col" class="px-6 py-4">TELEFONE</th>
@@ -85,21 +86,45 @@
                         <td class="">
                             {{ $models["type"] }}
                         </td>
+
+                        <td class="">
+                            {{ $models["status"] }}
+                        </td>
+
                         <td class="">
                             {{ $models['contactName'] }}
                         </td>
                         <td class="">
-                            {{ $models['waId'] }}
+                        @if($models['waId'])
+                                {{ $models['waId'] ?? null }}
+                         @elseif ( $models['recipient_id'])
+                                 {{ $models['recipient_id'] ?? null }}
+                        @endif
+
                         </td>
                         <td class="">
+
                              @if($models['caption'])
                                 {{ $models['caption'] ?? null }}
+
                             @elseif ( $models['mime_type'])
                                  {{ $models['body'] ?? null }}
-                             @elseif ( $models['body'])
+
+                            @elseif ( $models['body'])
                                  {{ $models['body'] ?? null }}
+
+                                 {{ $models['messages_id']  }}
+
+                            @elseif ( $models['conversation_id'])
+                                 {{ $models['conversation_id'] ?? null }}
+
                             @endif
+
                         </td>
+
+
+
+
                         <td class="">
                             @if($models['image_mime_type'])
                                 {{ $models['image_mime_type'] ?? null }}
