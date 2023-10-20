@@ -9,6 +9,16 @@
             </div>
         </div>
 
+        @can('WHATSAPP - MENSAGEMAPROVADA')
+                        <td>
+                            <a href="{{ route('whatsapp.enviarMensagemAprovada') }}" class="btn btn-danger" tabindex="-1" role="button" aria-disabled="true">Agradecimento pelo contato</a>
+                        </td>
+        @endcan
+        @can('WHATSAPP - MENSAGEMNOVA')
+                        <td>
+                            <a href="{{ route('whatsapp.enviarMensagemNova') }}" class="btn btn-danger" tabindex="-1" role="button" aria-disabled="true">Esta é uma mensagem livre de teste</a>
+                        </td>
+        @endcan
 
         <div class="card-body">
             @if (session('success'))

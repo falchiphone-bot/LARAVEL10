@@ -9,7 +9,7 @@
         "dompdf/dompdf": "^2.0",
         "google/apiclient": "^2.13",
         "google/cloud-storage": "^1.31",
-        "guzzlehttp/guzzle": "^7.2",
+        "guzzlehttp/guzzle": "^7.5",
         "laravel/framework": "^10.0",
         "laravel/sanctum": "^3.2",
         "laravel/socialite": "^5.6",

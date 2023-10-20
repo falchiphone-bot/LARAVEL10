@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\webhook;
 use Illuminate\Http\Request;
+use GuzzleHttp\Client;
 
 class ApiController extends Controller
 {
@@ -21,6 +22,95 @@ class ApiController extends Controller
 
         // return ['sucess' => true];
     }
+
+    public function enviarMensagemNova()
+    {
+        $accessToken = 'EAALZBJb4ieTcBO8Yemzg41ZASqQgq3KsH3ve15cW8DzWBtPnobeDW6uaJeOO5hfQ8yMZBJlsBuHDecUGeYrlAAhZAorUnOOJHfRJ5wqvUdAEOCJsLfvZC9EZBFZCQAOTtr0hheg3SAZA88Q0aK9EX6NMqygeRy9WDps094Rxhzx6mGmEsBr7EzZCeEls6uvrp9WlfmzMZCvvDZCMduMZAXLjio4ZBkzAIktiCzzvMysWpQDqZC1L9Ia94s9ZBhY'; // Substitua pelo seu token de acesso
+        $client = new Client();
+        $phone = '5517997662949'; // Número de telefone de destino
+        $message = 'Esta é uma mensagem livre de teste'; // Sua mensagem de texto
+        $client = new Client();
+
+        $requestData = [];
+        $requestData = [
+            'messaging_product' => 'whatsapp',
+            'to' => $phone, // Número de telefone de destino
+            'type' => 'text',
+            'text' => [
+                'body' => $message,
+            ],
+        ];
+
+
+        $response = $client->post('https://graph.facebook.com/v17.0/125892007279954/messages', [
+
+            'headers' => [
+                'Authorization' => 'Bearer ' . $accessToken,
+                'Content-Type' => 'application/json',
+            ],
+            'json' => $requestData,
+        ]);
+
+
+
+        // Verifique a resposta
+        if ($response->getStatusCode() == 200) {
+            $responseData = json_decode($response->getBody());
+            // Faça algo com a resposta, se necessário
+            dd("Mensagem nova enviada", $responseData);
+        } else {
+            // Manipule erros, se houver
+            echo 'Erro ao enviar a mensagem: ' . $response->getBody();
+        }
+    }
+
+
+    public function enviarMensagemAprovada()
+    {
+
+        $accessToken = 'EAALZBJb4ieTcBO8Yemzg41ZASqQgq3KsH3ve15cW8DzWBtPnobeDW6uaJeOO5hfQ8yMZBJlsBuHDecUGeYrlAAhZAorUnOOJHfRJ5wqvUdAEOCJsLfvZC9EZBFZCQAOTtr0hheg3SAZA88Q0aK9EX6NMqygeRy9WDps094Rxhzx6mGmEsBr7EzZCeEls6uvrp9WlfmzMZCvvDZCMduMZAXLjio4ZBkzAIktiCzzvMysWpQDqZC1L9Ia94s9ZBhY'; // Substitua pelo seu token de acesso
+
+        $client = new Client();
+
+        $requestData = [
+            'messaging_product' => 'whatsapp',
+            'to' => '5517997662949', // Número de telefone de destino
+            'type' => 'template',
+            'template' => [
+                'name' => 'hello_world',
+                'language' => [
+                    'code' => 'en_US',
+                ],
+            ],
+        ];
+
+
+
+        $response = $client->post('https://graph.facebook.com/v17.0/125892007279954/messages', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $accessToken,
+                'Content-Type' => 'application/json',
+            ],
+            'json' => $requestData,
+        ]);
+
+        // Verifique a resposta
+        if ($response->getStatusCode() == 200) {
+            $responseData = json_decode($response->getBody());
+            // Faça algo com a resposta, se necessário
+            dd("Mensagem aprovada enviada", $responseData);
+        } else {
+            // Manipule erros, se houver
+            echo 'Erro ao enviar a mensagem: ' . $response->getBody();
+        }
+    }
+
+    public function enviarMensagemResposta()
+    {
+        $model = webhook::where("id", 61)->orderBy("id", "desc")->get();
+        dd("Resposta", $model);
+    }
+
 
     public function indexlista()
     {
@@ -61,22 +151,20 @@ class ApiController extends Controller
                     $messages = $value['messages'][0] ?? null;
 
 
-                        if ($messages) {
+                    if ($messages) {
 
-                            $text = $messages['text'] ?? null ;
-                            $body = $text['body'] ?? null;
-                            $document = $messages['document'] ?? null ;
+                        $text = $messages['text'] ?? null;
+                        $body = $text['body'] ?? null;
+                        $document = $messages['document'] ?? null;
 
-                            $filename = $document['filename'] ?? null;
-                            $mime_type = $document['mime_type'] ?? null;
-                            $image = $messages['image']  ?? null;
+                        $filename = $document['filename'] ?? null;
+                        $mime_type = $document['mime_type'] ?? null;
+                        $image = $messages['image']  ?? null;
 
-                            $image_mime_type = $image['mime_type'] ?? null;
+                        $image_mime_type = $image['mime_type'] ?? null;
 
-                            $caption = $image['caption'] ?? null;
-
-
-                      }
+                        $caption = $image['caption'] ?? null;
+                    }
 
 
 
@@ -106,7 +194,7 @@ class ApiController extends Controller
             }
         }
 
-$model =   $mergedData;
+        $model =   $mergedData;
 
 
 
@@ -144,7 +232,7 @@ $model =   $mergedData;
 
         $jsonData =  $model->webhook;
         $data = json_decode($jsonData, true); // Converte o JSON em um array associativo
- 
+
         // Agora você pode acessar as variáveis da seguinte forma:
         $object = $data['object'];
 
