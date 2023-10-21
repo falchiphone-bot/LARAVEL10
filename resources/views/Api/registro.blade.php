@@ -63,10 +63,23 @@
                         <p>
                             Tipo de arquivo: {{ $model['field']   }}
                         </p>
+                        <p>
+                            Evento: {{ $model['event']   }}
+                        </p>
+                        <p>
+                            Id do template: {{ $model['message_template_id']   }}
+                        </p>
+                        <p>
+                            Nome do templete: {{ $model['message_template_name']   }}
+                        </p>
 
+                        <p>
+                            Lingua do template: {{ $model['message_template_language']   }}
+                        </p>
 
-
-
+                        <p>
+                            Motivo: {{ $model['reason']   }}
+                        </p>
 
                         <p>
                             Tipo da mensagem: {{ $model['messageType']   }}

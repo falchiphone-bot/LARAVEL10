@@ -56,6 +56,7 @@
                         <th scope="col" class="px-6 py-4">DATA</th>
                         <th scope="col" class="px-6 py-4">TIPO</th>
                         <th scope="col" class="px-6 py-4">status</th>
+                        <th scope="col" class="px-6 py-4">Field</th>
                         <th scope="col" class="px-6 py-4">CONTATO</th>
 
                         <th scope="col" class="px-6 py-4">TELEFONE</th>
@@ -90,16 +91,23 @@
                         <td class="">
                             {{ $models["status"] }}
                         </td>
-
                         <td class="">
-                            {{ $models['contactName'] }}
+                            {{ $models["field"] }}
+                        </td>
+                        <td class="">
+
+                            @if ($models['contactName'] )
+                                 {{ $models['contactName'] }}
+                            @elseif ( $models['event'])
+                                 {{ $models['event'] ?? null }}
+                            @endif
                         </td>
                         <td class="">
                         @if($models['waId'])
                                 {{ $models['waId'] ?? null }}
                          @elseif ( $models['recipient_id'])
                                  {{ $models['recipient_id'] ?? null }}
-                        @endif
+                         @endif
 
                         </td>
                         <td class="">
@@ -117,8 +125,14 @@
 
                             @elseif ( $models['conversation_id'])
                                  {{ $models['conversation_id'] ?? null }}
-
+                            @elseif ( $models['messages_id'])
+                                 {{ $models['messages_id'] ?? null }}
+                            @elseif ( $models['message_template_name'])
+                                 {{ $models['message_template_name'] ?? null }}
                             @endif
+
+
+
 
                         </td>
 

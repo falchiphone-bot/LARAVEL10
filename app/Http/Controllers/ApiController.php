@@ -32,6 +32,12 @@ class ApiController extends Controller
     $recipient_id =  null;
     $conversation_id = null;
     $messages_id = null;
+    $event =   null;
+    $message_template_id =   null;
+    $message_template_name =  null;
+    $message_template_language =   null;
+    $reason=   null;
+
 
     $jsonData = $dataString;
     $data = json_decode($jsonData, true);
@@ -40,13 +46,32 @@ class ApiController extends Controller
     if ($entry) {
 
         $id = $entry['id'] ?? null;
+        $id = $entry['time'] ?? null;
+
         $changes = $entry['changes'][0] ?? null;
 
         if ($changes) {
             $value = $changes['value'] ?? null;
+            $field = $changes['field'] ?? null;
+            $contactName = $contactName ?? null;
+            $waId = $waId ?? null;
+            $body = $body ?? null;
+            $text = $text ?? null;
+            $mime_type = $mime_type ?? null;
+            $filename = $filename ?? null;
+            $image_mime_type = $image_mime_type ?? null;
+            $caption = $caption ?? null;
+            $status = $status ?? null;
+            $recipient_id = $recipient_id ?? null;
+            $conversation_id = $conversation_id ?? null;
+            $messages_id = $messages_id ?? null;
+
+
+
             $contacts = $value['contacts'][0] ?? null;
             $messages = $value['messages'][0] ?? null;
             $statuses = $value['statuses'][0] ?? null;
+
 
 
 
@@ -65,8 +90,6 @@ class ApiController extends Controller
                 $caption = $image['caption'] ?? null;
             }
 
-
-
             if ($contacts) {
                 $profile = $contacts['profile'] ?? null;
                 $contactName = $profile['name'] ?? null;
@@ -78,27 +101,22 @@ class ApiController extends Controller
                 $recipient_id = $statuses['recipient_id'] ?? null;
                 $conversation_id = $statuses['id'] ?? null;
             }
-                    $contactName = $contactName ?? null;
-                    $waId = $waId ?? null;
-                    $body = $body ?? null;
-                    $text = $text ?? null;
-                    $mime_type = $mime_type ?? null;
-                    $filename = $filename ?? null;
-                    $image_mime_type = $image_mime_type ?? null;
-                    $caption = $caption ?? null;
-                    $status = $status ?? null;
-                    $recipient_id = $recipient_id ?? null;
-                    $conversation_id = $conversation_id ?? null;
-                    $messages_id = $messages_id ?? null;
+
+            if ($value) {
+                $event = $value['event'] ?? null;
+                $message_template_id = $value['message_template_id'] ?? null;
+                $message_template_name = $value['message_template_name'] ?? null;
+                $message_template_language = $value['message_template_language'] ?? null;
+                $reason= $value['reason'] ?? null;
+            }
+
         }
     }
 //////////////////////////////////////////////////////////////////////////
-if($status == null)
-{
-    $status = 'received';
-}
-
-
+        if($status == null)
+        {
+            $status = 'received';
+        }
         webhook::create(['webhook' => $dataString,
          'type' => $request_type,
          'contactName' => $contactName,
@@ -113,9 +131,15 @@ if($status == null)
          'recipient_id' => $recipient_id,
          'conversation_id' => $conversation_id,
          'messages_id' => $messages_id,
+         'field' => $field,
+         "event" => $event ?? null,
+         "message_template_id" => $message_template_id ?? null,
+         "message_template_name" => $message_template_name ?? null,
+         "message_template_language" => $message_template_language ?? null,
+         "reason" => $reason ?? null,
         ]);
 
-        dd("Gravou!");
+
     }
 
     public function enviarMensagemNova()
@@ -211,15 +235,15 @@ if($status == null)
     {
         date_default_timezone_set('UTC');
         $model = webhook::orderBy("id", "desc")->get();
-        // $model = webhook::where("id",100)->orderBy("id", "desc")->get();
+        $model = webhook::where("id",269)->orderBy("id", "desc")->get();
 
 
         $mergedData = array(); // Inicialize o array $mergedData fora do loop foreach
 
         foreach ($model as $registro) {
             $profile = null;
-            $contactName = null;
-            $waId = null;
+            // $contactName = null;
+            // $waId = null;
             $from = null;
             $body = null;
             $document = null;
@@ -227,10 +251,10 @@ if($status == null)
             $mime_type = null;
             $image_mime_type = null;
             $statuses = null;
-            $status =  null;
-            $recipient_id =  null;
-            $conversation_id = null;
-            $messages_id = null;
+            // $status =  null;
+            // $recipient_id =  null;
+            // // $conversation_id = null;
+            // $messages_id = null;
 
             $jsonData = $registro->webhook;
             $data = json_decode($jsonData, true);
@@ -239,16 +263,20 @@ if($status == null)
 
 
             if ($entry) {
-
                 $id = $entry['id'] ?? null;
+                $id = $entry['time'] ?? null;
+
                 $changes = $entry['changes'][0] ?? null;
+
 
                 if ($changes) {
                     $value = $changes['value'] ?? null;
+                    $field = $changes['field'] ?? null;
                     $contacts = $value['contacts'][0] ?? null;
                     $messages = $value['messages'][0] ?? null;
-                    // $statuses = $value['statuses'][0] ?? null;
 
+
+                    // $statuses = $value['statuses'][0] ?? null;
 
 
                     if ($messages) {
@@ -265,25 +293,27 @@ if($status == null)
 
                         $caption = $image['caption'] ?? null;
                     }
-
-
-
                     if ($contacts) {
                         $profile = $contacts['profile'] ?? null;
-                        $contactName = $profile['name'] ?? null;
-                        $waId = $contacts['wa_id'] ?? null;
+                        // $contactName = $profile['name'] ?? null;
+                        // $waId = $contacts['wa_id'] ?? null;
                     }
-
                     if ($statuses) {
                         $status = $statuses['status'] ?? null;
-                        $recipient_id = $statuses['recipient_id'] ?? null;
-                        $conversation_id = $statuses['id'] ?? null;
+                        // $recipient_id = $statuses['recipient_id'] ?? null;
+                        // $conversation_id = $statuses['id'] ?? null;
                     }
-
-
+                    if ($value) {
+                        $event = $value['event'] ?? null;
+                        $message_template_id = $value['message_template_id'] ?? null;
+                        $message_template_name = $value['message_template_name'] ?? null;
+                        $message_template_language = $value['message_template_language'] ?? null;
+                        $reason= $value['reason'] ?? null;
+                        // dd($entry, $event, $message_template_id,$message_template_name, $message_template_language, $reason, $field );
+                    }
                     $newData = [
-                            "contactName" => $contactName ?? null,
-                            "waId" => $waId ?? null,
+                            // "contactName" => $contactName ?? null,
+                            // "waId" => $waId ?? null,
                             "body" => $body ?? null,
                             "text" => $text ?? null,
                             "mime_type" => $mime_type ?? null,
@@ -291,10 +321,15 @@ if($status == null)
                             "image_mime_type" => $image_mime_type ?? null,
                             "caption" => $caption ?? null,
                             // "status" => $status ?? null,
-                            "recipient_id" => $recipient_id ?? null,
-                            "conversation_id" => $conversation_id ?? null,
-                            "messages_id" => $messages_id ?? null,
-
+                            // "recipient_id" => $recipient_id ?? null,
+                            // "conversation_id" => $conversation_id ?? null,
+                            // "messages_id" => $messages_id ?? null,
+                            "field" => $field ?? null,
+                            "event" => $event ?? null,
+                            "message_template_id" => $message_template_id ?? null,
+                            "message_template_name" => $message_template_name ?? null,
+                            "message_template_language" => $message_template_language ?? null,
+                            "reason" => $reason ?? null,
                         ];
                        $mergedData[] = array_merge($registro->toArray(), $newData);
                 }
@@ -328,7 +363,7 @@ if($status == null)
         $sha256 = null;
         $iddocument  = null;
         $caption = null;
-
+        $event = null ;
 
 
         $model = webhook::find($id);
@@ -349,20 +384,26 @@ if($status == null)
         $value = $changes['value'];
         $field = $changes['field'];
 
-        $messagingProduct = $value['messaging_product'];
-        $metadata = $value['metadata'];
+        $messagingProduct = $value['messaging_product'] ?? null;
+        $metadata = $value['metadata'] ?? null;
 
 
-        $displayPhoneNumber = $metadata['display_phone_number'];
-        $phoneNumberId = $metadata['phone_number_id'];
+        $displayPhoneNumber = $metadata['display_phone_number'] ?? null;
+        $phoneNumberId = $metadata['phone_number_id'] ?? null;
         //  dd($data, $statuses );
+
+        if (isset($value) && is_array($value ) && count($value ) > 0) {
+            $event = $value['event'];
+            $message_template_id = $value['message_template_id'];
+            $message_template_name = $value['message_template_name'];
+            $message_template_language = $value['message_template_language'];
+            $reason = $value['event'];
+
+        }
 
         if (isset($value['statuses']) && is_array($value['statuses']) && count($value['statuses']) > 0) {
             $statuses = $value['statuses'][0];
             $status = $statuses['status'];
-        } else {
-            // Lida com o caso em que 'contacts' não está definido ou é um array vazio.
-            $status = null;
         }
 
 
@@ -425,6 +466,17 @@ if($status == null)
         }
 
 
+        if (isset($contacts['profile']) && is_array($contacts['profile']) && count($contacts['profile']) > 0) {
+                            $field = $field ?? null;
+                            $event = $event ?? null;
+                            $message_template_id = $message_template_id ?? null;
+                            $message_template_name = $message_template_name ?? null;
+                            $message_template_language = $message_template_language ?? null;
+                            $reason = $reason ?? null;
+        }
+
+
+
         $model = $data;
 
         // Chaves fornecidas
@@ -448,7 +500,12 @@ if($status == null)
             "mime_type",
             "sha256",
             "iddocument",
-            "caption"
+            "caption",
+            "event",
+            "message_template_id",
+            "message_template_name",
+            "message_template_language",
+            "reason",
         ];
 
         // Crie um array associativo com chaves fornecidas e valores padrão (vazios)
@@ -473,6 +530,12 @@ if($status == null)
         $newData["sha256"] = $sha256;
         $newData["iddocument"] = $iddocument;
         $newData["caption"] = $caption;
+        $newData["event"] = $event;
+        $newData["message_template_id"] = $message_template_id;
+        $newData["message_template_name"] = $message_template_name;
+        $newData["message_template_language"] = $message_template_language;
+        $newData["reason"] = $reason;
+
 
         // $newData[""] = $;
 
