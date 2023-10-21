@@ -9,11 +9,30 @@ use GuzzleHttp\Client;
 class ApiController extends Controller
 {
     //
+    public function salvararquivoPostWebhook()
+    {
+                // Dados que você deseja salvar no arquivo de log
+        $logData = "Mensagem de log: " . date('Y-m-d H:i:s') . " - Informação importante.\n";
+
+        // Caminho para o arquivo de log
+        $logFilePath = "/storage/app/PostWebhook.log";
+
+        // Tente gravar os dados no arquivo de log
+        if (file_put_contents($logFilePath, $logData, FILE_APPEND | LOCK_EX)) {
+            echo "Dados gravados com sucesso no arquivo de log.";
+        } else {
+            echo "Erro ao gravar no arquivo de log.";
+
+        }
+        dd("Verifique se salvou em /storage/app/contabilidade/PostWebhook.log ");
+    }
+
     public function index(Request $r)
     {
 
         // date_default_timezone_set('UTC');
         $data = $r->all();
+
         $request_type = $r->method();
         $dataString = json_encode($data);
 //////////////////////////////////////////////////////////////////////////
@@ -127,6 +146,9 @@ class ApiController extends Controller
         {
             $status = 'received';
         }
+
+
+
         webhook::create(['webhook' => $dataString,
          'type' => $request_type,
          'contactName' => $contactName,
@@ -151,6 +173,54 @@ class ApiController extends Controller
          "message_template_language" => $message_template_language ?? null,
          "reason" => $reason ?? null,
         ]);
+
+
+
+        // if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        //     // Verifique se os campos do formulário foram enviados
+        //     if (isset($_POST["messagesFrom"]) && isset($_POST["messagesType"])) {
+        //         // Acesse os valores POST
+        //         $messagesFrom = $_POST["messagesFrom"];
+        //         $messagesType = $_POST["messagesType"];
+
+        //         // Exiba os valores na tela para depuração
+        //         echo "From: " . $messagesFrom . "<br>";
+        //         echo "Type: " . $messagesType;
+        //     } else {
+        //         echo "Campos do formulário não foram enviados corretamente.";
+        //     }
+        // }
+
+// // Receber o POST do webhook
+// $data = file_get_contents('php://input');
+
+// // Exiba os dados recebidos para depuração
+// echo "Dados recebidos do webhook:<br>";
+// var_dump($data);
+
+// // Faça o parsing dos dados, se necessário
+// $parsedData = json_decode($data, true);
+
+// // Exiba os dados parseados
+// echo "Dados parseados:<br>";
+// var_dump($parsedData);
+
+//         return ['From'=> $messagesFrom];
+
+ // Dados que você deseja salvar no arquivo de log
+$logData = "Mensagem de log: " . date('Y-m-d H:i:s') . " - Informação importante.\n";
+
+// Caminho para o arquivo de log
+$logFilePath = "/storage/app/contabilidade/PostWebhook.log";
+
+// Tente gravar os dados no arquivo de log
+if (file_put_contents($logFilePath, $logData, FILE_APPEND | LOCK_EX)) {
+    echo "Dados gravados com sucesso no arquivo de log.";
+} else {
+    echo "Erro ao gravar no arquivo de log.";
+}
+
+
 
 
     }
@@ -250,7 +320,7 @@ class ApiController extends Controller
     {
         date_default_timezone_set('UTC');
         $model = webhook::orderBy("id", "desc")->get();
-        $model = webhook::where("id",310)->orderBy("id", "desc")->get();
+        // $model = webhook::where("id",310)->orderBy("id", "desc")->get();
 
 
         $mergedData = array(); // Inicialize o array $mergedData fora do loop foreach
