@@ -11,11 +11,13 @@ class ApiController extends Controller
     //
     public function salvararquivoPostWebhook()
     {
-                // Dados que você deseja salvar no arquivo de log
+        $storagePath = storage_path();
+        $arquivo = "/app/PostWebhook.log";
+        // Dados que você deseja salvar no arquivo de log
         $logData = "Mensagem de log: " . date('Y-m-d H:i:s') . " - Informação importante.\n";
 
         // Caminho para o arquivo de log
-        $logFilePath = "/storage/app/PostWebhook.log";
+        $logFilePath = $storagePath.$arquivo ;
 
         // Tente gravar os dados no arquivo de log
         if (file_put_contents($logFilePath, $logData, FILE_APPEND | LOCK_EX)) {
@@ -24,7 +26,10 @@ class ApiController extends Controller
             echo "Erro ao gravar no arquivo de log.";
 
         }
-        dd("Verifique se salvou em /storage/app/contabilidade/PostWebhook.log ");
+        // dd("Verifique se salvou em /storage/app/contabilidade/PostWebhook.log ");
+
+        $fileContent = file_get_contents(storage_path($arquivo ));
+        dd($fileContent);
     }
 
     public function index(Request $r)
