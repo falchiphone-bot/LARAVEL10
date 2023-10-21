@@ -1,3 +1,9 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="refresh" content="10"> <!-- Atualize a cada 5 segundos -->
+</head>
+</html>
 @extends('layouts.bootstrap5')
 @section('content')
 <div class="py-5 bg-light">
@@ -57,6 +63,8 @@
                         <th scope="col" class="px-6 py-4">TIPO</th>
                         <th scope="col" class="px-6 py-4">status</th>
                         <th scope="col" class="px-6 py-4">Field</th>
+                        <th scope="col" class="px-6 py-4">Type</th>
+                        <th scope="col" class="px-6 py-4">From</th>
                         <th scope="col" class="px-6 py-4">CONTATO</th>
 
                         <th scope="col" class="px-6 py-4">TELEFONE</th>
@@ -93,6 +101,12 @@
                         </td>
                         <td class="">
                             {{ $models["field"] }}
+                        </td>
+                        <td class="">
+                            {{ $models["messagesType"] }}
+                        </td>
+                        <td class="">
+                            {{ $models["messagesFrom"] }}
                         </td>
                         <td class="">
 

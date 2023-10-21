@@ -37,6 +37,9 @@ class ApiController extends Controller
     $message_template_name =  null;
     $message_template_language =   null;
     $reason=   null;
+    $messagesType = null;
+    $messagesTimestamp = null;
+    $messagesFrom = null;
 
 
     $jsonData = $dataString;
@@ -74,7 +77,6 @@ class ApiController extends Controller
 
 
 
-
             if ($messages) {
                 $messages_id = $messages['id'] ?? null;
                 $text = $messages['text'] ?? null;
@@ -88,6 +90,14 @@ class ApiController extends Controller
                 $image_mime_type = $image['mime_type'] ?? null;
 
                 $caption = $image['caption'] ?? null;
+
+                $messagesFrom = $messages['from'] ?? null;
+                $messagesTimestamp = $messages['timestamp'] ?? null;
+                $messagesType = $messages['type'] ?? null;
+
+                // $messageButtonPayload = $messages['timestamp'] ?? null;
+                // $messageButtonPayload = $messages['timestamp'] ?? null;
+
             }
 
             if ($contacts) {
@@ -131,6 +141,9 @@ class ApiController extends Controller
          'recipient_id' => $recipient_id,
          'conversation_id' => $conversation_id,
          'messages_id' => $messages_id,
+         'messagesType' => $messagesType,
+         'messagesFrom' => $messagesFrom,
+         'messagesTimestamp' => $messagesTimestamp,
          'field' => $field,
          "event" => $event ?? null,
          "message_template_id" => $message_template_id ?? null,
@@ -147,7 +160,7 @@ class ApiController extends Controller
         $accessToken = 'EAALZBJb4ieTcBO8Yemzg41ZASqQgq3KsH3ve15cW8DzWBtPnobeDW6uaJeOO5hfQ8yMZBJlsBuHDecUGeYrlAAhZAorUnOOJHfRJ5wqvUdAEOCJsLfvZC9EZBFZCQAOTtr0hheg3SAZA88Q0aK9EX6NMqygeRy9WDps094Rxhzx6mGmEsBr7EzZCeEls6uvrp9WlfmzMZCvvDZCMduMZAXLjio4ZBkzAIktiCzzvMysWpQDqZC1L9Ia94s9ZBhY'; // Substitua pelo seu token de acesso
         $client = new Client();
         $phone = '5517997662949'; // Número de telefone de destino
-        $message = 'Esta é uma mensagem livre de teste'; // Sua mensagem de texto
+        $message = 'Esta é uma mensagem LIVRE livre de teste'; // Sua mensagem de texto
         $client = new Client();
 
         $requestData = [];
@@ -176,7 +189,8 @@ class ApiController extends Controller
         if ($response->getStatusCode() == 200) {
             $responseData = json_decode($response->getBody());
             // Faça algo com a resposta, se necessário
-            dd("Mensagem nova enviada", $responseData);
+            // dd("Mensagem nova enviada", $responseData);
+            return redirect(route('whatsapp.indexlista'));
         } else {
             // Manipule erros, se houver
             echo 'Erro ao enviar a mensagem: ' . $response->getBody();
@@ -196,9 +210,9 @@ class ApiController extends Controller
             'to' => '5517997662949', // Número de telefone de destino
             'type' => 'template',
             'template' => [
-                'name' => 'hello_world',
+                'name' => 'agradecimento_pelo_contato',
                 'language' => [
-                    'code' => 'en_US',
+                    'code' => 'pt_BR',
                 ],
             ],
         ];
@@ -217,7 +231,8 @@ class ApiController extends Controller
         if ($response->getStatusCode() == 200) {
             $responseData = json_decode($response->getBody());
             // Faça algo com a resposta, se necessário
-            dd("Mensagem aprovada enviada", $responseData);
+            // dd("Mensagem aprovada enviada", $responseData);
+            return redirect(route('whatsapp.indexlista'));
         } else {
             // Manipule erros, se houver
             echo 'Erro ao enviar a mensagem: ' . $response->getBody();
@@ -235,22 +250,22 @@ class ApiController extends Controller
     {
         date_default_timezone_set('UTC');
         $model = webhook::orderBy("id", "desc")->get();
-        $model = webhook::where("id",269)->orderBy("id", "desc")->get();
+        $model = webhook::where("id",310)->orderBy("id", "desc")->get();
 
 
         $mergedData = array(); // Inicialize o array $mergedData fora do loop foreach
 
         foreach ($model as $registro) {
-            $profile = null;
-            // $contactName = null;
-            // $waId = null;
-            $from = null;
-            $body = null;
-            $document = null;
-            $filename = null;
-            $mime_type = null;
-            $image_mime_type = null;
-            $statuses = null;
+                                $profile = null;
+                                // $contactName = null;
+                                // $waId = null;
+                                $from = null;
+                                $body = null;
+                                $document = null;
+                                $filename = null;
+                                $mime_type = null;
+                                $image_mime_type = null;
+                                $statuses = null;
             // $status =  null;
             // $recipient_id =  null;
             // // $conversation_id = null;
@@ -267,7 +282,7 @@ class ApiController extends Controller
                 $id = $entry['time'] ?? null;
 
                 $changes = $entry['changes'][0] ?? null;
-
+// dd($entry);
 
                 if ($changes) {
                     $value = $changes['value'] ?? null;
@@ -292,6 +307,11 @@ class ApiController extends Controller
                         $image_mime_type = $image['mime_type'] ?? null;
 
                         $caption = $image['caption'] ?? null;
+
+                        $messagesFrom = $messages['from'] ?? null;
+                        $messagesTimestamp = $messages['timestamp'] ?? null;
+                        $messagesType = $messages['type'] ?? null;
+
                     }
                     if ($contacts) {
                         $profile = $contacts['profile'] ?? null;
@@ -330,6 +350,9 @@ class ApiController extends Controller
                             "message_template_name" => $message_template_name ?? null,
                             "message_template_language" => $message_template_language ?? null,
                             "reason" => $reason ?? null,
+                            // "messagesFrom" => $messagesFrom ?? null,
+                            // "messagesTimestamp" => $messagesTimestamp ?? null,
+                            // "messagesType" => $messagesType ?? null,
                         ];
                        $mergedData[] = array_merge($registro->toArray(), $newData);
                 }
@@ -393,11 +416,11 @@ class ApiController extends Controller
         //  dd($data, $statuses );
 
         if (isset($value) && is_array($value ) && count($value ) > 0) {
-            $event = $value['event'];
-            $message_template_id = $value['message_template_id'];
-            $message_template_name = $value['message_template_name'];
-            $message_template_language = $value['message_template_language'];
-            $reason = $value['event'];
+            $event = $value['event'] ?? null;
+            $message_template_id = $value['message_template_id']  ?? null;
+            $message_template_name = $value['message_template_name']  ?? null;
+            $message_template_language = $value['message_template_language']  ?? null;
+            $reason = $value['event'] ?? null;
 
         }
 
