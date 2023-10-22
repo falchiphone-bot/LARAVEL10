@@ -119,8 +119,8 @@ class ApiController extends Controller
                 $messagesTimestamp = $messages['timestamp'] ?? null;
                 $messagesType = $messages['type'] ?? null;
 
-                // $messageButtonPayload = $messages['timestamp'] ?? null;
-                // $messageButtonPayload = $messages['timestamp'] ?? null;
+                $messageButtonPayload = $messages['messageButtonPayload'] ?? null;
+                $messageButtonText = $messages['messageButtonText'] ?? null;
 
             }
 
@@ -153,79 +153,79 @@ class ApiController extends Controller
         }
 
 
+        // $messagesType = "button1";
 
-        webhook::create(['webhook' => $dataString,
-         'type' => $request_type,
-         'contactName' => $contactName,
-         'waId' => $waId,
-         'body' => $body,
-         'text' => $text,
-         'mime_type' => $mime_type,
-         'filename' => $filename,
-         'image_mime_type' => $image_mime_type,
-         'caption' => $caption,
-         'status' => $status,
-         'recipient_id' => $recipient_id,
-         'conversation_id' => $conversation_id,
-         'messages_id' => $messages_id,
-         'messagesType' => $messagesType,
-         'messagesFrom' => $messagesFrom,
-         'messagesTimestamp' => $messagesTimestamp,
-         'field' => $field,
+        $newWebhook =webhook::create([
+         'webhook' => $dataString  ?? null,
+         'type' => $request_type  ?? null,
+         'contactName' => $contactName ?? null,
+         'waId' => $waId ?? null,
+         'body' => $body ?? null,
+         'text' => $text ?? null,
+         'mime_type' => $mime_type ?? null,
+         'filename' => $filename ?? null,
+         'image_mime_type' => $image_mime_type ?? null,
+         'caption' => $caption ?? null,
+         'status' => $status ?? null,
+         'recipient_id' => $recipient_id ?? null,
+         'conversation_id' => $conversation_id ?? null,
+         'messagesType' => $messagesType ?? null,
+         'messages_id' => $messages_id ?? null,
+         'messagesFrom' => $messagesFrom ?? null,
+         'messagesTimestamp' => $messagesTimestamp ?? null,
+         'field' => $field ?? null,
          "event" => $event ?? null,
          "message_template_id" => $message_template_id ?? null,
          "message_template_name" => $message_template_name ?? null,
          "message_template_language" => $message_template_language ?? null,
          "reason" => $reason ?? null,
         ]);
+        $newWebhook->save();
+        
+        $storagePath = storage_path();
+        $arquivo = "/app/PostWebhook.log";
+                                              $logData =   "=================================================\n"
+        . "Mensagem de log: " . date('Y-m-d H:i:s') . "\n"."_________________________________________________\n"
+        . "type: " . $request_type . "\n"
+        . "contactName: " . $contactName . "\n"
+        . "waId: " . $waId . "\n"
+        . "body: " . $body . "\n"
+        . "text: " . $text . "\n"
+        . "mime_type: " . $mime_type . "\n"
+        . "filename: " . $filename . "\n"
+        . "image_mime_type: " . $image_mime_type . "\n"
+        . "caption: " . $caption . "\n"
+        . "status: " . $status . "\n"
+        . "recipient_id: " . $recipient_id . "\n"
+        . "conversation_id: " . $conversation_id . "\n"
+        . "MessagesId: " . $messages_id . "\n"
+        . "MessagesType: " . $messagesType . "\n"
+        . "MessagesFrom: " . $messagesFrom. "\n"
+        . "MessagesTimestamp: " . $messagesTimestamp . "\n"
+        . "field: " . $field . "\n"
+        . "event: " . $event . "\n"
+        . "message_template_id: " . $message_template_id . "\n"
+        . "message_template_name: " . $message_template_name . "\n"
+        . "message_template_language: " . $message_template_language . "\n"
+        . "reason: " . $reason . "\n"
+        . "messageButtonPayload: " . $messageButtonPayload . "\n"
+        . "messageButtonText: " . $messageButtonText . "\n"
+        ."=================================================\n"
+        ;
 
+        // Caminho para o arquivo de log
+        $logFilePath = $storagePath.$arquivo ;
 
+        // Tente gravar os dados no arquivo de log
+        if (file_put_contents($logFilePath, $logData, FILE_APPEND | LOCK_EX)) {
+            // echo "Dados gravados com sucesso no arquivo de log.";
+        } else {
+            // echo "Erro ao gravar no arquivo de log.";
+        }
+        // dd("Verifique se salvou em /storage/app/contabilidade/PostWebhook.log ");
 
-        // if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        //     // Verifique se os campos do formulário foram enviados
-        //     if (isset($_POST["messagesFrom"]) && isset($_POST["messagesType"])) {
-        //         // Acesse os valores POST
-        //         $messagesFrom = $_POST["messagesFrom"];
-        //         $messagesType = $_POST["messagesType"];
-
-        //         // Exiba os valores na tela para depuração
-        //         echo "From: " . $messagesFrom . "<br>";
-        //         echo "Type: " . $messagesType;
-        //     } else {
-        //         echo "Campos do formulário não foram enviados corretamente.";
-        //     }
-        // }
-
-// // Receber o POST do webhook
-// $data = file_get_contents('php://input');
-
-// // Exiba os dados recebidos para depuração
-// echo "Dados recebidos do webhook:<br>";
-// var_dump($data);
-
-// // Faça o parsing dos dados, se necessário
-// $parsedData = json_decode($data, true);
-
-// // Exiba os dados parseados
-// echo "Dados parseados:<br>";
-// var_dump($parsedData);
-
-//         return ['From'=> $messagesFrom];
-
- // Dados que você deseja salvar no arquivo de log
-$logData = "Mensagem de log: " . date('Y-m-d H:i:s') . " - Informação importante.\n";
-
-// Caminho para o arquivo de log
-$logFilePath = "/storage/app/contabilidade/PostWebhook.log";
-
-// Tente gravar os dados no arquivo de log
-if (file_put_contents($logFilePath, $logData, FILE_APPEND | LOCK_EX)) {
-    echo "Dados gravados com sucesso no arquivo de log.";
-} else {
-    echo "Erro ao gravar no arquivo de log.";
-}
-
-
+        // $fileContent = file_get_contents(storage_path($arquivo ));
+        // dd($fileContent);
 
 
     }
