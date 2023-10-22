@@ -155,33 +155,8 @@ class ApiController extends Controller
 
         // $messagesType = "button1";
 
-        $newWebhook =webhook::create([
-         'webhook' => $dataString  ?? null,
-         'type' => $request_type  ?? null,
-         'contactName' => $contactName ?? null,
-         'waId' => $waId ?? null,
-         'body' => $body ?? null,
-         'text' => $text ?? null,
-         'mime_type' => $mime_type ?? null,
-         'filename' => $filename ?? null,
-         'image_mime_type' => $image_mime_type ?? null,
-         'caption' => $caption ?? null,
-         'status' => $status ?? null,
-         'recipient_id' => $recipient_id ?? null,
-         'conversation_id' => $conversation_id ?? null,
-         'messagesType' => $messagesType ?? null,
-         'messages_id' => $messages_id ?? null,
-         'messagesFrom' => $messagesFrom ?? null,
-         'messagesTimestamp' => $messagesTimestamp ?? null,
-         'field' => $field ?? null,
-         "event" => $event ?? null,
-         "message_template_id" => $message_template_id ?? null,
-         "message_template_name" => $message_template_name ?? null,
-         "message_template_language" => $message_template_language ?? null,
-         "reason" => $reason ?? null,
-        ]);
-        $newWebhook->save();
-        
+
+
         $storagePath = storage_path();
         $arquivo = "/app/PostWebhook.log";
                                               $logData =   "=================================================\n"
@@ -226,6 +201,38 @@ class ApiController extends Controller
 
         // $fileContent = file_get_contents(storage_path($arquivo ));
         // dd($fileContent);
+
+///////////////////////////////////////////// GRAVAR EM BANCO DE DADOS
+//////////// Se acrescentar campos para gravar em BD,
+///// lembrar de também inserir no model webhook
+////// e colocar somente  ' = apóstrofo no webhook.
+////// CUIDADO... NÃO COLOCAR ASPAS = "
+////// E AQUI ABAIXO TAMBÉM
+$newWebhook = webhook::create([
+    'webhook' => $dataString ?? null,
+    'type' => $request_type ?? null,
+    'contactName' => $contactName ?? null,
+    'waId' => $waId ?? null,
+    'body' => $body ?? null,
+    'text' => $text ?? null,
+    'mime_type' => $mime_type ?? null,
+    'filename' => $filename ?? null,
+    'image_mime_type' => $image_mime_type ?? null,
+    'caption' => $caption ?? null,
+    'status' => $status ?? null,
+    'recipient_id' => $recipient_id ?? null,
+    'conversation_id' => $conversation_id ?? null,
+    'messagesType' => $messagesType ?? null,
+    'messages_id' => $messages_id ?? null,
+    'messagesFrom' => $messagesFrom ?? null,
+    'messagesTimestamp' => $messagesTimestamp ?? null,
+    'field' => $field ?? null,
+    'event' => $event ?? null,
+    'message_template_id' => $message_template_id ?? null,
+    'message_template_name' => $message_template_name ?? null,
+    'message_template_language' => $message_template_language ?? null,
+    'reason' => $reason ?? null,
+]);
 
 
     }

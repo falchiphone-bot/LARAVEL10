@@ -5,26 +5,40 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class webhook extends Model
+class Webhook extends Model
 {
     use HasFactory;
+
+    protected $table = 'webhooks'; // Nome da tabela no banco de dados
     public $timestamps = true;
+
     protected $fillable = [
-    'webhook',
-    'type',
-    'contactName',
-    'waId',
-    'body',
-    'mime_type',
-    'filename',
-    'image_mime_type',
-    'caption',
-    'status',
-    'recipient_id',
-    'conversation_id',
-    'messages_id',
-   ];
+        'type',
+        'webhook',
+        'user_updated',
+        'contactName',
+        'waId',
+        'body',
+        'mime_type',
+        'filename',
+        'image_mime_type',
+        'caption',
+        'status',
+        'recipient_id',
+        'conversation_id',
+        'messagesType',
+        'messagesFrom',
+        'messagesTimestamp',
+        'messages_ButtonPayload',
+        'messages_ButtonText',
+        'field',
+        'event',
+        'message_template_id',
+        'message_template_name',
+        'message_template_language',
+        'reason',
+        'messages_id',
+    ];
 
-    protected $tableName = 'webhooks';
-
+    // Defina aqui quaisquer relações com outros modelos, se necessário.
 }
