@@ -64,6 +64,8 @@ class ApiController extends Controller
     $messagesType = null;
     $messagesTimestamp = null;
     $messagesFrom = null;
+    $messages_ButtonPayload =  null;
+    $messages_ButtonText = null;
 
 
     $jsonData = $dataString;
@@ -119,9 +121,12 @@ class ApiController extends Controller
                 $messagesTimestamp = $messages['timestamp'] ?? null;
                 $messagesType = $messages['type'] ?? null;
 
-                $messageButtonPayload = $messages['messageButtonPayload'] ?? null;
-                $messageButtonText = $messages['messageButtonText'] ?? null;
 
+                $button = $messages['button'] ?? null; // Acessa o campo 'button' no array
+                if ($button !== null) {
+                    $messages_ButtonPayload = $button['payload'] ?? null; // Acessa o campo 'payload' no botão
+                    $messages_ButtonText = $button['text'] ?? null; // Acessa o campo 'text' no botão
+                }
             }
 
             if ($contacts) {
@@ -183,8 +188,8 @@ class ApiController extends Controller
         . "message_template_name: " . $message_template_name . "\n"
         . "message_template_language: " . $message_template_language . "\n"
         . "reason: " . $reason . "\n"
-        . "messageButtonPayload: " . $messageButtonPayload . "\n"
-        . "messageButtonText: " . $messageButtonText . "\n"
+        . "messages_ButtonPayload: " . $messages_ButtonPayload . "\n"
+        . "messages_ButtonText: " . $messages_ButtonText . "\n"
         ."=================================================\n"
         ;
 
@@ -225,6 +230,8 @@ $newWebhook = webhook::create([
     'messagesType' => $messagesType ?? null,
     'messages_id' => $messages_id ?? null,
     'messagesFrom' => $messagesFrom ?? null,
+    'messages_ButtonPayload' => $messages_ButtonPayload ?? null,
+    'messages_ButtonText' => $messages_ButtonText ?? null,
     'messagesTimestamp' => $messagesTimestamp ?? null,
     'field' => $field ?? null,
     'event' => $event ?? null,
@@ -364,14 +371,14 @@ $newWebhook = webhook::create([
                 $id = $entry['time'] ?? null;
 
                 $changes = $entry['changes'][0] ?? null;
-// dd($entry);
+
 
                 if ($changes) {
                     $value = $changes['value'] ?? null;
                     $field = $changes['field'] ?? null;
                     $contacts = $value['contacts'][0] ?? null;
                     $messages = $value['messages'][0] ?? null;
-
+                    $context = $messages['context'][0] ?? null;
 
                     // $statuses = $value['statuses'][0] ?? null;
 
@@ -393,6 +400,22 @@ $newWebhook = webhook::create([
                         $messagesFrom = $messages['from'] ?? null;
                         $messagesTimestamp = $messages['timestamp'] ?? null;
                         $messagesType = $messages['type'] ?? null;
+
+
+                        $button = $messages['button'] ?? null; // Acessa o campo 'button' no array
+
+                        if ($button !== null) {
+                            $button_payload = $button['payload'] ?? null; // Acessa o campo 'payload' no botão
+                            $button_text = $button['text'] ?? null; // Acessa o campo 'text' no botão
+                        } else {
+                            $button_payload = null;
+                            $button_text = null;
+                        }
+
+
+
+                        // dd($entry, $context, $button, $button_payload, $button_text);
+                        //  dd($entry, $context, $button);
 
                     }
                     if ($contacts) {
