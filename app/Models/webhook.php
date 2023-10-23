@@ -13,6 +13,10 @@ class Webhook extends Model
     public $timestamps = true;
 
     protected $fillable = [
+        'entry_id',
+        'entry_time',
+        'object',
+        'value_messaging_product',
         'type',
         'webhook',
         'user_updated',
@@ -29,9 +33,11 @@ class Webhook extends Model
         'messagesType',
         'messagesFrom',
         'messagesTimestamp',
+        'context_From',
+        'context_Id',
         'messages_ButtonPayload',
         'messages_ButtonText',
-        'field',
+        'changes_field',
         'event',
         'message_template_id',
         'message_template_name',
@@ -40,5 +46,4 @@ class Webhook extends Model
         'messages_id',
     ];
 
-    // Defina aqui quaisquer relações com outros modelos, se necessário.
 }

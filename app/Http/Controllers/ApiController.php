@@ -42,10 +42,12 @@ class ApiController extends Controller
         $dataString = json_encode($data);
 //////////////////////////////////////////////////////////////////////////
     $mergedData = array();
+    $entry_id = null;
+    $entry_time = null;
+    $object = null;
     $profile = null;
     $contactName = null;
     $waId = null;
-    $from = null;
     $body = null;
     $document = null;
     $filename = null;
@@ -64,24 +66,29 @@ class ApiController extends Controller
     $messagesType = null;
     $messagesTimestamp = null;
     $messagesFrom = null;
+    $context_From = null;
+    $context_Id = null;
     $messages_ButtonPayload =  null;
     $messages_ButtonText = null;
-
+    $changes_field = null;
+    $value_messaging_product = null;
 
     $jsonData = $dataString;
     $data = json_decode($jsonData, true);
+
+    $object = $data['object'] ?? null;
     $entry = $data['entry'][0] ?? null;
 
     if ($entry) {
 
-        $id = $entry['id'] ?? null;
-        $id = $entry['time'] ?? null;
+        $entry_id = $entry['id'] ?? null;
+        $entry_time = $entry['time'] ?? null;
 
         $changes = $entry['changes'][0] ?? null;
 
         if ($changes) {
             $value = $changes['value'] ?? null;
-            $field = $changes['field'] ?? null;
+            $changes_field = $changes['field'] ?? null;
             $contactName = $contactName ?? null;
             $waId = $waId ?? null;
             $body = $body ?? null;
@@ -121,6 +128,11 @@ class ApiController extends Controller
                 $messagesTimestamp = $messages['timestamp'] ?? null;
                 $messagesType = $messages['type'] ?? null;
 
+                $context = $messages['context'] ?? null;
+                if ($context !== null) {
+                    $context_From = $context['from'] ?? null; // Acessa o campo 'payload' no botão
+                    $context_Id = $context['id'] ?? null; // Acessa o campo 'text' no botão
+                }
 
                 $button = $messages['button'] ?? null; // Acessa o campo 'button' no array
                 if ($button !== null) {
@@ -142,6 +154,7 @@ class ApiController extends Controller
             }
 
             if ($value) {
+                $value_messaging_product = $value['messaging_product'] ?? null;
                 $event = $value['event'] ?? null;
                 $message_template_id = $value['message_template_id'] ?? null;
                 $message_template_name = $value['message_template_name'] ?? null;
@@ -166,6 +179,10 @@ class ApiController extends Controller
         $arquivo = "/app/PostWebhook.log";
                                               $logData =   "=================================================\n"
         . "Mensagem de log: " . date('Y-m-d H:i:s') . "\n"."_________________________________________________\n"
+        . "object: " . $object . "\n"
+        . "messaging_product: " . $value_messaging_product ."\n"
+        . "entry_id: " . $entry_id . "\n"
+        . "entry_time: " . $entry_time . "\n"
         . "type: " . $request_type . "\n"
         . "contactName: " . $contactName . "\n"
         . "waId: " . $waId . "\n"
@@ -182,12 +199,14 @@ class ApiController extends Controller
         . "MessagesType: " . $messagesType . "\n"
         . "MessagesFrom: " . $messagesFrom. "\n"
         . "MessagesTimestamp: " . $messagesTimestamp . "\n"
-        . "field: " . $field . "\n"
+        . "changes_field: " . $changes_field . "\n"
         . "event: " . $event . "\n"
         . "message_template_id: " . $message_template_id . "\n"
         . "message_template_name: " . $message_template_name . "\n"
         . "message_template_language: " . $message_template_language . "\n"
         . "reason: " . $reason . "\n"
+        . "context_From: " . $context_From . "\n"
+        . "context_Id: " . $context_Id . "\n"
         . "messages_ButtonPayload: " . $messages_ButtonPayload . "\n"
         . "messages_ButtonText: " . $messages_ButtonText . "\n"
         ."=================================================\n"
@@ -215,6 +234,10 @@ class ApiController extends Controller
 ////// E AQUI ABAIXO TAMBÉM
 $newWebhook = webhook::create([
     'webhook' => $dataString ?? null,
+    'entry_id' => $entry_id ?? null,
+    'entry_time' => $entry_time ?? null,
+    'object' => $object ?? null,
+    'value_messaging_product' => $value_messaging_product ?? null,
     'type' => $request_type ?? null,
     'contactName' => $contactName ?? null,
     'waId' => $waId ?? null,
@@ -230,10 +253,12 @@ $newWebhook = webhook::create([
     'messagesType' => $messagesType ?? null,
     'messages_id' => $messages_id ?? null,
     'messagesFrom' => $messagesFrom ?? null,
-    'messages_ButtonPayload' => $messages_ButtonPayload ?? null,
+    'context_From' => $context_From ?? null,
+    'context_Id' => $context_Id ?? null,
+    'messages_ButtonPayload' => $messages_ButtonText ?? null,
     'messages_ButtonText' => $messages_ButtonText ?? null,
     'messagesTimestamp' => $messagesTimestamp ?? null,
-    'field' => $field ?? null,
+    'changes_field' => $changes_field ?? null,
     'event' => $event ?? null,
     'message_template_id' => $message_template_id ?? null,
     'message_template_name' => $message_template_name ?? null,
@@ -339,7 +364,7 @@ $newWebhook = webhook::create([
     {
         date_default_timezone_set('UTC');
         $model = webhook::orderBy("id", "desc")->get();
-        // $model = webhook::where("id",310)->orderBy("id", "desc")->get();
+        // $model = webhook::where("id",48)->orderBy("id", "desc")->get();
 
 
         $mergedData = array(); // Inicialize o array $mergedData fora do loop foreach
@@ -355,6 +380,10 @@ $newWebhook = webhook::create([
                                 $mime_type = null;
                                 $image_mime_type = null;
                                 $statuses = null;
+                                $entry_id = null;
+                                $entry_time = null;
+                                $object = null;
+                                $changes_field = null;
             // $status =  null;
             // $recipient_id =  null;
             // // $conversation_id = null;
@@ -363,19 +392,21 @@ $newWebhook = webhook::create([
             $jsonData = $registro->webhook;
             $data = json_decode($jsonData, true);
 
+            $object = $data['object'] ?? null;
             $entry = $data['entry'][0] ?? null;
 
+            // dd($data);
 
             if ($entry) {
-                $id = $entry['id'] ?? null;
-                $id = $entry['time'] ?? null;
+                $entry_id = $entry['id'] ?? null;
+                $entry_time = $entry['time'] ?? null;
 
                 $changes = $entry['changes'][0] ?? null;
-
+// dd($data,  $object, $entry_id, $entry_time);
 
                 if ($changes) {
                     $value = $changes['value'] ?? null;
-                    $field = $changes['field'] ?? null;
+                    $changes_field = $changes['field'] ?? null;
                     $contacts = $value['contacts'][0] ?? null;
                     $messages = $value['messages'][0] ?? null;
                     $context = $messages['context'][0] ?? null;
@@ -402,17 +433,20 @@ $newWebhook = webhook::create([
                         $messagesType = $messages['type'] ?? null;
 
 
+                        $context = $messages['context'] ?? null;
+                        if ($context !== null) {
+                            $context_From = $context['from'] ?? null; // Acessa o campo 'payload' no botão
+                            $context_Id = $context['id'] ?? null; // Acessa o campo 'text' no botão
+                        }
+
                         $button = $messages['button'] ?? null; // Acessa o campo 'button' no array
 
                         if ($button !== null) {
                             $button_payload = $button['payload'] ?? null; // Acessa o campo 'payload' no botão
                             $button_text = $button['text'] ?? null; // Acessa o campo 'text' no botão
-                        } else {
-                            $button_payload = null;
-                            $button_text = null;
                         }
 
-
+// dd($messages,$context_From, $context_Id);
 
                         // dd($entry, $context, $button, $button_payload, $button_text);
                         //  dd($entry, $context, $button);
@@ -429,11 +463,13 @@ $newWebhook = webhook::create([
                         // $conversation_id = $statuses['id'] ?? null;
                     }
                     if ($value) {
+                        $value_messaging_product = $value['messaging_product'] ?? null;
                         $event = $value['event'] ?? null;
                         $message_template_id = $value['message_template_id'] ?? null;
                         $message_template_name = $value['message_template_name'] ?? null;
                         $message_template_language = $value['message_template_language'] ?? null;
                         $reason= $value['reason'] ?? null;
+                        // DD($value, $value_messaging_product);
                         // dd($entry, $event, $message_template_id,$message_template_name, $message_template_language, $reason, $field );
                     }
                     $newData = [
