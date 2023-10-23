@@ -29,6 +29,12 @@ Route::get('/dashboard', function () {
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+//política de privacidade e termos de serviços
+Route::get('webhook/politicaprivacidade', function ()
+ { return view('webhook.politicaprivacidade');})->name('webhook.politicaprivacidade');
+ Route::get('webhook/termoservicos', function ()
+ { return view('webhook.termoservicos');})->name('webhook.termoservicos');
+
 //Para autenticar no sistema sem usuario ou com usuário do google
 Route::get('auth/google/', [GoogleController::class, 'redirectToGoogle']);
 Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
