@@ -72,12 +72,16 @@ class ApiController extends Controller
     $messages_ButtonText = null;
     $changes_field = null;
     $value_messaging_product = null;
+    $changes_value_metadata_display_phone_number = null;
+    $changes_value_metadata_phone_number_id = null;
+
 
     $jsonData = $dataString;
     $data = json_decode($jsonData, true);
 
     $object = $data['object'] ?? null;
     $entry = $data['entry'][0] ?? null;
+
 
     if ($entry) {
 
@@ -160,6 +164,9 @@ class ApiController extends Controller
                 $message_template_name = $value['message_template_name'] ?? null;
                 $message_template_language = $value['message_template_language'] ?? null;
                 $reason= $value['reason'] ?? null;
+                $metadata = $value['metadata'] ?? null;
+                $changes_value_metadata_display_phone_number = $metadata['display_phone_number'] ?? null;
+                $changes_value_metadata_phone_number_id = $metadata['phone_number_id'] ?? null;
             }
 
         }
@@ -209,6 +216,8 @@ class ApiController extends Controller
         . "context_Id: " . $context_Id . "\n"
         . "messages_ButtonPayload: " . $messages_ButtonPayload . "\n"
         . "messages_ButtonText: " . $messages_ButtonText . "\n"
+        . "changes_value_metadata_display_phone_number: " . $changes_value_metadata_display_phone_number . "\n"
+        . "changes_value_metadata_phone_number_id: " . $changes_value_metadata_phone_number_id . "\n"
         ."=================================================\n"
         ;
 
@@ -264,6 +273,8 @@ $newWebhook = webhook::create([
     'message_template_name' => $message_template_name ?? null,
     'message_template_language' => $message_template_language ?? null,
     'reason' => $reason ?? null,
+    'changes_value_metadata_display_phone_number' => $changes_value_metadata_display_phone_number ?? null,
+    'changes_value_metadata_phone_number_id' => $changes_value_metadata_phone_number_id ?? null,
 ]);
 
 
@@ -353,6 +364,88 @@ $newWebhook = webhook::create([
         }
     }
 
+    public function enviarMensagemAprovadaAriane()
+    {
+
+        $accessToken = 'EAALZBJb4ieTcBO8Yemzg41ZASqQgq3KsH3ve15cW8DzWBtPnobeDW6uaJeOO5hfQ8yMZBJlsBuHDecUGeYrlAAhZAorUnOOJHfRJ5wqvUdAEOCJsLfvZC9EZBFZCQAOTtr0hheg3SAZA88Q0aK9EX6NMqygeRy9WDps094Rxhzx6mGmEsBr7EzZCeEls6uvrp9WlfmzMZCvvDZCMduMZAXLjio4ZBkzAIktiCzzvMysWpQDqZC1L9Ia94s9ZBhY'; // Substitua pelo seu token de acesso
+
+        $client = new Client();
+
+        $requestData = [
+            'messaging_product' => 'whatsapp',
+            'to' => '5517996733342', // Número de telefone de destino
+            'type' => 'template',
+            'template' => [
+                'name' => 'agradecimento_pelo_contato',
+                'language' => [
+                    'code' => 'pt_BR',
+                ],
+            ],
+        ];
+
+
+
+        $response = $client->post('https://graph.facebook.com/v17.0/125892007279954/messages', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $accessToken,
+                'Content-Type' => 'application/json',
+            ],
+            'json' => $requestData,
+        ]);
+
+        // Verifique a resposta
+        if ($response->getStatusCode() == 200) {
+            $responseData = json_decode($response->getBody());
+            // Faça algo com a resposta, se necessário
+            // dd("Mensagem aprovada enviada", $responseData);
+            return redirect(route('whatsapp.indexlista'));
+        } else {
+            // Manipule erros, se houver
+            echo 'Erro ao enviar a mensagem: ' . $response->getBody();
+        }
+    }
+
+    public function enviarMensagemAprovadaAngelica()
+    {
+
+        $accessToken = 'EAALZBJb4ieTcBO8Yemzg41ZASqQgq3KsH3ve15cW8DzWBtPnobeDW6uaJeOO5hfQ8yMZBJlsBuHDecUGeYrlAAhZAorUnOOJHfRJ5wqvUdAEOCJsLfvZC9EZBFZCQAOTtr0hheg3SAZA88Q0aK9EX6NMqygeRy9WDps094Rxhzx6mGmEsBr7EzZCeEls6uvrp9WlfmzMZCvvDZCMduMZAXLjio4ZBkzAIktiCzzvMysWpQDqZC1L9Ia94s9ZBhY'; // Substitua pelo seu token de acesso
+
+        $client = new Client();
+
+        $requestData = [
+            'messaging_product' => 'whatsapp',
+            'to' => '5517997470064', // Número de telefone de destino
+            'type' => 'template',
+            'template' => [
+                'name' => 'agradecimento_pelo_contato',
+                'language' => [
+                    'code' => 'pt_BR',
+                ],
+            ],
+        ];
+
+
+
+        $response = $client->post('https://graph.facebook.com/v17.0/125892007279954/messages', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $accessToken,
+                'Content-Type' => 'application/json',
+            ],
+            'json' => $requestData,
+        ]);
+
+        // Verifique a resposta
+        if ($response->getStatusCode() == 200) {
+            $responseData = json_decode($response->getBody());
+            // Faça algo com a resposta, se necessário
+            // dd("Mensagem aprovada enviada", $responseData);
+            return redirect(route('whatsapp.indexlista'));
+        } else {
+            // Manipule erros, se houver
+            echo 'Erro ao enviar a mensagem: ' . $response->getBody();
+        }
+    }
+
     public function enviarMensagemResposta()
     {
         $model = webhook::where("id", 61)->orderBy("id", "desc")->get();
@@ -364,7 +457,7 @@ $newWebhook = webhook::create([
     {
         date_default_timezone_set('UTC');
         $model = webhook::orderBy("id", "desc")->get();
-        // $model = webhook::where("id",48)->orderBy("id", "desc")->get();
+        // $model = webhook::where("id",71)->orderBy("id", "desc")->get();
 
 
         $mergedData = array(); // Inicialize o array $mergedData fora do loop foreach
@@ -383,7 +476,9 @@ $newWebhook = webhook::create([
                                 $entry_id = null;
                                 $entry_time = null;
                                 $object = null;
-                                $changes_field = null;
+
+                                $changes_metadata_value_display_phone_number = null;
+                                $changes_metadata_value_phone_number_id = null;
             // $status =  null;
             // $recipient_id =  null;
             // // $conversation_id = null;
@@ -469,7 +564,12 @@ $newWebhook = webhook::create([
                         $message_template_name = $value['message_template_name'] ?? null;
                         $message_template_language = $value['message_template_language'] ?? null;
                         $reason= $value['reason'] ?? null;
-                        // DD($value, $value_messaging_product);
+                        $metadata = $value['metadata'] ?? null;
+
+                        $changes_metadata_value_display_phone_number = $metadata['display_phone_number'] ?? null;
+                        $changes_metadata_value_phone_number_id = $metadata['phone_number_id'] ?? null;
+
+                        // DD($value,  $metadata, $changes_metadata_value_display_phone_number, $changes_metadata_value_phone_number_id );
                         // dd($entry, $event, $message_template_id,$message_template_name, $message_template_language, $reason, $field );
                     }
                     $newData = [
@@ -491,6 +591,11 @@ $newWebhook = webhook::create([
                             "message_template_name" => $message_template_name ?? null,
                             "message_template_language" => $message_template_language ?? null,
                             "reason" => $reason ?? null,
+                            "changes_metadata_value_display_phone_number" => $changes_metadata_value_display_phone_number ?? null,
+                            "changes_metadata_value_phone_number_id" => $changes_metadata_value_phone_number_id ?? null,
+
+
+
                             // "messagesFrom" => $messagesFrom ?? null,
                             // "messagesTimestamp" => $messagesTimestamp ?? null,
                             // "messagesType" => $messagesType ?? null,

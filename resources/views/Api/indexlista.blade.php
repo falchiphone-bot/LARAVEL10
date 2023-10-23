@@ -19,6 +19,16 @@
                         <td>
                             <a href="{{ route('whatsapp.enviarMensagemAprovada') }}" class="btn btn-danger" tabindex="-1" role="button" aria-disabled="true">Agradecimento pelo contato</a>
                         </td>
+                        <td>
+                            <a href="{{ route('whatsapp.enviarMensagemAprovadaAriane') }}"
+                             class="btn btn-danger" tabindex="-1" role="button"
+                              aria-disabled="true">Agradecimento pelo contato - ARIANE</a>
+                        </td>
+                        <td>
+                            <a href="{{ route('whatsapp.enviarMensagemAprovadaAngelica') }}"
+                            class="btn btn-danger" tabindex="-1" role="button"
+                            aria-disabled="true">Agradecimento pelo contato - ANGELICA</a>
+                        </td>
         @endcan
         @can('WHATSAPP - MENSAGEMNOVA')
                         <td>

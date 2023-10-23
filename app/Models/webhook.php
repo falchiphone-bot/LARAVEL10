@@ -44,6 +44,8 @@ class Webhook extends Model
         'message_template_language',
         'reason',
         'messages_id',
+        'changes_metadata_value_display_phone_number',
+        'changes_metadata_value_phone_number_id',
     ];
 
 }
