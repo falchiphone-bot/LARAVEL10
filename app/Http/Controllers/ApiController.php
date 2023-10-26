@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\webhook;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Auth;
 
 class ApiController extends Controller
 {
@@ -614,7 +615,7 @@ $newWebhook = webhook::create([
             }
         }
 
-        $model =   $mergedData;
+        // $model =   $mergedData;
 
         return view('Api.indexlista', compact('model'));
     }
@@ -642,25 +643,28 @@ $newWebhook = webhook::create([
         $iddocument  = null;
         $caption = null;
         $event = null ;
-
+        $message_template_id = null;
+        $message_template_name = null;
+        $message_template_language = null;
+        $reason = null;
 
         $model = webhook::find($id);
-
-        $created_at = $model->created_at;
+        $cadastro_registro = $model;
+        // $created_at = $model->created_at;
 
         $jsonData =  $model->webhook;
         $data = json_decode($jsonData, true); // Converte o JSON em um array associativo
 
         // Agora você pode acessar as variáveis da seguinte forma:
-        $object = $data['object'];
+        $object = $data['object'] ?? null;
 
-        $entry = $data['entry'][0];
+        $entry = $data['entry'][0] ?? null;
 
-        $id = $entry['id'];
-        $changes = $entry['changes'][0];
+        $id = $entry['id'] ?? null;
+        $changes = $entry['changes'][0] ?? null;
 
-        $value = $changes['value'];
-        $field = $changes['field'];
+        $value = $changes['value'] ?? null;
+        $field = $changes['field'] ?? null;
 
         $messagingProduct = $value['messaging_product'] ?? null;
         $metadata = $value['metadata'] ?? null;
@@ -790,7 +794,7 @@ $newWebhook = webhook::create([
         // Crie um array associativo com chaves fornecidas e valores padrão (vazios)
         $newData = [];
         $newData["webhook"] =  $jsonData;
-        $newData["created_at"] =  $created_at;
+        // $newData["created_at"] =  $created_at;
         $newData["field"] = $field;
         $newData["messagingProduct"] = $messagingProduct;
         $newData["metadata"] = $metadata;
@@ -820,10 +824,10 @@ $newWebhook = webhook::create([
         // $newData[""] = $;
 
         // Mesclar o novo array com o modelo existente
-        $mergedData = array_merge($data, $newData);
+        // $mergedData = array_merge($data, $newData);
 
-        $model = $mergedData;
-
+        // $modela = $mergedData;
+        $model = $cadastro_registro;
 
         return view('Api.registro', compact(
             'model',
@@ -836,7 +840,7 @@ $newWebhook = webhook::create([
 
         $model = webhook::find($id);
 
-
+        // dd(auth::user());
         $jsonData =  $model->webhook;
         $data = json_decode($jsonData, true);
 
@@ -844,6 +848,8 @@ $newWebhook = webhook::create([
 $mergedData = array();
 $entry_id = null;
 $entry_time = null;
+$text= null;
+$caption = null;
 $object = null;
 $profile = null;
 $contactName = null;
@@ -973,6 +979,7 @@ if ($entry) {
 
     }
 }
+
 //////////////////////////////////////////////////////////////////////////
     if($status == null)
     {
@@ -981,11 +988,12 @@ if ($entry) {
 
         $atualiza = [
         // 'webhook' => $dataString ?? null,
+        'user_updated' =>  auth::user()->email,
         'entry_id' => $entry_id ?? null,
         'entry_time' => $entry_time ?? null,
         'object' => $object ?? null,
         'value_messaging_product' => $value_messaging_product ?? null,
-        'type' => $request_type ?? null,
+        // 'type' => $type?? null,
         'contactName' => $contactName ?? null,
         'waId' => $waId ?? null,
         'body' => $body ?? null,

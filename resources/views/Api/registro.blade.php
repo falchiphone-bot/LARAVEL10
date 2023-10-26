@@ -22,13 +22,26 @@
                         <p>
                             <?php
 
-                            $dateString = $model['created_at'];
+                            $dateString = $model->created_at;
                             $dateTime = new DateTime($dateString);
                             $formattedDate = $dateTime->format("d/m/Y H:i:s");
                             ?>
 
                             Data registro: {{ $formattedDate }}
                         </p>
+
+                        <p>
+                            <?php
+
+                            $dateString = $model->updated_at;
+                            $dateTime = new DateTime($dateString);
+                            $formattedDate = $dateTime->format("d/m/Y H:i:s");
+                            ?>
+
+                            Data atualização: {{ $formattedDate }}
+                        </p>
+
+
 
                         <!DOCTYPE html>
                         <html>
@@ -86,14 +99,6 @@
 
                         </html>
 
-
-
-
-
-
-
-
-
                         <p>
                             IDENTIFICAÇÃO DA MENSAGEM: {{ $model['messageId'] }}
                         </p>
@@ -101,83 +106,96 @@
                             Objeto: {{ $model['object'] }}
                         </p>
                         <p>
-                            Identificação do registro: {{ htmlspecialchars($model['entry'][0]['id']) }}
+                            Identificação do registro: {{ $model->entry_id }}
+                        </p>
+                        <p>
+                            Tempo da entrada: {{ $model->entry_time }}
+                        </p>
+                        <p>
+                            Tempo da saida: {{ htmlspecialchars($model->messages_Timestamp) }}
+                        </p>
+                        <p>
+                            Contexto From: {{ $model->context_From}}
+                        </p>
+                        <p>
+                            Contexto id: {{ $model->context_Id}}
+                        </p>
+                        <p>
+                            Produto: {{ $model->value_messaging_product}}
+                        </p>
+                        <p>
+                            Telefone: {{ $model->changes_value_metadata_display_phone_number }}
+                        </p>
+                        <p>
+                            Id Telefone: {{ $model->changes_value_metadata_display_phone_id }}
+                        </p>
+                        <p>
+                            Status banimento: {{ $model->changes_value_ban_info_waba_ban_state }}
+
+                        </p>
+                        <p>
+                            Data banimento: {{ $model->changes_value_ban_info_waba_ban_date }}
+                        </p>
+                        <p>
+                            Contato: {{ $model->contactName  }}
+                        </p>
+                        <p>
+                            Telefone: {{ $model->waId  }}
+                        </p>
+                        <p>
+                            De: {{ $model->from  }}
+                        </p>
+                        <p>
+                            Tipo de arquivo: {{ $model->changes_field   }}
+                        </p>
+                        <p>
+                            Evento: {{ $model->event   }}
+                        </p>
+                        <p>
+                            Id do template: {{ $model->message_template_id   }}
+                        </p>
+                        <p>
+                            Nome do templete: {{ $model->message_template_name   }}
                         </p>
 
                         <p>
-                            Produto: {{ $model['messagingProduct']}}
-                        </p>
-                        <p>
-                            Telefone: {{ $model['displayPhoneNumber'] }}
-                        </p>
-                        <p>
-                            Id Telefone: {{ $model['phoneNumberId'] }}
-                        </p>
-
-
-                        <p>
-                            Contato: {{ $model['contactName']  }}
-                        </p>
-                        <p>
-                            Telefone: {{ $model['waId']  }}
-                        </p>
-                        <p>
-                            De: {{ $model['from']  }}
-                        </p>
-                        <p>
-                            Tipo de arquivo: {{ $model['field']   }}
-                        </p>
-                        <p>
-                            Evento: {{ $model['event']   }}
-                        </p>
-                        <p>
-                            Id do template: {{ $model['message_template_id']   }}
-                        </p>
-                        <p>
-                            Nome do templete: {{ $model['message_template_name']   }}
+                            Lingua do template: {{ $model->message_template_language   }}
                         </p>
 
                         <p>
-                            Lingua do template: {{ $model['message_template_language']   }}
+                            Motivo: {{ $model->reason   }}
                         </p>
 
                         <p>
-                            Motivo: {{ $model['reason']   }}
+                            Tipo da mensagem: {{ $model->messageType   }}
                         </p>
 
                         <p>
-                            Tipo da mensagem: {{ $model['messageType']   }}
-                        </p>
-
-                        <p>
-                            Mensagem: {{ $model['body']  ?? $model['caption']   }}
-                        </p>
-
-
-
-
-
-                        <p>
-                            Nome do documento: {{ $model['filename'] }}
-                        </p>
-                        <p>
-                            Tipo do documento: {{ $model['mime_type'] }}
-                        </p>
-                        <p>
-                            Animado: {{ $model['animated'] }}
-                        </p>
-                        <p>
-                            Tipo do documento: {{ $model['sha256'] }}
-                        </p>
-                        <p>
-                            Id do documento: {{ $model['iddocument'] }}
+                            Mensagem: {{ $model->body  ?? $model->caption   }}
                         </p>
 
 
 
 
+
                         <p>
-                            Status da mensagem: {{ $model['status']   }}
+                            Nome do documento: {{ $model->filename }}
+                        </p>
+                        <p>
+                            Tipo do documento: {{ $model->mime_type }}
+                        </p>
+                        <p>
+                            Animado: {{ $model->animated }}
+                        </p>
+                        <p>
+                            Tipo do documento: {{ $model->sha256 }}
+                        </p>
+                        <p>
+                            Id do documento: {{ $model->iddocument }}
+                        </p>
+
+                        <p>
+                            Status da mensagem: {{ $model->status   }}
                         </p>
 
                     </div>
