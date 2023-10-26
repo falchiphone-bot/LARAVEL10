@@ -759,6 +759,7 @@ $newWebhook = webhook::create([
 
         // Chaves fornecidas
         $newKeys = [
+            "webhook",
             "created_at",
             "field",
             "messagingProduct",
@@ -788,6 +789,7 @@ $newWebhook = webhook::create([
 
         // Crie um array associativo com chaves fornecidas e valores padrão (vazios)
         $newData = [];
+        $newData["webhook"] =  $jsonData;
         $newData["created_at"] =  $created_at;
         $newData["field"] = $field;
         $newData["messagingProduct"] = $messagingProduct;

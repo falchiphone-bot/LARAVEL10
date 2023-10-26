@@ -11,7 +11,7 @@
 
             <div class="row">
                 <div class="card">
-                <div class="card-footer">
+                    <div class="card-footer">
                         <a href="{{ route('whatsapp.indexlista') }}">Retornar para a lista</a>
                     </div>
                     <div class="card-header">
@@ -20,15 +20,79 @@
                     <div class="card-body">
 
                         <p>
-                        <?php
+                            <?php
 
-                        $dateString = $model['created_at'];
-                        $dateTime = new DateTime($dateString);
-                        $formattedDate = $dateTime->format("d/m/Y H:i:s");
-                        ?>
+                            $dateString = $model['created_at'];
+                            $dateTime = new DateTime($dateString);
+                            $formattedDate = $dateTime->format("d/m/Y H:i:s");
+                            ?>
 
                             Data registro: {{ $formattedDate }}
                         </p>
+
+                        <!DOCTYPE html>
+                        <html>
+
+                        <head>
+                            <title>Visualização em JSON</title>
+                            <script>
+                                function convertToJSON() {
+                                    const cardContainer = document.querySelector('.card-container');
+                                    const jsonOutput = {
+                                        container: {
+                                            row: {
+                                                col: {
+                                                    card: {
+                                                        cardBody: {
+                                                            cardTitle: "",
+                                                            cardText: ""
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    };
+
+                                    jsonOutput.container.row.col.card.cardBody.cardTitle = cardContainer.querySelector('.card-title').innerText;
+                                    jsonOutput.container.row.col.card.cardBody.cardText = cardContainer.querySelector('.card-text').innerText;
+
+                                    const jsonString = JSON.stringify(jsonOutput, null, 2);
+                                    const jsonOutputContainer = document.getElementById('json-output');
+                                    jsonOutputContainer.textContent = jsonString;
+                                }
+                            </script>
+                        </head>
+
+                        <body>
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-md-6 mx-auto card-container">
+                                        <div class="card border border-danger">
+                                            <div class="card-body bg-light">
+                                                <h5 class="card-title">Código de Recebimento</h5>
+                                                <p class="card-text font-weight-bold">
+                                                    {{ $model['webhook'] }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button onclick="convertToJSON()">Converter para JSON</button>
+
+                            <pre id="json-output"></pre>
+                        </body>
+
+                        </html>
+
+
+
+
+
+
+
+
 
                         <p>
                             IDENTIFICAÇÃO DA MENSAGEM: {{ $model['messageId'] }}
@@ -130,6 +194,11 @@
 @push('scripts')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
+
+
+
+
+
 
 <script>
     $('form').submit(function(e) {
