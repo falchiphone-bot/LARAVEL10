@@ -14,189 +14,210 @@
                     <div class="card-footer">
                         <a href="{{ route('whatsapp.indexlista') }}">Retornar para a lista</a>
                     </div>
-                    <div class="card-header">
-                        EXIBIÇÃO DO REGISTRO
-                    </div>
-                    <div class="card-body">
+<!-- inicio da tabela -->
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    border: 1px solid #000; /* Borda da tabela */
+  }
 
-                        <p>
-                            <?php
+  th, td {
+    border: 1px solid #000; /* Bordas das células */
+    padding: 8px;
+  }
 
-                            $dateString = $model->created_at;
-                            $dateTime = new DateTime($dateString);
-                            $formattedDate = $dateTime->format("d/m/Y H:i:s");
-                            ?>
+  th {
+    background-color: #33cc33; /* Cor de fundo do cabeçalho da tabela */
+    color: white;
+  }
+</style>
+</head>
+<body>
 
-                            Data registro: {{ $formattedDate }}
-                        </p>
+<table>
+  <tr>
+    <th colspan="2">EXIBIÇÃO DO REGISTRO</th>
+  </tr>
+  <tr>
+    <td>Data registro:</td>
+    <td>
+      <?php
+      $dateString = $model->created_at;
+      $dateTime = new DateTime($dateString);
+      $formattedDate = $dateTime->format("d/m/Y H:i:s");
+      ?>
+      {{ $formattedDate }}
+    </td>
+  </tr>
+  <tr>
+    <td>Data atualização:</td>
+    <td>
+      <?php
+      $dateString = $model->updated_at;
+      $dateTime = new DateTime($dateString);
+      $formattedDate = $dateTime->format("d/m/Y H:i:s");
+      ?>
+      {{ $formattedDate }}
+    </td>
+  </tr>
+  <!-- Adicione mais linhas conforme necessário -->
+</table>
 
-                        <p>
-                            <?php
+<table>
+  <tr>
+    <th colspan="2">Visualização em JSON</th>
+  </tr>
+  <tr>
+    <td colspan="2">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6 mx-auto card-container">
+            <div class="card border border-danger">
+              <div class="card-body bg-light">
+                <h5 class="card-title" style="color: #33cc33;">Código de Recebimento</h5>
+                <p class="card-text font-weight-bold" style="color: #3366cc;">
+                  {{ $model['webhook'] }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </td>
+  </tr>
+</table>
 
-                            $dateString = $model->updated_at;
-                            $dateTime = new DateTime($dateString);
-                            $formattedDate = $dateTime->format("d/m/Y H:i:s");
-                            ?>
+<table>
+  <tr>
+    <th colspan="2">Outros Dados</th>
+  </tr>
+  <tr>
+    <td>IDENTIFICAÇÃO DA MENSAGEM:</td>
+    <td>{{ $model['messageId'] }}</td>
+  </tr>
+  <tr>
+    <td>Objeto:</td>
+    <td>{{ $model['object'] }}</td>
+  </tr>
+  <tr>
+    <td>Identificação do registro:</td>
+    <td>{{ $model->entry_id }}</td>
+  </tr>
+  <tr>
+    <td>Tempo da entrada:</td>
+    <td>{{ $model->entry_time }}</td>
+  </tr>
+  <tr>
+    <td>Tempo da saída:</td>
+    <td>{{ htmlspecialchars($model->messages_Timestamp) }}</td>
+  </tr>
+  <tr>
+    <td>Contexto From:</td>
+    <td>{{ $model->context_From }}</td>
+  </tr>
+  <tr>
+    <td>Contexto id:</td>
+    <td>{{ $model->context_Id }}</td>
+  </tr>
+  <tr>
+    <td>Produto:</td>
+    <td>{{ $model->value_messaging_product }}</td>
+  </tr>
+  <tr>
+    <td>Telefone:</td>
+    <td>{{ $model->changes_value_metadata_display_phone_number }}</td>
+  </tr>
+  <tr>
+    <td>Id Telefone:</td>
+    <td>{{ $model->changes_value_metadata_display_phone_id }}</td>
+  </tr>
+  <tr>
+    <td>Status banimento:</td>
+    <td>{{ $model->changes_value_ban_info_waba_ban_state }}</td>
+  </tr>
+  <tr>
+    <td>Data banimento:</td>
+    <td>{{ $model->changes_value_ban_info_waba_ban_date }}</td>
+  </tr>
+  <tr>
+    <td>Contato:</td>
+    <td>{{ $model->contactName }}</td>
+  </tr>
+  <tr>
+    <td>Telefone:</td>
+    <td>{{ $model->waId }}</td>
+  </tr>
+  <tr>
+    <td>De:</td>
+    <td>{{ $model->from }}</td>
+  </tr>
+  <tr>
+    <td>Tipo de arquivo:</td>
+    <td>{{ $model->changes_field }}</td>
+  </tr>
+  <tr>
+    <td>Evento:</td>
+    <td>{{ $model->event }}</td>
+  </tr>
+  <tr>
+    <td>Id do template:</td>
+    <td>{{ $model->message_template_id }}</td>
+  </tr>
+  <tr>
+    <td>Nome do template:</td>
+    <td>{{ $model->message_template_name }}</td>
+  </tr>
+  <tr>
+    <td>Língua do template:</td>
+    <td>{{ $model->message_template_language }}</td>
+  </tr>
+  <tr>
+    <td>Motivo:</td>
+    <td>{{ $model->reason }}</td>
+  </tr>
+  <tr>
+    <td>Tipo da mensagem:</td>
+    <td>{{ $model->messageType }}</td>
+  </tr>
+  <tr>
+    <td>Mensagem:</td>
+    <td>{{ $model->body ?? $model->caption }}</td>
+  </tr>
+  <tr>
+    <td>Nome do documento:</td>
+    <td>{{ $model->filename }}</td>
+  </tr>
+  <tr>
+    <td>Tipo do documento:</td>
+    <td>{{ $model->mime_type }}</td>
+  </tr>
+  <tr>
+    <td>Animado:</td>
+    <td>{{ $model->animated }}</td>
+  </tr>
+  <tr>
+    <td>Tipo do documento:</td>
+    <td>{{ $model->sha256 }}</td>
+  </tr>
+  <tr>
+    <td>Id do documento:</td>
+    <td>{{ $model->iddocument }}</td>
+  </tr>
+  <tr>
+    <td>Status da mensagem:</td>
+    <td>{{ $model->status }}</td>
+  </tr>
+</table>
 
-                            Data atualização: {{ $formattedDate }}
-                        </p>
-
-
-
-                        <!DOCTYPE html>
-                        <html>
-
-                        <head>
-                            <title>Visualização em JSON</title>
-                            <script>
-                                function convertToJSON() {
-                                    const cardContainer = document.querySelector('.card-container');
-                                    const jsonOutput = {
-                                        container: {
-                                            row: {
-                                                col: {
-                                                    card: {
-                                                        cardBody: {
-                                                            cardTitle: "",
-                                                            cardText: ""
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    };
-
-                                    jsonOutput.container.row.col.card.cardBody.cardTitle = cardContainer.querySelector('.card-title').innerText;
-                                    jsonOutput.container.row.col.card.cardBody.cardText = cardContainer.querySelector('.card-text').innerText;
-
-                                    const jsonString = JSON.stringify(jsonOutput, null, 2);
-                                    const jsonOutputContainer = document.getElementById('json-output');
-                                    jsonOutputContainer.textContent = jsonString;
-                                }
-                            </script>
-                        </head>
-
-                        <body>
-                            <div class="container">
-                                <div class="row">
-                                    <div class="col-md-6 mx-auto card-container">
-                                        <div class="card border border-danger">
-                                            <div class="card-body bg-light">
-                                                <h5 class="card-title">Código de Recebimento</h5>
-                                                <p class="card-text font-weight-bold">
-                                                    {{ $model['webhook'] }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <button onclick="convertToJSON()">Converter para JSON</button>
-
-                            <pre id="json-output"></pre>
-                        </body>
-
-                        </html>
-
-                        <p>
-                            IDENTIFICAÇÃO DA MENSAGEM: {{ $model['messageId'] }}
-                        </p>
-                        <p>
-                            Objeto: {{ $model['object'] }}
-                        </p>
-                        <p>
-                            Identificação do registro: {{ $model->entry_id }}
-                        </p>
-                        <p>
-                            Tempo da entrada: {{ $model->entry_time }}
-                        </p>
-                        <p>
-                            Tempo da saida: {{ htmlspecialchars($model->messages_Timestamp) }}
-                        </p>
-                        <p>
-                            Contexto From: {{ $model->context_From}}
-                        </p>
-                        <p>
-                            Contexto id: {{ $model->context_Id}}
-                        </p>
-                        <p>
-                            Produto: {{ $model->value_messaging_product}}
-                        </p>
-                        <p>
-                            Telefone: {{ $model->changes_value_metadata_display_phone_number }}
-                        </p>
-                        <p>
-                            Id Telefone: {{ $model->changes_value_metadata_display_phone_id }}
-                        </p>
-                        <p>
-                            Status banimento: {{ $model->changes_value_ban_info_waba_ban_state }}
-
-                        </p>
-                        <p>
-                            Data banimento: {{ $model->changes_value_ban_info_waba_ban_date }}
-                        </p>
-                        <p>
-                            Contato: {{ $model->contactName  }}
-                        </p>
-                        <p>
-                            Telefone: {{ $model->waId  }}
-                        </p>
-                        <p>
-                            De: {{ $model->from  }}
-                        </p>
-                        <p>
-                            Tipo de arquivo: {{ $model->changes_field   }}
-                        </p>
-                        <p>
-                            Evento: {{ $model->event   }}
-                        </p>
-                        <p>
-                            Id do template: {{ $model->message_template_id   }}
-                        </p>
-                        <p>
-                            Nome do templete: {{ $model->message_template_name   }}
-                        </p>
-
-                        <p>
-                            Lingua do template: {{ $model->message_template_language   }}
-                        </p>
-
-                        <p>
-                            Motivo: {{ $model->reason   }}
-                        </p>
-
-                        <p>
-                            Tipo da mensagem: {{ $model->messageType   }}
-                        </p>
-
-                        <p>
-                            Mensagem: {{ $model->body  ?? $model->caption   }}
-                        </p>
+</body>
+</html>
 
 
-
-
-
-                        <p>
-                            Nome do documento: {{ $model->filename }}
-                        </p>
-                        <p>
-                            Tipo do documento: {{ $model->mime_type }}
-                        </p>
-                        <p>
-                            Animado: {{ $model->animated }}
-                        </p>
-                        <p>
-                            Tipo do documento: {{ $model->sha256 }}
-                        </p>
-                        <p>
-                            Id do documento: {{ $model->iddocument }}
-                        </p>
-
-                        <p>
-                            Status da mensagem: {{ $model->status   }}
-                        </p>
+<!-- final da tabela -->
 
                     </div>
                     <div class="card-footer">
