@@ -74,6 +74,8 @@ class ApiController extends Controller
     $value_messaging_product = null;
     $changes_value_metadata_display_phone_number = null;
     $changes_value_metadata_phone_number_id = null;
+    $changes_value_ban_info_waba_ban_state = null;
+    $changes_value_ban_info_waba_ban_date = null;
 
 
     $jsonData = $dataString;
@@ -106,13 +108,10 @@ class ApiController extends Controller
             $conversation_id = $conversation_id ?? null;
             $messages_id = $messages_id ?? null;
 
-
-
             $contacts = $value['contacts'][0] ?? null;
             $messages = $value['messages'][0] ?? null;
             $statuses = $value['statuses'][0] ?? null;
-
-
+            $ban_info = $value['ban_info'] ?? null;
 
             if ($messages) {
                 $messages_id = $messages['id'] ?? null;
@@ -167,6 +166,9 @@ class ApiController extends Controller
                 $metadata = $value['metadata'] ?? null;
                 $changes_value_metadata_display_phone_number = $metadata['display_phone_number'] ?? null;
                 $changes_value_metadata_phone_number_id = $metadata['phone_number_id'] ?? null;
+                $ban_info = $value['ban_info'] ?? null;
+                $changes_value_ban_info_waba_ban_state = $ban_info['waba_ban_state'] ?? null;
+                $changes_value_ban_info_waba_ban_date =  $ban_info['waba_ban_date'] ?? null;
             }
 
         }
@@ -184,8 +186,9 @@ class ApiController extends Controller
 
         $storagePath = storage_path();
         $arquivo = "/app/PostWebhook.log";
-                                              $logData =   "=================================================\n"
+        $logData =   "=================================================\n"
         . "Mensagem de log: " . date('Y-m-d H:i:s') . "\n"."_________________________________________________\n"
+        . "webhook: " . $data . "\n"
         . "object: " . $object . "\n"
         . "messaging_product: " . $value_messaging_product ."\n"
         . "entry_id: " . $entry_id . "\n"
@@ -218,6 +221,8 @@ class ApiController extends Controller
         . "messages_ButtonText: " . $messages_ButtonText . "\n"
         . "changes_value_metadata_display_phone_number: " . $changes_value_metadata_display_phone_number . "\n"
         . "changes_value_metadata_phone_number_id: " . $changes_value_metadata_phone_number_id . "\n"
+        . "changes_value_ban_info_waba_ban_state: " . $changes_value_ban_info_waba_ban_state . "\n"
+        . "changes_value_ban_info_waba_ban_date:  " . $changes_value_ban_info_waba_ban_date . "\n"
         ."=================================================\n"
         ;
 
@@ -275,6 +280,8 @@ $newWebhook = webhook::create([
     'reason' => $reason ?? null,
     'changes_value_metadata_display_phone_number' => $changes_value_metadata_display_phone_number ?? null,
     'changes_value_metadata_phone_number_id' => $changes_value_metadata_phone_number_id ?? null,
+    'changes_value_ban_info_waba_ban_state' => $changes_value_ban_info_waba_ban_state ?? null,
+    'changes_value_ban_info_waba_ban_date' => $changes_value_ban_info_waba_ban_date ?? null,
 ]);
 
 
@@ -335,16 +342,16 @@ $newWebhook = webhook::create([
             'to' => '5517997662949', // Número de telefone de destino
             'type' => 'template',
             'template' => [
-                'name' => 'agradecimento_pelo_contato',
+                'name' => 'hello_world',
                 'language' => [
-                    'code' => 'pt_BR',
+                    'code' => 'en_US',
                 ],
             ],
         ];
 
-
-
-        $response = $client->post('https://graph.facebook.com/v17.0/125892007279954/messages', [
+        // https://graph.facebook.com/v17.0/125892007279954/messages
+        // https://graph.facebook.com/v17.0/157689817424024/messages
+        $response = $client->post('https://graph.facebook.com/v17.0/157689817424024/messages', [
             'headers' => [
                 'Authorization' => 'Bearer ' . $accessToken,
                 'Content-Type' => 'application/json',
@@ -385,7 +392,7 @@ $newWebhook = webhook::create([
 
 
 
-        $response = $client->post('https://graph.facebook.com/v17.0/125892007279954/messages', [
+        $response = $client->post('https://graph.facebook.com/v17.0/157689817424024/messages', [
             'headers' => [
                 'Authorization' => 'Bearer ' . $accessToken,
                 'Content-Type' => 'application/json',
@@ -457,7 +464,7 @@ $newWebhook = webhook::create([
     {
         date_default_timezone_set('UTC');
         $model = webhook::orderBy("id", "desc")->get();
-        // $model = webhook::where("id",71)->orderBy("id", "desc")->get();
+        // $model = webhook::where("id",158)->orderBy("id", "desc")->get();
 
 
         $mergedData = array(); // Inicialize o array $mergedData fora do loop foreach
@@ -505,9 +512,6 @@ $newWebhook = webhook::create([
                     $contacts = $value['contacts'][0] ?? null;
                     $messages = $value['messages'][0] ?? null;
                     $context = $messages['context'][0] ?? null;
-
-                    // $statuses = $value['statuses'][0] ?? null;
-
 
                     if ($messages) {
                         $messages_id = $messages['id'] ?? null;
@@ -564,13 +568,18 @@ $newWebhook = webhook::create([
                         $message_template_name = $value['message_template_name'] ?? null;
                         $message_template_language = $value['message_template_language'] ?? null;
                         $reason= $value['reason'] ?? null;
+                        $ban_info = $value['ban_info'] ?? null;
                         $metadata = $value['metadata'] ?? null;
 
                         $changes_metadata_value_display_phone_number = $metadata['display_phone_number'] ?? null;
                         $changes_metadata_value_phone_number_id = $metadata['phone_number_id'] ?? null;
 
+                        $changes_value_ban_info_waba_ban_state = $ban_info['waba_ban_state'] ?? null;
+                        $changes_value_ban_info_waba_ban_date =  $ban_info['waba_ban_date'] ?? null;
+
+
                         // DD($value,  $metadata, $changes_metadata_value_display_phone_number, $changes_metadata_value_phone_number_id );
-                        // dd($entry, $event, $message_template_id,$message_template_name, $message_template_language, $reason, $field );
+                        // dd($entry, $event, $ban_info, $changes_value_ban_info_waba_ban_state,  $changes_value_ban_info_waba_ban_date );
                     }
                     $newData = [
                             // "contactName" => $contactName ?? null,
@@ -818,4 +827,254 @@ $newWebhook = webhook::create([
             'model',
         ));
     }
+
+    public function atualizaregistro(string $id)
+    {
+
+
+        $model = webhook::find($id);
+
+
+        $jsonData =  $model->webhook;
+        $data = json_decode($jsonData, true);
+
+//////////////////////////////////////////////////////////////////////////
+$mergedData = array();
+$entry_id = null;
+$entry_time = null;
+$object = null;
+$profile = null;
+$contactName = null;
+$waId = null;
+$body = null;
+$document = null;
+$filename = null;
+$mime_type = null;
+$image_mime_type = null;
+$statuses = null;
+$status =  'received';
+$recipient_id =  null;
+$conversation_id = null;
+$messages_id = null;
+$event =   null;
+$message_template_id =   null;
+$message_template_name =  null;
+$message_template_language =   null;
+$reason=   null;
+$messagesType = null;
+$messagesTimestamp = null;
+$messagesFrom = null;
+$context_From = null;
+$context_Id = null;
+$messages_ButtonPayload =  null;
+$messages_ButtonText = null;
+$changes_field = null;
+$value_messaging_product = null;
+$changes_value_metadata_display_phone_number = null;
+$changes_value_metadata_phone_number_id = null;
+$changes_value_ban_info_waba_ban_state = null;
+$changes_value_ban_info_waba_ban_date = null;
+
+
+// $jsonData = $dataString;
+// $data = json_decode($jsonData, true);
+
+$object = $data['object'] ?? null;
+$entry = $data['entry'][0] ?? null;
+
+
+if ($entry) {
+
+    $entry_id = $entry['id'] ?? null;
+    $entry_time = $entry['time'] ?? null;
+
+    $changes = $entry['changes'][0] ?? null;
+
+    if ($changes) {
+        $value = $changes['value'] ?? null;
+        $changes_field = $changes['field'] ?? null;
+        $contactName = $contactName ?? null;
+        $waId = $waId ?? null;
+        $body = $body ?? null;
+        $text = $text ?? null;
+        $mime_type = $mime_type ?? null;
+        $filename = $filename ?? null;
+        $image_mime_type = $image_mime_type ?? null;
+        $caption = $caption ?? null;
+        $status = $status ?? null;
+        $recipient_id = $recipient_id ?? null;
+        $conversation_id = $conversation_id ?? null;
+        $messages_id = $messages_id ?? null;
+
+        $contacts = $value['contacts'][0] ?? null;
+        $messages = $value['messages'][0] ?? null;
+        $statuses = $value['statuses'][0] ?? null;
+        $ban_info = $value['ban_info'] ?? null;
+
+        if ($messages) {
+            $messages_id = $messages['id'] ?? null;
+            $text = $messages['text'] ?? null;
+            $body = $text['body'] ?? null;
+            $document = $messages['document'] ?? null;
+
+            $filename = $document['filename'] ?? null;
+            $mime_type = $document['mime_type'] ?? null;
+            $image = $messages['image']  ?? null;
+
+            $image_mime_type = $image['mime_type'] ?? null;
+
+            $caption = $image['caption'] ?? null;
+
+            $messagesFrom = $messages['from'] ?? null;
+            $messagesTimestamp = $messages['timestamp'] ?? null;
+            $messagesType = $messages['type'] ?? null;
+
+            $context = $messages['context'] ?? null;
+            if ($context !== null) {
+                $context_From = $context['from'] ?? null; // Acessa o campo 'payload' no botão
+                $context_Id = $context['id'] ?? null; // Acessa o campo 'text' no botão
+            }
+
+            $button = $messages['button'] ?? null; // Acessa o campo 'button' no array
+            if ($button !== null) {
+                $messages_ButtonPayload = $button['payload'] ?? null; // Acessa o campo 'payload' no botão
+                $messages_ButtonText = $button['text'] ?? null; // Acessa o campo 'text' no botão
+            }
+        }
+
+        if ($contacts) {
+            $profile = $contacts['profile'] ?? null;
+            $contactName = $profile['name'] ?? null;
+            $waId = $contacts['wa_id'] ?? null;
+        }
+
+        if ($statuses) {
+            $status = $statuses['status'] ?? null;
+            $recipient_id = $statuses['recipient_id'] ?? null;
+            $conversation_id = $statuses['id'] ?? null;
+        }
+
+        if ($value) {
+            $value_messaging_product = $value['messaging_product'] ?? null;
+            $event = $value['event'] ?? null;
+            $message_template_id = $value['message_template_id'] ?? null;
+            $message_template_name = $value['message_template_name'] ?? null;
+            $message_template_language = $value['message_template_language'] ?? null;
+            $reason= $value['reason'] ?? null;
+            $metadata = $value['metadata'] ?? null;
+            $changes_value_metadata_display_phone_number = $metadata['display_phone_number'] ?? null;
+            $changes_value_metadata_phone_number_id = $metadata['phone_number_id'] ?? null;
+            $ban_info = $value['ban_info'] ?? null;
+            $changes_value_ban_info_waba_ban_state = $ban_info['waba_ban_state'] ?? null;
+            $changes_value_ban_info_waba_ban_date =  $ban_info['waba_ban_date'] ?? null;
+        }
+
+    }
+}
+//////////////////////////////////////////////////////////////////////////
+    if($status == null)
+    {
+        $status = 'received';
+    }
+
+        $atualiza = [
+        // 'webhook' => $dataString ?? null,
+        'entry_id' => $entry_id ?? null,
+        'entry_time' => $entry_time ?? null,
+        'object' => $object ?? null,
+        'value_messaging_product' => $value_messaging_product ?? null,
+        'type' => $request_type ?? null,
+        'contactName' => $contactName ?? null,
+        'waId' => $waId ?? null,
+        'body' => $body ?? null,
+        'text' => $text ?? null,
+        'mime_type' => $mime_type ?? null,
+        'filename' => $filename ?? null,
+        'image_mime_type' => $image_mime_type ?? null,
+        'caption' => $caption ?? null,
+        'status' => $status ?? null,
+        'recipient_id' => $recipient_id ?? null,
+        'conversation_id' => $conversation_id ?? null,
+        'messagesType' => $messagesType ?? null,
+        'messages_id' => $messages_id ?? null,
+        'messagesFrom' => $messagesFrom ?? null,
+        'context_From' => $context_From ?? null,
+        'context_Id' => $context_Id ?? null,
+        'messages_ButtonPayload' => $messages_ButtonText ?? null,
+        'messages_ButtonText' => $messages_ButtonText ?? null,
+        'messagesTimestamp' => $messagesTimestamp ?? null,
+        'changes_field' => $changes_field ?? null,
+        'event' => $event ?? null,
+        'message_template_id' => $message_template_id ?? null,
+        'message_template_name' => $message_template_name ?? null,
+        'message_template_language' => $message_template_language ?? null,
+        'reason' => $reason ?? null,
+        'changes_value_metadata_display_phone_number' => $changes_value_metadata_display_phone_number ?? null,
+        'changes_value_metadata_phone_number_id' => $changes_value_metadata_phone_number_id ?? null,
+        'changes_value_ban_info_waba_ban_state' => $changes_value_ban_info_waba_ban_state ?? null,
+        'changes_value_ban_info_waba_ban_date' => $changes_value_ban_info_waba_ban_date ?? null,
+    ];
+
+    $model->update($atualiza);
+
+
+    $storagePath = storage_path();
+    $arquivo = "/app/PostWebhook.log";
+    $logData =   "=================================================\n"
+    . "Mensagem de log: " . date('Y-m-d H:i:s') . "\n"."_________________________________________________\n"
+    // . "webhook: " . $data . "\n"
+    . "object: " . $object . "\n"
+    . "messaging_product: " . $value_messaging_product ."\n"
+    . "entry_id: " . $entry_id . "\n"
+    . "entry_time: " . $entry_time . "\n"
+    // . "type: " . $request_type . "\n"
+    . "contactName: " . $contactName . "\n"
+    . "waId: " . $waId . "\n"
+    . "body: " . $body . "\n"
+    . "text: " . $text . "\n"
+    . "mime_type: " . $mime_type . "\n"
+    . "filename: " . $filename . "\n"
+    . "image_mime_type: " . $image_mime_type . "\n"
+    . "caption: " . $caption . "\n"
+    . "status: " . $status . "\n"
+    . "recipient_id: " . $recipient_id . "\n"
+    . "conversation_id: " . $conversation_id . "\n"
+    . "MessagesId: " . $messages_id . "\n"
+    . "MessagesType: " . $messagesType . "\n"
+    . "MessagesFrom: " . $messagesFrom. "\n"
+    . "MessagesTimestamp: " . $messagesTimestamp . "\n"
+    . "changes_field: " . $changes_field . "\n"
+    . "event: " . $event . "\n"
+    . "message_template_id: " . $message_template_id . "\n"
+    . "message_template_name: " . $message_template_name . "\n"
+    . "message_template_language: " . $message_template_language . "\n"
+    . "reason: " . $reason . "\n"
+    . "context_From: " . $context_From . "\n"
+    . "context_Id: " . $context_Id . "\n"
+    . "messages_ButtonPayload: " . $messages_ButtonPayload . "\n"
+    . "messages_ButtonText: " . $messages_ButtonText . "\n"
+    . "changes_value_metadata_display_phone_number: " . $changes_value_metadata_display_phone_number . "\n"
+    . "changes_value_metadata_phone_number_id: " . $changes_value_metadata_phone_number_id . "\n"
+    . "changes_value_ban_info_waba_ban_state: " . $changes_value_ban_info_waba_ban_state . "\n"
+    . "changes_value_ban_info_waba_ban_date:  " . $changes_value_ban_info_waba_ban_date . "\n"
+    ."=================================================\n"
+    ;
+
+    // Caminho para o arquivo de log
+    $logFilePath = $storagePath.$arquivo ;
+
+    // Tente gravar os dados no arquivo de log
+    if (file_put_contents($logFilePath, $logData, FILE_APPEND | LOCK_EX)) {
+        // echo "Dados gravados com sucesso no arquivo de log.";
+    } else {
+        // echo "Erro ao gravar no arquivo de log.";
+    }
+
+
+// dd("ATUALIZA OS REGISTROS");
+
+        return redirect(route('whatsapp.indexlista'));
+
+    }
+
 }

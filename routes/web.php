@@ -132,6 +132,8 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
  Route::get('/whatsapp/enviarMensagemAprovada', [App\Http\Controllers\ApiController::class, 'enviarMensagemAprovada'])->name('whatsapp.enviarMensagemAprovada');
  Route::get('/whatsapp/enviarMensagemResposta/{id}', [App\Http\Controllers\ApiController::class, 'enviarMensagemResposta'])->name('whatsapp.enviarMensagemResposta');
  Route::get('/whatsapp/registro/{id}', [App\Http\Controllers\ApiController::class, 'registro'])->name('whatsapp.registro');
+
+ Route::get('/whatsapp/atualizaregistro/{id}', [App\Http\Controllers\ApiController::class, 'atualizaregistro'])->name('whatsapp.atualizaregistro');
  Route::get('/whatsapp', [ApiController::class,'indexlista']);
  Route::get('/whatsapp/indexlista', [App\Http\Controllers\ApiController::class, 'indexlista'])->name('whatsapp.indexlista');
 
