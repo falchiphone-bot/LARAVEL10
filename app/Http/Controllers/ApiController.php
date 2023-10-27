@@ -367,68 +367,7 @@ class ApiController extends Controller
     }
 
 
-    public function enviarMensagemAprovada()
-    {
 
-        // $accessToken = 'EAALZBJb4ieTcBO8Yemzg41ZASqQgq3KsH3ve15cW8DzWBtPnobeDW6uaJeOO5hfQ8yMZBJlsBuHDecUGeYrlAAhZAorUnOOJHfRJ5wqvUdAEOCJsLfvZC9EZBFZCQAOTtr0hheg3SAZA88Q0aK9EX6NMqygeRy9WDps094Rxhzx6mGmEsBr7EzZCeEls6uvrp9WlfmzMZCvvDZCMduMZAXLjio4ZBkzAIktiCzzvMysWpQDqZC1L9Ia94s9ZBhY'; // Substitua pelo seu token de acesso
-
-        $accessToken = 'EAAFPacE8OhcBO2ZCOyNEyeLuFG1s1gZCZBwTgwZBMgLpdtgMRVulaGVzo1ZB1Eddd5tq3ZCUvoO2CtsZB6rniI6VVbVQ9XHe5zJBZB5ARFVqGINLVtUC0RZBI5M3LOQrWZCrQsRHjaPPaWljZCftlv3GKZB0UpSTbWLbAXSqZC0cnCer2ge0lqlFRx7uEaZBzsrZBol2XjyuexEzlt2ceTPNBytXEn9m7MsNnchDHvrYw0ZD';
-
-
-        $client = new Client();
-
-        $requestData = [
-            'messaging_product' => 'whatsapp', // Adicione o parâmetro messaging_product com um valor válido
-            'to' => '5517997662949', // Número de telefone de destino
-            'type' => 'template',
-            'template' => [
-                'name' => 'agradecimento',
-                'language' => [
-                    'code' => 'pt_BR',
-                ],
-            ],
-        ];
-        // https://graph.facebook.com/v17.0/125892007279954/messages
-        // https://graph.facebook.com/v17.0/157689817424024/messages
-        $response = $client->post(
-            'https://graph.facebook.com/v17.0/147126925154132/messages',
-            [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $accessToken,
-                    'Content-Type' => 'application/json',
-                ],
-                'json' => $requestData,
-            ]
-        );
-
-        // Verifique a resposta
-
-        if ($response->getStatusCode() == 200) {
-            $responseData = json_decode($response->getBody());
-            // Faça algo com a resposta, se necessário
-            // dd("Mensagem aprovada enviada", $responseData);
-
-            /////////////// gravar mensagem aprovada
-            $newWebhook = webhook::create([
-                'webhook' => json_encode($requestData) ?? null,
-                'value_messaging_product' => $requestData['messaging_product'] ?? null,
-                'object' => $requestData['messaging_product'] ?? null,
-                'recipient_id' => $requestData['to'] ?? null,
-                'type' => $requestData['type'] ?? null,
-                'message_template_name' => $requestData['template']['name'] ?? null,
-                'message_template_language' => $requestData['template']['language']['code'] ?? null,
-                'status' => 'sent' ?? null,
-            ]);
-
-            /////////////////////////////// termina a gravação
-
-
-            return redirect(route('whatsapp.indexlista'));
-        } else {
-            // Manipule erros, se houver
-            echo 'Erro ao enviar a mensagem: ' . $response->getBody();
-        }
-    }
 
     public function enviarMensagemAprovadaAriane()
     {
@@ -1222,4 +1161,78 @@ class ApiController extends Controller
             echo 'Erro ao enviar a mensagem: ' . $response->getBody();
         }
     }
+
+    public function SelecionarMensagemAprovada()
+    {
+        $model = webhookContact::orderBy('contactName')->get();
+
+        return view('api.SelecionarMensagemAprovada', compact('model'));
+    }
+
+
+    public function enviarMensagemAprovada(Request $request, $id)
+    {
+
+        // $accessToken = 'EAALZBJb4ieTcBO8Yemzg41ZASqQgq3KsH3ve15cW8DzWBtPnobeDW6uaJeOO5hfQ8yMZBJlsBuHDecUGeYrlAAhZAorUnOOJHfRJ5wqvUdAEOCJsLfvZC9EZBFZCQAOTtr0hheg3SAZA88Q0aK9EX6NMqygeRy9WDps094Rxhzx6mGmEsBr7EzZCeEls6uvrp9WlfmzMZCvvDZCMduMZAXLjio4ZBkzAIktiCzzvMysWpQDqZC1L9Ia94s9ZBhY'; // Substitua pelo seu token de acesso
+
+        $accessToken = 'EAAFPacE8OhcBO2ZCOyNEyeLuFG1s1gZCZBwTgwZBMgLpdtgMRVulaGVzo1ZB1Eddd5tq3ZCUvoO2CtsZB6rniI6VVbVQ9XHe5zJBZB5ARFVqGINLVtUC0RZBI5M3LOQrWZCrQsRHjaPPaWljZCftlv3GKZB0UpSTbWLbAXSqZC0cnCer2ge0lqlFRx7uEaZBzsrZBol2XjyuexEzlt2ceTPNBytXEn9m7MsNnchDHvrYw0ZD';
+
+
+        $client = new Client();
+
+        $requestData = [
+            'messaging_product' => 'whatsapp', // Adicione o parâmetro messaging_product com um valor válido
+            'to' => '5517997662949', // Número de telefone de destino
+            'type' => 'template',
+            'template' => [
+                'name' => 'agradecimento',
+                'language' => [
+                    'code' => 'pt_BR',
+                ],
+            ],
+        ];
+        // https://graph.facebook.com/v17.0/125892007279954/messages
+        // https://graph.facebook.com/v17.0/157689817424024/messages
+        $response = $client->post(
+            'https://graph.facebook.com/v17.0/147126925154132/messages',
+            [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $accessToken,
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => $requestData,
+            ]
+        );
+
+        // Verifique a resposta
+
+        if ($response->getStatusCode() == 200) {
+            $responseData = json_decode($response->getBody());
+            // Faça algo com a resposta, se necessário
+            // dd("Mensagem aprovada enviada", $responseData);
+
+            /////////////// gravar mensagem aprovada
+            $newWebhook = webhook::create([
+                'webhook' => json_encode($requestData) ?? null,
+                'value_messaging_product' => $requestData['messaging_product'] ?? null,
+                'object' => $requestData['messaging_product'] ?? null,
+                'recipient_id' => $requestData['to'] ?? null,
+                'type' => $requestData['type'] ?? null,
+                'message_template_name' => $requestData['template']['name'] ?? null,
+                'message_template_language' => $requestData['template']['language']['code'] ?? null,
+                'status' => 'sent' ?? null,
+            ]);
+
+            /////////////////////////////// termina a gravação
+
+
+            return redirect(route('whatsapp.indexlista'));
+        } else {
+            // Manipule erros, se houver
+            echo 'Erro ao enviar a mensagem: ' . $response->getBody();
+        }
+    }
+
+
+
 }

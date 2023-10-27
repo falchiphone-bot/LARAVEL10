@@ -15,7 +15,18 @@
             </div>
         </div>
 
+        @can('WebhookTemplate - LISTAR')
+                        <td>
+                            <a href="{{ route('Templates.index') }}" class="btn btn-danger" tabindex="-1" role="button" aria-disabled="true">Mensagens aprovadas para envio</a>
+                        </td>
+        @endcan
+
+
         @can('WHATSAPP - MENSAGEMAPROVADA')
+        <td>
+                            <a href="{{ route('whatsapp.SelecionarMensagemAprovada') }}" class="btn btn-danger"
+                            tabindex="-1" role="button" aria-disabled="true">Selecionar mensagem aprovada para enviar</a>
+                        </td>
                         <td>
                             <a href="{{ route('whatsapp.enviarMensagemAprovada') }}" class="btn btn-danger" tabindex="-1" role="button" aria-disabled="true">Agradecimento pelo contato</a>
                         </td>
