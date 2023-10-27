@@ -502,11 +502,7 @@ class ApiController extends Controller
         }
     }
 
-    public function enviarMensagemResposta()
-    {
-        $model = webhook::where("id", 61)->orderBy("id", "desc")->get();
-        dd("Resposta", $model);
-    }
+
 
 
     public function indexlista()
@@ -1128,5 +1124,90 @@ class ApiController extends Controller
         // dd("ATUALIZA OS REGISTROS");
 
         return redirect(route('whatsapp.indexlista'));
+    }
+
+    public function PreencherMensagemResposta(string $id)
+    {
+
+        $model = webhook::find($id);
+
+        return view('api.registroresposta', compact('model'))->with(['id' => $id]);
+    }
+
+    public function enviarMensagemResposta(Request $request, $id)
+    {
+
+        $model = webhook::find($id);
+
+        $message = $request->input('mensagem');
+
+            if (empty($request->input('mensagem'))) {
+                // O campo de mensagem está vazio, defina a mensagem de erro na sessão.
+                session()->flash('MensagemNaoPreenchida', 'A mensagem está vazia... necessita de preenchimento!');
+                return redirect()->back();
+            }
+
+
+        $accessToken = 'EAAFPacE8OhcBO2ZCOyNEyeLuFG1s1gZCZBwTgwZBMgLpdtgMRVulaGVzo1ZB1Eddd5tq3ZCUvoO2CtsZB6rniI6VVbVQ9XHe5zJBZB5ARFVqGINLVtUC0RZBI5M3LOQrWZCrQsRHjaPPaWljZCftlv3GKZB0UpSTbWLbAXSqZC0cnCer2ge0lqlFRx7uEaZBzsrZBol2XjyuexEzlt2ceTPNBytXEn9m7MsNnchDHvrYw0ZD';
+
+        $client = new Client();
+        $phone = $model->messagesFrom; // Número de telefone de destino
+
+
+        $client = new Client();
+
+        $requestData = [];
+        $requestData = [
+            'messaging_product' => 'whatsapp',
+            'to' => $phone, // Número de telefone de destino
+            'type' => 'text',
+            'text' => [
+                'body' => $message,
+            ],
+        ];
+
+
+
+        $response = $client->post(
+            'https://graph.facebook.com/v17.0/147126925154132/messages',
+
+            [
+
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $accessToken,
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => $requestData,
+            ]
+        );
+
+
+        // Verifique a resposta
+        if ($response->getStatusCode() == 200) {
+            $responseData = json_decode($response->getBody());
+            // Faça algo com a resposta, se necessário
+            // dd("Mensagem nova enviada", $responseData);
+
+            ///////////////////Gravar
+            /////////////// gravar mensagem aprovada
+            $newWebhook = webhook::create([
+                'webhook' => json_encode($requestData) ?? null,
+                'value_messaging_product' => $requestData['messaging_product'] ?? null,
+                'object' => $requestData['messaging_product'] ?? null,
+                'contactName' => $model->contactName ?? null,
+                'recipient_id' => $requestData['to'] ?? null,
+                'type' => $requestData['type'] ?? null,
+                'body' => $requestData['text']['body'] ?? null,
+                'status' => 'sent' ?? null,
+            ]);
+
+
+
+            session()->flash('success', 'Mensagem enviada com sucesso para ' . $model->contactName .  '.');
+            return redirect(route('whatsapp.indexlista'));
+        } else {
+            // Manipule erros, se houver
+            echo 'Erro ao enviar a mensagem: ' . $response->getBody();
+        }
     }
 }

@@ -69,6 +69,7 @@
             <table class="table" style="background-color: rgb(247, 247, 213);">
                 <thead>
                     <tr>
+                        <th scope="col" class="px-6 py-4"></th>
                         <th scope="col" class="px-6 py-4">DATA</th>
                         <th scope="col" class="px-6 py-4">TIPO</th>
                         <th scope="col" class="px-6 py-4">status</th>
@@ -88,6 +89,19 @@
                 <tbody>
 
                     @foreach ($model as $models)
+
+                    @can('CATEGORIAS - VER')
+                        <td>
+                        @if($models['messagesFrom'])
+                        <a href="{{ route('whatsapp.PreencherMensagemResposta', $models['id'] ) }}" class="btn btn-primary" tabindex="-1" role="button" aria-disabled="true">Responder</a>
+
+                        @endif
+                        </td>
+                        @endcan
+
+
+
+
                     <?php
 
                         $dateString = $models['created_at'];
@@ -173,6 +187,7 @@
                         <td class="">
                             {{ $models['filename'] ?? null }}
                         </td>
+
 
                         @can('CATEGORIAS - VER')
                         <td>
