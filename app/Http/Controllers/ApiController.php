@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\webhook;
+use App\Models\webhookContact;
+use App\Services\WebhookServico;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use PhpOffice\PhpSpreadsheet\Calculation\Web;
 
 class ApiController extends Controller
 {
@@ -287,6 +290,10 @@ class ApiController extends Controller
             'changes_value_ban_info_waba_ban_date' => $changes_value_ban_info_waba_ban_date ?? null,
         ]);
 
+        $recipient_id = $recipient_id;
+        $contactName = $contactName;
+        $newWebhookContact = WebhookServico::updateOrCreateWebhookContact($recipient_id, $contactName);
+
         $value = $request['hub_challenge'];
         return response($value);
     }
@@ -346,6 +353,9 @@ class ApiController extends Controller
                 'status' => 'sent' ?? null,
             ]);
 
+            $recipient_id = $requestData['to'];
+            $contactName = null;
+            $newWebhookContact = WebhookServico::updateOrCreateWebhookContact($recipient_id, $contactName);
 
 
 
@@ -880,7 +890,6 @@ class ApiController extends Controller
     public function atualizaregistro(string $id)
     {
 
-
         $model = webhook::find($id);
 
         // dd(auth::user());
@@ -1201,6 +1210,9 @@ class ApiController extends Controller
                 'status' => 'sent' ?? null,
             ]);
 
+            $recipient_id = $requestData['to'];
+            $contactName = $model->contactName;
+            $newWebhookContact = WebhookServico::updateOrCreateWebhookContact($recipient_id, $contactName);
 
 
             session()->flash('success', 'Mensagem enviada com sucesso para ' . $model->contactName .  '.');

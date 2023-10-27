@@ -87,21 +87,15 @@
                 </thead>
 
                 <tbody>
-
                     @foreach ($model as $models)
 
                     @can('CATEGORIAS - VER')
                         <td>
                         @if($models['messagesFrom'])
                         <a href="{{ route('whatsapp.PreencherMensagemResposta', $models['id'] ) }}" class="btn btn-primary" tabindex="-1" role="button" aria-disabled="true">Responder</a>
-
                         @endif
                         </td>
                         @endcan
-
-
-
-
                     <?php
 
                         $dateString = $models['created_at'];
