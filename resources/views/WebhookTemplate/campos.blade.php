@@ -13,9 +13,17 @@
             </div>
 
             <div class="col-4">
-                <label for="language">Lingua do template</label>
+                <label for="language">Língua do template</label>
                 <input class="form-control @error('nome') is-invalid @else is-valid @enderror" name="language"
                     type="text" id="language" value="{{$WebhookTemplate->language ?? null}}">
+                @error('nome')
+                    <div class="alert alert-danger">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="col-12">
+                <label for="texto">Texto</label>
+                    <textarea id="texto" name="texto" rows="4" cols="50" class="form-control"></textarea>
                 @error('nome')
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror

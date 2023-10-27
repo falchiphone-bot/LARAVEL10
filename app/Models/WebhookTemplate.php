@@ -6,10 +6,11 @@ class WebhookTemplate extends Model
 {
     protected $table = 'WebhooksTemplate';
     public $timestamps = true;
-    protected $fillable = ['name', 'language','user_updated'];
+    protected $fillable = ['name', 'language','user_updated', 'texto'];
 
     protected $casts = [
         'name' => 'string',
-        'language' => 'string'
+        'language' => 'string',
+        'texto' => 'string'
     ];
 }

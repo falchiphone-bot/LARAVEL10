@@ -45,7 +45,7 @@
                     <thead>
                         <tr>
                             <th scope="col" class="px-6 py-4">NOME</th>
-                            <th scope="col" class="px-6 py-4">LINGUA</th>
+                            <th scope="col" class="px-6 py-4">LíNGUA</th>
                             <th scope="col" class="px-6 py-4"></th>
                             <th scope="col" class="px-6 py-4"></th>
                             <th scope="col" class="px-6 py-4"></th>
@@ -62,7 +62,9 @@
                                 <td class="">
                                     {{ $WebhookTemplates->language }}
                                 </td>
-
+                                <td class="">
+                                    {{ $WebhookTemplates->texto }}
+                                </td>
 
                                 @can('WebhookTemplate - EDITAR')
                                     <td>
@@ -71,7 +73,7 @@
                                     </td>
                                 @endcan
 
-                                
+
 
                                 @can('WebhookTemplate - EXCLUIR')
                                     <td>
