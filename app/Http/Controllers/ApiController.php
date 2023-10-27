@@ -6,6 +6,7 @@ use App\Models\webhook;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ApiController extends Controller
 {
@@ -33,14 +34,15 @@ class ApiController extends Controller
         dd($fileContent);
     }
 
-    public function index(Request $r)
+    public function index(Request $request)
     {
 
-        // date_default_timezone_set('UTC');
-        $data = $r->all();
-
-        $request_type = $r->method();
-        $dataString = json_encode($data);
+        $data = $request->all();
+        // Log::info($data);
+        // return ;
+        $request_type = $request->method();
+        // $dataString = $data;
+        // return $data('hub_challenge');
 //////////////////////////////////////////////////////////////////////////
     $mergedData = array();
     $entry_id = null;
@@ -50,8 +52,6 @@ class ApiController extends Controller
     $contactName = null;
     $waId = null;
     $body = null;
-    $document = null;
-    $filename = null;
     $mime_type = null;
     $image_mime_type = null;
     $statuses = null;
@@ -78,9 +78,6 @@ class ApiController extends Controller
     $changes_value_ban_info_waba_ban_state = null;
     $changes_value_ban_info_waba_ban_date = null;
 
-
-    $jsonData = $dataString;
-    $data = json_decode($jsonData, true);
 
     $object = $data['object'] ?? null;
     $entry = $data['entry'][0] ?? null;
@@ -117,6 +114,7 @@ class ApiController extends Controller
             if ($messages) {
                 $messages_id = $messages['id'] ?? null;
                 $text = $messages['text'] ?? null;
+                Log::info($text);
                 $body = $text['body'] ?? null;
                 $document = $messages['document'] ?? null;
 
@@ -183,13 +181,13 @@ class ApiController extends Controller
 
         // $messagesType = "button1";
 
-
+        Log::info($text);
 
         $storagePath = storage_path();
         $arquivo = "/app/PostWebhook.log";
         $logData =   "=================================================\n"
         . "Mensagem de log: " . date('Y-m-d H:i:s') . "\n"."_________________________________________________\n"
-        . "webhook: " . $data . "\n"
+        // . "webhook: " . $data . "\n"
         . "object: " . $object . "\n"
         . "messaging_product: " . $value_messaging_product ."\n"
         . "entry_id: " . $entry_id . "\n"
@@ -197,8 +195,8 @@ class ApiController extends Controller
         . "type: " . $request_type . "\n"
         . "contactName: " . $contactName . "\n"
         . "waId: " . $waId . "\n"
-        . "body: " . $body . "\n"
-        . "text: " . $text . "\n"
+        . "body: " . $body. "\n"
+        . "text: " . $text['body'] . "\n"
         . "mime_type: " . $mime_type . "\n"
         . "filename: " . $filename . "\n"
         . "image_mime_type: " . $image_mime_type . "\n"
@@ -285,6 +283,8 @@ $newWebhook = webhook::create([
     'changes_value_ban_info_waba_ban_date' => $changes_value_ban_info_waba_ban_date ?? null,
 ]);
 
+        $value = $request['hub_challenge'];
+        return response($value);
 
     }
 
@@ -334,7 +334,10 @@ $newWebhook = webhook::create([
     public function enviarMensagemAprovada()
     {
 
-        $accessToken = 'EAALZBJb4ieTcBO8Yemzg41ZASqQgq3KsH3ve15cW8DzWBtPnobeDW6uaJeOO5hfQ8yMZBJlsBuHDecUGeYrlAAhZAorUnOOJHfRJ5wqvUdAEOCJsLfvZC9EZBFZCQAOTtr0hheg3SAZA88Q0aK9EX6NMqygeRy9WDps094Rxhzx6mGmEsBr7EzZCeEls6uvrp9WlfmzMZCvvDZCMduMZAXLjio4ZBkzAIktiCzzvMysWpQDqZC1L9Ia94s9ZBhY'; // Substitua pelo seu token de acesso
+        // $accessToken = 'EAALZBJb4ieTcBO8Yemzg41ZASqQgq3KsH3ve15cW8DzWBtPnobeDW6uaJeOO5hfQ8yMZBJlsBuHDecUGeYrlAAhZAorUnOOJHfRJ5wqvUdAEOCJsLfvZC9EZBFZCQAOTtr0hheg3SAZA88Q0aK9EX6NMqygeRy9WDps094Rxhzx6mGmEsBr7EzZCeEls6uvrp9WlfmzMZCvvDZCMduMZAXLjio4ZBkzAIktiCzzvMysWpQDqZC1L9Ia94s9ZBhY'; // Substitua pelo seu token de acesso
+
+        $accessToken = 'EAAFPacE8OhcBO2ZCOyNEyeLuFG1s1gZCZBwTgwZBMgLpdtgMRVulaGVzo1ZB1Eddd5tq3ZCUvoO2CtsZB6rniI6VVbVQ9XHe5zJBZB5ARFVqGINLVtUC0RZBI5M3LOQrWZCrQsRHjaPPaWljZCftlv3GKZB0UpSTbWLbAXSqZC0cnCer2ge0lqlFRx7uEaZBzsrZBol2XjyuexEzlt2ceTPNBytXEn9m7MsNnchDHvrYw0ZD';
+
 
         $client = new Client();
 
@@ -352,7 +355,8 @@ $newWebhook = webhook::create([
 
         // https://graph.facebook.com/v17.0/125892007279954/messages
         // https://graph.facebook.com/v17.0/157689817424024/messages
-        $response = $client->post('https://graph.facebook.com/v17.0/157689817424024/messages', [
+        $response = $client->post('https://graph.facebook.com/v17.0/147126925154132/messages',
+         [
             'headers' => [
                 'Authorization' => 'Bearer ' . $accessToken,
                 'Content-Type' => 'application/json',
@@ -411,6 +415,8 @@ $newWebhook = webhook::create([
             // Manipule erros, se houver
             echo 'Erro ao enviar a mensagem: ' . $response->getBody();
         }
+
+
     }
 
     public function enviarMensagemAprovadaAngelica()
