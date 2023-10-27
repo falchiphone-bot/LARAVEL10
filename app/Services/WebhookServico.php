@@ -11,7 +11,7 @@ class WebhookServico
 
         if ($newWebhookContact) {
             $newWebhookContact->update([
-                'contactName' => $contactName ?? null,
+                // 'contactName' => $contactName ?? null,
                 'user_updated' => auth()->user()->email ?? null,
             ]);
         } else {

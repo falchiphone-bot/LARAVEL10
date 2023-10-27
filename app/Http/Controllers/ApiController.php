@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\webhook;
 use App\Models\webhookContact;
+use App\Models\WebhookTemplate;
 use App\Services\WebhookServico;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
@@ -1164,14 +1165,34 @@ class ApiController extends Controller
 
     public function SelecionarMensagemAprovada()
     {
-        $model = webhookContact::orderBy('contactName')->get();
+        $contatos = webhookContact::orderBy('contactName')->get();
+        $template = WebhookTemplate::orderBy('Name')->get();
 
-        return view('api.SelecionarMensagemAprovada', compact('model'));
+
+        return view('api.SelecionarMensagemAprovada', compact('contatos','template'));
     }
 
 
-    public function enviarMensagemAprovada(Request $request, $id)
+    public function enviarMensagemAprovada(Request $request)
     {
+
+
+        $efetuar = $request->all();
+
+        // dd( $efetuar, $efetuar['idcontato'], $efetuar['idtemplate'] );
+
+        $contatos = webhookContact::find($efetuar['idcontato']);
+        $recipient_id = $contatos->recipient_id;
+        $contactName = $contatos->contactName;
+
+
+        $template = WebhookTemplate::find($efetuar['idtemplate']);
+
+
+        $name = $template->name  ;
+        $language = $template->language;
+
+
 
         // $accessToken = 'EAALZBJb4ieTcBO8Yemzg41ZASqQgq3KsH3ve15cW8DzWBtPnobeDW6uaJeOO5hfQ8yMZBJlsBuHDecUGeYrlAAhZAorUnOOJHfRJ5wqvUdAEOCJsLfvZC9EZBFZCQAOTtr0hheg3SAZA88Q0aK9EX6NMqygeRy9WDps094Rxhzx6mGmEsBr7EzZCeEls6uvrp9WlfmzMZCvvDZCMduMZAXLjio4ZBkzAIktiCzzvMysWpQDqZC1L9Ia94s9ZBhY'; // Substitua pelo seu token de acesso
 
@@ -1182,12 +1203,12 @@ class ApiController extends Controller
 
         $requestData = [
             'messaging_product' => 'whatsapp', // Adicione o parâmetro messaging_product com um valor válido
-            'to' => '5517997662949', // Número de telefone de destino
+            'to' => $recipient_id, // Número de telefone de destino
             'type' => 'template',
             'template' => [
-                'name' => 'agradecimento',
+                'name' => $name,
                 'language' => [
-                    'code' => 'pt_BR',
+                    'code' => $language,
                 ],
             ],
         ];
