@@ -302,7 +302,9 @@ class ApiController extends Controller
     public function enviarMensagemNova()
     {
         // $accessToken = 'EAALZBJb4ieTcBO8Yemzg41ZASqQgq3KsH3ve15cW8DzWBtPnobeDW6uaJeOO5hfQ8yMZBJlsBuHDecUGeYrlAAhZAorUnOOJHfRJ5wqvUdAEOCJsLfvZC9EZBFZCQAOTtr0hheg3SAZA88Q0aK9EX6NMqygeRy9WDps094Rxhzx6mGmEsBr7EzZCeEls6uvrp9WlfmzMZCvvDZCMduMZAXLjio4ZBkzAIktiCzzvMysWpQDqZC1L9Ia94s9ZBhY'; // Substitua pelo seu token de acesso
-        $accessToken = 'EAAFPacE8OhcBO2ZCOyNEyeLuFG1s1gZCZBwTgwZBMgLpdtgMRVulaGVzo1ZB1Eddd5tq3ZCUvoO2CtsZB6rniI6VVbVQ9XHe5zJBZB5ARFVqGINLVtUC0RZBI5M3LOQrWZCrQsRHjaPPaWljZCftlv3GKZB0UpSTbWLbAXSqZC0cnCer2ge0lqlFRx7uEaZBzsrZBol2XjyuexEzlt2ceTPNBytXEn9m7MsNnchDHvrYw0ZD';
+        // $accessToken = 'EAAFPacE8OhcBO2ZCOyNEyeLuFG1s1gZCZBwTgwZBMgLpdtgMRVulaGVzo1ZB1Eddd5tq3ZCUvoO2CtsZB6rniI6VVbVQ9XHe5zJBZB5ARFVqGINLVtUC0RZBI5M3LOQrWZCrQsRHjaPPaWljZCftlv3GKZB0UpSTbWLbAXSqZC0cnCer2ge0lqlFRx7uEaZBzsrZBol2XjyuexEzlt2ceTPNBytXEn9m7MsNnchDHvrYw0ZD';
+
+        $accessToken = 'EAAFPacE8OhcBOz023aCrHJFZCNZCX3qqQ8D7gaV1UqVCyvwyrIeQsvEDGGAAIZAaHO03fLImmHUInHWjzqJIrOQdPaRFy4ZCLp2ZAZApzpQfcXM63h0HvFwfAUVpdFclgS5UnmtJ7C2Dsbby26EcdiK80QeDffnTZAGM6JiwExhs1ICxzHVZCKgdZAgQCVWhbn3viLAyepcsjRTa4k8YoUKOMAWzs1uEaKxhlRw2LFuC1J41b6obhfrgc';
 
         $client = new Client();
         $phone = '5517997662949'; // Número de telefone de destino
@@ -1097,7 +1099,11 @@ class ApiController extends Controller
             }
 
 
-        $accessToken = 'EAAFPacE8OhcBO2ZCOyNEyeLuFG1s1gZCZBwTgwZBMgLpdtgMRVulaGVzo1ZB1Eddd5tq3ZCUvoO2CtsZB6rniI6VVbVQ9XHe5zJBZB5ARFVqGINLVtUC0RZBI5M3LOQrWZCrQsRHjaPPaWljZCftlv3GKZB0UpSTbWLbAXSqZC0cnCer2ge0lqlFRx7uEaZBzsrZBol2XjyuexEzlt2ceTPNBytXEn9m7MsNnchDHvrYw0ZD';
+        // $accessToken = 'EAAFPacE8OhcBO2ZCOyNEyeLuFG1s1gZCZBwTgwZBMgLpdtgMRVulaGVzo1ZB1Eddd5tq3ZCUvoO2CtsZB6rniI6VVbVQ9XHe5zJBZB5ARFVqGINLVtUC0RZBI5M3LOQrWZCrQsRHjaPPaWljZCftlv3GKZB0UpSTbWLbAXSqZC0cnCer2ge0lqlFRx7uEaZBzsrZBol2XjyuexEzlt2ceTPNBytXEn9m7MsNnchDHvrYw0ZD';
+       $accessToken = 'EAAFPacE8OhcBOz023aCrHJFZCNZCX3qqQ8D7gaV1UqVCyvwyrIeQsvEDGGAAIZAaHO03fLImmHUInHWjzqJIrOQdPaRFy4ZCLp2ZAZApzpQfcXM63h0HvFwfAUVpdFclgS5UnmtJ7C2Dsbby26EcdiK80QeDffnTZAGM6JiwExhs1ICxzHVZCKgdZAgQCVWhbn3viLAyepcsjRTa4k8YoUKOMAWzs1uEaKxhlRw2LFuC1J41b6obhfrgc';
+
+
+
 
         $client = new Client();
         $phone = $model->messagesFrom; // Número de telefone de destino
@@ -1196,7 +1202,8 @@ class ApiController extends Controller
 
         // $accessToken = 'EAALZBJb4ieTcBO8Yemzg41ZASqQgq3KsH3ve15cW8DzWBtPnobeDW6uaJeOO5hfQ8yMZBJlsBuHDecUGeYrlAAhZAorUnOOJHfRJ5wqvUdAEOCJsLfvZC9EZBFZCQAOTtr0hheg3SAZA88Q0aK9EX6NMqygeRy9WDps094Rxhzx6mGmEsBr7EzZCeEls6uvrp9WlfmzMZCvvDZCMduMZAXLjio4ZBkzAIktiCzzvMysWpQDqZC1L9Ia94s9ZBhY'; // Substitua pelo seu token de acesso
 
-        $accessToken = 'EAAFPacE8OhcBO2ZCOyNEyeLuFG1s1gZCZBwTgwZBMgLpdtgMRVulaGVzo1ZB1Eddd5tq3ZCUvoO2CtsZB6rniI6VVbVQ9XHe5zJBZB5ARFVqGINLVtUC0RZBI5M3LOQrWZCrQsRHjaPPaWljZCftlv3GKZB0UpSTbWLbAXSqZC0cnCer2ge0lqlFRx7uEaZBzsrZBol2XjyuexEzlt2ceTPNBytXEn9m7MsNnchDHvrYw0ZD';
+        // $accessToken = 'EAAFPacE8OhcBO2ZCOyNEyeLuFG1s1gZCZBwTgwZBMgLpdtgMRVulaGVzo1ZB1Eddd5tq3ZCUvoO2CtsZB6rniI6VVbVQ9XHe5zJBZB5ARFVqGINLVtUC0RZBI5M3LOQrWZCrQsRHjaPPaWljZCftlv3GKZB0UpSTbWLbAXSqZC0cnCer2ge0lqlFRx7uEaZBzsrZBol2XjyuexEzlt2ceTPNBytXEn9m7MsNnchDHvrYw0ZD';
+        $accessToken = 'EAAFPacE8OhcBO25mND6aXH1GEarlXm7o9uz2M0Eq3VSiZBtRUr7X0oAyDtRVzdtFNZCjfI0LkJDOF6MC2oxZAtAbYjZANRJnwiIsxglWFdbPZCny2Pln7PIoQV7rjNPQwrzipmInT7oLpf8Eje0I1zUHJ1q6jMXn0hBKOQVdE5ANv21CFYEdSvqC3fK5WpyOotLqlEAxGWjU4z05u2wQp8aUAU1fOGlJDSnbkDQZDZD';
 
 
         $client = new Client();

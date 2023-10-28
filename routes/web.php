@@ -148,6 +148,8 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
  Route::get('/whatsapp/salvararquivoPostWebhook', [App\Http\Controllers\ApiController::class, 'salvararquivoPostWebhook'])->name('whatsapp.salvararquivoPostWebhook');
  Route::resource('Templates', App\Http\Controllers\WebhookTemplateController::class);
 
+Route::resource('WebhookConfig', App\Http\Controllers\WebhookConfigController::class);
+
  # Formandos base
  Route::post('FormandoBase/indexBusca', [App\Http\Controllers\FormandoBaseController::class, 'indexBusca'])->name('FormandoBase.indexBusca');
  Route::post('FormandoBase/CreateArquivoFormandoBase', [App\Http\Controllers\FormandoBaseController::class, 'CreateArquivoFormandoBase'])->name('FormandoBase.ArquivoFormandoBase');

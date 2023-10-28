@@ -20,7 +20,11 @@
                             <a href="{{ route('Templates.index') }}" class="btn btn-danger" tabindex="-1" role="button" aria-disabled="true">Mensagens aprovadas para envio</a>
                         </td>
         @endcan
-
+        @can('Webhook(WebhookConfig) - LISTAR')
+                        <td>
+                            <a href="{{ route('WebhookConfig.index') }}" class="btn btn-secondary" tabindex="-1" role="button" aria-disabled="true">Configurações para Whatsapp</a>
+                        </td>
+        @endcan
 
         @can('WHATSAPP - MENSAGEMAPROVADA')
         <td>
