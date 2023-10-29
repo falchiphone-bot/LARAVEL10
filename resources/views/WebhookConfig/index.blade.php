@@ -61,7 +61,8 @@
 
                                 @can('WebhookConfig - EDITAR')
                                     <td>
-                                        <a href="{{ route('WebhookConfig.edit', $WebhookConfigs->id) }}" class="btn btn-success" tabindex="-1"
+                                        <a href="{{ route('WebhookConfig.edit',
+                                             $WebhookConfigs->id) }}" class="btn btn-success" tabindex="-1"
                                             role="button" aria-disabled="true">Editar</a>
                                     </td>
                                 @endcan
@@ -70,7 +71,9 @@
 
                                 @can('WebhookConfig - EXCLUIR')
                                     <td>
-                                        <form method="POST" action="{{ route('WebhookConfig.destroy', $WebhookTemplates->id) }}">
+                                        <form method="POST"
+                                        action="{{ route('WebhookConfig.destroy',
+                                            $WebhookConfigs->id) }}">
                                             @csrf
                                             <input type="hidden" name="_method" value="DELETE">
                                             <button type="submit" class="btn btn-danger">
