@@ -258,12 +258,7 @@ class ApiController extends Controller
 
         $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName);
         
-        // if($status == 'read'){
-        //     $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
-        //     $accessToken = $WebhookConfig->token24horas;
-        //     $leumensagem = WebhookServico::
-        //     Agradecimento_por_ter_lido_mensagem_recebida($recipient_id, $accessToken);
-        // }
+        
        
 
         $Achou = webhook::where('status',$status)
@@ -273,6 +268,7 @@ class ApiController extends Controller
        
         if ($Achou 
             && $Achou->status === $status
+            && $Achou->messages_id === $messages_id
             && $Achou->conversation_id === $conversation_id) {
             Log::info('===============>>>> Achei um registro');
             Log::info('Telefone - waId = '. $waId);
@@ -281,7 +277,19 @@ class ApiController extends Controller
             Log::info('recipient_id - recipient_id = '. $recipient_id);
             Log::info('messages_id - messages_id = '. $messages_id);
             Log::info('messagesFrom - messagesFrom = '. $messagesFrom);
+            return;
          }
+
+// if($status == 'read'){
+//             $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
+//             $accessToken = $WebhookConfig->token24horas;
+//             $leumensagem = WebhookServico::
+//             Agradecimento_por_ter_lido_mensagem_recebida($recipient_id, $accessToken);
+//         }
+
+if($status == 'read'){
+    Log::info('===============>>>> READ');
+        }
       
             $newWebhook = webhook::create([
             'webhook' => $jsonData ?? null,
@@ -1173,6 +1181,7 @@ class ApiController extends Controller
             'to' => $phone, // Número de telefone de destino
             'type' => 'text',
             'text' => [
+                // 'body' => 'Resposdendo o texto: '. $model->body . 'Resposta: ' .$message,
                 'body' => 'Resposdendo o texto: '. $model->body . 'Resposta: ' .$message,
             ],
         ];

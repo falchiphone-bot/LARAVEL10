@@ -30,10 +30,9 @@ class WebhookServico
     public static function Agradecimento_por_ter_lido_mensagem_recebida($recipient_id, $accessToken)
     {
        
-        // $Contact = WebhookContact::where('recipient_id', $recipient_id)->first();
-
         $client = new Client();
-        $phone = $recipient_id; 
+        // $phone = $recipient_id; 
+        $phone = "5517997662949";
         $client = new Client();
         $requestData = [];
         $message = 'Agradecemos por ter visto nossa mensagem!';
@@ -58,20 +57,19 @@ class WebhookServico
         );
 
         if ($response->getStatusCode() == 200) {
-            $responseData = json_decode($response->getBody());
-            $newWebhook = webhook::create([
-                'webhook' => json_encode($requestData) ?? null,
-                'value_messaging_product' => $requestData['messaging_product'] ?? null,
-                'object' => $requestData['messaging_product'] ?? null,
-                'contactName' => $model->contactName ?? null,
-                'recipient_id' => $requestData['to'] ?? null,
-                'type' => $requestData['type'] ?? null,
-                'body' => $requestData['text']['body'] ?? null,
-                'status' => 'sent' ?? null,
-            ]);
+            // $responseData = json_decode($response->getBody());
+            // $newWebhook = webhook::create([
+            //     'webhook' => json_encode($requestData) ?? null,
+            //     'value_messaging_product' => $requestData['messaging_product'] ?? null,
+            //     'object' => $requestData['messaging_product'] ?? null,
+            //     'contactName' => $model->contactName ?? null,
+            //     'recipient_id' => $requestData['to'] ?? null,
+            //     'type' => $requestData['type'] ?? null,
+            //     'body' => $requestData['text']['body'] ?? null,
+            //     'status' => 'sent' ?? null,
+            // ]);
             }
-
-        // return $Contact;
+ 
     }
 
 }
