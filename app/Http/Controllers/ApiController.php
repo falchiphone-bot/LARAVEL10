@@ -287,9 +287,11 @@ class ApiController extends Controller
 //             Agradecimento_por_ter_lido_mensagem_recebida($recipient_id, $accessToken);
 //         }
 
-if($status == 'read'){
-    Log::info('===============>>>> READ');
-        }
+            if($status == 'read'){
+                Log::info('===============>>>> READ');
+
+
+            }
       
             $newWebhook = webhook::create([
             'webhook' => $jsonData ?? null,
@@ -1182,7 +1184,7 @@ if($status == 'read'){
             'type' => 'text',
             'text' => [
                 // 'body' => 'Resposdendo o texto: '. $model->body . 'Resposta: ' .$message,
-                'body' => 'Resposdendo o texto: '. $model->body . 'Resposta: ' .$message,
+                'body' => $message,
             ],
         ];
         $response = $client->post(
