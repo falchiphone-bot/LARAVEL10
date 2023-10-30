@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\webhook;
 use App\Models\webhookContact;
 use App\Models\WebhookTemplate;
-use App\Services\WebhookServico;
+use App\Models\WebhookConfig;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Auth;
@@ -1182,6 +1182,13 @@ class ApiController extends Controller
     public function enviarMensagemAprovada(Request $request)
     {
 
+        $request->validate([
+            'idcontato' => 'required',
+            'idtemplate' => 'required',
+            'token_type' => 'required|in:token24horas,tokenpermanenteusuario',
+        ]);
+
+        $token = $request->token_type;
 
         $efetuar = $request->all();
 
@@ -1200,10 +1207,20 @@ class ApiController extends Controller
 
 
 
+        $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get();
+
+        if ($token == 'token24horas') {
+            $accessToken = $WebhookConfig->token24horas;
+        } elseif ($token == 'tokenpermanenteusuario') {
+            // dd($WebhookConfig);
+            $accessToken = $WebhookConfig->tokenpermanenteusuario;
+        }                                   
+        
+
         // $accessToken = 'EAALZBJb4ieTcBO8Yemzg41ZASqQgq3KsH3ve15cW8DzWBtPnobeDW6uaJeOO5hfQ8yMZBJlsBuHDecUGeYrlAAhZAorUnOOJHfRJ5wqvUdAEOCJsLfvZC9EZBFZCQAOTtr0hheg3SAZA88Q0aK9EX6NMqygeRy9WDps094Rxhzx6mGmEsBr7EzZCeEls6uvrp9WlfmzMZCvvDZCMduMZAXLjio4ZBkzAIktiCzzvMysWpQDqZC1L9Ia94s9ZBhY'; // Substitua pelo seu token de acesso
 
         // $accessToken = 'EAAFPacE8OhcBO2ZCOyNEyeLuFG1s1gZCZBwTgwZBMgLpdtgMRVulaGVzo1ZB1Eddd5tq3ZCUvoO2CtsZB6rniI6VVbVQ9XHe5zJBZB5ARFVqGINLVtUC0RZBI5M3LOQrWZCrQsRHjaPPaWljZCftlv3GKZB0UpSTbWLbAXSqZC0cnCer2ge0lqlFRx7uEaZBzsrZBol2XjyuexEzlt2ceTPNBytXEn9m7MsNnchDHvrYw0ZD';
-        $accessToken = 'EAAFPacE8OhcBO25mND6aXH1GEarlXm7o9uz2M0Eq3VSiZBtRUr7X0oAyDtRVzdtFNZCjfI0LkJDOF6MC2oxZAtAbYjZANRJnwiIsxglWFdbPZCny2Pln7PIoQV7rjNPQwrzipmInT7oLpf8Eje0I1zUHJ1q6jMXn0hBKOQVdE5ANv21CFYEdSvqC3fK5WpyOotLqlEAxGWjU4z05u2wQp8aUAU1fOGlJDSnbkDQZDZD';
+        // $accessToken = 'EAAFPacE8OhcBO25mND6aXH1GEarlXm7o9uz2M0Eq3VSiZBtRUr7X0oAyDtRVzdtFNZCjfI0LkJDOF6MC2oxZAtAbYjZANRJnwiIsxglWFdbPZCny2Pln7PIoQV7rjNPQwrzipmInT7oLpf8Eje0I1zUHJ1q6jMXn0hBKOQVdE5ANv21CFYEdSvqC3fK5WpyOotLqlEAxGWjU4z05u2wQp8aUAU1fOGlJDSnbkDQZDZD';
 
 
         $client = new Client();

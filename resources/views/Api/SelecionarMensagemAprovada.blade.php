@@ -67,6 +67,13 @@
                             </div>
 
 
+                                                    <div class="col-sm-6">
+                            <label for="token_type" style="color: black;">Tipo de Token</label>
+                            <select required class="form-control" id="token_type" name="token_type">
+                                <option value="token24horas">Token 24 Horas</option>
+                                <option value="tokenpermanenteusuario">Token Permanente do Usuário</option>
+                            </select>
+                        </div>
 
 
 

@@ -19,6 +19,18 @@
                 @enderror
             </div>
 
+            <div class="col-12">
+                <label for="identificacaocontawhatsappbusiness">Identificação da conta do Whatsapp business</label>
+                <input class="form-control @error('identificacaocontawhatsappbusiness') is-invalid @else is-valid @enderror"
+                 name="identificacaocontawhatsappbusiness"
+                 type="text" required id=" identificacaocontawhatsappbusiness"
+                  value="{{$WebhookConfig->identificacaocontawhatsappbusiness ?? null}}">
+                @error('nome')
+                <div class="alert alert-danger">{{ $message }}</div>
+                @enderror
+            </div>
+
+
 
 
             <div class="col-12">

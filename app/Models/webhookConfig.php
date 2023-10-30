@@ -18,7 +18,7 @@ class webhookConfig extends Model
         'tokenpermanenteusuario',
         'usuario',
         'identificacaonumerotelefone',
-        'identificacaocontawhatsapp',
+        'identificacaocontawhatsappbusiness',
     ];
 
 }
