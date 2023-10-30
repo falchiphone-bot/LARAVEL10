@@ -17,6 +17,8 @@ class webhookConfig extends Model
         'token24horas',
         'tokenpermanenteusuario',
         'usuario',
+        'identificacaonumerotelefone',
+        'identificacaocontawhatsapp',
     ];
 
 }

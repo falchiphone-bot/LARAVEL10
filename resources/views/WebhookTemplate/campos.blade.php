@@ -21,13 +21,18 @@
                 @enderror
             </div>
 
+
+
             <div class="col-12">
-                <label for="texto">Texto</label>
-                    <textarea id="texto" name="texto" rows="4" cols="50" class="form-control"></textarea>
-                @error('nome')
-                    <div class="alert alert-danger">{{ $message }}</div>
+                <label for="texto">Token 24 horas</label>
+                <textarea id="texto" name="texto" rows="4" cols="50" class="form-control">
+                {{ $WebhookTemplate->texto }}
+                </textarea>
+                @error('texto')
+                <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
             </div>
+
 
 
         </div>
