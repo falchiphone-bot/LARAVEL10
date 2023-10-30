@@ -26,6 +26,10 @@
                         <a href="{{ route('whatsapp.indexlista') }}">Retornar para a lista</a>
                     </div>
 
+
+                    <form action="{{ route('whatsapp.enviarMensagemResposta', $id) }}" method="POST">
+                    @csrf
+
                     <div class="card-body">
                         <h1>Preencher Texto da Mensagem</h1>
 
@@ -44,8 +48,16 @@
                                 Texto:{{ $model->body}}
                             </div>
 
-                        <form action="{{ route('whatsapp.enviarMensagemResposta', $id) }}" method="POST">
-                            @csrf
+                            <div class="col-sm-6">
+                            <label for="token_type" style="color: black;">Tipo de Token</label>
+                            <select required class="form-control" id="token_type" name="token_type">
+                                <option value="token24horas">Token 24 Horas</option>
+                                <option value="tokenpermanenteusuario">Token Permanente do Usuário</option>
+                            </select>
+                        </div>
+
+
+                        
                             <div class="form-group">
                                 <label for="mensagem">Mensagem:</label>
                                 <textarea id="mensagem" name="mensagem" rows="4" cols="50" class="form-control"></textarea>

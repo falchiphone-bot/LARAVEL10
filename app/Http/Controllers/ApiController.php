@@ -6,6 +6,7 @@ use App\Models\webhook;
 use App\Models\webhookContact;
 use App\Models\WebhookTemplate;
 use App\Models\WebhookConfig;
+use App\Services\WebhookServico;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Auth;
@@ -48,6 +49,7 @@ class ApiController extends Controller
         // return $data('hub_challenge');
         //////////////////////////////////////////////////////////////////////////
         $mergedData = array();
+        $Achou = null;
         $entry_id = null;
         $entry_time = null;
         $object = null;
@@ -253,7 +255,33 @@ class ApiController extends Controller
         ////// CUIDADO... NÃO COLOCAR ASPAS = "
         ////// E AQUI ABAIXO TAMBÉM
 
-        $newWebhook = webhook::create([
+
+        $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName);
+        if($status == 'read'){
+            $leumensagem = WebhookServico::
+            Agradecimento_por_ter_lido_mensagem_recebida($recipient_id);
+
+        }
+       
+
+        $Achou = webhook::where('status',$status)
+        ->where('messages_id',$messages_id)
+        ->where('conversation_id',$conversation_id)
+        ->first();
+       
+        if ($Achou 
+            && $Achou->status === $status
+            && $Achou->conversation_id === $conversation_id) {
+            Log::info('===============>>>> Achei um registro');
+            Log::info('Telefone - waId = '. $waId);
+            Log::info('Status - status = '. $status);
+            Log::info('body - body = '. $body);
+            Log::info('recipient_id - recipient_id = '. $recipient_id);
+            Log::info('messages_id - messages_id = '. $messages_id);
+            Log::info('messagesFrom - messagesFrom = '. $messagesFrom);
+         }
+      
+            $newWebhook = webhook::create([
             'webhook' => $jsonData ?? null,
             'entry_id' => $entry_id ?? null,
             'entry_time' => $entry_time ?? null,
@@ -289,11 +317,17 @@ class ApiController extends Controller
             'changes_value_metadata_phone_number_id' => $changes_value_metadata_phone_number_id ?? null,
             'changes_value_ban_info_waba_ban_state' => $changes_value_ban_info_waba_ban_state ?? null,
             'changes_value_ban_info_waba_ban_date' => $changes_value_ban_info_waba_ban_date ?? null,
-        ]);
+            ]
+            );
 
-        $recipient_id = $recipient_id;
-        $contactName = $contactName;
-        $newWebhookContact = WebhookServico::updateOrCreateWebhookContact($recipient_id, $contactName);
+            Log::info('Inseri registro no bd: ' . $body);
+      
+       
+        // $recipient_id = $recipient_id;
+        // $contactName = $contactName;
+        
+
+
 
         $value = $request['hub_challenge'];
         return response($value);
@@ -1088,6 +1122,13 @@ class ApiController extends Controller
     public function enviarMensagemResposta(Request $request, $id)
     {
 
+
+        $request->validate([
+            'token_type' => 'required|in:token24horas,tokenpermanenteusuario',
+        ]);
+        $token = $request->token_type;
+ 
+
         $model = webhook::find($id);
 
         $message = $request->input('mensagem');
@@ -1099,8 +1140,24 @@ class ApiController extends Controller
             }
 
 
+
+            $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
+            $accessToken = null;
+            if ($token == 'token24horas') {
+                $accessToken = $WebhookConfig->token24horas;
+            } elseif ($token == 'tokenpermanenteusuario') {
+                $accessToken = $WebhookConfig->tokenpermanenteusuario;
+            }  
+            if($accessToken == null){
+                session()
+                ->flash('MensagemNaoPreenchida', 'Token não definido por algum erro. Verifique. Linha 1142!');
+                return redirect()->back();
+            }
+
+
+
         // $accessToken = 'EAAFPacE8OhcBO2ZCOyNEyeLuFG1s1gZCZBwTgwZBMgLpdtgMRVulaGVzo1ZB1Eddd5tq3ZCUvoO2CtsZB6rniI6VVbVQ9XHe5zJBZB5ARFVqGINLVtUC0RZBI5M3LOQrWZCrQsRHjaPPaWljZCftlv3GKZB0UpSTbWLbAXSqZC0cnCer2ge0lqlFRx7uEaZBzsrZBol2XjyuexEzlt2ceTPNBytXEn9m7MsNnchDHvrYw0ZD';
-       $accessToken = 'EAAFPacE8OhcBOz023aCrHJFZCNZCX3qqQ8D7gaV1UqVCyvwyrIeQsvEDGGAAIZAaHO03fLImmHUInHWjzqJIrOQdPaRFy4ZCLp2ZAZApzpQfcXM63h0HvFwfAUVpdFclgS5UnmtJ7C2Dsbby26EcdiK80QeDffnTZAGM6JiwExhs1ICxzHVZCKgdZAgQCVWhbn3viLAyepcsjRTa4k8YoUKOMAWzs1uEaKxhlRw2LFuC1J41b6obhfrgc';
+    //    $accessToken = 'EAAFPacE8OhcBOz023aCrHJFZCNZCX3qqQ8D7gaV1UqVCyvwyrIeQsvEDGGAAIZAaHO03fLImmHUInHWjzqJIrOQdPaRFy4ZCLp2ZAZApzpQfcXM63h0HvFwfAUVpdFclgS5UnmtJ7C2Dsbby26EcdiK80QeDffnTZAGM6JiwExhs1ICxzHVZCKgdZAgQCVWhbn3viLAyepcsjRTa4k8YoUKOMAWzs1uEaKxhlRw2LFuC1J41b6obhfrgc';
 
 
 
@@ -1117,7 +1174,7 @@ class ApiController extends Controller
             'to' => $phone, // Número de telefone de destino
             'type' => 'text',
             'text' => [
-                'body' => $message,
+                'body' => 'Resposdendo o texto: '. $model->body . 'Resposta: ' .$message,
             ],
         ];
 
@@ -1158,7 +1215,7 @@ class ApiController extends Controller
 
             $recipient_id = $requestData['to'];
             $contactName = $model->contactName;
-            $newWebhookContact = WebhookServico::updateOrCreateWebhookContact($recipient_id, $contactName);
+            $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName);
 
 
             session()->flash('success', 'Mensagem enviada com sucesso para ' . $model->contactName .  '.');
@@ -1171,7 +1228,10 @@ class ApiController extends Controller
 
     public function SelecionarMensagemAprovada()
     {
-        $contatos = webhookContact::orderBy('contactName')->get();
+        $contatos = webhookContact::where('recipient_id', '!=', null)
+        ->orderBy('contactName')
+        ->get();
+
         $template = WebhookTemplate::orderBy('Name')->get();
 
 
@@ -1207,7 +1267,7 @@ class ApiController extends Controller
 
 
 
-        $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get();
+        $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
 
         if ($token == 'token24horas') {
             $accessToken = $WebhookConfig->token24horas;
