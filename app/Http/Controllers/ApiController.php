@@ -257,11 +257,13 @@ class ApiController extends Controller
 
 
         $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName);
-        if($status == 'read'){
-            $leumensagem = WebhookServico::
-            Agradecimento_por_ter_lido_mensagem_recebida($recipient_id);
-
-        }
+        
+        // if($status == 'read'){
+        //     $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
+        //     $accessToken = $WebhookConfig->token24horas;
+        //     $leumensagem = WebhookServico::
+        //     Agradecimento_por_ter_lido_mensagem_recebida($recipient_id, $accessToken);
+        // }
        
 
         $Achou = webhook::where('status',$status)
@@ -1164,10 +1166,7 @@ class ApiController extends Controller
 
         $client = new Client();
         $phone = $model->messagesFrom; // Número de telefone de destino
-
-
         $client = new Client();
-
         $requestData = [];
         $requestData = [
             'messaging_product' => 'whatsapp',
@@ -1177,12 +1176,8 @@ class ApiController extends Controller
                 'body' => 'Resposdendo o texto: '. $model->body . 'Resposta: ' .$message,
             ],
         ];
-
-
-
         $response = $client->post(
             'https://graph.facebook.com/v17.0/147126925154132/messages',
-
             [
 
                 'headers' => [
@@ -1192,8 +1187,6 @@ class ApiController extends Controller
                 'json' => $requestData,
             ]
         );
-
-
         // Verifique a resposta
         if ($response->getStatusCode() == 200) {
             $responseData = json_decode($response->getBody());
@@ -1216,8 +1209,6 @@ class ApiController extends Controller
             $recipient_id = $requestData['to'];
             $contactName = $model->contactName;
             $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName);
-
-
             session()->flash('success', 'Mensagem enviada com sucesso para ' . $model->contactName .  '.');
             return redirect(route('whatsapp.indexlista'));
         } else {
