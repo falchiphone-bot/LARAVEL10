@@ -57,9 +57,13 @@ class ApiController extends Controller
         $body = null;
         $profile = null;
         $contactName = null;
+        $filename = null;
+        $caption = null;
         $waId = null;
         $body = null;
         $mime_type = null;
+        $image_id = null;
+        $image_sha256 = null;
         $image_mime_type = null;
         $statuses = null;
         $status =  'received';
@@ -97,6 +101,15 @@ class ApiController extends Controller
             $entry_time = $entry['time'] ?? null;
 
             $changes = $entry['changes'][0] ?? null;
+
+
+            $image =  $data['entry'][0]['changes'][0]['value']['messages'][0]['image'] ?? null;
+            if($image)
+            {
+                $image_sha256 = $image['sha256'];
+                $image_id = $image['id'];
+
+            }
 
             if ($changes) {
                 $value = $changes['value'] ?? null;
@@ -209,6 +222,8 @@ class ApiController extends Controller
             . "text: " . $body . "\n"
             . "mime_type: " . $mime_type . "\n"
             . "filename: " . $filename . "\n"
+            . "image_id: " . $image_id . "\n"
+            . "image_sha256: " . $image_sha256 . "\n"
             . "image_mime_type: " . $image_mime_type . "\n"
             . "caption: " . $caption . "\n"
             . "status: " . $status . "\n"
@@ -304,8 +319,12 @@ class ApiController extends Controller
             'waId' => $waId ?? null,
             'body' => $body ?? null,
             'text' => $text ?? null,
+            'image_id' => $image_id ?? null,
+            'image_sha256' => $image_sha256 ?? null,
             'mime_type' => $mime_type ?? null,
             'filename' => $filename ?? null,
+            'image_id' => $image_id,
+            'image_sha256'  => $image_sha256,
             'image_mime_type' => $image_mime_type ?? null,
             'caption' => $caption ?? null,
             'status' => $status ?? null,
@@ -935,9 +954,16 @@ class ApiController extends Controller
             $entry_time = $entry['time'] ?? null;
 
             $changes = $entry['changes'][0] ?? null;
-            $image1 = $data['entry'];
-            $image =  $data['entry'][0]['changes'][0]['value']['messages'][0]['images'] ?? null;
+ 
+            $image =  $data['entry'][0]['changes'][0]['value']['messages'][0]['image'] ?? null;
+ 
 
+            if($image)
+            {
+                $image_sha256 = $image['sha256'];
+                $image_id = $image['id'];
+
+            }
 
 
             if ($changes) {
@@ -1020,12 +1046,7 @@ class ApiController extends Controller
                 }
             }
 
-            if($image)
-            {
-                $image_sha256 = $image['sha256'];
-                $image_id = $image['id'];
-
-            }
+            
         }
 
         //////////////////////////////////////////////////////////////////////////
@@ -1274,14 +1295,10 @@ class ApiController extends Controller
         $recipient_id = $contatos->recipient_id;
         $contactName = $contatos->contactName;
 
-
         $template = WebhookTemplate::find($efetuar['idtemplate']);
-
 
         $name = $template->name  ;
         $language = $template->language;
-
-
 
         $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
 
@@ -1291,13 +1308,6 @@ class ApiController extends Controller
             // dd($WebhookConfig);
             $accessToken = $WebhookConfig->tokenpermanenteusuario;
         }
-
-
-        // $accessToken = 'EAALZBJb4ieTcBO8Yemzg41ZASqQgq3KsH3ve15cW8DzWBtPnobeDW6uaJeOO5hfQ8yMZBJlsBuHDecUGeYrlAAhZAorUnOOJHfRJ5wqvUdAEOCJsLfvZC9EZBFZCQAOTtr0hheg3SAZA88Q0aK9EX6NMqygeRy9WDps094Rxhzx6mGmEsBr7EzZCeEls6uvrp9WlfmzMZCvvDZCMduMZAXLjio4ZBkzAIktiCzzvMysWpQDqZC1L9Ia94s9ZBhY'; // Substitua pelo seu token de acesso
-
-        // $accessToken = 'EAAFPacE8OhcBO2ZCOyNEyeLuFG1s1gZCZBwTgwZBMgLpdtgMRVulaGVzo1ZB1Eddd5tq3ZCUvoO2CtsZB6rniI6VVbVQ9XHe5zJBZB5ARFVqGINLVtUC0RZBI5M3LOQrWZCrQsRHjaPPaWljZCftlv3GKZB0UpSTbWLbAXSqZC0cnCer2ge0lqlFRx7uEaZBzsrZBol2XjyuexEzlt2ceTPNBytXEn9m7MsNnchDHvrYw0ZD';
-        // $accessToken = 'EAAFPacE8OhcBO25mND6aXH1GEarlXm7o9uz2M0Eq3VSiZBtRUr7X0oAyDtRVzdtFNZCjfI0LkJDOF6MC2oxZAtAbYjZANRJnwiIsxglWFdbPZCny2Pln7PIoQV7rjNPQwrzipmInT7oLpf8Eje0I1zUHJ1q6jMXn0hBKOQVdE5ANv21CFYEdSvqC3fK5WpyOotLqlEAxGWjU4z05u2wQp8aUAU1fOGlJDSnbkDQZDZD';
-
 
         $client = new Client();
 
@@ -1380,7 +1390,7 @@ class ApiController extends Controller
             // Salva o conteúdo da resposta no arquivo
             file_put_contents($filePath, $response->getBody());
 
-            
+
 
             return redirect('/file.jpg');
 
