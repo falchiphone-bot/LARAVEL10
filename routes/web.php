@@ -150,7 +150,7 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
  Route::get('/whatsapp/Pegar_URL_Arquivo/{id}', [App\Http\Controllers\ApiController::class,
  'Pegar_URL_Arquivo'])->name('whatsapp.Pegar_URL_Arquivo');
 
- Route::get('/whatsapp/Baixar_Arquivo/{id}', [App\Http\Controllers\ApiController::class,
+ Route::get('/whatsapp/Baixar_Arquivo/{url}', [App\Http\Controllers\ApiController::class,
  'Baixar_Arquivo'])->name('whatsapp.Baixar_Arquivo');
 
  Route::resource('Templates', App\Http\Controllers\WebhookTemplateController::class);

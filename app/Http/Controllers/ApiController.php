@@ -1312,9 +1312,7 @@ class ApiController extends Controller
                 ],
             ],
         ];
-        // https://graph.facebook.com/v17.0/125892007279954/messages
-        // https://graph.facebook.com/v17.0/157689817424024/messages
-        $response = $client->post(
+          $response = $client->post(
             'https://graph.facebook.com/v17.0/147126925154132/messages',
             [
                 'headers' => [
@@ -1369,36 +1367,30 @@ class ApiController extends Controller
 
         if ($response->getStatusCode() == 200) {
             $responseData = json_decode($response->getBody());
-            // DD($responseData);
-            return redirect(route('whatsapp.Baixar_Arquivo',$responseData->url));
+
+            $response = $client->get(trim($responseData->url), [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $accessToken,
+                ],
+            ]);
+
+            // Definindo o caminho onde a imagem será salva
+            $filePath = 'file.jpg';  // Substitua pelo caminho desejado
+
+            // Salva o conteúdo da resposta no arquivo
+            file_put_contents($filePath, $response->getBody());
+
+            
+
+            return redirect('/file.jpg');
+
+            //return redirect(route('whatsapp.Baixar_Arquivo',"$responseData->url"));
         } else {
             // Manipule erros, se houver
             echo 'Erro ao enviar a mensagem: ' . $response->getBody();
         }
     }
-    public function Baixar_Arquivo(string $id)
-    {
-        $accessToken = WebhookServico::token24horas();
-        $client = new Client();
-
-        $response = $client->get("https://graph.facebook.com/v18.0/".trim($id),
-        [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $accessToken,
-                'Content-Type' => 'application/json',
-            ],
-         ]
-    );
-
-        if ($response->getStatusCode() == 200) {
-            $responseData = json_decode($response->getBody());
-            DD($responseData);
-            return redirect(route('whatsapp.indexlista'));
-        } else {
-            // Manipule erros, se houver
-            echo 'Erro ao enviar a mensagem: ' . $response->getBody();
-        }
-    }
+   
 
 
 }
