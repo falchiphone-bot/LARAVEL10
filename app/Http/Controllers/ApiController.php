@@ -257,16 +257,16 @@ class ApiController extends Controller
 
 
         $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName);
-        
-        
-       
+
+
+
 
         $Achou = webhook::where('status',$status)
         ->where('messages_id',$messages_id)
         ->where('conversation_id',$conversation_id)
         ->first();
-       
-        if ($Achou 
+
+        if ($Achou
             && $Achou->status === $status
             && $Achou->messages_id === $messages_id
             && $Achou->conversation_id === $conversation_id) {
@@ -292,7 +292,7 @@ class ApiController extends Controller
 
 
             }
-      
+
             $newWebhook = webhook::create([
             'webhook' => $jsonData ?? null,
             'entry_id' => $entry_id ?? null,
@@ -333,11 +333,11 @@ class ApiController extends Controller
             );
 
             Log::info('Inseri registro no bd: ' . $body);
-      
-       
+
+
         // $recipient_id = $recipient_id;
         // $contactName = $contactName;
-        
+
 
 
 
@@ -938,7 +938,7 @@ class ApiController extends Controller
             $image1 = $data['entry'];
             $image =  $data['entry'][0]['changes'][0]['value']['messages'][0]['images'] ?? null;
 
-       
+
 
             if ($changes) {
                 $value = $changes['value'] ?? null;
@@ -1023,7 +1023,7 @@ class ApiController extends Controller
             if($image)
             {
                 $image_sha256 = $image['sha256'];
-                $image_id = $image['id']; 
+                $image_id = $image['id'];
 
             }
         }
@@ -1153,7 +1153,7 @@ class ApiController extends Controller
             'token_type' => 'required|in:token24horas,tokenpermanenteusuario',
         ]);
         $token = $request->token_type;
- 
+
 
         $model = webhook::find($id);
 
@@ -1173,7 +1173,7 @@ class ApiController extends Controller
                 $accessToken = $WebhookConfig->token24horas;
             } elseif ($token == 'tokenpermanenteusuario') {
                 $accessToken = $WebhookConfig->tokenpermanenteusuario;
-            }  
+            }
             if($accessToken == null){
                 session()
                 ->flash('MensagemNaoPreenchida', 'Token não definido por algum erro. Verifique. Linha 1142!');
@@ -1290,8 +1290,8 @@ class ApiController extends Controller
         } elseif ($token == 'tokenpermanenteusuario') {
             // dd($WebhookConfig);
             $accessToken = $WebhookConfig->tokenpermanenteusuario;
-        }                                   
-        
+        }
+
 
         // $accessToken = 'EAALZBJb4ieTcBO8Yemzg41ZASqQgq3KsH3ve15cW8DzWBtPnobeDW6uaJeOO5hfQ8yMZBJlsBuHDecUGeYrlAAhZAorUnOOJHfRJ5wqvUdAEOCJsLfvZC9EZBFZCQAOTtr0hheg3SAZA88Q0aK9EX6NMqygeRy9WDps094Rxhzx6mGmEsBr7EzZCeEls6uvrp9WlfmzMZCvvDZCMduMZAXLjio4ZBkzAIktiCzzvMysWpQDqZC1L9Ia94s9ZBhY'; // Substitua pelo seu token de acesso
 
@@ -1356,59 +1356,49 @@ class ApiController extends Controller
 
     public function Pegar_URL_Arquivo(string $id)
     {
-
         $accessToken = WebhookServico::token24horas();
-
-        $model = webhook::find($id);
-
         $client = new Client();
-        $phone = $model->messagesFrom; // Número de telefone de destino
-        $client = new Client();
-        $requestData = [];
-        $requestData = [
-            'messaging_product' => 'whatsapp',
-            'to' => $phone, // Número de telefone de destino
-            'type' => 'text',
-            'text' => [
-                // 'body' => 'Resposdendo o texto: '. $model->body . 'Resposta: ' .$message,
-                'body' => $message,
-            ],
-        ];
-        $response = $client->post(
-            'https://graph.facebook.com/v17.0/147126925154132/messages',
+        $response = $client->get("https://graph.facebook.com/v18.0/".trim($id),
             [
-
                 'headers' => [
                     'Authorization' => 'Bearer ' . $accessToken,
                     'Content-Type' => 'application/json',
                 ],
-                'json' => $requestData,
-            ]
+             ]
         );
- 
+
         if ($response->getStatusCode() == 200) {
             $responseData = json_decode($response->getBody());
-            
-            // $newWebhook = webhook::create([
-            //     'webhook' => json_encode($requestData) ?? null,
-            //     'value_messaging_product' => $requestData['messaging_product'] ?? null,
-            //     'object' => $requestData['messaging_product'] ?? null,
-            //     'contactName' => $model->contactName ?? null,
-            //     'recipient_id' => $requestData['to'] ?? null,
-            //     'type' => $requestData['type'] ?? null,
-            //     'body' => $requestData['text']['body'] ?? null,
-            //     'status' => 'sent' ?? null,
-            ]);
+            // DD($responseData);
+            return redirect(route('whatsapp.Baixar_Arquivo',$responseData->url));
+        } else {
+            // Manipule erros, se houver
+            echo 'Erro ao enviar a mensagem: ' . $response->getBody();
+        }
+    }
+    public function Baixar_Arquivo(string $id)
+    {
+        $accessToken = WebhookServico::token24horas();
+        $client = new Client();
 
-            
+        $response = $client->get("https://graph.facebook.com/v18.0/".trim($id),
+        [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $accessToken,
+                'Content-Type' => 'application/json',
+            ],
+         ]
+    );
+
+        if ($response->getStatusCode() == 200) {
+            $responseData = json_decode($response->getBody());
+            DD($responseData);
             return redirect(route('whatsapp.indexlista'));
         } else {
             // Manipule erros, se houver
             echo 'Erro ao enviar a mensagem: ' . $response->getBody();
         }
     }
-
-
 
 
 }
