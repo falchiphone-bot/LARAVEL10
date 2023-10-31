@@ -3,6 +3,7 @@ namespace App\Services;
 use GuzzleHttp\Client;
 
 use App\Models\WebhookContact;
+use App\Models\WebhookConfig;
 
 class WebhookServico
 {
@@ -72,4 +73,12 @@ class WebhookServico
  
     }
 
+    public static function Token24horas()
+    {
+        $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
+        $accessToken = $WebhookConfig->token24horas;
+
+        return $accessToken;
+
+    } 
 }

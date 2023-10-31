@@ -211,6 +211,20 @@
     <td>Status da mensagem:</td>
     <td>{{ $model->status }}</td>
   </tr>
+  <tr>
+    <td>Tipo da imagem:</td>
+    <td>{{ $model->image_mime_type}}</td>
+  </tr>
+  <tr>
+    <td>Imagem ID:</td>
+    <td>{{ $model->image_id }}</td>
+    <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $model->image_id) }}"
+                            class="btn btn-warning" tabindex="-1" role="button" aria-disabled="true">Ver arquivo</a>
+  </tr>
+  <tr>
+    <td>Imagem sha256:</td>
+    <td>{{ $model->image_sha256 }}</td>
+  </tr>
 </table>
 
 </body>

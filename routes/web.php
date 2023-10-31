@@ -146,6 +146,10 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
  Route::get('/whatsapp/indexlista', [App\Http\Controllers\ApiController::class, 'indexlista'])->name('whatsapp.indexlista');
 
  Route::get('/whatsapp/salvararquivoPostWebhook', [App\Http\Controllers\ApiController::class, 'salvararquivoPostWebhook'])->name('whatsapp.salvararquivoPostWebhook');
+ 
+ Route::get('/whatsapp/Pegar_URL_Arquivo/{id}', [App\Http\Controllers\ApiController::class, 
+ 'Pegar_URL_Arquivo'])->name('whatsapp.Pegar_URL_Arquivo');
+
  Route::resource('Templates', App\Http\Controllers\WebhookTemplateController::class);
 
 Route::resource('WebhookConfig', App\Http\Controllers\WebhookConfigController::class);

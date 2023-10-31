@@ -898,6 +898,8 @@ class ApiController extends Controller
         $document = null;
         $filename = null;
         $mime_type = null;
+        $image_id = null;
+        $image_sha256 = null;
         $image_mime_type = null;
         $statuses = null;
         $status =  'received';
@@ -924,19 +926,19 @@ class ApiController extends Controller
         $changes_value_ban_info_waba_ban_date = null;
 
 
-        // $jsonData = $dataString;
-        // $data = json_decode($jsonData, true);
-
         $object = $data['object'] ?? null;
         $entry = $data['entry'][0] ?? null;
 
 
         if ($entry) {
-
             $entry_id = $entry['id'] ?? null;
             $entry_time = $entry['time'] ?? null;
 
             $changes = $entry['changes'][0] ?? null;
+            $image1 = $data['entry'];
+            $image =  $data['entry'][0]['changes'][0]['value']['messages'][0]['images'] ?? null;
+
+       
 
             if ($changes) {
                 $value = $changes['value'] ?? null;
@@ -1017,6 +1019,13 @@ class ApiController extends Controller
                     $changes_value_ban_info_waba_ban_date =  $ban_info['waba_ban_date'] ?? null;
                 }
             }
+
+            if($image)
+            {
+                $image_sha256 = $image['sha256'];
+                $image_id = $image['id']; 
+
+            }
         }
 
         //////////////////////////////////////////////////////////////////////////
@@ -1038,6 +1047,8 @@ class ApiController extends Controller
             'text' => $text ?? null,
             'mime_type' => $mime_type ?? null,
             'filename' => $filename ?? null,
+            'image_id' => $image_id ?? null,
+            'image_sha256' => $image_sha256 ?? null,
             'image_mime_type' => $image_mime_type ?? null,
             'caption' => $caption ?? null,
             'status' => $status ?? null,
@@ -1082,6 +1093,9 @@ class ApiController extends Controller
             . "text: " . $body . "\n"
             . "mime_type: " . $mime_type . "\n"
             . "filename: " . $filename . "\n"
+            . "image_mime_type: " . $image_mime_type . "\n"
+            . "image_id: " . $image_id . "\n"
+            . "image_sha256: " . $image_sha256 . "\n"
             . "image_mime_type: " . $image_mime_type . "\n"
             . "caption: " . $caption . "\n"
             . "status: " . $status . "\n"
@@ -1339,6 +1353,61 @@ class ApiController extends Controller
             echo 'Erro ao enviar a mensagem: ' . $response->getBody();
         }
     }
+
+    public function Pegar_URL_Arquivo(string $id)
+    {
+
+        $accessToken = WebhookServico::token24horas();
+
+        $model = webhook::find($id);
+
+        $client = new Client();
+        $phone = $model->messagesFrom; // Número de telefone de destino
+        $client = new Client();
+        $requestData = [];
+        $requestData = [
+            'messaging_product' => 'whatsapp',
+            'to' => $phone, // Número de telefone de destino
+            'type' => 'text',
+            'text' => [
+                // 'body' => 'Resposdendo o texto: '. $model->body . 'Resposta: ' .$message,
+                'body' => $message,
+            ],
+        ];
+        $response = $client->post(
+            'https://graph.facebook.com/v17.0/147126925154132/messages',
+            [
+
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $accessToken,
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => $requestData,
+            ]
+        );
+ 
+        if ($response->getStatusCode() == 200) {
+            $responseData = json_decode($response->getBody());
+            
+            // $newWebhook = webhook::create([
+            //     'webhook' => json_encode($requestData) ?? null,
+            //     'value_messaging_product' => $requestData['messaging_product'] ?? null,
+            //     'object' => $requestData['messaging_product'] ?? null,
+            //     'contactName' => $model->contactName ?? null,
+            //     'recipient_id' => $requestData['to'] ?? null,
+            //     'type' => $requestData['type'] ?? null,
+            //     'body' => $requestData['text']['body'] ?? null,
+            //     'status' => 'sent' ?? null,
+            ]);
+
+            
+            return redirect(route('whatsapp.indexlista'));
+        } else {
+            // Manipule erros, se houver
+            echo 'Erro ao enviar a mensagem: ' . $response->getBody();
+        }
+    }
+
 
 
 

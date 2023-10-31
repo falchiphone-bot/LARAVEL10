@@ -25,6 +25,8 @@ class Webhook extends Model
         'body',
         'mime_type',
         'filename',
+        'image_id',
+        'image_sha256',
         'image_mime_type',
         'caption',
         'status',
