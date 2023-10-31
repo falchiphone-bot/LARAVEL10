@@ -199,13 +199,13 @@
                         </td>
 
 
-                        @can('CATEGORIAS - VER')
+                        @can('WHATSAPP - DETALHAR REGISTRO) 
                         <td>
                             <a href="{{ route('whatsapp.registro', $models['id']) }}" class="btn btn-info" tabindex="-1" role="button" aria-disabled="true">Ver</a>
                         </td>
                         @endcan
 
-                        @can('CATEGORIAS - VER')
+                        @can('WHATSAPP - ATUALIZAR REGISTRO')
                         <td>
                             <a href="{{ route('whatsapp.atualizaregistro', $models['id']) }}"
                             class="btn btn-success" tabindex="-1" role="button" aria-disabled="true">Atualizar registro</a>
