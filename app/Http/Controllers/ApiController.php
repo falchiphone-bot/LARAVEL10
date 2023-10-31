@@ -954,9 +954,9 @@ class ApiController extends Controller
             $entry_time = $entry['time'] ?? null;
 
             $changes = $entry['changes'][0] ?? null;
- 
+
             $image =  $data['entry'][0]['changes'][0]['value']['messages'][0]['image'] ?? null;
- 
+
 
             if($image)
             {
@@ -1046,7 +1046,7 @@ class ApiController extends Controller
                 }
             }
 
-            
+
         }
 
         //////////////////////////////////////////////////////////////////////////
@@ -1400,7 +1400,7 @@ class ApiController extends Controller
             echo 'Erro ao enviar a mensagem: ' . $response->getBody();
         }
     }
-   
+
 
 
 }
