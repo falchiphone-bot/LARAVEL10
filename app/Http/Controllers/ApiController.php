@@ -65,6 +65,10 @@ class ApiController extends Controller
         $image_id = null;
         $image_sha256 = null;
         $image_mime_type = null;
+        $document_filename = null;
+        $document_mime_type = null;
+        $document_sha256 = null;
+        $document_id = null;
         $statuses = null;
         $status =  'received';
         $recipient_id =  null;
@@ -101,6 +105,16 @@ class ApiController extends Controller
             $entry_time = $entry['time'] ?? null;
 
             $changes = $entry['changes'][0] ?? null;
+
+
+            $document =  $data['entry'][0]['changes'][0]['value']['messages'][0]['document'] ?? null;
+            if($document)
+            {
+                $document_filename = $document['filename'];
+                $document_mime_type = $document['mime_type'];
+                $document_sha256 = $document['sha256'];
+                $document_id = $document['id'];
+            }
 
 
             $image =  $data['entry'][0]['changes'][0]['value']['messages'][0]['image'] ?? null;
@@ -222,6 +236,11 @@ class ApiController extends Controller
             . "text: " . $body . "\n"
             . "mime_type: " . $mime_type . "\n"
             . "filename: " . $filename . "\n"
+            . "document_filename" . $document_filename . "\n"
+            . "document_mime_type" . $document_mime_type . "\n"
+            . "document_sha256" . $document_sha256  . "\n"
+            . 'document_id' . $document_id . "\n"
+            . "image_mime_type: " . $image_mime_type . "\n"
             . "image_id: " . $image_id . "\n"
             . "image_sha256: " . $image_sha256 . "\n"
             . "image_mime_type: " . $image_mime_type . "\n"
@@ -319,10 +338,12 @@ class ApiController extends Controller
             'waId' => $waId ?? null,
             'body' => $body ?? null,
             'text' => $text ?? null,
-            'image_id' => $image_id ?? null,
-            'image_sha256' => $image_sha256 ?? null,
             'mime_type' => $mime_type ?? null,
             'filename' => $filename ?? null,
+            'document_filename' => $document_filename ?? null,
+            'document_mime_type' => $document_mime_type ?? null,
+            'document_sha256' => $document_sha256 ?? null,
+            'document_id' => $document_id ?? null,
             'image_id' => $image_id,
             'image_sha256'  => $image_sha256,
             'image_mime_type' => $image_mime_type ?? null,
@@ -916,6 +937,10 @@ class ApiController extends Controller
         $image_id = null;
         $image_sha256 = null;
         $image_mime_type = null;
+        $document_filename = null;
+        $document_mime_type = null;
+        $document_sha256 = null;
+        $document_id = null;
         $statuses = null;
         $status =  'received';
         $recipient_id =  null;
@@ -951,9 +976,21 @@ class ApiController extends Controller
 
             $changes = $entry['changes'][0] ?? null;
 
-            $image =  $data['entry'][0]['changes'][0]['value']['messages'][0]['image'] ?? null;
+
+            $document =  $data['entry'][0]['changes'][0]['value']['messages'][0]['document'] ?? null;
 
 
+
+            if($document)
+            {
+                $document_filename = $document['filename'];
+                $document_mime_type = $document['mime_type'];
+                $document_sha256 = $document['sha256'];
+                $document_id = $document['id'];
+                // DD($document, $document_filename, $document_mime_type, $document_sha256, $document_id);
+            }
+
+             $image =  $data['entry'][0]['changes'][0]['value']['messages'][0]['image'] ?? null;
             if($image)
             {
                 $image_sha256 = $image['sha256'];
@@ -1064,6 +1101,10 @@ class ApiController extends Controller
             'text' => $text ?? null,
             'mime_type' => $mime_type ?? null,
             'filename' => $filename ?? null,
+            'document_filename' => $document_filename ?? null,
+            'document_mime_type' => $document_mime_type ?? null,
+            'document_sha256' => $document_sha256 ?? null,
+            'document_id' => $document_id ?? null,
             'image_id' => $image_id ?? null,
             'image_sha256' => $image_sha256 ?? null,
             'image_mime_type' => $image_mime_type ?? null,
@@ -1110,6 +1151,10 @@ class ApiController extends Controller
             . "text: " . $body . "\n"
             . "mime_type: " . $mime_type . "\n"
             . "filename: " . $filename . "\n"
+            . "document_filename" . $document_filename . "\n"
+            . "document_mime_type" . $document_mime_type . "\n"
+            . "document_sha256" . $document_sha256  . "\n"
+            . 'document_id' . $document_id . "\n"
             . "image_mime_type: " . $image_mime_type . "\n"
             . "image_id: " . $image_id . "\n"
             . "image_sha256: " . $image_sha256 . "\n"
