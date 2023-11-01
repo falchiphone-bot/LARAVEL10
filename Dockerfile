@@ -66,11 +66,11 @@ RUN composer install --optimize-autoloader
 RUN chmod +x /var/www/docker/run.sh
 
 #correcao do nodejs
-RUN apt-get update
-RUN apt-get remove nodejs
-RUN apt-get update
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-RUN apt-get install -y nodejs
+# RUN apt-get update
+# RUN apt-get remove nodejs
+# RUN apt-get update
+# RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+# RUN apt-get install -y nodejs
 
 #link pra re-instalacao do breeze
 #https://laravel.com/docs/10.x/starter-kits#main-content

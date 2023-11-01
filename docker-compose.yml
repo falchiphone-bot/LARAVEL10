@@ -12,9 +12,4 @@ services:
       - 443:443
     volumes:
       - .:/var/www
-    networks:
-      - ngrok_network
-
-networks:
-  ngrok_network:
-    driver: bridge
+     
