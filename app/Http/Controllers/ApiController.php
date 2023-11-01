@@ -1417,17 +1417,31 @@ class ApiController extends Controller
                 ],
             ]);
 
-dd($response);
-            $registrobd = webhook::where('image_id',$id)->first();
+
+            $registrobd = webhook::where('image_id', $id)
+            ->orWhere('document_id', $id)
+            ->first();
+
+
 
             $idtabela = $registrobd->id;
             $messages_id = $registrobd->messages_id;
             $value_messaging_product = $registrobd->value_messaging_product;
 
             $sufixo = null;
-            if($registrobd->image_mime_type == 'image/jpeg'){
-                $sufixo = '.jpg';
+            if($registrobd->messagesType == 'image'){
+                if($registrobd->image_mime_type == 'image/jpeg'){
+                    $sufixo = '.jpg';
+                }
             }
+
+            if($registrobd->messagesType == 'document'){
+                if($registrobd->document_mime_type == 'application/pdf'){
+                    $sufixo = '.pdf';
+                }
+
+            }
+
 
             $file =
                  'registro_'.$idtabela
