@@ -435,8 +435,6 @@ class ApiController extends Controller
     }
 
 
-
-
     public function enviarMensagemAprovadaAriane()
     {
 
@@ -518,8 +516,6 @@ class ApiController extends Controller
             echo 'Erro ao enviar a mensagem: ' . $response->getBody();
         }
     }
-
-
 
 
     public function indexlista()
@@ -1201,14 +1197,6 @@ class ApiController extends Controller
                 return redirect()->back();
             }
 
-
-
-        // $accessToken = 'EAAFPacE8OhcBO2ZCOyNEyeLuFG1s1gZCZBwTgwZBMgLpdtgMRVulaGVzo1ZB1Eddd5tq3ZCUvoO2CtsZB6rniI6VVbVQ9XHe5zJBZB5ARFVqGINLVtUC0RZBI5M3LOQrWZCrQsRHjaPPaWljZCftlv3GKZB0UpSTbWLbAXSqZC0cnCer2ge0lqlFRx7uEaZBzsrZBol2XjyuexEzlt2ceTPNBytXEn9m7MsNnchDHvrYw0ZD';
-    //    $accessToken = 'EAAFPacE8OhcBOz023aCrHJFZCNZCX3qqQ8D7gaV1UqVCyvwyrIeQsvEDGGAAIZAaHO03fLImmHUInHWjzqJIrOQdPaRFy4ZCLp2ZAZApzpQfcXM63h0HvFwfAUVpdFclgS5UnmtJ7C2Dsbby26EcdiK80QeDffnTZAGM6JiwExhs1ICxzHVZCKgdZAgQCVWhbn3viLAyepcsjRTa4k8YoUKOMAWzs1uEaKxhlRw2LFuC1J41b6obhfrgc';
-
-
-
-
         $client = new Client();
         $phone = $model->messagesFrom; // Número de telefone de destino
         $client = new Client();
@@ -1384,8 +1372,41 @@ class ApiController extends Controller
                 ],
             ]);
 
+
+            $registrobd = webhook::where('image_id',$id)->first();
+
+            $idtabela = $registrobd->id;
+            $messages_id = $registrobd->messages_id;
+            $value_messaging_product = $registrobd->value_messaging_product;
+
+            $sufixo = null;
+            if($registrobd->image_mime_type == 'image/jpeg'){
+                $sufixo = '.jpg';
+            }
+
+            $file =
+                 'registro_'.$idtabela
+                .'_image_id_'.trim($id)
+                .'_message_id_'.$messages_id
+                .'_value_messaging_product_'.$value_messaging_product
+                .$sufixo;
+
             // Definindo o caminho onde a imagem será salva
-            $filePath = 'file.jpg';  // Substitua pelo caminho desejado
+            $pastafisica = 'whatsapp/';
+
+            if (!file_exists($pastafisica)) {
+                // Verifique se a pasta não existe e, se não existir, crie-a
+                if (mkdir($pastafisica, 0777, true)) {
+                    echo 'A pasta foi criada com sucesso.';
+                } else {
+                    echo 'Não foi possível criar a pasta.';
+                }
+            } else {
+                echo 'A pasta já existe.';
+            }
+
+
+            $filePath = $pastafisica. $file;  // Substitua pelo caminho desejado
 
             // Salva o conteúdo da resposta no arquivo
             file_put_contents($filePath, $response->getBody());
