@@ -130,6 +130,11 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
 
 
 
+  Route::get('/storage/whatsapp/{filename}', function ($filename) {
+    // Coloque aqui a lógica para lidar com a requisição, como o envio do arquivo ou redirecionamento para ele.
+    // Você pode usar a função `response()->file()` para enviar o arquivo.
+    return response()->file('../storage/whatsapp/' . $filename);
+})->where('filename', '.*');
 
  Route::get('/whatsapp/registroresposta', function () { return view('api.registroresposta');})->name('whatsapp.registroresposta');
  Route::get('/whatsapp/enviarMensagemNova', [App\Http\Controllers\ApiController::class, 'enviarMensagemNova'])->name('whatsapp.enviarMensagemNova');

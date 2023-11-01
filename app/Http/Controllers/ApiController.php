@@ -1413,9 +1413,8 @@ class ApiController extends Controller
 
 
 
-            return redirect('/file.jpg');
+            return redirect($filePath);
 
-            //return redirect(route('whatsapp.Baixar_Arquivo',"$responseData->url"));
         } else {
             // Manipule erros, se houver
             echo 'Erro ao enviar a mensagem: ' . $response->getBody();
