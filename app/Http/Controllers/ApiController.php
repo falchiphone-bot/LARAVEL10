@@ -1392,7 +1392,7 @@ class ApiController extends Controller
                 .$sufixo;
 
             // Definindo o caminho onde a imagem será salva
-            $pastafisica = '/storage/whatsapp/';
+            $pastafisica = 'storage/whatsapp/';
 
             if (!file_exists($pastafisica)) {
                 // Verifique se a pasta não existe e, se não existir, crie-a
