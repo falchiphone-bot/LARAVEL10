@@ -42,6 +42,8 @@
   <tr>
     <th colspan="2">EXIBIÇÃO DO REGISTRO</th>
   </tr>
+
+
   <tr>
     <td>Data registro:</td>
     <td>
@@ -92,6 +94,25 @@
 </table>
 
 <table>
+
+    <tr>
+        @if($model->url_arquivo == null)
+
+                <td>Imagem ID:</td>
+                <td>{{ $model->image_id }}</td>
+                <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $model->image_id) }}"
+                                        class="btn btn-warning" tabindex="-1" role="button" aria-disabled="true">Ver arquivo</a>
+
+            @else
+
+                <td>Imagem</td>
+
+                <img src="{{ $model->url_arquivo }}" alt="Imagem JPG">
+
+
+        @endif
+    </tr>
+
   <tr>
     <th colspan="2">Outros Dados</th>
   </tr>
@@ -215,17 +236,33 @@
     <td>Tipo da imagem:</td>
     <td>{{ $model->image_mime_type}}</td>
   </tr>
-  <tr>
-    <td>Imagem ID:</td>
-    <td>{{ $model->image_id }}</td>
-    <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $model->image_id) }}"
-                            class="btn btn-warning" tabindex="-1" role="button" aria-disabled="true">Ver arquivo</a>
-  </tr>
+
+    <tr>
+        @if($model->url_arquivo == null)
+
+                <td>Imagem ID:</td>
+                <td>{{ $model->image_id }}</td>
+                <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $model->image_id) }}"
+                                        class="btn btn-warning" tabindex="-1" role="button" aria-disabled="true">Ver arquivo</a>
+
+            @else
+
+                <td>Imagem</td>
+                <td>{{ $model->url_arquivo }}</td>
+
+        @endif
+    </tr>
+
+
+
   <tr>
     <td>Imagem sha256:</td>
     <td>{{ $model->image_sha256 }}</td>
   </tr>
+
 </table>
+
+
 
 </body>
 </html>
