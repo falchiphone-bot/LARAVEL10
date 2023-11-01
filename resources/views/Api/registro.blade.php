@@ -126,10 +126,14 @@
                      class="btn btn-warning" tabindex="-1" role="button" aria-disabled="true">Ver arquivo documento</a>
                 @else
 
-                    <td>Docmento</td>
+                    <td>Documento</td>
                     <a href="{{ '../'.$model->url_arquivo }}" target="_blank" style="display: block; text-align: center;">
-                        <img src="{{ '../'.$model->url_arquivo }}" alt="Imagem JPG" width="300" height="300" style="display: block; margin: 0 auto;">
-                    </a>
+
+                    {{-- <td>Documento</td>
+                    <embed src="{{ '../'.$model->url_arquivo }}" type="application/pdf" width="300" height="300"> --}}
+
+                    <td>Documento qualquer format</td>
+                    <iframe src="{{ '../'.$model->url_arquivo }}" width="100%" height="1200"  target="_blank" style="border: none;"></iframe>
 
             @endif
         @endif
