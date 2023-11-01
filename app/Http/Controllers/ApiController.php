@@ -1397,12 +1397,12 @@ class ApiController extends Controller
             if (!file_exists($pastafisica)) {
                 // Verifique se a pasta não existe e, se não existir, crie-a
                 if (mkdir($pastafisica, 0777, true)) {
-                    echo 'A pasta foi criada com sucesso.';
+                    // echo 'A pasta foi criada com sucesso.';
                 } else {
-                    echo 'Não foi possível criar a pasta.';
+                    // echo 'Não foi possível criar a pasta.';
                 }
             } else {
-                echo 'A pasta já existe.';
+                // echo 'A pasta já existe.';
             }
 
 
@@ -1412,6 +1412,9 @@ class ApiController extends Controller
             file_put_contents($filePath, $response->getBody());
 
 
+            $registrobd->update([
+                'url_arquivo' => $filePath,
+            ]);
 
             return redirect($filePath);
 

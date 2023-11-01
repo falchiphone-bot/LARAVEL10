@@ -50,6 +50,7 @@ class Webhook extends Model
         'changes_metadata_value_phone_number_id',
         'changes_value_ban_info_waba_ban_state',
         'changes_value_ban_info_waba_ban_date',
+        'url_arquivo',
     ];
 
 }
