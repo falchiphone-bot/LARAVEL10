@@ -104,21 +104,29 @@
                 <tbody>
                     @foreach ($model as $models)
 
-  <td>
-                    @can('CATEGORIAS - VER')
-                      
-                        @if($models['messagesFrom'])
-                        <a href="{{ route('whatsapp.PreencherMensagemResposta', $models['id'] ) }}" class="btn btn-primary" tabindex="-1" role="button" aria-disabled="true">Responder</a>
-                        @endif
-                      
-                        @endcan
-                    <?php
 
-                        $dateString = $models['created_at'];
-                        $dateTime = new DateTime($dateString);
-                        $formattedDate = $dateTime->format("d/m/Y H:i:s");
-                    ?>
-  </td>
+                    <tr>
+                    @can('WHATSAPP - DETALHAR REGISTRO')
+                    <td>
+                        <a href="{{ route('whatsapp.registro', $models['id']) }}" class="btn btn-info" tabindex="-1" role="button" aria-disabled="true">Ver</a>
+                    </td>
+                </tr>
+                @endcan
+<td>
+                    @can('CATEGORIAS - VER')
+
+                                        @if($models['messagesFrom'])
+                                        <a href="{{ route('whatsapp.PreencherMensagemResposta', $models['id'] ) }}" class="btn btn-primary" tabindex="-1" role="button" aria-disabled="true">Responder</a>
+                                        @endif
+
+                    @endcan
+                                    <?php
+
+                                        $dateString = $models['created_at'];
+                                        $dateTime = new DateTime($dateString);
+                                        $formattedDate = $dateTime->format("d/m/Y H:i:s");
+                                    ?>
+                </td>
                     <tr>
                         <td class="">
                             {{
@@ -199,7 +207,7 @@
                         </td>
 
 
-                        @can('WHATSAPP - DETALHAR REGISTRO') 
+                        @can('WHATSAPP - DETALHAR REGISTRO')
                         <td>
                             <a href="{{ route('whatsapp.registro', $models['id']) }}" class="btn btn-info" tabindex="-1" role="button" aria-disabled="true">Ver</a>
                         </td>

@@ -103,7 +103,7 @@
                     <td>Imagem ID:</td>
                     <td>{{ $model->image_id }}</td>
                     <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $model->image_id) }}"
-                                            class="btn btn-warning" tabindex="-1" role="button" aria-disabled="true">Ver arquivo</a>
+                                            class="btn btn-warning" tabindex="-1" role="button" aria-disabled="true">Ver arquivo imagem</a>
 
                 @else
 
@@ -120,15 +120,13 @@
         @if ($model->messagesType == 'document')
 
             @if($model->url_arquivo == null)
-
-                    <td>Imagem ID:</td>
-                    <td>{{ $model->image_id }}</td>
-                    <a href="{{ route('whatsapp.Pegar_URL_Arquivo','') }}"
-                                            class="btn btn-warning" tabindex="-1" role="button" aria-disabled="true">Ver arquivo</a>
-
+                    <td>Documento ID:</td>
+                    <td>{{ $model->document_id }}</td>
+                    <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $model->document_id) }}"
+                     class="btn btn-warning" tabindex="-1" role="button" aria-disabled="true">Ver arquivo documento</a>
                 @else
 
-                    <td>Imagem</td>
+                    <td>Docmento</td>
                     <a href="{{ '../'.$model->url_arquivo }}" target="_blank" style="display: block; text-align: center;">
                         <img src="{{ '../'.$model->url_arquivo }}" alt="Imagem JPG" width="300" height="300" style="display: block; margin: 0 auto;">
                     </a>
