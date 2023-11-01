@@ -123,7 +123,7 @@
 
                     <td>Imagem ID:</td>
                     <td>{{ $model->image_id }}</td>
-                    <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $model->image_id) }}"
+                    <a href="{{ route('whatsapp.Pegar_URL_Arquivo','') }}"
                                             class="btn btn-warning" tabindex="-1" role="button" aria-disabled="true">Ver arquivo</a>
 
                 @else
