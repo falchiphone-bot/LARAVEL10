@@ -1443,10 +1443,18 @@ class ApiController extends Controller
                 if($registrobd->document_mime_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'){
                     $sufixo = '.docx';
                 }
-                if($registrobd->document_mime_type == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'){
+                elseif($registrobd->document_mime_type == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'){
                     $sufixo = '.xlsx';
                 }
-
+                elseif($registrobd->document_mime_type == 'text/rtf'){
+                    $sufixo = '.rtf';
+                }
+                elseif($registrobd->document_mime_type == 'text/csv'){
+                    $sufixo = '.csv';
+                }
+                elseif($registrobd->document_mime_type == 'text/plain'){
+                    $sufixo = '.txt';
+                }
             }
 
 
