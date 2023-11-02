@@ -139,36 +139,21 @@
 
 
                     @elseif($model->document_mime_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-                            <td>
-                                <p>Documento do Microsoft Word (DOCX)</p>
-                            </td>
+                             <p>Documento do Microsoft Word (DOCX)</p>
                      @elseif($model->document_mime_type == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-                            <td>
-                                <p>Documento do Microsoft Excel (XLSX)</p>
-                            </td>
-                     @endif
+                             <p>Documento do Microsoft Excel (XLSX)</p>
                      @elseif($model->document_mime_type == 'text/rtf')
-                     <td>
-                         <p>Documento do Editor de texto (RTF)</p>
-                     </td>
+                              <p>Documento do Editor de texto (RTF)</p>
                      @elseif($model->document_mime_type == 'text/csv')
-                     <td>
                          <p>Documento texto  (CSV)</p>
-                     </td>
                      @elseif($model->document_mime_type == 'text/txt')
-                     <td>
                          <p>Documento do (TXT)</p>
-                     </td>
-
+                    @endif
 
                     <a href="{{ '../'.$model->url_arquivo }}" download>{{ $model->document_filename }}</a>
-
+                </td>
 
               @endif
-
-
-
-            @endif
         @endif
     </tr>
 
