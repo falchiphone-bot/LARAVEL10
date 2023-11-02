@@ -1440,6 +1440,13 @@ class ApiController extends Controller
                     $sufixo = '.pdf';
                 }
 
+                if($registrobd->document_mime_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'){
+                    $sufixo = '.docx';
+                }
+                if($registrobd->document_mime_type == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'){
+                    $sufixo = '.xlsx';
+                }
+
             }
 
 

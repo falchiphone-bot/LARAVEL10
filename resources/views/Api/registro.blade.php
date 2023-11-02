@@ -124,16 +124,34 @@
                     <td>{{ $model->document_id }}</td>
                     <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $model->document_id) }}"
                      class="btn btn-warning" tabindex="-1" role="button" aria-disabled="true">Ver arquivo documento</a>
-                @else
+            @else
 
                     <td>Documento</td>
-                    <a href="{{ '../'.$model->url_arquivo }}" target="_blank" style="display: block; text-align: center;">
+                    @if ($model->document_mime_type == 'application/pdf')
+                        <a href="{{ '../'.$model->url_arquivo }}" target="_blank" style="display: block; text-align: center;">
 
-                    {{-- <td>Documento</td>
-                    <embed src="{{ '../'.$model->url_arquivo }}" type="application/pdf" width="300" height="300"> --}}
+                                            {{-- <td>Documento</td>
+                                            <embed src="{{ '../'.$model->url_arquivo }}" type="application/pdf" width="300" height="300"> --}}
 
-                    <td>Documento qualquer format</td>
-                    <iframe src="{{ '../'.$model->url_arquivo }}" width="100%" height="1200"  target="_blank" style="border: none;"></iframe>
+                                            <td>Documento qualquer format</td>
+                                            <iframe src="{{ '../'.$model->url_arquivo }}" width="100%" height="1200"  target="_blank" style="border: none;"></iframe>
+
+
+
+                    @elseif($model->document_mime_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+                            <td>
+                                <p>Documento do Microsoft Word (DOCX)</p>
+                                <a href="{{ '../'.$model->url_arquivo }}" download>{{ $model->document_filename }}</a>
+                            </td>
+                     @elseif($model->document_mime_type == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                            <td>
+                                <p>Documento do Microsoft Excel (XLSX)</p>
+                                <a href="{{ '../'.$model->url_arquivo }}" download>{{ $model->document_filename }}</a>
+                            </td>
+                     @endif
+
+
+
 
             @endif
         @endif
