@@ -1490,7 +1490,12 @@ class ApiController extends Controller
                 'url_arquivo' => $filePath,
             ]);
 
+
             return redirect($filePath);
+
+
+
+
 
         } else {
             // Manipule erros, se houver

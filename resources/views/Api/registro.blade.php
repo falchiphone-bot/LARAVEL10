@@ -117,6 +117,7 @@
     </tr>
 
     <tr>
+        
         @if ($model->messagesType == 'document')
 
             @if($model->url_arquivo == null)
@@ -125,7 +126,6 @@
                     <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $model->document_id) }}"
                      class="btn btn-warning" tabindex="-1" role="button" aria-disabled="true">Ver arquivo documento</a>
             @else
-
                     <td>Documento</td>
                     @if ($model->document_mime_type == 'application/pdf')
                         <a href="{{ '../'.$model->url_arquivo }}" target="_blank" style="display: block; text-align: center;">
@@ -138,22 +138,27 @@
 
 
 
-                    @elseif($model->document_mime_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+                                            @if($model->document_mime_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
                              <p>Documento do Microsoft Word (DOCX)</p>
-                     @elseif($model->document_mime_type == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-                             <p>Documento do Microsoft Excel (XLSX)</p>
-                     @elseif($model->document_mime_type == 'text/rtf')
-                              <p>Documento do Editor de texto (RTF)</p>
-                     @elseif($model->document_mime_type == 'text/csv')
-                         <p>Documento texto  (CSV)</p>
-                     @elseif($model->document_mime_type == 'text/txt')
-                         <p>Documento do (TXT)</p>
+                             @endif
+                             @if($model->document_mime_type == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                               <p>Documento do Microsoft Excel (XLSX)</p>
+                             @endif
+                             @if($model->document_mime_type == 'text/rtf')
+                               <p>Documento do Editor de texto (RTF)</p>
+                             @endif
+                              @if($model->document_mime_type == 'text/csv')
+                                  <p>Documento texto  (CSV)</p>
+                              @endif
+                         @if($model->document_mime_type == 'text/txt')
+                          <p>Documento do (TXT)</p>
+                         @endif
                     @endif
 
                     <a href="{{ '../'.$model->url_arquivo }}" download>{{ $model->document_filename }}</a>
                 </td>
 
-              @endif
+            @endif
         @endif
     </tr>
 
