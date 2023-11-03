@@ -6,6 +6,7 @@ use GuzzleHttp\Client;
 use App\Models\webhook;
 use Illuminate\Http\Request;
 use App\Models\WebhookConfig;
+
 use App\Models\webhookContact;
 use App\Models\WebhookTemplate;
 use App\Services\WebhookServico;
@@ -1327,6 +1328,35 @@ class ApiController extends Controller
 
         return view('api.atendimentoWhatsapp', compact('Contatos'));
     }
+
+    public function atendimentoWhatsappFiltroTelefone(string $id, request $request)
+    {
+
+       // Valide o campo "quantidade_mensagens" se necessário
+    $request->validate([
+        'quantidade_mensagens' => 'required|integer|min:1',
+    ]);
+
+    // Obtenha o valor inserido pelo usuário
+    $quantidadeMensagens = $request->input('quantidade_mensagens');
+
+        $Contatos = webhook::select(DB::raw('CONCAT(recipient_id, messagesFrom) AS recipient_messages'))
+        ->groupBy(DB::raw('CONCAT(recipient_id, messagesFrom)'))
+        ->limit($quantidadeMensagens)
+        ->get();
+
+        $NomeAtendido =  webhookContact::where('recipient_id', $id)->get()->first();
+
+        $Selecao = webhook::where('recipient_id', $id)
+        ->orwhere('messagesFrom', $id)
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+
+
+        return view('api.atendimentoWhatsapp', compact('Contatos','Selecao','NomeAtendido'));
+    }
+
 
     public function PreencherMensagemResposta(string $id)
     {

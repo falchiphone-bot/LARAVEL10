@@ -33,7 +33,9 @@
                         <tbody>
                             @foreach ($Contatos as $item)
                                 <tr>
-                                    <td><a href="{{ $item->Contato->recipient_id }}">{{ $item->Contato->contactName }}</a></td>
+
+
+                                    <td><a href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone', $item->Contato->recipient_id) }}">{{ $item->Contato->contactName }}</a></td>
                                     <td>{{ $item->Contato->recipient_id }}</td>
 
                                     <td>
@@ -50,15 +52,51 @@
                         <a href="{{ route('whatsapp.indexlista') }}">Retornar para a lista</a>
                     </div>
 
-
-
-
                     <div class="card-body">
 
+                        <div class="container">
+                            <h1 class="text-center bg-success text-white">{{ $NomeAtendido->contactName ?? null }}</h1>
+                        </div>
 
-                             <div class="col-12">
-                                
-                             </div>
+                        <
+                        <div class="col-12">
+                             <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th class="table-warning">Data</th>
+                                        <th class="table-success">Recebida</th>
+                                        <th class="table-success">Enviada</th>
+
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($Selecao as $item)
+                                        <tr>
+                                            <td>
+                                                <?php
+
+                                                $dateString = $item['created_at'];
+                                                $dateTime = new DateTime($dateString);
+                                                $formattedDate = $dateTime->format('d/m/Y H:i:s');
+                                                ?>
+                                                {{ $formattedDate ?? null }}
+                                            </td>
+                                            <td>
+                                                @if ($item->messagesFrom)
+                                                    {{ $item->body }}
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if ($item->status == 'sent')
+                                                    {{ $item->body }}
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+
 
 
 
