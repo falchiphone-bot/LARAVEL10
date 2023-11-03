@@ -762,6 +762,12 @@ class ApiController extends Controller
         $cadastro_registro = $model;
         // $created_at = $model->created_at;
 
+        $url = $cadastro_registro->url_arquivo;
+
+        if (!file_exists($url )) {
+            $cadastro_registro['url_arquivo'] = '../storage/whatsapp/nao_existe.jpg';
+        }
+
         $jsonData =  $model->webhook;
         $data = json_decode($jsonData, true); // Converte o JSON em um array associativo
 
@@ -938,7 +944,7 @@ class ApiController extends Controller
         // $modela = $mergedData;
         $model = $cadastro_registro;
 
-  
+
 
         return view('Api.registro', compact(
             'model',
