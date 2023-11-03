@@ -134,8 +134,8 @@
                                             <h3>{{ $model->image_caption }}</h3>
                                             <a href="{{ '../' . $model->url_arquivo }}" target="_blank"
                                                 style="display: block; text-align: center;">
-                                                <img src="{{ '../' . $model->url_arquivo }}" alt="Imagem" width="300"
-                                                    height="300" style="display: block; margin: 0 auto;">
+                                                <img src="{{ '../' . $model->url_arquivo }}" alt="Imagem" width="800"
+                                                    height="600" style="display: block; margin: 0 auto;">
                                             </a>
                                         </div>
                                         @endif
