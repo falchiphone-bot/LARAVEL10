@@ -113,10 +113,14 @@
                                             <h3>{{ $model->image_caption }}</h3>
 
                                             @if ($model->messagesType == 'image')
+                                            <div class="text-center">
                                                 <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $model->image_id) }}"
-                                                class="btn btn-warning" tabindex="-1" role="button"
-                                                aria-disabled="true">Ver arquivo imagem</a>
-                                            @endif
+                                                   class="btn btn-warning mx-auto" tabindex="-1" role="button" aria-disabled="true">
+                                                    Ver arquivo imagem
+                                                </a>
+                                            </div>
+                                        @endif
+
 
                                             @if ($model->messagesType == 'sticker')
                                                 <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $model->sticker_id) }}"
@@ -126,12 +130,14 @@
 
                                         @else
                                             <td>Imagem</td>
+                                            <div class="text-center">
                                             <h3>{{ $model->image_caption }}</h3>
                                             <a href="{{ '../' . $model->url_arquivo }}" target="_blank"
                                                 style="display: block; text-align: center;">
                                                 <img src="{{ '../' . $model->url_arquivo }}" alt="Imagem" width="300"
                                                     height="300" style="display: block; margin: 0 auto;">
                                             </a>
+                                        </div>
                                         @endif
                                     @endif
                                 </tr>
