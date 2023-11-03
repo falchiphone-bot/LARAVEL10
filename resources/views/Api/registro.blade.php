@@ -104,20 +104,32 @@
                             <table>
 
                                 <tr>
-                                    @if ($model->messagesType == 'image')
-                                        @if ($model->url_arquivo == null)
+                                    @if ($model->messagesType == 'image' || $model->messagesType == 'sticker')
+                                    @if (empty(trim($model->url_arquivo)) || $model->url_arquivo === 'null' || $model->url_arquivo === 'NULL')
+
+
                                             <td>Imagem ID:</td>
                                             <td>{{ $model->image_id }}</td>
                                             <h3>{{ $model->image_caption }}</h3>
-                                            <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $model->image_id) }}"
+
+                                            @if ($model->messagesType == 'image')
+                                                <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $model->image_id) }}"
                                                 class="btn btn-warning" tabindex="-1" role="button"
                                                 aria-disabled="true">Ver arquivo imagem</a>
+                                            @endif
+
+                                            @if ($model->messagesType == 'sticker')
+                                                <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $model->sticker_id) }}"
+                                                class="btn btn-warning" tabindex="-1" role="button"
+                                                aria-disabled="true">Ver arquivo sticker</a>
+                                             @endif
+
                                         @else
                                             <td>Imagem</td>
                                             <h3>{{ $model->image_caption }}</h3>
                                             <a href="{{ '../' . $model->url_arquivo }}" target="_blank"
                                                 style="display: block; text-align: center;">
-                                                <img src="{{ '../' . $model->url_arquivo }}" alt="Imagem JPG" width="300"
+                                                <img src="{{ '../' . $model->url_arquivo }}" alt="Imagem" width="300"
                                                     height="300" style="display: block; margin: 0 auto;">
                                             </a>
                                         @endif

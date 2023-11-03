@@ -938,6 +938,8 @@ class ApiController extends Controller
         // $modela = $mergedData;
         $model = $cadastro_registro;
 
+  
+
         return view('Api.registro', compact(
             'model',
         ));
@@ -978,6 +980,12 @@ class ApiController extends Controller
         $video_mime_type = null;
         $video_sha256 = null;
         $video_id = null;
+
+        $sticker_mime_type = null;
+        $sticker_sha256 =  null;
+        $sticker_id = null ;
+        $sticker_animated =  null;
+
         $statuses = null;
         $status =  'received';
         $recipient_id =  null;
@@ -1016,7 +1024,7 @@ class ApiController extends Controller
 
             $document =  $data['entry'][0]['changes'][0]['value']['messages'][0]['document'] ?? null;
 
-
+            $sticker =  $data['entry'][0]['changes'][0]['value']['messages'][0]['sticker'] ?? null;
 
             if($document)
             {
@@ -1044,6 +1052,15 @@ class ApiController extends Controller
                 $video_sha256 = $video['sha256'] ?? null;
                 $video_id = $video['id']?? null ;
                 // DD($video, $video_caption,$video_filename, $video_mime_type, $video_sha256, $video_id);
+            }
+
+            if($sticker)
+            {
+                $sticker_mime_type = $sticker['mime_type'] ?? null;
+                $sticker_sha256 = $sticker['sha256'] ?? null;
+                $sticker_id = $sticker['id']?? null ;
+                $sticker_animated = $sticker['animated'] ?? null;
+                // DD($sticker_mime_type, $sticker_sha256, $sticker_id, $sticker_animated);
             }
 
 
@@ -1160,6 +1177,11 @@ class ApiController extends Controller
             'video_sha256' => $video_sha256 ?? null,
             'video_id' => $video_id ?? null,
 
+            'sticker_mime_type' => $sticker_mime_type ?? null,
+            'sticker_sha256' => $sticker_sha256 ?? null,
+            'sticker_id' => $sticker_id ?? null,
+            'sticker_animated' => $sticker_animated ?? null,
+
             'image_id' => $image_id ?? null,
             'image_caption' => $image_caption ?? null,
             'image_sha256' => $image_sha256 ?? null,
@@ -1209,13 +1231,18 @@ class ApiController extends Controller
             . "document_filename" . $document_filename . "\n"
             . "document_mime_type" . $document_mime_type . "\n"
             . "document_sha256" . $document_sha256  . "\n"
-            . 'document_id' . $document_id . "\n"
+            . "document_id" . $document_id . "\n"
 
             . "video_filename" . $video_filename . "\n"
             . "video_caption" . $video_caption . "\n"
             . "video_mime_type" . $video_mime_type . "\n"
             . "video_sha256" . $video_sha256  . "\n"
-            . 'video_id' . $video_id . "\n"
+            . "video_id" . $video_id . "\n"
+
+            . "sticker_mime_type" . $sticker_mime_type . "\n"
+            . "sticker_sha256" . $sticker_sha256  . "\n"
+            . "sticker_id" . $sticker_id . "\n"
+            . "sticker_animated" . $sticker_animated . "\n"
 
             . "image_mime_type: " . $image_mime_type . "\n"
             . "image_id: " . $image_id . "\n"
@@ -1483,6 +1510,7 @@ class ApiController extends Controller
             $registrobd = webhook::where('image_id', $id)
             ->orWhere('document_id', $id)
             ->orWhere('video_id', $id)
+            ->orWhere('sticker_id', $id)
             ->first();
 
 
@@ -1495,6 +1523,9 @@ class ApiController extends Controller
             if($registrobd->messagesType == 'image'){
                 if($registrobd->image_mime_type == 'image/jpeg'){
                     $sufixo = '.jpg';
+                }
+                if($registrobd->sticker_mime_type == 'image/webp'){
+                    $sufixo = '.webp';
                 }
             }
             if($registrobd->messagesType == 'video'){

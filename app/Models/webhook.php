@@ -30,7 +30,7 @@ class Webhook extends Model
         'image_sha256',
         'image_caption',
         'image_mime_type',
-        
+
         'document_filename',
         'document_id',
         'document_sha256',
@@ -42,6 +42,10 @@ class Webhook extends Model
         'video_sha256',
         'video_mime_type',
 
+        'sticker_id',
+        'sticker_sha256',
+        'sticker_mime_type',
+        'sticker_animated',
 
         'status',
         'recipient_id',
