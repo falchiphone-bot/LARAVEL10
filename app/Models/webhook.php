@@ -25,14 +25,24 @@ class Webhook extends Model
         'body',
         'mime_type',
         'filename',
+
         'image_id',
         'image_sha256',
+        'image_caption',
         'image_mime_type',
+        
         'document_filename',
         'document_id',
         'document_sha256',
         'document_mime_type',
-        'caption',
+
+        'video_filename',
+        'video_caption',
+        'video_id',
+        'video_sha256',
+        'video_mime_type',
+
+
         'status',
         'recipient_id',
         'conversation_id',

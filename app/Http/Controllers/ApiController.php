@@ -58,9 +58,10 @@ class ApiController extends Controller
         $profile = null;
         $contactName = null;
         $filename = null;
-        $caption = null;
+        $image_caption = null;
         $waId = null;
         $body = null;
+        $mime_caption = null;
         $mime_type = null;
         $image_id = null;
         $image_sha256 = null;
@@ -69,6 +70,13 @@ class ApiController extends Controller
         $document_mime_type = null;
         $document_sha256 = null;
         $document_id = null;
+
+        $video_filename = null;
+        $video_mime_type = null;
+        $video_sha256 = null;
+        $video_id = null;
+
+
         $statuses = null;
         $status =  'received';
         $recipient_id =  null;
@@ -107,22 +115,32 @@ class ApiController extends Controller
             $changes = $entry['changes'][0] ?? null;
 
 
+            $video =  $data['entry'][0]['changes'][0]['value']['messages'][0]['video'] ?? null;
+            if($video)
+            {
+                $video_filename = $video['filename'] ?? null;
+                $video_mime_type = $video['mime_type'] ?? null;
+                $video_sha256 = $video['sha256'] ?? null;
+                $video_id = $video['id'] ?? null;
+            }
+
+
             $document =  $data['entry'][0]['changes'][0]['value']['messages'][0]['document'] ?? null;
             if($document)
             {
-                $document_filename = $document['filename'];
-                $document_mime_type = $document['mime_type'];
-                $document_sha256 = $document['sha256'];
-                $document_id = $document['id'];
+                $document_filename = $document['filename'] ?? null;
+                $document_mime_type = $document['mime_type'] ?? null;
+                $document_sha256 = $document['sha256'] ?? null;
+                $document_id = $document['id'] ?? null;
             }
 
 
             $image =  $data['entry'][0]['changes'][0]['value']['messages'][0]['image'] ?? null;
             if($image)
             {
-                $image_sha256 = $image['sha256'];
-                $image_id = $image['id'];
-
+                $image_caption = $image['caption'] ?? null;
+                $image_sha256 = $image['sha256'] ?? null;
+                $image_id = $image['id'] ?? null;
             }
 
             if ($changes) {
@@ -135,7 +153,7 @@ class ApiController extends Controller
                 $mime_type = $mime_type ?? null;
                 $filename = $filename ?? null;
                 $image_mime_type = $image_mime_type ?? null;
-                $caption = $caption ?? null;
+                $image_caption = $image_caption ?? null;
                 $status = $status ?? null;
                 $recipient_id = $recipient_id ?? null;
                 $conversation_id = $conversation_id ?? null;
@@ -159,7 +177,7 @@ class ApiController extends Controller
 
                     $image_mime_type = $image['mime_type'] ?? null;
 
-                    $caption = $image['caption'] ?? null;
+                    // $image_caption = $image['image_caption'] ?? null;
 
                     $messagesFrom = $messages['from'] ?? null;
                     $messagesTimestamp = $messages['timestamp'] ?? null;
@@ -240,11 +258,19 @@ class ApiController extends Controller
             . "document_mime_type" . $document_mime_type . "\n"
             . "document_sha256" . $document_sha256  . "\n"
             . 'document_id' . $document_id . "\n"
+
+            . "video_filename" . $video_filename . "\n"
+            . "video_mime_type" . $video_mime_type . "\n"
+            . "video_sha256" . $video_sha256  . "\n"
+            . 'video_id' . $video_id . "\n"
+
+
+
             . "image_mime_type: " . $image_mime_type . "\n"
             . "image_id: " . $image_id . "\n"
             . "image_sha256: " . $image_sha256 . "\n"
             . "image_mime_type: " . $image_mime_type . "\n"
-            . "caption: " . $caption . "\n"
+            . "image_caption: " . $image_caption . "\n"
             . "status: " . $status . "\n"
             . "recipient_id: " . $recipient_id . "\n"
             . "conversation_id: " . $conversation_id . "\n"
@@ -344,10 +370,16 @@ class ApiController extends Controller
             'document_mime_type' => $document_mime_type ?? null,
             'document_sha256' => $document_sha256 ?? null,
             'document_id' => $document_id ?? null,
+
+            'video_filename' => $video_filename ?? null,
+            'video_mime_type' => $video_mime_type ?? null,
+            'video_sha256' => $video_sha256 ?? null,
+            'video_id' => $video_id ?? null,
+
             'image_id' => $image_id,
             'image_sha256'  => $image_sha256,
             'image_mime_type' => $image_mime_type ?? null,
-            'caption' => $caption ?? null,
+            'image_caption' => $image_caption ?? null,
             'status' => $status ?? null,
             'recipient_id' => $recipient_id ?? null,
             'conversation_id' => $conversation_id ?? null,
@@ -604,7 +636,7 @@ class ApiController extends Controller
 
                         $image_mime_type = $image['mime_type'] ?? null;
 
-                        $caption = $image['caption'] ?? null;
+                        $image_caption = $image['image_caption'] ?? null;
 
                         $messagesFrom = $messages['from'] ?? null;
                         $messagesTimestamp = $messages['timestamp'] ?? null;
@@ -668,7 +700,7 @@ class ApiController extends Controller
                         "mime_type" => $mime_type ?? null,
                         "filename" => $filename ?? null,
                         "image_mime_type" => $image_mime_type ?? null,
-                        "caption" => $caption ?? null,
+                        "image_caption" => $image_caption ?? null,
                         // "status" => $status ?? null,
                         // "recipient_id" => $recipient_id ?? null,
                         // "conversation_id" => $conversation_id ?? null,
@@ -719,7 +751,7 @@ class ApiController extends Controller
         $mime_type = null;
         $sha256 = null;
         $iddocument  = null;
-        $caption = null;
+        $image_caption = null;
         $event = null;
         $message_template_id = null;
         $message_template_name = null;
@@ -797,8 +829,8 @@ class ApiController extends Controller
         if (isset($messages['image']) && is_array($messages['image']) && count($messages['image']) > 0) {
             $document = $messages['image'];
 
-            $caption = $document['caption'] ?? null;
-            // dd($data, $document,  $caption );
+            $image_caption = $document['image_caption'] ?? null;
+            // dd($data, $document,  $image_caption );
 
 
             $mime_type = $document['mime_type'];
@@ -860,7 +892,7 @@ class ApiController extends Controller
             "mime_type",
             "sha256",
             "iddocument",
-            "caption",
+            "image_caption",
             "event",
             "message_template_id",
             "message_template_name",
@@ -890,7 +922,7 @@ class ApiController extends Controller
         $newData["mime_type"] = $mime_type;
         $newData["sha256"] = $sha256;
         $newData["iddocument"] = $iddocument;
-        $newData["caption"] = $caption;
+        $newData["image_caption"] = $image_caption;
         $newData["event"] = $event;
         $newData["message_template_id"] = $message_template_id;
         $newData["message_template_name"] = $message_template_name;
@@ -925,7 +957,6 @@ class ApiController extends Controller
         $entry_id = null;
         $entry_time = null;
         $text = null;
-        $caption = null;
         $object = null;
         $profile = null;
         $contactName = null;
@@ -935,12 +966,18 @@ class ApiController extends Controller
         $filename = null;
         $mime_type = null;
         $image_id = null;
+        $image_caption = null;
         $image_sha256 = null;
         $image_mime_type = null;
         $document_filename = null;
         $document_mime_type = null;
         $document_sha256 = null;
         $document_id = null;
+        $video_caption = null;
+        $video_filename = null;
+        $video_mime_type = null;
+        $video_sha256 = null;
+        $video_id = null;
         $statuses = null;
         $status =  'received';
         $recipient_id =  null;
@@ -983,19 +1020,30 @@ class ApiController extends Controller
 
             if($document)
             {
-                $document_filename = $document['filename'];
-                $document_mime_type = $document['mime_type'];
-                $document_sha256 = $document['sha256'];
-                $document_id = $document['id'];
+                $document_filename = $document['filename'] ?? null;
+                $document_mime_type = $document['mime_type'] ?? null;
+                $document_sha256 = $document['sha256'] ?? null;
+                $document_id = $document['id'] ?? null;
                 // DD($document, $document_filename, $document_mime_type, $document_sha256, $document_id);
             }
 
              $image =  $data['entry'][0]['changes'][0]['value']['messages'][0]['image'] ?? null;
             if($image)
             {
-                $image_sha256 = $image['sha256'];
-                $image_id = $image['id'];
+                $image_caption = $image['caption'] ?? null;
+                $image_sha256 = $image['sha256'] ?? null;
+                $image_id = $image['id']?? null;
+            }
 
+            $video =  $data['entry'][0]['changes'][0]['value']['messages'][0]['video'] ?? null;
+            if($video)
+            {
+                $video_filename = $video['filename'] ?? null;
+                $video_caption = $video['caption'] ?? null;
+                $video_mime_type = $video['mime_type'] ?? null;
+                $video_sha256 = $video['sha256'] ?? null;
+                $video_id = $video['id']?? null ;
+                // DD($video, $video_caption,$video_filename, $video_mime_type, $video_sha256, $video_id);
             }
 
 
@@ -1009,7 +1057,7 @@ class ApiController extends Controller
                 $mime_type = $mime_type ?? null;
                 $filename = $filename ?? null;
                 $image_mime_type = $image_mime_type ?? null;
-                $caption = $caption ?? null;
+                // $image_caption = $image_caption ?? null;
                 $status = $status ?? null;
                 $recipient_id = $recipient_id ?? null;
                 $conversation_id = $conversation_id ?? null;
@@ -1032,7 +1080,7 @@ class ApiController extends Controller
 
                     $image_mime_type = $image['mime_type'] ?? null;
 
-                    $caption = $image['caption'] ?? null;
+                    // $image_caption = $image['image_caption'] ?? null;
 
                     $messagesFrom = $messages['from'] ?? null;
                     $messagesTimestamp = $messages['timestamp'] ?? null;
@@ -1105,10 +1153,17 @@ class ApiController extends Controller
             'document_mime_type' => $document_mime_type ?? null,
             'document_sha256' => $document_sha256 ?? null,
             'document_id' => $document_id ?? null,
+
+            'video_filename' => $video_filename ?? null,
+            'video_caption' => $video_caption ?? null,
+            'video_mime_type' => $video_mime_type ?? null,
+            'video_sha256' => $video_sha256 ?? null,
+            'video_id' => $video_id ?? null,
+
             'image_id' => $image_id ?? null,
+            'image_caption' => $image_caption ?? null,
             'image_sha256' => $image_sha256 ?? null,
             'image_mime_type' => $image_mime_type ?? null,
-            'caption' => $caption ?? null,
             'status' => $status ?? null,
             'recipient_id' => $recipient_id ?? null,
             'conversation_id' => $conversation_id ?? null,
@@ -1155,11 +1210,18 @@ class ApiController extends Controller
             . "document_mime_type" . $document_mime_type . "\n"
             . "document_sha256" . $document_sha256  . "\n"
             . 'document_id' . $document_id . "\n"
+
+            . "video_filename" . $video_filename . "\n"
+            . "video_caption" . $video_caption . "\n"
+            . "video_mime_type" . $video_mime_type . "\n"
+            . "video_sha256" . $video_sha256  . "\n"
+            . 'video_id' . $video_id . "\n"
+
             . "image_mime_type: " . $image_mime_type . "\n"
             . "image_id: " . $image_id . "\n"
             . "image_sha256: " . $image_sha256 . "\n"
             . "image_mime_type: " . $image_mime_type . "\n"
-            . "caption: " . $caption . "\n"
+            . "image_caption: " . $image_caption . "\n"
             . "status: " . $status . "\n"
             . "recipient_id: " . $recipient_id . "\n"
             . "conversation_id: " . $conversation_id . "\n"
@@ -1420,6 +1482,7 @@ class ApiController extends Controller
 
             $registrobd = webhook::where('image_id', $id)
             ->orWhere('document_id', $id)
+            ->orWhere('video_id', $id)
             ->first();
 
 
@@ -1432,6 +1495,11 @@ class ApiController extends Controller
             if($registrobd->messagesType == 'image'){
                 if($registrobd->image_mime_type == 'image/jpeg'){
                     $sufixo = '.jpg';
+                }
+            }
+            if($registrobd->messagesType == 'video'){
+                if($registrobd->video_mime_type == 'video/mp4'){
+                    $sufixo = '.mp4';
                 }
             }
 
