@@ -730,6 +730,27 @@ class ApiController extends Controller
         return view('Api.indexlista', compact('model'));
     }
 
+    public function atendimento(string $id)
+    {
+        $model = webhook::find($id);
+
+
+
+        if($model->url_arquivo){
+                $url = $model->url_arquivo;
+                if (!file_exists($url )) {
+                    $model['url_arquivo'] = '../storage/whatsapp/nao_existe.jpg';
+                }
+         }
+  
+        return view('Api.atendimento', compact(
+            'model',
+        ));
+    }
+
+
+
+
     public function registro(string $id)
     {
 

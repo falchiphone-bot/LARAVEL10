@@ -119,7 +119,13 @@
                                     </td>
 
                                      @endcan
+                                     @can('WHATSAPP - ATENDER REGISTRO')
+                                        <td>
+                                            <a href="{{ route('whatsapp.atendimento', $models['id']) }}" class="btn btn-secondary"
+                                                tabindex="-1" role="button" aria-disabled="true">Atender/responder</a>
+                                        </td>
 
+                                     @endcan
 
                                     @can('WHATSAPP - ATUALIZAR REGISTRO')
                                         <td>
@@ -132,7 +138,7 @@
 
 
 
-                                        @can('CATEGORIAS - VER')
+                                        @can('WHATSAPP - RESPONDER REGISTRO')
                                             @if ($models['messagesFrom'])
                                                 <a href="{{ route('whatsapp.PreencherMensagemResposta', $models['id']) }}"
                                                     class="btn btn-primary" tabindex="-1" role="button"
