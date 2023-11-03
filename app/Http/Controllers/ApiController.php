@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use GuzzleHttp\Client;
 use App\Models\webhook;
+use Illuminate\Http\Request;
+use App\Models\WebhookConfig;
 use App\Models\webhookContact;
 use App\Models\WebhookTemplate;
-use App\Models\WebhookConfig;
 use App\Services\WebhookServico;
-use Illuminate\Http\Request;
-use GuzzleHttp\Client;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use PhpOffice\PhpSpreadsheet\Calculation\Web;
 
 class ApiController extends Controller
@@ -742,7 +743,7 @@ class ApiController extends Controller
                     $model['url_arquivo'] = '../storage/whatsapp/nao_existe.jpg';
                 }
          }
-  
+
         return view('Api.atendimento', compact(
             'model',
         ));
@@ -1313,6 +1314,18 @@ class ApiController extends Controller
         // dd("ATUALIZA OS REGISTROS");
 
         return redirect(route('whatsapp.indexlista'));
+    }
+
+    public function atendimentoWhatsapp()
+    {
+
+        $Contatos = webhook::select(DB::raw('CONCAT(recipient_id, messagesFrom) AS recipient_messages'))
+        ->groupBy(DB::raw('CONCAT(recipient_id, messagesFrom)'))
+        ->get();
+
+
+
+        return view('api.atendimentoWhatsapp', compact('Contatos'));
     }
 
     public function PreencherMensagemResposta(string $id)

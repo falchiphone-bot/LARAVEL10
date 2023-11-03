@@ -71,4 +71,10 @@ class Webhook extends Model
         'url_arquivo',
     ];
 
+
+    public function Contato()
+    {
+        return $this->hasOne(webhookContact::class, 'recipient_id', 'recipient_messages');
+    }
+
 }
