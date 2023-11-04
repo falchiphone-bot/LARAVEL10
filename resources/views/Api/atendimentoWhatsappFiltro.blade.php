@@ -1,3 +1,11 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="refresh" content="5"> <!-- Atualize a cada 5 segundos -->
+</head>
+
+</html>
 @extends('layouts.bootstrap5')
 
 @section('content')
@@ -54,17 +62,35 @@
                     </div>
 
                     <div class="card-body">
+                        <form action="{{ route('whatsapp.enviarMensagemRespostaAtendimento', $id) }}" method="POST">
+                            @csrf
 
                         <div class="container">
                             <h1 class="text-center bg-success text-white">{{ $NomeAtendido->contactName ?? null }}</h1>
                         </div>
 
+                        <div class="card" style="background-color: #ffffcc; padding: 20px;">
+                            <div class="form-group">
+                                <label for="mensagem">Mensagem a ser enviada</label>
+                                <textarea id="mensagem" name="mensagem" rows="4" cols="50" class="form-control"></textarea>
+                            </div>
+
+
+                               <!-- Adicione um campo oculto para enviar recipient_id -->
+                               <input type="hidden" name="recipient_id" value="{{ $NomeAtendido->recipient_id }}">
+                               <input type="hidden" name="contactName" value="{{ $NomeAtendido->contactName }}">
+    
+                            <button type="submit" class="btn btn-primary">Enviar</button>
+                        </div>
+                    </form>
+                    
 
                         <div class="col-12">
                              <table class="table">
                                 <thead>
                                     <tr>
                                         <th class="table-warning">Data</th>
+                                        <th class="table-success"></th>
                                         <th class="table-success">Recebida</th>
                                         <th class="table-success">Enviada</th>
 
@@ -83,10 +109,28 @@
                                                 ?>
                                                 {{ $formattedDate ?? null }}
                                             </td>
+
+                                            <td>
+                                             
+
+                                                
+                                                    @if($item->status == 'sent')
+                                                        Enviado
+                                                  
+                                                    @elseif($item->status == 'delivered')
+                                                        Entregue
+                                              
+                                                    @elseif($item->status =='read')
+                                                        Lido
+                                                     @endif
+ 
+                                            </td>
+
                                             <td>
                                                 @if ($item->messagesFrom)
-                                                    {{ $item->body }}
+                                                {{ $item->body }}
                                                 @endif
+
                                             </td>
                                             <td>
                                                 @if ($item->status == 'sent')

@@ -31,6 +31,10 @@
             @endcan
 
             @can('WHATSAPP - MENSAGEMAPROVADA')
+            <td>
+                <a href="{{ route('whatsapp.atendimentoWhatsapp') }}" class="btn btn-success" tabindex="-1"
+                    role="button" aria-disabled="true">Atendimento Whatsapp</a>
+            </td>
                 <td>
                     <a href="{{ route('whatsapp.SelecionarMensagemAprovada') }}" class="btn btn-secondary" tabindex="-1"
                         role="button" aria-disabled="true">Selecionar mensagem aprovada para enviar</a>
@@ -111,14 +115,19 @@
 
 
                                 <tr>
-
+                                    @can('WHATSAPP - DETALHAR REGISTRO')
+                                    <td>
+                                        <a href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone', $models['id']) }}" class="btn btn-info"
+                                            tabindex="-1" role="button" aria-disabled="true">Filtrar pelo contato</a>
+                                    </td>
+                                     @endcan
                                     @can('WHATSAPP - DETALHAR REGISTRO')
                                     <td>
                                         <a href="{{ route('whatsapp.registro', $models['id']) }}" class="btn btn-info"
                                             tabindex="-1" role="button" aria-disabled="true">Ver</a>
                                     </td>
-
                                      @endcan
+
                                      @can('WHATSAPP - ATENDER REGISTRO')
                                         <td>
                                             <a href="{{ route('whatsapp.atendimento', $models['id']) }}" class="btn btn-secondary"

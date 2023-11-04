@@ -1353,7 +1353,7 @@ class ApiController extends Controller
 
 
 
-        return view('api.atendimentoWhatsapp', compact('Contatos','selecao','NomeAtendido'));
+        return view('api.atendimentoWhatsappFiltro', compact('id','Contatos','selecao','NomeAtendido'));
     }
 
 
@@ -1367,7 +1367,6 @@ class ApiController extends Controller
 
     public function enviarMensagemResposta(Request $request, $id)
     {
-
 
         $request->validate([
             'token_type' => 'required|in:token24horas,tokenpermanenteusuario',
@@ -1453,7 +1452,78 @@ class ApiController extends Controller
             echo 'Erro ao enviar a mensagem: ' . $response->getBody();
         }
     }
+    public function enviarMensagemRespostaAtendimento(Request $request, $id)
+    {
 
+        
+        $accessToken = WebhookConfig::OrderBy('usuario')->get()->first()->token24horas;
+    
+        $model = webhook::find($id);
+
+        $message = $request->input('mensagem');
+
+            if (empty($request->input('mensagem'))) {
+                // O campo de mensagem está vazio, defina a mensagem de erro na sessão.
+                session()->flash('MensagemNaoPreenchida', 'A mensagem está vazia... necessita de preenchimento!');
+                return redirect()->back();
+            }
+
+        $client = new Client();
+        $phone = $request->recipient_id; // Número de telefone de destino
+        $client = new Client();
+        $requestData = [];
+        $requestData = [
+            'messaging_product' => 'whatsapp',
+            'to' => $phone, // Número de telefone de destino
+            'type' => 'text',
+            'text' => [
+                // 'body' => 'Resposdendo o texto: '. $model->body . 'Resposta: ' .$message,
+                'body' => $message,
+            ],
+        ];
+        $response = $client->post(
+            'https://graph.facebook.com/v17.0/147126925154132/messages',
+            [
+
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $accessToken,
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => $requestData,
+            ]
+        );
+        // Verifique a resposta
+        if ($response->getStatusCode() == 200) {
+            $responseData = json_decode($response->getBody());
+            // Faça algo com a resposta, se necessário
+            // dd("Mensagem nova enviada", $responseData);
+
+ ///////////////////Gravar
+            /////////////// gravar mensagem aprovada
+            $newWebhook = webhook::create([
+                'webhook' => json_encode($requestData) ?? null,
+                'value_messaging_product' => $requestData['messaging_product'] ?? null,
+                'object' => $requestData['messaging_product'] ?? null,
+                'contactName' => $request->contactName ?? null,
+                'recipient_id' => $requestData['to'] ?? null,
+                'type' => $requestData['type'] ?? null,
+                'body' => $requestData['text']['body'] ?? null,
+                'status' => 'sent' ?? null,
+            ]);
+
+            $recipient_id = $requestData['to'];
+            $contactName = $request->contactName;
+            $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName);
+            session()->flash('success', 'Mensagem enviada com sucesso para ' . $request->contactName .  '.');
+
+
+
+            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
+        } else {
+            // Manipule erros, se houver
+            echo 'Erro ao enviar a mensagem: ' . $response->getBody();
+        }
+    }
     public function SelecionarMensagemAprovada()
     {
         $contatos = webhookContact::where('recipient_id', '!=', null)
