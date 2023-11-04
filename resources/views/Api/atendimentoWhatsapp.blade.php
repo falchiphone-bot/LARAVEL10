@@ -35,7 +35,8 @@
                                 <tr>
 
 
-                                    <td><a href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone', $item->Contato->recipient_id) }}">{{ $item->Contato->contactName }}</a></td>
+                                    <td><a href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone',
+                                    $item->Contato->recipient_id) }}">{{ $item->Contato->contactName }}</a></td>
                                     <td>{{ $item->Contato->recipient_id }}</td>
 
                                     <td>
@@ -58,7 +59,18 @@
                             <h1 class="text-center bg-success text-white">{{ $NomeAtendido->contactName ?? null }}</h1>
                         </div>
 
-                        <
+                        <form action="{{ route('whatsapp.enviarMensagemResposta', $id) }}" method="POST">
+                            @csrf
+                        <div class="card" style="background-color: #ffffcc; padding: 20px;">
+                            <div class="form-group">
+                                <label for="mensagem">Mensagem a ser enviada</label>
+                                <textarea id="mensagem" name="mensagem" rows="4" cols="50" class="form-control"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Enviar</button>
+                        </div>
+                    </form>
+                    
+
                         <div class="col-12">
                              <table class="table">
                                 <thead>
@@ -69,8 +81,9 @@
 
                                     </tr>
                                 </thead>
+                                @if($selecao)
                                 <tbody>
-                                    @foreach ($Selecao as $item)
+                                    @foreach ($selecao as $item)
                                         <tr>
                                             <td>
                                                 <?php
@@ -94,17 +107,11 @@
                                         </tr>
                                     @endforeach
                                 </tbody>
+                                @endif
                             </table>
                         </div>
 
 
-
-
-                            <div class="form-group">
-                                <label for="mensagem">Mensagem:</label>
-                                <textarea id="mensagem" name="mensagem" rows="4" cols="50" class="form-control"></textarea>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Enviar Mensagem</button>
 
                     </div>
                 </div>

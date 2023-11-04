@@ -1324,37 +1324,36 @@ class ApiController extends Controller
         ->groupBy(DB::raw('CONCAT(recipient_id, messagesFrom)'))
         ->get();
 
+      $selecao = null;
 
-
-        return view('api.atendimentoWhatsapp', compact('Contatos'));
+        return view('api.atendimentoWhatsapp', compact('Contatos','selecao'));
     }
 
     public function atendimentoWhatsappFiltroTelefone(string $id, request $request)
     {
 
-       // Valide o campo "quantidade_mensagens" se necessário
-    $request->validate([
-        'quantidade_mensagens' => 'required|integer|min:1',
-    ]);
+//     $request->validate([
+//         'quantidade_mensagens' => 'required|integer|min:1',
+//     ]);
 
-    // Obtenha o valor inserido pelo usuário
-    $quantidadeMensagens = $request->input('quantidade_mensagens');
+//     $quantidadeMensagens = $request->quantidade_mensagens;
+// dd($quantidadeMensagens);
 
         $Contatos = webhook::select(DB::raw('CONCAT(recipient_id, messagesFrom) AS recipient_messages'))
         ->groupBy(DB::raw('CONCAT(recipient_id, messagesFrom)'))
-        ->limit($quantidadeMensagens)
         ->get();
 
         $NomeAtendido =  webhookContact::where('recipient_id', $id)->get()->first();
 
-        $Selecao = webhook::where('recipient_id', $id)
+        $selecao = webhook::limit(100)
+        ->where('recipient_id', $id)
         ->orwhere('messagesFrom', $id)
         ->orderBy('created_at', 'desc')
         ->get();
 
 
 
-        return view('api.atendimentoWhatsapp', compact('Contatos','Selecao','NomeAtendido'));
+        return view('api.atendimentoWhatsapp', compact('Contatos','selecao','NomeAtendido'));
     }
 
 
