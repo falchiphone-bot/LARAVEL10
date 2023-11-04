@@ -64,25 +64,25 @@
                     <div class="card-body">
                         <form action="{{ route('whatsapp.enviarMensagemRespostaAtendimento', $id) }}" method="POST">
                             @csrf
-
-                        <div class="container">
-                            <h1 class="text-center bg-success text-white">{{ $NomeAtendido->contactName ?? null }}</h1>
-                        </div>
-
-                        <div class="card" style="background-color: #ffffcc; padding: 20px;">
-                            <div class="form-group">
-                                <label for="mensagem">Mensagem a ser enviada</label>
-                                <textarea id="mensagem" name="mensagem" rows="4" cols="50" class="form-control"></textarea>
+                        
+                            <div class="container">
+                                <h1 class="text-center bg-success text-white">{{ $NomeAtendido->contactName ?? null }}</h1>
                             </div>
-
-
-                               <!-- Adicione um campo oculto para enviar recipient_id -->
-                               <input type="hidden" name="recipient_id" value="{{ $NomeAtendido->recipient_id }}">
-                               <input type="hidden" name="contactName" value="{{ $NomeAtendido->contactName }}">
-    
-                            <button type="submit" class="btn btn-primary">Enviar</button>
-                        </div>
-                    </form>
+                        
+                            <div class="card" style="background-color: #ffffcc; padding: 20px;">
+                                <div class="form-group">
+                                    <label for="mensagem">Mensagem a ser enviada</label>
+                                    <textarea id="mensagem" name="mensagem" rows="4" cols="50" class="form-control" onfocus="stopPageRefresh();" onblur="allowPageRefresh();"></textarea>
+                                </div>
+                        
+                                <!-- Adicione um campo oculto para enviar recipient_id -->
+                                <input type="hidden" name="recipient_id" value="{{ $NomeAtendido->recipient_id }}">
+                                <input type="hidden" name="contactName" value="{{ $NomeAtendido->contactName }}">
+                        
+                                <button type="submit" class="btn btn-primary">Enviar</button>
+                            </div>
+                        </form>
+                        
                     
 
                         <div class="col-12">
@@ -186,5 +186,23 @@
             }
         });
     });
+
+var pageRefreshAllowed = true;
+
+function stopPageRefresh() {
+    pageRefreshAllowed = false;
+}
+
+function allowPageRefresh() {
+    pageRefreshAllowed = true;
+}
+
+window.onbeforeunload = function () {
+    if (!pageRefreshAllowed) {
+        return "Você tem campos não salvos no formulário. Tem certeza de que deseja sair da página?";
+    }
+};
+
+
 </script>
 @endpush
