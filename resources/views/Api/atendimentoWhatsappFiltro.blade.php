@@ -131,6 +131,7 @@
                                                 @endif
                                                 @include('Api.mostraimagem')
                                                 @include('Api.mostradocumento')
+                                                @include('Api.mostravideo')
                                             </td>
 
                                             <td class="bg-warning">
