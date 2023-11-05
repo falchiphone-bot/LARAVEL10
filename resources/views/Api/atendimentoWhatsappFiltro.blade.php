@@ -34,7 +34,7 @@
                         <thead>
                             <tr>
                                 <th>Nome</th>
-                                <th>Telefone</th>
+                                {{-- <th>Telefone</th> --}}
 
                             </tr>
                         </thead>
@@ -45,7 +45,7 @@
 
                                     <td><a href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone',
                                     $item->Contato->recipient_id) }}">{{ $item->Contato->contactName }}</a></td>
-                                    <td>{{ $item->Contato->recipient_id }}</td>
+                                    {{-- <td>{{ $item->Contato->recipient_id }}</td> --}}
 
                                     <td>
                                         {{-- <a href="{{ route('whatsapp.enviar', $item->id) }}" class="btn btn-primary">Enviar Mensagem</a> --}}
@@ -64,26 +64,26 @@
                     <div class="card-body">
                         <form action="{{ route('whatsapp.enviarMensagemRespostaAtendimento', $id) }}" method="POST">
                             @csrf
-                        
+
                             <div class="container">
                                 <h1 class="text-center bg-success text-white">{{ $NomeAtendido->contactName ?? null }}</h1>
                             </div>
-                        
+
                             <div class="card" style="background-color: #ffffcc; padding: 20px;">
                                 <div class="form-group">
                                     <label for="mensagem">Mensagem a ser enviada</label>
                                     <textarea id="mensagem" name="mensagem" rows="4" cols="50" class="form-control" onfocus="stopPageRefresh();" onblur="allowPageRefresh();"></textarea>
                                 </div>
-                        
+
                                 <!-- Adicione um campo oculto para enviar recipient_id -->
-                                <input type="hidden" name="recipient_id" value="{{ $NomeAtendido->recipient_id }}">
-                                <input type="hidden" name="contactName" value="{{ $NomeAtendido->contactName }}">
-                        
+                                <input type="hidden" name="recipient_id" value="{{ $NomeAtendido->recipient_id ?? null}}">
+                                <input type="hidden" name="contactName" value="{{ $NomeAtendido->contactName ?? null}}">
+
                                 <button type="submit" class="btn btn-primary">Enviar</button>
                             </div>
                         </form>
-                        
-                    
+
+
 
                         <div class="col-12">
                              <table class="table">
@@ -99,7 +99,9 @@
                                 @if($selecao)
                                 <tbody>
                                     @foreach ($selecao as $item)
+
                                         <tr>
+
                                             <td>
                                                 <?php
 
@@ -110,35 +112,40 @@
                                                 {{ $formattedDate ?? null }}
                                             </td>
 
-                                            <td>
-                                             
 
-                                                
+                                            <td class="bg-primary">
                                                     @if($item->status == 'sent')
                                                         Enviado
-                                                  
+
                                                     @elseif($item->status == 'delivered')
                                                         Entregue
-                                              
+
                                                     @elseif($item->status =='read')
                                                         Lido
                                                      @endif
- 
                                             </td>
 
                                             <td>
                                                 @if ($item->messagesFrom)
-                                                {{ $item->body }}
+                                                    {{ $item->body }}
                                                 @endif
-
+                                                @include('Api.mostraimagem')
+                                                @include('Api.mostradocumento')
                                             </td>
-                                            <td>
+
+                                            <td class="bg-warning">
                                                 @if ($item->status == 'sent')
                                                     {{ $item->body }}
                                                 @endif
+
                                             </td>
+
                                         </tr>
+
+
+
                                     @endforeach
+
                                 </tbody>
                                 @endif
                             </table>
