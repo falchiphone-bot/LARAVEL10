@@ -8,7 +8,8 @@
                     <div class="badge bg-warning text-wrap"
                         style="width: 100%; height: 50px;
                     ; font-size: 24px;align=˜Center˜ ">
-                        Menu Principal do sistema administrativo e contábil - versão: 03.11.2023 18:09
+                        Menu Principal do sistema administrativo e contábil -
+                        versão: 06.11.2023 09:27
                     </div>
                 </div>
                 <div class="card-body">
