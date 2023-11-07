@@ -120,6 +120,10 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
 
 
  # API WHATSAPP
+
+ Route::get('/whatsapp/Enviar_Arquivo', [App\Http\Controllers\ApiController::class,
+ 'Enviar_Arquivo'])->name('whatsapp.Enviar_Arquivo');
+
  Route::get('/whatsapp/enviarMensagemAprovadaAriane',
  [App\Http\Controllers\ApiController::class, 'enviarMensagemAprovadaAriane'])
  ->name('whatsapp.enviarMensagemAprovadaAriane');

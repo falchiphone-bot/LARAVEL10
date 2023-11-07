@@ -30,16 +30,16 @@ class WebhookServico
 
     public static function Agradecimento_por_ter_lido_mensagem_recebida($recipient_id, $accessToken)
     {
-       
+
         $client = new Client();
-        // $phone = $recipient_id; 
+        // $phone = $recipient_id;
         $phone = "5517997662949";
         $client = new Client();
         $requestData = [];
         $message = 'Agradecemos por ter visto nossa mensagem!';
         $requestData = [
             'messaging_product' => 'whatsapp',
-            'to' => $phone, 
+            'to' => $phone,
             'type' => 'text',
             'text' => [
                 'body' => $message,
@@ -70,7 +70,7 @@ class WebhookServico
             //     'status' => 'sent' ?? null,
             // ]);
             }
- 
+
     }
 
     public static function Token24horas()
@@ -78,7 +78,18 @@ class WebhookServico
         $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
         $accessToken = $WebhookConfig->token24horas;
 
+
         return $accessToken;
 
-    } 
+    }
+
+    public static function phone_number_id()
+    {
+        $WebhookConfig  =  WebhookConfig::OrderBy('usuario')->get()->first();
+        $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
+
+
+        return $phone_number_id;
+
+    }
 }
