@@ -1373,7 +1373,7 @@ class ApiController extends Controller
             'token_type' => 'required|in:token24horas,tokenpermanenteusuario',
         ]);
         $token = $request->token_type;
-
+        $id_arquivo = ApiController::Enviar_Arquivo();
 
         $model = webhook::find($id);
 
@@ -1388,6 +1388,7 @@ class ApiController extends Controller
 
 
             $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
+            $phone_number_id = WebhookServico::phone_number_id();
             $accessToken = null;
             if ($token == 'token24horas') {
                 $accessToken = $WebhookConfig->token24horas;
@@ -1400,21 +1401,44 @@ class ApiController extends Controller
                 return redirect()->back();
             }
 
+
+
         $client = new Client();
         $phone = $model->messagesFrom; // Número de telefone de destino
         $client = new Client();
         $requestData = [];
-        $requestData = [
+
+
+// ================arquivo em anexo como $responseData
+if($id_arquivo){
+ $requestData = [
             'messaging_product' => 'whatsapp',
-            'to' => $phone, // Número de telefone de destino
-            'type' => 'text',
-            'text' => [
-                // 'body' => 'Resposdendo o texto: '. $model->body . 'Resposta: ' .$message,
-                'body' => $message,
+            'to' => $phone,
+            'type' => 'image',
+            'image' => [
+                'id' => $id_arquivo['id'],
+                'caption' => $message,
             ],
         ];
+}
+else
+{
+     // ===================================== somente texto como resposta
+     $requestData = [
+        'messaging_product' => 'whatsapp',
+        'to' => $phone,
+        'type' => 'text',
+        'text' => [
+            'body' => $message,
+        ],
+    ];
+}
+
+// =================================================================
+
+
         $response = $client->post(
-            'https://graph.facebook.com/v17.0/147126925154132/messages',
+            'https://graph.facebook.com/v17.0/' . $phone_number_id . '/messages',
             [
 
                 'headers' => [
@@ -1441,6 +1465,8 @@ class ApiController extends Controller
                 'type' => $requestData['type'] ?? null,
                 'body' => $requestData['text']['body'] ?? null,
                 'status' => 'sent' ?? null,
+                'image_caption' => $requestData['image']['caption'] ?? null,
+                'image_id' => $requestData['image']['id'] ?? null,
             ]);
 
             $recipient_id = $requestData['to'];
