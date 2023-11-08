@@ -1375,19 +1375,21 @@ class ApiController extends Controller
         ]);
         $token = $request->token_type;
 
+        $id_arquivo = null;
+        $arquivo = $request->file('arquivo') ?? null;
+      
+      if( $arquivo)
+      {
+        $path = $arquivo->getRealPath() ;
 
-        $arquivo = $request->file('arquivo');
-        $path = $arquivo->getRealPath();
+        $name = $arquivo->getClientOriginalName()  ;
+        $extension = $arquivo->getClientOriginalExtension()  ;
 
-        $name = $arquivo->getClientOriginalName();
-        $extension = $arquivo->getClientOriginalExtension();
-
-        $mime_type = $arquivo->getMimeType();
-
-        // dd("Achou arquivo....",$arquivo,  $path , $name, $extension,  $mime_type );
-
-
+        $mime_type = $arquivo->getMimeType()  ;
+        
         $id_arquivo = ApiController::Enviar_Arquivo($arquivo, $path, $name, $extension, $mime_type);
+      }
+            
 
         $model = webhook::find($id);
 
@@ -1792,6 +1794,7 @@ else
         $client = new Client();
 
 
+        
         $response = Http::attach(
             'file', // Nome do campo esperado pela API do Facebook
             file_get_contents($arquivo), // O conteúdo do arquivo
