@@ -27,7 +27,7 @@
                     </div>
 
 
-                    <form action="{{ route('whatsapp.enviarMensagemResposta', $id) }}" method="POST">
+                    <form action="{{ route('whatsapp.enviarMensagemResposta', $id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
 
                     <div class="card-body">
@@ -57,11 +57,19 @@
                         </div>
 
 
-                        
+
                             <div class="form-group">
                                 <label for="mensagem">Mensagem:</label>
                                 <textarea id="mensagem" name="mensagem" rows="4" cols="50" class="form-control"></textarea>
                             </div>
+
+                            <div class="form-group">
+                                <label for="arquivo">Selecionar um arquivo:</label>
+                                <input type="file" id="arquivo" name="arquivo" class="form-control-file">
+                            </div>
+
+
+
                             <button type="submit" class="btn btn-primary">Enviar Mensagem</button>
                         </form>
                     </div>

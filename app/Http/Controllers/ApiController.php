@@ -1,10 +1,11 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Storage;
 use GuzzleHttp\Client;
 use App\Models\webhook;
 use Illuminate\Http\Request;
+
 use App\Models\WebhookConfig;
 
 use App\Models\webhookContact;
@@ -1373,7 +1374,20 @@ class ApiController extends Controller
             'token_type' => 'required|in:token24horas,tokenpermanenteusuario',
         ]);
         $token = $request->token_type;
-        $id_arquivo = ApiController::Enviar_Arquivo();
+
+
+        $arquivo = $request->file('arquivo');
+        $path = $arquivo->getRealPath();
+
+        $name = $arquivo->getClientOriginalName();
+        $extension = $arquivo->getClientOriginalExtension();
+
+        $mime_type = $arquivo->getMimeType();
+
+        // dd("Achou arquivo....",$arquivo,  $path , $name, $extension,  $mime_type );
+
+
+        $id_arquivo = ApiController::Enviar_Arquivo($arquivo, $path, $name, $extension, $mime_type);
 
         $model = webhook::find($id);
 
@@ -1769,7 +1783,7 @@ else
     }
 
 
-    public function Enviar_Arquivo()
+    public function Enviar_Arquivo($arquivo, $path, $name, $extension, $mime_type)
     {
         $accessToken = WebhookServico::token24horas();
         $phone_number_id = WebhookServico::phone_number_id();
@@ -1777,14 +1791,11 @@ else
 
         $client = new Client();
 
-        $arquivo = storage_path('whatsapp/nao_existe.jpg');
-
-        $filePath = storage_path('whatsapp/nao_existe.jpg');
 
         $response = Http::attach(
             'file', // Nome do campo esperado pela API do Facebook
-            file_get_contents($filePath), // O conteúdo do arquivo
-            'image.jpg' // Nome do arquivo que será enviado
+            file_get_contents($arquivo), // O conteúdo do arquivo
+            $name // Nome do arquivo que será enviado
         )->post('https://graph.facebook.com/v18.0/' . $phone_number_id .'/media', [
             'access_token' => $accessToken,
             'messaging_product' => 'whatsapp',
@@ -1801,6 +1812,8 @@ else
         }
 
         // dd("Sucesso de envio do arquivo. Id: ",$id_arquivo);
+
+
         return $id_arquivo;
 
     }
