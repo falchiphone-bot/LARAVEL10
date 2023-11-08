@@ -62,9 +62,8 @@
                     </div>
 
                     <div class="card-body">
-                        <form action="{{ route('whatsapp.enviarMensagemRespostaAtendimento', $id) }}" method="POST">
+                        <form action="{{ route('whatsapp.enviarMensagemRespostaAtendimento', $id) }}" method="POST" enctype="multipart/form-data">
                             @csrf
-
                             <div class="container">
                                 <h1 class="text-center bg-success text-white">{{ $NomeAtendido->contactName ?? null }}</h1>
                             </div>
@@ -78,6 +77,13 @@
                                 <!-- Adicione um campo oculto para enviar recipient_id -->
                                 <input type="hidden" name="recipient_id" value="{{ $NomeAtendido->recipient_id ?? null}}">
                                 <input type="hidden" name="contactName" value="{{ $NomeAtendido->contactName ?? null}}">
+
+
+
+                                <div class="form-group">
+                                    <label for="arquivo">Selecionar um arquivo:</label>
+                                    <input type="file" id="arquivo" name="arquivo" class="form-control-file">
+                                </div>
 
                                 <button type="submit" class="btn btn-primary">Enviar</button>
                             </div>

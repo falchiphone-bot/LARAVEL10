@@ -1334,12 +1334,6 @@ class ApiController extends Controller
     public function atendimentoWhatsappFiltroTelefone(string $id, request $request)
     {
 
-//     $request->validate([
-//         'quantidade_mensagens' => 'required|integer|min:1',
-//     ]);
-
-//     $quantidadeMensagens = $request->quantidade_mensagens;
-// dd($quantidadeMensagens);
 
         $Contatos = webhook::select(DB::raw('CONCAT(recipient_id, messagesFrom) AS recipient_messages'))
         ->groupBy(DB::raw('CONCAT(recipient_id, messagesFrom)'))
@@ -1377,7 +1371,7 @@ class ApiController extends Controller
 
         $id_arquivo = null;
         $arquivo = $request->file('arquivo') ?? null;
-      
+
       if( $arquivo)
       {
         $path = $arquivo->getRealPath() ;
@@ -1386,10 +1380,10 @@ class ApiController extends Controller
         $extension = $arquivo->getClientOriginalExtension()  ;
 
         $mime_type = $arquivo->getMimeType()  ;
-        
+
         $id_arquivo = ApiController::Enviar_Arquivo($arquivo, $path, $name, $extension, $mime_type);
       }
-            
+
 
         $model = webhook::find($id);
 
@@ -1498,8 +1492,20 @@ else
     public function enviarMensagemRespostaAtendimento(Request $request, $id)
     {
 
+        $id_arquivo = null;
+        $arquivo = $request->file('arquivo') ?? null;
 
-        $accessToken = WebhookConfig::OrderBy('usuario')->get()->first()->token24horas;
+      if( $arquivo)
+      {
+        $path = $arquivo->getRealPath() ;
+
+        $name = $arquivo->getClientOriginalName()  ;
+        $extension = $arquivo->getClientOriginalExtension()  ;
+
+        $mime_type = $arquivo->getMimeType()  ;
+
+        $id_arquivo = ApiController::Enviar_Arquivo($arquivo, $path, $name, $extension, $mime_type);
+      }
 
         $model = webhook::find($id);
 
@@ -1510,26 +1516,59 @@ else
                 session()->flash('MensagemNaoPreenchida', 'A mensagem está vazia... necessita de preenchimento!');
                 return redirect()->back();
             }
+          
+            $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
+            $phone_number_id = WebhookServico::phone_number_id();
+            $Token = $WebhookConfig->token24horas;
+  
+        
+            if($Token == null){
+                session()
+                ->flash('MensagemNaoPreenchida', 'Token não definido por algum erro. Verifique. Linha 1142!');
+                return redirect()->back();
+            }
+
 
         $client = new Client();
         $phone = $request->recipient_id; // Número de telefone de destino
         $client = new Client();
         $requestData = [];
+        
+// ================arquivo em anexo como $responseData
+if($id_arquivo){
+    $requestData = [
+               'messaging_product' => 'whatsapp',
+               'to' => $phone,
+               'type' => 'image',
+               'image' => [
+                   'id' => $id_arquivo['id'],
+                   'caption' => $message,
+               ],
+           ];
+   }
+   else
+   {
+        // ===================================== somente texto como resposta
         $requestData = [
-            'messaging_product' => 'whatsapp',
-            'to' => $phone, // Número de telefone de destino
-            'type' => 'text',
-            'text' => [
-                // 'body' => 'Resposdendo o texto: '. $model->body . 'Resposta: ' .$message,
-                'body' => $message,
-            ],
-        ];
-        $response = $client->post(
-            'https://graph.facebook.com/v17.0/147126925154132/messages',
-            [
+           'messaging_product' => 'whatsapp',
+           'to' => $phone,
+           'type' => 'text',
+           'text' => [
+               'body' => $message,
+           ],
+       ];
+   }
+   
+   // =================================================================
+   
+
+
+   $response = $client->post(
+    'https://graph.facebook.com/v17.0/' . $phone_number_id . '/messages',
+    [
 
                 'headers' => [
-                    'Authorization' => 'Bearer ' . $accessToken,
+                    'Authorization' => 'Bearer ' . $Token,
                     'Content-Type' => 'application/json',
                 ],
                 'json' => $requestData,
@@ -1794,7 +1833,7 @@ else
         $client = new Client();
 
 
-        
+
         $response = Http::attach(
             'file', // Nome do campo esperado pela API do Facebook
             file_get_contents($arquivo), // O conteúdo do arquivo
