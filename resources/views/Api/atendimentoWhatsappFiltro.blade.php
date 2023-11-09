@@ -128,7 +128,10 @@
 
                                                     @elseif($item->status =='read')
                                                         Lido
-                                                     @endif
+                                 
+                                                     @elseif($item->status =='failed')
+                                                        Falhou
+                                                  @endif
                                             </td>
 
                                             <td>
