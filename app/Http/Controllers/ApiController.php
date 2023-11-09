@@ -1580,6 +1580,18 @@ if($id_arquivo){
                     ];
 
             }
+            elseif($tipoarquivo == 'video')
+            {
+                $requestData = [
+                    'messaging_product' => 'whatsapp',
+                    'to' => $phone,
+                    'type' => $tipoarquivo,
+                    'video' => [
+                        'id' => $id_arquivo['id'],
+                        'caption' => $message,
+                    ],
+                ];
+            }
 }
 else
    {
@@ -1874,7 +1886,7 @@ else
 
         $client = new Client();
 
-        // dd(file_get_contents($arquivo));
+        // dd(file_get_contents($arquivo), $mime_type);
 
         if($mime_type !== 'text/plain')
         {
@@ -1946,7 +1958,7 @@ else
         // {
         //     $tipoarquivo = 'text';
         // }
-
+// dd( $tipoarquivo);
         return $tipoarquivo;
     }
 
