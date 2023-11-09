@@ -1,5 +1,5 @@
 
-    @if ($item->messagesType == 'document')
+    @if ($item->messagesType == 'document' || $item->type == 'document')
 
         @if ($item->url_arquivo == null)
             Documento ID:

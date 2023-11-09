@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use GuzzleHttp\Client;
 use App\Models\webhook;
@@ -11,7 +12,6 @@ use App\Models\WebhookConfig;
 use App\Models\webhookContact;
 use App\Models\WebhookTemplate;
 use App\Services\WebhookServico;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -1067,6 +1067,7 @@ class ApiController extends Controller
             }
 
              $image =  $data['entry'][0]['changes'][0]['value']['messages'][0]['image'] ?? null;
+             dd($data);
             if($image)
             {
                 $image_caption = $image['caption'] ?? null;
@@ -1328,6 +1329,8 @@ class ApiController extends Controller
 
       $selecao = null;
 
+    //   dd($Contatos);   //  se causar erros por aqui é porque não tem registros no banco de dados. Acusa null
+
         return view('api.atendimentoWhatsapp', compact('Contatos','selecao'));
     }
 
@@ -1430,6 +1433,8 @@ if($id_arquivo){
                 'caption' => $message,
             ],
         ];
+        $tipomensagem = '/messages';
+
 }
 else
 {
@@ -1442,13 +1447,15 @@ else
             'body' => $message,
         ],
     ];
+    $tipomensagem = '/messages';
+
 }
 
 // =================================================================
 
 
         $response = $client->post(
-            'https://graph.facebook.com/v17.0/' . $phone_number_id . '/messages',
+            'https://graph.facebook.com/v17.0/' . $phone_number_id . $tipomensagem ,
             [
 
                 'headers' => [
@@ -1475,6 +1482,7 @@ else
                 'type' => $requestData['type'] ?? null,
                 'body' => $requestData['text']['body'] ?? null,
                 'status' => 'sent' ?? null,
+                'messagesType' => $requestData['type'] ?? null,
                 'image_caption' => $requestData['image']['caption'] ?? null,
                 'image_id' => $requestData['image']['id'] ?? null,
             ]);
@@ -1516,12 +1524,12 @@ else
                 session()->flash('MensagemNaoPreenchida', 'A mensagem está vazia... necessita de preenchimento!');
                 return redirect()->back();
             }
-          
+
             $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
             $phone_number_id = WebhookServico::phone_number_id();
             $Token = $WebhookConfig->token24horas;
-  
-        
+
+
             if($Token == null){
                 session()
                 ->flash('MensagemNaoPreenchida', 'Token não definido por algum erro. Verifique. Linha 1142!');
@@ -1533,7 +1541,7 @@ else
         $phone = $request->recipient_id; // Número de telefone de destino
         $client = new Client();
         $requestData = [];
-        
+
 // ================arquivo em anexo como $responseData
 if($id_arquivo){
     $requestData = [
@@ -1558,9 +1566,9 @@ if($id_arquivo){
            ],
        ];
    }
-   
+
    // =================================================================
-   
+
 
 
    $response = $client->post(
@@ -1591,6 +1599,8 @@ if($id_arquivo){
                 'type' => $requestData['type'] ?? null,
                 'body' => $requestData['text']['body'] ?? null,
                 'status' => 'sent' ?? null,
+                'image_caption' => $requestData['image']['caption'] ?? null,
+                'image_id' => $requestData['image']['id'] ?? null,
             ]);
 
             $recipient_id = $requestData['to'];

@@ -1,6 +1,6 @@
 
 
-    @if ($item->messagesType == 'video')
+    @if ($item->messagesType == 'video' || $item->type == 'video')
         @if ($item->url_arquivo == null)
             Imagem ID:
             {{ $item->video_id }}

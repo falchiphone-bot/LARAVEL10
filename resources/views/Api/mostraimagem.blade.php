@@ -1,5 +1,5 @@
 
-@if ($item->messagesType == 'image' || $item->messagesType == 'sticker')
+@if ($item->messagesType == 'image' || $item->type == 'image'|| $item->messagesType == 'sticker')
     @if (empty(trim($item->url_arquivo)) || $item->url_arquivo === 'null' || $item->url_arquivo === 'NULL')
         Imagem ID: {{ $item->image_id }}
         {{ $item->image_caption }}
@@ -16,7 +16,7 @@
             </a>
         @endif
     @else
-        
+
         <a href="{{ '../' . $item->url_arquivo }}" target="_blank" rel="noopener noreferrer">
             <img src="{{ '../' . $item->url_arquivo }}" alt="Imagem" style="max-width: 100px;">
         </a>

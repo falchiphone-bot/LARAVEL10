@@ -85,7 +85,7 @@
                                     <input type="file" id="arquivo" name="arquivo" class="form-control-file">
                                 </div>
 
-                                <button type="submit" class="btn btn-primary">Enviar</button>
+                                <button type="submit" class="btn btn-success">Enviar</button>
                             </div>
                         </form>
 
@@ -143,6 +143,7 @@
                                             <td class="bg-warning">
                                                 @if ($item->status == 'sent')
                                                     {{ $item->body }}
+                                                    {{ $item->image_caption }}
                                                 @endif
 
                                             </td>
