@@ -104,18 +104,37 @@
                                 @if($selecao)
                                 <tbody>
                                     @foreach ($selecao as $item)
+                                        {{-- @if($NomeAtendido->status_mensagem_enviada == 1)
+                                                @continue
+                                        @endif --}}
+
+                                        @if ($item->status === 'delivered' || $item->status === 'read')
+                                            @continue
+                                        @endif
+
+                                        @if ($item->status == 'sent' && $item->conversation_id !== NULL)
+                                            @continue
+                                        @endif
 
                                         <tr>
 
-                                            <td>
-                                                <?php
 
+                                                <?php
                                                 $dateString = $item['created_at'];
                                                 $dateTime = new DateTime($dateString);
                                                 $formattedDate = $dateTime->format('d/m/Y H:i:s');
                                                 ?>
-                                                {{ $formattedDate ?? null }}
-                                            </td>
+                                               @if($NomeAtendido->status_mensagem_enviada == 0 && $item->status == 'sent' &&  $item['created_at'] > $NomeAtendido->ultima_leitura)
+                                                    <td style="background-color: red;">
+                                                        {{ $formattedDate ?? null }}
+                                                    </td>
+                                                @else
+                                                    <td>
+                                                        {{ $formattedDate ?? null }}
+                                                    </td>
+                                                @endif
+
+
 
 
                                             <td class="bg-primary">
@@ -130,6 +149,7 @@
                                                     @elseif($item->status =='read')
                                                         Lido
                                                         @if ($NomeAtendido->status_mensagem_enviada == NULL || $NomeAtendido->status_mensagem_enviada == false)
+
                                                             <form action="{{ route('whatsapp.StatusMensagemEnviada', $item->recipient_id) }}" method="GET" enctype="multipart/form-data">
                                                                 @csrf
                                                                 <button type="submit" class="btn btn-success">Confirma lida</button>

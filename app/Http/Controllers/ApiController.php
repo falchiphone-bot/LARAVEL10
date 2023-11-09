@@ -344,20 +344,12 @@ class ApiController extends Controller
             return;
          }
 
-// if($status == 'read'){
-//             $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
-//             $accessToken = $WebhookConfig->token24horas;
-//             $leumensagem = WebhookServico::
-//             Agradecimento_por_ter_lido_mensagem_recebida($recipient_id, $accessToken);
-//         }
-
             if($status == 'read'){
-                Log::info('===============>>>> READ');
                 $registro = webhookContact::where('recipient_id', $recipient_id)->get()->first();
-
                 $registro->update([
                  'status_mensagem_enviada' => true,
                  'user_updated' => 'webhook@falchi.com.br',
+                 'ultima_leitura' => now(),
                 ]);
                 Log::info('===============>>>> READ - GRAVOU LIDO');
             }
