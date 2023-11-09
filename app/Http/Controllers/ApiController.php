@@ -1517,7 +1517,7 @@ else
 
         $mime_type = $arquivo->getMimeType()  ;
 
- 
+
 
         $id_arquivo = ApiController::Enviar_Arquivo($arquivo, $path, $name, $extension, $mime_type);
       }
@@ -1550,11 +1550,11 @@ else
         $requestData = [];
 
 // ================arquivo em anexo como $responseData
- 
+
 if($id_arquivo){
- 
+
             $tipoarquivo = ApiController::TipoArquivo($mime_type);
-            
+
             if($tipoarquivo == 'image'){
                         $requestData = [
                         'messaging_product' => 'whatsapp',
@@ -1580,7 +1580,7 @@ if($id_arquivo){
                     ];
 
             }
-}  
+}
 else
    {
     // dd($tipoarquivo,'sem tipo de arquivo')   ;
@@ -1596,7 +1596,7 @@ else
    }
 
    // =================================================================
- 
+
    $response = $client->post(
     'https://graph.facebook.com/v17.0/' . $phone_number_id . '/messages',
     [
@@ -1871,18 +1871,38 @@ else
         $accessToken = WebhookServico::token24horas();
         $phone_number_id = WebhookServico::phone_number_id();
         $id_arquivo = null;
-    
+
         $client = new Client();
-    
-        $response = Http::attach(
-            'file', // Nome do campo esperado pela API do Facebook
-            file_get_contents($arquivo), // O conteúdo do arquivo
-            $name // Nome do arquivo que será enviado
-        )->post('https://graph.facebook.com/v18.0/' . $phone_number_id . '/media', [
-            'access_token' => $accessToken,
-            'messaging_product' => 'whatsapp',
-        ]);
-    
+
+        // dd(file_get_contents($arquivo));
+
+        if($mime_type !== 'text/plain')
+        {
+                $response = Http::attach(
+                'file', // Nome do campo esperado pela API do Facebook
+                file_get_contents($arquivo), // O conteúdo do arquivo
+                $name // Nome do arquivo que será enviado
+            )->post('https://graph.facebook.com/v18.0/' . $phone_number_id . '/media', [
+                'access_token' => $accessToken,
+                'messaging_product' => 'whatsapp',
+            ]);
+        }
+        elseif($mime_type === 'text/plain')
+        {
+            $response = Http::attach(
+                        'file',
+                        file_get_contents($arquivo),
+                        $name,
+                        ['Content-Type' => 'text/plain'] // Defina explicitamente o tipo MIME como text/plain
+                    )->post('https://graph.facebook.com/v18.0/' . $phone_number_id . '/media', [
+                        'access_token' => $accessToken,
+                        'messaging_product' => 'whatsapp',
+                    ]);
+        }
+
+
+
+
         if ($response->successful()) {
             // Fazer algo com a resposta
             $id_arquivo = $response->json();
@@ -1891,12 +1911,12 @@ else
             $error = $response->body();
             // Log ou retorne o erro conforme necessário
         }
-    
+
         // dd("Sucesso de envio do arquivo. Id: ",$id_arquivo);
     // dd($id_arquivo, $arquivo);
         return $id_arquivo;
     }
-    
+
 
 
     public function TipoArquivo($mime_type)
@@ -1905,7 +1925,7 @@ else
         if($mime_type == 'image/jpeg' || $mime_type == 'image/png' || $mime_type == 'image/jpg')
         {
             $tipoarquivo = 'image';
-  
+
         }
         elseif($mime_type == 'video/mp4' || $mime_type == 'video/3gpp' || $mime_type == 'video/quicktime')
         {
@@ -1926,7 +1946,7 @@ else
         // {
         //     $tipoarquivo = 'text';
         // }
-                 
+
         return $tipoarquivo;
     }
 
