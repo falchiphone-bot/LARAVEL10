@@ -1504,6 +1504,7 @@ else
     public function enviarMensagemRespostaAtendimento(Request $request, $id)
     {
 
+        $usuario = trim(Auth::user()->email);
         $id_arquivo = null;
         $arquivo = $request->file('arquivo') ?? null;
 
@@ -1636,10 +1637,11 @@ else
 
             $registro = webhookContact::where('recipient_id', $phone)->get()->first();
             $registro->update([
-             'status_mensagem_enviada' => false,
-             'user_updated' => Auth::user()->email,
+             'status_mensagem_enviada' => 0,
+             'user_updated' => $usuario,
            ]);
 
+           $registro->save();
 
             $newWebhook = webhook::create([
                 'webhook' => json_encode($requestData) ?? null,
@@ -1665,7 +1667,6 @@ else
             $contactName = $request->contactName;
             $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName);
             session()->flash('success', 'Mensagem enviada com sucesso para ' . $request->contactName .  '.');
-
 
 
             return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
@@ -2037,6 +2038,7 @@ else
                $registro->update([
                 'status_mensagem_enviada' => true,
                 'user_updated' => Auth::user()->email,
+
                ]);
 
             return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', $registro->recipient_id));
