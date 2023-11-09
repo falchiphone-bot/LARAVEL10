@@ -1534,6 +1534,7 @@ else
 
             $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
             $phone_number_id = WebhookServico::phone_number_id();
+            $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
             $Token = $WebhookConfig->token24horas;
 
 
@@ -1558,6 +1559,7 @@ if($id_arquivo){
             if($tipoarquivo == 'image'){
                         $requestData = [
                         'messaging_product' => 'whatsapp',
+                        'recipient_type' => 'individual',
                         'to' => $phone,
                         'type' => $tipoarquivo,
                         'image' => [
@@ -1570,6 +1572,7 @@ if($id_arquivo){
             {
                     $requestData = [
                         'messaging_product' => 'whatsapp',
+                        'recipient_type' => 'individual',
                         'to' => $phone,
                         'type' => $tipoarquivo,
                          'document' => [
@@ -1577,8 +1580,7 @@ if($id_arquivo){
                             'filename' => $name,
                             'caption' => $message,
                         ],
-
-                     ];
+                    ];
 
 
             }
@@ -1586,6 +1588,7 @@ if($id_arquivo){
             {
                 $requestData = [
                     'messaging_product' => 'whatsapp',
+                    'recipient_type' => 'individual',
                     'to' => $phone,
                     'type' => $tipoarquivo,
                     'video' => [
@@ -1601,6 +1604,7 @@ else
     // ===================================== somente texto como resposta
         $requestData = [
            'messaging_product' => 'whatsapp',
+           'recipient_type' => 'individual',
            'to' => $phone,
            'type' => 'text',
            'text' => [
@@ -1634,6 +1638,7 @@ else
                 'webhook' => json_encode($requestData) ?? null,
                 'value_messaging_product' => $requestData['messaging_product'] ?? null,
                 'object' => $requestData['messaging_product'] ?? null,
+                'entry_id' => $identificacaocontawhatsappbusiness ?? null,
                 'contactName' => $request->contactName ?? null,
                 'recipient_id' => $requestData['to'] ?? null,
                 'type' => $requestData['type'] ?? null,
