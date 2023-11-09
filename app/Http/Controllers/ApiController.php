@@ -1424,10 +1424,15 @@ class ApiController extends Controller
 
 // ================arquivo em anexo como $responseData
 if($id_arquivo){
+
+   include('api/tipoarquivo.php');
+
+   dd($mime_type);
+
  $requestData = [
             'messaging_product' => 'whatsapp',
             'to' => $phone,
-            'type' => 'image',
+            'type' => $tipoarquivo,
             'image' => [
                 'id' => $id_arquivo['id'],
                 'caption' => $message,
@@ -1512,6 +1517,8 @@ else
 
         $mime_type = $arquivo->getMimeType()  ;
 
+ 
+
         $id_arquivo = ApiController::Enviar_Arquivo($arquivo, $path, $name, $extension, $mime_type);
       }
 
@@ -1543,20 +1550,41 @@ else
         $requestData = [];
 
 // ================arquivo em anexo como $responseData
+ 
 if($id_arquivo){
-    $requestData = [
-               'messaging_product' => 'whatsapp',
-               'to' => $phone,
-               'type' => 'image',
-               'image' => [
-                   'id' => $id_arquivo['id'],
-                   'caption' => $message,
-               ],
-           ];
-   }
-   else
+ 
+            $tipoarquivo = ApiController::TipoArquivo($mime_type);
+            
+            if($tipoarquivo == 'image'){
+                        $requestData = [
+                        'messaging_product' => 'whatsapp',
+                        'to' => $phone,
+                        'type' => $tipoarquivo,
+                        'image' => [
+                            'id' => $id_arquivo['id'],
+                            'caption' => $message,
+                        ],
+                    ];
+            }
+            elseif($tipoarquivo == 'document')
+            {
+                    $requestData = [
+                        'messaging_product' => 'whatsapp',
+                        'to' => $phone,
+                        'type' => $tipoarquivo,
+                        'document' => [
+                            'id' => $id_arquivo['id'],
+                            'filename' => $name,
+                            'caption' => $message,
+                        ],
+                    ];
+
+            }
+}  
+else
    {
-        // ===================================== somente texto como resposta
+    // dd($tipoarquivo,'sem tipo de arquivo')   ;
+    // ===================================== somente texto como resposta
         $requestData = [
            'messaging_product' => 'whatsapp',
            'to' => $phone,
@@ -1568,9 +1596,7 @@ if($id_arquivo){
    }
 
    // =================================================================
-
-
-
+ 
    $response = $client->post(
     'https://graph.facebook.com/v17.0/' . $phone_number_id . '/messages',
     [
@@ -1597,10 +1623,16 @@ if($id_arquivo){
                 'contactName' => $request->contactName ?? null,
                 'recipient_id' => $requestData['to'] ?? null,
                 'type' => $requestData['type'] ?? null,
+                'messagesType' => $requestData['type'] ?? null,
                 'body' => $requestData['text']['body'] ?? null,
                 'status' => 'sent' ?? null,
                 'image_caption' => $requestData['image']['caption'] ?? null,
                 'image_id' => $requestData['image']['id'] ?? null,
+                'document_caption' => $requestData['document']['caption'] ?? null,
+                'document_id' => $requestData['document']['id'] ?? null,
+                'document_filename' => $name ?? null,
+                'video_caption' => $requestData['video']['caption'] ?? null,
+                'video_id' => $requestData['video']['id'] ?? null,
             ]);
 
             $recipient_id = $requestData['to'];
@@ -1839,35 +1871,63 @@ if($id_arquivo){
         $accessToken = WebhookServico::token24horas();
         $phone_number_id = WebhookServico::phone_number_id();
         $id_arquivo = null;
-
+    
         $client = new Client();
-
-
-
+    
         $response = Http::attach(
             'file', // Nome do campo esperado pela API do Facebook
             file_get_contents($arquivo), // O conteúdo do arquivo
             $name // Nome do arquivo que será enviado
-        )->post('https://graph.facebook.com/v18.0/' . $phone_number_id .'/media', [
+        )->post('https://graph.facebook.com/v18.0/' . $phone_number_id . '/media', [
             'access_token' => $accessToken,
             'messaging_product' => 'whatsapp',
         ]);
-
-       if ($response->successful()) {
+    
+        if ($response->successful()) {
             // Fazer algo com a resposta
-
             $id_arquivo = $response->json();
         } else {
             // Lidar com o erro
             $error = $response->body();
             // Log ou retorne o erro conforme necessário
         }
-
+    
         // dd("Sucesso de envio do arquivo. Id: ",$id_arquivo);
-
-
+    // dd($id_arquivo, $arquivo);
         return $id_arquivo;
+    }
+    
 
+
+    public function TipoArquivo($mime_type)
+    {
+
+        if($mime_type == 'image/jpeg' || $mime_type == 'image/png' || $mime_type == 'image/jpg')
+        {
+            $tipoarquivo = 'image';
+  
+        }
+        elseif($mime_type == 'video/mp4' || $mime_type == 'video/3gpp' || $mime_type == 'video/quicktime')
+        {
+            $tipoarquivo = 'video';
+
+        }
+        elseif($mime_type == 'application/pdf'
+                || $mime_type == 'text/plain'
+                || $mime_type == 'text/csv'
+                || $mime_type == 'application/vnd.ms-excel'
+                || $mime_type == 'application/msword'
+                || $mime_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+        {
+            $tipoarquivo = 'document';
+
+        }
+        // else
+        // {
+        //     $tipoarquivo = 'text';
+        // }
+                 
+        return $tipoarquivo;
     }
 
 
