@@ -353,8 +353,13 @@ class ApiController extends Controller
 
             if($status == 'read'){
                 Log::info('===============>>>> READ');
+                $registro = webhookContact::where('recipient_id', $recipient_id)->get()->first();
 
-
+                $registro->update([
+                 'status_mensagem_enviada' => true,
+                 'user_updated' => auth()->user()->email,
+                ]);
+                Log::info('===============>>>> READ - GRAVOU LIDO');
             }
 
             $newWebhook = webhook::create([
@@ -1344,7 +1349,7 @@ class ApiController extends Controller
 
         $NomeAtendido =  webhookContact::where('recipient_id', $id)->get()->first();
 
-         
+
 
         $selecao = webhook::limit(100)
         ->where('recipient_id', $id)
