@@ -128,11 +128,15 @@
 
                                                     @elseif($item->status =='read')
                                                         Lido
-                                 
+
                                                      @elseif($item->status =='failed')
                                                         Falhou
+
+                                                    @elseif($item->status =='received')
+                                                        Recebido
                                                   @endif
                                             </td>
+
 
                                             <td>
                                                 @if ($item->messagesFrom)
