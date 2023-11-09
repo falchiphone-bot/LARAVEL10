@@ -446,7 +446,7 @@ class ApiController extends Controller
 
 
         $response = $client->post(
-            'https://graph.facebook.com/v17.0/147126925154132/messages',
+            'https://graph.facebook.com/v18.0/147126925154132/messages',
 
             [
 
@@ -513,7 +513,7 @@ class ApiController extends Controller
 
 
 
-        $response = $client->post('https://graph.facebook.com/v17.0/157689817424024/messages', [
+        $response = $client->post('https://graph.facebook.com/v18.0/157689817424024/messages', [
             'headers' => [
                 'Authorization' => 'Bearer ' . $accessToken,
                 'Content-Type' => 'application/json',
@@ -554,7 +554,7 @@ class ApiController extends Controller
 
 
 
-        $response = $client->post('https://graph.facebook.com/v17.0/125892007279954/messages', [
+        $response = $client->post('https://graph.facebook.com/v18.0/125892007279954/messages', [
             'headers' => [
                 'Authorization' => 'Bearer ' . $accessToken,
                 'Content-Type' => 'application/json',
@@ -1460,7 +1460,7 @@ else
 
 
         $response = $client->post(
-            'https://graph.facebook.com/v17.0/' . $phone_number_id . $tipomensagem ,
+            'https://graph.facebook.com/v18.0/' . $phone_number_id . $tipomensagem ,
             [
 
                 'headers' => [
@@ -1572,12 +1572,14 @@ if($id_arquivo){
                         'messaging_product' => 'whatsapp',
                         'to' => $phone,
                         'type' => $tipoarquivo,
-                        'document' => [
+                         'document' => [
                             'id' => $id_arquivo['id'],
                             'filename' => $name,
                             'caption' => $message,
                         ],
-                    ];
+
+                     ];
+
 
             }
             elseif($tipoarquivo == 'video')
@@ -1610,7 +1612,7 @@ else
    // =================================================================
 
    $response = $client->post(
-    'https://graph.facebook.com/v17.0/' . $phone_number_id . '/messages',
+    'https://graph.facebook.com/v18.0/' . $phone_number_id . '/messages',
     [
 
                 'headers' => [
@@ -1720,7 +1722,7 @@ else
             ],
         ];
           $response = $client->post(
-            'https://graph.facebook.com/v17.0/147126925154132/messages',
+            'https://graph.facebook.com/v18.0/147126925154132/messages',
             [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $accessToken,
