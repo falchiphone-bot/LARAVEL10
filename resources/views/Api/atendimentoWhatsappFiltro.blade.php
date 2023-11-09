@@ -77,8 +77,7 @@
                                 <!-- Adicione um campo oculto para enviar recipient_id -->
                                 <input type="hidden" name="recipient_id" value="{{ $NomeAtendido->recipient_id ?? null}}">
                                 <input type="hidden" name="contactName" value="{{ $NomeAtendido->contactName ?? null}}">
-
-
+                                <input type="hidden" name="status_mensagem_enviada" value="{{ $NomeAtendido->status_mensagem_enviada  ?? null}}">
 
                                 <div class="form-group">
                                     <label for="arquivo">Selecionar um arquivo:</label>
@@ -123,17 +122,32 @@
                                                     @if($item->status == 'sent')
                                                         Enviado
 
+
+
                                                     @elseif($item->status == 'delivered')
                                                         Entregue
 
                                                     @elseif($item->status =='read')
                                                         Lido
+                                                        @if ($NomeAtendido->status_mensagem_enviada == NULL || $NomeAtendido->status_mensagem_enviada == false)
+                                                            <form action="{{ route('whatsapp.StatusMensagemEnviada', $item->recipient_id) }}" method="GET" enctype="multipart/form-data">
+                                                                @csrf
+                                                                <button type="submit" class="btn btn-success">Confirma lida</button>
+                                                            </form>
+                                                        @endif
 
                                                      @elseif($item->status =='failed')
                                                         Falhou
 
                                                     @elseif($item->status =='received')
                                                         Recebido
+                                                        @if ($item->statusconfirmado == false)
+                                                                    <form action="{{ route('whatsapp.ConfirmaRecebimentoMensagem', $item->id) }}" method="POST" enctype="multipart/form-data">
+                                                                    @csrf
+                                                                    <button type="submit" class="btn btn-success">Confirma recebimento</button>
+                                                            </form>
+                                                        @endif
+
                                                   @endif
                                             </td>
 
@@ -154,6 +168,7 @@
                                                 @endif
 
                                             </td>
+
 
                                         </tr>
 

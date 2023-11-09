@@ -1344,6 +1344,8 @@ class ApiController extends Controller
 
         $NomeAtendido =  webhookContact::where('recipient_id', $id)->get()->first();
 
+         
+
         $selecao = webhook::limit(100)
         ->where('recipient_id', $id)
         ->orwhere('messagesFrom', $id)
@@ -1968,6 +1970,73 @@ else
 // dd( $tipoarquivo);
         return $tipoarquivo;
     }
+
+
+    public function ConfirmaRecebimentoMensagem(string $id)
+    {
+
+
+        $registro = webhook::find($id);
+
+
+
+        $accessToken = WebhookServico::token24horas();
+        $phone_number_id = WebhookServico::phone_number_id();
+
+
+        $client = new Client();
+
+        $requestData = [
+            'messaging_product' => 'whatsapp',
+            'status' => "read",
+            'message_id' => $registro->messages_id,
+        ];
+
+        $response = $client->post(
+            'https://graph.facebook.com/v18.0/147126925154132/messages',
+
+            [
+
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $accessToken,
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => $requestData,
+            ]
+        );
+
+
+        if ($response->getStatusCode() == 200) {
+               $registro->update([
+                'statusconfirmado' => true,
+               ]);
+
+            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', $registro->messagesFrom));
+        } else {
+            // Manipule erros, se houver
+            echo 'Erro ao enviar a mensagem: ' . $response->getBody();
+        }
+
+
+        return;
+    }
+
+    public function StatusMensagemEnviada(string $id)
+    {
+
+
+        $registro = webhookContact::where('recipient_id', $id)->get()->first();
+
+
+
+               $registro->update([
+                'status_mensagem_enviada' => true,
+                'user_updated' => auth()->user()->email,
+               ]);
+
+            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', $registro->recipient_id));
+    }
+
 
 
 }

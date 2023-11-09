@@ -16,6 +16,7 @@ class webhookContact extends Model
         'user_updated',
         'contactName',
         'recipient_id',
+        'status_mensagem_enviada',
     ];
 
 }

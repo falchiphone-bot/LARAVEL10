@@ -121,6 +121,8 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
 
  # API WHATSAPP
 
+ Route::post('/whatsapp/ConfirmaRecebimentoMensagem/{id}', [App\Http\Controllers\ApiController::class, 'ConfirmaRecebimentoMensagem'])->name('whatsapp.ConfirmaRecebimentoMensagem');
+
  Route::get('/whatsapp/Enviar_Arquivo', [App\Http\Controllers\ApiController::class,
  'Enviar_Arquivo'])->name('whatsapp.Enviar_Arquivo');
 
@@ -132,7 +134,8 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
   [App\Http\Controllers\ApiController::class,  'enviarMensagemAprovadaAngelica'])
   ->name('whatsapp.enviarMensagemAprovadaAngelica');
 
-
+  Route::get('/whatsapp/StatusMensagemEnviada/{id}', [App\Http\Controllers\ApiController::class, 'StatusMensagemEnviada'])
+  ->name('whatsapp.StatusMensagemEnviada');
 
   Route::get('/storage/whatsapp/{filename}', function ($filename) {
     // Coloque aqui a lógica para lidar com a requisição, como o envio do arquivo ou redirecionamento para ele.
