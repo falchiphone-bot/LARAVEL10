@@ -357,7 +357,7 @@ class ApiController extends Controller
 
                 $registro->update([
                  'status_mensagem_enviada' => true,
-                 'user_updated' => auth()->user()->email,
+                 'user_updated' => 'webhook@falchi.com.br',
                 ]);
                 Log::info('===============>>>> READ - GRAVOU LIDO');
             }
@@ -2033,10 +2033,10 @@ else
         $registro = webhookContact::where('recipient_id', $id)->get()->first();
 
 
-
+        dd(auth::user()->email);
                $registro->update([
                 'status_mensagem_enviada' => true,
-                'user_updated' => auth()->user()->email,
+                'user_updated' => auth::user()->email,
                ]);
 
             return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', $registro->recipient_id));
