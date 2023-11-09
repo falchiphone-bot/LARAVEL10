@@ -1183,7 +1183,7 @@ class ApiController extends Controller
 
         $atualiza = [
             // 'webhook' => $dataString ?? null,
-            'user_updated' =>  auth::user()->email,
+            'user_updated' =>  Auth::user()->email,
             'entry_id' => $entry_id ?? null,
             'entry_time' => $entry_time ?? null,
             'object' => $object ?? null,
@@ -1633,6 +1633,14 @@ else
 
  ///////////////////Gravar
             /////////////// gravar mensagem aprovada
+
+            $registro = webhookContact::where('recipient_id', $phone)->get()->first();
+            $registro->update([
+             'status_mensagem_enviada' => false,
+             'user_updated' => Auth::user()->email,
+           ]);
+
+
             $newWebhook = webhook::create([
                 'webhook' => json_encode($requestData) ?? null,
                 'value_messaging_product' => $requestData['messaging_product'] ?? null,
@@ -2025,10 +2033,10 @@ else
         $registro = webhookContact::where('recipient_id', $id)->get()->first();
 
 
-        dd(auth::user()->email);
+
                $registro->update([
                 'status_mensagem_enviada' => true,
-                'user_updated' => auth::user()->email,
+                'user_updated' => Auth::user()->email,
                ]);
 
             return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', $registro->recipient_id));
