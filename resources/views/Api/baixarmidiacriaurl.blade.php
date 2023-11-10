@@ -7,7 +7,7 @@
                             <div class="text-center">
                                 <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $item->image_id) }}"
                                 class="btn btn-warning mx-auto" tabindex="-1" role="button" aria-disabled="true">
-                                <img src="/storage/whatsapp/icone-download-verde.jpeg" alt="Ver arquivo de vídeo" class="img-thumbnail" width="30" height="30">
+                                <img src="/icones/icone-download-verde.jpeg" alt="Ver arquivo de vídeo" class="img-thumbnail" width="30" height="30">
                                 </a>
                             </div>
                         @endif
@@ -19,7 +19,7 @@
         @if ($item->messagesType == 'video')
             @can('WHATSAPP - ATUALIZAR REGISTRO - BAIXAR URL MIDIA')
             <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $item->video_id) }}" tabindex="-1" role="button" aria-disabled="true">
-                <img src="/storage/whatsapp/icone-download-verde.jpeg" alt="Ver arquivo de vídeo" class="img-thumbnail" width=" 30" height=" 30">
+                <img src="/icones/icone-download-verde.jpeg" alt="Ver arquivo de vídeo" class="img-thumbnail" width=" 30" height=" 30">
             </a>
 
            @endcan
@@ -32,7 +32,7 @@
                     <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $item->audio_id) }}"
                         class="btn btn-warning" tabindex="-1" role="button"
                         aria-disabled="true">
-                        <img src="/storage/whatsapp/icone-download-verde.jpeg" alt="Ver arquivo de vídeo" class="img-thumbnail" width=" 30" height=" 30">
+                        <img src="/icones/icone-download-verde.jpeg" alt="Ver arquivo de vídeo" class="img-thumbnail" width=" 30" height=" 30">
                     </a>
                 @endcan
 
@@ -43,7 +43,7 @@
                         <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $item->document_id) }}"
                             class="btn btn-warning" tabindex="-1" role="button"
                             aria-disabled="true">
-                            <img src="/storage/whatsapp/icone-download-verde.jpeg" alt="Ver arquivo de vídeo" class="img-thumbnail" width=" 30" height=" 30">
+                            <img src="/icones/icone-download-verde.jpeg" alt="Ver arquivo de vídeo" class="img-thumbnail" width=" 30" height=" 30">
                         </a>
                 @endcan
 
