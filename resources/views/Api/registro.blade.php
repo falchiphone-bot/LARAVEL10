@@ -123,16 +123,16 @@
                                                             </a>
                                                         </div>
                                                     @endif
+                                                    @endcan
 
-
-
-
-                                                    @if ($model->messagesType == 'sticker')
-                                                        <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $model->sticker_id) }}"
-                                                        class="btn btn-warning" tabindex="-1" role="button"
-                                                        aria-disabled="true">Ver arquivo sticker</a>
+                                                    @if ($model->url_arquivo !== null)
+                                                        @if ($model->messagesType == 'sticker')
+                                                            <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $model->sticker_id) }}"
+                                                            class="btn btn-warning" tabindex="-1" role="button"
+                                                            aria-disabled="true">Ver arquivo sticker</a>
+                                                        @endif
                                                     @endif
-                                                  @endcan
+
                                         @else
                                             <td>Imagem</td>
                                             <img src="{{ '../' . $model->url_arquivo }}" alt="Imagem" style="display: block; margin: 0 auto;">
@@ -144,8 +144,6 @@
 
                                 <tr>
                                     @if ($model->messagesType == 'video')
-                                        @if ($model->url_arquivo == null)
-
                                         @can('WHATSAPP - ATUALIZAR REGISTRO - BAIXAR URL MIDIA')
                                             <td>Imagem ID:</td>
                                             <td>{{ $model->video_id }}</td>
@@ -155,7 +153,7 @@
 
                                                 <h3>{{ $model->video_caption }}</h3>
                                        @endcan
-                                        @else
+                                        @if ($model->url_arquivo !== null)
                                              <h3>{{ $model->video_caption }}</h3>
                                             <video id="my-video" class="video-js" controls preload="auto" width="500"
                                                 height="500">
@@ -189,15 +187,13 @@
 
                                     @if ($model->messagesType == 'document')
                                          @can('WHATSAPP - ATUALIZAR REGISTRO - BAIXAR URL MIDIA')
-
-                                            @if ($model->url_arquivo == null)
                                                 <td>Documento ID:</td>
                                                 <td>{{ $model->document_id }}</td>
                                                 <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $model->document_id) }}"
                                                     class="btn btn-warning" tabindex="-1" role="button"
                                                     aria-disabled="true">Ver arquivo documento</a>
                                         @endcan
-                                        @else
+                                        @if ($model->url_arquivo !== null)
                                             <td>Documento</td>
                                             @if ($model->document_mime_type == 'application/pdf')
                                                 <a href="{{ '../' . $model->url_arquivo }}" target="_blank"
