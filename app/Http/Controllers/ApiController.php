@@ -1858,6 +1858,12 @@ else
                     $sufixo = '.mp4';
                 }
             }
+            if($registrobd->messagesType == 'audio'){
+                if($registrobd->video_mime_type == 'audio/ogg'){
+                    $sufixo = '.ogg';
+                }
+            }
+
 
             if($registrobd->messagesType == 'document'){
                 if($registrobd->document_mime_type == 'application/pdf'){
@@ -1917,13 +1923,9 @@ else
 
             return redirect($filePath);
 
-
-
-
-
         } else {
             // Manipule erros, se houver
-            echo 'Erro ao enviar a mensagem: ' . $response->getBody();
+            echo 'Arquivo não existe mais no servidor.... Ele permanece por 30 dias da data de envio: ' . $response->getBody();
         }
     }
 

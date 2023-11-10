@@ -105,34 +105,39 @@
 
                                 <tr>
                                     @if ($model->messagesType == 'image' || $model->messagesType == 'sticker')
-                                    @if (empty(trim($model->url_arquivo)) || $model->url_arquivo === 'null' || $model->url_arquivo === 'NULL')
+                                        @if (empty(trim($model->url_arquivo)) || $model->url_arquivo === 'null' || $model->url_arquivo === 'NULL')
 
 
-                                            <td>Imagem ID:</td>
-                                            <td>{{ $model->image_id }}</td>
-                                            <h3>{{ $model->image_caption }}</h3>
+                                                <td>Imagem ID:</td>
+                                                <td>{{ $model->image_id }}</td>
+                                                <h3>{{ $model->image_caption }}</h3>
 
-                                            @if ($model->messagesType == 'image')
-                                            <div class="text-center">
-                                                <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $model->image_id) }}"
-                                                   class="btn btn-warning mx-auto" tabindex="-1" role="button" aria-disabled="true">
-                                                    Ver arquivo imagem
-                                                </a>
-                                            </div>
-                                        @endif
+                                                    @can('WHATSAPP - ATUALIZAR REGISTRO - BAIXAR URL MIDIA')
+
+                                                    @if ($model->messagesType == 'image')
+
+                                                        <div class="text-center">
+                                                            <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $model->image_id) }}"
+                                                            class="btn btn-warning mx-auto" tabindex="-1" role="button" aria-disabled="true">
+                                                                Ver arquivo imagem
+                                                            </a>
+                                                        </div>
+                                                    @endif
 
 
-                                            @if ($model->messagesType == 'sticker')
-                                                <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $model->sticker_id) }}"
-                                                class="btn btn-warning" tabindex="-1" role="button"
-                                                aria-disabled="true">Ver arquivo sticker</a>
-                                             @endif
 
+
+                                                    @if ($model->messagesType == 'sticker')
+                                                        <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $model->sticker_id) }}"
+                                                        class="btn btn-warning" tabindex="-1" role="button"
+                                                        aria-disabled="true">Ver arquivo sticker</a>
+                                                    @endif
+                                                  @endcan
                                         @else
                                             <td>Imagem</td>
                                             <img src="{{ '../' . $model->url_arquivo }}" alt="Imagem" style="display: block; margin: 0 auto;">
 
-                                        </div>
+
                                         @endif
                                     @endif
                                 </tr>
@@ -140,6 +145,8 @@
                                 <tr>
                                     @if ($model->messagesType == 'video')
                                         @if ($model->url_arquivo == null)
+
+                                        @can('WHATSAPP - ATUALIZAR REGISTRO - BAIXAR URL MIDIA')
                                             <td>Imagem ID:</td>
                                             <td>{{ $model->video_id }}</td>
                                             <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $model->video_id) }}"
@@ -147,7 +154,7 @@
                                                 aria-disabled="true">Ver arquivo de video</a>
 
                                                 <h3>{{ $model->video_caption }}</h3>
-
+                                       @endcan
                                         @else
                                              <h3>{{ $model->video_caption }}</h3>
                                             <video id="my-video" class="video-js" controls preload="auto" width="500"
@@ -158,17 +165,38 @@
                                     @endif
                                 </tr>
 
+                                <tr>
+                                    @if ($model->messagesType == 'audio')
+                                            @can('WHATSAPP - ATUALIZAR REGISTRO - BAIXAR URL MIDIA')
+                                                <td>Áudio ID:</td>
+                                                <td>{{ $model->audioaudio_id }}</td>
+                                                <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $model->audio_id) }}"
+                                                    class="btn btn-warning" tabindex="-1" role="button"
+                                                    aria-disabled="true">Baixar/Ver arquivo de áudio</a>
+                                            @endcan
+
+                                       @if($model->url_arquivo !== null)
+                                        <audio id="my-audio" class="audio-js" controls preload="auto" width="200" height="200">
+                                            <source src="{{ asset($model->url_arquivo) }}" type="audio/mpeg">
+                                            Seu navegador não suporta o elemento de áudio.
+                                        </audio>
+                                        @endif
+                                    @endif
+                                </tr>
+
 
                                 <tr>
 
                                     @if ($model->messagesType == 'document')
+                                         @can('WHATSAPP - ATUALIZAR REGISTRO - BAIXAR URL MIDIA')
 
-                                        @if ($model->url_arquivo == null)
-                                            <td>Documento ID:</td>
-                                            <td>{{ $model->document_id }}</td>
-                                            <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $model->document_id) }}"
-                                                class="btn btn-warning" tabindex="-1" role="button"
-                                                aria-disabled="true">Ver arquivo documento</a>
+                                            @if ($model->url_arquivo == null)
+                                                <td>Documento ID:</td>
+                                                <td>{{ $model->document_id }}</td>
+                                                <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $model->document_id) }}"
+                                                    class="btn btn-warning" tabindex="-1" role="button"
+                                                    aria-disabled="true">Ver arquivo documento</a>
+                                        @endcan
                                         @else
                                             <td>Documento</td>
                                             @if ($model->document_mime_type == 'application/pdf')
