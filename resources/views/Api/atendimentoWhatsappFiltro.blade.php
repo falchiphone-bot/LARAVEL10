@@ -179,6 +179,7 @@
                                                 @include('Api.mostraimagem')
                                                 @include('Api.mostradocumento')
                                                 @include('Api.mostravideo')
+                                                @include('Api.mostraaudio')
                                             </td>
 
                                             <td class="bg-warning">

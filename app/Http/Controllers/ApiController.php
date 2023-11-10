@@ -1834,7 +1834,9 @@ else
             ->orWhere('document_id', $id)
             ->orWhere('video_id', $id)
             ->orWhere('sticker_id', $id)
+            ->orWhere('audio_id', $id)
             ->first();
+
 
 
 
