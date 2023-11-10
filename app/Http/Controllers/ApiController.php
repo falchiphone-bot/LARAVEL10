@@ -982,6 +982,8 @@ class ApiController extends Controller
         $jsonData =  $model->webhook;
         $data = json_decode($jsonData, true);
 
+
+
         //////////////////////////////////////////////////////////////////////////
         $mergedData = array();
         $entry_id = null;
@@ -1003,11 +1005,17 @@ class ApiController extends Controller
         $document_mime_type = null;
         $document_sha256 = null;
         $document_id = null;
+
         $video_caption = null;
         $video_filename = null;
         $video_mime_type = null;
         $video_sha256 = null;
         $video_id = null;
+
+        $audio_mime_type = null;
+        $audio_sha256 = null;
+        $audio_id = null;
+        $audio_voice = null;
 
         $sticker_mime_type = null;
         $sticker_sha256 =  null;
@@ -1063,11 +1071,23 @@ class ApiController extends Controller
                 // DD($document, $document_filename, $document_mime_type, $document_sha256, $document_id);
             }
 
+            $audio =  $data['entry'][0]['changes'][0]['value']['messages'][0]['audio'] ?? null;
+
+           if($audio)
+           {
+               $audio_mime_type = $audio['mime_type'] ?? null;
+               $audio_sha256 = $audio['sha256'] ?? null;
+               $audio_id = $audio['id']?? null;
+               $audio_voice = $audio['voice']?? null;
+           }
+
+//   dd($data,  $audio,  $audio_mime_type, $audio_sha256, $audio_id, $audio_voice  );
+
              $image =  $data['entry'][0]['changes'][0]['value']['messages'][0]['image'] ?? null;
-             dd($data);
             if($image)
             {
                 $image_caption = $image['caption'] ?? null;
+                $image_mime_type = $image['mime_type'] ?? null;
                 $image_sha256 = $image['sha256'] ?? null;
                 $image_id = $image['id']?? null;
             }
@@ -1093,6 +1113,8 @@ class ApiController extends Controller
             }
 
 
+
+
             if ($changes) {
                 $value = $changes['value'] ?? null;
                 $changes_field = $changes['field'] ?? null;
@@ -1102,8 +1124,7 @@ class ApiController extends Controller
                 $text = $text ?? null;
                 $mime_type = $mime_type ?? null;
                 $filename = $filename ?? null;
-                $image_mime_type = $image_mime_type ?? null;
-                // $image_caption = $image_caption ?? null;
+
                 $status = $status ?? null;
                 $recipient_id = $recipient_id ?? null;
                 $conversation_id = $conversation_id ?? null;
@@ -1124,7 +1145,7 @@ class ApiController extends Controller
                     $mime_type = $document['mime_type'] ?? null;
                     $image = $messages['image']  ?? null;
 
-                    $image_mime_type = $image['mime_type'] ?? null;
+
 
                     // $image_caption = $image['image_caption'] ?? null;
 
@@ -1211,6 +1232,12 @@ class ApiController extends Controller
             'sticker_id' => $sticker_id ?? null,
             'sticker_animated' => $sticker_animated ?? null,
 
+            'audio_mime_type' => $audio_mime_type ?? null,
+            'audio_sha256' => $audio_sha256 ?? null,
+            'audio_id' => $audio_id ?? null,
+            'audio_voice' => $audio_voice ?? null,
+
+
             'image_id' => $image_id ?? null,
             'image_caption' => $image_caption ?? null,
             'image_sha256' => $image_sha256 ?? null,
@@ -1267,6 +1294,12 @@ class ApiController extends Controller
             . "video_mime_type" . $video_mime_type . "\n"
             . "video_sha256" . $video_sha256  . "\n"
             . "video_id" . $video_id . "\n"
+
+
+            . "audio_mime_type" . $audio_mime_type . "\n"
+            . "audio_sha256" . $audio_sha256  . "\n"
+            . "audio_id" . $audio_id . "\n"
+            . "audio_voice" . $audio_voice. "\n"
 
             . "sticker_mime_type" . $sticker_mime_type . "\n"
             . "sticker_sha256" . $sticker_sha256  . "\n"

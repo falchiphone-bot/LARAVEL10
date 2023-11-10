@@ -43,6 +43,16 @@ class Webhook extends Model
         'video_sha256',
         'video_mime_type',
 
+
+
+
+
+
+        'audio_mime_type',
+        'audio_sha256',
+        'audio_id',
+        'audio_voice',
+
         'sticker_id',
         'sticker_sha256',
         'sticker_mime_type',
