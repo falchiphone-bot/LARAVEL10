@@ -180,6 +180,7 @@
                                                 @include('Api.mostradocumento')
                                                 @include('Api.mostravideo')
                                                 @include('Api.mostraaudio')
+                                                @include('Api.baixarmidiacriaurl')
                                             </td>
 
                                             <td class="bg-warning">
