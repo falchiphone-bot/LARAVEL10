@@ -11,19 +11,17 @@
                                 </a>
                             </div>
                         @endif
-                        @endcan
+            @endcan
         @endif
 
 
 
         @if ($item->messagesType == 'video')
             @can('WHATSAPP - ATUALIZAR REGISTRO - BAIXAR URL MIDIA')
-            <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $item->video_id) }}" tabindex="-1" role="button" aria-disabled="true">
-                <img src="/icones/icone-download-verde.jpeg" alt="Ver arquivo de vídeo" class="img-thumbnail" width=" 30" height=" 30">
-            </a>
-
+                <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $item->video_id) }}" tabindex="-1" role="button" aria-disabled="true">
+                    <img src="/icones/icone-download-verde.jpeg" alt="Ver arquivo de vídeo" class="img-thumbnail" width=" 30" height=" 30">
+                </a>
            @endcan
-
         @endif
 
 
@@ -35,7 +33,6 @@
                         <img src="/icones/icone-download-verde.jpeg" alt="Ver arquivo de vídeo" class="img-thumbnail" width=" 30" height=" 30">
                     </a>
                 @endcan
-
         @endif
 
         @if ($item->messagesType == 'document')
@@ -46,6 +43,5 @@
                             <img src="/icones/icone-download-verde.jpeg" alt="Ver arquivo de vídeo" class="img-thumbnail" width=" 30" height=" 30">
                         </a>
                 @endcan
-
         @endif
 

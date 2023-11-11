@@ -9,7 +9,6 @@
                 aria-disabled="true">Ver arquivo de video</a>
 
                 <h3>{{ $item->video_caption }}</h3>
-
         @else
              <h3>{{ $item->video_caption }}</h3>
             <video id="my-video" class="video-js" controls preload="auto" width="200"

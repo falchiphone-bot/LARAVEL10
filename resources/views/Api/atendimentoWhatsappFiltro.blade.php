@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <meta http-equiv="refresh" content="5"> <!-- Atualize a cada 5 segundos -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="refresh" content="10">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha2/css/bootstrap.min.css">
+    <title>Atendimento Whatsapp - filtro por contato</title>
 </head>
-
-</html>
 @extends('layouts.bootstrap5')
 
 @section('content')
@@ -55,7 +57,7 @@
                         </tbody>
                     </table>
                </div>
-               <div class="col-8">
+               <div class="col-6">
                 <div class="card">
                     <div class="card-footer">
                         <a href="{{ route('whatsapp.indexlista') }}">Retornar para a lista</a>
@@ -87,9 +89,11 @@
                                 <button type="submit" class="btn btn-success">Enviar</button>
                             </div>
                         </form>
+                    </div>
+                </div>
 
-
-
+                <div class="container">
+                    <div class="card-body">
                         <div class="col-12">
                              <table class="table">
                                 <thead>
@@ -117,12 +121,10 @@
                                         @endif
 
                                         <tr>
-
-
                                                 <?php
-                                                $dateString = $item['created_at'];
-                                                $dateTime = new DateTime($dateString);
-                                                $formattedDate = $dateTime->format('d/m/Y H:i:s');
+                                                    $dateString = $item['created_at'];
+                                                    $dateTime = new DateTime($dateString);
+                                                    $formattedDate = $dateTime->format('d/m/Y H:i:s');
                                                 ?>
                                                @if($NomeAtendido->status_mensagem_enviada == 0 && $item->status == 'sent' &&  $item['created_at'] > $NomeAtendido->ultima_leitura)
                                                     <td style="background-color: red;">
@@ -176,11 +178,13 @@
                                                 @if ($item->messagesFrom)
                                                     {{ $item->body }}
                                                 @endif
+
+                                                @include('Api.baixarmidiacriaurl')
                                                 @include('Api.mostraimagem')
                                                 @include('Api.mostradocumento')
                                                 @include('Api.mostravideo')
                                                 @include('Api.mostraaudio')
-                                                @include('Api.baixarmidiacriaurl')
+
                                             </td>
 
                                             <td class="bg-warning">
@@ -207,7 +211,7 @@
 
                     </div>
                 </div>
-               </div>
+
             </div>
         </div>
     </div>

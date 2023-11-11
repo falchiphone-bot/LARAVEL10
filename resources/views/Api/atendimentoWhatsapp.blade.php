@@ -2,7 +2,9 @@
 
 @section('content')
 <div class="py-5 bg-light">
-    <div class="container">
+
+    <div class="whatsapp-container">
+
         <div class="card">
             <div class="badge bg-primary text-wrap" style="width: 100%;">
                 ATENDIMENTO - WHATSAPP - SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
@@ -26,8 +28,6 @@
                         <thead>
                             <tr>
                                 <th>Nome</th>
-                                <th>Telefone</th>
-
                             </tr>
                         </thead>
                         <tbody>
@@ -37,7 +37,7 @@
 
                                     <td><a href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone',
                                     $item->Contato->recipient_id) }}">{{ $item->Contato->contactName }}</a></td>
-                                    <td>{{ $item->Contato->recipient_id }}</td>
+
 
                                     <td>
                                         {{-- <a href="{{ route('whatsapp.enviar', $item->id) }}" class="btn btn-primary">Enviar Mensagem</a> --}}
