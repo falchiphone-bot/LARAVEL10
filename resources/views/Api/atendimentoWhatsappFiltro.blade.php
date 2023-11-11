@@ -1,13 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta http-equiv="refresh" content="10">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha2/css/bootstrap.min.css">
-    <title>Atendimento Whatsapp - filtro por contato</title>
-</head>
 @extends('layouts.bootstrap5')
 
 @section('content')
@@ -31,7 +22,7 @@
 
 
             <div class="row">
-               <div class="col-4">
+               <div class="col-3">
                     <table>
                         <thead>
                             <tr>
@@ -57,8 +48,9 @@
                         </tbody>
                     </table>
                </div>
-               <div class="col-6">
-                <div class="card">
+
+               <div class="col-9">
+
 
                     <div class="card-footer">
                         <a href="{{ route('whatsapp.indexlista') }}">Retornar para a lista</a>
@@ -88,15 +80,16 @@
                                     <input type="file" id="arquivo" name="arquivo a mensagem" class="form-control-file">
                                 </div>
 
-                                <button type="submit" class="btn btn-success">Enviar</button>
+                                <button type="submit" class="btn btn-success">Enviar a mensagem</button>
                             </div>
                         </form>
                     </div>
 
-                </div>
 
-                <div class="container">
-                    <div class="card-body" style="max-width: 1024px; max-height: 500px; overflow: hidden;">
+
+                <div class="card-body" style="max-width: 1024px; max-height: 500px; overflow: hidden;">
+
+
 
                         {{-- <div class="col-12"> --}}
                              <table class="table">
@@ -181,7 +174,15 @@
                                             <td>
                                                 @if ($item->messagesFrom)
                                                     {{ $item->body }}
+                                                    @elseif($item->status =='failed')
+                                                    Problema no envio por não autorização do cliente.
+                                                    Deve enviar mensagem convidando-o a autorizar o envio de mensagens.
+                                                    @can('WHATSAPP - MENSAGEMAPROVADA')
+                                                    <a href="{{ route('whatsapp.MensagemAprovadaConvite') }}" class="btn btn-secondary" tabindex="-1"
+                                                    role="button" aria-disabled="true">Selecionar mensagem aprovada para enviar</a>
+                                                    @endcan
                                                 @endif
+
 
                                                 @include('Api.baixarmidiacriaurl')
                                                 @include('Api.mostraimagem')
@@ -213,7 +214,7 @@
 
 
 
-                    </div>
+
                 </div>
 
             </div>

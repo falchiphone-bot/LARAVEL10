@@ -1719,7 +1719,18 @@ else
 
         return view('api.SelecionarMensagemAprovada', compact('contatos','template'));
     }
+    public function MensagemAprovadaConvite()
+    {
+        $contatos = webhookContact::where('recipient_id', '!=', null)
+        ->orderBy('contactName')
+        ->get();
 
+        $template = WebhookTemplate::orderBy('Name')->get();
+
+dd();
+
+        return view('api.SelecionarMensagemAprovada', compact('contatos','template'));
+    }
 
     public function enviarMensagemAprovada(Request $request)
     {
