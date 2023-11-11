@@ -59,11 +59,13 @@
                </div>
                <div class="col-6">
                 <div class="card">
+
                     <div class="card-footer">
                         <a href="{{ route('whatsapp.indexlista') }}">Retornar para a lista</a>
                     </div>
 
-                    <div class="card-body">
+                    <div class="card-body" style="max-width: 1024px; max-height: 500px; overflow: hidden;">
+
                         <form action="{{ route('whatsapp.enviarMensagemRespostaAtendimento', $id) }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             <div class="container">
@@ -83,18 +85,20 @@
 
                                 <div class="form-group">
                                     <label for="arquivo">Selecionar um arquivo:</label>
-                                    <input type="file" id="arquivo" name="arquivo" class="form-control-file">
+                                    <input type="file" id="arquivo" name="arquivo a mensagem" class="form-control-file">
                                 </div>
 
                                 <button type="submit" class="btn btn-success">Enviar</button>
                             </div>
                         </form>
                     </div>
+
                 </div>
 
                 <div class="container">
-                    <div class="card-body">
-                        <div class="col-12">
+                    <div class="card-body" style="max-width: 1024px; max-height: 500px; overflow: hidden;">
+
+                        {{-- <div class="col-12"> --}}
                              <table class="table">
                                 <thead>
                                     <tr>
@@ -205,7 +209,7 @@
                                 </tbody>
                                 @endif
                             </table>
-                        </div>
+                        {{-- </div> --}}
 
 
 
