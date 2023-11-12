@@ -1758,6 +1758,8 @@ else
 
         $name = $template->name  ;
         $language = $template->language;
+        $body = $template->texto ;
+        $template_id = $template->id;
 
         $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
 
@@ -1767,6 +1769,7 @@ else
             // dd($WebhookConfig);
             $accessToken = $WebhookConfig->tokenpermanenteusuario;
         }
+
 
         $client = new Client();
 
@@ -1800,6 +1803,8 @@ else
             // dd("Mensagem aprovada enviada", $responseData);
 
             /////////////// gravar mensagem aprovada
+            $user_updated = trim(Auth::user()->email);
+
             $newWebhook = webhook::create([
                 'webhook' => json_encode($requestData) ?? null,
                 'value_messaging_product' => $requestData['messaging_product'] ?? null,
@@ -1809,6 +1814,12 @@ else
                 'message_template_name' => $requestData['template']['name'] ?? null,
                 'message_template_language' => $requestData['template']['language']['code'] ?? null,
                 'status' => 'sent' ?? null,
+                'entry_id' => $WebhookConfig->identificacaocontawhatsappbusiness ?? null,
+                'user_updated' =>  $user_updated ?? null,
+                'ContactName'=>   $contactName ?? null,
+                'body'=> $body ?? null,
+                'template_id'=> $template_id ?? null,
+                'messagesType' => 'text',
             ]);
 
             /////////////////////////////// termina a gravação
