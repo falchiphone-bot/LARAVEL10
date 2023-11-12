@@ -353,6 +353,16 @@ class ApiController extends Controller
                 ]);
                 Log::info('===============>>>> READ - GRAVOU LIDO');
             }
+            if($status == 'received'){
+                $registro = webhookContact::where('recipient_id', $recipient_id)->get()->first();
+                $registro->update([
+                 'status_mensagem_entregue' => true,
+                 'ultima_entrega' => now(),
+                 'user_updated' => 'webhook@falchi.com.br',
+                ]);
+                Log::info('===============>>>> RECEIVED - GRAVOU ENTREGUE');
+            }
+
 
             $newWebhook = webhook::create([
             'webhook' => $jsonData ?? null,

@@ -149,6 +149,16 @@
                                                     <td class="bg-primary">
                                                         @if ($item->status == 'sent')
                                                             Enviado
+                                                            @if ($NomeAtendido->status_mensagem_entregue == null
+                                                             || $NomeAtendido->status_mensagem_entregue == false)
+
+                                                                    <button type="submit" class="btn btn-secondary">//</button>
+                                                            @else
+                                                            //<button type="submit" class="btn btn-sucess">//</button>
+                                                            @endif
+
+
+
                                                         @elseif($item->status == 'delivered')
                                                             Entregue
                                                         @elseif($item->status == 'read')
@@ -161,6 +171,8 @@
                                                                     <button type="submit" class="btn btn-success">Confirma
                                                                         lida</button>
                                                                 </form>
+                                                                ///<button type="submit" class="btn btn-primary">//</button>
+
                                                             @endif
                                                         @elseif($item->status == 'failed')
                                                             Falhou
@@ -205,9 +217,10 @@
 
                                                     <td class="bg-warning">
                                                         @if ($item->status == 'sent')
+                                                            {{ $item->message_template_name }} <br>
                                                             {{ $item->body }}
                                                             {{ $item->image_caption }}
-                                                            {{ $item->message_template_name }}
+
 
                                                             @if ($item->message_template_name)
                                                                 @can('WHATSAPP - MENSAGEMAPROVADA')
