@@ -1719,17 +1719,20 @@ else
 
         return view('api.SelecionarMensagemAprovada', compact('contatos','template'));
     }
-    public function MensagemAprovadaConvite()
+    public function ConvidarMensagemAprovada(string $id)
     {
-        $contatos = webhookContact::where('recipient_id', '!=', null)
-        ->orderBy('contactName')
+        $contatos = webhookContact::where('recipient_id', $id)
         ->get();
 
-        $template = WebhookTemplate::orderBy('Name')->get();
+        // *É com grande satisfação que temos você como nosso cliente.*
+        // Agradecemos por isso. Fique à vontade para entrar em contato conosco por esse canal. Te esperamos!😀📲💻🖥
 
-dd();
 
-        return view('api.SelecionarMensagemAprovada', compact('contatos','template'));
+        $template = WebhookTemplate::where('id', '3')
+        ->orderBy('Name')->get();
+
+
+        return view('api.ConvidarMensagemAprovada', compact('contatos','template', 'id'));
     }
 
     public function enviarMensagemAprovada(Request $request)
@@ -1811,7 +1814,7 @@ dd();
             /////////////////////////////// termina a gravação
 
 
-            return redirect(route('whatsapp.indexlista'));
+            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', $recipient_id));
         } else {
             // Manipule erros, se houver
             echo 'Erro ao enviar a mensagem: ' . $response->getBody();

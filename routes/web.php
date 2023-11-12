@@ -148,9 +148,6 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
  Route::get('/whatsapp/PreencherMensagemResposta/{id}', [App\Http\Controllers\ApiController::class, 'PreencherMensagemResposta'])
  ->name('whatsapp.PreencherMensagemResposta');
  Route::get('/whatsapp/SelecionarMensagemAprovada', [App\Http\Controllers\ApiController::class, 'SelecionarMensagemAprovada'])->name('whatsapp.SelecionarMensagemAprovada');
- Route::get('/whatsapp/MensagemAprovadaConvite', [App\Http\Controllers\ApiController::class,
-             'MensagemAprovadaConvite'])->name('whatsapp.MensagemAprovadaConvite');
-
  Route::post('/whatsapp/enviarMensagemAprovada', [App\Http\Controllers\ApiController::class, 'enviarMensagemAprovada'])->name('whatsapp.enviarMensagemAprovada');
  Route::post('/whatsapp/enviarMensagemRespostaAtendimento/{id}', [App\Http\Controllers\ApiController::class, 'enviarMensagemRespostaAtendimento'])->name('whatsapp.enviarMensagemRespostaAtendimento');
  Route::post('/whatsapp/enviarMensagemResposta/{id}', [App\Http\Controllers\ApiController::class, 'enviarMensagemResposta'])->name('whatsapp.enviarMensagemResposta');
@@ -168,6 +165,9 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
 
  Route::get('/whatsapp/Pegar_URL_Arquivo/{id}', [App\Http\Controllers\ApiController::class,
  'Pegar_URL_Arquivo'])->name('whatsapp.Pegar_URL_Arquivo');
+ Route::get('/whatsapp/ConvidarMensagemAprovada/{id}', [App\Http\Controllers\ApiController::class,
+ 'ConvidarMensagemAprovada'])->name('whatsapp.ConvidarMensagemAprovada');
+
 
  Route::resource('Templates', App\Http\Controllers\WebhookTemplateController::class);
 

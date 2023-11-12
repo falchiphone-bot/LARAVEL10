@@ -25,6 +25,9 @@
                         <div class="card-footer">
                             <a href="{{ route('whatsapp.indexlista') }}">Retornar para a lista</a>
                         </div>
+                        <div class="card-footer">
+                            <a href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone', $id) }}">Retornar para a atendimento</a>
+                        </div>
 
                         <div class="card-body">
                             <h1>Selecionar a mensagem aprovada e para quem enviar</h1>
@@ -35,9 +38,7 @@
                             <div class="col-sm-6">
                                 <label for="idcontato" style="color: black;">Contatos disponíveis</label>
                                 <select required class="form-control select2" id="idcontato" name="idcontato">
-                                    <option value="">
-                                        Selecionar contato
-                                    </option>
+
                                     @foreach ($contatos as $contato)
                                     <option
                                         value="{{ $contato->id }}">
@@ -52,9 +53,7 @@
                             <div class="col-sm-6">
                                 <label for="idtemplate" style="color: black;">Templates disponíveis</label>
                                 <select required class="form-control select2" id="idtemplate" name="idtemplate">
-                                    <option value="">
-                                        Selecionar template
-                                    </option>
+
                                     @foreach ($template as $template)
                                     <option
                                         value="{{ $template->id }}">
