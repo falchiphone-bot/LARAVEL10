@@ -146,17 +146,19 @@
 
 
 
-                                                    <td class="bg-warning">
+                                                    <td>
                                                         @if ($item->status == 'sent')
-                                                            Enviado
+                                                            {{-- Enviado --}}
                                                             @if ($NomeAtendido->status_mensagem_entregue == null || $NomeAtendido->status_mensagem_entregue == false)
 
-                                                                <img src="/icones/visto2azul.png" alt="Lido">
+                                                                <img src="/icones/visto2azul.png" alt="lido">
 
                                                             @elseif(\Carbon\Carbon::parse($item['created_at']) > \Carbon\Carbon::parse($NomeAtendido->ultima_leitura))
-                                                                <button type="submit" class="btn btn-secondary">//</button>
+                                                                {{-- <button type="submit" class="btn btn-secondary">//2</button> --}}
+                                                                <img src="/icones/enviado2opaco.png" alt="entregue">
                                                             @elseif(\Carbon\Carbon::parse($item['created_at']) < \Carbon\Carbon::parse($NomeAtendido->ultima_entrega))
-                                                                <button type="submit" class="btn btn-primary">///</button>
+                                                                {{-- <button type="submit" class="btn btn-primary">///3</button> --}}
+                                                                <img src="/icones/visto2azul.png" alt="lido">
                                                             @endif
                                                         @elseif($item->status == 'delivered')
                                                             Entregue
@@ -173,7 +175,7 @@
                                                             @endif
                                                             @if ($NomeAtendido->status_mensagem_entregue == true)
                                                                 {{-- @if ($item['created_at'] < $NomeAtendido->ultima_entrega)) --}}
-                                                                <button type="submit" class="btn btn-primary">///-</button>
+                                                                <img src="/icones/visto2azul.png" alt="Lido">
                                                             @endif
                                                         @elseif($item->status == 'failed')
                                                             Falhou
@@ -216,7 +218,7 @@
 
                                                     </td>
 
-                                                    <td class="bg-warning">
+                                                    <td>
                                                         @if ($item->status == 'sent')
                                                             {{ $item->message_template_name }} <br>
                                                             {{ $item->body }}
