@@ -24,8 +24,8 @@
                         <div class="col-3">
                             <table>
                                 <thead>
-                                    <tr>
-                                        <th>Nome</th>
+                                    {{-- <tr>
+                                        <th>Nome</th> --}}
                                         {{-- <th>Telefone</th> --}}
 
                                     </tr>
@@ -38,11 +38,21 @@
                                             <td><a
                                                     href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone', $item->Contato->recipient_id) }}">{{ $item->Contato->contactName }}</a>
                                             </td>
-                                            {{-- <td>{{ $item->Contato->recipient_id }}</td> --}}
-
                                             <td>
-                                                {{-- <a href="{{ route('whatsapp.enviar', $item->id) }}" class="btn btn-primary">Enviar Mensagem</a> --}}
+
+
+                                                @if ($item->Contato->quantidade_nao_lida > 0)
+                                                    {{ $item->Contato->updated_at->format("d/m/Y h:m")}}
+                                                    <button class="bg-success text-white">
+                                                        {{ $item->Contato->quantidade_nao_lida }}
+                                                    </button>
+                                                @else
+                                                 {{ $item->Contato->updated_at->format("d/m/Y")}}
+
+                                                @endif
                                             </td>
+
+
                                         </tr>
                                     @endforeach
                                 </tbody>

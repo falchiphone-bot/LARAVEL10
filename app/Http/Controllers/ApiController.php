@@ -324,6 +324,11 @@ class ApiController extends Controller
         ////// E AQUI ABAIXO TAMBÉM
 
 
+        if($recipient_id == null)
+        {
+            $recipient_id = $messagesFrom;
+        }
+
         $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName);
 
 
@@ -367,8 +372,12 @@ class ApiController extends Controller
              } elseif ($status == 'sent') {
                  $updateData['status_mensagem_entregue'] = false;
                  $updateData['user_updated'] = 'webhook@falchi.com.br';
-                 Log::info('===============>>>> RECEIVED - GRAVOU ENVIO');
-             }
+            } elseif ($status == 'received') {
+                $somarecebida = $registro->quantidade_nao_lida + 1;
+                $updateData['quantidade_nao_lida'] = $somarecebida;
+                $updateData['user_updated'] = 'webhook@falchi.com.br';
+            }
+
 
              $registro->update($updateData);
          } else {
@@ -1386,6 +1395,8 @@ class ApiController extends Controller
         ->groupBy(DB::raw('CONCAT(recipient_id, messagesFrom)'))
         ->get();
 
+
+
       $selecao = null;
 
     //   dd($Contatos);   //  se causar erros por aqui é porque não tem registros no banco de dados. Acusa null
@@ -1401,7 +1412,17 @@ class ApiController extends Controller
         ->groupBy(DB::raw('CONCAT(recipient_id, messagesFrom)'))
         ->get();
 
+//  dd($Contatos);
+// foreach($Contatos as $itens)
+// {
+// dd($itens->Contato->quantidade_nao_lida, $itens);
+// }
+
+
         $NomeAtendido =  webhookContact::where('recipient_id', $id)->get()->first();
+        $NomeAtendido->update([
+            'quantidade_nao_lida' => 0,
+            ]);
 
 
 

@@ -32,15 +32,15 @@
                         </thead>
                         <tbody>
                             @foreach ($Contatos as $item)
+
                                 <tr>
-
-
-                                    <td><a href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone',
-                                    $item->Contato->recipient_id) }}">{{ $item->Contato->contactName }}</a></td>
-
-
                                     <td>
-                                        {{-- <a href="{{ route('whatsapp.enviar', $item->id) }}" class="btn btn-primary">Enviar Mensagem</a> --}}
+                                        <a href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone',$item->Contato->recipient_id) }}">{{ $item->Contato->contactName }}</a>
+                                         
+
+                                    </td>
+                                    <td>
+                                        {{ $item->Contato->quantidade_nao_lida}}
                                     </td>
                                 </tr>
                             @endforeach

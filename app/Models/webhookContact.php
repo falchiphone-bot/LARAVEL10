@@ -20,6 +20,7 @@ class webhookContact extends Model
         'status_mensagem_entregue',
         'ultima_leitura',
         'ultima_entrega',
+        'quantidade_nao_lida',
     ];
 
 }
