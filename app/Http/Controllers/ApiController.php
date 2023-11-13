@@ -166,14 +166,14 @@ class ApiController extends Controller
                 $filename = $filename ?? null;
                 $image_mime_type = $image_mime_type ?? null;
                 $image_caption = $image_caption ?? null;
-                $status = $status ?? null;
+                // $status = $status ?? null;
                 // $recipient_id = $recipient_id ?? null;
                 $conversation_id = $conversation_id ?? null;
                 $messages_id = $messages_id ?? null;
 
                 $contacts = $value['contacts'][0] ?? null;
                 $messages = $value['messages'][0] ?? null;
-                $statuses = $value['statuses'][0] ?? null;
+                // $statuses = $value['statuses'][0] ?? null;
                 $ban_info = $value['ban_info'] ?? null;
 
                 if ($messages) {
@@ -214,11 +214,7 @@ class ApiController extends Controller
                     $waId = $contacts['wa_id'] ?? null;
                 }
 
-                if ($statuses) {
-                    $status = $statuses['status'] ?? null;
-                    $recipient_id = $statuses['recipient_id'] ?? null;
-                    $conversation_id = $statuses['id'] ?? null;
-                }
+
 
                 if ($value) {
                     $value_messaging_product = $value['messaging_product'] ?? null;
@@ -237,9 +233,9 @@ class ApiController extends Controller
             }
         }
         //////////////////////////////////////////////////////////////////////////
-        if ($status == null) {
-            $status = 'received';
-        }
+        // if ($status == null) {
+        //     $status = 'received';
+        // }
 
 
         // $messagesType = "button1";
@@ -307,14 +303,14 @@ class ApiController extends Controller
             . "=================================================\n";
 
         // Caminho para o arquivo de log
-        $logFilePath = $storagePath . $arquivo;
+                                    // $logFilePath = $storagePath . $arquivo;
 
         // Tente gravar os dados no arquivo de log
-        if (file_put_contents($logFilePath, $logData, FILE_APPEND | LOCK_EX)) {
-            // echo "Dados gravados com sucesso no arquivo de log.";
-        } else {
-            // echo "Erro ao gravar no arquivo de log.";
-        }
+                                                        // if (file_put_contents($logFilePath, $logData, FILE_APPEND | LOCK_EX)) {
+                                                        //     // echo "Dados gravados com sucesso no arquivo de log.";
+                                                        // } else {
+                                                        //     // echo "Erro ao gravar no arquivo de log.";
+                                                        // }
         // dd("Verifique se salvou em /storage/app/contabilidade/PostWebhook.log ");
 
         // $fileContent = file_get_contents(storage_path($arquivo ));
@@ -329,8 +325,6 @@ class ApiController extends Controller
 
 
         $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName);
-
-
 
 
         $Achou = webhook::where('status',$status)
@@ -352,33 +346,35 @@ class ApiController extends Controller
             return;
          }
 
-            if($status == 'read'){
-                $registro = webhookContact::where('recipient_id', $recipient_id)->get()->first();
-                $registro->update([
-                 'status_mensagem_enviada' => true,
-                 'user_updated' => 'webhook@falchi.com.br',
-                 'ultima_leitura' => now(),
-                ]);
-                Log::info('===============>>>> READ - GRAVOU LIDO');
-            }
 
-            if($status == 'sent'){
-                $registro = webhookContact::where('recipient_id', $recipient_id)->get()->first();
-                $registro->update([
-                 'status_mensagem_entregue' => false,
-                 'user_updated' => 'webhook@falchi.com.br',
-                ]);
-                Log::info('===============>>>> RECEIVED - GRAVOU ENVIO');
-            }
+         $registro = webhookContact::where('recipient_id', $recipient_id)->first();
 
-            if($status == 'delivered'){
-                $registro = webhookContact::where('recipient_id', $recipient_id)->get()->first();
-                $registro->update([
-                 'ultima_entrega' => now(),
-                 'user_updated' => 'pedro@falchi.com.br',
-                 'status_mensagem_entregue' => true,
-                ]);
-            }
+         if ($registro) {
+             $updateData = [
+                 'user_updated' => 'webhook@falchi.com.br',
+             ];
+
+             if ($status == 'delivered') {
+                 $updateData['ultima_entrega'] = now();
+                 $updateData['status_mensagem_entregue'] = true;
+                 $updateData['user_updated'] = 'pedro@falchi.com.br';
+             } elseif ($status == 'read') {
+                 $updateData['status_mensagem_enviada'] = true;
+                 $updateData['ultima_leitura'] = now();
+                 $updateData['user_updated'] = 'webhook@falchi.com.br';
+                 Log::info('===============>>>> READ - GRAVOU LIDO');
+             } elseif ($status == 'sent') {
+                 $updateData['status_mensagem_entregue'] = false;
+                 $updateData['user_updated'] = 'webhook@falchi.com.br';
+                 Log::info('===============>>>> RECEIVED - GRAVOU ENVIO');
+             }
+
+             $registro->update($updateData);
+         } else {
+             // Tratar o caso em que nenhum registro foi encontrado
+         }
+
+
 
             $newWebhook = webhook::create([
             'webhook' => $jsonData ?? null,
@@ -1095,7 +1091,7 @@ class ApiController extends Controller
                 $conversation_id = $statuses['id'] ?? null;
             }
 
-
+            // dd( $statuses, $status, $recipient_id, $conversation_id);
 
 
             if($document)
@@ -1161,14 +1157,14 @@ class ApiController extends Controller
                 $mime_type = $mime_type ?? null;
                 $filename = $filename ?? null;
 
-                $status = $status ?? null;
+                // $status = $status ?? null;
                 // $recipient_id = $recipient_id ?? null;
                 $conversation_id = $conversation_id ?? null;
                 $messages_id = $messages_id ?? null;
 
                 $contacts = $value['contacts'][0] ?? null;
                 $messages = $value['messages'][0] ?? null;
-                $statuses = $value['statuses'][0] ?? null;
+                // $statuses = $value['statuses'][0] ?? null;
                 $ban_info = $value['ban_info'] ?? null;
 
                 if ($messages) {
