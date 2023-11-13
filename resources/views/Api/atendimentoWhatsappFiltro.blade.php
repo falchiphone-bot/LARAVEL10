@@ -146,19 +146,14 @@
 
 
 
-                                                    <td class="bg-primary">
+                                                    <td class="bg-warning">
                                                         @if ($item->status == 'sent')
                                                             Enviado
-                                                            @if ($NomeAtendido->status_mensagem_entregue == null
-                                                             || $NomeAtendido->status_mensagem_entregue == false)
-
-                                                                    <button type="submit" class="btn btn-secondary">//</button>
+                                                            @if ($NomeAtendido->status_mensagem_entregue == null || $NomeAtendido->status_mensagem_entregue == false)
+                                                                <button type="submit" class="btn btn-secondary">//</button>
                                                             @else
-                                                            //<button type="submit" class="btn btn-sucess">//</button>
+                                                                <button type="submit" class="btn btn-primary">///</button>
                                                             @endif
-
-
-
                                                         @elseif($item->status == 'delivered')
                                                             Entregue
                                                         @elseif($item->status == 'read')
@@ -171,8 +166,9 @@
                                                                     <button type="submit" class="btn btn-success">Confirma
                                                                         lida</button>
                                                                 </form>
-                                                                ///<button type="submit" class="btn btn-primary">//</button>
-
+                                                            @endif
+                                                            @if ($NomeAtendido->status_mensagem_entregue == true)
+                                                                <button type="submit" class="btn btn-primary">///</button>
                                                             @endif
                                                         @elseif($item->status == 'failed')
                                                             Falhou

@@ -118,6 +118,14 @@ class ApiController extends Controller
 
             $changes = $entry['changes'][0] ?? null;
 
+            $statuses =  $data['entry'][0]['changes'][0]['value']['statuses'][0] ?? null;
+            if ($statuses) {
+                $status = $statuses['status'] ?? null;
+                $recipient_id = $statuses['recipient_id'] ?? null;
+                $conversation_id = $statuses['id'] ?? null;
+            }
+
+
 
             $video =  $data['entry'][0]['changes'][0]['value']['messages'][0]['video'] ?? null;
             if($video)
@@ -159,7 +167,7 @@ class ApiController extends Controller
                 $image_mime_type = $image_mime_type ?? null;
                 $image_caption = $image_caption ?? null;
                 $status = $status ?? null;
-                $recipient_id = $recipient_id ?? null;
+                // $recipient_id = $recipient_id ?? null;
                 $conversation_id = $conversation_id ?? null;
                 $messages_id = $messages_id ?? null;
 
@@ -353,7 +361,15 @@ class ApiController extends Controller
                 ]);
                 Log::info('===============>>>> READ - GRAVOU LIDO');
             }
-            
+
+            if($status == 'sent'){
+                $registro = webhookContact::where('recipient_id', $recipient_id)->get()->first();
+                $registro->update([
+                 'status_mensagem_entregue' => false,
+                 'user_updated' => 'webhook@falchi.com.br',
+                ]);
+                Log::info('===============>>>> RECEIVED - GRAVOU ENVIO');
+            }
 
             if($status == 'delivered'){
                 $registro = webhookContact::where('recipient_id', $recipient_id)->get()->first();
@@ -1073,6 +1089,16 @@ class ApiController extends Controller
 
             $sticker =  $data['entry'][0]['changes'][0]['value']['messages'][0]['sticker'] ?? null;
 
+            $statuses =  $data['entry'][0]['changes'][0]['value']['statuses'][0] ?? null;
+            if ($statuses) {
+                $status = $statuses['status'] ?? null;
+                $recipient_id = $statuses['recipient_id'] ?? null;
+                $conversation_id = $statuses['id'] ?? null;
+            }
+
+
+
+
             if($document)
             {
                 $document_filename = $document['filename'] ?? null;
@@ -1137,7 +1163,7 @@ class ApiController extends Controller
                 $filename = $filename ?? null;
 
                 $status = $status ?? null;
-                $recipient_id = $recipient_id ?? null;
+                // $recipient_id = $recipient_id ?? null;
                 $conversation_id = $conversation_id ?? null;
                 $messages_id = $messages_id ?? null;
 
@@ -1183,11 +1209,7 @@ class ApiController extends Controller
                     $waId = $contacts['wa_id'] ?? null;
                 }
 
-                if ($statuses) {
-                    $status = $statuses['status'] ?? null;
-                    $recipient_id = $statuses['recipient_id'] ?? null;
-                    $conversation_id = $statuses['id'] ?? null;
-                }
+
 
                 if ($value) {
                     $value_messaging_product = $value['messaging_product'] ?? null;
