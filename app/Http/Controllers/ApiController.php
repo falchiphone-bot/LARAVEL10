@@ -329,14 +329,18 @@ class ApiController extends Controller
             $recipient_id = $messagesFrom;
         }
 
+
         $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName);
 
+       
 
         $Achou = webhook::where('status',$status)
         ->where('messages_id',$messages_id)
         ->where('conversation_id',$conversation_id)
         ->first();
 
+
+        
         if ($Achou
             && $Achou->status === $status
             && $Achou->messages_id === $messages_id
@@ -349,8 +353,8 @@ class ApiController extends Controller
             Log::info('messages_id - messages_id = '. $messages_id);
             Log::info('messagesFrom - messagesFrom = '. $messagesFrom);
             return;
-         }
-
+         };
+ 
 
          $registro = webhookContact::where('recipient_id', $recipient_id)->first();
 
@@ -380,11 +384,14 @@ class ApiController extends Controller
 
 
              $registro->update($updateData);
-         } else {
-             // Tratar o caso em que nenhum registro foi encontrado
+
+        };
+
+
+         if($recipient_id == $messagesFrom)
+         {
+             $recipient_id = null;
          }
-
-
 
             $newWebhook = webhook::create([
             'webhook' => $jsonData ?? null,
@@ -1412,17 +1419,11 @@ class ApiController extends Controller
         ->groupBy(DB::raw('CONCAT(recipient_id, messagesFrom)'))
         ->get();
 
-//  dd($Contatos);
-// foreach($Contatos as $itens)
-// {
-// dd($itens->Contato->quantidade_nao_lida, $itens);
-// }
-
-
+ 
         $NomeAtendido =  webhookContact::where('recipient_id', $id)->get()->first();
-        $NomeAtendido->update([
-            'quantidade_nao_lida' => 0,
-            ]);
+        // $NomeAtendido->update([
+        //     'quantidade_nao_lida' => 0,
+        //     ]);
 
 
 
@@ -2096,7 +2097,15 @@ else
 
         $registro = webhook::find($id);
 
+ 
+        $NomeAtendido =  webhookContact::where('recipient_id', $registro->messagesFrom)->get()->first();
+    
+        $calculo =  $NomeAtendido->quantidade_nao_atendida - 1;
+        $NomeAtendido->update([
+            'quantidade_nao_lida' => $calculo 
+            ]);
 
+// dd($registro,$NomeAtendido);
 
         $accessToken = WebhookServico::token24horas();
         $phone_number_id = WebhookServico::phone_number_id();
@@ -2136,7 +2145,10 @@ else
         }
 
 
-        return;
+
+        
+
+            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', $registro->recipient_id));
     }
 
     public function StatusMensagemEnviada(string $id)

@@ -194,7 +194,7 @@
                                                             @if ($item->statusconfirmado == false)
                                                                 <form
                                                                     action="{{ route('whatsapp.ConfirmaRecebimentoMensagem', $item->id) }}"
-                                                                    method="POST" enctype="multipart/form-data">
+                                                                    method="get" enctype="multipart/form-data">
                                                                     @csrf
                                                                     <button type="submit" class="btn btn-success">Confirma
                                                                         recebimento</button>
