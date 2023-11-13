@@ -374,7 +374,7 @@ class ApiController extends Controller
             if($status == 'delivered'){
                 $registro = webhookContact::where('recipient_id', $recipient_id)->get()->first();
                 $registro->update([
-                 'status_mensagem_entregue' => true,
+                 'status_mensagem_entregue' => 1,
                  'ultima_entrega' => now(),
                  'user_updated' => 'webhook@falchi.com.br',
                 ]);
