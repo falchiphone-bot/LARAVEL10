@@ -353,7 +353,9 @@ class ApiController extends Controller
                 ]);
                 Log::info('===============>>>> READ - GRAVOU LIDO');
             }
-            if($status == 'received'){
+            
+
+            if($status == 'delivered'){
                 $registro = webhookContact::where('recipient_id', $recipient_id)->get()->first();
                 $registro->update([
                  'status_mensagem_entregue' => true,
@@ -362,7 +364,6 @@ class ApiController extends Controller
                 ]);
                 Log::info('===============>>>> RECEIVED - GRAVOU ENTREGUE');
             }
-
 
             $newWebhook = webhook::create([
             'webhook' => $jsonData ?? null,
