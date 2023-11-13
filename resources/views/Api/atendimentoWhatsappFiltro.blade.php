@@ -150,8 +150,8 @@
                                                         @if ($item->status == 'sent')
                                                             Enviado
                                                             @if ($NomeAtendido->status_mensagem_entregue == null || $NomeAtendido->status_mensagem_entregue == false)
-                                                                <button type="submit" class="btn btn-primary">///</button>
-                                                                <button type="submit" class="btn btn-primary">emoji <img src="caminho/para/seu/emoji.png" alt="Emoji"></button>
+
+                                                                <img src="/icones/visto2azul.png" alt="Lido">
 
                                                             @elseif(\Carbon\Carbon::parse($item['created_at']) > \Carbon\Carbon::parse($NomeAtendido->ultima_leitura))
                                                                 <button type="submit" class="btn btn-secondary">//</button>
