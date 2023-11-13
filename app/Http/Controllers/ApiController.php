@@ -332,7 +332,7 @@ class ApiController extends Controller
 
         $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName);
 
-       
+
 
         $Achou = webhook::where('status',$status)
         ->where('messages_id',$messages_id)
@@ -340,7 +340,7 @@ class ApiController extends Controller
         ->first();
 
 
-        
+
         if ($Achou
             && $Achou->status === $status
             && $Achou->messages_id === $messages_id
@@ -354,7 +354,7 @@ class ApiController extends Controller
             Log::info('messagesFrom - messagesFrom = '. $messagesFrom);
             return;
          };
- 
+
 
          $registro = webhookContact::where('recipient_id', $recipient_id)->first();
 
@@ -1419,7 +1419,7 @@ class ApiController extends Controller
         ->groupBy(DB::raw('CONCAT(recipient_id, messagesFrom)'))
         ->get();
 
- 
+
         $NomeAtendido =  webhookContact::where('recipient_id', $id)->get()->first();
         // $NomeAtendido->update([
         //     'quantidade_nao_lida' => 0,
@@ -2097,12 +2097,12 @@ else
 
         $registro = webhook::find($id);
 
- 
+
         $NomeAtendido =  webhookContact::where('recipient_id', $registro->messagesFrom)->get()->first();
-    
-        $calculo =  $NomeAtendido->quantidade_nao_atendida - 1;
+
+        $calculo =  $NomeAtendido->quantidade_nao_lida - 1;
         $NomeAtendido->update([
-            'quantidade_nao_lida' => $calculo 
+            'quantidade_nao_lida' => $calculo
             ]);
 
 // dd($registro,$NomeAtendido);
@@ -2145,8 +2145,6 @@ else
         }
 
 
-
-        
 
             return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', $registro->recipient_id));
     }
