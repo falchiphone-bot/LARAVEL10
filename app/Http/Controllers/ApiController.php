@@ -360,6 +360,7 @@ class ApiController extends Controller
                  $updateData['user_updated'] = 'pedro@falchi.com.br';
              } elseif ($status == 'read') {
                  $updateData['status_mensagem_enviada'] = true;
+                 $updateData['status_mensagem_entregue'] = false;
                  $updateData['ultima_leitura'] = now();
                  $updateData['user_updated'] = 'webhook@falchi.com.br';
                  Log::info('===============>>>> READ - GRAVOU LIDO');
