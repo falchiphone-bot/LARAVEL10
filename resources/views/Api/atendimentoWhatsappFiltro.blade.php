@@ -42,7 +42,7 @@
 
 
                                                 @if ($item->Contato->quantidade_nao_lida > 0)
-                                                    {{ $item->Contato->updated_at->format("d/m/Y h:m")}}
+                                                    {{ $item->Contato->updated_at->format("d/m/Y H:i")}}
                                                     <button class="bg-success text-white">
                                                         {{ $item->Contato->quantidade_nao_lida }}
                                                     </button>
@@ -165,7 +165,7 @@
 
                                                             @elseif(\Carbon\Carbon::parse($item['created_at']) > \Carbon\Carbon::parse($NomeAtendido->ultima_leitura))
                                                                 {{-- <button type="submit" class="btn btn-secondary">//2</button> --}}
-                                                                <img src="/icones/enviado2opaco.png" alt="entregue">
+                                                                //<img src="/icones/enviado2opaco.png" alt="entregue">
                                                             @elseif(\Carbon\Carbon::parse($item['created_at']) < \Carbon\Carbon::parse($NomeAtendido->ultima_entrega))
                                                                 {{-- <button type="submit" class="btn btn-primary">///3</button> --}}
                                                                 <img src="/icones/visto2azul.png" alt="lido">
