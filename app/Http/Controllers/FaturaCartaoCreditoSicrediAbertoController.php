@@ -82,7 +82,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
         ///////////////////////////// DADOS DA LINHA 4 COLUNA 2 PARA DEFINIR CONTAS
         $linha_4_coluna_2 = $planilha_ativa->getCell('B' . 4)->getValue();
         ///////////////////////////// DADOS DA LINHA 7 PARA DEFINIR CONTAS
-        $linha_7 = $planilha_ativa->getCell('A' . 7)->getValue();
+        $linha_7 = trim($planilha_ativa->getCell('A' . 7)->getValue());
 
         if ($linha_7 == null) {
             session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
@@ -130,7 +130,15 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
             $DespesaContaDebitoID = '15372';   //// ALTERADO EM 31.07.2023
             $CashBackContaCreditoID = '19271';
             // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
-        } elseif ($linhas1_7 === 'PEDRO ROBERTO FALCHI-4891.67XX.XXXX.2113') {
+        }
+        elseif ($linhas1_7 === 'SANDRA ELISA MAGOSSI FALCHI-5122.67XX.XXXX.0126') {
+            $ContaCartao = '19468';
+            $Empresa = 11;
+            $DespesaContaDebitoID = '15372';
+            $CashBackContaCreditoID = '19271';
+            // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
+        }
+        elseif ($linhas1_7 === 'PEDRO ROBERTO FALCHI-4891.67XX.XXXX.2113') {
             $ContaCartao = '17458';
             $Empresa = 11;
             $DespesaContaDebitoID = '19426';

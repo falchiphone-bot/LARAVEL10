@@ -185,7 +185,15 @@
                                 <button type="submit" class="btn btn-danger">Enviar o arquivo para a pasta do sistema
                                     e
                                     consulta o arquivo *.csv total proveniente do aplicativo mobile do Sicredi -
-                                    CARTÕES</button>
+                                    CARTÕES
+                                <p>
+                                    Controller => FaturaCartaoCreditoSicrediAbertoController
+                                </p>
+                                <p>
+                                    Procedimento =>
+                                    /FaturaSicrediAberto/SelecionaDatasFaturaEmAberto
+                                </p>
+                            </button>
                             </p>
 
                     </form>
