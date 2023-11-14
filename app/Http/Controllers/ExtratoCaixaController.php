@@ -327,8 +327,8 @@ class ExtratoCaixaController extends Controller
                         Lancamento::create([
                             'Valor' => ($valorString = $valor_formatado),
                             'EmpresaID' => $Empresa,
-                            'ContaDebitoID' => $DespesaContaDebitoID,
-                            'ContaCreditoID' => $ContaCartao,
+                            'ContaDebitoID' => $ContaCartao,
+                            'ContaCreditoID' => $DespesaContaDebitoID,
                             'Descricao' => $arraydatanova["Descricao"],
                             'Usuarios_id' => auth()->user()->id,
                             'DataContabilidade' => $arraydatanova["Data"],
