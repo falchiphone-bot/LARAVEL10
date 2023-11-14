@@ -30,11 +30,15 @@
                 </td>
             @endcan
 
+            @can('WHATSAPP - ATENDIMENTO')
+                <td>
+                    <a href="{{ route('whatsapp.atendimentoWhatsapp') }}" class="btn btn-success" tabindex="-1"
+                        role="button" aria-disabled="true">Atendimento Whatsapp</a>
+                </td>
+            @endcan
+
             @can('WHATSAPP - MENSAGEMAPROVADA')
-            <td>
-                <a href="{{ route('whatsapp.atendimentoWhatsapp') }}" class="btn btn-success" tabindex="-1"
-                    role="button" aria-disabled="true">Atendimento Whatsapp</a>
-            </td>
+             
                 <td>
                     <a href="{{ route('whatsapp.SelecionarMensagemAprovada') }}" class="btn btn-secondary" tabindex="-1"
                         role="button" aria-disabled="true">Selecionar mensagem aprovada para enviar</a>

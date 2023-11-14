@@ -1,3 +1,11 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="refresh" content="10"> <!-- Atualize a cada 5 segundos -->
+</head>
+
+</html>
 @extends('layouts.bootstrap5')
 
 @section('content')
@@ -73,6 +81,38 @@
 
                             <div class="card-body" style="max-width: 1024px; max-height: 500px; overflow: hidden;">
                                 @if (session('usuarioatendente') == null)
+                                <form action="{{ route('whatsapp.enviarMensagemEncerramentoAtendimento', $id) }}" method="POST"
+                                enctype="multipart/form-data">
+                                @csrf
+
+
+                                <div class="card" style="background-color: #ffffcc; padding: 20px;">
+                                    {{-- <div class="form-group">
+                                        <label for="mensagem">Mensagem adiconal a ser enviada</label>
+                                        <textarea id="mensagem" name="mensagem" rows="4" cols="50" class="form-control" onfocus="stopPageRefresh();"
+                                            onblur="allowPageRefresh();"></textarea>
+                                    </div> --}}
+
+                                    <!-- Adicione um campo oculto para enviar recipient_id -->
+                                    <input type="hidden" name="recipient_id"
+                                        value="{{ $NomeAtendido->recipient_id ?? null }}">
+                                    <input type="hidden" name="contactName"
+                                        value="{{ $NomeAtendido->contactName ?? null }}">
+                                    <input type="hidden" name="status_mensagem_enviada"
+                                        value="{{ $NomeAtendido->status_mensagem_enviada ?? null }}">
+
+                                    {{-- <div class="form-group">
+                                        <label for="arquivo">Selecionar um arquivo:</label>
+                                        <input type="file" id="arquivo" name="arquivo a mensagem"
+                                            class="form-control-file">
+                                    </div> --}}
+
+                                    <button type="submit" class="btn btn-danger">Encerramento do atendimento</button>
+                                </div>
+                                </form>
+
+
+
                                 <form action="{{ route('whatsapp.enviarMensagemRespostaAtendimento', $id) }}" method="POST"
                                     enctype="multipart/form-data">
                                     @csrf
@@ -109,6 +149,8 @@
                             </div>
 
 
+
+                    </div>
 
                             <div class="card-body" style="max-width: 1024px; max-height: 3096px;">
 
@@ -171,7 +213,7 @@
 
                                                             @elseif(\Carbon\Carbon::parse($item['created_at']) > \Carbon\Carbon::parse($NomeAtendido->ultima_leitura))
                                                                 {{-- <button type="submit" class="btn btn-secondary">//2</button> --}}
-                                                                //<img src="/icones/enviado2opaco.png" alt="entregue">
+                                                                <img src="/icones/enviado2opaco.png" alt="entregue">
                                                             @elseif(\Carbon\Carbon::parse($item['created_at']) < \Carbon\Carbon::parse($NomeAtendido->ultima_entrega))
                                                                 {{-- <button type="submit" class="btn btn-primary">///3</button> --}}
                                                                 <img src="/icones/visto2azul.png" alt="lido">
@@ -196,7 +238,7 @@
                                                         @elseif($item->status == 'failed')
                                                             Falhou
                                                         @elseif($item->status == 'received')
-                                                            Recebido
+                                                            {{-- Recebido --}}
                                                             @if ($item->statusconfirmado == false)
                                                                 <form
                                                                     action="{{ route('whatsapp.ConfirmaRecebimentoMensagem', $item->id) }}"
@@ -248,6 +290,16 @@
                                                                         aria-disabled="true">Mensagens aprovadas</a>
                                                                 @endcan
                                                             @endif
+
+                                                            @if ($item->user_atendimento )
+                                                                <p>
+                                                                    <span style="color: green;"> Atendente: </span><span style="color: blue;">{{ $item->user_atendimento }}</span>
+                                                                </p>
+                                                            @endif
+
+
+
+
                                                         @endif
 
                                                     </td>

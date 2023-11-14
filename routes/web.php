@@ -151,6 +151,11 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
  Route::post('/whatsapp/enviarMensagemAprovada', [App\Http\Controllers\ApiController::class, 'enviarMensagemAprovada'])->name('whatsapp.enviarMensagemAprovada');
  Route::post('/whatsapp/enviarMensagemRespostaAtendimento/{id}', [App\Http\Controllers\ApiController::class, 'enviarMensagemRespostaAtendimento'])->name('whatsapp.enviarMensagemRespostaAtendimento');
  Route::post('/whatsapp/enviarMensagemResposta/{id}', [App\Http\Controllers\ApiController::class, 'enviarMensagemResposta'])->name('whatsapp.enviarMensagemResposta');
+ Route::post('/whatsapp/enviarMensagemEncerramentoAtendimento/{id}', [App\Http\Controllers\ApiController::class, 'enviarMensagemEncerramentoAtendimento'])
+ ->name('whatsapp.enviarMensagemEncerramentoAtendimento');
+
+
+
 
  Route::get('/whatsapp/registro/{id}', [App\Http\Controllers\ApiController::class, 'registro'])->name('whatsapp.registro');
  Route::get('/whatsapp/atendimento/{id}', [App\Http\Controllers\ApiController::class, 'atendimento'])->name('whatsapp.atendimento');
