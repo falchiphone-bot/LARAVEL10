@@ -17,8 +17,13 @@
                         <div class="alert alert-danger">
                             {{ session('errordesta') }}
                         </div>
-                    @endif
 
+                    @elseif (session('usuarioatendente'))
+                    <div class="alert alert-danger">
+                        {{ session('usuarioatendente') }}
+                    </div>
+
+                @endif
 
                     <div class="row">
                         <div class="col-3">
@@ -67,7 +72,7 @@
                             </div>
 
                             <div class="card-body" style="max-width: 1024px; max-height: 500px; overflow: hidden;">
-
+                                @if (session('usuarioatendente') == null)
                                 <form action="{{ route('whatsapp.enviarMensagemRespostaAtendimento', $id) }}" method="POST"
                                     enctype="multipart/form-data">
                                     @csrf
@@ -100,6 +105,7 @@
                                         <button type="submit" class="btn btn-success">Enviar a mensagem</button>
                                     </div>
                                 </form>
+                                @endif
                             </div>
 
 
@@ -264,6 +270,8 @@
                     </div>
                 </div>
             </div>
+
+            {{ session(['usuarioatendente' => null]) }}
         @endsection
 
         @push('scripts')

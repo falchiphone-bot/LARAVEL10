@@ -4,6 +4,7 @@ use GuzzleHttp\Client;
 
 use App\Models\WebhookContact;
 use App\Models\WebhookConfig;
+use Illuminate\Support\Facades\Auth;
 
 class WebhookServico
 {
@@ -14,13 +15,13 @@ class WebhookServico
         if ($newWebhookContact) {
             $newWebhookContact->update([
                 // 'contactName' => $contactName ?? null,
-                'user_updated' => auth()->user()->email ?? null,
+                'user_updated' => Auth::user()->email ?? null,
             ]);
         } else {
             $newWebhookContact = WebhookContact::create([
                 'contactName' => $contactName ?? null,
                 'recipient_id' => $recipient_id ?? null,
-                'user_updated' => auth()->user()->email ?? null,
+                'user_updated' => Auth::user()->email ?? null,
             ]);
         }
 
@@ -90,6 +91,39 @@ class WebhookServico
 
 
         return $phone_number_id;
+
+    }
+
+    public static function grava_user_atendimento($id)
+    {
+
+        $Usuario_sistema = Auth::user()->email;
+
+        $User_Atendente = WebhookContact::where('recipient_id', $id)->first();
+        if (!empty($User_Atendente->user_atendimento)) {
+
+            if($User_Atendente->user_atendimento !== $Usuario_sistema)
+            {
+
+                if (session('usuarioatendente') == null) {
+                    session(['usuarioatendente' => 'Cliente sendo atendido por: ' . $User_Atendente->user_atendimento]);
+                }
+
+
+                return;
+            }
+        }
+
+        else
+        {
+            if ($User_Atendente ) {
+            $User_Atendente->update([
+                'user_atendimento' => $Usuario_sistema,
+            ]);
+           }
+        }
+
+        return;
 
     }
 }

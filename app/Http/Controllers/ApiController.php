@@ -1425,7 +1425,7 @@ class ApiController extends Controller
         //     'quantidade_nao_lida' => 0,
         //     ]);
 
-
+        $Usuario_atendimento = WebhookServico::grava_user_atendimento($id);
 
         $selecao = webhook::limit(100)
         ->where('recipient_id', $id)

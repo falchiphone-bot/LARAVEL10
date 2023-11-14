@@ -21,6 +21,6 @@ class webhookContact extends Model
         'ultima_leitura',
         'ultima_entrega',
         'quantidade_nao_lida',
+        'user_atendimento',
     ];
-
 }
