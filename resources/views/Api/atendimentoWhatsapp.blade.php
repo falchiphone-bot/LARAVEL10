@@ -2,9 +2,7 @@
 
 @section('content')
 <div class="py-5 bg-light">
-
     <div class="whatsapp-container">
-
         <div class="card">
             <div class="badge bg-primary text-wrap" style="width: 100%;">
                 ATENDIMENTO - WHATSAPP - SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
@@ -23,7 +21,7 @@
 
 
             <div class="row">
-               <div class="col-4">
+               <div class="col-3">
                     <table>
                         <thead>
                             <tr>
@@ -58,16 +56,23 @@
                         </tbody>
                     </table>
                </div>
-               <div class="col-8">
-                <div class="card">
-                    <div class="card-footer">
-                        <a href="{{ route('whatsapp.indexlista') }}">Retornar para a lista</a>
-                    </div>
 
+               <div class="col-9">
+                <div class="card">
+                      @can('WHATSAPP - LISTAR')
+                            <div class="card-footer">
+                            
+                                    <a href="{{ route('whatsapp.indexlista') }}">Retornar para a lista</a>
+                            
+
+                            </div>
+                    @endcan
                     <div class="card-body">
 
                         <div class="container">
-                            <h1 class="text-center bg-success text-white">{{ $NomeAtendido->contactName ?? null }}</h1>
+                          
+                                <h1 class="text-center bg-success text-white">{{ $NomeAtendido->contactName ?? null }}</h1>
+                         
                         </div>
 
 

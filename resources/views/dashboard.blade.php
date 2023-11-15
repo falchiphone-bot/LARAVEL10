@@ -55,20 +55,24 @@
                             </div>
                         </div>
 
+<tr>
+                                @can('WHATSAPP - LISTAR')
+                                    <th>
+                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                            <a class="btn btn-primary" href="/whatsapp/indexlista">Whatsapp</a>
+                                        </nav>
 
-                        @can('WHATSAPP - LISTAR')
-                        <tr>
-                            <th>
+                                    </th>
+                                @endcan
+                                @can('WHATSAPP - ATENDIMENTO')
+                                <th>
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="whatsapp/atendimentoWhatsapp">Whatsapp - atendimento</a>
+                                    </nav>
 
-                                <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                    <a class="btn btn-primary" href="/whatsapp/indexlista">Whatsapp</a>
-                                </nav>
-
-                            </th>
-
-                        </tr>
-                    @endcan
-
+                                </th>
+                            @endcan
+   </tr>
 
 
                         @can('TRADEIDEA - LISTAR')

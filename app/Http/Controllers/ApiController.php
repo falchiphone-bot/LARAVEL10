@@ -20,15 +20,16 @@ use PhpOffice\PhpSpreadsheet\Calculation\Web;
 class ApiController extends Controller
 {
 
-    // public function __construct()
-    // {
+    public function __construct()
+    {
 
 
-    //     $this->middleware(['permission:CATEGORIAS - INCLUIR'])->only(['create', 'store']);
-    //     $this->middleware(['permission:CATEGORIAS - EDITAR'])->only(['edit', 'update']);
-    //     $this->middleware(['permission:CATEGORIAS - VER'])->only(['edit', 'update']);
-    //     $this->middleware(['permission:CATEGORIAS - EXCLUIR'])->only('destroy');
-    // }
+        // $this->middleware(['permission:CATEGORIAS - INCLUIR'])->only(['create', 'store']);
+        // $this->middleware(['permission:CATEGORIAS - EDITAR'])->only(['edit', 'update']);
+        // $this->middleware(['permission:CATEGORIAS - VER'])->only(['edit', 'update']);
+        // $this->middleware(['permission:CATEGORIAS - EXCLUIR'])->only('destroy');
+        $this->middleware(['permission:WHATSAPP - LISTAR'])->only('indexlista');
+    }
 
 
     //

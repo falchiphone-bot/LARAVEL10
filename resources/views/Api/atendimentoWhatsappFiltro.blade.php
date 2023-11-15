@@ -71,48 +71,51 @@
                                 </tbody>
                             </table>
                         </div>
-
+                   
                         <div class="col-9">
-
-
-                            <div class="card-footer">
-                                <a href="{{ route('whatsapp.indexlista') }}">Retornar para a lista</a>
-                            </div>
-
-                            <div class="card-body" style="max-width: 1024px; max-height: 500px; overflow: hidden;">
+                             <div class="card">  
+                                @can('WHATSAPP - LISTAR')
+                                                            <div class="card-footer">
+                                                                
+                                                                <a href="{{ route('whatsapp.indexlista') }}">Retornar para a lista</a>
+                                                            
+                                                            </div>
+                                @endcan
+                             
+                                <div class="card-body" style="max-width: 1024px; max-height: 500px; overflow: hidden;">
                                 @if (session('usuarioatendente') == null)
                                 <form action="{{ route('whatsapp.enviarMensagemEncerramentoAtendimento', $id) }}" method="POST"
-                                enctype="multipart/form-data">
-                                @csrf
+                                    enctype="multipart/form-data">
+                                    @csrf
 
 
-                                <div class="card" style="background-color: #ffffcc; padding: 20px;">
-                                    {{-- <div class="form-group">
-                                        <label for="mensagem">Mensagem adiconal a ser enviada</label>
-                                        <textarea id="mensagem" name="mensagem" rows="4" cols="50" class="form-control" onfocus="stopPageRefresh();"
-                                            onblur="allowPageRefresh();"></textarea>
-                                    </div> --}}
+                                    <div class="card" style="background-color: #ffffcc; padding: 20px;">
+                                        {{-- <div class="form-group">
+                                            <label for="mensagem">Mensagem adiconal a ser enviada</label>
+                                            <textarea id="mensagem" name="mensagem" rows="4" cols="50" class="form-control" onfocus="stopPageRefresh();"
+                                                onblur="allowPageRefresh();"></textarea>
+                                        </div> --}}
 
-                                    <!-- Adicione um campo oculto para enviar recipient_id -->
-                                    <input type="hidden" name="recipient_id"
-                                        value="{{ $NomeAtendido->recipient_id ?? null }}">
-                                    <input type="hidden" name="contactName"
-                                        value="{{ $NomeAtendido->contactName ?? null }}">
-                                    <input type="hidden" name="status_mensagem_enviada"
-                                        value="{{ $NomeAtendido->status_mensagem_enviada ?? null }}">
+                                        <!-- Adicione um campo oculto para enviar recipient_id -->
+                                        <input type="hidden" name="recipient_id"
+                                            value="{{ $NomeAtendido->recipient_id ?? null }}">
+                                        <input type="hidden" name="contactName"
+                                            value="{{ $NomeAtendido->contactName ?? null }}">
+                                        <input type="hidden" name="status_mensagem_enviada"
+                                            value="{{ $NomeAtendido->status_mensagem_enviada ?? null }}">
 
-                                    {{-- <div class="form-group">
-                                        <label for="arquivo">Selecionar um arquivo:</label>
-                                        <input type="file" id="arquivo" name="arquivo a mensagem"
-                                            class="form-control-file">
-                                    </div> --}}
+                                        {{-- <div class="form-group">
+                                            <label for="arquivo">Selecionar um arquivo:</label>
+                                            <input type="file" id="arquivo" name="arquivo a mensagem"
+                                                class="form-control-file">
+                                        </div> --}}
 
-                                    <button type="submit" class="btn btn-danger">Encerramento do atendimento</button>
-                                </div>
+                                        <button type="submit" class="btn btn-danger">Encerramento do atendimento</button>
+                                    </div>
                                 </form>
 
 
-
+                    
                                 <form action="{{ route('whatsapp.enviarMensagemRespostaAtendimento', $id) }}" method="POST"
                                     enctype="multipart/form-data">
                                     @csrf
@@ -147,16 +150,17 @@
                                 </form>
                                 @endif
                             </div>
+                          
+                         
 
 
-
-                    </div>
+                    
 
                             <div class="card-body" style="max-width: 1024px; max-height: 3096px;">
 
 
 
-                                {{-- <div class="col-12"> --}}
+                            <div class="col-12">
                                 <table class="table">
                                     <thead>
                                         <tr>
@@ -311,14 +315,14 @@
                                         </tbody>
                                     @endif
                                 </table>
-                                {{-- </div> --}}
+                                </div>
 
 
 
 
                             </div>
 
-                        </div>
+                        
                     </div>
                 </div>
             </div>
