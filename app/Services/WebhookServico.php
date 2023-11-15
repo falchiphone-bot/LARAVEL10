@@ -126,4 +126,24 @@ class WebhookServico
         return;
 
     }
+
+    public static function grava_user_encerramento_atendimento($id)
+    {
+
+        $Usuario_sistema = NULL;
+
+        $User_Atendente = WebhookContact::where('recipient_id', $id)->first();
+
+            if ($User_Atendente ) {
+            $User_Atendente->update([
+                'user_atendimento' => $Usuario_sistema,
+            ]);
+           }
+    
+
+        return;
+
+    }
+
+
 }

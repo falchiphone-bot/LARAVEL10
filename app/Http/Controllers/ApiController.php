@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use GuzzleHttp\Client;
 use App\Models\webhook;
+use App\Models\webhookAtendimentoEncerrado;
 use Illuminate\Http\Request;
 
 use App\Models\WebhookConfig;
@@ -1441,7 +1442,7 @@ class ApiController extends Controller
         //     'quantidade_nao_lida' => 0,
         //     ]);
 
-        $Usuario_atendimento = WebhookServico::grava_user_atendimento($id);
+        // $Usuario_atendimento = WebhookServico::grava_user_atendimento($id);
 
         $selecao = webhook::limit(100)
         ->where('recipient_id', $id)
@@ -2327,6 +2328,7 @@ else
             /////////////// gravar mensagem aprovada
 
             $registro = webhookContact::where('recipient_id', $phone)->get()->first();
+            $id_contact = $registro->id;
             $registro->update([
              'status_mensagem_enviada' => 0,
              'user_updated' => $usuario,
@@ -2358,9 +2360,17 @@ else
             $recipient_id = $requestData['to'];
             $contactName = $request->contactName;
 
+
+            $webhookAtendimentoEncerrado = webhookAtendimentoEncerrado::create([
+                'id_contact' => $id_contact ?? null,
+                'user_atendimento' => Auth::user()->email ?? null,
+            ]);
+
+
             // $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName);
             session()->flash('success', 'Encerramento do atendimento. Mensagem enviada com sucesso para ' . $request->contactName .  '.');
 
+            $Usuario_atendimento = WebhookServico::grava_user_encerramento_atendimento($id);
 
             return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
         } else {
@@ -2369,6 +2379,194 @@ else
         }
     }
 
+    public function enviarMensagemInicioAtendimento(Request $request, $id)
+    {
+
+        $usuario = trim(Auth::user()->email);
+        $nomeatendente = trim(Auth::user()->name);
+
+        $id_arquivo = null;
+        $arquivo = $request->file('arquivo') ?? null;
+
+      if($arquivo)
+      {
+        $path = $arquivo->getRealPath() ;
+
+        $name = $arquivo->getClientOriginalName()  ;
+        $extension = $arquivo->getClientOriginalExtension()  ;
+
+        $mime_type = $arquivo->getMimeType()  ;
+
+        $id_arquivo = ApiController::Enviar_Arquivo($arquivo, $path, $name, $extension, $mime_type);
+      }
+
+        $model = webhook::find($id);
+
+        $message = $request->input('mensagem');
+
+            // if (empty($request->input('mensagem'))) {
+            //     // O campo de mensagem está vazio, defina a mensagem de erro na sessão.
+            //     session()->flash('MensagemNaoPreenchida', 'A mensagem está vazia... necessita de preenchimento!');
+            //     return redirect()->back();
+            // }
+
+
+
+            $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
+            $phone_number_id = WebhookServico::phone_number_id();
+            $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
+            $Token = $WebhookConfig->token24horas;
+
+
+            if($Token == null){
+                session()
+                ->flash('MensagemNaoPreenchida', 'Token não definido por algum erro. Verifique. Linha 1142!');
+                return redirect()->back();
+            }
+
+
+        $client = new Client();
+        $phone = $request->recipient_id; // Número de telefone de destino
+        $client = new Client();
+        $requestData = [];
+
+// ================arquivo em anexo como $responseData
+
+if($id_arquivo){
+
+            $tipoarquivo = ApiController::TipoArquivo($mime_type);
+
+            if($tipoarquivo == 'image'){
+                        $requestData = [
+                        'messaging_product' => 'whatsapp',
+                        'recipient_type' => 'individual',
+                        'to' => $phone,
+                        'type' => $tipoarquivo,
+                        'image' => [
+                            'id' => $id_arquivo['id'],
+                            'caption' => $message,
+                        ],
+                    ];
+            }
+            elseif($tipoarquivo == 'document')
+            {
+                    $requestData = [
+                        'messaging_product' => 'whatsapp',
+                        'recipient_type' => 'individual',
+                        'to' => $phone,
+                        'type' => $tipoarquivo,
+                         'document' => [
+                            'id' => $id_arquivo['id'],
+                            'filename' => $name,
+                            'caption' => $message,
+                        ],
+                    ];
+
+
+            }
+            elseif($tipoarquivo == 'video')
+            {
+                $requestData = [
+                    'messaging_product' => 'whatsapp',
+                    'recipient_type' => 'individual',
+                    'to' => $phone,
+                    'type' => $tipoarquivo,
+                    'video' => [
+                        'id' => $id_arquivo['id'],
+                        'caption' => $message,
+                    ],
+                ];
+            }
+}
+else
+   {
+
+    $message = "Olá! Sou " . $nomeatendente . ", estou a vossa disposição. Obrigado por entrar em contato conosco! Me esforçarei para responder o mais breve possível.";
+    // dd($tipoarquivo,'sem tipo de arquivo')   ;
+    // ===================================== somente texto como resposta
+        $requestData = [
+           'messaging_product' => 'whatsapp',
+           'recipient_type' => 'individual',
+           'to' => $phone,
+           'type' => 'text',
+           'text' => [
+               'body' => $message,
+           ],
+       ];
+   }
+
+   // =================================================================
+
+   $response = $client->post(
+    'https://graph.facebook.com/v18.0/' . $phone_number_id . '/messages',
+    [
+
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $Token,
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => $requestData,
+            ]
+        );
+        // Verifique a resposta
+        if ($response->getStatusCode() == 200) {
+            $responseData = json_decode($response->getBody());
+            // Faça algo com a resposta, se necessário
+            // dd("Mensagem nova enviada", $responseData);
+
+ ///////////////////Gravar
+            /////////////// gravar mensagem aprovada
+
+            $registro = webhookContact::where('recipient_id', $phone)->get()->first();
+            $id_contact = $registro->id;
+            $registro->update([
+             'status_mensagem_enviada' => 0,
+             'user_updated' => $usuario,
+           ]);
+
+           $registro->save();
+
+            $newWebhook = webhook::create([
+                'webhook' => json_encode($requestData) ?? null,
+                'value_messaging_product' => $requestData['messaging_product'] ?? null,
+                'object' => $requestData['messaging_product'] ?? null,
+                'entry_id' => $identificacaocontawhatsappbusiness ?? null,
+                'contactName' => $request->contactName ?? null,
+                'recipient_id' => $requestData['to'] ?? null,
+                'type' => $requestData['type'] ?? null,
+                'messagesType' => $requestData['type'] ?? null,
+                'body' => $requestData['text']['body'] ?? null,
+                'status' => 'sent' ?? null,
+                'image_caption' => $requestData['image']['caption'] ?? null,
+                'image_id' => $requestData['image']['id'] ?? null,
+                'document_caption' => $requestData['document']['caption'] ?? null,
+                'document_id' => $requestData['document']['id'] ?? null,
+                'document_filename' => $name ?? null,
+                'video_caption' => $requestData['video']['caption'] ?? null,
+                'video_id' => $requestData['video']['id'] ?? null,
+                'user_atendimento' => Auth::user()->email,
+            ]);
+
+            $recipient_id = $requestData['to'];
+            $contactName = $request->contactName;
+
+
+            $webhookAtendimentoEncerrado = webhookAtendimentoEncerrado::create([
+                'id_contact' => $id_contact ?? null,
+                'user_atendimento' => Auth::user()->email ?? null,
+            ]);
+
+
+            session()->flash('success', 'Iniciado o atendimento. Mensagem enviada com sucesso para ' . $request->contactName .  '.');
+
+             $Usuario_atendimento = WebhookServico::grava_user_atendimento($id);
+
+            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
+        } else {
+            // Manipule erros, se houver
+            echo 'Erro ao enviar a mensagem: ' . $response->getBody();
+        }
+    }
 
 
 
