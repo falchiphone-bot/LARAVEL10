@@ -87,10 +87,12 @@
                                             {{ $NomeAtendido->contactName ?? null }}</h1>
                                     </div>
 
-                                    @if ($NomeAtendido->user_atendimento !== trim(Auth::user()->email))
+                                    @if ( $NomeAtendido->user_atendimento != NULL && $NomeAtendido->user_atendimento != trim(Auth::user()->email))
+
                                         <span style="color: green;"> Cliente sendo atendido por: </span>
                                         <span style="color: blue;">{{ $NomeAtendido->user_atendimento }}</span>
-                                    @else
+                                    @endif
+
                                         @if ($NomeAtendido->user_atendimento === trim(Auth::user()->email))
                                             <form
                                                 action="{{ route('whatsapp.enviarMensagemEncerramentoAtendimento', $item->Contato->recipient_id) }}"
@@ -136,7 +138,13 @@
                                                         mensagem</button>
                                                 </div>
                                             </form>
-                                        @else
+                                        @endif
+
+
+
+
+
+                                    @if ($NomeAtendido->user_atendimento == NULL)
                                             <form action="{{ route('whatsapp.enviarMensagemInicioAtendimento', $id) }}"
                                                 method="POST" enctype="multipart/form-data">
                                                 @csrf
@@ -153,8 +161,7 @@
                                                         atendimento</button>
                                                 </div>
                                             </form>
-                                        @endif
-                                    @endif
+                                            @endif
                                 </div>
 
 

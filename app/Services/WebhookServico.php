@@ -131,15 +131,17 @@ class WebhookServico
     {
 
         $Usuario_sistema = NULL;
+        $zero = 0;
 
         $User_Atendente = WebhookContact::where('recipient_id', $id)->first();
 
             if ($User_Atendente ) {
             $User_Atendente->update([
                 'user_atendimento' => $Usuario_sistema,
+                'quantidade_nao_lida' => $zero,
             ]);
            }
-    
+
 
         return;
 
