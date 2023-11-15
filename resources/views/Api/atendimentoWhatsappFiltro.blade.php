@@ -211,7 +211,8 @@
                                                     <td>
                                                         @if ($item->status == 'sent')
                                                             {{-- Enviado --}}
-                                                            @if ($NomeAtendido->status_mensagem_entregue == null || $NomeAtendido->status_mensagem_entregue == false)
+                                                            @if ($NomeAtendido->status_mensagem_entregue == null
+                                                              || $NomeAtendido->status_mensagem_entregue == false)
 
                                                                 <img src="/icones/visto2azul.png" alt="lido">
 
@@ -244,13 +245,14 @@
                                                         @elseif($item->status == 'received')
                                                             {{-- Recebido --}}
                                                             @if ($item->statusconfirmado == false)
+                                                                @if($NomeAtendido->user_atendimento == Auth::user()->email)
                                                                 <form
                                                                     action="{{ route('whatsapp.ConfirmaRecebimentoMensagem', $item->id) }}"
                                                                     method="get" enctype="multipart/form-data">
                                                                     @csrf
-                                                                    <button type="submit" class="btn btn-success">Confirma
-                                                                        recebimento</button>
+                                                                    <button type="submit" class="btn btn-success">Confirma recebimento</button>
                                                                 </form>
+                                                                @endif
                                                             @endif
                                                         @endif
                                                     </td>

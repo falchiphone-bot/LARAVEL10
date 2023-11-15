@@ -372,24 +372,26 @@ class ApiController extends Controller
          $registro = webhookContact::where('recipient_id', $recipient_id)->first();
 
          if ($registro) {
-             $updateData = [
-                 'user_updated' => 'webhook@falchi.com.br',
-             ];
+            //  $updateData = [
+            //      'user_updated' => 'webhook@falchi.com.br',
+            //  ];
 
-             if ($status == 'delivered') {
+             if ($status === 'delivered') {
                  $updateData['ultima_entrega'] = now();
                  $updateData['status_mensagem_entregue'] = true;
-                 $updateData['user_updated'] = 'pedro@falchi.com.br';
-             } elseif ($status == 'read') {
+                 $updateData['user_updated'] = 'webhook@falchi.com.br';
+
+             } elseif ($status === 'read') {
                  $updateData['status_mensagem_enviada'] = true;
                  $updateData['status_mensagem_entregue'] = false;
                  $updateData['ultima_leitura'] = now();
                  $updateData['user_updated'] = 'webhook@falchi.com.br';
-                 Log::info('===============>>>> READ - GRAVOU LIDO');
-             } elseif ($status == 'sent') {
-                 $updateData['status_mensagem_entregue'] = false;
+
+             } elseif ($status === 'sent') {
+                 $updateData['status_mensagem_entregue'] = true;
                  $updateData['user_updated'] = 'webhook@falchi.com.br';
-            } elseif ($status == 'received') {
+
+            } elseif ($status === 'received') {
                 $somarecebida = $registro->quantidade_nao_lida + 1;
                 $updateData['quantidade_nao_lida'] = $somarecebida;
                 $updateData['user_updated'] = 'webhook@falchi.com.br';
@@ -2218,7 +2220,7 @@ else
             // }
 
 
-        
+
             $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
             $phone_number_id = WebhookServico::phone_number_id();
             $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
@@ -2301,7 +2303,7 @@ else
            ],
        ];
    }
- 
+
    // =================================================================
 
    $response = $client->post(
@@ -2355,7 +2357,7 @@ else
 
             $recipient_id = $requestData['to'];
             $contactName = $request->contactName;
-             
+
             // $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName);
             session()->flash('success', 'Encerramento do atendimento. Mensagem enviada com sucesso para ' . $request->contactName .  '.');
 
