@@ -285,12 +285,15 @@
                                                                     @endcan
                                                                 @endif
 
-
-                                                                @include('Api.baixarmidiacriaurl')
-                                                                @include('Api.mostraimagem')
-                                                                @include('Api.mostradocumento')
-                                                                @include('Api.mostravideo')
-                                                                @include('Api.mostraaudio')
+                                                                @if($NomeAtendido->user_atendimento !== NULL) 
+                                                                    @include('Api.baixarmidiacriaurl')
+                                                                    @include('Api.mostraimagem')
+                                                                    @include('Api.mostradocumento')
+                                                                    @include('Api.mostravideo')
+                                                                    @include('Api.mostraaudio')
+                                                                @else
+                                                                    {{-- Tem anexo anexo. Somente após iniciar atendimento poderá vê-lo. --}}
+                                                                @endif
 
                                                             </td>
 
