@@ -1610,7 +1610,10 @@ else
         $id_arquivo = null;
         $arquivo = $request->file('arquivo') ?? null;
 
-      if( $arquivo)
+
+
+
+      if($arquivo)
       {
         $path = $arquivo->getRealPath() ;
 
@@ -1628,10 +1631,14 @@ else
 
         $message = $request->input('mensagem');
 
-            if (empty($request->input('mensagem'))) {
-                // O campo de mensagem está vazio, defina a mensagem de erro na sessão.
-                session()->flash('MensagemNaoPreenchida', 'A mensagem está vazia... necessita de preenchimento!');
-                return redirect()->back();
+
+            if($arquivo == null)
+            {
+                if (empty($request->input('mensagem'))) {
+                    // O campo de mensagem está vazio, defina a mensagem de erro na sessão.
+                    session()->flash('MensagemNaoPreenchida', 'A mensagem está vazia... necessita de preenchimento!');
+                    return redirect()->back();
+                }
             }
 
             $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();

@@ -131,7 +131,7 @@
 
                                                     <div class="form-group">
                                                         <label for="arquivo">Selecionar um arquivo:</label>
-                                                        <input type="file" id="arquivo" name="arquivo a mensagem"
+                                                        <input type="file" id="arquivo" name="arquivo"
                                                             class="form-control-file">
                                                     </div>
                                                     <button type="submit" class="btn btn-success">Enviar a
