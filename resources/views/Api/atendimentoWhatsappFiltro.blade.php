@@ -1,12 +1,5 @@
+@include('Api.atendimento.headrefresh')
 
-<!DOCTYPE html>
-<html>
-
-<head>
-    <meta http-equiv="refresh" content="10"> <!-- Atualize a cada 5 segundos -->
-</head>
-
-</html>
 @extends('layouts.bootstrap5')
 
 @section('content')
@@ -18,75 +11,16 @@
                 </div>
 
                 <div class="card-body">
-                    @if (session('MensagemNaoPreenchida'))
-                        <div class="alert alert-danger">
-                            {{ session('MensagemNaoPreenchida') }}
-                        </div>
-                    @elseif (session('error'))
-                        <div class="alert alert-danger">
-                            {{ session('errordesta') }}
-                        </div>
-                    @elseif (session('usuarioatendente'))
-                        <div class="alert alert-danger">
-                            {{-- {{ session('usuarioatendente') }} --}}
-                        </div>
-                    @endif
 
-                            @can('WHATSAPP - ATENDIMENTO - VER CONTATOS')
-                                 @include('Api.atendimento.contatostabelamensagens')
-                            @endcan
+                    @include('Api.atendimento.mostrasessaoalerta')
+
+                    @can('WHATSAPP - ATENDIMENTO - VER CONTATOS')
+                        @include('Api.atendimento.contatostabelamensagens')
+                    @endcan
                 </div>
+            </div>
+        </div>
+    </div>
+@endsection
 
-                {{ session(['usuarioatendente' => null]) }}
-            @endsection
-
-            @push('scripts')
-                <link rel="stylesheet"
-                    href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
-
-                <script>
-                    $('form').submit(function(e) {
-                        e.preventDefault();
-                        $.confirm({
-                            title: 'Confirmar!',
-                            content: 'Confirma o envio?',
-                            buttons: {
-                                confirmar: function() {
-                                    $.confirm({
-                                        title: 'Confirmar!',
-                                        content: 'Deseja realmente continuar com o envio?',
-                                        buttons: {
-                                            confirmar: function() {
-                                                e.currentTarget.submit();
-                                            },
-                                            cancelar: function() {
-                                                // Você pode adicionar ações aqui, se necessário.
-                                            },
-                                        }
-                                    });
-                                },
-                                cancelar: function() {
-                                    // Você pode adicionar ações aqui, se necessário.
-                                },
-                            }
-                        });
-                    });
-
-                    var pageRefreshAllowed = true;
-
-                    function stopPageRefresh() {
-                        pageRefreshAllowed = false;
-                    }
-
-                    function allowPageRefresh() {
-                        pageRefreshAllowed = true;
-                    }
-
-                    window.onbeforeunload = function() {
-                        if (!pageRefreshAllowed) {
-                            return "Você tem campos não salvos no formulário. Tem certeza de que deseja sair da página?";
-                        }
-                    };
-                </script>
-            @endpush
+@include('Api.atendimento.scriptsConfirmarRefresh')
