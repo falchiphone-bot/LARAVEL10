@@ -2361,10 +2361,12 @@ else
             $contactName = $request->contactName;
 
 
-            $webhookAtendimentoEncerrado = webhookAtendimentoEncerrado::create([
-                'id_contact' => $id_contact ?? null,
-                'user_atendimento' => Auth::user()->email ?? null,
-            ]);
+            // $webhookAtendimentoEncerrado = webhookAtendimentoEncerrado::create([
+            //     'id_contact' => $id_contact ?? null,
+            //     'user_atendimento' => Auth::user()->email ?? null,
+            //     'inicio_atendimento' => false,
+            //     'fim_atendimento'   => true,
+            // ]);
 
 
             // $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName);
@@ -2390,7 +2392,7 @@ else
 
       if($arquivo)
       {
-        $path = $arquivo->getRealPath() ;
+        $path = $arquivo->getRealPath();
 
         $name = $arquivo->getClientOriginalName()  ;
         $extension = $arquivo->getClientOriginalExtension()  ;
@@ -2551,15 +2553,18 @@ else
             $contactName = $request->contactName;
 
 
-            $webhookAtendimentoEncerrado = webhookAtendimentoEncerrado::create([
-                'id_contact' => $id_contact ?? null,
-                'user_atendimento' => Auth::user()->email ?? null,
-            ]);
+            // $webhookAtendimentoEncerrado = webhookAtendimentoEncerrado::create([
+            //     'id_contact' => $id_contact ?? null,
+            //     'user_atendimento' => Auth::user()->email ?? null,
+            // ]);
 
 
             session()->flash('success', 'Iniciado o atendimento. Mensagem enviada com sucesso para ' . $request->contactName .  '.');
 
-             $Usuario_atendimento = WebhookServico::grava_user_atendimento($id);
+
+
+
+             $Usuario_atendimento = WebhookServico::grava_user_inicio_atendimento($id);
 
             return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
         } else {

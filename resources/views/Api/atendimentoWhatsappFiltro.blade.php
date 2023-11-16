@@ -95,7 +95,7 @@
 
                                         @if ($NomeAtendido->user_atendimento === trim(Auth::user()->email))
                                             <form
-                                                action="{{ route('whatsapp.enviarMensagemEncerramentoAtendimento', $item->Contato->recipient_id) }}"
+                                                action="{{ route('whatsapp.enviarMensagemEncerramentoAtendimento',  $id) }}"
                                                 method="POST" enctype="multipart/form-data">
                                                 @csrf
                                                 <div class="card" style="background-color: #ffffcc; padding: 20px;">
@@ -111,7 +111,7 @@
                                                 </div>
                                             </form>
 
-                                            <form action="{{ route('whatsapp.enviarMensagemRespostaAtendimento', $item->Contato->recipient_id) }}"
+                                            <form action="{{ route('whatsapp.enviarMensagemRespostaAtendimento',  $id) }}"
                                                 method="POST" enctype="multipart/form-data">
                                                 @csrf
                                                 <div class="card" style="background-color: #ffffcc; padding: 20px;">

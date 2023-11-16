@@ -11,12 +11,14 @@ class webhookAtendimentoEncerrado extends Model
     use HasFactory;
 
     protected $table = 'webhooksAtendimentoEncerrado';
- 
+
     public $timestamps = true;
 
     protected $fillable = [
         'id_contact',
         'user_atendimento',
+        'inicio_atendimento',
+        'fim_atendimento',
     ];
 
 

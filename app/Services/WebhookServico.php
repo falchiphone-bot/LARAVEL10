@@ -1,5 +1,7 @@
 <?php
 namespace App\Services;
+
+use App\Models\webhookAtendimentoEncerrado;
 use GuzzleHttp\Client;
 
 use App\Models\WebhookContact;
@@ -130,17 +132,50 @@ class WebhookServico
     public static function grava_user_encerramento_atendimento($id)
     {
 
-        $Usuario_sistema = NULL;
-        $zero = 0;
+
+
+        $User_Atendente = WebhookContact::where('recipient_id', $id)->first();
+
+            if ($User_Atendente ) {
+            $User_Atendente->update([
+                'user_atendimento' =>  null,
+                'quantidade_nao_lida' => 0,
+            ]);
+           }
+
+           $webhookAtendimentoEncerrado = webhookAtendimentoEncerrado::create([
+            'id_contact' => $User_Atendente->id  ?? null,
+            'user_atendimento' => Auth::user()->email ?? null,
+            'inicio_atendimento' => false,
+            'fim_atendimento'   => true,
+        ]);
+
+
+        return;
+
+    }
+
+    public static function grava_user_inicio_atendimento($id)
+    {
+
+        $Usuario_sistema = Auth::user()->email;
+
 
         $User_Atendente = WebhookContact::where('recipient_id', $id)->first();
 
             if ($User_Atendente ) {
             $User_Atendente->update([
                 'user_atendimento' => $Usuario_sistema,
-                'quantidade_nao_lida' => $zero,
-            ]);
+             ]);
            }
+
+
+           $webhookAtendimentoEncerrado = webhookAtendimentoEncerrado::create([
+            'id_contact' => $User_Atendente->id  ?? null,
+            'user_atendimento' => Auth::user()->email ?? null,
+            'inicio_atendimento' => true,
+            'fim_atendimento'   => false,
+        ]);
 
 
         return;

@@ -511,7 +511,7 @@ class LeituraArquivoController extends Controller
 
     public function SelecionaDatasExtratoSicrediPJ(Request $request)
     {
-
+     
 
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         $DESCONSIDERAR_BLOQUEIOS_EMPRESA = $request->DESCONSIDERAR_BLOQUEIOS_EMPRESAS;
@@ -720,7 +720,7 @@ class LeituraArquivoController extends Controller
 
 
 
-// dd($BloqueandoConta);
+
 
 
                             session(['LancamentoConciliado' => 'Bloqueado com a data de ' . $bloqueioData ]) ;
