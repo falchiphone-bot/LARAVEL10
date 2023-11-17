@@ -34,6 +34,8 @@ class ApiController extends Controller
 
 
     //
+
+    
     public function salvararquivoPostWebhook()
     {
         $storagePath = storage_path();
@@ -1449,8 +1451,6 @@ class ApiController extends Controller
         ->orwhere('messagesFrom', $id)
         ->orderBy('created_at', 'desc')
         ->get();
-
-
 
         return view('api.atendimentoWhatsappFiltro', compact('id','Contatos','selecao','NomeAtendido'));
     }

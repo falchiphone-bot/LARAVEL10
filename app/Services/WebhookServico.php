@@ -3,7 +3,7 @@ namespace App\Services;
 
 use App\Models\webhookAtendimentoEncerrado;
 use GuzzleHttp\Client;
-
+use Illuminate\Http\Request;
 use App\Models\WebhookContact;
 use App\Models\WebhookConfig;
 use Illuminate\Support\Facades\Auth;
@@ -179,6 +179,34 @@ class WebhookServico
 
 
         return;
+
+    }
+
+
+    public function refreshpagina($id)
+    {
+
+        $User_Atendente = WebhookContact::where('recipient_id', $id)->first();
+
+            if ($User_Atendente ) {
+
+                if($User_Atendente->pagina_refresh == null || $User_Atendente->pagina_refresh == false)
+                {
+                    $atualiza_pagina = true;
+                }
+                else
+                {
+                    $atualiza_pagina = false;
+                }
+
+
+            $User_Atendente->update([
+
+                'pagina_refresh' => $atualiza_pagina,
+            ]);
+           }
+
+           return redirect()->back();
 
     }
 
