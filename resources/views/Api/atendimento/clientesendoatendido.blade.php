@@ -12,10 +12,9 @@
             <input type="hidden" name="status_mensagem_enviada" value="{{ $NomeAtendido->status_mensagem_enviada ?? null }}">
 
            @if ($NomeAtendido->pagina_refresh == null || $NomeAtendido->pagina_refresh == false)
-               <button type="submit" class="btn btn-success">Ativar refresh na página</button>
-
+               <button type="submit" class="btn btn-success">Ativar recarregamento da página</button>
             @else
-                 <button type="submit" class="btn btn-danger">Desativar refresh na página</button>
+                 <button type="submit" class="btn btn-danger">Desativar recarregamento da página</button>
             @endif
         </div>
  </form>

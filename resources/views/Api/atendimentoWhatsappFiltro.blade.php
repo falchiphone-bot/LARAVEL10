@@ -1,4 +1,6 @@
-@include('Api.atendimento.headrefresh')
+@if ($NomeAtendido->pagina_refresh == true)
+    @include('Api.atendimento.headrefresh')
+@endif
 
 @extends('layouts.bootstrap5')
 

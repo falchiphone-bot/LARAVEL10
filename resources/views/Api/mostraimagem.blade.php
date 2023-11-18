@@ -23,6 +23,11 @@
     @endif
 @endif
 
+ @can('LANCAMENTOS DOCUMENTOS - INCLUIR - WHATSAPP')
+    @if ($item->url_arquivo)
+        @include('Api.incluirdocumentos')
+    @endif
+ @endcan
 
 
 

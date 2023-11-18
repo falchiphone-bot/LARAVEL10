@@ -55,8 +55,6 @@
 
                         <td>
                             @include('Api.atendimento.mostracorpomensagemtabela')
-
-
                                 @can('WHATSAPP - ATUALIZAR REGISTRO - BAIXAR URL MIDIA')
                                     @include('Api.baixarmidiacriaurl')
                                     @include('Api.mostraimagem')
@@ -72,8 +70,6 @@
                                         @include('Api.mostraaudio')
                                     @endif
                                 @endcan
-
-
                         </td>
 
                         <td>
