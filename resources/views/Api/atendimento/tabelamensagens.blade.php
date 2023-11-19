@@ -53,6 +53,11 @@
                         </td>
 
 
+
+
+
+
+
                         <td>
                             @include('Api.atendimento.mostracorpomensagemtabela')
                                 @can('WHATSAPP - ATUALIZAR REGISTRO - BAIXAR URL MIDIA')
@@ -78,6 +83,9 @@
 
 
                     </tr>
+
+           
+
                 @endforeach
 
             </tbody>

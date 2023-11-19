@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Storage;
+use GuzzleHttp\Client;
 use App\Models\LancamentoDocumento;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Webhook;
 use Carbon\Carbon;
 use DateTime;
 // use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
+
 use Google_Service_Drive_Permission;
 use Google_Service_Drive;
 use Google_Service_Drive_DriveFile;
@@ -975,5 +978,184 @@ class GoogleDriveController extends Controller
             return redirect(route('informacao.arquivos'));
         }
     }
+
+    public function googleDriveFileUploadWhatsapp(Request $request, $id)
+    {
+
+        $webhook = Webhook::find($id);
+
+
+        $complemento = $webhook->url_arquivo;
+
+
+
+        if($complemento == 'RETIRAR PONTOABCDEFG.')
+        {
+
+            $complemento_sem_pontos = str_replace('.', '', $complemento);
+
+            session([
+                'InformacaoArquivo' => 'O complemento possui  caracteres  com pontos. RETIRADO! QUALQUER DÚVIDA CONSULTE O ADMINISTRADOR DO SISTEMA. TEXTO:' . $complemento_sem_pontos
+            ]);
+            return redirect(route('informacao.arquivos'));
+        }
+
+        $complemento_sem_pontos = str_replace('.', '', $complemento);
+        $complemento =  $complemento_sem_pontos;
+
+
+        $quantidadeCaracteres = trim(strlen($complemento));
+        if ($quantidadeCaracteres > 254) {
+            session([
+                'InformacaoArquivo' => 'O complemento possui '. $quantidadeCaracteres . ' caracteres. Quantidade de caracteres maior que o permitido que é 254.'
+            ]);
+            return redirect(route('informacao.arquivos'));
+        }
+
+        // https://laravel.com/docs/10.x/filesystem#the-local-driver
+
+        $service = new \Google_Service_Drive($this->gClient);
+
+        // $user= User::find(1);
+        // Cache::put('token_google', session('googleUser')->token , $seconds = 1800);
+        $this->gClient->setAccessToken(session('googleUserDrive'));
+
+        if ($this->gClient->isAccessTokenExpired()) {
+            $request->session()->put('token', false);
+            return redirect('/drive/google/login');
+
+            // SAVE REFRESH TOKEN TO SOME VARIABLE
+            $refreshTokenSaved = $this->gClient->getRefreshToken();
+
+            // UPDATE ACCESS TOKEN
+            $this->gClient->fetchAccessTokenWithRefreshToken($refreshTokenSaved);
+
+            // PASS ACCESS TOKEN TO SOME VARIABLE
+            $updatedAccessToken = $this->gClient->getAccessToken();
+
+            // APPEND REFRESH TOKEN
+            $updatedAccessToken['refresh_token'] = $refreshTokenSaved;
+
+            // SET THE NEW ACCES TOKEN
+            $this->gClient->setAccessToken($updatedAccessToken);
+
+            $user->access_token = $updatedAccessToken;
+
+            $user->save();
+        }
+
+        $fileMetadata = new \Google_Service_Drive_DriveFile([
+            'name' => 'Prfcontabilidade', // ADD YOUR GOOGLE DRIVE FOLDER NAME
+            'mimeType' => 'application/vnd.google-apps.folder',
+        ]);
+
+
+
+
+        $filePath = $webhook->url_arquivo;
+
+        // Verifica se o arquivo existe
+        if (file_exists($filePath)) {
+            // Lê o conteúdo do arquivo
+            $fileContent = file_get_contents($filePath);
+
+            // Agora você pode manipular $fileContent da maneira que precisar
+            // Por exemplo, exibir o conteúdo ou realizar outras operações.
+        } else {
+             dd("O arquivo não existe.");
+        }
+
+
+
+
+        // Criar uma instância do cliente Guzzle
+        $client = new Client();
+
+        // Fazer uma solicitação GET para obter o conteúdo do arquivo
+        $response = $client->get($fileContent);
+
+        // Obter o corpo da resposta
+        $fileContent = $response->getBody()->getContents();
+
+        // Agora, você pode manipular $fileContent da maneira que precisar
+
+        // Exemplo de como você pode usar $fileContent para obter dados do arquivo
+        $path = tempnam(sys_get_temp_dir(), 'file');
+        file_put_contents($path, $fileContent);
+
+        $file = new \Illuminate\Http\UploadedFile(
+            $path,
+            $name, // Substitua com o nome desejado
+            $extension, // Substitua com a extensão desejada
+            0,
+            true
+        );
+
+
+
+        // Agora você pode usar $file para obter os dados necessários
+        $Complemento = $complemento;
+        $name = $file->getClientOriginalName();
+        $extension = $file->getClientOriginalExtension();
+
+
+
+dd($name,$extension );
+
+        // $folder = '1Jzih3qPaWpf7HISQEsDpUpH0ab7eS-yJ';   //FIXADO NO ARQUIVO .env
+        $folder = config('services.google_drive.folder');
+        // $folder = null;
+        if ($folder == null) {
+            session([
+                'InformacaoArquivo' => 'Pasta não informada! Verifique o arquivo de configuração env( FOLDER_DRIVE_GOOGLE ). Execute: # php artisan config:clear no SERVIDOR DOCKER LARAVEL'
+            ]);
+            return redirect(route('informacao.arquivos'));
+        }
+        $folderTemp =config('services.google_drive.folder');
+        // $folderTemp = null;
+        if ($folderTemp == null) {
+            session([
+                'InformacaoArquivo' => 'Pasta não informada! Verifique o arquivo de configuração env( FOLDER_DRIVE_GOOGLE_TEMPORARIA ).',
+            ]);
+            return redirect(route('informacao.arquivos'));
+        }
+        // $nome_arquivo = $request->file('arquivo')->getClientOriginalName();
+
+        // // $nome_arquivo = Carbon::now().'-(100)-'.$request->file('arquivo')->getClientOriginalName();
+
+        $nome_arquivo = Carbon::now() . '-' . $request->file($complemento)->getClientOriginalName();
+
+     $file = new \Google_Service_Drive_DriveFile(['name' => $nome_arquivo, 'parents' => [$folder]]);
+
+
+
+        $result = $service->files->create($file, [
+           'data' => file_get_contents($path), // ADD YOUR FILE PATH WHICH YOU WANT TO UPLOAD ON GOOGLE DRIVE
+            'mimeType' => 'application/octet-stream',
+            'uploadType' => 'media',
+        ]);
+
+        $client = $this->gClient;
+
+
+
+             $Documentos= LancamentoDocumento::create([
+            'Rotulo' => $Complemento,
+            'LancamentoID' => null,
+            'Nome' => $result->getId(),
+            'Created' => date('d-m-Y H:i:s'),
+            'UsuarioID' => Auth::user()->id,
+            'Ext' => explode('.', $result->getName())[1],
+        ]);
+
+                session([
+                    'InformacaoArquivo' => 'Arquivo enviado com sucesso. O ID do mesmo é '.$result->id,
+                ]);
+
+
+        return redirect(route('informacao.arquivos'));
+    }
+
+
 
 }
