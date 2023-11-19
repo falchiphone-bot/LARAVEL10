@@ -1274,6 +1274,7 @@ class GoogleDriveController extends Controller
                      'Created' => date('d-m-Y H:i:s'),
                      'UsuarioID' => Auth::user()->id,
                      'Ext' => explode('.', $result->getName())[1],
+                     'TipoArquivo' => 45,
                  ]);
          
                          session([
