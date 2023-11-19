@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\WebhookServico;
 use Illuminate\Support\Facades\Storage;
 use GuzzleHttp\Client;
 use App\Models\LancamentoDocumento;
@@ -988,6 +989,7 @@ class GoogleDriveController extends Controller
         $complemento = $webhook->url_arquivo;
 
 
+        $id_arquivo = $webhook->image_id;
 
         if($complemento == 'RETIRAR PONTOABCDEFG.')
         {
@@ -1052,55 +1054,171 @@ class GoogleDriveController extends Controller
 
 
 
-        $filePath = $webhook->url_arquivo;
+        // $filePath = $webhook->url_arquivo;
 
-        // Verifica se o arquivo existe
-        if (file_exists($filePath)) {
-            // Lê o conteúdo do arquivo
-            $fileContent = file_get_contents($filePath);
+        // // Verifica se o arquivo existe
+        // if (file_exists($filePath)) {
+        //     // Lê o conteúdo do arquivo
+        //     $fileContent = file_get_contents($filePath);
 
-            // Agora você pode manipular $fileContent da maneira que precisar
-            // Por exemplo, exibir o conteúdo ou realizar outras operações.
-        } else {
-             dd("O arquivo não existe.");
-        }
-
-
+        //     // Agora você pode manipular $fileContent da maneira que precisar
+        //     // Por exemplo, exibir o conteúdo ou realizar outras operações.
+        // } else {
+        //      dd("O arquivo não existe.");
+        // }
 
 
-        // Criar uma instância do cliente Guzzle
+
+
+        // // Criar uma instância do cliente Guzzle
+        // $client = new Client();
+
+        // // Fazer uma solicitação GET para obter o conteúdo do arquivo
+        // $response = $client->get($fileContent);
+
+        // // Obter o corpo da resposta
+        // $fileContent = $response->getBody()->getContents();
+
+        // // Agora, você pode manipular $fileContent da maneira que precisar
+
+        // // Exemplo de como você pode usar $fileContent para obter dados do arquivo
+        // $path = tempnam(sys_get_temp_dir(), 'file');
+        // file_put_contents($path, $fileContent);
+
+        // $file = new \Illuminate\Http\UploadedFile(
+        //     $path,
+        //     $name, // Substitua com o nome desejado
+        //     $extension, // Substitua com a extensão desejada
+        //     0,
+        //     true
+        // );
+
+
+        // @include('pegar_arquivo_whatsapp');
+
+
+        $id = $webhook->image_id;
+        $accessToken = WebhookServico::token24horas();
         $client = new Client();
-
-        // Fazer uma solicitação GET para obter o conteúdo do arquivo
-        $response = $client->get($fileContent);
-
-        // Obter o corpo da resposta
-        $fileContent = $response->getBody()->getContents();
-
-        // Agora, você pode manipular $fileContent da maneira que precisar
-
-        // Exemplo de como você pode usar $fileContent para obter dados do arquivo
-        $path = tempnam(sys_get_temp_dir(), 'file');
-        file_put_contents($path, $fileContent);
-
-        $file = new \Illuminate\Http\UploadedFile(
-            $path,
-            $name, // Substitua com o nome desejado
-            $extension, // Substitua com a extensão desejada
-            0,
-            true
+        $response = $client->get("https://graph.facebook.com/v18.0/".trim($id),
+            [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $accessToken,
+                    'Content-Type' => 'application/json',
+                ],
+             ]
         );
 
+        if ($response->getStatusCode() == 200) {
+            $responseData = json_decode($response->getBody());
 
+            $response = $client->get(trim($responseData->url), [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $accessToken,
+                ],
+            ]);
+
+
+            $registrobd = webhook::where('image_id', $id)
+            ->orWhere('document_id', $id)
+            ->orWhere('video_id', $id)
+            ->orWhere('sticker_id', $id)
+            ->orWhere('audio_id', $id)
+            ->first();
+
+
+            $idtabela = $registrobd->id;
+            $messages_id = $registrobd->messages_id;
+            $value_messaging_product = $registrobd->value_messaging_product;
+
+            $sufixo = null;
+            if($registrobd->messagesType == 'image'){
+                if($registrobd->image_mime_type == 'image/jpeg'){
+                    $sufixo = '.jpg';
+                }
+                if($registrobd->sticker_mime_type == 'image/webp'){
+                    $sufixo = '.webp';
+                }
+            }
+            if($registrobd->messagesType == 'video'){
+                if($registrobd->video_mime_type == 'video/mp4'){
+                    $sufixo = '.mp4';
+                }
+            }
+            if($registrobd->messagesType == 'audio'){
+                if($registrobd->video_mime_type == 'audio/ogg'){
+                    $sufixo = '.ogg';
+                }
+            }
+
+
+            if($registrobd->messagesType == 'document'){
+                if($registrobd->document_mime_type == 'application/pdf'){
+                    $sufixo = '.pdf';
+                }
+
+                if($registrobd->document_mime_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'){
+                    $sufixo = '.docx';
+                }
+                elseif($registrobd->document_mime_type == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'){
+                    $sufixo = '.xlsx';
+                }
+                elseif($registrobd->document_mime_type == 'text/rtf'){
+                    $sufixo = '.rtf';
+                }
+                elseif($registrobd->document_mime_type == 'text/csv'){
+                    $sufixo = '.csv';
+                }
+                elseif($registrobd->document_mime_type == 'text/plain'){
+                    $sufixo = '.txt';
+                }
+            }
+
+
+            $file =
+                 'registro_'.$idtabela
+                .'_image_id_'.trim($id)
+                .'_message_id_'.$messages_id
+                .'_value_messaging_product_'.$value_messaging_product 
+                .$sufixo;
+
+            // Definindo o caminho onde a imagem será salva
+            $pastafisica = '../storage/whatsapp/';
+
+            if (!file_exists($pastafisica)) {
+                // Verifique se a pasta não existe e, se não existir, crie-a
+                if (mkdir($pastafisica, 0777, true)) {
+                    // echo 'A pasta foi criada com sucesso.';
+                } else {
+                    // echo 'Não foi possível criar a pasta.';
+                }
+            } else {
+                // echo 'A pasta já existe.';
+            }
+
+
+            $filePath = $pastafisica. $file;
+
+         
+
+            // Salva o conteúdo da resposta no arquivo
+            file_put_contents($filePath, $response->getBody());
+
+
+            $registrobd->update([
+                'url_arquivo' => $filePath,
+            ]);
+
+        }
 
         // Agora você pode usar $file para obter os dados necessários
-        $Complemento = $complemento;
-        $name = $file->getClientOriginalName();
-        $extension = $file->getClientOriginalExtension();
+        $Complemento = $filePath;
+        // $name = $filePath;
+        // $extension = $sufixo;
 
 
 
-dd($name,$extension );
+
 
         // $folder = '1Jzih3qPaWpf7HISQEsDpUpH0ab7eS-yJ';   //FIXADO NO ARQUIVO .env
         $folder = config('services.google_drive.folder');
@@ -1123,35 +1241,52 @@ dd($name,$extension );
 
         // // $nome_arquivo = Carbon::now().'-(100)-'.$request->file('arquivo')->getClientOriginalName();
 
-        $nome_arquivo = Carbon::now() . '-' . $request->file($complemento)->getClientOriginalName();
+        // $nome_arquivo = Carbon::now() . '-' . $request->file($complemento)->getClientOriginalName();
 
+        $nome_arquivo = Carbon::now() . '-' . $Complemento;
+
+  $path =  trim($Complemento);
      $file = new \Google_Service_Drive_DriveFile(['name' => $nome_arquivo, 'parents' => [$folder]]);
 
 
+   
 
-        $result = $service->files->create($file, [
-           'data' => file_get_contents($path), // ADD YOUR FILE PATH WHICH YOU WANT TO UPLOAD ON GOOGLE DRIVE
-            'mimeType' => 'application/octet-stream',
-            'uploadType' => 'media',
-        ]);
-
-        $client = $this->gClient;
+    //  $path = "../storage/whatsapp/registro_1401_image_id_1133458077642333_message_id_wamid.HBgNNTUxNzk5NzY2Mjk0ORUCABIYFDNBMzU2NTNDNzk1MTkzODY3M0VCAA==_value_messaging_product_whatsapp.jpg";
 
 
 
-             $Documentos= LancamentoDocumento::create([
-            'Rotulo' => $Complemento,
-            'LancamentoID' => null,
-            'Nome' => $result->getId(),
-            'Created' => date('d-m-Y H:i:s'),
-            'UsuarioID' => Auth::user()->id,
-            'Ext' => explode('.', $result->getName())[1],
-        ]);
+            if (file_exists($path)) {
 
-                session([
-                    'InformacaoArquivo' => 'Arquivo enviado com sucesso. O ID do mesmo é '.$result->id,
-                ]);
+                $result = $service->files->create($file, [
+                    'data' => file_get_contents($path), // ADD YOUR FILE PATH WHICH YOU WANT TO UPLOAD ON GOOGLE DRIVE
+                     'mimeType' => 'application/octet-stream',
+                     'uploadType' => 'media',
+                 ]);
+         
+               
+                 
+                 $client = $this->gClient;
+         
+                      $Documentos= LancamentoDocumento::create([
+                     'Rotulo' => $nome_arquivo,
+                     'LancamentoID' => null,
+                     'Nome' => $result->getId(),
+                     'Created' => date('d-m-Y H:i:s'),
+                     'UsuarioID' => Auth::user()->id,
+                     'Ext' => explode('.', $result->getName())[1],
+                 ]);
+         
+                         session([
+                             'InformacaoArquivo' => 'Arquivo enviado com sucesso. O ID do mesmo é '.$result->id,
+                         ]);
+         
 
+                } else {
+                    dd("O arquivo não existe.", $path);
+
+                }
+
+       
 
         return redirect(route('informacao.arquivos'));
     }
