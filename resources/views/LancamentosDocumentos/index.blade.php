@@ -123,8 +123,7 @@
                                 </div>
 
                             </div>
-
-
+                        </div>
 
                     </form>
 
@@ -152,12 +151,12 @@
                     <table class="table table-bordered" style="background-color: rgb(247, 247, 213);">
                         <thead>
                             <tr>
-                                <th scope="col" class="px-12 py-4">Rótulo do documento</th>
-                                <th scope="col" class="px-6 py-4">Identificação</th>
-                                <th scope="col" class="px-6 py-4"></th>
-                                <th scope="col" class="px-6 py-4"></th>
-                                <th scope="col" class="px-6 py-4"></th>
-                                <th scope="col" class="px-6 py-4"></th>
+                                <th scope="col" class="px-22 py-2">Rótulo do documento</th>
+                                <th scope="col" class="px-6 py-2">Identificação</th>
+                                <th scope="col" class="px-2 py-2"></th>
+                                <th scope="col" class="px-2 py-2"></th>
+                                <th scope="col" class="px-2 py-2"></th>
+
                             </tr>
                         </thead>
 
