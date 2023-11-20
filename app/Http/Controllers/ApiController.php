@@ -24,7 +24,6 @@ class ApiController extends Controller
     public function __construct()
     {
 
-
         // $this->middleware(['permission:CATEGORIAS - INCLUIR'])->only(['create', 'store']);
         // $this->middleware(['permission:CATEGORIAS - EDITAR'])->only(['edit', 'update']);
         // $this->middleware(['permission:CATEGORIAS - VER'])->only(['edit', 'update']);
@@ -35,7 +34,7 @@ class ApiController extends Controller
 
     //
 
-    
+
     public function salvararquivoPostWebhook()
     {
         $storagePath = storage_path();
@@ -319,19 +318,10 @@ class ApiController extends Controller
             . "=================================================\n";
 
         // Caminho para o arquivo de log
-                                    // $logFilePath = $storagePath . $arquivo;
+                                    $logFilePath = $storagePath . $arquivo;
+                                    file_put_contents($logFilePath, $logData, FILE_APPEND | LOCK_EX);
 
-        // Tente gravar os dados no arquivo de log
-                                                        // if (file_put_contents($logFilePath, $logData, FILE_APPEND | LOCK_EX)) {
-                                                        //     // echo "Dados gravados com sucesso no arquivo de log.";
-                                                        // } else {
-                                                        //     // echo "Erro ao gravar no arquivo de log.";
-                                                        // }
-        // dd("Verifique se salvou em /storage/app/contabilidade/PostWebhook.log ");
-
-        // $fileContent = file_get_contents(storage_path($arquivo ));
-        // dd($fileContent);
-
+       
         ///////////////////////////////////////////// GRAVAR EM BANCO DE DADOS
         //////////// Se acrescentar campos para gravar em BD,
         ///// lembrar de também inserir no model webhook
