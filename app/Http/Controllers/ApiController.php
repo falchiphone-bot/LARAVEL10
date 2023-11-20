@@ -391,7 +391,7 @@ class ApiController extends Controller
             }
 
 
-            //  $registro->update($updateData);
+             $registro->update($updateData);
 
         };
 
@@ -1430,11 +1430,7 @@ class ApiController extends Controller
 
 
         $NomeAtendido =  webhookContact::where('recipient_id', $id)->get()->first();
-        // $NomeAtendido->update([
-        //     'quantidade_nao_lida' => 0,
-        //     ]);
 
-        // $Usuario_atendimento = WebhookServico::grava_user_atendimento($id);
 
         $selecao = webhook::limit(100)
         ->where('recipient_id', $id)
