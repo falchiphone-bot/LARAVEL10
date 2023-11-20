@@ -141,95 +141,81 @@
 
             @if (session('ContaPagarID'))
                 @can('CONTASPAGAR - EDITAR')
-                                            <a href="{{ route('ContasPagar.edit', session('ContaPagarID')) }}" class="btn btn-success"
-                                                tabindex="-1" role="button" aria-disabled="true">Ir para a edição do registro de contas a pagar oriundo deste documento</a>
-                 @endcan
-             @endif
+                    <a href="{{ route('ContasPagar.edit', session('ContaPagarID')) }}" class="btn btn-success" tabindex="-1"
+                        role="button" aria-disabled="true">Ir para a edição do registro de contas a pagar oriundo deste
+                        documento</a>
+                @endcan
+            @endif
 
-
-            <tbody>
-                <table class="table" style="background-color: rgb(247, 247, 213);">
-                    <thead>
-                        <tr>
-                            <th scope="col" class="px-6 py-4">Rótulo do documento</th>
-                            <th scope="col" class="px-6 py-4">Identificação</th>
-                            <th scope="col" class="px-6 py-4"></th>
-                            <th scope="col" class="px-6 py-4"></th>
-                            <th scope="col" class="px-6 py-4"></th>
-                            <th scope="col" class="px-6 py-4"></th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        @foreach ($documentos as $documento)
+            <div class="card">
+                <div class="table-responsive">
+                    <table class="table table-bordered" style="background-color: rgb(247, 247, 213);">
+                        <thead>
                             <tr>
-                                <td class="">
-                                    {{ $documento->Rotulo }}
-                                    @if ($documento->TipoArquivoNome)
-                                        <p>
-                                            Tipo do arquivo:
-                                            <span style="color: red;">{{ $documento->TipoArquivoNome->nome }}</span>
-                                        </p>
+                                <th scope="col" class="px-12 py-4">Rótulo do documento</th>
+                                <th scope="col" class="px-6 py-4">Identificação</th>
+                                <th scope="col" class="px-6 py-4"></th>
+                                <th scope="col" class="px-6 py-4"></th>
+                                <th scope="col" class="px-6 py-4"></th>
+                                <th scope="col" class="px-6 py-4"></th>
+                            </tr>
+                        </thead>
 
+                        <tbody>
+                            @foreach ($documentos as $documento)
+                                <tr>
+                                    <td class="overflow-hidden" style="max-width: 200px;">
+                                        {{ \Illuminate\Support\Str::limit($documento->Rotulo, 100) }}
+                                        <!-- Truncate label and limit to 50 characters -->
+                                        @if ($documento->TipoArquivoNome)
+                                            <p>
+                                                Tipo do arquivo:
+                                                <span style="color: red;">{{ $documento->TipoArquivoNome->nome }}</span>
+                                            </p>
 
+                                            @if (isset($documento->TipoArquivoNome) && Str::contains($documento->TipoArquivoNome->nome, 'FORMANDO'))
+                                                @can('FORMANDOBASE - LISTAR')
+                                                    <a href="{{ route('FormandoBase.index') }}" class="btn btn-secondary"
+                                                        tabindex="-1" role="button" aria-disabled="true">Formando</a>
+                                                @endcan
+                                            @endif
+                                        @endif
+                                    </td>
 
+                                    <td class="">{{ $documento->LancamentoID }}</td>
 
-                                        @if (isset($documento->TipoArquivoNome) && Str::contains($documento->TipoArquivoNome->nome, 'FORMANDO'))
-                                            @can('FORMANDOBASE - LISTAR')
+                                    @can('LANCAMENTOS DOCUMENTOS - EDITAR')
+                                        <td><a href="{{ route('LancamentosDocumentos.edit', $documento->ID) }}" class="btn btn-success"
+                                                tabindex="-1" role="button" aria-disabled="true">Editar</a></td>
+                                    @endcan
 
-                                        <a href="{{ route('FormandoBase.index') }}" class="btn btn-secondary" tabindex="-1"
-                                            role="button" aria-disabled="true">Formando</a>
-                                          @endcan
-                                      @endif
-                               @endif
+                                    @can('LANCAMENTOS DOCUMENTOS - VER')
+                                        @if (session('googleUserDrive'))
+                                            <td><a href="{{ route('google.drive.file.consultardocumento', ['id' => $documento->Nome]) }}"
+                                                    class="btn btn-info" tabindex="-1" role="button" aria-disabled="true"
+                                                    target="_blank">Ver</a></td>
+                                        @endif
+                                    @endcan
 
-
-
-                              </td>
-
-                        <td class="">
-                            {{ $documento->LancamentoID }}
-                        </td>
-
-
-
-
-
-                        @can('LANCAMENTOS DOCUMENTOS - EDITAR')
-                            <td>
-                                <a href="{{ route('LancamentosDocumentos.edit', $documento->ID) }}" class="btn btn-success"
-                                    tabindex="-1" role="button" aria-disabled="true">Editar</a>
-                            </td>
-                        @endcan
-
-                        @can('LANCAMENTOS DOCUMENTOS - VER')
-                            @if (session('googleUserDrive'))
-                                <td>
-                                    <a href="{{ route('google.drive.file.consultardocumento', ['id' => $documento->Nome]) }}"
-                                        class="btn btn-info" tabindex="-1" role="button" aria-disabled="true"
-                                        target="_blank">Ver</a>
-                                </td>
-                            @endif
-                        @endcan
-
-                        @can('LANCAMENTOS DOCUMENTOS - EXCLUIR')
-                            <td>
-                                <form method="POST" action="{{ route('LancamentosDocumentos.destroy', $documento->ID) }}">
-                                    @csrf
-                                    <input type="hidden" name="_method" value="DELETE">
-                                    <button type="submit" class="btn btn-danger">
-                                        Excluir
-                                    </button>
-                                </form>
-                            </td>
-                        @endcan
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-                <div class="badge bg-primary text-wrap" style="width: 100%;">
+                                    @can('LANCAMENTOS DOCUMENTOS - EXCLUIR')
+                                        <td>
+                                            <form method="POST"
+                                                action="{{ route('LancamentosDocumentos.destroy', $documento->ID) }}">
+                                                @csrf
+                                                <input type="hidden" name="_method" value="DELETE">
+                                                <button type="submit" class="btn btn-danger">Excluir</button>
+                                            </form>
+                                        </td>
+                                    @endcan
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
+            </div>
+
         </div>
+    </div>
 
     </div>
     <div class="b-example-divider"></div>
