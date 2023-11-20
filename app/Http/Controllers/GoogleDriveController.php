@@ -17,7 +17,7 @@ use Google_Service_Drive_Permission;
 use Google_Service_Drive;
 use Google_Service_Drive_DriveFile;
 use Google_Service_Exception;
-use  Google_Service_Drive_Comment;
+use Google_Service_Drive_Comment;
 use Illuminate\Support\Facades\Auth;
 
 class GoogleDriveController extends Controller
@@ -109,25 +109,22 @@ class GoogleDriveController extends Controller
     {
         $complemento = $request->complemento;
 
-        if($complemento == 'RETIRAR PONTOABCDEFG.')
-        {
-
+        if ($complemento == 'RETIRAR PONTOABCDEFG.') {
             $complemento_sem_pontos = str_replace('.', '', $complemento);
 
             session([
-                'InformacaoArquivo' => 'O complemento possui  caracteres  com pontos. RETIRADO! QUALQUER DÚVIDA CONSULTE O ADMINISTRADOR DO SISTEMA. TEXTO:' . $complemento_sem_pontos
+                'InformacaoArquivo' => 'O complemento possui  caracteres  com pontos. RETIRADO! QUALQUER DÚVIDA CONSULTE O ADMINISTRADOR DO SISTEMA. TEXTO:' . $complemento_sem_pontos,
             ]);
             return redirect(route('informacao.arquivos'));
         }
 
         $complemento_sem_pontos = str_replace('.', '', $complemento);
-        $complemento =  $complemento_sem_pontos;
-
+        $complemento = $complemento_sem_pontos;
 
         $quantidadeCaracteres = trim(strlen($complemento));
         if ($quantidadeCaracteres > 150) {
             session([
-                'InformacaoArquivo' => 'O complemento possui '. $quantidadeCaracteres . ' caracteres. Quantidade de caracteres maior que o permitido que é 150.'
+                'InformacaoArquivo' => 'O complemento possui ' . $quantidadeCaracteres . ' caracteres. Quantidade de caracteres maior que o permitido que é 150.',
             ]);
             return redirect(route('informacao.arquivos'));
         }
@@ -190,11 +187,11 @@ class GoogleDriveController extends Controller
         // $folder = null;
         if ($folder == null) {
             session([
-                'InformacaoArquivo' => 'Pasta não informada! Verifique o arquivo de configuração env( FOLDER_DRIVE_GOOGLE ). Execute: # php artisan config:clear no SERVIDOR DOCKER LARAVEL'
+                'InformacaoArquivo' => 'Pasta não informada! Verifique o arquivo de configuração env( FOLDER_DRIVE_GOOGLE ). Execute: # php artisan config:clear no SERVIDOR DOCKER LARAVEL',
             ]);
             return redirect(route('informacao.arquivos'));
         }
-        $folderTemp =config('services.google_drive.folder');
+        $folderTemp = config('services.google_drive.folder');
         // $folderTemp = null;
         if ($folderTemp == null) {
             session([
@@ -208,10 +205,8 @@ class GoogleDriveController extends Controller
 
         $nome_arquivo = Carbon::now() . '-' . $request->file('arquivo')->getClientOriginalName();
 
-
         // $nome_arquivo_sem_pontos = str_replace('.', '', $nome_arquivo);
         // $nome_arquivo =  $nome_arquivo_sem_pontos;
-
 
         // preg_match('/\((\d+)\)/', $nome_arquivo, $matches);
         // $numero =  $matches[1];
@@ -220,8 +215,6 @@ class GoogleDriveController extends Controller
 
         // $file = new \Google_Service_Drive_DriveFile(array('name' => 'piso1.jpg','parents' => array($folder->id)));
         $file = new \Google_Service_Drive_DriveFile(['name' => $nome_arquivo, 'parents' => [$folder]]);
-
-
 
         $result = $service->files->create($file, [
             // dd(Storage::path('contabilidade/sample.pdf')),
@@ -233,10 +226,8 @@ class GoogleDriveController extends Controller
 
         $client = $this->gClient;
 
-
-
         // dd($result, explode('.', $result->getId()), explode('.', $result->getName())[1]);
-                  $Documentos= LancamentoDocumento::create([
+        $Documentos = LancamentoDocumento::create([
             'Rotulo' => $Complemento,
             'LancamentoID' => null,
             'Nome' => $result->getId(),
@@ -245,9 +236,9 @@ class GoogleDriveController extends Controller
             'Ext' => explode('.', $result->getName())[1],
         ]);
 
-                session([
-                    'InformacaoArquivo' => 'Arquivo enviado com sucesso. O ID do mesmo é '.$result->id,
-                ]);
+        session([
+            'InformacaoArquivo' => 'Arquivo enviado com sucesso. O ID do mesmo é ' . $result->id,
+        ]);
         ///////////////////////////////////////////////////////////////////////////////// tornar o arquivo privado
         // $fileIdPrivado = '1CaOTqAaD71YtbMMM1g2djuJyXwMuwUAr';
 
@@ -355,19 +346,19 @@ class GoogleDriveController extends Controller
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         ///////////////////////////////////////////////////////////////////////////////// Excluir arquivo para a Lixeira do Google Drive
         try {
-        # Obter informações sobre o arquivo ou pasta
-        // $fileArquivoFolder = $service->files->get($request->iddeletar);
-        // if ($fileArquivoFolder->mimeType == 'application/vnd.google-apps.folder') {
-        //     session(['InformacaoArquivo' => 'Encontrado o id:' . $request->iddeletar . '. Ele é uma pasta de nome: ' . $fileArquivoFolder->name . '. NÃO POSSO EXCLUIR POR ESTE PROCEDIMENTO!']);
-        //     return redirect(route('informacao.arquivos'));
-        // }
-        $fileIdExcluir = $request->iddeletar;
-        if ($fileIdExcluir == '1Jzih3qPaWpf7HISQEsDpUpH0ab7eS-yJ') {
-            session([
-                'InformacaoArquivo' => 'Isso é id da pasta dos arquivos do sistema! NÃO PODE SER EXCLUÍDA!',
-            ]);
-            return redirect(route('informacao.arquivos'));
-        }
+            # Obter informações sobre o arquivo ou pasta
+            // $fileArquivoFolder = $service->files->get($request->iddeletar);
+            // if ($fileArquivoFolder->mimeType == 'application/vnd.google-apps.folder') {
+            //     session(['InformacaoArquivo' => 'Encontrado o id:' . $request->iddeletar . '. Ele é uma pasta de nome: ' . $fileArquivoFolder->name . '. NÃO POSSO EXCLUIR POR ESTE PROCEDIMENTO!']);
+            //     return redirect(route('informacao.arquivos'));
+            // }
+            $fileIdExcluir = $request->iddeletar;
+            if ($fileIdExcluir == '1Jzih3qPaWpf7HISQEsDpUpH0ab7eS-yJ') {
+                session([
+                    'InformacaoArquivo' => 'Isso é id da pasta dos arquivos do sistema! NÃO PODE SER EXCLUÍDA!',
+                ]);
+                return redirect(route('informacao.arquivos'));
+            }
 
             $fileMetadata = new \Google_Service_Drive_DriveFile([
                 // 'name' => 'Prfcontabilidade', // ADD YOUR GOOGLE DRIVE FOLDER NAME
@@ -378,7 +369,6 @@ class GoogleDriveController extends Controller
             $result = $service->files->update($fileIdExcluir, $fileMetadata);
 
             session(['InformacaoArquivo' => 'Arquivo:' . $fileIdExcluir . '. EXCLUÍDO COM SUCESSO PARA A LIXEIRA DO GOOGLE DRIVE!']);
-
         } catch (Google_Service_Exception $e) {
             ////////////PROPRIETÁRIO DO ARQUIVO
             // Fazer a consulta de metadados do arquivo
@@ -452,22 +442,17 @@ class GoogleDriveController extends Controller
             # Obter informações sobre o arquivo ou pasta
             $fileArquivoFolder = $service->files->get($fileIdConsultar);
 
-
-
-        //     $fileMetadata = new Google_Service_Drive_DriveFile(array(
-        //         'description' => 'CONTRATO COM  FERNANDO CHAVES EM 10.05.2023, em 7 parcelas de 2000,00'
-        //     ));
-        //     $file = $service->files->update($fileIdConsultar, $fileMetadata, array(
-        //         'fields' => 'description'
-        //     ));
+            //     $fileMetadata = new Google_Service_Drive_DriveFile(array(
+            //         'description' => 'CONTRATO COM  FERNANDO CHAVES EM 10.05.2023, em 7 parcelas de 2000,00'
+            //     ));
+            //     $file = $service->files->update($fileIdConsultar, $fileMetadata, array(
+            //         'fields' => 'description'
+            //     ));
 
             $fields = 'id,name,mimeType,createdTime,modifiedTime,size,description,webContentLink';
-            $filemetadados = $service->files->get($fileIdConsultar, array(
-                'fields' => $fields
-            ));
-
-
-
+            $filemetadados = $service->files->get($fileIdConsultar, [
+                'fields' => $fields,
+            ]);
 
             # Verificar se o ID se refere a uma pasta ou arquivo
             if ($fileArquivoFolder->mimeType == 'application/vnd.google-apps.folder') {
@@ -483,14 +468,13 @@ class GoogleDriveController extends Controller
                     'avatar' => $owner->getPhotoLink(),
                 ]);
 
-
-                $informacoes = array(
+                $informacoes = [
                     'fileIdConsultar' => $fileIdConsultar,
                     'ownerDisplayName' => $owner->getDisplayName(),
                     'emailAddress' => $owner->getEmailAddress(),
                     'webContentLink' => $filemetadados->getWebContentLink(),
-                    'description' => $filemetadados->getDescription()
-                );
+                    'description' => $filemetadados->getDescription(),
+                ];
                 // $informacaoArquivo = implode('|', $informacoes);
                 // session(['InformacaoArquivo' => $informacaoArquivo]);
                 session(['InformacaoArquivo' => null]);
@@ -502,7 +486,7 @@ class GoogleDriveController extends Controller
             }
         } catch (Google_Service_Exception $e) {
             session([
-                'InformacaoArquivo' => 'Erro de pesquisa. Provávelmente arquivo não encontrado:' . $fileIdConsultar.' Mais informações: '.$e,
+                'InformacaoArquivo' => 'Erro de pesquisa. Provávelmente arquivo não encontrado:' . $fileIdConsultar . ' Mais informações: ' . $e,
             ]);
             return redirect(route('informacao.arquivos'));
         }
@@ -510,8 +494,6 @@ class GoogleDriveController extends Controller
 
     public function googleDriveFileMover(Request $request)
     {
-
-
         // $service = new \Google_Service_Drive($this->gClient);
         $service = new Google_Service_Drive($this->gClient);
         $this->gClient->setAccessToken(session('googleUserDrive'));
@@ -570,39 +552,39 @@ class GoogleDriveController extends Controller
                 ]);
                 ////////////////////////////MOVER
 
-                                                        $fileId = $fileIdMover; // ID do arquivo que deseja atualizar
-                                                        $newContent = 'Novo conteúdo do arquivo'; // Novo conteúdo do arquivo (opcional)
+                $fileId = $fileIdMover; // ID do arquivo que deseja atualizar
+                $newContent = 'Novo conteúdo do arquivo'; // Novo conteúdo do arquivo (opcional)
 
-                                                        // Obter informações atuais do arquivo
-                                                        $file = $service->files->get($fileId, ['fields' => 'id, parents, name, mimeType']);
+                // Obter informações atuais do arquivo
+                $file = $service->files->get($fileId, ['fields' => 'id, parents, name, mimeType']);
 
-                                                        // Mover o arquivo para a pasta pai desejada (opcional)
-                                                        $folderId = env('FOLDER_DRIVE_GOOGLE_TEMPORARIA');  // ID da pasta pai desejada
-                                                        if (!in_array($folderId, $file->parents)) {
-                                                            $previousParents = join(',', $file->parents);
-                                                            $file->parents = [$folderId];
-                                                            $updatedFile = $service->files->update($fileId, $file, [
-                                                                'addParents' => $folderId,
-                                                                'removeParents' => $previousParents,
-                                                                'fields' => 'id, parents',
-                                                            ]);
-                                                        }
+                // Mover o arquivo para a pasta pai desejada (opcional)
+                $folderId = env('FOLDER_DRIVE_GOOGLE_TEMPORARIA'); // ID da pasta pai desejada
+                if (!in_array($folderId, $file->parents)) {
+                    $previousParents = join(',', $file->parents);
+                    $file->parents = [$folderId];
+                    $updatedFile = $service->files->update($fileId, $file, [
+                        'addParents' => $folderId,
+                        'removeParents' => $previousParents,
+                        'fields' => 'id, parents',
+                    ]);
+                }
 
-                                                        // Atualizar o arquivo
-                                                        $fileMetadata = new Google_Service_Drive_DriveFile([
-                                                            'name' => $file->name,
-                                                            'parents' => [$folderId], // Define a nova pasta pai do arquivo
-                                                            'mimeType' => $file->mimeType,
-                                                        ]);
+                // Atualizar o arquivo
+                $fileMetadata = new Google_Service_Drive_DriveFile([
+                    'name' => $file->name,
+                    'parents' => [$folderId], // Define a nova pasta pai do arquivo
+                    'mimeType' => $file->mimeType,
+                ]);
 
-                                                        if ($newContent) {
-                                                            $file = $service->files->update($fileId, $fileMetadata, [
-                                                                'data' => $newContent,
-                                                                'uploadType' => 'media',
-                                                            ]);
-                                                        } else {
-                                                            $file = $service->files->update($fileId, $fileMetadata);
-                                                        }
+                if ($newContent) {
+                    $file = $service->files->update($fileId, $fileMetadata, [
+                        'data' => $newContent,
+                        'uploadType' => 'media',
+                    ]);
+                } else {
+                    $file = $service->files->update($fileId, $fileMetadata);
+                }
 
                 ////////////////////////////FIM DE MOVER
 
@@ -684,8 +666,7 @@ class GoogleDriveController extends Controller
                 $newName = $nome; // Novo nome do arquivo
                 $newContent = 'Novo conteúdo do arquivo'; // Novo conteúdo do arquivo (opcional)
 
-                $file =  new \Google_Service_Drive_DriveFile();
-
+                $file = new \Google_Service_Drive_DriveFile();
 
                 $file->setName($newName); // Define o novo nome do arquivo
 
@@ -694,14 +675,12 @@ class GoogleDriveController extends Controller
 
                     $updatedFile = $service->files->update($fileId, $file, [
                         'data' => $newContent,
-                        'uploadType' => 'media'
+                        'uploadType' => 'media',
                     ]);
                 } else {
                     $updatedFile = $service->files->update($fileId, $file);
                 }
                 ///// FIM DE MOVER
-
-
 
                 session([
                     'InformacaoArquivo' => 'Encontrado o arquivo:' . $fileId . '. O proprietário é ' . $owner->getDisplayName() . '. Email: ' . $owner->getEmailAddress() . ' MOVIDO COM SUCESSO!',
@@ -751,16 +730,15 @@ class GoogleDriveController extends Controller
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         ///////////////////////////////////////////////////////////////////////////////// Excluir arquivo DEFINITIVAMENTE do Google Drive
         try {
+            $fileIdExcluir = $request->iddeletar;
+            if ($fileIdExcluir == '1Jzih3qPaWpf7HISQEsDpUpH0ab7eS-yJ') {
+                session([
+                    'InformacaoArquivo' => 'Isso é id da pasta dos arquivos do sistema! NÃO PODE SER EXCLUÍDA!',
+                ]);
+                return redirect(route('informacao.arquivos'));
+            }
 
-        $fileIdExcluir = $request->iddeletar;
-        if ($fileIdExcluir == '1Jzih3qPaWpf7HISQEsDpUpH0ab7eS-yJ') {
-            session([
-                'InformacaoArquivo' => 'Isso é id da pasta dos arquivos do sistema! NÃO PODE SER EXCLUÍDA!',
-            ]);
-            return redirect(route('informacao.arquivos'));
-        }
-
-            $service->files->delete($fileIdExcluir);/// exclui definitivamente do Google Drive
+            $service->files->delete($fileIdExcluir); /// exclui definitivamente do Google Drive
 
             // $fileMetadata = new \Google_Service_Drive_DriveFile([
             //     // 'name' => 'Prfcontabilidade', // ADD YOUR GOOGLE DRIVE FOLDER NAME
@@ -771,7 +749,6 @@ class GoogleDriveController extends Controller
             // $result = $service->files->update($fileIdExcluir, $fileMetadata);
 
             session(['InformacaoArquivo' => 'Arquivo:' . $fileIdExcluir . '. EXCLUÍDO DEFINITIVAMENTE COM SUCESSO!']);
-
         } catch (Google_Service_Exception $e) {
             ////////////PROPRIETÁRIO DO ARQUIVO
             // Fazer a consulta de metadados do arquivo
@@ -801,7 +778,6 @@ class GoogleDriveController extends Controller
         return redirect(route('informacao.arquivos'));
         ///////////////////////////////////////////////////////////////////////////////// /////////////////////////////////////////////////////////////////////////////////
     }
-
 
     public function googleDriveFileComentario(Request $request)
     {
@@ -844,42 +820,39 @@ class GoogleDriveController extends Controller
 
             // Verificar se o arquivo existe e mostrar o nome do proprietário
             if ($fileIdComentario) {
-
                 $fields = 'id,name,mimeType,createdTime,modifiedTime,size,description,webContentLink';
-            $filemetadados = $service->files->get($fileIdComentario, array(
-                'fields' => $fields
-            ));
+                $filemetadados = $service->files->get($fileIdComentario, [
+                    'fields' => $fields,
+                ]);
 
                 //////////////////////////////////////// comentários no arquivo
-            $ComentarioAnterior = $filemetadados->description;
-            $fileMetadata = new Google_Service_Drive_DriveFile(array(
-                'description' =>  $ComentarioAnterior." Em ".Carbon::now()->format('d/m/Y H:i:s')." -> ".$request->NovoComentario." | "
-            ));
-            $file = $service->files->update($fileIdComentario, $fileMetadata, array(
-                        'fields' => 'description'
-                    ));
+                $ComentarioAnterior = $filemetadados->description;
+                $fileMetadata = new Google_Service_Drive_DriveFile([
+                    'description' => $ComentarioAnterior . ' Em ' . Carbon::now()->format('d/m/Y H:i:s') . ' -> ' . $request->NovoComentario . ' | ',
+                ]);
+                $file = $service->files->update($fileIdComentario, $fileMetadata, [
+                    'fields' => 'description',
+                ]);
 
-                  $informacoes = array(
+                $informacoes = [
                     'id' => $fileIdComentario,
                     'mensagem' => 'INSERIDO NOVO COMENTÁRIO',
                     'novocomentario' => $request->NovoComentario,
-                );
+                ];
                 session(['idArquivo' => $informacoes]);
 
                 // return redirect(route('informacao.arquivos'));
                 return redirect(route('consultar.arquivos'));
-
             } else {
                 ////////// Quando o id não é localizado no Google Drive é causado uma Exception
             }
         } catch (Google_Service_Exception $e) {
             session([
-                'InformacaoArquivo' => 'Erro de pesquisa. Provávelmente arquivo não encontrado:' . $fileIdComentario.' Mais informações: '.$e,
+                'InformacaoArquivo' => 'Erro de pesquisa. Provávelmente arquivo não encontrado:' . $fileIdComentario . ' Mais informações: ' . $e,
             ]);
             return redirect(route('informacao.arquivos'));
         }
     }
-
 
     public function googleDriveFileConsultarDocumento(Request $request, $id)
     {
@@ -924,22 +897,17 @@ class GoogleDriveController extends Controller
             # Obter informações sobre o arquivo ou pasta
             $fileArquivoFolder = $service->files->get($fileIdConsultar);
 
-
-
-        //     $fileMetadata = new Google_Service_Drive_DriveFile(array(
-        //         'description' => 'CONTRATO COM  FERNANDO CHAVES EM 10.05.2023, em 7 parcelas de 2000,00'
-        //     ));
-        //     $file = $service->files->update($fileIdConsultar, $fileMetadata, array(
-        //         'fields' => 'description'
-        //     ));
+            //     $fileMetadata = new Google_Service_Drive_DriveFile(array(
+            //         'description' => 'CONTRATO COM  FERNANDO CHAVES EM 10.05.2023, em 7 parcelas de 2000,00'
+            //     ));
+            //     $file = $service->files->update($fileIdConsultar, $fileMetadata, array(
+            //         'fields' => 'description'
+            //     ));
 
             $fields = 'id,name,mimeType,createdTime,modifiedTime,size,description,webContentLink';
-            $filemetadados = $service->files->get($fileIdConsultar, array(
-                'fields' => $fields
-            ));
-
-
-
+            $filemetadados = $service->files->get($fileIdConsultar, [
+                'fields' => $fields,
+            ]);
 
             # Verificar se o ID se refere a uma pasta ou arquivo
             if ($fileArquivoFolder->mimeType == 'application/vnd.google-apps.folder') {
@@ -955,14 +923,13 @@ class GoogleDriveController extends Controller
                     'avatar' => $owner->getPhotoLink(),
                 ]);
 
-
-                $informacoes = array(
+                $informacoes = [
                     'fileIdConsultar' => $fileIdConsultar,
                     'ownerDisplayName' => $owner->getDisplayName(),
                     'emailAddress' => $owner->getEmailAddress(),
                     'webContentLink' => $filemetadados->getWebContentLink(),
-                    'description' => $filemetadados->getDescription()
-                );
+                    'description' => $filemetadados->getDescription(),
+                ];
                 // $informacaoArquivo = implode('|', $informacoes);
                 // session(['InformacaoArquivo' => $informacaoArquivo]);
                 session(['InformacaoArquivo' => null]);
@@ -974,7 +941,7 @@ class GoogleDriveController extends Controller
             }
         } catch (Google_Service_Exception $e) {
             session([
-                'InformacaoArquivo' => 'Erro de pesquisa. Provávelmente arquivo não encontrado:' . $fileIdConsultar.' Mais informações: '.$e,
+                'InformacaoArquivo' => 'Erro de pesquisa. Provávelmente arquivo não encontrado:' . $fileIdConsultar . ' Mais informações: ' . $e,
             ]);
             return redirect(route('informacao.arquivos'));
         }
@@ -982,44 +949,28 @@ class GoogleDriveController extends Controller
 
     public function googleDriveFileUploadWhatsapp(Request $request, $id)
     {
-
         $webhook = Webhook::find($id);
-
 
         $complemento = $webhook->url_arquivo;
 
-
         $id_arquivo = $webhook->image_id;
 
-        if($complemento == 'RETIRAR PONTOABCDEFG.')
-        {
-
-            $complemento_sem_pontos = str_replace('.', '', $complemento);
-
-            session([
-                'InformacaoArquivo' => 'O complemento possui  caracteres  com pontos. RETIRADO! QUALQUER DÚVIDA CONSULTE O ADMINISTRADOR DO SISTEMA. TEXTO:' . $complemento_sem_pontos
-            ]);
-            return redirect(route('informacao.arquivos'));
-        }
-
         $complemento_sem_pontos = str_replace('.', '', $complemento);
-        $complemento =  $complemento_sem_pontos;
-
+        $complemento = $complemento_sem_pontos;
 
         $quantidadeCaracteres = trim(strlen($complemento));
         if ($quantidadeCaracteres > 254) {
             session([
-                'InformacaoArquivo' => 'O complemento possui '. $quantidadeCaracteres . ' caracteres. Quantidade de caracteres maior que o permitido que é 254.'
+                'InformacaoArquivo' => 'O complemento possui ' . $quantidadeCaracteres . ' caracteres. Quantidade de caracteres maior que o permitido que é 254.',
             ]);
             return redirect(route('informacao.arquivos'));
         }
 
-        // https://laravel.com/docs/10.x/filesystem#the-local-driver
+
 
         $service = new \Google_Service_Drive($this->gClient);
 
-        // $user= User::find(1);
-        // Cache::put('token_google', session('googleUser')->token , $seconds = 1800);
+        
         $this->gClient->setAccessToken(session('googleUserDrive'));
 
         if ($this->gClient->isAccessTokenExpired()) {
@@ -1051,185 +1002,131 @@ class GoogleDriveController extends Controller
             'mimeType' => 'application/vnd.google-apps.folder',
         ]);
 
+        $filePath = $webhook->url_arquivo;
+
+        // Verifica se o arquivo existe
+        if (file_exists($filePath)) {
+
+            $fileContent = file_get_contents($filePath);
 
 
 
-        // $filePath = $webhook->url_arquivo;
+            $path = tempnam(sys_get_temp_dir(), 'file');
+            file_put_contents($path, $fileContent);
+        } else {
 
-        // // Verifica se o arquivo existe
-        // if (file_exists($filePath)) {
-        //     // Lê o conteúdo do arquivo
-        //     $fileContent = file_get_contents($filePath);
-
-        //     // Agora você pode manipular $fileContent da maneira que precisar
-        //     // Por exemplo, exibir o conteúdo ou realizar outras operações.
-        // } else {
-        //      dd("O arquivo não existe.");
-        // }
-
-
-
-
-        // // Criar uma instância do cliente Guzzle
-        // $client = new Client();
-
-        // // Fazer uma solicitação GET para obter o conteúdo do arquivo
-        // $response = $client->get($fileContent);
-
-        // // Obter o corpo da resposta
-        // $fileContent = $response->getBody()->getContents();
-
-        // // Agora, você pode manipular $fileContent da maneira que precisar
-
-        // // Exemplo de como você pode usar $fileContent para obter dados do arquivo
-        // $path = tempnam(sys_get_temp_dir(), 'file');
-        // file_put_contents($path, $fileContent);
-
-        // $file = new \Illuminate\Http\UploadedFile(
-        //     $path,
-        //     $name, // Substitua com o nome desejado
-        //     $extension, // Substitua com a extensão desejada
-        //     0,
-        //     true
-        // );
-
-
-        // @include('pegar_arquivo_whatsapp');
-
-
-        $id = $webhook->image_id;
-        $accessToken = WebhookServico::token24horas();
-        $client = new Client();
-        $response = $client->get("https://graph.facebook.com/v18.0/".trim($id),
-            [
+            $accessToken = WebhookServico::token24horas();
+            $client = new Client();
+            $response = $client->get('https://graph.facebook.com/v18.0/' . trim($id), [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $accessToken,
                     'Content-Type' => 'application/json',
                 ],
-             ]
-        );
-
-        if ($response->getStatusCode() == 200) {
-            $responseData = json_decode($response->getBody());
-
-            $response = $client->get(trim($responseData->url), [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $accessToken,
-                ],
             ]);
 
+            if ($response->getStatusCode() == 200) {
+                $responseData = json_decode($response->getBody());
 
-            $registrobd = webhook::where('image_id', $id)
-            ->orWhere('document_id', $id)
-            ->orWhere('video_id', $id)
-            ->orWhere('sticker_id', $id)
-            ->orWhere('audio_id', $id)
-            ->first();
+                $response = $client->get(trim($responseData->url), [
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $accessToken,
+                    ],
+                ]);
 
+                $registrobd = webhook::where('image_id', $id)
+                    ->orWhere('document_id', $id)
+                    ->orWhere('video_id', $id)
+                    ->orWhere('sticker_id', $id)
+                    ->orWhere('audio_id', $id)
+                    ->first();
 
-            $idtabela = $registrobd->id;
-            $messages_id = $registrobd->messages_id;
-            $value_messaging_product = $registrobd->value_messaging_product;
+                $idtabela = $registrobd->id;
+                $messages_id = $registrobd->messages_id;
+                $value_messaging_product = $registrobd->value_messaging_product;
 
-            $sufixo = null;
-            if($registrobd->messagesType == 'image'){
-                if($registrobd->image_mime_type == 'image/jpeg'){
-                    $sufixo = '.jpg';
+                $sufixo = null;
+                if ($registrobd->messagesType == 'image') {
+                    if ($registrobd->image_mime_type == 'image/jpeg') {
+                        $sufixo = '.jpg';
+                    }
+                    if ($registrobd->sticker_mime_type == 'image/webp') {
+                        $sufixo = '.webp';
+                    }
                 }
-                if($registrobd->sticker_mime_type == 'image/webp'){
-                    $sufixo = '.webp';
+                if ($registrobd->messagesType == 'video') {
+                    if ($registrobd->video_mime_type == 'video/mp4') {
+                        $sufixo = '.mp4';
+                    }
+                }
+                if ($registrobd->messagesType == 'audio') {
+                    if ($registrobd->video_mime_type == 'audio/ogg') {
+                        $sufixo = '.ogg';
+                    }
+                }
+
+                if ($registrobd->messagesType == 'document') {
+                    if ($registrobd->document_mime_type == 'application/pdf') {
+                        $sufixo = '.pdf';
+                    }
+
+                    if ($registrobd->document_mime_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                        $sufixo = '.docx';
+                    } elseif ($registrobd->document_mime_type == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+                        $sufixo = '.xlsx';
+                    } elseif ($registrobd->document_mime_type == 'text/rtf') {
+                        $sufixo = '.rtf';
+                    } elseif ($registrobd->document_mime_type == 'text/csv') {
+                        $sufixo = '.csv';
+                    } elseif ($registrobd->document_mime_type == 'text/plain') {
+                        $sufixo = '.txt';
+                    }
                 }
             }
-            if($registrobd->messagesType == 'video'){
-                if($registrobd->video_mime_type == 'video/mp4'){
-                    $sufixo = '.mp4';
-                }
-            }
-            if($registrobd->messagesType == 'audio'){
-                if($registrobd->video_mime_type == 'audio/ogg'){
-                    $sufixo = '.ogg';
-                }
-            }
+
+            $id = $webhook->image_id;
+
+            $file = 'registro_' . $idtabela . '_image_id_' . trim($id) . '_message_id_' . $messages_id . '_value_messaging_product_' . $value_messaging_product . $sufixo;
 
 
-            if($registrobd->messagesType == 'document'){
-                if($registrobd->document_mime_type == 'application/pdf'){
-                    $sufixo = '.pdf';
-                }
-
-                if($registrobd->document_mime_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'){
-                    $sufixo = '.docx';
-                }
-                elseif($registrobd->document_mime_type == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'){
-                    $sufixo = '.xlsx';
-                }
-                elseif($registrobd->document_mime_type == 'text/rtf'){
-                    $sufixo = '.rtf';
-                }
-                elseif($registrobd->document_mime_type == 'text/csv'){
-                    $sufixo = '.csv';
-                }
-                elseif($registrobd->document_mime_type == 'text/plain'){
-                    $sufixo = '.txt';
-                }
-            }
-
-
-            $file =
-                 'registro_'.$idtabela
-                .'_image_id_'.trim($id)
-                .'_message_id_'.$messages_id
-                .'_value_messaging_product_'.$value_messaging_product 
-                .$sufixo;
-
-            // Definindo o caminho onde a imagem será salva
             $pastafisica = '../storage/whatsapp/';
 
             if (!file_exists($pastafisica)) {
-                // Verifique se a pasta não existe e, se não existir, crie-a
+
                 if (mkdir($pastafisica, 0777, true)) {
-                    // echo 'A pasta foi criada com sucesso.';
+
                 } else {
-                    // echo 'Não foi possível criar a pasta.';
+
                 }
             } else {
                 // echo 'A pasta já existe.';
             }
 
-
-            $filePath = $pastafisica. $file;
-
-         
+            $filePath = $pastafisica . $file;
 
             // Salva o conteúdo da resposta no arquivo
             file_put_contents($filePath, $response->getBody());
 
-
             $registrobd->update([
                 'url_arquivo' => $filePath,
             ]);
-
         }
+
 
         // Agora você pode usar $file para obter os dados necessários
         $Complemento = $filePath;
         // $name = $filePath;
         // $extension = $sufixo;
 
-
-
-
-
         // $folder = '1Jzih3qPaWpf7HISQEsDpUpH0ab7eS-yJ';   //FIXADO NO ARQUIVO .env
         $folder = config('services.google_drive.folder');
         // $folder = null;
         if ($folder == null) {
             session([
-                'InformacaoArquivo' => 'Pasta não informada! Verifique o arquivo de configuração env( FOLDER_DRIVE_GOOGLE ). Execute: # php artisan config:clear no SERVIDOR DOCKER LARAVEL'
+                'InformacaoArquivo' => 'Pasta não informada! Verifique o arquivo de configuração env( FOLDER_DRIVE_GOOGLE ). Execute: # php artisan config:clear no SERVIDOR DOCKER LARAVEL',
             ]);
             return redirect(route('informacao.arquivos'));
         }
-        $folderTemp =config('services.google_drive.folder');
+        $folderTemp = config('services.google_drive.folder');
         // $folderTemp = null;
         if ($folderTemp == null) {
             session([
@@ -1237,61 +1134,39 @@ class GoogleDriveController extends Controller
             ]);
             return redirect(route('informacao.arquivos'));
         }
-        // $nome_arquivo = $request->file('arquivo')->getClientOriginalName();
 
-        // // $nome_arquivo = Carbon::now().'-(100)-'.$request->file('arquivo')->getClientOriginalName();
-
-        // $nome_arquivo = Carbon::now() . '-' . $request->file($complemento)->getClientOriginalName();
 
         $nome_arquivo = Carbon::now() . '-' . $Complemento;
 
-  $path =  trim($Complemento);
-     $file = new \Google_Service_Drive_DriveFile(['name' => $nome_arquivo, 'parents' => [$folder]]);
+        $path = trim($Complemento);
+        $file = new \Google_Service_Drive_DriveFile(['name' => $nome_arquivo, 'parents' => [$folder]]);
 
+        if (file_exists($path)) {
+            $result = $service->files->create($file, [
+                'data' => file_get_contents($path), // ADD YOUR FILE PATH WHICH YOU WANT TO UPLOAD ON GOOGLE DRIVE
+                'mimeType' => 'application/octet-stream',
+                'uploadType' => 'media',
+            ]);
 
-   
+            $client = $this->gClient;
 
-    //  $path = "../storage/whatsapp/registro_1401_image_id_1133458077642333_message_id_wamid.HBgNNTUxNzk5NzY2Mjk0ORUCABIYFDNBMzU2NTNDNzk1MTkzODY3M0VCAA==_value_messaging_product_whatsapp.jpg";
+            $Documentos = LancamentoDocumento::create([
+                'Rotulo' => $nome_arquivo,
+                'LancamentoID' => null,
+                'Nome' => $result->getId(),
+                'Created' => date('d-m-Y H:i:s'),
+                'UsuarioID' => Auth::user()->id,
+                'Ext' => explode('.', $result->getName())[1],
+                'TipoArquivo' => 45,
+            ]);
 
-
-
-            if (file_exists($path)) {
-
-                $result = $service->files->create($file, [
-                    'data' => file_get_contents($path), // ADD YOUR FILE PATH WHICH YOU WANT TO UPLOAD ON GOOGLE DRIVE
-                     'mimeType' => 'application/octet-stream',
-                     'uploadType' => 'media',
-                 ]);
-         
-               
-                 
-                 $client = $this->gClient;
-         
-                      $Documentos= LancamentoDocumento::create([
-                     'Rotulo' => $nome_arquivo,
-                     'LancamentoID' => null,
-                     'Nome' => $result->getId(),
-                     'Created' => date('d-m-Y H:i:s'),
-                     'UsuarioID' => Auth::user()->id,
-                     'Ext' => explode('.', $result->getName())[1],
-                     'TipoArquivo' => 45,
-                 ]);
-         
-                         session([
-                             'InformacaoArquivo' => 'Arquivo enviado com sucesso. O ID do mesmo é '.$result->id,
-                         ]);
-         
-
-                } else {
-                    dd("O arquivo não existe.", $path);
-
-                }
-
-       
+            session([
+                'InformacaoArquivo' => 'Arquivo enviado com sucesso. O ID do mesmo é ' . $result->id,
+            ]);
+        } else {
+            dd('O arquivo não existe.', $path);
+        }
 
         return redirect(route('informacao.arquivos'));
     }
-
-
-
 }

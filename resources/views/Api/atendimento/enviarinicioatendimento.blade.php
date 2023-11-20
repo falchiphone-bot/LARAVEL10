@@ -1,4 +1,4 @@
-@if ($NomeAtendido->user_atendimento == null)
+{{-- @if ($NomeAtendido->user_atendimento == null) --}}
     <form action="{{ route('whatsapp.enviarMensagemInicioAtendimento', $id) }}" method="POST"
         enctype="multipart/form-data">
         @csrf
@@ -13,4 +13,4 @@
                 atendimento</button>
         </div>
     </form>
-@endif
+{{-- @endif --}}

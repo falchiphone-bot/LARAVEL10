@@ -18,7 +18,10 @@
     @else
 
         <a href="{{ '../' . $item->url_arquivo }}" target="_blank" rel="noopener noreferrer">
-            <img src="{{ '../' . $item->url_arquivo }}" alt="Imagem" style="max-width: 100px;">
+            @if (file_exists($item->url_arquivo))
+                 <img src="{{ '../' . $item->url_arquivo }}" alt="Imagem" style="max-width: 100px;">
+            @endif
+
         </a>
     @endif
 @endif
