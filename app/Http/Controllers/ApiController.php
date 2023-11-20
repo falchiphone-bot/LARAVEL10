@@ -321,7 +321,7 @@ class ApiController extends Controller
                                     $logFilePath = $storagePath . $arquivo;
                                     file_put_contents($logFilePath, $logData, FILE_APPEND | LOCK_EX);
 
-       
+
         ///////////////////////////////////////////// GRAVAR EM BANCO DE DADOS
         //////////// Se acrescentar campos para gravar em BD,
         ///// lembrar de também inserir no model webhook
@@ -391,7 +391,7 @@ class ApiController extends Controller
             }
 
 
-             $registro->update($updateData);
+            //  $registro->update($updateData);
 
         };
 
