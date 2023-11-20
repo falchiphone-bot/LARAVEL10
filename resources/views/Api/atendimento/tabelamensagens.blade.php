@@ -4,10 +4,11 @@
     <table class="table">
         <thead>
             <tr>
-                <th class="table-warning">Data</th>
+
                 <th class="table-success"></th>
                 <th class="table-success">Recebida</th>
                 <th class="table-success">Enviada</th>
+                <th class="table-warning">Data</th>
 
             </tr>
         </thead>
@@ -27,36 +28,10 @@
                     @endif
 
                     <tr>
-                        <?php
-                        $dateString = $item['created_at'];
-                        $dateTime = new DateTime($dateString);
-                        $formattedDate = $dateTime->format('d/m/Y H:i:s');
-                        ?>
-                        @if (
-                            $NomeAtendido->status_mensagem_enviada == 0 &&
-                                $item->status == 'sent' &&
-                                $item['created_at'] > $NomeAtendido->ultima_leitura)
-                            <td style="background-color: red;">
-                                {{ $formattedDate ?? null }}
-                            </td>
-                        @else
-                            <td>
-                                {{ $formattedDate ?? null }}
-                            </td>
-                        @endif
-
-
-
 
                         <td>
                             @include('Api.atendimento.statusatendimentomensagens')
                         </td>
-
-
-
-
-
-
 
                         <td>
                             @include('Api.atendimento.mostracorpomensagemtabela')
@@ -80,11 +55,28 @@
                         <td>
                            @include('Api.atendimento.mostracorpomensagemtabelaenviada')
                         </td>
+                        <?php
+                        $dateString = $item['created_at'];
+                        $dateTime = new DateTime($dateString);
+                        $formattedDate = $dateTime->format('d/m/Y H:i:s');
+                        ?>
+                        @if (
+                            $NomeAtendido->status_mensagem_enviada == 0 &&
+                                $item->status == 'sent' &&
+                                $item['created_at'] > $NomeAtendido->ultima_leitura)
+                            <td style="background-color: red;">
+                                {{ $formattedDate ?? null }}
+                            </td>
+                        @else
+                            <td>
+                                {{ $formattedDate ?? null }}
+                            </td>
+                        @endif
 
 
                     </tr>
 
-           
+
 
                 @endforeach
 
