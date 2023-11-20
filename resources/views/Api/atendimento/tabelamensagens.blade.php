@@ -1,23 +1,19 @@
 
-<div class="card-body"">
+<div class="card-body">
 <div class="col-12">
-    <table class="table">
+    <table class="table-responsive">
         <thead>
             <tr>
-
-                <th class="table-success"></th>
-                <th class="table-success">Recebida</th>
-                <th class="table-success">Enviada</th>
-                <th class="table-warning">Data</th>
-
+                <th></th>
+                <th scope="col" class="px-2 py-2, table-success">Recebida</th>
+                <th scope="col" class="px-2 py-2, table-success">Enviada</th>
+                <th scope="col" class="px-2 py-2, table-success">Data</th>
             </tr>
         </thead>
         @if ($selecao)
             <tbody>
                 @foreach ($selecao as $item)
-                    {{-- @if ($NomeAtendido->status_mensagem_enviada == 1)
-            @continue
-    @endif --}}
+
 
                     @if ($item->status === 'delivered' || $item->status === 'read')
                         @continue
