@@ -2,14 +2,14 @@
 <div class="row">
     <div class="col-3">
         <table>
-            <thead>
+            {{-- <thead>
                 {{-- <tr>
                                         <th>Nome</th> --}}
                 {{-- <th>Telefone</th> --}}
 
-                </tr>
-            </thead>
-            <tbody>
+
+            {{-- </thead> --}}
+
                 @foreach ($Contatos as $item)
                     <tr>
                         <td>
@@ -30,6 +30,6 @@
                         </td>
                     </tr>
                 @endforeach
-            </tbody>
+
         </table>
     </div>
