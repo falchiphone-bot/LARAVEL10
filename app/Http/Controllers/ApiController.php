@@ -2581,6 +2581,7 @@ else
 
         $contato->update([
             'transferido_para' => $request->UsuarioID,
+            'quantidade_nao_lida' => $contato->quantidade_nao_lida+1,
         ]);
         $contato->save();
 

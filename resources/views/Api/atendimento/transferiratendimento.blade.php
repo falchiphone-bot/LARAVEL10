@@ -21,7 +21,7 @@
                 </div>
                 <div class="col-sm-6">
                     <button class="btn btn-primary">Transferir atendimento</button>
-                    <p>Transferido para: {{ $NomeAtendido->transferido_para }}</p>
+                    {{-- <p>Transferido para: {{ $NomeAtendido->transferido_para }}</p> --}}
                 </div>
 
             </div>
