@@ -2248,12 +2248,6 @@ else
 
         $message = $request->input('mensagem');
 
-            // if (empty($request->input('mensagem'))) {
-            //     // O campo de mensagem está vazio, defina a mensagem de erro na sessão.
-            //     session()->flash('MensagemNaoPreenchida', 'A mensagem está vazia... necessita de preenchimento!');
-            //     return redirect()->back();
-            // }
-
 
 
             $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
@@ -2611,15 +2605,16 @@ else
     {
         $contato = webhookContact::find($id);
 
-
-
-        // dd($contato, $request->all());
-
+        $UsuarioID = $request->UsuarioID;
         $contato->update([
-            'transferido_para' => $request->UsuarioID,
+            'transferido_para' => $UsuarioID ,
             'quantidade_nao_lida' => $contato->quantidade_nao_lida+1,
         ]);
         $contato->save();
+
+        $Transfere = WebhookServico::transferiratendimento($id, $UsuarioID);
+
+
 
         return redirect()->back();
         // return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$id));
