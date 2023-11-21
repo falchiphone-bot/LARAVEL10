@@ -124,7 +124,7 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
 
 
  # API WHATSAPP
-
+ Route::get('/whatsapp/TransferirAtendimento/{id}', [App\Http\Controllers\ApiController::class, 'TransferirAtendimento'])->name('whatsapp.TransferirAtendimento');
  Route::get('/whatsapp/ConfirmaRecebimentoMensagem/{id}', [App\Http\Controllers\ApiController::class, 'ConfirmaRecebimentoMensagem'])->name('whatsapp.ConfirmaRecebimentoMensagem');
 
  Route::get('/whatsapp/Enviar_Arquivo', [App\Http\Controllers\ApiController::class,

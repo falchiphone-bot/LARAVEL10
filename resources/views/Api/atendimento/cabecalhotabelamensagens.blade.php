@@ -5,6 +5,7 @@
 
     @include('Api.atendimento.clientesendoatendido')
 
+    @include('Api.atendimento.transferiratendimento')
 
     @include('Api.atendimento.enviarMensagemEncerramentoAtendimento')
 

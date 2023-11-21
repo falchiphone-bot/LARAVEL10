@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
+
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use GuzzleHttp\Client;
@@ -1431,6 +1433,9 @@ class ApiController extends Controller
 
         $NomeAtendido =  webhookContact::where('recipient_id', $id)->get()->first();
 
+        $Usuarios = User::all();
+
+
 
         $selecao = webhook::limit(100)
         ->where('recipient_id', $id)
@@ -1438,7 +1443,7 @@ class ApiController extends Controller
         ->orderBy('created_at', 'desc')
         ->get();
 
-        return view('api.atendimentoWhatsappFiltro', compact('id','Contatos','selecao','NomeAtendido'));
+        return view('api.atendimentoWhatsappFiltro', compact('id','Contatos','selecao','NomeAtendido','Usuarios'));
     }
 
 
@@ -2566,7 +2571,22 @@ else
         }
     }
 
+    public function TransferirAtendimento(request $request, string $id)
+    {
+        $contato = webhookContact::find($id);
 
+
+
+        // dd($contato, $request->all());
+
+        $contato->update([
+            'transferido_para' => $request->UsuarioID,
+        ]);
+        $contato->save();
+
+        return redirect()->back();
+        // return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$id));
+    }
 
 
 }

@@ -23,5 +23,6 @@ class webhookContact extends Model
         'quantidade_nao_lida',
         'user_atendimento',
         'pagina_refresh',
+        'transferido_para'
     ];
 }
