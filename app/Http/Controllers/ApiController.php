@@ -100,6 +100,13 @@ class ApiController extends Controller
 
         $statuses = null;
         $status =  'received';
+
+        $sticker_mime_type = null;
+        $sticker_sha256 = null;
+        $sticker_id = null;
+        $sticker_animated = null;
+
+
         $recipient_id =  null;
         $conversation_id = null;
         $messages_id = null;
@@ -171,6 +178,19 @@ class ApiController extends Controller
                 $image_sha256 = $image['sha256'] ?? null;
                 $image_id = $image['id'] ?? null;
             }
+
+
+            $sticker =  $data['entry'][0]['changes'][0]['value']['messages'][0]['sticker'] ?? null;
+            if($sticker)
+            {
+                $sticker_mime_type = $sticker['mime_type'] ?? null;
+                $sticker_sha256 = $sticker['sha256'] ?? null;
+                $sticker_id = $sticker['id']?? null ;
+                $sticker_animated = $sticker['animated'] ?? null;
+                // DD($sticker_mime_type, $sticker_sha256, $sticker_id, $sticker_animated);
+            }
+
+
 
             if ($changes) {
                 $value = $changes['value'] ?? null;
@@ -288,6 +308,13 @@ class ApiController extends Controller
             . "video_mime_type" . $video_mime_type . "\n"
             . "video_sha256" . $video_sha256  . "\n"
             . 'video_id' . $video_id . "\n"
+
+
+
+            . "sticker_mime_type" . $sticker_mime_type . "\n"
+            . "sticker_sha256" . $sticker_sha256  . "\n"
+            . 'sticker_id' . $sticker_id . "\n"
+            . 'sticker_animated' . $sticker_animated . "\n"
 
 
 
@@ -425,6 +452,14 @@ class ApiController extends Controller
             'video_mime_type' => $video_mime_type ?? null,
             'video_sha256' => $video_sha256 ?? null,
             'video_id' => $video_id ?? null,
+
+
+            'sticker_mime_type' => $sticker_mime_type ?? null,
+            'sticker_sha256' => $sticker_sha256 ?? null,
+            'sticker_id' => $sticker_id ?? null,
+            'sticker_animated' => $sticker_animated ?? null,
+
+
 
             'image_id' => $image_id,
             'image_sha256'  => $image_sha256,
@@ -1162,6 +1197,7 @@ class ApiController extends Controller
                 $video_id = $video['id']?? null ;
                 // DD($video, $video_caption,$video_filename, $video_mime_type, $video_sha256, $video_id);
             }
+
 
             if($sticker)
             {
