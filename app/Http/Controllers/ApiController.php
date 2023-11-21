@@ -1469,7 +1469,7 @@ class ApiController extends Controller
 
         $NomeAtendido =  webhookContact::where('recipient_id', $id)->get()->first();
 
-        $Usuarios = User::all();
+        $Usuarios = User::where('email', '!=', Auth::user()->email)->orderBy('name')->get();
 
 
 
