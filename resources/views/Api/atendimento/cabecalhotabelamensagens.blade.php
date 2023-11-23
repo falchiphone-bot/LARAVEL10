@@ -4,8 +4,10 @@
 
 
     @include('Api.atendimento.clientesendoatendido')
+    @if($NomeAtendido->user_atendimento !== NULL )
+     @include('Api.atendimento.transferiratendimento')
+    @endif
 
-    @include('Api.atendimento.transferiratendimento')
 
     @include('Api.atendimento.enviarMensagemEncerramentoAtendimento')
 
