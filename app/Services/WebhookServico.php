@@ -142,6 +142,7 @@ class WebhookServico
             $User_Atendente->update([
                 'user_atendimento' =>  null,
                 'quantidade_nao_lida' => 0,
+                'transferido_para' => null,
             ]);
            }
 
@@ -168,6 +169,7 @@ class WebhookServico
             if ($User_Atendente ) {
             $User_Atendente->update([
                 'user_atendimento' => $Usuario_sistema,
+                'quantidade_nao_lida' => $User_Atendente ->quantidade_nao_lida-1,
              ]);
            }
 
@@ -279,6 +281,7 @@ class WebhookServico
              $registro->update([
               'status_mensagem_enviada' => 0,
               'user_updated' => $usuario,
+              'quantidade_nao_lida' => $registro->quantidade_nao_lida+1,
             ]);
 
 
