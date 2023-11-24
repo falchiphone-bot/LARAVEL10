@@ -4,6 +4,7 @@
 
 
     @include('Api.atendimento.clientesendoatendido')
+    
     @if ($NomeAtendido->user_atendimento === Auth::user()->email)
      @include('Api.atendimento.transferiratendimento')
     @endif

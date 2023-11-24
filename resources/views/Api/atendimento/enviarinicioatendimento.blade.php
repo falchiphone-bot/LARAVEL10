@@ -1,5 +1,4 @@
-
-@if ($NomeAtendido->transferido_para === @Auth::user()->email)
+@if ($NomeAtendido->transferido_para === Auth::user()->email  && $NomeAtendido->user_atendimento !== Auth::user()->email)
 
     <form action="{{ route('whatsapp.enviarMensagemInicioAtendimento', $id) }}" method="POST"
         enctype="multipart/form-data">
