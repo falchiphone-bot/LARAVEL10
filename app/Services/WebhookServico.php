@@ -237,8 +237,8 @@ class WebhookServico
 
      $message = "A nossa conversa foi transferida para outro usuário: "
                  . $NomeAtendente
-                 .  ". Agurade que já o mesmo atenderá! Caso queira prosseguir é só enviar alguma nova mensagem. Obrigado!";
- 
+                 .  ". Aguarde que já o mesmo atenderá! Caso queira prosseguir é só enviar alguma nova mensagem. Obrigado!";
+
      // ===================================== somente texto como resposta
         $requestData = [
             'messaging_product' => 'whatsapp',
@@ -255,7 +255,7 @@ class WebhookServico
     $response = $client->post(
      'https://graph.facebook.com/v18.0/' . $phone_number_id . '/messages',
      [
-        
+
                  'headers' => [
                      'Authorization' => 'Bearer ' . $Token,
                      'Content-Type' => 'application/json',
@@ -271,11 +271,11 @@ class WebhookServico
              // dd("Mensagem nova enviada", $responseData);
 
 
-            
+
   ///////////////////Gravar
             //  $registro = webhookContact::where('recipient_id', $phone)->get()->first();
             $registro =  $webhootContact;
-           
+
              $registro->update([
               'status_mensagem_enviada' => 0,
               'user_updated' => $usuario,
