@@ -1447,8 +1447,8 @@ class ApiController extends Controller
 
         $Contatos = webhook::select(DB::raw('CONCAT(recipient_id, messagesFrom) AS recipient_messages'))
         ->groupBy(DB::raw('CONCAT(recipient_id, messagesFrom)'))
+        ->where(DB::raw('CONCAT(recipient_id, messagesFrom)'), '<>', '')  
         ->get();
-
 
 
       $selecao = null;
@@ -1464,6 +1464,7 @@ class ApiController extends Controller
 
         $Contatos = webhook::select(DB::raw('CONCAT(recipient_id, messagesFrom) AS recipient_messages'))
         ->groupBy(DB::raw('CONCAT(recipient_id, messagesFrom)'))
+        ->where(DB::raw('CONCAT(recipient_id, messagesFrom)'), '<>', '')
         ->get();
 
 
