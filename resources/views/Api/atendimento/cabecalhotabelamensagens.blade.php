@@ -2,9 +2,10 @@
 
     @include('Api.atendimento.nomecontato')
 
-    @if($tempo_em_segundos != null)
+    @if ($tempo_em_segundos != null)
         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-        Tempo da sessão em horas: {{ $tempo_em_horas }}  // Tempo em minutos: {{ $tempo_em_minutos}}   // Tempo em segundos: {{ $tempo_em_segundos }}<br>
+            Tempo da sessão em horas: {{ $tempo_em_horas }} // Tempo em minutos: {{ $tempo_em_minutos }} // Tempo em
+            segundos: {{ $tempo_em_segundos }}<br>
         </nav>
     @endif
 
@@ -12,7 +13,7 @@
     @include('Api.atendimento.clientesendoatendido')
 
     @if ($NomeAtendido->user_atendimento === Auth::user()->email)
-     @include('Api.atendimento.transferiratendimento')
+        @include('Api.atendimento.transferiratendimento')
     @endif
 
 
@@ -22,27 +23,22 @@
         @can('WHATSAPP - ATENDIMENTO - INICIAR ATENDIMENTO')
             @include('Api.atendimento.enviarinicioatendimento')
         @endcan
-     @endif
+    @endif
 
 
-     @if ( $tempo_em_horas < 24 && $Ultimo_atendente !== null && $NomeAtendido->user_atendimento == null && trim( $Ultimo_atendente->user_atendimento ) == trim( Auth::user()->email ) )
+    {{-- @if ($tempo_em_horas < 24 && $Ultimo_atendente !== null && $NomeAtendido->user_atendimento == null && trim($Ultimo_atendente->user_atendimento) == trim(Auth::user()->email)) --}}
+    @if ($tempo_em_horas < 24 && $NomeAtendido->user_atendimento == null)
         @can('WHATSAPP - ATENDIMENTO - REABRIR ATENDIMENTO')
-         @include('Api.atendimento.reabrirencerramentoatendimento')
-         @endcan
-     @endif
-
-    @if ($NomeAtendido->quantidade_nao_lida == 0 && $NomeAtendido->user_atendimento == null)
-        {{-- @can('WHATSAPP - ATENDIMENTO - INICIAR ATENDIMENTO COM MENSAGEM NAO LIDA')
-            @include('Api.atendimento.enviarinicioatendimento')
-        @endcan --}}
-        @can('WHATSAPP - MENSAGEMAPROVADA')
-            @can('WHATSAPP - ATENDIMENTO - INICIAR ATENDIMENTO COM MENSAGEM NAO LIDA')
-
-                        <a href="{{ route('whatsapp.ConvidarMensagemAprovada', $id) }}" class="btn btn-secondary"
-                            tabindex="-1" role="button" aria-disabled="true">Selecionar
-                            mensagem aprovada para
-                            enviar e iniciar contato</a>
-                        @endcan
+            @include('Api.atendimento.reabrirencerramentoatendimento')
+        @endcan
+    @else
+        @if ($NomeAtendido->quantidade_nao_lida == 0 && $NomeAtendido->user_atendimento == null)
+            @can('WHATSAPP - MENSAGEMAPROVADA')
+                @can('WHATSAPP - ATENDIMENTO - INICIAR ATENDIMENTO COM MENSAGEM NAO LIDA')
+                    <a href="{{ route('whatsapp.ConvidarMensagemAprovada', $id) }}" class="btn btn-secondary" tabindex="-1"
+                        role="button" aria-disabled="true">Selecionar mensagem aprovada para enviar e iniciar contato</a>
+                @endcan
             @endcan
-        @endif
+        {{-- @endif --}}
+    @endif
 </div>
