@@ -19,31 +19,38 @@
 
     @include('Api.atendimento.enviarMensagemEncerramentoAtendimento')
 
-    @if ($NomeAtendido->quantidade_nao_lida > 0)
+    {{-- @if ($NomeAtendido->quantidade_nao_lida > 0)
         @can('WHATSAPP - ATENDIMENTO - INICIAR ATENDIMENTO')
             @include('Api.atendimento.enviarinicioatendimento')
         @endcan
-    @endif
+    @endif --}}
 
 
     @if ($tempo_em_horas < 24 && $tempo_em_segundos != null && $NomeAtendido->user_atendimento == null)
-        @can('WHATSAPP - ATENDIMENTO - REABRIR ATENDIMENTO')
-            @include('Api.atendimento.reabrirencerramentoatendimento')
+    @can('WHATSAPP - ATENDIMENTO - REABRIR ATENDIMENTO')
+        @include('Api.atendimento.reabrirencerramentoatendimento')
+    @endcan
+@else
+    @if (
+        $Ultimo_atendente === null ||
+        ($tempo_em_horas > 24 &&
+        $NomeAtendido->quantidade_nao_lida == 0 &&
+        $NomeAtendido->user_atendimento == null &&
+        $Ultimo_atendente !== null)
+    )
+        @can('WHATSAPP - MENSAGEMAPROVADA')
+            @can('WHATSAPP - ATENDIMENTO - INICIAR ATENDIMENTO COM MENSAGEM NAO LIDA')
+                <a href="{{ route('whatsapp.ConvidarMensagemAprovada', $id) }}" class="btn btn-secondary" tabindex="-1"
+                    role="button" aria-disabled="true">Selecionar mensagem aprovada para enviar e iniciar contato</a>
+            @endcan
         @endcan
     @else
-        @if ($Ultimo_atendente === null ||
-            $tempo_em_horas > 24 &&
-                $NomeAtendido->quantidade_nao_lida == 0 &&
-                $NomeAtendido->user_atendimento == null &&
-                $Ultimo_atendente !== null)
-            @can('WHATSAPP - MENSAGEMAPROVADA')
-                @can('WHATSAPP - ATENDIMENTO - INICIAR ATENDIMENTO COM MENSAGEM NAO LIDA')
-                    <a href="{{ route('whatsapp.ConvidarMensagemAprovada', $id) }}" class="btn btn-secondary" tabindex="-1"
-                        role="button" aria-disabled="true">Selecionar mensagem aprovada para enviar e iniciar contato</a>
-                @endcan
+        @if ($NomeAtendido->quantidade_nao_lida > 0)
+            @can('WHATSAPP - ATENDIMENTO - INICIAR ATENDIMENTO')
+                @include('Api.atendimento.enviarinicioatendimento')
             @endcan
-
         @endif
     @endif
+@endif
 
 </div>

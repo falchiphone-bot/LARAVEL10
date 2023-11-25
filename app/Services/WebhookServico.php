@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Auth;
 
 class WebhookServico
 {
-    public static function AtualizaOuCriaWebhookContact($recipient_id, $contactName)
+    public static function AtualizaOuCriaWebhookContact($recipient_id, $contactName, $messagesTimestamp)
     {
         $newWebhookContact = WebhookContact::where('recipient_id', $recipient_id)->first();
 
@@ -20,12 +20,15 @@ class WebhookServico
             $newWebhookContact->update([
                 // 'contactName' => $contactName ?? null,
                 'user_updated' => Auth::user()->email ?? null,
+                'timestamp' => $messagesTimestamp,
+
             ]);
         } else {
             $newWebhookContact = WebhookContact::create([
                 'contactName' => $contactName ?? null,
                 'recipient_id' => $recipient_id ?? null,
                 'user_updated' => Auth::user()->email ?? null,
+                'timestamp' => $messagesTimestamp,
             ]);
         }
 

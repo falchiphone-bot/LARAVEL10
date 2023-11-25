@@ -363,7 +363,7 @@ class ApiController extends Controller
         }
 
 
-        $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName);
+        $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName, $messagesTimestamp);
 
 
 
@@ -2345,7 +2345,7 @@ if($id_arquivo){
 else
    {
 
-    $message = "A nossa conversa foi encerrada. Caso queira prosseguir é só enviar alguma nova mensagem. Obrigado!";
+    $message = "A nossa conversa foi encerrada por " . Auth::user()->name . ". Caso queira prosseguir é só enviar alguma nova mensagem. Obrigado!";
     // dd($tipoarquivo,'sem tipo de arquivo')   ;
     // ===================================== somente texto como resposta
         $requestData = [
@@ -2740,7 +2740,7 @@ if($id_arquivo){
 else
    {
 
-    $message = "A nossa conversa foi reaberta. Caso queira prosseguir é só enviar alguma nova mensagem. Obrigado!";
+    $message = "A nossa conversa foi reaberta por " . Auth::user()->name . ". Caso queira prosseguir é só enviar alguma nova mensagem. Obrigado!";
     // dd($tipoarquivo,'sem tipo de arquivo')   ;
     // ===================================== somente texto como resposta
         $requestData = [
