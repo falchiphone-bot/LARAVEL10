@@ -1480,6 +1480,7 @@ class ApiController extends Controller
         $tempo_em_segundos  = null;
         $tempo_em_horas = null;
         $tempo_em_minutos = null;
+
         if($Ultimo_atendente){
                 $tempo_em_segundos = strtotime(now()) - strtotime($Ultimo_atendente->created_at);
                 $tempo_em_horas = $tempo_em_segundos / 3600;
@@ -1489,7 +1490,8 @@ class ApiController extends Controller
 
 
 
-        if ( $tempo_em_horas < 24 && $Ultimo_atendente !== null && $NomeAtendido->user_atendimento == null && trim( $Ultimo_atendente->user_atendimento ) == trim( Auth::user()->email ) ){
+        // if ( $tempo_em_horas < 24 && $Ultimo_atendente !== null && $NomeAtendido->user_atendimento == null && trim( $Ultimo_atendente->user_atendimento ) == trim( Auth::user()->email ) ){
+            if ( $tempo_em_horas < 24 &&   $NomeAtendido->user_atendimento == null ){
             // dd('user_atendimento = NULL e Ultimo_atendente são atendidos =  USUÁRIO');
             // dd($Ultimo_atendente, $tempo_em_horas,$tempo_em_segundos, $tempo_em_minutos);
         }
