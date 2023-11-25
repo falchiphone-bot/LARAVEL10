@@ -2,9 +2,15 @@
 
     @include('Api.atendimento.nomecontato')
 
+    @if($tempo_em_segundos != null)
+        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+        Tempo da sessão em horas: {{ $tempo_em_horas }}  // Tempo em minutos: {{ $tempo_em_minutos}}   // Tempo em segundos: {{ $tempo_em_segundos }}<br>
+        </nav>
+    @endif
+
 
     @include('Api.atendimento.clientesendoatendido')
-    
+
     @if ($NomeAtendido->user_atendimento === Auth::user()->email)
      @include('Api.atendimento.transferiratendimento')
     @endif
@@ -16,6 +22,13 @@
         @can('WHATSAPP - ATENDIMENTO - INICIAR ATENDIMENTO')
             @include('Api.atendimento.enviarinicioatendimento')
         @endcan
+     @endif
+
+
+     @if ( $tempo_em_horas < 24 && $Ultimo_atendente !== null && $NomeAtendido->user_atendimento == null && trim( $Ultimo_atendente->user_atendimento ) == trim( Auth::user()->email ) )
+        @can('WHATSAPP - ATENDIMENTO - REABRIR ATENDIMENTO')
+         @include('Api.atendimento.reabrirencerramentoatendimento')
+         @endcan
      @endif
 
     @if ($NomeAtendido->quantidade_nao_lida == 0 && $NomeAtendido->user_atendimento == null)

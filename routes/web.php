@@ -165,6 +165,9 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
  Route::post('/whatsapp/enviarMensagemInicioAtendimento/{id}', [App\Http\Controllers\ApiController::class, 'enviarMensagemInicioAtendimento'])
  ->name('whatsapp.enviarMensagemInicioAtendimento');
 
+ Route::post('/whatsapp/ ReabrirAposEncerramentoAtendimento/{id}', [App\Http\Controllers\ApiController::class, 'ReabrirAposEncerramentoAtendimento'])
+ ->name('whatsapp.ReabrirAposEncerramentoAtendimento');
+
 
 
  Route::get('/whatsapp/registro/{id}', [App\Http\Controllers\ApiController::class, 'registro'])->name('whatsapp.registro');
