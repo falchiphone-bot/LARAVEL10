@@ -9,6 +9,7 @@ use App\Models\webhook;
 use App\Models\WebhookContact;
 use App\Models\WebhookConfig;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class WebhookServico
 {
@@ -21,11 +22,6 @@ class WebhookServico
                 // 'contactName' => $contactName ?? null,
                 'user_updated' => Auth::user()->email ?? null,
             ]);
-        } else
-            if($messagesTimestamp){
-                $newWebhookContact->update([
-                    'timestamp' => $messagesTimestamp,
-            ]);
         }
         else {
             $newWebhookContact = WebhookContact::create([
@@ -35,6 +31,14 @@ class WebhookServico
                 'timestamp' => $messagesTimestamp,
             ]);
         }
+
+        Log::info($messagesTimestamp);
+        if($messagesTimestamp != null){
+            $newWebhookContact->update([
+                'timestamp' => $messagesTimestamp,
+        ]);
+    }
+    
         return $newWebhookContact;
     }
 

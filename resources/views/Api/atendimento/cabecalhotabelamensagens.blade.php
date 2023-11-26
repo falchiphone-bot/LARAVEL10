@@ -9,9 +9,10 @@
         </nav>
 
         Este momento: {{ strtotime(now()) }}
-        Última mensagem: {{ $NomeAtendido->timestamp  }}
+        Última mensagem: {{ $NomeAtendido->timestamp . ' Data:' . $NomeAtendido->updated_at  }}
+
         Tempo: {{
-(strtotime(now()) - $NomeAtendido->timestamp) / 3600
+(strtotime(now()) - $NomeAtendido->timestamp) / 60
         }}<br>
 
     @endif
