@@ -7,6 +7,13 @@
             Tempo da sessão em horas: {{ $tempo_em_horas }} // Tempo em minutos: {{ $tempo_em_minutos }} // Tempo em
             segundos: {{ $tempo_em_segundos }}<br>
         </nav>
+
+        Este momento: {{ strtotime(now()) }}
+        Última mensagem: {{ $NomeAtendido->timestamp  }}
+        Tempo: {{
+(strtotime(now()) - $NomeAtendido->timestamp) / 3600
+        }}<br>
+
     @endif
 
 
