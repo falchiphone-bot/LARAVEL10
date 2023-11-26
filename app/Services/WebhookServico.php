@@ -20,10 +20,14 @@ class WebhookServico
             $newWebhookContact->update([
                 // 'contactName' => $contactName ?? null,
                 'user_updated' => Auth::user()->email ?? null,
-                'timestamp' => $messagesTimestamp,
-
             ]);
-        } else {
+        } else
+            if($messagesTimestamp){
+                $newWebhookContact->update([
+                    'timestamp' => $messagesTimestamp,
+            ]);
+        }
+        else {
             $newWebhookContact = WebhookContact::create([
                 'contactName' => $contactName ?? null,
                 'recipient_id' => $recipient_id ?? null,
@@ -31,7 +35,6 @@ class WebhookServico
                 'timestamp' => $messagesTimestamp,
             ]);
         }
-
         return $newWebhookContact;
     }
 
