@@ -1488,6 +1488,25 @@ class ApiController extends Controller
         }
 
 
+        $numero =  $tempo_em_horas;
+
+        // Separar valores antes e depois do ponto
+        $partes = explode('.', $numero);
+
+        // Atribuir partes
+        $parte_inteira = (int)$partes[0];
+        $parte_decimal = isset($partes[1]) ? (float)('0.' . $partes[1]) : 0;
+
+        $parte_decimal_minutos = round($parte_decimal * 60);
+        // Exibir resultados
+        echo "Parte inteira: " . $parte_inteira . "\n";
+        echo "Parte decimal: " . $parte_decimal . "\n";
+        echo "Parte decimal em minutos: " . $parte_decimal_minutos . "\n";  
+        dd('');
+
+
+
+
 
 
         // if ( $tempo_em_horas < 24 && $Ultimo_atendente !== null && $NomeAtendido->user_atendimento == null && trim( $Ultimo_atendente->user_atendimento ) == trim( Auth::user()->email ) ){
