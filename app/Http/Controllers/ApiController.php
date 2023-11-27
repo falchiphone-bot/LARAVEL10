@@ -363,7 +363,7 @@ class ApiController extends Controller
         }
 
 
-        $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName, $messagesTimestamp);
+        $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName, $messagesTimestamp ?? null);
 
 
 
@@ -1534,7 +1534,7 @@ if($NomeAtendido->timestamp)
 
     public function PreencherMensagemResposta(string $id)
     {
-
+        $messagesTimestamp = null;
         $model = webhook::find($id);
 
         return view('api.registroresposta', compact('model'))->with(['id' => $id]);
@@ -1542,7 +1542,7 @@ if($NomeAtendido->timestamp)
 
     public function enviarMensagemResposta(Request $request, $id)
     {
-
+        $messagesTimestamp = null;
         $request->validate([
             'token_type' => 'required|in:token24horas,tokenpermanenteusuario',
         ]);
@@ -1671,7 +1671,7 @@ else
 
             $recipient_id = $requestData['to'];
             $contactName = $model->contactName;
-            $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName);
+            $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName, $messagesTimestamp ?? null);
             session()->flash('success', 'Mensagem enviada com sucesso para ' . $model->contactName .  '.');
             return redirect(route('whatsapp.indexlista'));
         } else {
@@ -1851,7 +1851,8 @@ else
 
             $recipient_id = $requestData['to'];
             $contactName = $request->contactName;
-            $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName);
+            $messagesTimestamp = null;
+            $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName, $messagesTimestamp);
             session()->flash('success', 'Mensagem enviada com sucesso para ' . $request->contactName .  '.');
 
 
@@ -2446,7 +2447,7 @@ else
             // ]);
 
 
-            // $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName);
+
             session()->flash('success', 'Encerramento do atendimento. Mensagem enviada com sucesso para ' . $request->contactName .  '.');
 
             $Usuario_atendimento = WebhookServico::grava_user_encerramento_atendimento($id);
@@ -2838,7 +2839,7 @@ else
 
 
 
-            // $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName);
+
             session()->flash('success', 'Encerramento do atendimento. Mensagem enviada com sucesso para ' . $request->contactName .  '.');
 
             $Usuario_atendimento = WebhookServico::grava_user_inicio_atendimento($id);
