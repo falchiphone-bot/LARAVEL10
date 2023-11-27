@@ -8,9 +8,9 @@
             segundos: {{ $tempo_em_segundos }}<br>
         </nav> --}}
 
-        {{-- Este momento: {{ strtotime(now()) }}
-        Última mensagem: {{ $NomeAtendido->timestamp . ' Data:' . $NomeAtendido->updated_at }}
-        <br> --}}
+        Este momento: {{ strtotime(now()) }}
+        {{-- Última mensagem: {{ $NomeAtendido->timestamp . ' Data:' . $NomeAtendido->updated_at }}
+        <br>  --}}
         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
              Tempo de sessão: {{ $parte_inteira }} horas  e  {{ $parte_decimal_minutos }}   minutos
          </nav>
@@ -20,7 +20,7 @@
 
 
     @include('Api.atendimento.clientesendoatendido')
-
+{{--  --}}
     @if ($NomeAtendido->user_atendimento === Auth::user()->email)
         @include('Api.atendimento.transferiratendimento')
     @endif

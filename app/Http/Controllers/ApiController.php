@@ -1477,19 +1477,22 @@ class ApiController extends Controller
         ->where('fim_atendimento',1)
         ->get()->first();
 
-        $tempo_em_segundos  = null;
-        $tempo_em_horas = null;
-        $tempo_em_minutos = null;
+        // $tempo_em_segundos  = null;
+        // $tempo_em_horas = null;
+        // $tempo_em_minutos = null;
 
-        if($Ultimo_atendente){
-                $tempo_em_segundos = strtotime(now()) - strtotime($Ultimo_atendente->created_at);
+        // if($Ultimo_atendente){
+        //         $tempo_em_segundos = strtotime(now()) - strtotime($Ultimo_atendente->created_at);
+        //         $tempo_em_horas = $tempo_em_segundos / 3600;
+        //         $tempo_em_minutos = $tempo_em_segundos / 60;
+        // }
+
+
+        $tempo_em_segundos = strtotime(now()) - strtotime($NomeAtendido->timestamp);
                 $tempo_em_horas = $tempo_em_segundos / 3600;
                 $tempo_em_minutos = $tempo_em_segundos / 60;
-        }
 
-
-        $numero =  $tempo_em_horas;
-
+        $numero = $tempo_em_horas;
         // Separar valores antes e depois do ponto
         $partes = explode('.', $numero);
 
@@ -1503,11 +1506,6 @@ class ApiController extends Controller
         // echo "Parte decimal: " . $parte_decimal . "\n";
         // echo "Parte decimal em minutos: " . $parte_decimal_minutos . "\n";
         // dd('');
-
-
-
-
-
 
         // if ( $tempo_em_horas < 24 && $Ultimo_atendente !== null && $NomeAtendido->user_atendimento == null && trim( $Ultimo_atendente->user_atendimento ) == trim( Auth::user()->email ) ){
             if ( $tempo_em_horas < 24 &&   $NomeAtendido->user_atendimento == null ){
