@@ -3,16 +3,17 @@
     @include('Api.atendimento.nomecontato')
 
     @if ($tempo_em_segundos != null)
-        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+        {{-- <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
             Tempo da sessão em horas: {{ $tempo_em_horas }} // Tempo em minutos: {{ $tempo_em_minutos }} // Tempo em
             segundos: {{ $tempo_em_segundos }}<br>
-        </nav>
+        </nav> --}}
 
-        Este momento: {{ strtotime(now()) }}
+        {{-- Este momento: {{ strtotime(now()) }}
         Última mensagem: {{ $NomeAtendido->timestamp . ' Data:' . $NomeAtendido->updated_at }}
-        <br>
-        Tempo de sessão: {{ $parte_inteira }} horas  e  {{ $parte_decimal_minutos }}   minutos
-
+        <br> --}}
+        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+             Tempo de sessão: {{ $parte_inteira }} horas  e  {{ $parte_decimal_minutos }}   minutos
+         </nav>
         <br>
 
     @endif
@@ -34,14 +35,14 @@
     @endif --}}
 
 
-    @if ($tempo_em_horas < 24 && $tempo_em_segundos != null && $NomeAtendido->user_atendimento == null)
+    @if ($parte_inteira < 24 && $tempo_em_segundos != null && $NomeAtendido->user_atendimento == null)
         @can('WHATSAPP - ATENDIMENTO - REABRIR ATENDIMENTO')
             @include('Api.atendimento.reabrirencerramentoatendimento')
         @endcan
     @else
         @if (
             $Ultimo_atendente === null ||
-                ($tempo_em_horas > 24 &&
+                ($parte_inteira > 24 &&
                     $NomeAtendido->quantidade_nao_lida == 0 &&
                     $NomeAtendido->user_atendimento == null &&
                     $Ultimo_atendente !== null))
