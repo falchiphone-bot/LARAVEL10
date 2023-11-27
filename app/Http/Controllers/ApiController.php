@@ -1499,10 +1499,10 @@ class ApiController extends Controller
 
         $parte_decimal_minutos = round($parte_decimal * 60);
         // Exibir resultados
-        echo "Parte inteira: " . $parte_inteira . "\n";
-        echo "Parte decimal: " . $parte_decimal . "\n";
-        echo "Parte decimal em minutos: " . $parte_decimal_minutos . "\n";  
-        dd('');
+        // echo "Parte inteira: " . $parte_inteira . "\n";
+        // echo "Parte decimal: " . $parte_decimal . "\n";
+        // echo "Parte decimal em minutos: " . $parte_decimal_minutos . "\n";
+        // dd('');
 
 
 
@@ -1524,7 +1524,10 @@ class ApiController extends Controller
         ->orderBy('created_at', 'desc')
         ->get();
 
-        return view('api.atendimentoWhatsappFiltro', compact('id','Contatos','selecao','NomeAtendido','Usuarios','Ultimo_atendente', 'tempo_em_horas','tempo_em_segundos','tempo_em_minutos'));
+        return view('api.atendimentoWhatsappFiltro',
+         compact('id','Contatos','selecao','NomeAtendido',
+         'Usuarios','Ultimo_atendente', 'tempo_em_horas',
+         'tempo_em_segundos','tempo_em_minutos','parte_inteira','parte_decimal_minutos'));
     }
 
 

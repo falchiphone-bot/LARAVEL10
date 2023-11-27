@@ -10,8 +10,8 @@
 
         Este momento: {{ strtotime(now()) }}
         Última mensagem: {{ $NomeAtendido->timestamp . ' Data:' . $NomeAtendido->updated_at }}
-        {{ $tempo = (strtotime(now()) - $NomeAtendido->timestamp) / 3600 }}
-        Tempo: {{ $tempo }}
+        <br>
+        Tempo de sessão: {{ $parte_inteira }} horas  e  {{ $parte_decimal_minutos }}   minutos
 
         <br>
 
