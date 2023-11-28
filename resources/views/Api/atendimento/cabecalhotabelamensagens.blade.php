@@ -15,11 +15,11 @@
 
     @include('Api.atendimento.enviarMensagemEncerramentoAtendimento')
 
-    {{-- @if ($NomeAtendido->quantidade_nao_lida > 0)
+ {{-- @if ($NomeAtendido->quantidade_nao_lida > 0)
         @can('WHATSAPP - ATENDIMENTO - INICIAR ATENDIMENTO')
             @include('Api.atendimento.enviarinicioatendimento')
         @endcan
-    @endif --}}
+@endif --}}
 
 
     @if ($parte_inteira < 24 && $tempo_em_segundos != null && $NomeAtendido->user_atendimento == null)
