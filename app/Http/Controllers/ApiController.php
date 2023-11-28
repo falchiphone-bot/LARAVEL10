@@ -2670,6 +2670,25 @@ else
         // return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$id));
     }
 
+    public function CancelarTransferirAtendimento(request $request, string $id)
+    {
+        $contato = webhookContact::find($id);
+
+        $UsuarioID = $request->UsuarioID;
+        $contato->update([
+            'transferido_para' => $UsuarioID ,
+            'quantidade_nao_lida' => $contato->quantidade_nao_lida+1,
+        ]);
+        $contato->save();
+
+        $Transfere = WebhookServico::cancelartransferiratendimento($id, $UsuarioID);
+
+
+
+        return redirect()->back();
+    }
+
+
     public function ReabrirAposEncerramentoAtendimento(Request $request, $id)
     {
 

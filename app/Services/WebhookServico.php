@@ -38,7 +38,7 @@ class WebhookServico
                 'timestamp' => $messagesTimestamp,
         ]);
     }
-    
+
         return $newWebhookContact;
     }
 
@@ -323,6 +323,100 @@ class WebhookServico
              return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
     }
 
+
+    public static  function cancelartransferiratendimento($id)
+    {
+             $usuario = trim(Auth::user()->email);
+            //  $User = user::where('email',$UsuarioID)->first();
+
+             $webhootContact = webhookcontact::find($id);
+
+             dd($usuario, $id , $webhootContact->transferido_para );
+
+             $NomeAtendente = $User->name;
+
+
+             $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
+
+             $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
+             $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
+             $Token = $WebhookConfig->token24horas;
+
+
+             $webhootContact = webhookcontact::find($id);
+
+
+         $client = new Client();
+         $phone = $webhootContact->recipient_id; // Número de telefone de destino
+         $client = new Client();
+         $requestData = [];
+
+     $message = "A transferência para o usuário: " . $NomeAtendente . " foi cancelada continue com o atendente " . $usuario . ". Caso queira é só enviar alguma nova mensagem. Obrigado!";
+     // ===================================== somente texto como resposta
+        $requestData = [
+            'messaging_product' => 'whatsapp',
+            'to' => $phone,
+            'type' => 'text',
+            'text' => [
+                'body' => $message,
+            ],
+        ];
+
+
+    // =================================================================
+
+    $response = $client->post(
+     'https://graph.facebook.com/v18.0/' . $phone_number_id . '/messages',
+     [
+
+                 'headers' => [
+                     'Authorization' => 'Bearer ' . $Token,
+                     'Content-Type' => 'application/json',
+                 ],
+                 'json' => $requestData,
+             ]
+         );
+         // Verifique a resposta
+         if ($response->getStatusCode() == 200) {
+
+             $responseData = json_decode($response->getBody());
+             // Faça algo com a resposta, se necessário
+             // dd("Mensagem nova enviada", $responseData);
+
+
+
+  ///////////////////Gravar
+            //  $registro = webhookContact::where('recipient_id', $phone)->get()->first();
+            $registro =  $webhootContact;
+
+             $registro->update([
+              'status_mensagem_enviada' => 0,
+              'user_updated' => $usuario,
+              'quantidade_nao_lida' => $registro->quantidade_nao_lida+1,
+              'transferido_para' => null,
+            ]);
+
+
+            $registro->save();
+
+             $newWebhook = webhook::create([
+                 'webhook' =>  null,
+                 'value_messaging_product' => $requestData['messaging_product'] ?? null,
+                 'object' => $requestData['messaging_product'] ?? null,
+                 'entry_id' => $identificacaocontawhatsappbusiness ?? null,
+                 'contactName' => $registro->contactName ?? null,
+                 'recipient_id' => $requestData['to'] ?? null,
+                 'type' => $requestData['type'] ?? null,
+                 'messagesType' => $requestData['type'] ?? null,
+                 'body' => $requestData['text']['body'] ?? null,
+                 'status' => 'sent' ?? null,
+                 'user_atendimento' => Auth::user()->email,
+             ]);
+            }
+
+
+             return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
+    }
 
 
 }

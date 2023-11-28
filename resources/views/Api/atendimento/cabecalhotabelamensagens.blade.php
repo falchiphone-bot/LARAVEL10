@@ -1,6 +1,9 @@
 <div class="card-body" style="max-width: 1024px; max-height: 900px; overflow: hidden;">
 
     @include('Api.atendimento.nomecontato')
+    @if ($NomeAtendido->user_atendimento === Auth::user()->email && $NomeAtendido->transferido_para !== null)
+        @include('Api.atendimento.cancelartransferenciaatendimento')
+    @endif
 
     @include('Api.atendimento.temposessao')
 
@@ -11,6 +14,7 @@
     @if ($NomeAtendido->user_atendimento === Auth::user()->email)
         @include('Api.atendimento.transferiratendimento')
     @endif
+
 
 
     @include('Api.atendimento.enviarMensagemEncerramentoAtendimento')

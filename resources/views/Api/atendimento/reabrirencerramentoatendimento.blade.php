@@ -8,7 +8,7 @@
                 value="{{ $NomeAtendido->status_mensagem_enviada ?? null }}">
 
 
-            <button type="submit" class="btn btn-primary">Reabrir o
+            <button type="submit" class="btn btn-primary">Abrir e ou reabrir o
                 atendimento após encerramento</button>
         </div>
     </form>
