@@ -324,14 +324,14 @@ class WebhookServico
     }
 
 
-    public static  function cancelartransferiratendimento($id)
+    public static  function cancelartransferiratendimento($id,$UsuarioID)
     {
              $usuario = trim(Auth::user()->email);
-            //  $User = user::where('email',$UsuarioID)->first();
+             $User = user::where('email',$UsuarioID)->first();
 
              $webhootContact = webhookcontact::find($id);
 
-             dd($usuario, $id , $webhootContact->transferido_para );
+            //  dd($usuario, $id , $webhootContact->transferido_para );
 
              $NomeAtendente = $User->name;
 
@@ -351,7 +351,8 @@ class WebhookServico
          $client = new Client();
          $requestData = [];
 
-     $message = "A transferência para o usuário: " . $NomeAtendente . " foi cancelada continue com o atendente " . $usuario . ". Caso queira é só enviar alguma nova mensagem. Obrigado!";
+     $message = "A transferência para o usuário " . $webhootContact->transferido_para
+      . " foi cancelada. Continue com o atendente " . $usuario . "(comigo). Caso queira é só enviar alguma nova mensagem. Obrigado!";
      // ===================================== somente texto como resposta
         $requestData = [
             'messaging_product' => 'whatsapp',
