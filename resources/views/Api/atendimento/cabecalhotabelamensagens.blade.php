@@ -1,9 +1,17 @@
 <div class="card-body" style="max-width: 1024px; max-height: 900px; overflow: hidden;">
 
     @include('Api.atendimento.nomecontato')
+
     @if ($NomeAtendido->user_atendimento === Auth::user()->email && $NomeAtendido->transferido_para !== null)
         @include('Api.atendimento.cancelartransferenciaatendimento')
     @endif
+
+    @if ($NomeAtendido->user_atendimento === Auth::user()->email && $NomeAtendido->transferido_para === null )
+        @include('Api.atendimento.transferiratendimento')
+        @include('Api.atendimento.enviarMensagemEncerramentoAtendimento')
+    @endif
+
+
 
     @include('Api.atendimento.temposessao')
 
@@ -11,13 +19,8 @@
 
     @include('Api.atendimento.clientesendoatendido')
     {{--  --}}
-    @if ($NomeAtendido->user_atendimento === Auth::user()->email)
-        @include('Api.atendimento.transferiratendimento')
-    @endif
+   
 
-
-
-    @include('Api.atendimento.enviarMensagemEncerramentoAtendimento')
 
  {{-- @if ($NomeAtendido->quantidade_nao_lida > 0)
         @can('WHATSAPP - ATENDIMENTO - INICIAR ATENDIMENTO')
@@ -31,9 +34,7 @@
             @include('Api.atendimento.reabrirencerramentoatendimento')
         @endcan
     @else
-        @if (
-            $Ultimo_atendente === null ||
-                ($parte_inteira > 24 &&
+        @if (($parte_inteira > 24 ||
                     $NomeAtendido->quantidade_nao_lida == 0 &&
                     $NomeAtendido->user_atendimento == null &&
                     $Ultimo_atendente !== null))

@@ -1458,8 +1458,6 @@ class ApiController extends Controller
 
     public function atendimentoWhatsappFiltroTelefone(string $id, request $request)
     {
-
-
         $Contatos = webhook::select(DB::raw('CONCAT(recipient_id, messagesFrom) AS recipient_messages'))
         ->groupBy(DB::raw('CONCAT(recipient_id, messagesFrom)'))
         ->where(DB::raw('CONCAT(recipient_id, messagesFrom)'), '<>', '')
@@ -1487,12 +1485,12 @@ class ApiController extends Controller
         //         $tempo_em_minutos = $tempo_em_segundos / 60;
         // }
 
-if($NomeAtendido->timestamp)
-{
-    $tempo_em_segundos = strtotime(now()) - $NomeAtendido->timestamp;
-                $tempo_em_horas = $tempo_em_segundos / 3600;
-                $tempo_em_minutos = $tempo_em_segundos / 60;
-}
+        if($NomeAtendido->timestamp)
+        {
+            $tempo_em_segundos = strtotime(now()) - $NomeAtendido->timestamp;
+                        $tempo_em_horas = $tempo_em_segundos / 3600;
+                        $tempo_em_minutos = $tempo_em_segundos / 60;
+        }
 
 
         $numero = $tempo_em_horas;

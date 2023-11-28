@@ -133,6 +133,7 @@ class WebhookServico
             if ($User_Atendente ) {
             $User_Atendente->update([
                 'user_atendimento' => $Usuario_sistema,
+                'transferido_para' => null,
             ]);
            }
         }
@@ -180,6 +181,7 @@ class WebhookServico
             $User_Atendente->update([
                 'user_atendimento' => $Usuario_sistema,
                 'quantidade_nao_lida' => $User_Atendente ->quantidade_nao_lida-1,
+                'transferido_para' => NULL,
              ]);
            }
 
