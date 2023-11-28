@@ -10,26 +10,30 @@
 
             {{-- </thead> --}}
 
-                @foreach ($Contatos as $item)
-                    <tr>
-                        <td>
-                            <a
-                                href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone', $item->Contato->recipient_id) }}">{{ $item->Contato->contactName }}
-                            </a>
-                        </td>
+            @foreach ($RegistrosContatos  as $item)
+            <tr>
 
-                        <td>
-                            @if ($item->Contato->quantidade_nao_lida > 0)
-                                {{ $item->Contato->updated_at->format('d/m/Y H:i') }}
-                                <button class="bg-success text-white">
-                                    {{ $item->Contato->quantidade_nao_lida }}
-                                </button>
-                            @else
-                                {{ $item->Contato->updated_at->format('d/m/Y') }}
-                            @endif
-                        </td>
-                    </tr>
-                @endforeach
+
+                <td><a
+                        href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone', $item->recipient_id) }}">{{ $item->contactName }}</a>
+                </td>
+                <td>
+
+
+                    @if ($item->quantidade_nao_lida > 0)
+                        {{ $item->updated_at->format("d/m/Y h:m")}}
+                        <button class="bg-success text-white">
+                            {{ $item->quantidade_nao_lida }}
+                        </button>
+                    @else
+                     {{ $item->updated_at->format("d/m/Y")}}
+
+                    @endif
+                </td>
+
+
+            </tr>
+        @endforeach
 
         </table>
     </div>

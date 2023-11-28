@@ -29,23 +29,23 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($Contatos as $item)
+                            @foreach ($RegistrosContatos  as $item)
                             <tr>
 
 
                                 <td><a
-                                        href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone', $item->Contato->recipient_id) }}">{{ $item->Contato->contactName }}</a>
+                                        href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone', $item->recipient_id) }}">{{ $item->contactName }}</a>
                                 </td>
                                 <td>
 
 
-                                    @if ($item->Contato->quantidade_nao_lida > 0)
-                                        {{ $item->Contato->updated_at->format("d/m/Y h:m")}}
+                                    @if ($item->quantidade_nao_lida > 0)
+                                        {{ $item->updated_at->format("d/m/Y h:m")}}
                                         <button class="bg-success text-white">
-                                            {{ $item->Contato->quantidade_nao_lida }}
+                                            {{ $item->quantidade_nao_lida }}
                                         </button>
                                     @else
-                                     {{ $item->Contato->updated_at->format("d/m/Y")}}
+                                     {{ $item->updated_at->format("d/m/Y")}}
 
                                     @endif
                                 </td>
@@ -61,18 +61,18 @@
                 <div class="card">
                       @can('WHATSAPP - LISTAR')
                             <div class="card-footer">
-                            
+
                                     <a href="{{ route('whatsapp.indexlista') }}">Retornar para a lista</a>
-                            
+
 
                             </div>
                     @endcan
                     <div class="card-body">
 
                         <div class="container">
-                          
+
                                 <h1 class="text-center bg-success text-white">{{ $NomeAtendido->contactName ?? null }}</h1>
-                         
+
                         </div>
 
 

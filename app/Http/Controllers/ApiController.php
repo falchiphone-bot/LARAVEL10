@@ -1449,11 +1449,13 @@ class ApiController extends Controller
         ->get();
 
 
+        $RegistrosContatos = webhookContact::orderBy('updated_at', 'desc')->get();
+
       $selecao = null;
 
     //   dd($Contatos);   //  se causar erros por aqui é porque não tem registros no banco de dados. Acusa null
 
-        return view('api.atendimentoWhatsapp', compact('Contatos','selecao'));
+        return view('api.atendimentoWhatsapp', compact('Contatos','selecao', 'RegistrosContatos'));
     }
 
     public function atendimentoWhatsappFiltroTelefone(string $id, request $request)
@@ -1463,8 +1465,11 @@ class ApiController extends Controller
         ->where(DB::raw('CONCAT(recipient_id, messagesFrom)'), '<>', '')
         ->get();
 
+        $RegistrosContatos = webhookContact::orderBy('updated_at', 'desc')->get();
 
-        $NomeAtendido =  webhookContact::where('recipient_id', $id)->get()->first();
+        $NomeAtendido =  webhookContact::where('recipient_id', $id)
+        ->OrderBy('updated_at', 'desc')
+        ->get()->first();
 
         $Usuarios = User::where('email', '!=', Auth::user()->email)->orderBy('name')->get();
 
@@ -1526,7 +1531,7 @@ class ApiController extends Controller
         return view('api.atendimentoWhatsappFiltro',
          compact('id','Contatos','selecao','NomeAtendido',
          'Usuarios','Ultimo_atendente', 'tempo_em_horas',
-         'tempo_em_segundos','tempo_em_minutos','parte_inteira','parte_decimal_minutos'));
+         'tempo_em_segundos','tempo_em_minutos','parte_inteira','parte_decimal_minutos','RegistrosContatos'));
     }
 
 
