@@ -2,7 +2,7 @@
         {{-- Este momento: {{ strtotime(now()) }} --}}
         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
             Tempo de sessão:
-            @if ($parte_inteira >= 1)
+            @if ($parte_inteira == 1)
                 {{ $parte_inteira }} hora e
             @else
                 @if ($parte_inteira > 1)
