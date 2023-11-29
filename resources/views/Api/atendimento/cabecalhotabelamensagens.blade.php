@@ -13,12 +13,18 @@
                     @include('Api.atendimento.cancelartransferenciaatendimento')
                 @endif
             @endcan
-            @can('WHATSAPP - ATENDIMENTO - ATENDER SIMULTANEAMENTE')
-                @include('Api.atendimento.mensagemaserenviada')
-            @endcan
-            @can('WHATSAPP - ATENDIMENTO - ENCERRAR SIMULTANEAMENTE')
-                 @include('Api.atendimento.encerramentodoatendimento')
-            @endcan
+
+            @if ($NomeAtendido->user_atendimento)
+                @can('WHATSAPP - ATENDIMENTO - ATENDER SIMULTANEAMENTE')
+                    @include('Api.atendimento.mensagemaserenviada')
+                @endcan
+
+
+                @can('WHATSAPP - ATENDIMENTO - ENCERRAR SIMULTANEAMENTE')
+                    @include('Api.atendimento.encerramentodoatendimento')
+                @endcan
+            @endif
+
         @endif
     @endif
 
@@ -39,8 +45,7 @@
         @if (
             $parte_inteira > 24 ||
                 ($NomeAtendido->quantidade_nao_lida == 0 &&
-                    $NomeAtendido->user_atendimento == null &&
-                    $Ultimo_atendente !== null))
+                    $NomeAtendido->user_atendimento == null))
             @can('WHATSAPP - MENSAGEMAPROVADA')
                 @can('WHATSAPP - ATENDIMENTO - INICIAR ATENDIMENTO COM MENSAGEM NAO LIDA')
                     <a href="{{ route('whatsapp.ConvidarMensagemAprovada', $id) }}" class="btn btn-secondary" tabindex="-1"
