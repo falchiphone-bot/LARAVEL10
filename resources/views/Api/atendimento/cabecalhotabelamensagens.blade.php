@@ -4,10 +4,15 @@
     @include('Api.atendimento.temposessao')
     @include('Api.atendimento.clientesendoatendido')
 
-    @if ($NomeAtendido->user_atendimento === Auth::user()->email && $NomeAtendido->transferido_para !== null)
+    @if ($NomeAtendido->user_atendimento === Auth::user()->email && $NomeAtendido->transferido_para)
         @include('Api.atendimento.cancelartransferenciaatendimento')
+        @include('Api.atendimento.mensagemaserenviada')
+    @elseif ($NomeAtendido->user_atendimento === Auth::user()->email)
+         @include('Api.atendimento.transferiratendimento')
+         @include('Api.atendimento.mensagemaserenviada')
+         @include('Api.atendimento.encerramentodoatendimento')
     @else
-        @if ($NomeAtendido->user_atendimento !== null || $NomeAtendido->user_atendimento !== Auth::user()->email)
+        @if ($NomeAtendido->user_atendimento !== Auth::user()->email)
             @can('WHATSAPP - ATENDIMENTO - TRANSFERIR SIMULTANEAMENTE')
                 @if ($NomeAtendido->transferido_para !== null)
                     @include('Api.atendimento.cancelartransferenciaatendimento')
@@ -15,24 +20,31 @@
             @endcan
 
             @if ($NomeAtendido->user_atendimento)
+                @can('WHATSAPP - ATENDIMENTO - TRANSFERIR SIMULTANEAMENTE')
+                    @if ($NomeAtendido->transferido_para === null)
+                        @include('Api.atendimento.transferiratendimento')
+                    @endif
+                @endcan
+
                 @can('WHATSAPP - ATENDIMENTO - ATENDER SIMULTANEAMENTE')
                     @include('Api.atendimento.mensagemaserenviada')
                 @endcan
 
 
                 @can('WHATSAPP - ATENDIMENTO - ENCERRAR SIMULTANEAMENTE')
-                    @include('Api.atendimento.encerramentodoatendimento')
+                         @include('Api.atendimento.encerramentodoatendimento')
                 @endcan
+
             @endif
 
         @endif
     @endif
 
 
-    @if ($NomeAtendido->user_atendimento === Auth::user()->email && $NomeAtendido->transferido_para === null)
+    {{-- @if ($NomeAtendido->user_atendimento === Auth::user()->email && $NomeAtendido->transferido_para === null)
         @include('Api.atendimento.transferiratendimento')
         @include('Api.atendimento.enviarMensagemEncerramentoAtendimento')
-    @endif
+    @endif --}}
 
 
 
