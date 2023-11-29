@@ -1690,7 +1690,23 @@ else
         $arquivo = $request->file('arquivo') ?? null;
 
 
+        $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
+        $phone_number_id = WebhookServico::phone_number_id();
+        $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
+        $Token = $WebhookConfig->token24horas;
 
+
+        if($Token == null){
+            session()
+            ->flash('MensagemNaoPreenchida', 'Token não definido por algum erro. Verifique. Linha 1142!');
+            return redirect()->back();
+        }
+
+
+        $client = new Client();
+        $phone = $request->recipient_id; // Número de telefone de destino
+        $client = new Client();
+        $requestData = [];
 
       if($arquivo)
       {
@@ -1710,7 +1726,18 @@ else
 
         $message = $request->input('mensagem');
 
+        $registro = webhookContact::where('recipient_id', $phone)->get()->first();
 
+ 
+
+       if($registro->user_atendimento !== Auth::user()->email)
+       {
+        
+        $message = $message . "\n" . ' (Enviada por supervisor(a) ' . Auth::user()->name . ")";
+
+       }
+
+ 
             if($arquivo == null)
             {
                 if (empty($request->input('mensagem'))) {
@@ -1720,23 +1747,10 @@ else
                 }
             }
 
-            $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
-            $phone_number_id = WebhookServico::phone_number_id();
-            $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
-            $Token = $WebhookConfig->token24horas;
+           
 
 
-            if($Token == null){
-                session()
-                ->flash('MensagemNaoPreenchida', 'Token não definido por algum erro. Verifique. Linha 1142!');
-                return redirect()->back();
-            }
-
-
-        $client = new Client();
-        $phone = $request->recipient_id; // Número de telefone de destino
-        $client = new Client();
-        $requestData = [];
+       
 
 // ================arquivo em anexo como $responseData
 
@@ -1823,7 +1837,7 @@ else
  ///////////////////Gravar
             /////////////// gravar mensagem aprovada
 
-            $registro = webhookContact::where('recipient_id', $phone)->get()->first();
+            // $registro = webhookContact::where('recipient_id', $phone)->get()->first();
             $registro->update([
              'status_mensagem_enviada' => 0,
              'user_updated' => $usuario,

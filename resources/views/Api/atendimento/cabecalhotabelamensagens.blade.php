@@ -1,6 +1,8 @@
 <div class="card-body" style="max-width: 1024px; max-height: 900px; overflow: hidden;">
 
     @include('Api.atendimento.nomecontato')
+    @include('Api.atendimento.temposessao')
+    @include('Api.atendimento.clientesendoatendido')
 
     @if ($NomeAtendido->user_atendimento === Auth::user()->email && $NomeAtendido->transferido_para !== null)
         @include('Api.atendimento.cancelartransferenciaatendimento')
@@ -11,15 +13,20 @@
         @include('Api.atendimento.enviarMensagemEncerramentoAtendimento')
     @endif
 
+@if ( $NomeAtendido->user_atendimento !== null && $NomeAtendido->user_atendimento !== Auth::user()->email)
+    @can('WHATSAPP - ATENDIMENTO - ATENDER SIMULTANEAMENTE')
+        @include('Api.atendimento.mensagemaserenviada')
+    @endcan
+@endif
 
 
-    @include('Api.atendimento.temposessao')
 
 
 
-    @include('Api.atendimento.clientesendoatendido')
+
+
     {{--  --}}
-   
+
 
 
  {{-- @if ($NomeAtendido->quantidade_nao_lida > 0)
