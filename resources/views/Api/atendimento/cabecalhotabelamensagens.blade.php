@@ -6,34 +6,29 @@
 
     @if ($NomeAtendido->user_atendimento === Auth::user()->email && $NomeAtendido->transferido_para !== null)
         @include('Api.atendimento.cancelartransferenciaatendimento')
+    @else
+        @if ($NomeAtendido->user_atendimento !== null || $NomeAtendido->user_atendimento !== Auth::user()->email)
+            @can('WHATSAPP - ATENDIMENTO - TRANSFERIR SIMULTANEAMENTE')
+                @if ($NomeAtendido->transferido_para !== null)
+                    @include('Api.atendimento.cancelartransferenciaatendimento')
+                @endif
+            @endcan
+            @can('WHATSAPP - ATENDIMENTO - ATENDER SIMULTANEAMENTE')
+                @include('Api.atendimento.mensagemaserenviada')
+            @endcan
+            @can('WHATSAPP - ATENDIMENTO - ENCERRAR SIMULTANEAMENTE')
+                 @include('Api.atendimento.encerramentodoatendimento')
+            @endcan
+        @endif
     @endif
 
-    @if ($NomeAtendido->user_atendimento === Auth::user()->email && $NomeAtendido->transferido_para === null )
+
+    @if ($NomeAtendido->user_atendimento === Auth::user()->email && $NomeAtendido->transferido_para === null)
         @include('Api.atendimento.transferiratendimento')
         @include('Api.atendimento.enviarMensagemEncerramentoAtendimento')
     @endif
 
-@if ( $NomeAtendido->user_atendimento !== null && $NomeAtendido->user_atendimento !== Auth::user()->email)
-    @can('WHATSAPP - ATENDIMENTO - ATENDER SIMULTANEAMENTE')
-        @include('Api.atendimento.mensagemaserenviada')
-    @endcan
-@endif
 
-
-
-
-
-
-
-    {{--  --}}
-
-
-
- {{-- @if ($NomeAtendido->quantidade_nao_lida > 0)
-        @can('WHATSAPP - ATENDIMENTO - INICIAR ATENDIMENTO')
-            @include('Api.atendimento.enviarinicioatendimento')
-        @endcan
-@endif --}}
 
 
     @if ($parte_inteira < 24 && $tempo_em_segundos != null && $NomeAtendido->user_atendimento == null)
@@ -41,8 +36,9 @@
             @include('Api.atendimento.reabrirencerramentoatendimento')
         @endcan
     @else
-        @if (($parte_inteira > 24 ||
-                    $NomeAtendido->quantidade_nao_lida == 0 &&
+        @if (
+            $parte_inteira > 24 ||
+                ($NomeAtendido->quantidade_nao_lida == 0 &&
                     $NomeAtendido->user_atendimento == null &&
                     $Ultimo_atendente !== null))
             @can('WHATSAPP - MENSAGEMAPROVADA')
