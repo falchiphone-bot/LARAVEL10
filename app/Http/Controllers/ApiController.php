@@ -2387,6 +2387,13 @@ else
    {
 
     $message = "A nossa conversa foi encerrada por " . Auth::user()->name . ". Caso queira prosseguir é só enviar alguma nova mensagem. Obrigado!";
+   
+    $registro = webhookContact::where('recipient_id', $phone)->get()->first(); 
+    if($registro->user_atendimento !== Auth::user()->email)
+    {
+     $message = $message . "\n" . ' (Enviada por supervisor(a) ' . Auth::user()->name . ")";
+    }
+
     // dd($tipoarquivo,'sem tipo de arquivo')   ;
     // ===================================== somente texto como resposta
         $requestData = [
@@ -2422,8 +2429,7 @@ else
  ///////////////////Gravar
             /////////////// gravar mensagem aprovada
 
-            $registro = webhookContact::where('recipient_id', $phone)->get()->first();
-            $id_contact = $registro->id;
+                   $id_contact = $registro->id;
             $registro->update([
              'status_mensagem_enviada' => 0,
              'user_updated' => $usuario,
@@ -2648,16 +2654,7 @@ else
             $contactName = $request->contactName;
 
 
-            // $webhookAtendimentoEncerrado = webhookAtendimentoEncerrado::create([
-            //     'id_contact' => $id_contact ?? null,
-            //     'user_atendimento' => Auth::user()->email ?? null,
-            // ]);
-
-
             session()->flash('success', 'Iniciado o atendimento. Mensagem enviada com sucesso para ' . $request->contactName .  '.');
-
-
-
 
              $Usuario_atendimento = WebhookServico::grava_user_inicio_atendimento($id);
 

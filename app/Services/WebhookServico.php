@@ -253,6 +253,12 @@ class WebhookServico
                  . $NomeAtendente
                  .  ". Aguarde que já o mesmo atenderá! Caso queira prosseguir é só enviar alguma nova mensagem. Obrigado!";
 
+                 if($webhootContact->user_atendimento !== Auth::user()->email)
+                 {
+                  $message = $message . "\n" . ' (Enviada por supervisor(a) ' . Auth::user()->name . ")";
+           
+                 }                      
+
      // ===================================== somente texto como resposta
         $requestData = [
             'messaging_product' => 'whatsapp',
@@ -355,6 +361,13 @@ class WebhookServico
 
      $message = "A transferência para o usuário " . $webhootContact->transferido_para
       . " foi cancelada. Continue com o atendente " . $usuario . "(comigo). Caso queira é só enviar alguma nova mensagem. Obrigado!";
+
+      if($webhootContact->user_atendimento !== Auth::user()->email)
+      {
+       $message = $message . "\n" . ' (Enviada por supervisor(a) ' . Auth::user()->name . ")";
+
+      }
+
      // ===================================== somente texto como resposta
         $requestData = [
             'messaging_product' => 'whatsapp',
