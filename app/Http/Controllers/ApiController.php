@@ -1728,16 +1728,16 @@ else
 
         $registro = webhookContact::where('recipient_id', $phone)->get()->first();
 
- 
+
 
        if($registro->user_atendimento !== Auth::user()->email)
        {
-        
+
         $message = $message . "\n" . ' (Enviada por supervisor(a) ' . Auth::user()->name . ")";
 
        }
 
- 
+
             if($arquivo == null)
             {
                 if (empty($request->input('mensagem'))) {
@@ -1747,10 +1747,10 @@ else
                 }
             }
 
-           
 
 
-       
+
+
 
 // ================arquivo em anexo como $responseData
 
@@ -2332,7 +2332,6 @@ else
 
         $client = new Client();
         $phone = $request->recipient_id; // Número de telefone de destino
-        $client = new Client();
         $requestData = [];
 
 // ================arquivo em anexo como $responseData
@@ -2387,8 +2386,8 @@ else
    {
 
     $message = "A nossa conversa foi encerrada por " . Auth::user()->name . ". Caso queira prosseguir é só enviar alguma nova mensagem. Obrigado!";
-   
-    $registro = webhookContact::where('recipient_id', $phone)->get()->first(); 
+
+    $registro = webhookContact::where('recipient_id', $phone)->get()->first();
     if($registro->user_atendimento !== Auth::user()->email)
     {
      $message = $message . "\n" . ' (Enviada por supervisor(a) ' . Auth::user()->name . ")";
@@ -2462,14 +2461,7 @@ else
             $contactName = $request->contactName;
 
 
-            // $webhookAtendimentoEncerrado = webhookAtendimentoEncerrado::create([
-            //     'id_contact' => $id_contact ?? null,
-            //     'user_atendimento' => Auth::user()->email ?? null,
-            //     'inicio_atendimento' => false,
-            //     'fim_atendimento'   => true,
-            // ]);
-
-
+           
 
             session()->flash('success', 'Encerramento do atendimento. Mensagem enviada com sucesso para ' . $request->contactName .  '.');
 
@@ -2884,7 +2876,45 @@ else
         }
     }
 
+///////////////////////////////////////////
+public function enviarMensagemEncerramentoAtendimentoSemAviso(Request $request, $id)
+{
 
+    $usuario = trim(Auth::user()->email);
+    $id_arquivo = null;
+    $arquivo = $request->file('arquivo') ?? null;
+    $phone = $request->recipient_id; 
+
+    $model = webhook::find($id);
+
+   
+    $registro = webhookContact::where('recipient_id', $phone)->get()->first();
+    $id_contact = $registro->id;
+    
+
+
+
+
+    
+    $registro->update([
+     'status_mensagem_enviada' => 1,
+     'user_updated' => $usuario,
+     'quantidade_nao_lida' => 0,
+     'user_atendimento' => NULL,
+
+   ]);
+
+   $registro->save();
+
+
+
+        session()->flash('success', 'Encerramento do atendimento. Mensagem enviada com sucesso para ' . $request->contactName .  '.');
+
+      
+
+        return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
+
+}
 
 
 

@@ -7,7 +7,7 @@
     @if ($NomeAtendido->user_atendimento === Auth::user()->email && $NomeAtendido->transferido_para)
         @include('Api.atendimento.cancelartransferenciaatendimento')
         @include('Api.atendimento.mensagemaserenviada')
-    @elseif ($NomeAtendido->user_atendimento === Auth::user()->email)
+    @elseif ($NomeAtendido->user_atendimento === Auth::user()->email &&  $parte_inteira < 24)
          @include('Api.atendimento.transferiratendimento')
          @include('Api.atendimento.mensagemaserenviada')
          @include('Api.atendimento.encerramentodoatendimento')
@@ -49,13 +49,13 @@
 
 
 
-    @if ($parte_inteira < 24 && $tempo_em_segundos != null && $NomeAtendido->user_atendimento == null)
+    @if ($parte_inteira < 23 && $tempo_em_segundos != null && $NomeAtendido->user_atendimento == null)
         @can('WHATSAPP - ATENDIMENTO - REABRIR ATENDIMENTO')
             @include('Api.atendimento.reabrirencerramentoatendimento')
         @endcan
     @else
         @if (
-            $parte_inteira > 24 ||
+            $parte_inteira > 23 ||
                 ($NomeAtendido->quantidade_nao_lida == 0 &&
                     $NomeAtendido->user_atendimento == null))
             @can('WHATSAPP - MENSAGEMAPROVADA')
@@ -64,7 +64,16 @@
                         role="button" aria-disabled="true">Selecionar mensagem aprovada para enviar e iniciar contato</a>
                 @endcan
             @endcan
-        @else
+            @if (
+                $parte_inteira > 23 &&
+                          $NomeAtendido->user_atendimento === Auth::user()->email)
+                @can('WHATSAPP - MENSAGEMAPROVADA')
+                    @can('WHATSAPP - ATENDIMENTO - ENCERRAR SIMULTANEAMENTE')
+                     @include('Api.atendimento.encerramentodoatendimentosemaviso')
+                    @endcan
+                @endcan
+             @endif
+            @else
             @if ($NomeAtendido->quantidade_nao_lida > 0)
                 @can('WHATSAPP - ATENDIMENTO - INICIAR ATENDIMENTO')
                     @include('Api.atendimento.enviarinicioatendimento')
