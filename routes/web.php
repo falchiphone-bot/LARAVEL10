@@ -226,6 +226,10 @@ Route::resource('FormandoBaseRecebimentos', App\Http\Controllers\FormandoBaseRec
 
 
 
+    # ENERGIA INJETADA
+Route::get('EnergiaInjetada/dashboard', [App\Http\Controllers\EnergiaInjetada\EnergiaInjetadaController::class, 'dashboard'])->name('EnergiaInjetada.dashboard');
+Route::resource('EnergiaInjetada', App\Http\Controllers\EnergiaInjetada\EnergiaInjetadaController::class);
+
 
 # Cargo Profissional
 Route::resource('CargoProfissional', App\Http\Controllers\CargoProfissionalController::class);

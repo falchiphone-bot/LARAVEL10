@@ -9,7 +9,7 @@
                         style="width: 100%; height: 50px;
                     ; font-size: 24px;align=˜Center˜ ">
                         Menu Principal do sistema administrativo e contábil -
-                        versão: 29.11.2023 07:50
+                        versão: 02.12.2023 12:29
                     </div>
                 </div>
                 <div class="card-body">
@@ -55,7 +55,19 @@
                             </div>
                         </div>
 
-<tr>
+
+                        <tr>
+
+                            @can('ENERGIAINJETADA - DASHBOARD')
+                                <th>
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="EnergiaInjetada/dashboard">Energia injetada</a>
+                                    </nav>
+                                </th>
+                            @endcan
+                        </tr>
+
+                            <tr>
                                 @can('WHATSAPP - LISTAR')
                                     <th>
                                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
@@ -72,7 +84,7 @@
 
                                 </th>
                             @endcan
-   </tr>
+                        </tr>
 
 
                         @can('TRADEIDEA - LISTAR')
