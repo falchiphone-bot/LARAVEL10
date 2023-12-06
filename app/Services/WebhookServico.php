@@ -457,7 +457,7 @@ class WebhookServico
          $client = new Client();
          $requestData = [];
 
-     $message = "Foi transferido para você, " . $NomeAtendente.  " um atendimento,  "
+     $message = "Foi transferido para você, " . $NomeAtendente.  " um atendimento  "
                  .  ". Contato aguardando. Obrigado!";
 
                  if($webhootContact->user_atendimento !== Auth::user()->email)
