@@ -439,6 +439,7 @@ class WebhookServico
     {
              $usuario = trim(Auth::user()->email);
              $User = user::where('email',$UsuarioID)->first();
+             dd($id, $UsuarioID );
              $NomeAtendente = $User->name;
 
 
@@ -625,6 +626,86 @@ class WebhookServico
              return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
     }
 
+    public static  function VerificaSessao(string $AvisoTransferencia, )
+    {
+
+        $id = $AvisoTransferencia;
+        $UsuarioID =  $id;
+        $NomeAtendido =  webhookContact::where('recipient_id', $id)
+        ->OrderBy('updated_at', 'desc')
+        ->get()->first();
+
+        $tempo_em_segundos  = null;
+        $tempo_em_horas = null;
+        $tempo_em_minutos = null;
+
+
+        if($NomeAtendido->timestamp)
+        {
+            $tempo_em_segundos = strtotime(now()) - $NomeAtendido->timestamp;
+                        $tempo_em_horas = $tempo_em_segundos / 3600;
+                        $tempo_em_minutos = $tempo_em_segundos / 60;
+        }
+
+
+        $numero = $tempo_em_horas;
+        // Separar valores antes e depois do ponto
+        $partes = explode('.', $numero);
+
+        // Atribuir partes
+        $parte_inteira = (int)$partes[0];
+        $parte_decimal = isset($partes[1]) ? (float)('0.' . $partes[1]) : 0;
+
+        // dd('parte inteira: ' . $parte_inteira, 'parte decimal: ' . $parte_decimal);
+
+        if($parte_inteira>23){
+            $Avisa = WebhookServico::Avisaparaatender($id);
+        }
+        else
+        {
+            $TransfereAvisa = WebhookServico::avisotransferiratendimento($id, $UsuarioID);
+        }
+
+
+        return $parte_inteira;
+    }
+
+
+    public static function Avisaparaatender($recipient_id)
+    {
+
+        $accessToken = WebhookServico::Token24horas();
+
+        $client = new Client();
+        $phone = "5517997662949";
+        $client = new Client();
+        $requestData = [];
+        $message = 'Agradecemos por ter visto nossa mensagem!';
+        $requestData = [
+            'messaging_product' => 'whatsapp',
+            'to' => $phone,
+            'type' => 'text',
+            'text' => [
+                'body' => $message,
+            ],
+        ];
+        $response = $client->post(
+            'https://graph.facebook.com/v17.0/147126925154132/messages',
+            [
+
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $accessToken,
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => $requestData,
+            ]
+        );
+
+        if ($response->getStatusCode() == 200) {
+
+            }
+
+    }
 
 
 

@@ -2662,7 +2662,10 @@ else
 
         $UsuarioID = $request->UsuarioID;
 
-        $AvisoTransferencia = $contato->whatsapp;
+        $AvisoTransferencia = User::where('email', $UsuarioID)->get()->first()->whatsapp;
+
+        $TransfereAvisa = WebhookServico::VerificaSessao($AvisoTransferencia);
+
 
         $contato->update([
             'transferido_para' => $UsuarioID ,
@@ -2672,7 +2675,7 @@ else
 
         $Transfere = WebhookServico::transferiratendimento($id, $UsuarioID);
 
-        $TransfereAvisa = WebhookServico::avisotransferiratendimento($id, $UsuarioID);
+       
 
         return redirect()->back();
     }
@@ -2908,6 +2911,9 @@ public function enviarMensagemEncerramentoAtendimentoSemAviso(Request $request, 
     return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
 
 }
+
+
+
 
 
 

@@ -24,9 +24,9 @@
 
 
             <div class="col-12">
-                <label for="texto">Token 24 horas</label>
+                <label for="texto">Texto</label>
                 <textarea id="texto" name="texto" rows="4" cols="50" class="form-control">
-                {{ $WebhookTemplate->texto }}
+                {{ $WebhookTemplate->texto ?? null }}
                 </textarea>
                 @error('texto')
                 <div class="alert alert-danger">{{ $message }}</div>
