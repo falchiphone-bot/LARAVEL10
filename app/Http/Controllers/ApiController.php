@@ -1441,22 +1441,21 @@ class ApiController extends Controller
     }
 
     public function atendimentoWhatsapp()
-    {
-
-        $Contatos = webhook::select(DB::raw('CONCAT(recipient_id, messagesFrom) AS recipient_messages'))
+{
+    $Contatos = webhook::select(DB::raw('CONCAT(recipient_id, messagesFrom) AS recipient_messages'))
         ->groupBy(DB::raw('CONCAT(recipient_id, messagesFrom)'))
         ->where(DB::raw('CONCAT(recipient_id, messagesFrom)'), '<>', '')
         ->get();
 
+    $RegistrosContatos = webhookContact::orderBy('updated_at', 'desc')->get();
 
-        $RegistrosContatos = webhookContact::orderBy('updated_at', 'desc')->get();
+    $selecao = null;
 
-      $selecao = null;
+    // dd($Contatos);
 
-    //   dd($Contatos);   //  se causar erros por aqui é porque não tem registros no banco de dados. Acusa null
+    return view('api.atendimentoWhatsapp', compact('Contatos', 'selecao', 'RegistrosContatos'));
+}
 
-        return view('api.atendimentoWhatsapp', compact('Contatos','selecao', 'RegistrosContatos'));
-    }
 
     public function atendimentoWhatsappFiltroTelefone(string $id, request $request)
     {
