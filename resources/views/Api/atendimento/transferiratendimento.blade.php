@@ -20,7 +20,7 @@
                     </select>
                 </div>
                 <div class="col-sm-6">
-                    <button class="btn btn-primary">Transferir atendimento</button>
+                    <button class="btn btn-primary">Transferir atendimento para outro atendente</button>
                     {{-- <p>Transferido para: {{ $NomeAtendido->transferido_para }}</p> --}}
                 </div>
 

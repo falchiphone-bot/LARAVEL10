@@ -2461,7 +2461,7 @@ else
             $contactName = $request->contactName;
 
 
-           
+
 
             session()->flash('success', 'Encerramento do atendimento. Mensagem enviada com sucesso para ' . $request->contactName .  '.');
 
@@ -2662,6 +2662,9 @@ else
         $contato = webhookContact::find($id);
 
         $UsuarioID = $request->UsuarioID;
+
+        $AvisoTransferencia = $contato->whatsapp;
+
         $contato->update([
             'transferido_para' => $UsuarioID ,
             'quantidade_nao_lida' => $contato->quantidade_nao_lida+1,
@@ -2670,10 +2673,9 @@ else
 
         $Transfere = WebhookServico::transferiratendimento($id, $UsuarioID);
 
-
+        $TransfereAvisa = WebhookServico::avisotransferiratendimento($id, $UsuarioID);
 
         return redirect()->back();
-        // return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$id));
     }
 
     public function CancelarTransferirAtendimento(request $request, string $id)
@@ -2689,7 +2691,7 @@ else
 
         $Transfere = WebhookServico::cancelartransferiratendimento($id, $UsuarioID);
 
-
+        $TransfereAvisa = WebhookServico::avisocancelamentotransferiratendimento($id, $UsuarioID);
 
         return redirect()->back();
     }
@@ -2789,7 +2791,7 @@ if($id_arquivo){
 else
    {
 
-    $message = "A nossa conversa foi reaberta por " . Auth::user()->name . ". Caso queira prosseguir é só enviar alguma nova mensagem. Obrigado!";
+    $message = "A nossa conversa foi aberta/reaberta por " . Auth::user()->name . ". Caso queira prosseguir é só enviar alguma nova mensagem. Obrigado!";
     // dd($tipoarquivo,'sem tipo de arquivo')   ;
     // ===================================== somente texto como resposta
         $requestData = [
@@ -2883,19 +2885,15 @@ public function enviarMensagemEncerramentoAtendimentoSemAviso(Request $request, 
     $usuario = trim(Auth::user()->email);
     $id_arquivo = null;
     $arquivo = $request->file('arquivo') ?? null;
-    $phone = $request->recipient_id; 
+    $phone = $request->recipient_id;
 
     $model = webhook::find($id);
 
-   
+
     $registro = webhookContact::where('recipient_id', $phone)->get()->first();
     $id_contact = $registro->id;
-    
 
 
-
-
-    
     $registro->update([
      'status_mensagem_enviada' => 1,
      'user_updated' => $usuario,
@@ -2906,13 +2904,9 @@ public function enviarMensagemEncerramentoAtendimentoSemAviso(Request $request, 
 
    $registro->save();
 
+    session()->flash('success', 'Encerramento do atendimento. Mensagem enviada com sucesso para ' . $request->contactName .  '.');
 
-
-        session()->flash('success', 'Encerramento do atendimento. Mensagem enviada com sucesso para ' . $request->contactName .  '.');
-
-      
-
-        return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
+    return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
 
 }
 
