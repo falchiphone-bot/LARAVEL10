@@ -2659,12 +2659,13 @@ else
     public function TransferirAtendimento(request $request, string $id)
     {
         $contato = webhookContact::find($id);
+        $idcontato = $contato->id;
 
         $UsuarioID = $request->UsuarioID;
 
         $AvisoTransferencia = User::where('email', $UsuarioID)->get()->first()->whatsapp;
 
-        $TransfereAvisa = WebhookServico::VerificaSessao($AvisoTransferencia);
+        $TransfereAvisa = WebhookServico::VerificaSessao($AvisoTransferencia,$idcontato);
 
 
         $contato->update([
