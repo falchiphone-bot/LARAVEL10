@@ -1,6 +1,5 @@
 <?php
 namespace App\Services;
-
 use App\Models\webhookAtendimentoEncerrado;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
@@ -46,7 +45,6 @@ class WebhookServico
 
     public static function Agradecimento_por_ter_lido_mensagem_recebida($recipient_id, $accessToken)
     {
-
         $client = new Client();
         // $phone = $recipient_id;
         $phone = "5517997662949";
@@ -74,17 +72,7 @@ class WebhookServico
         );
 
         if ($response->getStatusCode() == 200) {
-            // $responseData = json_decode($response->getBody());
-            // $newWebhook = webhook::create([
-            //     'webhook' => json_encode($requestData) ?? null,
-            //     'value_messaging_product' => $requestData['messaging_product'] ?? null,
-            //     'object' => $requestData['messaging_product'] ?? null,
-            //     'contactName' => $model->contactName ?? null,
-            //     'recipient_id' => $requestData['to'] ?? null,
-            //     'type' => $requestData['type'] ?? null,
-            //     'body' => $requestData['text']['body'] ?? null,
-            //     'status' => 'sent' ?? null,
-            // ]);
+            
             }
 
     }
@@ -93,8 +81,6 @@ class WebhookServico
     {
         $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
         $accessToken = $WebhookConfig->token24horas;
-
-
         return $accessToken;
 
     }
@@ -103,8 +89,6 @@ class WebhookServico
     {
         $WebhookConfig  =  WebhookConfig::OrderBy('usuario')->get()->first();
         $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
-
-
         return $phone_number_id;
 
     }
@@ -145,9 +129,6 @@ class WebhookServico
 
     public static function grava_user_encerramento_atendimento($id)
     {
-
-
-
         $User_Atendente = WebhookContact::where('recipient_id', $id)->first();
 
             if ($User_Atendente ) {
@@ -164,17 +145,13 @@ class WebhookServico
             'inicio_atendimento' => false,
             'fim_atendimento'   => true,
         ]);
-
-
         return;
 
     }
 
     public static function grava_user_inicio_atendimento($id)
     {
-
         $Usuario_sistema = Auth::user()->email;
-
 
         $User_Atendente = WebhookContact::where('recipient_id', $id)->first();
 
@@ -193,7 +170,6 @@ class WebhookServico
             'inicio_atendimento' => true,
             'fim_atendimento'   => false,
         ]);
-
 
         return;
 
@@ -218,7 +194,6 @@ class WebhookServico
 
 
             $User_Atendente->update([
-
                 'pagina_refresh' => $atualiza_pagina,
             ]);
            }
@@ -242,13 +217,11 @@ class WebhookServico
              $Token = $WebhookConfig->token24horas;
 
 
-             $webhootContact = webhookcontact::find($id);
-
-
-         $client = new Client();
-         $phone = $webhootContact->recipient_id; // Número de telefone de destino
-         $client = new Client();
-         $requestData = [];
+            $webhootContact = webhookcontact::find($id);
+            $client = new Client();
+            $phone = $webhootContact->recipient_id; // Número de telefone de destino
+            $client = new Client();
+            $requestData = [];
 
      $message = "A nossa conversa foi transferida para outro usuário: "
                  . $NomeAtendente
@@ -259,8 +232,6 @@ class WebhookServico
                   $message = $message . "\n" . ' (Enviada por supervisor(a) ' . Auth::user()->name . ")";
 
                  }
-
-     // ===================================== somente texto como resposta
         $requestData = [
             'messaging_product' => 'whatsapp',
             'to' => $phone,
@@ -269,10 +240,6 @@ class WebhookServico
                 'body' => $message,
             ],
         ];
-
-
-    // =================================================================
-
     $response = $client->post(
      'https://graph.facebook.com/v18.0/' . $phone_number_id . '/messages',
      [
@@ -290,9 +257,6 @@ class WebhookServico
              $responseData = json_decode($response->getBody());
              // Faça algo com a resposta, se necessário
              // dd("Mensagem nova enviada", $responseData);
-
-
-
   ///////////////////Gravar
             //  $registro = webhookContact::where('recipient_id', $phone)->get()->first();
             $registro =  $webhootContact;
@@ -302,7 +266,6 @@ class WebhookServico
               'user_updated' => $usuario,
               'quantidade_nao_lida' => $registro->quantidade_nao_lida+1,
             ]);
-
 
             $registro->save();
 
@@ -320,15 +283,6 @@ class WebhookServico
                  'user_atendimento' => Auth::user()->email,
              ]);
             }
-
-
-            //  $recipient_id = $requestData['to'];
-            //  $contactName = $request->contactName;
-
-
-
-             // $Usuario_atendimento = WebhookServico::grava_user_encerramento_atendimento($id);
-
              return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
     }
 
@@ -340,10 +294,7 @@ class WebhookServico
 
              $webhootContact = webhookcontact::find($id);
 
-            //  dd($usuario, $id , $webhootContact->transferido_para );
-
              $NomeAtendente = $User->name;
-
 
              $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
 
@@ -351,25 +302,21 @@ class WebhookServico
              $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
              $Token = $WebhookConfig->token24horas;
 
-
              $webhootContact = webhookcontact::find($id);
 
+            $client = new Client();
+            $phone = $webhootContact->recipient_id; // Número de telefone de destino
+            $client = new Client();
+            $requestData = [];
 
-         $client = new Client();
-         $phone = $webhootContact->recipient_id; // Número de telefone de destino
-         $client = new Client();
-         $requestData = [];
-
-     $message = "A transferência para o usuário " . $webhootContact->transferido_para
+             $message = "A transferência para o usuário " . $webhootContact->transferido_para
       . " foi cancelada. Continue com o atendente " . $usuario . "(comigo). Caso queira é só enviar alguma nova mensagem. Obrigado!";
 
       if($webhootContact->user_atendimento !== Auth::user()->email)
       {
        $message = $message . "\n" . ' (Enviada por supervisor(a) ' . Auth::user()->name . ")";
-
       }
 
-     // ===================================== somente texto como resposta
         $requestData = [
             'messaging_product' => 'whatsapp',
             'to' => $phone,
@@ -378,10 +325,6 @@ class WebhookServico
                 'body' => $message,
             ],
         ];
-
-
-    // =================================================================
-
     $response = $client->post(
      'https://graph.facebook.com/v18.0/' . $phone_number_id . '/messages',
      [
@@ -395,13 +338,9 @@ class WebhookServico
          );
          // Verifique a resposta
          if ($response->getStatusCode() == 200) {
-
              $responseData = json_decode($response->getBody());
              // Faça algo com a resposta, se necessário
              // dd("Mensagem nova enviada", $responseData);
-
-
-
   ///////////////////Gravar
             //  $registro = webhookContact::where('recipient_id', $phone)->get()->first();
             $registro =  $webhootContact;
@@ -430,40 +369,28 @@ class WebhookServico
                  'user_atendimento' => Auth::user()->email,
              ]);
             }
-
-
-             return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
+            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
     }
 
 
     public static  function avisotransferiratendimento($id, $UsuarioID, $NomeAtendido, $idatendido)
     {
              $usuario = trim(Auth::user()->email);
-
-
              $User = user::where('whatsapp',$UsuarioID)->first();
-
              $NomeAtendente = $User->name;
-
-
              $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
 
              $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
              $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
              $Token = $WebhookConfig->token24horas;
-
-
              $webhootContact = webhookcontact::find($idatendido);
 
-            //  dd($webhootContact, $NomeAtendente, $id, $UsuarioID);
+                $client = new Client();
+                $phone = $User->whatsapp;
+                $client = new Client();
+                $requestData = [];
 
-
-         $client = new Client();
-         $phone = $User->whatsapp;
-         $client = new Client();
-         $requestData = [];
-
-     $message = "Foi transferido para você, " . $NomeAtendente.  " um atendimento  "
+                $message = "Foi transferido para você, " . $NomeAtendente.  " um atendimento  "
                  .  ". Contato de nome " . $NomeAtendido . ", aguardando. Obrigado!";
 
                  if($webhootContact->user_atendimento !== Auth::user()->email)
@@ -472,7 +399,6 @@ class WebhookServico
 
                  }
 
-     // ===================================== somente texto como resposta
         $requestData = [
             'messaging_product' => 'whatsapp',
             'to' => $phone,
@@ -481,14 +407,9 @@ class WebhookServico
                 'body' => $message,
             ],
         ];
-
-
-    // =================================================================
-
     $response = $client->post(
      'https://graph.facebook.com/v18.0/' . $phone_number_id . '/messages',
      [
-
                  'headers' => [
                      'Authorization' => 'Bearer ' . $Token,
                      'Content-Type' => 'application/json',
@@ -496,15 +417,12 @@ class WebhookServico
                  'json' => $requestData,
              ]
          );
-         // Verifique a resposta
+         
          if ($response->getStatusCode() == 200) {
 
              $responseData = json_decode($response->getBody());
              // Faça algo com a resposta, se necessário
              // dd("Mensagem nova enviada", $responseData);
-
-
-
   ///////////////////Gravar
             //  $registro = webhookContact::where('recipient_id', $phone)->get()->first();
             $registro =  $webhootContact;
@@ -514,8 +432,6 @@ class WebhookServico
               'user_updated' => $usuario,
               'quantidade_nao_lida' => $registro->quantidade_nao_lida+1,
             ]);
-
-
             $registro->save();
 
              $newWebhook = webhook::create([
@@ -532,7 +448,6 @@ class WebhookServico
                  'user_atendimento' => Auth::user()->email,
              ]);
             }
-
              return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
     }
 
@@ -633,7 +548,6 @@ class WebhookServico
 
     public static  function VerificaSessao(string $AvisoTransferencia, $idcontato )
     {
-
         $id = $AvisoTransferencia;
 
         $UsuarioID =  $id;
@@ -643,27 +557,19 @@ class WebhookServico
 
         $idatendido = $Atendido->id;
         $NomeAtendido = $Atendido->contactName;
-
-
         $NomeTransferido =  webhookContact::where('recipient_id', $id)
         ->OrderBy('updated_at', 'desc')
         ->get()->first();
 
-
-
         $tempo_em_segundos  = null;
         $tempo_em_horas = null;
         $tempo_em_minutos = null;
-
-
         if($NomeTransferido->timestamp)
         {
             $tempo_em_segundos = strtotime(now()) - $NomeTransferido->timestamp;
                         $tempo_em_horas = $tempo_em_segundos / 3600;
                         $tempo_em_minutos = $tempo_em_segundos / 60;
         }
-
-
         $numero = $tempo_em_horas;
         // Separar valores antes e depois do ponto
         $partes = explode('.', $numero);
@@ -675,17 +581,12 @@ class WebhookServico
         // dd('parte inteira: ' . $parte_inteira, 'parte decimal: ' . $parte_decimal);
 
         if($parte_inteira>23){
-
-
             $Avisa = WebhookServico::Avisaparaatender($id, $NomeAtendido );
         }
         else
         {
-
-            $TransfereAvisa = WebhookServico::avisotransferiratendimento($id, $UsuarioID,$NomeAtendido, $idatendido);
+           $TransfereAvisa = WebhookServico::avisotransferiratendimento($id, $UsuarioID,$NomeAtendido, $idatendido);
         }
-
-
         return $parte_inteira;
     }
 
@@ -694,32 +595,21 @@ class WebhookServico
     {
 
         $accessToken = WebhookServico::Token24horas();
-
         $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
-
         $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
         $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
         // $Token = $WebhookConfig->token24horas;
-
-
-
         $template = WebhookTemplate::where('id', '9')
         ->get()
         ->first();
-
-
         $name = $template->name;
         $language = $template->language;
         $message = $template->texto;
-
 
         $client = new Client();
         $phone = $recipient_id;
         $client = new Client();
         $requestData = [];
-
-
-
 
         $requestData = [
             'messaging_product' => 'whatsapp', // Adicione o parâmetro messaging_product com um valor válido
@@ -733,12 +623,9 @@ class WebhookServico
             ],
         ];
 
-
-
         $response = $client->post(
             'https://graph.facebook.com/v17.0/' . $phone_number_id . '/messages',
             [
-
                 'headers' => [
                     'Authorization' => 'Bearer ' . $accessToken,
                     'Content-Type' => 'application/json',
@@ -746,7 +633,6 @@ class WebhookServico
                 'json' => $requestData,
             ]
         );
-
         if ($response->getStatusCode() == 200) {
 
             $newWebhook = webhook::create([
@@ -763,8 +649,6 @@ class WebhookServico
                 'user_atendimento' => Auth::user()->email,
             ]);
            }
-
-
     }
 
 
