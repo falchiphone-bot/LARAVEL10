@@ -2038,9 +2038,6 @@ else
             ->orWhere('audio_id', $id)
             ->first();
 
-
-
-
             $idtabela = $registrobd->id;
             $messages_id = $registrobd->messages_id;
             $value_messaging_product = $registrobd->value_messaging_product;
@@ -2050,10 +2047,19 @@ else
                 if($registrobd->image_mime_type == 'image/jpeg'){
                     $sufixo = '.jpg';
                 }
+                ///// talvez tenha em = image
                 if($registrobd->sticker_mime_type == 'image/webp'){
                     $sufixo = '.webp';
                 }
             }
+
+            if($registrobd->messagesType == 'sticker'){
+
+                if($registrobd->sticker_mime_type == 'image/webp'){
+                    $sufixo = '.webp';
+                }
+            }
+
             if($registrobd->messagesType == 'video'){
                 if($registrobd->video_mime_type == 'video/mp4'){
                     $sufixo = '.mp4';
@@ -2676,7 +2682,7 @@ else
 
         $Transfere = WebhookServico::transferiratendimento($id, $UsuarioID);
 
-       
+
 
         return redirect()->back();
     }
