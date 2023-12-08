@@ -19,6 +19,7 @@ class webhookConfig extends Model
         'usuario',
         'identificacaonumerotelefone',
         'identificacaocontawhatsappbusiness',
+        'ativado',
     ];
 
 }

@@ -36,7 +36,7 @@
             <div class="col-12">
                 <label for="token24horas">Token 24 horas</label>
                 <textarea id="token24horas" name="token24horas" rows="4" cols="50" class="form-control">
-                {{ $WebhookConfig->token24horas }}
+                {{ $WebhookConfig->token24horas ?? NULL }}
                 </textarea>
                 @error('token24horas')
                 <div class="alert alert-danger">{{ $message }}</div>
@@ -47,12 +47,27 @@
             <div class="col-12">
                 <label for="tokenpermanenteusuario">Token 24 horas</label>
                 <textarea id="tokenpermanenteusuario" name="tokenpermanenteusuario" rows="4" cols="50" class="form-control">
-                {{ $WebhookConfig->tokenpermanenteusuario }}
+                {{ $WebhookConfig->tokenpermanenteusuario ?? NULL}}
                 </textarea>
                 @error('tokenpermanenteusuario')
                 <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
             </div>
+
+            <div class="row">
+               <div class="col-6">
+                   <div class="form-check">
+                   ATIVADO
+                       <label class="form-check-label" style="color: white" for="flexCheckDefault">
+                          ATIVADO
+                       </label>
+                       <input type="hidden" name="ativado" value="0">
+                       <input class="form-check-input" name="ativado" type="checkbox"
+                           @if ($WebhookConfig->ativado) checked @endif value="1" id="flexCheckDefault">
+                   </div>
+               </div>
+           </div>
+
 
 
 
