@@ -1942,8 +1942,12 @@ else
         $body = $template->texto ;
         $template_id = $template->id;
 
-        $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
+        $WebhookConfig =  WebhookConfig::where('ativado','1')
+        ->first();
 
+        $phone_number_id  = $WebhookConfig->identificacaonumerotelefone;
+      
+        // dd($WebhookConfig);
         if ($token == 'token24horas') {
             $accessToken = $WebhookConfig->token24horas;
         } elseif ($token == 'tokenpermanenteusuario') {
@@ -1966,7 +1970,7 @@ else
             ],
         ];
           $response = $client->post(
-            'https://graph.facebook.com/v18.0/147126925154132/messages',
+            'https://graph.facebook.com/v18.0/' . $phone_number_id . '/messages',
             [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $accessToken,
