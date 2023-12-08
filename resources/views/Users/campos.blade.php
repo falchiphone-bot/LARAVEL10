@@ -35,6 +35,21 @@
             </div>
 
 
+            <div class="row">
+               <div class="col-6">
+                   <div class="form-check">
+                       <label class="form-check-label" style="color: green" for="flexCheckDefault">
+                           Atende Whatsapp
+                       </label>
+                       <input type="hidden" name="atendente_whatsapp" value="0">
+                       <input class="form-check-input" name="atendente_whatsapp" type="checkbox"
+                           @if ($cadastro->atendente_whatsapp) checked @endif value="1" id="flexCheckDefault">
+                   </div>
+               </div>
+           </div>
+
+
+
             <div class="row mt-2">
                 <div class="col-6">
                     <button class="btn btn-primary">Salvar edição do usuário</button>

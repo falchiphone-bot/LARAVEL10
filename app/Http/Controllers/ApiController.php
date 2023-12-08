@@ -1470,7 +1470,9 @@ class ApiController extends Controller
         ->OrderBy('updated_at', 'desc')
         ->get()->first();
 
-        $Usuarios = User::where('email', '!=', Auth::user()->email)->orderBy('name')->get();
+        $Usuarios = User::where('email', '!=', Auth::user()->email)
+        ->where('atendente_whatsapp', 1)
+        ->orderBy('name')->get();
 
 
         $Ultimo_atendente = webhookAtendimentoEncerrado::OrderBy('created_at', 'desc')

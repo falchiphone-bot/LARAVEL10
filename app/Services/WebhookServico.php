@@ -79,7 +79,7 @@ class WebhookServico
 
     public static function Token24horas()
     {
-        $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
+       $WebhookConfig =  WebhookConfig::Where('ativado','1')->OrderBy('usuario')->get()->first();
         $accessToken = $WebhookConfig->token24horas;
         return $accessToken;
 
@@ -210,7 +210,7 @@ class WebhookServico
              $NomeAtendente = $User->name;
 
 
-             $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
+            $WebhookConfig =  WebhookConfig::Where('ativado','1')->OrderBy('usuario')->get()->first();
 
              $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
              $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
@@ -296,7 +296,7 @@ class WebhookServico
 
              $NomeAtendente = $User->name;
 
-             $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
+            $WebhookConfig =  WebhookConfig::Where('ativado','1')->OrderBy('usuario')->get()->first();
 
              $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
              $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
@@ -378,7 +378,10 @@ class WebhookServico
              $usuario = trim(Auth::user()->email);
              $User = user::where('whatsapp',$UsuarioID)->first();
              $NomeAtendente = $User->name;
-             $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
+
+             $WebhookConfig =  WebhookConfig::Where('ativado','1')->OrderBy('usuario')->get()->first();
+
+             
 
              $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
              $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
@@ -459,7 +462,7 @@ class WebhookServico
              $NomeAtendente = $User->name;
 
 
-             $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
+            $WebhookConfig =  WebhookConfig::Where('ativado','1')->OrderBy('usuario')->get()->first();
 
              $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
              $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
@@ -595,7 +598,7 @@ class WebhookServico
     {
 
         $accessToken = WebhookServico::Token24horas();
-        $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
+       $WebhookConfig =  WebhookConfig::Where('ativado','1')->OrderBy('usuario')->get()->first();
         $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
         $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
         // $Token = $WebhookConfig->token24horas;
