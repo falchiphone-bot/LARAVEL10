@@ -2293,7 +2293,6 @@ else
 
     public function enviarMensagemEncerramentoAtendimento(Request $request, $id)
     {
-
         $usuario = trim(Auth::user()->email);
         $id_arquivo = null;
         $arquivo = $request->file('arquivo') ?? null;
