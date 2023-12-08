@@ -11,9 +11,12 @@
                 <h1 class="text-center">Contatos do WhatsApp - Inclusão</h1>
                 <hr>
                 <form method="POST" action="/ContatosWhatsapp" accept-charset="UTF-8">
-                    @include('ContatosWhatsapp.campos')
+                    @include('ContatosWhatsapp.camposinclusao')
                 </form>
             </div>
         </div>
     </div>
 @endsection
+
+
+

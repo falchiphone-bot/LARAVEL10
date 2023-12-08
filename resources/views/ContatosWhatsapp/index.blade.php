@@ -29,6 +29,14 @@
                     <a class="btn btn-warning" href="Cadastros">Retornar a lista de opções</a> </nav>
 
 
+                    @can('WHATSAPP - ATENDIMENTO')
+                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                            <a class="btn btn-primary" href="whatsapp/atendimentoWhatsapp">Whatsapp - atendimento</a>
+                        </nav>
+                    @endcan
+
+
+
                 @can('ContatosWhatsapp - INCLUIR')
                     <a href="{{ route('ContatosWhatsapp.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
                         aria-disabled="true">Incluir contatos do Whatsapp</a>

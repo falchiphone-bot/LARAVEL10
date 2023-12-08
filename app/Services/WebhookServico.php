@@ -79,16 +79,21 @@ class WebhookServico
 
     public static function Token24horas()
     {
+        
        $WebhookConfig =  WebhookConfig::Where('ativado','1')->OrderBy('usuario')->get()->first();
         $accessToken = $WebhookConfig->token24horas;
         return $accessToken;
 
     }
 
-    public static function phone_number_id()
+    public static function phone_number_id($entry_id)
     {
-        $WebhookConfig  =  WebhookConfig::OrderBy('usuario')->get()->first();
+ 
+        $WebhookConfig =  WebhookConfig::Where('identificacaocontawhatsappbusiness',trim($entry_id))->first();
+ 
         $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
+
+    
         return $phone_number_id;
 
     }

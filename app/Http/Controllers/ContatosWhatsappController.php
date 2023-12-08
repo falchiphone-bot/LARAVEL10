@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-
+use App\Http\Requests\ContatosWhatsappCreateRequest;
 use App\Models\ContatosWhatsapp;
 use App\Models\webhookContact;
 use Carbon\Carbon;
@@ -44,8 +44,8 @@ class ContatosWhatsappController extends Controller
      */
     public function store(ContatosWhatsappCreateRequest $request)
     {
-        $request["nome"] = strtoupper($request["nome"]);
-        $existecadastro = webhookContact::where('nome',trim($request["nome"]))->first();
+        $request["contactName"] = strtoupper($request["contactName"]);
+        $existecadastro = webhookContact::where('contactName',trim($request["contactName"]))->first();
         if($existecadastro)
         {
             session(['error' => "NOME:  ". $request->nome  .", já existe! NADA INCLUÍDO! "]);
@@ -56,8 +56,8 @@ class ContatosWhatsappController extends Controller
         $model= $request->all();
 
 
-        ContatosWhatsapp::create($model);
-        session(['success' => "TIPO DE ESPORTE:  ". $request->nome  .",  INCLUÍDO COM SUCESSO!"]);
+        webhookContact::create($model);
+        session(['success' => "CONTATO:  ". $request->contactName  .",  INCLUÍDO COM SUCESSO!"]);
         return redirect(route('ContatosWhatsapp.index'));
 
     }
@@ -88,13 +88,13 @@ class ContatosWhatsappController extends Controller
     public function update(Request $request, string $id)
     {
 
-        $request["contactName"] = strtoupper($request["contactName"]);
-        $existecadastro = webhookContact::where('contactName',trim($request["contactName"]))->first();
-        if($existecadastro)
-        {
-            session(['error' => "NOME:  ". $request->contactName  .", já existe ou não precisa ser alterado! "]);
-            return redirect(route('ContatosWhatsapp.index'));
-        }
+        // $request["contactName"] = strtoupper($request["contactName"]);
+        // $existecadastro = webhookContact::where('contactName',trim($request["contactName"]))->first();
+        // if($existecadastro)
+        // {
+        //     session(['error' => "NOME:  ". $request->contactName  .", já existe ou não precisa ser alterado! "]);
+        //     return redirect(route('ContatosWhatsapp.index'));
+        // }
 
 
         $cadastro = webhookContact::find($id);

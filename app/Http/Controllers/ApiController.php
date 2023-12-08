@@ -1691,8 +1691,12 @@ else
         $arquivo = $request->file('arquivo') ?? null;
 
 
+        
+        $model = webhook::where('messagesFrom',$id)->first();
+        $entry_id = $model->entry_id;
+
         $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
-        $phone_number_id = WebhookServico::phone_number_id();
+        $phone_number_id = WebhookServico::phone_number_id($entry_id);
         $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
         $Token = $WebhookConfig->token24horas;
 
@@ -1723,7 +1727,7 @@ else
         $id_arquivo = ApiController::Enviar_Arquivo($arquivo, $path, $name, $extension, $mime_type);
       }
 
-        $model = webhook::find($id);
+        // $model = webhook::find($id);
 
         $message = $request->input('mensagem');
 
@@ -2226,14 +2230,11 @@ else
 
     public function ConfirmaRecebimentoMensagem(string $id)
     {
-
-
         $registro = webhook::find($id);
-
-
+        $entry_id = $registro->entry_id;
+ 
         $NomeAtendido =  webhookContact::where('recipient_id', $registro->messagesFrom)->get()->first();
-
-        $calculo =  $NomeAtendido->quantidade_nao_lida - 1;
+       $calculo =  $NomeAtendido->quantidade_nao_lida - 1;
         $NomeAtendido->update([
             'quantidade_nao_lida' => $calculo
             ]);
@@ -2241,22 +2242,17 @@ else
 // dd($registro,$NomeAtendido);
 
         $accessToken = WebhookServico::token24horas();
-        $phone_number_id = WebhookServico::phone_number_id();
-
-
+        $phone_number_id = WebhookServico::phone_number_id($entry_id);
+        
         $client = new Client();
-
         $requestData = [
             'messaging_product' => 'whatsapp',
             'status' => "read",
             'message_id' => $registro->messages_id,
         ];
-
         $response = $client->post(
-            'https://graph.facebook.com/v18.0/147126925154132/messages',
-
+            'https://graph.facebook.com/v18.0/' . $phone_number_id  .'/messages',
             [
-
                 'headers' => [
                     'Authorization' => 'Bearer ' . $accessToken,
                     'Content-Type' => 'application/json',
@@ -2264,7 +2260,6 @@ else
                 'json' => $requestData,
             ]
         );
-
 
         if ($response->getStatusCode() == 200) {
                $registro->update([
@@ -2276,9 +2271,6 @@ else
             // Manipule erros, se houver
             echo 'Erro ao enviar a mensagem: ' . $response->getBody();
         }
-
-
-
             return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', $registro->recipient_id));
     }
 
@@ -2318,14 +2310,18 @@ else
         $id_arquivo = ApiController::Enviar_Arquivo($arquivo, $path, $name, $extension, $mime_type);
       }
 
-        $model = webhook::find($id);
+      
+
+        $model = webhook::where('messagesFrom',$id)->first();
+        $entry_id = $model->entry_id;
+
 
         $message = $request->input('mensagem');
 
 
 
             $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
-            $phone_number_id = WebhookServico::phone_number_id();
+            $phone_number_id = WebhookServico::phone_number_id($entry_id);
             $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
             $Token = $WebhookConfig->token24horas;
 

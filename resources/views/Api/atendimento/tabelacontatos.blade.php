@@ -10,8 +10,12 @@
 
             {{-- </thead> --}}
             @can('WHATSAPP - ATENDIMENTO - REABRIR ATENDIMENTO')
-            <a href="{{ route('ContatosWhatsapp.index') }}" class="btn btn-success" tabindex="-1"
-            role="button" aria-disabled="true">Contatos</a>
+            <nav class="navbar navbar-red" style="background-color: hsla(158, 92%, 47%, 0.635);">
+            <div class="badge bg-primary text-wrap" style="width: 100%;font-size: 24px;lign=˜Center˜">
+                <a href="{{ route('ContatosWhatsapp.index') }}" class="btn btn-success" tabindex="-1"
+                role="button" aria-disabled="true">Mais contatos...</a>
+            </div>
+           </nav>
 
             @endcan
             @foreach ($RegistrosContatos  as $item)
