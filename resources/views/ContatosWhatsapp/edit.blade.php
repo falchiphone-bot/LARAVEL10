@@ -6,7 +6,7 @@
 
 
 <div class="badge bg-primary text-wrap" style="width: 100%;">
-   CONTATOS DO WHATSAPP DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL - EDIÇÃO
+   CONTATO DO WHATSAPP DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL - EDIÇÃO
 </div>
 
 @if ($errors->any())

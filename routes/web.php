@@ -123,6 +123,12 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
  Route::get('ContasPagar/IncluirLancamentoContasPagar/{id}',[App\Http\Controllers\ContasPagarController::class,'IncluirLancamentoContasPagar'])->name('contaspagar.IncluirLancamentoContasPagar');
 
 
+ # Contatos do Whatsapp
+ Route::resource('ContatosWhatsapp', App\Http\Controllers\ContatosWhatsappController::class);
+
+
+
+
  # API WHATSAPP
  Route::get('/whatsapp/TransferirAtendimento/{id}', [App\Http\Controllers\ApiController::class, 'TransferirAtendimento'])->name('whatsapp.TransferirAtendimento');
  Route::get('/whatsapp/CancelarTransferirAtendimento/{id}', [App\Http\Controllers\ApiController::class, 'CancelarTransferirAtendimento'])->name('whatsapp.CancelarTransferirAtendimento');

@@ -9,7 +9,11 @@
 
 
             {{-- </thead> --}}
+            @can('WHATSAPP - ATENDIMENTO - REABRIR ATENDIMENTO')
+            <a href="{{ route('ContatosWhatsapp.index') }}" class="btn btn-success" tabindex="-1"
+            role="button" aria-disabled="true">Contatos</a>
 
+            @endcan
             @foreach ($RegistrosContatos  as $item)
             <tr>
                 @if ($item->recipient_id)
