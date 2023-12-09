@@ -20,7 +20,7 @@
                 @endif
 
 
-
+                @include('Api.botoesatalho')
                 <div class="row">
                     <div class="card">
                         <div class="card-footer">
@@ -42,7 +42,7 @@
                                 @csrf
 
                                 <div class="col-sm-6">
-                                    <label for="idWebhookConfig" style="color: black;">Plataforma a usar</label>
+                                    <label for="idWebhookConfig" style="color: green;">Plataforma a usar</label>
                                     <select required class="form-control select2" id="idWebhookConfig" name="idWebhookConfig">
 
                                         @foreach ($WebhookConfig as $WebhookConfigs)
@@ -56,7 +56,7 @@
 
 
                             <div class="col-sm-6">
-                                <label for="idcontato" style="color: black;">Contatos disponíveis</label>
+                                <label for="idcontato" style="color: green;">Contatos disponíveis</label>
                                 <select required class="form-control select2" id="idcontato" name="idcontato">
 
                                     @foreach ($contatos as $contato)
@@ -71,7 +71,7 @@
                             </div>
 
                             <div class="col-sm-6">
-                                <label for="idtemplate" style="color: black;">Templates disponíveis</label>
+                                <label for="idtemplate" style="color: green;">Templates disponíveis</label>
                                 <select required class="form-control select2" id="idtemplate" name="idtemplate">
 
                                     @foreach ($template as $template)
@@ -87,7 +87,7 @@
 
 
                             <div class="col-sm-6">
-                            <label for="token_type" style="color: black;">Tipo de Token</label>
+                            <label for="token_type" style="color: green;">Tipo de Token</label>
                             <select required class="form-control" id="token_type" name="token_type">
                                 <option value="token24horas">Token 24 Horas</option>
                                 <option value="tokenpermanenteusuario">Token Permanente do Usuário</option>
@@ -95,12 +95,10 @@
                         </div>
 
 
-
-
                                 <button type="submit" class="btn btn-primary">Enviar Mensagem</button>
                             </form>
-                            
-                            @include('Api.botoesatalho')
+
+
 
                         </div>
                     </div>

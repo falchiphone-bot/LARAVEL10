@@ -77,7 +77,17 @@
                                             href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone', $Model->recipient_id) }}">{{ $Model->recipient_id }}
                                         </a>
                                 @endif
+
+                               
                                </td>
+                               
+                                @can('WHATSAPP - MENSAGEMAPROVADA')
+                                    <td>
+                                    <a href="{{ route('whatsapp.ConvidarMensagemAprovada', $id = $Model->recipient_id) }}" class="btn btn-primary"
+                                        tabindex="-1" role="button" aria-disabled="true">Enviar mensagem padrão</a>
+                                    </td>
+                                @endcan
+
                                 @can('ContatosWhatsapp - EDITAR')
                                     <td>
                                         <a href="{{ route('ContatosWhatsapp.edit', $Model->id) }}" class="btn btn-success" tabindex="-1"

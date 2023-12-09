@@ -1941,12 +1941,17 @@ else
         $body = $template->texto ;
         $template_id = $template->id;
 
-        $WebhookConfig =  WebhookConfig::where('ativado','1')
-        ->first();
+        $idWebhookConfig = $request->idWebhookConfig;
+
+        // $WebhookConfig =  WebhookConfig::where('ativado','1')
+        // ->first();
+
+        $WebhookConfig =  WebhookConfig::find($idWebhookConfig);
 
         $phone_number_id  = $WebhookConfig->identificacaonumerotelefone;
 
-        // dd($WebhookConfig);
+
+        // dd($WebhookConfig, $phone_number_id);
         if ($token == 'token24horas') {
             $accessToken = $WebhookConfig->token24horas;
         } elseif ($token == 'tokenpermanenteusuario') {
