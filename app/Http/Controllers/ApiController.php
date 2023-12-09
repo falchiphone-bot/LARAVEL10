@@ -95,6 +95,10 @@ class ApiController extends Controller
         $video_sha256 = null;
         $video_id = null;
 
+        $audio_mime_type = null;
+        $audio_sha256 = null;
+        $audio_id = null;
+        $audio_voice = null;
 
         $statuses = null;
         $status =  'received';
@@ -147,6 +151,16 @@ class ApiController extends Controller
                 $conversation_id = $statuses['id'] ?? null;
             }
 
+
+            $audio =  $data['entry'][0]['changes'][0]['value']['messages'][0]['audio'] ?? null;
+
+            if($audio)
+            {
+                $audio_mime_type = $audio['mime_type'] ?? null;
+                $audio_sha256 = $audio['sha256'] ?? null;
+                $audio_id = $audio['id']?? null;
+                $audio_voice = $audio['voice']?? null;
+            }
 
 
             $video =  $data['entry'][0]['changes'][0]['value']['messages'][0]['video'] ?? null;
@@ -307,6 +321,10 @@ class ApiController extends Controller
             . "video_sha256" . $video_sha256  . "\n"
             . 'video_id' . $video_id . "\n"
 
+            . "audio_mime_type" . $audio_mime_type . "\n"
+            . "audio_sha256" . $audio_sha256  . "\n"
+            . "audio_id" . $audio_id . "\n"
+            . "audio_voice" . $audio_voice. "\n"
 
 
             . "sticker_mime_type" . $sticker_mime_type . "\n"
@@ -457,6 +475,11 @@ class ApiController extends Controller
             'sticker_id' => $sticker_id ?? null,
             'sticker_animated' => $sticker_animated ?? null,
 
+
+            'audio_mime_type' => $audio_mime_type ?? null,
+            'audio_sha256' => $audio_sha256 ?? null,
+            'audio_id' => $audio_id ?? null,
+            'audio_voice' => $audio_voice ?? null,
 
 
             'image_id' => $image_id,
@@ -892,7 +915,7 @@ class ApiController extends Controller
 
         $displayPhoneNumber = $metadata['display_phone_number'] ?? null;
         $phoneNumberId = $metadata['phone_number_id'] ?? null;
-        //  dd($data, $statuses );
+         dd($data, $statuses );
 
         if (isset($value) && is_array($value) && count($value) > 0) {
             $event = $value['event'] ?? null;
@@ -1695,7 +1718,7 @@ else
         $model = webhook::where('messagesFrom',$id)->first();
         $entry_id = $model->entry_id;
 
-        $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
+        $WebhookConfig =  WebhookConfig::where('ativado','1')->first();
         $phone_number_id = WebhookServico::phone_number_id($entry_id);
         $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
         $Token = $WebhookConfig->token24horas;
@@ -1724,7 +1747,7 @@ else
 
 
 
-        $id_arquivo = ApiController::Enviar_Arquivo($arquivo, $path, $name, $extension, $mime_type);
+        $id_arquivo = ApiController::Enviar_Arquivo($arquivo, $path, $name, $extension, $mime_type, $entry_id);
       }
 
         // $model = webhook::find($id);
@@ -2151,10 +2174,10 @@ else
     }
 
 
-    public function Enviar_Arquivo($arquivo, $path, $name, $extension, $mime_type)
+    public function Enviar_Arquivo($arquivo, $path, $name, $extension, $mime_type, $entry_id)
     {
         $accessToken = WebhookServico::token24horas();
-        $phone_number_id = WebhookServico::phone_number_id();
+        $phone_number_id = WebhookServico::phone_number_id($entry_id);
         $id_arquivo = null;
 
         $client = new Client();
@@ -2713,7 +2736,6 @@ else
 
     public function ReabrirAposEncerramentoAtendimento(Request $request, $id)
     {
-
         $usuario = trim(Auth::user()->email);
         $id_arquivo = null;
         $arquivo = $request->file('arquivo') ?? null;
@@ -2721,26 +2743,31 @@ else
       if($arquivo)
       {
         $path = $arquivo->getRealPath() ;
-
         $name = $arquivo->getClientOriginalName()  ;
         $extension = $arquivo->getClientOriginalExtension()  ;
-
         $mime_type = $arquivo->getMimeType()  ;
-
         $id_arquivo = ApiController::Enviar_Arquivo($arquivo, $path, $name, $extension, $mime_type);
       }
 
-        $model = webhook::find($id);
+
+      $idWebhook = $request->recipient_id;
+        $model = webhook::where('messagesFrom',$idWebhook)->first();
+
 
         $message = $request->input('mensagem');
+        $entry_id = $model->entry_id;
+
+
+            $WebhookConfig =  WebhookConfig::where('ativado','1')->get()->first();
 
 
 
-            $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
-            $phone_number_id = WebhookServico::phone_number_id();
+            $phone_number_id = WebhookServico::phone_number_id($entry_id);
             $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
             $Token = $WebhookConfig->token24horas;
 
+
+            // dd($entry_id, $WebhookConfig, $model, $idWebhook, $phone_number_id  );
 
             if($Token == null){
                 session()

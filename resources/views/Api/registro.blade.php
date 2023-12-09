@@ -163,7 +163,7 @@
                                     @endif
                                 </tr>
 
-                                <tr>
+                                {{-- <tr>
                                     @if ($model->messagesType == 'audio')
                                             @can('WHATSAPP - ATUALIZAR REGISTRO - BAIXAR URL MIDIA')
                                                 <td>Áudio ID:</td>
@@ -180,7 +180,7 @@
                                         </audio>
                                         @endif
                                     @endif
-                                </tr>
+                                </tr> --}}
 
 
                                 <tr>

@@ -88,12 +88,8 @@ class WebhookServico
 
     public static function phone_number_id($entry_id)
     {
- 
-        $WebhookConfig =  WebhookConfig::Where('identificacaocontawhatsappbusiness',trim($entry_id))->first();
- 
+        $WebhookConfig =  WebhookConfig::Where('identificacaocontawhatsappbusiness',trim($entry_id))->first(); 
         $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
-
-    
         return $phone_number_id;
 
     }
