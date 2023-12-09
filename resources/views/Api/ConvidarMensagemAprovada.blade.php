@@ -20,6 +20,7 @@
                 @endif
 
 
+
                 <div class="row">
                     <div class="card">
                         <div class="card-footer">
@@ -29,12 +30,31 @@
                             <a href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone', $id) }}">Retornar para a atendimento</a>
                         </div>
 
+
+
+
+
                         <div class="card-body">
                             <h1>Selecionar a mensagem aprovada e para quem enviar</h1>
 
 
                             <form action="{{ route('whatsapp.enviarMensagemAprovada') }}" method="POST">
                                 @csrf
+
+                                <div class="col-sm-6">
+                                    <label for="idWebhookConfig" style="color: black;">Plataforma a usar</label>
+                                    <select required class="form-control select2" id="idWebhookConfig" name="idWebhookConfig">
+
+                                        @foreach ($WebhookConfig as $WebhookConfigs)
+                                        <option
+                                            value="{{ $WebhookConfigs->id }}">
+                                            {{ $WebhookConfigs->usuario . ' ===>>> Identificação: '. $WebhookConfigs->identificacaonumerotelefone}}
+                                        </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+
                             <div class="col-sm-6">
                                 <label for="idcontato" style="color: black;">Contatos disponíveis</label>
                                 <select required class="form-control select2" id="idcontato" name="idcontato">
@@ -79,7 +99,8 @@
 
                                 <button type="submit" class="btn btn-primary">Enviar Mensagem</button>
                             </form>
-
+                            
+                            @include('Api.botoesatalho')
 
                         </div>
                     </div>

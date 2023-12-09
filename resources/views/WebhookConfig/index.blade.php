@@ -9,6 +9,7 @@
                 </div>
             </div>
 
+            @include('Api.botoesatalho')
 
             <div class="card-body">
                 @if (session('success'))
@@ -35,9 +36,6 @@
                             {{ $WebhookConfig->count() ?? 0 }}</p>
                     </div>
                 </div>
-
-
-
             </div>
 
             <tbody>

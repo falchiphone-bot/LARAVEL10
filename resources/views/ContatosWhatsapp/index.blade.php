@@ -25,6 +25,7 @@
 
                 @endif
 
+
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                     <a class="btn btn-warning" href="Cadastros">Retornar a lista de opções</a> </nav>
 
@@ -51,13 +52,14 @@
 
 
             </div>
+            @include('Api.botoesatalho')
 
             <tbody>
                 <table class="table" style="background-color: rgb(247, 247, 213);">
                     <thead>
                         <tr>
                             <th scope="col" class="px-6 py-4">NOME</th>
-
+                            <th scope="col" class="px-6 py-4">Ir para atender</th>
                             <th scope="col" class="px-6 py-4"></th>
                         </tr>
                     </thead>
@@ -69,8 +71,13 @@
                                 <td class="">
                                     {{ $Model->contactName }}
                                 </td>
-
-
+                                <td>
+                                    @if ($Model->recipient_id)
+                                        <a
+                                            href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone', $Model->recipient_id) }}">{{ $Model->recipient_id }}
+                                        </a>
+                                @endif
+                               </td>
                                 @can('ContatosWhatsapp - EDITAR')
                                     <td>
                                         <a href="{{ route('ContatosWhatsapp.edit', $Model->id) }}" class="btn btn-success" tabindex="-1"
@@ -111,6 +118,9 @@
                         @endforeach
                     </tbody>
                 </table>
+
+                @include('Api.botoesatalho')
+
                                 <div class="badge bg-primary text-wrap" style="width: 100%;">
         </div>
     </div>

@@ -1691,7 +1691,7 @@ else
         $arquivo = $request->file('arquivo') ?? null;
 
 
-        
+
         $model = webhook::where('messagesFrom',$id)->first();
         $entry_id = $model->entry_id;
 
@@ -1897,7 +1897,6 @@ else
 
         $template = WebhookTemplate::orderBy('Name')->get();
 
-
         return view('api.SelecionarMensagemAprovada', compact('contatos','template'));
     }
     public function ConvidarMensagemAprovada(string $id)
@@ -1908,12 +1907,12 @@ else
         // *É com grande satisfação que temos você como nosso cliente.*
         // Agradecemos por isso. Fique à vontade para entrar em contato conosco por esse canal. Te esperamos!😀📲💻🖥
 
+        $WebhookConfig =  WebhookConfig::get();
 
         $template = WebhookTemplate::where('id', '3')
         ->orderBy('Name')->get();
 
-
-        return view('api.ConvidarMensagemAprovada', compact('contatos','template', 'id'));
+        return view('api.ConvidarMensagemAprovada', compact('contatos','template', 'id','WebhookConfig'));
     }
 
     public function enviarMensagemAprovada(Request $request)
@@ -1946,7 +1945,7 @@ else
         ->first();
 
         $phone_number_id  = $WebhookConfig->identificacaonumerotelefone;
-      
+
         // dd($WebhookConfig);
         if ($token == 'token24horas') {
             $accessToken = $WebhookConfig->token24horas;
@@ -2236,7 +2235,7 @@ else
     {
         $registro = webhook::find($id);
         $entry_id = $registro->entry_id;
- 
+
         $NomeAtendido =  webhookContact::where('recipient_id', $registro->messagesFrom)->get()->first();
        $calculo =  $NomeAtendido->quantidade_nao_lida - 1;
         $NomeAtendido->update([
@@ -2247,7 +2246,7 @@ else
 
         $accessToken = WebhookServico::token24horas();
         $phone_number_id = WebhookServico::phone_number_id($entry_id);
-        
+
         $client = new Client();
         $requestData = [
             'messaging_product' => 'whatsapp',
@@ -2313,7 +2312,7 @@ else
         $id_arquivo = ApiController::Enviar_Arquivo($arquivo, $path, $name, $extension, $mime_type);
       }
 
-      
+
 
         $model = webhook::where('messagesFrom',$id)->first();
         $entry_id = $model->entry_id;

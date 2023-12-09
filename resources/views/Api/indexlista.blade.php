@@ -17,51 +17,7 @@
                 </div>
             </div>
 
-            @can('WebhookTemplate - LISTAR')
-                <td>
-                    <a href="{{ route('Templates.index') }}" class="btn btn-danger" tabindex="-1" role="button"
-                        aria-disabled="true">Mensagens aprovadas para envio</a>
-                </td>
-            @endcan
-            @can('Webhook(WebhookConfig) - LISTAR')
-                <td>
-                    <a href="{{ route('WebhookConfig.index') }}" class="btn btn-secondary" tabindex="-1" role="button"
-                        aria-disabled="true">Configurações para Whatsapp</a>
-                </td>
-            @endcan
-
-            @can('WHATSAPP - ATENDIMENTO')
-                <td>
-                    <a href="{{ route('whatsapp.atendimentoWhatsapp') }}" class="btn btn-success" tabindex="-1"
-                        role="button" aria-disabled="true">Atendimento Whatsapp</a>
-                </td>
-            @endcan
-
-            @can('WHATSAPP - MENSAGEMAPROVADA')
-             
-                <td>
-                    <a href="{{ route('whatsapp.SelecionarMensagemAprovada') }}" class="btn btn-secondary" tabindex="-1"
-                        role="button" aria-disabled="true">Selecionar mensagem aprovada para enviar</a>
-                </td>
-                <td>
-                    <a href="{{ route('whatsapp.enviarMensagemAprovada') }}" class="btn btn-danger" tabindex="-1"
-                        role="button" aria-disabled="true">Agradecimento pelo contato</a>
-                </td>
-                <td>
-                    <a href="{{ route('whatsapp.enviarMensagemAprovadaAriane') }}" class="btn btn-danger" tabindex="-1"
-                        role="button" aria-disabled="true">Agradecimento pelo contato - ARIANE</a>
-                </td>
-                <td>
-                    <a href="{{ route('whatsapp.enviarMensagemAprovadaAngelica') }}" class="btn btn-danger" tabindex="-1"
-                        role="button" aria-disabled="true">Agradecimento pelo contato - ANGELICA</a>
-                </td>
-            @endcan
-            @can('WHATSAPP - MENSAGEMNOVA')
-                <td>
-                    <a href="{{ route('whatsapp.enviarMensagemNova') }}" class="btn btn-danger" tabindex="-1" role="button"
-                        aria-disabled="true">Esta é uma mensagem livre de teste</a>
-                </td>
-            @endcan
+            @include('Api.botoesatalho')
 
             <div class="card-body">
                 @if (session('success'))
