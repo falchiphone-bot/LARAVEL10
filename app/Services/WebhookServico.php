@@ -30,7 +30,7 @@ class WebhookServico
                 'recipient_id' => $recipient_id ?? null,
                 'user_updated' => Auth::user()->email ?? null,
                 'timestamp' => $messagesTimestamp,
-                '$entry_id',
+                '$entry_id' => $entry_id,
             ]);
         }
 
