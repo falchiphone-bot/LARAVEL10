@@ -60,6 +60,7 @@
                         <tr>
                             <th scope="col" class="px-6 py-4">NOME</th>
                             <th scope="col" class="px-6 py-4">Ir para atender</th>
+                            <th scope="col" class="px-6 py-4">Canal de entrada</th>
                             <th scope="col" class="px-6 py-4"></th>
                         </tr>
                     </thead>
@@ -77,10 +78,16 @@
                                             href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone', $Model->recipient_id) }}">{{ $Model->recipient_id }}
                                         </a>
                                 @endif
+                                <td>
+                                    @if ($Model->entry_id)
+                                        <a
+                                            href="{{ route('WebhookConfig.index', $Model->entry_id) }}">{{ $Model->entry_id }}
+                                        </a>
+                                @endif
 
-                               
+
                                </td>
-                               
+
                                 @can('WHATSAPP - MENSAGEMAPROVADA')
                                     <td>
                                     <a href="{{ route('whatsapp.ConvidarMensagemAprovada', $id = $Model->recipient_id) }}" class="btn btn-primary"

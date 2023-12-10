@@ -7,6 +7,7 @@ use App\Models\ContatosWhatsapp;
 use App\Models\webhookContact;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 
 
@@ -24,9 +25,39 @@ class ContatosWhatsappController extends Controller
 
     public function index()
     {
-       $model= webhookContact::Where('contactName','!=','')
-       ->OrderBy('contactName')->get();
+       $model= null;
 
+
+if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
+    $model = webhookContact::where('contactName', '!=', '')
+        ->where(function($query) {
+            $query->where('entry_id', '167722543083127')
+                  ->orWhere('entry_id', '189514994242034');
+        })
+        ->orderBy('contactName')
+        ->get();
+}
+
+        else
+       if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {
+           $model= webhookContact::Where('contactName','!=','')
+           ->where('entry_id',167722543083127)
+           ->OrderBy('contactName')->get();
+       }
+       else
+       if (Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
+            $model= webhookContact::Where('contactName','!=','')
+            ->where('entry_id',189514994242034)
+            ->OrderBy('contactName')->get();
+        }
+
+
+
+     if($model == null)
+     {
+         session(['error' => 'Nada pesquisado! Usuário sem permissão de acesso!']);
+         return redirect(route('whatsapp.atendimentoWhatsapp'));
+     }
 
         return view('ContatosWhatsapp.index',compact('model'));
     }
