@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use PhpOffice\PhpSpreadsheet\Calculation\Web;
+use Illuminate\Support\Facades\Gate;
 
 class ApiController extends Controller
 {
@@ -29,6 +30,7 @@ class ApiController extends Controller
         // $this->middleware(['permission:CATEGORIAS - VER'])->only(['edit', 'update']);
         // $this->middleware(['permission:CATEGORIAS - EXCLUIR'])->only('destroy');
         $this->middleware(['permission:WHATSAPP - LISTAR'])->only('indexlista');
+
     }
 
 
@@ -1545,12 +1547,54 @@ class ApiController extends Controller
 
 
 // dd($NomeAtendido->user_atendimento, $Ultimo_atendente->user_atendimento);
+$selecao = null;
 
-        $selecao = webhook::limit(100)
-        ->where('recipient_id', $id)
-        ->orwhere('messagesFrom', $id)
-        ->orderBy('created_at', 'desc')
-        ->get();
+if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
+    $selecao = webhook::limit(100)
+    ->where(function($query) use ($id) {
+        $query->where('entry_id', '167722543083127')
+              ->orWhere('entry_id', '189514994242034');
+    })
+    ->where(function($query) use ($id) {
+        $query->where('recipient_id', $id)
+              ->orwhere('messagesFrom', $id);
+    })
+    ->orderBy('created_at', 'desc')
+    ->get();
+
+}
+else
+        if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {
+            $selecao = webhook::limit(100)
+            ->where('entry_id','167722543083127')
+            ->where(function($query) use ($id) {
+                $query->where('recipient_id', $id)
+                      ->orwhere('messagesFrom', $id);
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+              dd('16');
+        }
+
+else
+        if (Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
+           $selecao = webhook::limit(100)
+            ->where('entry_id','189514994242034')
+            ->where(function($query) use ($id) {
+                $query->where('recipient_id', $id)
+                      ->orwhere('messagesFrom', $id);
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+        }
+
+        // dd($selecao);
+        if($selecao == null)
+        {
+            session(['error' => 'Nada pesquisado! Usuário sem permissão de acesso!']);
+            return redirect(route('whatsapp.atendimentoWhatsapp'));
+        }
+
 
         return view('api.atendimentoWhatsappFiltro',
          compact('id','Contatos','selecao','NomeAtendido',

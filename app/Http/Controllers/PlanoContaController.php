@@ -96,7 +96,7 @@ class PlanoContaController extends Controller
         }
 
         if ($Request->Valor) {
-            $pesquisa->where('Lancamentos.Valor', '=', $Request->Valor);
+            $pesquisa->where('Lancamentos.Valor', '==', $Request->Valor);
         }
 
         if ($Request->DataInicial) {
