@@ -13,9 +13,10 @@ use Illuminate\Support\Facades\Log;
 
 class WebhookServico
 {
-    public static function AtualizaOuCriaWebhookContact($recipient_id, $contactName, $messagesTimestamp)
+    public static function AtualizaOuCriaWebhookContact($recipient_id, $contactName, $messagesTimestamp, $entry_id)
     {
-        $newWebhookContact = WebhookContact::where('recipient_id', $recipient_id)->first();
+        $newWebhookContact = WebhookContact::where('recipient_id', $recipient_id)
+        ->where('entry_id',$entry_id)->first();
 
         if ($newWebhookContact) {
             $newWebhookContact->update([
@@ -29,6 +30,7 @@ class WebhookServico
                 'recipient_id' => $recipient_id ?? null,
                 'user_updated' => Auth::user()->email ?? null,
                 'timestamp' => $messagesTimestamp,
+                '$entry_id',
             ]);
         }
 
@@ -72,14 +74,14 @@ class WebhookServico
         );
 
         if ($response->getStatusCode() == 200) {
-            
+
             }
 
     }
 
     public static function Token24horas()
     {
-        
+
        $WebhookConfig =  WebhookConfig::Where('ativado','1')->OrderBy('usuario')->get()->first();
         $accessToken = $WebhookConfig->token24horas;
         return $accessToken;
@@ -88,7 +90,7 @@ class WebhookServico
 
     public static function phone_number_id($entry_id)
     {
-        $WebhookConfig =  WebhookConfig::Where('identificacaocontawhatsappbusiness',trim($entry_id))->first(); 
+        $WebhookConfig =  WebhookConfig::Where('identificacaocontawhatsappbusiness',trim($entry_id))->first();
         $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
         return $phone_number_id;
 
@@ -382,7 +384,7 @@ class WebhookServico
 
              $WebhookConfig =  WebhookConfig::Where('ativado','1')->OrderBy('usuario')->get()->first();
 
-             
+
 
              $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
              $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
@@ -421,7 +423,7 @@ class WebhookServico
                  'json' => $requestData,
              ]
          );
-         
+
          if ($response->getStatusCode() == 200) {
 
              $responseData = json_decode($response->getBody());

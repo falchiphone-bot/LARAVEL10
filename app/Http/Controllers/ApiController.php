@@ -140,10 +140,8 @@ class ApiController extends Controller
 
 
         if ($entry) {
-
             $entry_id = $entry['id'] ?? null;
             $entry_time = $entry['time'] ?? null;
-
             $changes = $entry['changes'][0] ?? null;
 
             $statuses =  $data['entry'][0]['changes'][0]['value']['statuses'][0] ?? null;
@@ -152,7 +150,6 @@ class ApiController extends Controller
                 $recipient_id = $statuses['recipient_id'] ?? null;
                 $conversation_id = $statuses['id'] ?? null;
             }
-
 
             $audio =  $data['entry'][0]['changes'][0]['value']['messages'][0]['audio'] ?? null;
 
@@ -203,8 +200,6 @@ class ApiController extends Controller
                 $sticker_animated = $sticker['animated'] ?? null;
                 // DD($sticker_mime_type, $sticker_sha256, $sticker_id, $sticker_animated);
             }
-
-
 
             if ($changes) {
                 $value = $changes['value'] ?? null;
@@ -283,15 +278,7 @@ class ApiController extends Controller
                 }
             }
         }
-        //////////////////////////////////////////////////////////////////////////
-        // if ($status == null) {
-        //     $status = 'received';
-        // }
 
-
-        // $messagesType = "button1";
-
-        // Log::info($text);
         $dataString = $data;
 
         $jsonData = json_encode($data);
@@ -383,7 +370,7 @@ class ApiController extends Controller
         }
 
 
-        $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName, $messagesTimestamp ?? null);
+        $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName, $messagesTimestamp, $entry_id ?? null);
 
 
 
