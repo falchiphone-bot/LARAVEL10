@@ -1465,21 +1465,42 @@ class ApiController extends Controller
         return redirect(route('whatsapp.indexlista'));
     }
 
-    public function atendimentoWhatsapp()
-{
-    $Contatos = webhook::select(DB::raw('CONCAT(recipient_id, messagesFrom) AS recipient_messages'))
-        ->groupBy(DB::raw('CONCAT(recipient_id, messagesFrom)'))
-        ->where(DB::raw('CONCAT(recipient_id, messagesFrom)'), '<>', '')
-        ->get();
+        public function atendimentoWhatsapp()
+        {
+            $Contatos = NULL;
+            $RegistrosContatos = NULL;
 
-    $RegistrosContatos = webhookContact::orderBy('updated_at', 'desc')->get();
+                 $Contatos = webhook::select(DB::raw('CONCAT(recipient_id, messagesFrom) AS recipient_messages'))
+                    ->groupBy(DB::raw('CONCAT(recipient_id, messagesFrom)'))
+                    ->where(DB::raw('CONCAT(recipient_id, messagesFrom)'), '<>', '')
+                    ->get();
 
-    $selecao = null;
 
-    // dd($Contatos);
+            if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
+                $RegistrosContatos = webhookContact::where('entry_id','167722543083127')
+                ->orwhere('entry_id','189514994242034')
+                ->orderBy('updated_at', 'desc')->get();
+            }
+            else
+            if (Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
+                $RegistrosContatos = webhookContact::where('entry_id','189514994242034')->orderBy('updated_at', 'desc')->get();
+            }
+            else
+            if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {
+                $RegistrosContatos = webhookContact::where('entry_id','167722543083127')->orderBy('updated_at', 'desc')->get();
+            }
 
-    return view('api.atendimentoWhatsapp', compact('Contatos', 'selecao', 'RegistrosContatos'));
-}
+            $selecao = null;
+            if( $RegistrosContatos == null)
+            {
+                session(['error' => 'Nada pesquisado! Usuário sem permissão de acesso a nenhum canal de atendimento!']);
+                return redirect(route('dashboard'));
+            }
+
+            // dd($Contatos, $RegistrosContatos);
+
+            return view('api.atendimentoWhatsapp', compact('Contatos', 'selecao', 'RegistrosContatos'));
+        }
 
 
     public function atendimentoWhatsappFiltroTelefone(string $id, request $request)
@@ -1489,7 +1510,24 @@ class ApiController extends Controller
         ->where(DB::raw('CONCAT(recipient_id, messagesFrom)'), '<>', '')
         ->get();
 
-        $RegistrosContatos = webhookContact::orderBy('updated_at', 'desc')->get();
+
+        $RegistrosContatos = null;
+
+        if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
+            $RegistrosContatos = webhookContact::where('entry_id','167722543083127')
+            ->orwhere('entry_id','189514994242034')
+            ->orderBy('updated_at', 'desc')->get();
+        }
+        else
+        if (Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
+            $RegistrosContatos = webhookContact::where('entry_id','189514994242034')->orderBy('updated_at', 'desc')->get();
+        }
+        else
+        if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {
+            $RegistrosContatos = webhookContact::where('entry_id','167722543083127')->orderBy('updated_at', 'desc')->get();
+        }
+
+
 
         $NomeAtendido =  webhookContact::where('recipient_id', $id)
         ->OrderBy('updated_at', 'desc')

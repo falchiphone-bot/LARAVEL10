@@ -24,6 +24,7 @@ class webhookContact extends Model
         'user_atendimento',
         'pagina_refresh',
         'transferido_para',
-        'timestamp'
+        'timestamp',
+        'entry_id',
     ];
 }

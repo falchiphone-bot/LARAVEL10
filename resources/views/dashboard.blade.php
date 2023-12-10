@@ -3,13 +3,20 @@
     <div class="py-5 bg-light">
         <div class="container">
 
+            @if (session('error'))
+            <div class="alert alert-danger">
+                {{ session('error') }}
+            </div>
+                {{ session(['error' => null]) }}
+            @endif
+
             <div class="card">
                 <div class="card-header">
                     <div class="badge bg-warning text-wrap"
                         style="width: 100%; height: 50px;
                     ; font-size: 24px;align=˜Center˜ ">
                         Menu Principal do sistema administrativo e contábil -
-                        versão: 09.12.2023 11:52
+                        versão: 10.12.2023 10:45
                     </div>
                 </div>
                 <div class="card-body">
