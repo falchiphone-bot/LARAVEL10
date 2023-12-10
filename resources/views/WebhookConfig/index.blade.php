@@ -42,9 +42,8 @@
                 <table class="table" style="background-color: rgb(247, 247, 213);">
                     <thead>
                         <tr>
-                            <th scope="col" class="px-6 py-4">USUÁRIO</th>\
+                            <th scope="col" class="px-6 py-4">USUÁRIO</th>
                             <th scope="col" class="px-6 py-4">CANAL DE ENTRADA</th>
-
                             <th scope="col" class="px-6 py-4"></th>
                         </tr>
                     </thead>
