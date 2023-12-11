@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne; 
+
 
 class webhookContact extends Model
 {
@@ -27,4 +29,10 @@ class webhookContact extends Model
         'timestamp',
         'entry_id',
     ];
+
+    public function telefone(): HasOne
+    {
+        return $this->hasOne(webhookconfig::class, 'identificacaocontawhatsappbusiness', 'entry_id');
+    }
+
 }

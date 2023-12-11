@@ -44,6 +44,7 @@
                         <tr>
                             <th scope="col" class="px-6 py-4">USUÁRIO</th>
                             <th scope="col" class="px-6 py-4">CANAL DE ENTRADA</th>
+                            <th scope="col" class="px-6 py-4">TELEFONE</th>
                             <th scope="col" class="px-6 py-4"></th>
                         </tr>
                     </thead>
@@ -57,6 +58,9 @@
                                 </td>
                                 <td class="">
                                     {{ $WebhookConfigs->identificacaocontawhatsappbusiness}}
+                                </td>
+                                <td class="">
+                                    {{ $WebhookConfigs->telefone}}
                                 </td>
 
 

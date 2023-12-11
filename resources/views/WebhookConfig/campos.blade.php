@@ -19,6 +19,15 @@
                 @enderror
             </div>
 
+            <div class="col-2">
+                <label for="telefone">Número de telefone</label>
+                <input class="form-control @error('telefone') is-invalid @else is-valid @enderror" name="telefone" 
+                type="text" required id="telefone" value="{{$WebhookConfig->telefone ?? null}}">
+                @error('telefone')
+                <div class="alert alert-danger">{{ $message }}</div>
+                @enderror
+            </div>
+
             <div class="col-12">
                 <label for="identificacaocontawhatsappbusiness">Identificação da conta do Whatsapp business</label>
                 <input class="form-control @error('identificacaocontawhatsappbusiness') is-invalid @else is-valid @enderror"
@@ -45,7 +54,7 @@
 
 
             <div class="col-12">
-                <label for="tokenpermanenteusuario">Token 24 horas</label>
+                <label for="tokenpermanenteusuario">Token permanente</label>
                 <textarea id="tokenpermanenteusuario" name="tokenpermanenteusuario" rows="4" cols="50" class="form-control">
                 {{ $WebhookConfig->tokenpermanenteusuario ?? NULL}}
                 </textarea>
