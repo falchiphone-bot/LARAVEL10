@@ -370,7 +370,7 @@ class ApiController extends Controller
         }
 
 
-        $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName, $messagesTimestamp, $entry_id ?? null);
+        $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName, $messagesTimestamp, $entry_id);
 
 
 
