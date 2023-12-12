@@ -88,7 +88,7 @@
                                </td>
                                <td>
                                     <a
-                                        href="{{ route('WebhookConfig.index', $Model->telefone->telefone) }}">{{ $Model->telefone->telefone }}
+                                        href="{{ route('WebhookConfig.index', $Model->TelefoneWhatsApp->telefone) }}">{{ $Model->TelefoneWhatsApp->telefone }}
                                     </a>
                               </td>
 

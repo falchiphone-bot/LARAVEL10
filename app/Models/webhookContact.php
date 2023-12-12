@@ -30,7 +30,7 @@ class webhookContact extends Model
         'entry_id',
     ];
 
-    public function telefone(): HasOne
+    public function TelefoneWhatsApp(): HasOne
     {
         return $this->hasOne(webhookconfig::class, 'identificacaocontawhatsappbusiness', 'entry_id');
     }

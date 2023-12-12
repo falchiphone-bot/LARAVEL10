@@ -90,4 +90,9 @@ class Webhook extends Model
         return $this->hasOne(webhookContact::class, 'recipient_id', 'recipient_messages');
     }
 
+    public function Entrada()  
+    {
+        return $this->hasOne(webhookConfig::class, 'identificacaocontawhatsappbusiness', 'entry_id');
+    }
+
 }

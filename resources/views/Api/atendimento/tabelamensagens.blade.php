@@ -1,17 +1,42 @@
+ 
+   <!DOCTYPE html>
+   <html lang="en">
+   <head>
+       <meta charset="UTF-8">
+       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+       <title>CANAL DE ATENDIMENTO WHATSAPP - SISTEMA </title>
+       <style>
+           .red-strong {
+               color: red;
+               font-weight: bold;
+           }
+       </style>
+   </head>
+   
+ 
+
+
 <div class="card-body" style="background-color: #b3ffb3;">
       <div class="col-12">
         <table class="table-responsive">
             <thead>
                 <tr>
-                    <th></th>
-                    <th scope="col" class="px-2 py-2, table-success">Recebida</th>
-                    <th scope="col" class="px-2 py-2, table-success">Enviada</th>
-                    <th scope="col" class="px-2 py-2, table-success">Data</th>
+                    @if($QuantidadeCanalAtendimento == 1)
+                        <th></th>
+                    @else
+                        <th scope="col" class="px-2 py-2 bg-dark text-light">Entrada</th>
+                    @endif
+
+                    <th scope="col" class="px-2 py-2 bg-dark text-light">Recebida</th>
+                    <th scope="col" class="px-2 py-2 bg-dark text-light">Enviada</th>
+                    <th scope="col" class="px-2 py-2 bg-dark text-light">Data</th>
                 </tr>
+                
             </thead>
             @if ($selecao)
                 <tbody>
                     @foreach ($selecao as $item)
+
                         @if ($item->status === 'delivered' || $item->status === 'read')
                             @continue
                         @endif
@@ -23,7 +48,14 @@
                         <tr>
 
                             <td>
+                               @if($QuantidadeCanalAtendimento > 1) 
+                                <span class="red-strong">{{ $item->Entrada->usuario }}</span>
+                                    {{ '('. $item->Entrada->telefone . ')'}}
+                                    <hr>
+                                @endif
+
                                 @include('Api.atendimento.statusatendimentomensagens')
+                               
                             </td>
 
                             <td>
@@ -34,6 +66,7 @@
                                     @include('Api.mostradocumento')
                                     @include('Api.mostravideo')
                                     @include('Api.mostraaudio')
+                                   
                                 @else
                                     @if ($NomeAtendido->user_atendimento !== null)
                                         @include('Api.baixarmidiacriaurl')
@@ -42,11 +75,13 @@
                                         @include('Api.mostravideo')
                                         @include('Api.mostraaudio')
                                     @endif
+                                   
                                 @endcan
                             </td>
 
                             <td>
                                 @include('Api.atendimento.mostracorpomensagemtabelaenviada')
+                               
                             </td>
                             <?php
                             $dateString = $item['created_at'];

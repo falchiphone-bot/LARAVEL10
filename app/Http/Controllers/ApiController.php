@@ -1499,19 +1499,23 @@ class ApiController extends Controller
 
 
         $RegistrosContatos = null;
+        $QuantidadeCanalAtendimento = 0;
 
         if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
             $RegistrosContatos = webhookContact::where('entry_id','167722543083127')
             ->orwhere('entry_id','189514994242034')
             ->orderBy('updated_at', 'desc')->get();
+            $QuantidadeCanalAtendimento = 2;
         }
         else
         if (Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
             $RegistrosContatos = webhookContact::where('entry_id','189514994242034')->orderBy('updated_at', 'desc')->get();
+            $QuantidadeCanalAtendimento = 1;
         }
         else
         if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {
             $RegistrosContatos = webhookContact::where('entry_id','167722543083127')->orderBy('updated_at', 'desc')->get();
+            $QuantidadeCanalAtendimento = 1;
         }
 
 
@@ -1571,46 +1575,50 @@ class ApiController extends Controller
         }
 
 
-// dd($NomeAtendido->user_atendimento, $Ultimo_atendente->user_atendimento);
-$selecao = null;
+        // dd($NomeAtendido->user_atendimento, $Ultimo_atendente->user_atendimento);
+        $selecao = null;
 
-if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
-    $selecao = webhook::limit(100)
-    ->where(function($query) use ($id) {
-        $query->where('entry_id', '167722543083127')
-              ->orWhere('entry_id', '189514994242034');
-    })
-    ->where(function($query) use ($id) {
-        $query->where('recipient_id', $id)
-              ->orwhere('messagesFrom', $id);
-    })
-    ->orderBy('created_at', 'desc')
-    ->get();
-
-}
-else
-        if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {
+        if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
             $selecao = webhook::limit(100)
-            ->where('entry_id','167722543083127')
+            ->where(function($query) use ($id) {
+                $query->where('entry_id', '167722543083127')
+                    ->orWhere('entry_id', '189514994242034');
+            })
             ->where(function($query) use ($id) {
                 $query->where('recipient_id', $id)
-                      ->orwhere('messagesFrom', $id);
+                    ->orwhere('messagesFrom', $id);
             })
             ->orderBy('created_at', 'desc')
             ->get();
-        }
+            $QuantidadeCanalAtendimento = 2;
 
-else
-        if (Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
-           $selecao = webhook::limit(100)
-            ->where('entry_id','189514994242034')
-            ->where(function($query) use ($id) {
-                $query->where('recipient_id', $id)
-                      ->orwhere('messagesFrom', $id);
-            })
-            ->orderBy('created_at', 'desc')
-            ->get();
         }
+        else
+                if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {
+                    $selecao = webhook::limit(100)
+                    ->where('entry_id','167722543083127')
+                    ->where(function($query) use ($id) {
+                        $query->where('recipient_id', $id)
+                            ->orwhere('messagesFrom', $id);
+                    })
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+                    $QuantidadeCanalAtendimento = 1;
+                }
+                
+
+        else
+                if (Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
+                $selecao = webhook::limit(100)
+                    ->where('entry_id','189514994242034')
+                    ->where(function($query) use ($id) {
+                        $query->where('recipient_id', $id)
+                            ->orwhere('messagesFrom', $id);
+                    })
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+                    $QuantidadeCanalAtendimento = 1;
+                }
 
         // dd($selecao);
         if($selecao == null)
@@ -1623,7 +1631,7 @@ else
         return view('api.atendimentoWhatsappFiltro',
          compact('id','Contatos','selecao','NomeAtendido',
          'Usuarios','Ultimo_atendente', 'tempo_em_horas',
-         'tempo_em_segundos','tempo_em_minutos','parte_inteira','parte_decimal_minutos','RegistrosContatos'));
+         'tempo_em_segundos','tempo_em_minutos','parte_inteira','parte_decimal_minutos','RegistrosContatos', 'QuantidadeCanalAtendimento'));
     }
 
 
