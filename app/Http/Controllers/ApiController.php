@@ -1493,8 +1493,6 @@ class ApiController extends Controller
     public function atendimentoWhatsappFiltroTelefone(string $recipient_id, string $entry_id, request $request)
     {
 
-
-
         $Contatos = webhook::select(DB::raw('CONCAT(recipient_id, messagesFrom) AS recipient_messages'))
         ->groupBy(DB::raw('CONCAT(recipient_id, messagesFrom)'))
         ->where(DB::raw('CONCAT(recipient_id, messagesFrom)'), '<>', '')
@@ -1589,23 +1587,19 @@ class ApiController extends Controller
 
         // dd($NomeAtendido->user_atendimento, $Ultimo_atendente->user_atendimento);
 
-
         if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
-
-            $selecao = webhook::limit(100)
-            ->where(function($query) use ($recipient_id) {
-                $query->where('entry_id', '167722543083127')
-                    ->orWhere('entry_id', '189514994242034');
-            })
-            ->where(function($query) use ($recipient_id, $entry_id) {
-                $query->where('recipient_id', $recipient_id)
-                    ->orwhere('messagesFrom', $recipient_id)
-                    ->Where('entry_id', $entry_id);
+            $entry_ids = ['167722543083127', '189514994242034'];
+            $selecao = Webhook::limit(100)
+            ->where(function($query) use ($recipient_id, $entry_ids) {
+                $query->whereIn('entry_id', $entry_ids)
+                    ->where(function($subquery) use ($recipient_id) {
+                        $subquery->where('recipient_id', $recipient_id)
+                                ->orWhere('messagesFrom', $recipient_id);
+                    });
             })
             ->orderBy('created_at', 'desc')
             ->get();
             $QuantidadeCanalAtendimento = 2;
-
         }
         else
                 if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {
@@ -1614,7 +1608,7 @@ class ApiController extends Controller
                     ->where(function($query) use ($recipient_id, $entry_id) {
                         $query->where('recipient_id', $recipient_id)
                             ->orwhere('messagesFrom', $recipient_id)
-                            ->orwhere('entry_id', $entry_id);
+                            ->where('entry_id', $entry_id);
                     })
                     ->orderBy('created_at', 'desc')
                     ->get();
@@ -1629,7 +1623,7 @@ class ApiController extends Controller
                     ->where(function($query) use ($recipient_id, $entry_id) {
                         $query->where('recipient_id', $recipient_id)
                             ->orwhere('messagesFrom', $recipient_id)
-                            ->orwhere('entry_id', $entry_id);
+                            ->where('entry_id', $entry_id);
                     })
                     ->orderBy('created_at', 'desc')
                     ->get();
@@ -2828,7 +2822,7 @@ else
     {
         $contato = webhookContact::find($id);
 
-        
+
         $UsuarioID = $contato->transferido_para;
         // $contato->update([
         //     'transferido_para' => $UsuarioID ,

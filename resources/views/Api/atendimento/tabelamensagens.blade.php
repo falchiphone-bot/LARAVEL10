@@ -1,4 +1,4 @@
- 
+
    <!DOCTYPE html>
    <html lang="en">
    <head>
@@ -12,8 +12,8 @@
            }
        </style>
    </head>
-   
- 
+
+
 
 
 <div class="card-body" style="background-color: #b3ffb3;">
@@ -31,7 +31,7 @@
                     <th scope="col" class="px-2 py-2 bg-dark text-light">Enviada</th>
                     <th scope="col" class="px-2 py-2 bg-dark text-light">Data</th>
                 </tr>
-                
+
             </thead>
             @if ($selecao)
                 <tbody>
@@ -48,15 +48,14 @@
                         <tr>
 
                             <td>
-                               @if($QuantidadeCanalAtendimento > 1) 
-                                
-                               <span class="red-strong">{{ $item->Entrada->usuario }}</span>
+                                <hr>
+                               @include('Api.atendimento.statusatendimentomensagens')
+                               @if($QuantidadeCanalAtendimento > 1)
+
+                               <span class="red-strong">{{ $item->Entrada->usuario }}</span><br>
                                     {{ '('. $item->Entrada->telefone . ')'}}
                                     <hr>
                                 @endif
-
-                                @include('Api.atendimento.statusatendimentomensagens')
-                               
                             </td>
 
                             <td>
@@ -67,7 +66,7 @@
                                     @include('Api.mostradocumento')
                                     @include('Api.mostravideo')
                                     @include('Api.mostraaudio')
-                                   
+
                                 @else
                                     @if ($NomeAtendido->user_atendimento !== null)
                                         @include('Api.baixarmidiacriaurl')
@@ -76,13 +75,13 @@
                                         @include('Api.mostravideo')
                                         @include('Api.mostraaudio')
                                     @endif
-                                   
+
                                 @endcan
                             </td>
 
                             <td>
                                 @include('Api.atendimento.mostracorpomensagemtabelaenviada')
-                               
+
                             </td>
                             <?php
                             $dateString = $item['created_at'];

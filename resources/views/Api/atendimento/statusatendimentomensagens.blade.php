@@ -38,5 +38,16 @@
                     recebimento</button>
             </form>
         @endif
+
+        @if ($NomeAtendido->user_atendimento !== Auth::user()->email)
+        @can('WHATSAPP - ATENDIMENTO - ATENDER SIMULTANEAMENTE')
+            <form action="{{ route('whatsapp.ConfirmaRecebimentoMensagem', $item->id) }}" method="get"
+                enctype="multipart/form-data">
+                @csrf
+                <button type="submit" class="btn btn-success">Confirma
+                    recebimento</button>
+            </form>
+            @endcan
+        @endif
     @endif
 @endif
