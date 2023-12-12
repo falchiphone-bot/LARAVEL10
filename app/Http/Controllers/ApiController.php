@@ -1588,18 +1588,20 @@ class ApiController extends Controller
         // dd($NomeAtendido->user_atendimento, $Ultimo_atendente->user_atendimento);
 
         if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
-            $entry_ids = ['167722543083127', '189514994242034'];
-            $selecao = Webhook::limit(100)
-            ->where(function($query) use ($recipient_id, $entry_ids) {
-                $query->whereIn('entry_id', $entry_ids)
-                    ->where(function($subquery) use ($recipient_id) {
-                        $subquery->where('recipient_id', $recipient_id)
-                                ->orWhere('messagesFrom', $recipient_id);
-                    });
-            })
-            ->orderBy('created_at', 'desc')
-            ->get();
-            $QuantidadeCanalAtendimento = 2;
+
+                $selecao = webhook::limit(100)
+                ->where(function($query) use ($entry_id) {
+                    $query->where('entry_id', $entry_id);
+                 })
+                ->where(function($query) use ($recipient_id, $entry_id) {
+                    $query->where('recipient_id', $recipient_id)
+                        ->orwhere('messagesFrom', $recipient_id)
+                        ->where('entry_id', $entry_id);
+                })
+                ->orderBy('created_at', 'desc')
+                ->get();
+                $QuantidadeCanalAtendimento = 2;
+
         }
         else
                 if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {
