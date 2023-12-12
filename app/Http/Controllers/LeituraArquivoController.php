@@ -512,7 +512,7 @@ class LeituraArquivoController extends Controller
     public function SelecionaDatasExtratoSicrediPJ(Request $request)
     {
      
-
+ 
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         $DESCONSIDERAR_BLOQUEIOS_EMPRESA = $request->DESCONSIDERAR_BLOQUEIOS_EMPRESAS;
         $DESCONSIDERAR_BLOQUEIOS_CONTAS = $request->DESCONSIDERAR_BLOQUEIOS_CONTAS;
@@ -920,7 +920,7 @@ class LeituraArquivoController extends Controller
                     if ($lancamentoCobranca) {
                         if (strpos(trim($Descricao), 'LIQ.COBRANCA SIMPLES') !== false) {
 
-
+                           
                             if ($lancamentoCobranca->Valor != $valor_formatado) {
 
                                 Lancamento::where('id', $lancamentoCobranca->ID)->update([
@@ -933,12 +933,17 @@ class LeituraArquivoController extends Controller
                                     dd('Forçado a alterar o valor para : ' . number_format($valor_formatado, 2, ',', '.'));
                                 }
                             }
+                            
+                           
                         }
+                         continue;
+                            // dd($lancamentoCobranca->Valor, $valor_formatado);
                     }
 
 
             }
-
+            
+             
             if ($Valor_Negativo) {
                 $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
                     ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
