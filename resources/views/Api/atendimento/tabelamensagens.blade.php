@@ -36,7 +36,7 @@
             @if ($selecao)
                 <tbody>
                     @foreach ($selecao as $item)
-
+                        
                         @if ($item->status === 'delivered' || $item->status === 'read')
                             @continue
                         @endif

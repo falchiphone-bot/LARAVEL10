@@ -130,9 +130,12 @@ class WebhookServico
 
     }
 
-    public static function grava_user_encerramento_atendimento($id)
+    public static function grava_user_encerramento_atendimento($id, $identificacaocontawhatsappbusiness)
     {
-        $User_Atendente = WebhookContact::where('recipient_id', $id)->first();
+        $User_Atendente = WebhookContact::
+        where('recipient_id', $id)
+        ->where('entry_id', $identificacaocontawhatsappbusiness)
+        ->first();
 
             if ($User_Atendente ) {
             $User_Atendente->update([
@@ -152,11 +155,14 @@ class WebhookServico
 
     }
 
-    public static function grava_user_inicio_atendimento($id)
+    public static function grava_user_inicio_atendimento($id, $identificacaocontawhatsappbusiness)
     {
         $Usuario_sistema = Auth::user()->email;
-
-        $User_Atendente = WebhookContact::where('recipient_id', $id)->first();
+        
+        $User_Atendente = WebhookContact::
+        where('recipient_id', $id)
+        ->where('entry_id', $identificacaocontawhatsappbusiness)
+        ->first();
 
             if ($User_Atendente ) {
             $User_Atendente->update([

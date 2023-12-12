@@ -1,5 +1,6 @@
-<form action="{{ route('whatsapp.enviarMensagemEncerramentoAtendimento', $id) }}" method="POST"
-    enctype="multipart/form-data">
+<form action="{{   route('whatsapp.enviarMensagemEncerramentoAtendimento',
+ ['id' => $NomeAtendido->recipient_id, 'entry_id' => $NomeAtendido->entry_id]) }}" method="POST"
+ enctype="multipart/form-data">
     @csrf
     <div class="card" style="background-color: #ffffcc; padding: 20px;">
         <input type="hidden" name="recipient_id" value="{{ $NomeAtendido->recipient_id ?? null }}">

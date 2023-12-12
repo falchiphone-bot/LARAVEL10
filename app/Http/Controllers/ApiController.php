@@ -1492,7 +1492,6 @@ class ApiController extends Controller
 
     public function atendimentoWhatsappFiltroTelefone(string $recipient_id, string $entry_id, request $request)
     {
-
         $Contatos = webhook::select(DB::raw('CONCAT(recipient_id, messagesFrom) AS recipient_messages'))
         ->groupBy(DB::raw('CONCAT(recipient_id, messagesFrom)'))
         ->where(DB::raw('CONCAT(recipient_id, messagesFrom)'), '<>', '')
@@ -1508,6 +1507,7 @@ class ApiController extends Controller
             ->orwhere('entry_id','189514994242034')
             ->orderBy('updated_at', 'desc')->get();
             $QuantidadeCanalAtendimento = 2;
+           
         }
         else
         if (Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
@@ -1601,7 +1601,7 @@ class ApiController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->get();
                 $QuantidadeCanalAtendimento = 2;
-
+               
         }
         else
                 if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {
@@ -1615,8 +1615,9 @@ class ApiController extends Controller
                     ->orderBy('created_at', 'desc')
                     ->get();
                     $QuantidadeCanalAtendimento = 1;
+                     
                 }
-
+               
 
         else
                 if (Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
@@ -1630,10 +1631,11 @@ class ApiController extends Controller
                     ->orderBy('created_at', 'desc')
                     ->get();
                     $QuantidadeCanalAtendimento = 1;
+                    dd('0',$recipient_id, $entry_id, $selecao);
                 }
         }
 
-
+       
         // dd($selecao);
         if($selecao == null)
         {
@@ -1643,7 +1645,7 @@ class ApiController extends Controller
 
 
 
-
+        // dd('1',$recipient_id, $entry_id, $selecao);
         $id = $recipient_id;
         return view('api.atendimentoWhatsappFiltro',
          compact('id', 'entry_id','Contatos','selecao','NomeAtendido',
@@ -2406,69 +2408,54 @@ else
 
     public function StatusMensagemEnviada(string $id)
     {
-
-
         $registro = webhookContact::where('recipient_id', $id)->get()->first();
-
-
-
                $registro->update([
                 'status_mensagem_enviada' => true,
                 'user_updated' => Auth::user()->email,
 
                ]);
-
-
-
             // return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', $registro->recipient_id, $registro->entry_id));
             return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $registro->recipient_id, 'entry_id' => $registro->entry_id]));
     }
 
-    public function enviarMensagemEncerramentoAtendimento(Request $request, $id)
+    public function enviarMensagemEncerramentoAtendimento(Request $request, $id, $entry_id)
     {
         $usuario = trim(Auth::user()->email);
         $id_arquivo = null;
         $arquivo = $request->file('arquivo') ?? null;
 
-      if($arquivo)
-      {
-        $path = $arquivo->getRealPath() ;
+    //   if($arquivo)
+    //   {
+    //     $path = $arquivo->getRealPath() ;
 
-        $name = $arquivo->getClientOriginalName()  ;
-        $extension = $arquivo->getClientOriginalExtension()  ;
+    //     $name = $arquivo->getClientOriginalName()  ;
+    //     $extension = $arquivo->getClientOriginalExtension()  ;
 
-        $mime_type = $arquivo->getMimeType()  ;
+    //     $mime_type = $arquivo->getMimeType()  ;
 
-        $id_arquivo = ApiController::Enviar_Arquivo($arquivo, $path, $name, $extension, $mime_type);
-      }
-
+    //     $id_arquivo = ApiController::Enviar_Arquivo($arquivo, $path, $name, $extension, $mime_type);
+    //   }
 
 
         $model = webhook::where('messagesFrom',$id)->first();
-        $entry_id = $model->entry_id;
+        // $entry_id = $model->entry_id;
+        // $message = $request->input('mensagem');
+        $WebhookConfig =  WebhookConfig::OrderBy('usuario')
+        ->where('identificacaocontawhatsappbusiness',$entry_id)
+        ->get()->first();
+        $phone_number_id = WebhookServico::phone_number_id($entry_id);
+        $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
+        $Token = $WebhookConfig->token24horas;
+        // dd($id, $identificacaocontawhatsappbusiness);
 
-
-        $message = $request->input('mensagem');
-
-
-
-            $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
-            $phone_number_id = WebhookServico::phone_number_id($entry_id);
-            $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
-            $Token = $WebhookConfig->token24horas;
-
-
-            if($Token == null){
+        if($Token == null){
                 session()
                 ->flash('MensagemNaoPreenchida', 'Token não definido por algum erro. Verifique. Linha 1142!');
                 return redirect()->back();
-            }
-
-
+        }
         $client = new Client();
         $phone = $request->recipient_id; // Número de telefone de destino
         $requestData = [];
-
 // ================arquivo em anexo como $responseData
 
 if($id_arquivo){
@@ -2522,7 +2509,10 @@ else
 
     $message = "A nossa conversa foi encerrada por " . Auth::user()->name . ". Caso queira prosseguir é só enviar alguma nova mensagem. Obrigado!";
 
-    $registro = webhookContact::where('recipient_id', $phone)->get()->first();
+    $registro = webhookContact::where('recipient_id', $phone)
+    ->where('entry_id',$identificacaocontawhatsappbusiness)
+    ->get()->first();
+
     if($registro->user_atendimento !== Auth::user()->email)
     {
      $message = $message . "\n" . ' (Enviada por supervisor(a) ' . Auth::user()->name . ")";
@@ -2596,11 +2586,9 @@ else
             $contactName = $request->contactName;
 
 
-
-
             session()->flash('success', 'Encerramento do atendimento. Mensagem enviada com sucesso para ' . $request->contactName .  '.');
 
-            $Usuario_atendimento = WebhookServico::grava_user_encerramento_atendimento($id);
+            $Usuario_atendimento = WebhookServico::grava_user_encerramento_atendimento($id, $identificacaocontawhatsappbusiness);
 
             // return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone, $identificacaocontawhatsappbusiness));
             return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $phone, 'entry_id' => $identificacaocontawhatsappbusiness]));
@@ -2748,7 +2736,9 @@ else
  ///////////////////Gravar
             /////////////// gravar mensagem aprovada
 
-            $registro = webhookContact::where('recipient_id', $phone)->get()->first();
+            $registro = webhookContact::where('recipient_id', $phone)
+            ->where('entry_id', $identificacaocontawhatsappbusiness)
+            ->get()->first();
             $id_contact = $registro->id;
             $registro->update([
              'status_mensagem_enviada' => 0,
@@ -2784,7 +2774,7 @@ else
 
             session()->flash('success', 'Iniciado o atendimento. Mensagem enviada com sucesso para ' . $request->contactName .  '.');
 
-             $Usuario_atendimento = WebhookServico::grava_user_inicio_atendimento($id);
+             $Usuario_atendimento = WebhookServico::grava_user_inicio_atendimento($id, $identificacaocontawhatsappbusiness);
 
             // return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone, $identificacaocontawhatsappbusiness));
             return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $phone, 'entry_id' => $identificacaocontawhatsappbusiness]));
@@ -2854,41 +2844,27 @@ else
         $mime_type = $arquivo->getMimeType()  ;
         $id_arquivo = ApiController::Enviar_Arquivo($arquivo, $path, $name, $extension, $mime_type);
       }
-
-
-      $idWebhook = $request->recipient_id;
+        $idWebhook = $request->recipient_id;
         $model = webhook::where('messagesFrom',$idWebhook)->first();
-
-
         $message = $request->input('mensagem');
         $entry_id = $model->entry_id;
-
-
-            $WebhookConfig =  WebhookConfig::where('ativado','1')->get()->first();
-
-
-
-            $phone_number_id = WebhookServico::phone_number_id($entry_id);
-            $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
-            $Token = $WebhookConfig->token24horas;
-
-
+        $WebhookConfig =  WebhookConfig::where('identificacaocontawhatsappbusiness',$entry_id)
+        ->get()->first();
+        $phone_number_id = WebhookServico::phone_number_id($entry_id);
+        $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
+        $Token = $WebhookConfig->token24horas;
             // dd($entry_id, $WebhookConfig, $model, $idWebhook, $phone_number_id  );
 
-            if($Token == null){
+        if($Token == null){
                 session()
                 ->flash('MensagemNaoPreenchida', 'Token não definido por algum erro. Verifique. Linha 1142!');
                 return redirect()->back();
-            }
-
-
+        }
         $client = new Client();
         $phone = $request->recipient_id; // Número de telefone de destino
         $client = new Client();
         $requestData = [];
-
 // ================arquivo em anexo como $responseData
-
 if($id_arquivo){
 
             $tipoarquivo = ApiController::TipoArquivo($mime_type);
@@ -2937,7 +2913,6 @@ if($id_arquivo){
 }
 else
    {
-
     $message = "A nossa conversa foi aberta/reaberta por " . Auth::user()->name . ". Caso queira prosseguir é só enviar alguma nova mensagem. Obrigado!";
     // dd($tipoarquivo,'sem tipo de arquivo')   ;
     // ===================================== somente texto como resposta
@@ -2974,14 +2949,16 @@ else
  ///////////////////Gravar
             /////////////// gravar mensagem aprovada
 
-            $registro = webhookContact::where('recipient_id', $phone)->get()->first();
+            $registro = webhookContact::where('recipient_id', $phone)
+            ->where('entry_id', $identificacaocontawhatsappbusiness)
+            ->get()->first();
+
             $id_contact = $registro->id;
             $registro->update([
              'status_mensagem_enviada' => 1,
              'user_updated' => $usuario,
              'quantidade_nao_lida' => $registro->quantidade_nao_lida+1,
              'user_atendimento' => Auth::user()->email,
-
            ]);
 
            $registro->save();
@@ -3010,13 +2987,9 @@ else
             $recipient_id = $requestData['to'];
             $contactName = $request->contactName;
 
-
-
-
-
             session()->flash('success', 'Encerramento do atendimento. Mensagem enviada com sucesso para ' . $request->contactName .  '.');
 
-            $Usuario_atendimento = WebhookServico::grava_user_inicio_atendimento($id);
+            $Usuario_atendimento = WebhookServico::grava_user_inicio_atendimento($id,$identificacaocontawhatsappbusiness);
 
             // return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone, $identificacaocontawhatsappbusiness));
             return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $phone, 'entry_id' => $identificacaocontawhatsappbusiness]));
