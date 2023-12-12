@@ -934,9 +934,9 @@ class LeituraArquivoController extends Controller
                                 }
                             }
                             
-                           
+                            continue;
                         }
-                         continue;
+                        
                             // dd($lancamentoCobranca->Valor, $valor_formatado);
                     }
 

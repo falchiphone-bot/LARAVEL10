@@ -286,19 +286,21 @@ class WebhookServico
                  'user_atendimento' => Auth::user()->email,
              ]);
             }
-             return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
+            //  return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
+             return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $phone, 'entry_id' => $identificacaocontawhatsappbusiness]));
     }
 
 
     public static  function cancelartransferiratendimento($id,$UsuarioID)
     {
              $usuario = trim(Auth::user()->email);
-             $User = user::where('email',$UsuarioID)->first();
-
+             $User  = null;
+             if($UsuarioID){
+                $User = user::where('email',$UsuarioID)->first();
+                 $NomeAtendente = $User->name;
+             }
              $webhootContact = webhookcontact::find($id);
-
-             $NomeAtendente = $User->name;
-
+ 
             $WebhookConfig =  WebhookConfig::Where('ativado','1')->OrderBy('usuario')->get()->first();
 
              $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
@@ -372,7 +374,9 @@ class WebhookServico
                  'user_atendimento' => Auth::user()->email,
              ]);
             }
-            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
+            // return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
+            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $phone, 'entry_id' => $identificacaocontawhatsappbusiness]));
+
     }
 
 
@@ -454,15 +458,22 @@ class WebhookServico
                  'user_atendimento' => Auth::user()->email,
              ]);
             }
-             return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
+            //  return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
+             return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $phone, 'entry_id' => $identificacaocontawhatsappbusiness]));
     }
 
 
     public static  function avisocancelamentotransferiratendimento($id, $UsuarioID )
     {
              $usuario = trim(Auth::user()->email);
-             $User = user::where('email',$UsuarioID)->first();
-             $NomeAtendente = $User->name;
+             $user = null;
+             $NomeAtendente = null;
+             if($UsuarioID)
+             {
+                $User = user::where('email',$UsuarioID)->first();
+                $NomeAtendente = $User->name;
+             
+            
 
 
             $WebhookConfig =  WebhookConfig::Where('ativado','1')->OrderBy('usuario')->get()->first();
@@ -480,7 +491,7 @@ class WebhookServico
          $client = new Client();
          $requestData = [];
 
-     $message = "Foi cancelado um atendimento transferido para você, " . $NomeAtendente .    ". Obrigado!";
+           $message = "Foi cancelado um atendimento transferido para você, " . $NomeAtendente  .    ". Obrigado!";
 
                  if($webhootContact->user_atendimento !== Auth::user()->email)
                  {
@@ -548,9 +559,11 @@ class WebhookServico
                  'user_atendimento' => Auth::user()->email,
              ]);
             }
-
-             return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
-    }
+            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $phone, 'entry_id' => $identificacaocontawhatsappbusiness]));
+   
+        }
+            //  return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
+      }
 
     public static  function VerificaSessao(string $AvisoTransferencia, $idcontato )
     {

@@ -49,7 +49,8 @@
 
                             <td>
                                @if($QuantidadeCanalAtendimento > 1) 
-                                <span class="red-strong">{{ $item->Entrada->usuario }}</span>
+                                
+                               <span class="red-strong">{{ $item->Entrada->usuario }}</span>
                                     {{ '('. $item->Entrada->telefone . ')'}}
                                     <hr>
                                 @endif

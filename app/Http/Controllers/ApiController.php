@@ -1490,8 +1490,11 @@ class ApiController extends Controller
         }
 
 
-    public function atendimentoWhatsappFiltroTelefone(string $id, request $request)
+    public function atendimentoWhatsappFiltroTelefone(string $recipient_id, string $entry_id, request $request)
     {
+
+
+
         $Contatos = webhook::select(DB::raw('CONCAT(recipient_id, messagesFrom) AS recipient_messages'))
         ->groupBy(DB::raw('CONCAT(recipient_id, messagesFrom)'))
         ->where(DB::raw('CONCAT(recipient_id, messagesFrom)'), '<>', '')
@@ -1499,6 +1502,7 @@ class ApiController extends Controller
 
 
         $RegistrosContatos = null;
+        $selecao = null;
         $QuantidadeCanalAtendimento = 0;
 
         if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
@@ -1520,20 +1524,27 @@ class ApiController extends Controller
 
 
 
-        $NomeAtendido =  webhookContact::where('recipient_id', $id)
+        $NomeAtendido =  webhookContact::
+        where('recipient_id', $recipient_id)
+        ->Where('entry_id', $entry_id)
         ->OrderBy('updated_at', 'desc')
         ->get()->first();
+
+
 
         $Usuarios = User::where('email', '!=', Auth::user()->email)
         ->where('atendente_whatsapp', 1)
         ->orderBy('name')->get();
 
+        if( $NomeAtendido)
+        {
+            $Ultimo_atendente = webhookAtendimentoEncerrado::OrderBy('created_at', 'desc')
+            ->where('user_atendimento', Auth::user()->email)
+            ->where('id_contact', $NomeAtendido->id)
+            ->where('fim_atendimento',1)
+            ->get()->first();
 
-        $Ultimo_atendente = webhookAtendimentoEncerrado::OrderBy('created_at', 'desc')
-        ->where('user_atendimento', Auth::user()->email)
-        ->where('id_contact', $NomeAtendido->id)
-        ->where('fim_atendimento',1)
-        ->get()->first();
+
 
         $tempo_em_segundos  = null;
         $tempo_em_horas = null;
@@ -1545,12 +1556,13 @@ class ApiController extends Controller
         //         $tempo_em_minutos = $tempo_em_segundos / 60;
         // }
 
+
         if($NomeAtendido->timestamp)
-        {
-            $tempo_em_segundos = strtotime(now()) - $NomeAtendido->timestamp;
-                        $tempo_em_horas = $tempo_em_segundos / 3600;
-                        $tempo_em_minutos = $tempo_em_segundos / 60;
-        }
+                {
+                    $tempo_em_segundos = strtotime(now()) - $NomeAtendido->timestamp;
+                                $tempo_em_horas = $tempo_em_segundos / 3600;
+                                $tempo_em_minutos = $tempo_em_segundos / 60;
+                }
 
 
         $numero = $tempo_em_horas;
@@ -1576,17 +1588,19 @@ class ApiController extends Controller
 
 
         // dd($NomeAtendido->user_atendimento, $Ultimo_atendente->user_atendimento);
-        $selecao = null;
+
 
         if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
+
             $selecao = webhook::limit(100)
-            ->where(function($query) use ($id) {
+            ->where(function($query) use ($recipient_id) {
                 $query->where('entry_id', '167722543083127')
                     ->orWhere('entry_id', '189514994242034');
             })
-            ->where(function($query) use ($id) {
-                $query->where('recipient_id', $id)
-                    ->orwhere('messagesFrom', $id);
+            ->where(function($query) use ($recipient_id, $entry_id) {
+                $query->where('recipient_id', $recipient_id)
+                    ->orwhere('messagesFrom', $recipient_id)
+                    ->Where('entry_id', $entry_id);
             })
             ->orderBy('created_at', 'desc')
             ->get();
@@ -1597,28 +1611,32 @@ class ApiController extends Controller
                 if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {
                     $selecao = webhook::limit(100)
                     ->where('entry_id','167722543083127')
-                    ->where(function($query) use ($id) {
-                        $query->where('recipient_id', $id)
-                            ->orwhere('messagesFrom', $id);
+                    ->where(function($query) use ($recipient_id, $entry_id) {
+                        $query->where('recipient_id', $recipient_id)
+                            ->orwhere('messagesFrom', $recipient_id)
+                            ->orwhere('entry_id', $entry_id);
                     })
                     ->orderBy('created_at', 'desc')
                     ->get();
                     $QuantidadeCanalAtendimento = 1;
                 }
-                
+
 
         else
                 if (Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
                 $selecao = webhook::limit(100)
                     ->where('entry_id','189514994242034')
-                    ->where(function($query) use ($id) {
-                        $query->where('recipient_id', $id)
-                            ->orwhere('messagesFrom', $id);
+                    ->where(function($query) use ($recipient_id, $entry_id) {
+                        $query->where('recipient_id', $recipient_id)
+                            ->orwhere('messagesFrom', $recipient_id)
+                            ->orwhere('entry_id', $entry_id);
                     })
                     ->orderBy('created_at', 'desc')
                     ->get();
                     $QuantidadeCanalAtendimento = 1;
                 }
+        }
+
 
         // dd($selecao);
         if($selecao == null)
@@ -1628,8 +1646,11 @@ class ApiController extends Controller
         }
 
 
+
+
+        $id = $recipient_id;
         return view('api.atendimentoWhatsappFiltro',
-         compact('id','Contatos','selecao','NomeAtendido',
+         compact('id', 'entry_id','Contatos','selecao','NomeAtendido',
          'Usuarios','Ultimo_atendente', 'tempo_em_horas',
          'tempo_em_segundos','tempo_em_minutos','parte_inteira','parte_decimal_minutos','RegistrosContatos', 'QuantidadeCanalAtendimento'));
     }
@@ -1973,11 +1994,13 @@ else
             $recipient_id = $requestData['to'];
             $contactName = $request->contactName;
             $messagesTimestamp = null;
-            $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName, $messagesTimestamp);
+            $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName, $messagesTimestamp,$entry_id);
             session()->flash('success', 'Mensagem enviada com sucesso para ' . $request->contactName .  '.');
 
 
-            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
+            // return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone, $identificacaocontawhatsappbusiness));
+            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $phone, 'entry_id' => $identificacaocontawhatsappbusiness]));
+
         } else {
             // Manipule erros, se houver
             echo 'Erro ao enviar a mensagem: ' . $response->getBody();
@@ -2114,7 +2137,8 @@ else
             /////////////////////////////// termina a gravação
 
 
-            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', $recipient_id));
+            // return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', $recipient_id,$WebhookConfig->identificacaocontawhatsappbusiness));
+            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $recipient_id, 'entry_id' => $identificacaocontawhatsappbusiness]));
         } else {
             // Manipule erros, se houver
             echo 'Erro ao enviar a mensagem: ' . $response->getBody();
@@ -2372,13 +2396,16 @@ else
                $registro->update([
                 'statusconfirmado' => true,
                ]);
+            //    dd($registro->messagesFrom,$entry_id );
+            // return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', $registro->messagesFrom, $entry_id));
+            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $registro->messagesFrom, 'entry_id' => $entry_id]));
 
-            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', $registro->messagesFrom));
         } else {
             // Manipule erros, se houver
             echo 'Erro ao enviar a mensagem: ' . $response->getBody();
         }
-            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', $registro->recipient_id));
+            // return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', $registro->recipient_id,  $entry_id));
+            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $registro->messagesFrom, 'entry_id' => $entry_id]));
     }
 
     public function StatusMensagemEnviada(string $id)
@@ -2395,7 +2422,10 @@ else
 
                ]);
 
-            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', $registro->recipient_id));
+
+
+            // return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', $registro->recipient_id, $registro->entry_id));
+            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $registro->recipient_id, 'entry_id' => $registro->entry_id]));
     }
 
     public function enviarMensagemEncerramentoAtendimento(Request $request, $id)
@@ -2576,7 +2606,8 @@ else
 
             $Usuario_atendimento = WebhookServico::grava_user_encerramento_atendimento($id);
 
-            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
+            // return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone, $identificacaocontawhatsappbusiness));
+            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $phone, 'entry_id' => $identificacaocontawhatsappbusiness]));
         } else {
             // Manipule erros, se houver
             echo 'Erro ao enviar a mensagem: ' . $response->getBody();
@@ -2759,7 +2790,9 @@ else
 
              $Usuario_atendimento = WebhookServico::grava_user_inicio_atendimento($id);
 
-            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
+            // return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone, $identificacaocontawhatsappbusiness));
+            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $phone, 'entry_id' => $identificacaocontawhatsappbusiness]));
+
         } else {
             // Manipule erros, se houver
             echo 'Erro ao enviar a mensagem: ' . $response->getBody();
@@ -2795,6 +2828,7 @@ else
     {
         $contato = webhookContact::find($id);
 
+        
         $UsuarioID = $contato->transferido_para;
         // $contato->update([
         //     'transferido_para' => $UsuarioID ,
@@ -2988,7 +3022,8 @@ else
 
             $Usuario_atendimento = WebhookServico::grava_user_inicio_atendimento($id);
 
-            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
+            // return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone, $identificacaocontawhatsappbusiness));
+            return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $phone, 'entry_id' => $identificacaocontawhatsappbusiness]));
         } else {
             // Manipule erros, se houver
             echo 'Erro ao enviar a mensagem: ' . $response->getBody();
@@ -3023,7 +3058,8 @@ public function enviarMensagemEncerramentoAtendimentoSemAviso(Request $request, 
 
     session()->flash('success', 'Encerramento do atendimento. Mensagem enviada com sucesso para ' . $request->contactName .  '.');
 
-    return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
+    // return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone, $registro->entry_id));
+    return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $phone, 'entry_id' => $registro->entry_id]));
 
 }
 

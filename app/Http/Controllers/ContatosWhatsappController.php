@@ -28,15 +28,15 @@ class ContatosWhatsappController extends Controller
        $model= null;
 
 
-if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
-    $model = webhookContact::where('contactName', '!=', '')
-        ->where(function($query) {
-            $query->where('entry_id', '167722543083127')
-                  ->orWhere('entry_id', '189514994242034');
-        })
-        ->orderBy('contactName')
-        ->get();
-}
+            if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
+                $model = webhookContact::where('contactName', '!=', '')
+                    ->where(function($query) {
+                        $query->where('entry_id', '167722543083127')
+                            ->orWhere('entry_id', '189514994242034');
+                    })
+                    ->orderBy('contactName')
+                    ->get();
+            }
 
         else
        if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {

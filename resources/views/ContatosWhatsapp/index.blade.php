@@ -76,7 +76,10 @@
                                 <td>
                                     @if ($Model->recipient_id)
                                         <a
-                                            href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone', $Model->recipient_id) }}">{{ $Model->recipient_id }}
+                                            {{-- href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone', $Model->recipient_id) }}">{{ $Model->recipient_id }} --}}
+                                            href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone',
+                                             ['recipient_id' => $Model->recipient_id, 'entry_id' => $Model->entry_id]) }}">{{ $Model->contactName }}
+
                                         </a>
                                 @endif
                                 <td>
