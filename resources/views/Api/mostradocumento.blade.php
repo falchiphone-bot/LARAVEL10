@@ -32,9 +32,9 @@
         @endif
         @if (file_exists($item->url_arquivo))
             Documento qualquer format
-            <iframe src="{{ '../' . $item->url_arquivo }}" width="100%" height="1200" target="_blank"
+            <iframe src="{{ '/storage/' . $item->url_arquivo }}" width="100%" height="1200" target="_blank"
                 style="border: none;"></iframe>
-            <a href="{{ '../' . $item->url_arquivo }}" download>{{ $item->document_filename }}</a>
+            <a href="{{ '/storage/' . $item->url_arquivo }}" download>{{ $item->document_filename }}</a>
             </td>
         @endif
     @endif
