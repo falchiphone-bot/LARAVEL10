@@ -36,7 +36,7 @@
             @if ($selecao)
                 <tbody>
                     @foreach ($selecao as $item)
-                        
+
                         @if ($item->status === 'delivered' || $item->status === 'read')
                             @continue
                         @endif
@@ -53,7 +53,7 @@
                                @if($QuantidadeCanalAtendimento > 1)
 
                                <span class="red-strong">{{ $item->Entrada->usuario }}</span><br>
-                                    {{ '('. $item->Entrada->telefone . ')'}}
+                                    {{  $item->Entrada->telefone  }}
                                     <hr>
                                 @endif
                             </td>

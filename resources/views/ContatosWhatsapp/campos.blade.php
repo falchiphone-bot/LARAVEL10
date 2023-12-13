@@ -146,6 +146,21 @@
                 </div>
             </div>
 
+            <div class="row">
+                <div class="col-6">
+                    <div class="form-check">
+                        <label class="form-check-label" style="color: red" for="flexCheckDefault">
+                            OCULTAR DA LISTA DE ATENDIMENTO
+                        </label>
+                        <input type="hidden" name="ocultar_lista_atendimento" value="0">
+                        <input class="form-check-input" name="ocultar_lista_atendimento" type="checkbox"
+                            @if ($model->ocultar_lista_atendimento) checked @endif value="1" id="flexCheckDefault">
+                    </div>
+                </div>
+            </div>
+
+
+
 
         </div>
     </div>
