@@ -1471,17 +1471,18 @@ class ApiController extends Controller
             }
             else
             if (Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
-                $RegistrosContatos = webhookContact::where('entry_id','189514994242034')
-                ->where('ocultar_lista_atendimento', false)
-                ->where('ocultar_lista_atendimento', null)
-                ->orderBy('updated_at', 'desc')->get();
+                $RegistrosContatos = webhookContact::where('ocultar_lista_atendimento', null)
+                ->whereIn('entry_id', ['189514994242034'])
+                ->orderBy('updated_at', 'desc')
+                ->get();
             }
             else
             if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {
-                $RegistrosContatos = webhookContact::where('entry_id','167722543083127')
-                ->where('ocultar_lista_atendimento', false)
-                ->where('ocultar_lista_atendimento', null)
-                ->orderBy('updated_at', 'desc')->get();
+                $RegistrosContatos = webhookContact::where('ocultar_lista_atendimento', null)
+                ->whereIn('entry_id', ['167722543083127'])
+                ->orderBy('updated_at', 'desc')
+                ->get();
+
             }
 
             $selecao = null;
@@ -1521,18 +1522,18 @@ class ApiController extends Controller
         }
         else
         if (Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
-            $RegistrosContatos = webhookContact::where('entry_id','189514994242034')
-            ->where('ocultar_lista_atendimento', false)
-            ->where('ocultar_lista_atendimento', null)
-            ->orderBy('updated_at', 'desc')->get();
+            $RegistrosContatos = webhookContact::where('ocultar_lista_atendimento', null)
+                ->whereIn('entry_id', ['189514994242034'])
+                ->orderBy('updated_at', 'desc')
+                ->get();
             $QuantidadeCanalAtendimento = 1;
         }
         else
         if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {
-            $RegistrosContatos = webhookContact::where('entry_id','167722543083127')
-            ->where('ocultar_lista_atendimento', false)
-            ->where('ocultar_lista_atendimento', null)
-            ->orderBy('updated_at', 'desc')->get();
+            $RegistrosContatos = webhookContact::where('ocultar_lista_atendimento', null)
+                ->whereIn('entry_id', ['167722543083127'])
+                ->orderBy('updated_at', 'desc')
+                ->get();
             $QuantidadeCanalAtendimento = 1;
         }
 
@@ -1647,7 +1648,7 @@ class ApiController extends Controller
                     ->orderBy('created_at', 'desc')
                     ->get();
                     $QuantidadeCanalAtendimento = 1;
-                    dd('0',$recipient_id, $entry_id, $selecao);
+                    // dd('0',$recipient_id, $entry_id, $selecao);
                 }
         }
 
