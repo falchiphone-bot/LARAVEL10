@@ -165,6 +165,9 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
  Route::get('/whatsapp/SelecionarMensagemAprovada', [App\Http\Controllers\ApiController::class, 'SelecionarMensagemAprovada'])->name('whatsapp.SelecionarMensagemAprovada');
 
  Route::post('/whatsapp/refreshpagina/{id}', [App\Services\WebhookServico::class, 'refreshpagina'])->name('whatsapp.refreshpagina');
+
+ Route::post('/whatsapp/PesquisaMensagens/{id}', [App\Services\WebhookServico::class, 'PesquisaMensagens'])->name('whatsapp.PesquisaMensagens');
+
  Route::post('/whatsapp/enviarMensagemAprovada', [App\Http\Controllers\ApiController::class, 'enviarMensagemAprovada'])->name('whatsapp.enviarMensagemAprovada');
  Route::post('/whatsapp/enviarMensagemRespostaAtendimento/{id}', [App\Http\Controllers\ApiController::class, 'enviarMensagemRespostaAtendimento'])->name('whatsapp.enviarMensagemRespostaAtendimento');
  Route::post('/whatsapp/enviarMensagemResposta/{id}', [App\Http\Controllers\ApiController::class, 'enviarMensagemResposta'])->name('whatsapp.enviarMensagemResposta');

@@ -10,6 +10,7 @@ use App\Models\WebhookConfig;
 use App\Models\WebhookTemplate;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Gate;
 
 class WebhookServico
 {
@@ -158,7 +159,7 @@ class WebhookServico
     public static function grava_user_inicio_atendimento($id, $identificacaocontawhatsappbusiness)
     {
         $Usuario_sistema = Auth::user()->email;
-        
+
         $User_Atendente = WebhookContact::
         where('recipient_id', $id)
         ->where('entry_id', $identificacaocontawhatsappbusiness)
@@ -210,6 +211,66 @@ class WebhookServico
            return redirect()->back();
 
     }
+
+    public function PesquisaMensagens($id, Request $request)
+    {
+        $recipient_id = $id;
+        $textopesquisar = request()->input('pesquisar_mensagem');
+        $entry_id = request()->input('entry_id');
+
+        if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
+            $selecao = webhook::limit(100)
+            ->where(function($query) use ($entry_id) {
+                $query->where('entry_id', $entry_id);
+             })
+            ->where(function($query) use ($recipient_id, $entry_id) {
+                $query->where('recipient_id', $recipient_id)
+                    ->orwhere('messagesFrom', $recipient_id)
+                    ->where('entry_id', $entry_id);
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+            $QuantidadeCanalAtendimento = 2;
+        }
+        else
+                if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {
+                    $selecao = webhook::limit(100)
+                    ->where('entry_id','167722543083127')
+                    ->where(function($query) use ($recipient_id, $entry_id) {
+                        $query->where('recipient_id', $recipient_id)
+                            ->orwhere('messagesFrom', $recipient_id)
+                            ->where('entry_id', $entry_id);
+                    })
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+                    $QuantidadeCanalAtendimento = 1;
+
+                }
+        else
+            if (Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
+            $selecao = webhook::limit(100)
+                ->where('entry_id','189514994242034')
+                ->where(function($query) use ($recipient_id, $entry_id, $textopesquisar) {
+                    $query->where('recipient_id', $recipient_id)
+                        ->orwhere('messagesFrom', $recipient_id)
+                        ->where('entry_id', $entry_id)
+                        ->where('body', 'like' ,$textopesquisar);
+                })
+                ->orderBy('created_at', 'desc')
+                ->get();
+                $QuantidadeCanalAtendimento = 1;
+                dd('0',$recipient_id, $entry_id, $selecao);
+            }
+
+                 
+        
+        
+        dd($id, $textopesquisar, $entry_id);
+
+           return redirect()->back();
+
+    }
+
 
 
     public static  function transferiratendimento($id, $UsuarioID )
@@ -306,7 +367,7 @@ class WebhookServico
                  $NomeAtendente = $User->name;
              }
              $webhootContact = webhookcontact::find($id);
- 
+
             $WebhookConfig =  WebhookConfig::Where('ativado','1')->OrderBy('usuario')->get()->first();
 
              $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
@@ -478,8 +539,8 @@ class WebhookServico
              {
                 $User = user::where('email',$UsuarioID)->first();
                 $NomeAtendente = $User->name;
-             
-            
+
+
 
 
             $WebhookConfig =  WebhookConfig::Where('ativado','1')->OrderBy('usuario')->get()->first();
@@ -566,7 +627,7 @@ class WebhookServico
              ]);
             }
             return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $phone, 'entry_id' => $identificacaocontawhatsappbusiness]));
-   
+
         }
             //  return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone',$phone));
       }

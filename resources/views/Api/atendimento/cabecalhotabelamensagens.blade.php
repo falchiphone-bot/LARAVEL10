@@ -4,9 +4,11 @@
     @include('Api.atendimento.temposessao')
     @include('Api.atendimento.clientesendoatendido')
 
+    
     @if ($NomeAtendido->user_atendimento === Auth::user()->email && $NomeAtendido->transferido_para)
         @include('Api.atendimento.cancelartransferenciaatendimento')
         @include('Api.atendimento.mensagemaserenviada')
+
     @elseif ($NomeAtendido->user_atendimento === Auth::user()->email &&  $parte_inteira < 24)
          @include('Api.atendimento.transferiratendimento')
          @include('Api.atendimento.mensagemaserenviada')

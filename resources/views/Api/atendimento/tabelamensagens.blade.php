@@ -12,10 +12,7 @@
            }
        </style>
    </head>
-
-
-
-
+ 
 <div class="card-body" style="background-color: #b3ffb3;">
       <div class="col-12">
         <table class="table-responsive">

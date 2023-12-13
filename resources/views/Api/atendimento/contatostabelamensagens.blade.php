@@ -9,7 +9,7 @@
 
             </div>
         @endcan
-
+ 
         @can('WHATSAPP - VISUALIZAR MENSAGENS SEM ATENDER')
             @include('Api.atendimento.cabecalhotabelamensagens')
             @include('Api.atendimento.tabelamensagens')
