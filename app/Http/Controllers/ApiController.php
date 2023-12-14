@@ -1560,46 +1560,31 @@ class ApiController extends Controller
             ->get()->first();
 
 
+           
+// WebhookServico::temposessao($NomeAtendido);
+$tempo_em_segundos  = null;
+    $tempo_em_horas = null;
+    $tempo_em_minutos = null;
 
-        $tempo_em_segundos  = null;
-        $tempo_em_horas = null;
-        $tempo_em_minutos = null;
-
-        // if($Ultimo_atendente){
-        //         $tempo_em_segundos = strtotime(now()) - strtotime($Ultimo_atendente->created_at);
-        //         $tempo_em_horas = $tempo_em_segundos / 3600;
-        //         $tempo_em_minutos = $tempo_em_segundos / 60;
-        // }
-
-
-        if($NomeAtendido->timestamp)
-                {
-                    $tempo_em_segundos = strtotime(now()) - $NomeAtendido->timestamp;
-                                $tempo_em_horas = $tempo_em_segundos / 3600;
-                                $tempo_em_minutos = $tempo_em_segundos / 60;
-                }
+    if($NomeAtendido->timestamp)
+            {
+                $tempo_em_segundos = strtotime(now()) - $NomeAtendido->timestamp;
+                            $tempo_em_horas = $tempo_em_segundos / 3600;
+                            $tempo_em_minutos = $tempo_em_segundos / 60;
+            }
 
 
-        $numero = $tempo_em_horas;
-        // Separar valores antes e depois do ponto
-        $partes = explode('.', $numero);
+    $numero = $tempo_em_horas;
 
-        // Atribuir partes
-        $parte_inteira = (int)$partes[0];
-        $parte_decimal = isset($partes[1]) ? (float)('0.' . $partes[1]) : 0;
+    $partes = explode('.', $numero);
 
-        $parte_decimal_minutos = round($parte_decimal * 60);
-        // Exibir resultados
-        // echo "Parte inteira: " . $parte_inteira . "\n";
-        // echo "Parte decimal: " . $parte_decimal . "\n";
-        // echo "Parte decimal em minutos: " . $parte_decimal_minutos . "\n";
-        // dd(strtotime(now()) , $NomeAtendido->timestamp);
+   
+    $parte_inteira = (int)$partes[0];
+    $parte_decimal = isset($partes[1]) ? (float)('0.' . $partes[1]) : 0;
 
-        // if ( $tempo_em_horas < 24 && $Ultimo_atendente !== null && $NomeAtendido->user_atendimento == null && trim( $Ultimo_atendente->user_atendimento ) == trim( Auth::user()->email ) ){
-            if ( $tempo_em_horas < 24 &&   $NomeAtendido->user_atendimento == null ){
-            // dd('user_atendimento = NULL e Ultimo_atendente são atendidos =  USUÁRIO');
-            // dd($Ultimo_atendente, $tempo_em_horas,$tempo_em_segundos, $tempo_em_minutos);
-        }
+    $parte_decimal_minutos = round($parte_decimal * 60);
+
+      
 
 
         // dd($NomeAtendido->user_atendimento, $Ultimo_atendente->user_atendimento);

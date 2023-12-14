@@ -219,59 +219,98 @@ class WebhookServico
         $entry_id = request()->input('entry_id');
 
         if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
-            $selecao = webhook::limit(100)
-            ->where(function($query) use ($entry_id) {
-                $query->where('entry_id', $entry_id);
-             })
-            ->where(function($query) use ($recipient_id, $entry_id) {
-                $query->where('recipient_id', $recipient_id)
-                    ->orwhere('messagesFrom', $recipient_id)
-                    ->where('entry_id', $entry_id);
-            })
-            ->orderBy('created_at', 'desc')
-            ->get();
-            $QuantidadeCanalAtendimento = 2;
-        }
-        else
-                if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {
-                    $selecao = webhook::limit(100)
-                    ->where('entry_id','167722543083127')
-                    ->where(function($query) use ($recipient_id, $entry_id) {
-                        $query->where('recipient_id', $recipient_id)
-                            ->orwhere('messagesFrom', $recipient_id)
-                            ->where('entry_id', $entry_id);
-                    })
-                    ->orderBy('created_at', 'desc')
-                    ->get();
-                    $QuantidadeCanalAtendimento = 1;
+                    $selecao  = Webhook::whereIn('entry_id', ['167722543083127', '189514994242034'])
+                              ->where(function ($query) {
+                                $query->where('recipient_id', '5517996146922')
+                                ->orWhere('messagesFrom', '5517996146922');
+                                })
+                                 ->where('body', 'like', '%'. $textopesquisar . '%')
+                                 ->orderBy('created_at', 'desc')
+                                 ->get();
 
-                }
-        else
-            if (Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
-            $selecao = webhook::limit(100)
-                ->where('entry_id','189514994242034')
-                ->where(function($query) use ($recipient_id, $entry_id, $textopesquisar) {
-                    $query->where('recipient_id', $recipient_id)
-                        ->orwhere('messagesFrom', $recipient_id)
-                        ->where('entry_id', $entry_id)
-                        ->where('body', 'like' ,$textopesquisar);
-                })
-                ->orderBy('created_at', 'desc')
+                                 $QuantidadeCanalAtendimento = 2;
+
+                                 $RegistrosContatos = webhookContact::where('ocultar_lista_atendimento', null)
+                ->whereIn('entry_id', ['167722543083127', '189514994242034'])
+                ->orderBy('updated_at', 'desc')
                 ->get();
-                $QuantidadeCanalAtendimento = 1;
-                dd('0',$recipient_id, $entry_id, $selecao);
-            }
 
-                 
-        
-        
-        dd($id, $textopesquisar, $entry_id);
+        }
+        // else
+        //         if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {
 
-           return redirect()->back();
+        //         }
+        // else
+        //     if (Gate::allows('WHATSAPP_ENTRY_ID_189514994242034'))
+        //     {
+
+        //     }
+        // }
+
+                $Usuarios = User::where('email', '!=', Auth::user()->email)
+            ->where('atendente_whatsapp', 1)
+            ->orderBy('name')->get();
+
+            $NomeAtendido = WebhookContact::where('recipient_id', $id)->first();
+
+
+            $resultado = WebhookServico::temposessao($NomeAtendido);
+
+            $tempo_em_segundos = $resultado['tempo_em_segundos'];
+            $tempo_em_horas = $resultado['tempo_em_horas'];
+            $tempo_em_minutos  = $resultado['tempo_em_minutos'];
+            $parte_inteira   =  $resultado['parte_inteira'];
+            $parte_decimal   =  $resultado['parte_decimal'];
+            $parte_decimal_minutos  =  $resultado['parte_decimal_minutos'];
+
+        return view('Api.atendimentoWhatsappFiltro',
+        compact('id',
+        'NomeAtendido',
+        'RegistrosContatos',
+        'QuantidadeCanalAtendimento',
+        'tempo_em_segundos',
+        'tempo_em_horas',
+        'tempo_em_minutos',
+        'parte_inteira',
+        'parte_decimal',
+        'parte_decimal_minutos',
+        'Usuarios',
+        'selecao',
+         ));
 
     }
 
+   public static function temposessao($NomeAtendido)
+   {
 
+            $tempo_em_segundos  = null;
+            $tempo_em_horas = null;
+            $tempo_em_minutos = null;
+
+            if ($NomeAtendido->timestamp) {
+                $tempo_em_segundos = strtotime(now()) - $NomeAtendido->timestamp;
+                $tempo_em_horas = $tempo_em_segundos / 3600;
+                $tempo_em_minutos = $tempo_em_segundos / 60;
+            }
+
+            $numero = $tempo_em_horas;
+
+            $partes = explode('.', $numero);
+
+            $parte_inteira = (int)$partes[0];
+            $parte_decimal = isset($partes[1]) ? (float)('0.' . $partes[1]) : 0;
+
+            $parte_decimal_minutos = round($parte_decimal * 60);
+
+            return [
+                'tempo_em_segundos' => $tempo_em_segundos,
+                'tempo_em_horas' => $tempo_em_horas,
+                'tempo_em_minutos' => $tempo_em_minutos,
+                'parte_inteira' => $parte_inteira,
+                'parte_decimal' => $parte_decimal,
+                'parte_decimal_minutos' => $parte_decimal_minutos,
+            ];
+ }
 
     public static  function transferiratendimento($id, $UsuarioID )
     {

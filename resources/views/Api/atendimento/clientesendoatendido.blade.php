@@ -36,11 +36,11 @@
             <input class="form-control @error('quantidade_mensagem') is-invalid @else is-valid @enderror" name="quantidade_mensagem"
                 type="number" id="quantidade_mensagem" value="{{ $model->quantidade_nao_lida ?? null }}"> --}}
 
-            <label for="pesquisar_mensagem">Pesquisar</label>
+            <label for="pesquisar_mensagem">Texto para efetuar pesquisa</label>
             <input class="form-control @error('pesquisar_mensagem') is-invalid @else is-valid @enderror" name="pesquisar_mensagem"
                 type="texg" id="pesquisar_mensagem" value="">
         </div>
-           <button type="submit" class="btn btn-primary">Pesquisar</button>
+           <button type="submit" class="btn btn-primary">Pesquisar o texto acima em mensagens</button>
     </div>
 </div>
 </form>
