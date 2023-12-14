@@ -220,9 +220,9 @@ class WebhookServico
 
         if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
                     $selecao  = Webhook::whereIn('entry_id', ['167722543083127', '189514994242034'])
-                              ->where(function ($query) {
-                                $query->where('recipient_id', '5517996146922')
-                                ->orWhere('messagesFrom', '5517996146922');
+                              ->where(function ($query) use ($recipient_id) {
+                                $query->where('recipient_id', $recipient_id)
+                                ->orWhere('messagesFrom', $recipient_id);
                                 })
                                  ->where('body', 'like', '%'. $textopesquisar . '%')
                                  ->orderBy('created_at', 'desc')
@@ -234,20 +234,48 @@ class WebhookServico
                 ->whereIn('entry_id', ['167722543083127', '189514994242034'])
                 ->orderBy('updated_at', 'desc')
                 ->get();
+        }
+        else
+        if (Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
+                            $selecao  = Webhook::whereIn('entry_id', ['189514994242034'])
+                            ->where(function ($query) use ($recipient_id) {
+                            $query->where('recipient_id', $recipient_id)
+                            ->orWhere('messagesFrom', $recipient_id);
+                            })
+                            ->where('body', 'like', '%'. $textopesquisar . '%')
+                            ->orderBy('created_at', 'desc')
+                            ->get();
+
+                            $QuantidadeCanalAtendimento = 2;
+
+                            $RegistrosContatos = webhookContact::where('ocultar_lista_atendimento', null)
+                ->whereIn('entry_id', ['189514994242034'])
+                ->orderBy('updated_at', 'desc')
+                ->get();
+        }
+        else
+        if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {
+                        $selecao  = Webhook::whereIn('entry_id', ['167722543083127'])
+                        ->where(function ($query) use ($recipient_id) {
+                        $query->where('recipient_id', $recipient_id)
+                        ->orWhere('messagesFrom', $recipient_id);
+                        })
+                        ->where('body', 'like', '%'. $textopesquisar . '%')
+                        ->orderBy('created_at', 'desc')
+                        ->get();
+
+                        $QuantidadeCanalAtendimento = 2;
+
+                        $RegistrosContatos = webhookContact::where('ocultar_lista_atendimento', null)
+            ->whereIn('entry_id', ['167722543083127'])
+            ->orderBy('updated_at', 'desc')
+            ->get();
 
         }
-        // else
-        //         if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {
 
-        //         }
-        // else
-        //     if (Gate::allows('WHATSAPP_ENTRY_ID_189514994242034'))
-        //     {
 
-        //     }
-        // }
 
-                $Usuarios = User::where('email', '!=', Auth::user()->email)
+            $Usuarios = User::where('email', '!=', Auth::user()->email)
             ->where('atendente_whatsapp', 1)
             ->orderBy('name')->get();
 
