@@ -1493,13 +1493,16 @@ class ApiController extends Controller
             }
 
             // dd($Contatos, $RegistrosContatos);
-
-            return view('api.atendimentoWhatsapp', compact('Contatos', 'selecao', 'RegistrosContatos'));
+            $textopesquisar = null;
+            return view('api.atendimentoWhatsapp', compact('Contatos', 'selecao', 'RegistrosContatos', 'textopesquisar'));
         }
 
 
     public function atendimentoWhatsappFiltroTelefone(string $recipient_id, string $entry_id, request $request)
     {
+
+        $textopesquisar = null;
+
         $Contatos = webhook::select(DB::raw('CONCAT(recipient_id, messagesFrom) AS recipient_messages'))
         ->groupBy(DB::raw('CONCAT(recipient_id, messagesFrom)'))
         ->where(DB::raw('CONCAT(recipient_id, messagesFrom)'), '<>', '')
@@ -1560,7 +1563,7 @@ class ApiController extends Controller
             ->get()->first();
 
 
-           
+
 // WebhookServico::temposessao($NomeAtendido);
 $tempo_em_segundos  = null;
     $tempo_em_horas = null;
@@ -1578,20 +1581,20 @@ $tempo_em_segundos  = null;
 
     $partes = explode('.', $numero);
 
-   
+
     $parte_inteira = (int)$partes[0];
     $parte_decimal = isset($partes[1]) ? (float)('0.' . $partes[1]) : 0;
 
     $parte_decimal_minutos = round($parte_decimal * 60);
 
-      
+
 
 
         // dd($NomeAtendido->user_atendimento, $Ultimo_atendente->user_atendimento);
 
         if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
 
-                $selecao = webhook::limit(100)
+                $selecao = webhook::limit(1000)
                 ->where(function($query) use ($entry_id) {
                     $query->where('entry_id', $entry_id);
                  })
@@ -1607,7 +1610,7 @@ $tempo_em_segundos  = null;
         }
         else
                 if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {
-                    $selecao = webhook::limit(100)
+                    $selecao = webhook::limit(1000)
                     ->where('entry_id','167722543083127')
                     ->where(function($query) use ($recipient_id, $entry_id) {
                         $query->where('recipient_id', $recipient_id)
@@ -1623,7 +1626,7 @@ $tempo_em_segundos  = null;
 
         else
                 if (Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
-                $selecao = webhook::limit(100)
+                $selecao = webhook::limit(1000)
                     ->where('entry_id','189514994242034')
                     ->where(function($query) use ($recipient_id, $entry_id) {
                         $query->where('recipient_id', $recipient_id)
@@ -1652,7 +1655,7 @@ $tempo_em_segundos  = null;
         return view('api.atendimentoWhatsappFiltro',
          compact('id', 'entry_id','Contatos','selecao','NomeAtendido',
          'Usuarios','Ultimo_atendente', 'tempo_em_horas',
-         'tempo_em_segundos','tempo_em_minutos','parte_inteira','parte_decimal_minutos','RegistrosContatos', 'QuantidadeCanalAtendimento'));
+         'tempo_em_segundos','tempo_em_minutos','parte_inteira','parte_decimal_minutos','RegistrosContatos', 'QuantidadeCanalAtendimento', 'textopesquisar'));
     }
 
 

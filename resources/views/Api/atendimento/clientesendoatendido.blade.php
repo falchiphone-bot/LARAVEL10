@@ -22,7 +22,7 @@
         </div>
  </form>
 
- <form action="{{ route('whatsapp.PesquisaMensagens', $id) }}" method="POST"">
+ <form action="{{ route('whatsapp.PesquisaMensagens', $id) }}" method="GET"">
     @csrf
     <div class="card-body" style="background-color: #b3ffb3;">
     <div class="card" style="background-color: #ffffcc; padding: 20px;">
@@ -31,14 +31,19 @@
         <input type="hidden" name="entry_id" value="{{ $NomeAtendido->entry_id ?? null }}">
         <input type="hidden" name="status_mensagem_enviada" value="{{ $NomeAtendido->status_mensagem_enviada ?? null }}">
 
-        <div class="col-12">
+        <div class="col-8">
             {{-- <label for="quantidade_nao_lida">Quantidade de mensagens a apresentar</label>
             <input class="form-control @error('quantidade_mensagem') is-invalid @else is-valid @enderror" name="quantidade_mensagem"
                 type="number" id="quantidade_mensagem" value="{{ $model->quantidade_nao_lida ?? null }}"> --}}
 
             <label for="pesquisar_mensagem">Texto para efetuar pesquisa</label>
             <input class="form-control @error('pesquisar_mensagem') is-invalid @else is-valid @enderror" name="pesquisar_mensagem"
-                type="texg" id="pesquisar_mensagem" value="">
+                type="texg" id="pesquisar_mensagem" value="{{ $textopesquisar }}">
+        </div>
+        <div class="col-4">
+            <label for="quantidademensagem">Quantidade de mensagens a apresentar</label>
+            <input required class="form-control @error('quantidademensagem') is-invalid @else is-valid @enderror" name="quantidademensagem"
+                type="int" id="quantidademensagem" value="100">
         </div>
            <button type="submit" class="btn btn-primary">Pesquisar o texto acima em mensagens</button>
     </div>

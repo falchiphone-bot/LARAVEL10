@@ -12,7 +12,7 @@
            }
        </style>
    </head>
- 
+
 <div class="card-body" style="background-color: #b3ffb3;">
       <div class="col-12">
         <table class="table-responsive">
@@ -28,7 +28,6 @@
                     <th scope="col" class="px-2 py-2 bg-dark text-light">Enviada</th>
                     <th scope="col" class="px-2 py-2 bg-dark text-light">Data</th>
                 </tr>
-
             </thead>
             @if ($selecao)
                 <tbody>
@@ -101,6 +100,13 @@
 
                         </tr>
                     @endforeach
+
+                    {{-- <div class="card-header">
+                        <div class="badge bg-info text-wrap" style="width: 100%;font-size: 24px">
+                            <p>Total de mensagens:
+                                {{ $item->count() ?? 0 }}</p>
+                        </div>
+                    </div> --}}
 
                 </tbody>
             @endif

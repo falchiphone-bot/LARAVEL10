@@ -217,9 +217,10 @@ class WebhookServico
         $recipient_id = $id;
         $textopesquisar = request()->input('pesquisar_mensagem');
         $entry_id = request()->input('entry_id');
+        $quantidademensagem = request()->input('quantidademensagem');
 
         if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
-                    $selecao  = Webhook::whereIn('entry_id', ['167722543083127', '189514994242034'])
+                    $selecao  = Webhook::limit($quantidademensagem)->whereIn('entry_id', ['167722543083127', '189514994242034'])
                               ->where(function ($query) use ($recipient_id) {
                                 $query->where('recipient_id', $recipient_id)
                                 ->orWhere('messagesFrom', $recipient_id);
@@ -237,42 +238,67 @@ class WebhookServico
         }
         else
         if (Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
-                            $selecao  = Webhook::whereIn('entry_id', ['189514994242034'])
-                            ->where(function ($query) use ($recipient_id) {
-                            $query->where('recipient_id', $recipient_id)
-                            ->orWhere('messagesFrom', $recipient_id);
-                            })
-                            ->where('body', 'like', '%'. $textopesquisar . '%')
-                            ->orderBy('created_at', 'desc')
-                            ->get();
+            $selecao  = Webhook::limit($quantidademensagem);
+            $selecao  = $selecao->whereIn('entry_id', ['189514994242034'])
+            ->where(function ($query) use ($recipient_id) {
+            $query->where('recipient_id', $recipient_id)
+            ->orWhere('messagesFrom', $recipient_id);
+            });
 
+
+            if($textopesquisar)
+            {
+                $selecao = $selecao->where('body', 'like', '%'. $textopesquisar . '%');
+            }
+
+            $selecao = $selecao->orderBy('created_at', 'desc')
+            ->get();
+
+
+            $QuantidadeCanalAtendimento = 2;
+
+            $RegistrosContatos = webhookContact::where('ocultar_lista_atendimento', null)
+            ->whereIn('entry_id', ['189514994242034'])
+            ->orderBy('updated_at', 'desc')
+            ->get();
                             $QuantidadeCanalAtendimento = 2;
 
                             $RegistrosContatos = webhookContact::where('ocultar_lista_atendimento', null)
                 ->whereIn('entry_id', ['189514994242034'])
                 ->orderBy('updated_at', 'desc')
                 ->get();
+
+
         }
         else
         if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {
-                        $selecao  = Webhook::whereIn('entry_id', ['167722543083127'])
+                        $selecao  = Webhook::limit($quantidademensagem);
+                        $selecao  = $selecao->whereIn('entry_id', ['167722543083127'])
                         ->where(function ($query) use ($recipient_id) {
                         $query->where('recipient_id', $recipient_id)
                         ->orWhere('messagesFrom', $recipient_id);
-                        })
-                        ->where('body', 'like', '%'. $textopesquisar . '%')
-                        ->orderBy('created_at', 'desc')
+                        });
+
+
+                        if($textopesquisar)
+                        {
+                            $selecao = $selecao->where('body', 'like', '%'. $textopesquisar . '%');
+                        }
+
+                        $selecao = $selecao->orderBy('created_at', 'desc')
                         ->get();
+
 
                         $QuantidadeCanalAtendimento = 2;
 
                         $RegistrosContatos = webhookContact::where('ocultar_lista_atendimento', null)
-            ->whereIn('entry_id', ['167722543083127'])
-            ->orderBy('updated_at', 'desc')
-            ->get();
+                        ->whereIn('entry_id', ['167722543083127'])
+                        ->orderBy('updated_at', 'desc')
+                        ->get();
 
         }
 
+        // dd($quantidademensagem, $selecao);
 
 
             $Usuarios = User::where('email', '!=', Auth::user()->email)
@@ -283,7 +309,6 @@ class WebhookServico
 
 
             $resultado = WebhookServico::temposessao($NomeAtendido);
-
             $tempo_em_segundos = $resultado['tempo_em_segundos'];
             $tempo_em_horas = $resultado['tempo_em_horas'];
             $tempo_em_minutos  = $resultado['tempo_em_minutos'];
@@ -304,13 +329,13 @@ class WebhookServico
         'parte_decimal_minutos',
         'Usuarios',
         'selecao',
+        'textopesquisar',
          ));
 
     }
 
    public static function temposessao($NomeAtendido)
    {
-
             $tempo_em_segundos  = null;
             $tempo_em_horas = null;
             $tempo_em_minutos = null;
@@ -322,12 +347,9 @@ class WebhookServico
             }
 
             $numero = $tempo_em_horas;
-
             $partes = explode('.', $numero);
-
             $parte_inteira = (int)$partes[0];
             $parte_decimal = isset($partes[1]) ? (float)('0.' . $partes[1]) : 0;
-
             $parte_decimal_minutos = round($parte_decimal * 60);
 
             return [
