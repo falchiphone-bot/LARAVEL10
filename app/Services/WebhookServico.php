@@ -826,6 +826,90 @@ class WebhookServico
            }
     }
 
+    public static  function avisomensagemrecebidasupervisor($MensagemRecebida, $recipient_id,  $entry_id, $messagesTimestamp, $contactName)
+    {
+
+        Log::info(' Texto: ' . $MensagemRecebida .' -  VARIAVEIS: Telefone:' . $recipient_id .' - Nome: ' . $contactName .' - Canal: ' . $entry_id.' - TimeStamp: '  . $messagesTimestamp);
+
+        return;
+
+        // $id, $UsuarioID, $NomeAtendido, $idatendido,
+
+//              $User = user::where('whatsapp',$UsuarioID)->first();
+//              $NomeAtendente = $User->name;
+
+//              $WebhookConfig =  WebhookConfig::Where('ativado','1')->OrderBy('usuario')->get()->first();
+
+
+//              $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
+//              $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
+//              $Token = $WebhookConfig->token24horas;
+//              $webhootContact = webhookcontact::find($idatendido);
+
+//                 $client = new Client();
+//                 $phone = $User->whatsapp;
+//                 $client = new Client();
+//                 $requestData = [];
+
+//                 $message = "Tem mensagem recebida na plataforma, " . $NomeAtendente.  " um atendimento  "
+//                  .  ". Contato de nome " . $NomeAtendido . ", aguardando. Verifique!";
+
+
+//                   $message = $message . "\n" . ' (Enviada por supervisor(a) ' . Auth::user()->name . ")";
+
+
+//                     $requestData = [
+//                         'messaging_product' => 'whatsapp',
+//                         'to' => $phone,
+//                         'type' => 'text',
+//                         'text' => [
+//                             'body' => $message,
+//                         ],
+//                     ];
+//                 $response = $client->post(
+//                 'https://graph.facebook.com/v18.0/' . $phone_number_id . '/messages',
+//                 [
+//                             'headers' => [
+//                                 'Authorization' => 'Bearer ' . $Token,
+//                                 'Content-Type' => 'application/json',
+//                             ],
+//                             'json' => $requestData,
+//                         ]
+//                     );
+
+//          if ($response->getStatusCode() == 200) {
+
+//              $responseData = json_decode($response->getBody());
+//              // Faça algo com a resposta, se necessário
+//              // dd("Mensagem nova enviada", $responseData);
+//   ///////////////////Gravar
+//             //  $registro = webhookContact::where('recipient_id', $phone)->get()->first();
+//             $registro =  $webhootContact;
+
+//              $registro->update([
+//               'status_mensagem_enviada' => 0,
+//               'user_updated' => $usuario,
+//               'quantidade_nao_lida' => $registro->quantidade_nao_lida+1,
+//             ]);
+//             $registro->save();
+
+//              $newWebhook = webhook::create([
+//                  'webhook' =>  null,
+//                  'value_messaging_product' => $requestData['messaging_product'] ?? null,
+//                  'object' => $requestData['messaging_product'] ?? null,
+//                  'entry_id' => $identificacaocontawhatsappbusiness ?? null,
+//                  'contactName' => $registro->contactName ?? null,
+//                  'recipient_id' => $requestData['to'] ?? null,
+//                  'type' => $requestData['type'] ?? null,
+//                  'messagesType' => $requestData['type'] ?? null,
+//                  'body' => $requestData['text']['body'] ?? null,
+//                  'status' => 'sent' ?? null,
+//                  'user_atendimento' => Auth::user()->email,
+//              ]);
+//             }
+
+
+          }
 
 
 }

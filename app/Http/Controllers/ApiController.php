@@ -370,9 +370,7 @@ class ApiController extends Controller
         }
 
 
-        $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName, $messagesTimestamp, $entry_id);
-
-
+        $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName, $messagesTimestamp, $entry_id, $contactName);
 
         $Achou = webhook::where('status',$status)
         ->where('messages_id',$messages_id)
@@ -419,12 +417,15 @@ class ApiController extends Controller
                  $updateData['user_updated'] = 'webhook@falchi.com.br';
 
             } elseif ($status === 'received') {
+                $MensagemRecebida = 'Mensagem recebida de: ' . $messagesFrom . ' - ' . $contactName . ' - Com a mensagem: ' . $body . ' - TimeStamp:' . $messagesTimestamp;
+                WebhookServico::avisomensagemrecebidasupervisor($MensagemRecebida, $recipient_id, $entry_id, $messagesTimestamp, $contactName);
+
                 $somarecebida = $registro->quantidade_nao_lida + 1;
                 $updateData['quantidade_nao_lida'] = $somarecebida;
                 $updateData['user_updated'] = 'webhook@falchi.com.br';
             }
 
-
+// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
              $registro->update($updateData);
 
         };
