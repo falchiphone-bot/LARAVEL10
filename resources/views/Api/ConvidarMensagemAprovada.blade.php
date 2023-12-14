@@ -27,10 +27,9 @@
                             <a href="{{ route('whatsapp.indexlista') }}">Retornar para a lista</a>
                         </div>
                         <div class="card-footer">
-                            <a href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone', $id) }}">Retornar para a atendimento</a>
+                            {{-- <a href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone', $id, $entry_id) }}">Retornar para a atendimento</a> --}}
+                            PENDENTE
                         </div>
-
-
 
 
 

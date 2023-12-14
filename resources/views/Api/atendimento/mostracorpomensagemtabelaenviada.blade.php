@@ -1,6 +1,6 @@
 @if ($item->status == 'sent')
     {{ $item->message_template_name }} <br>
-    {{ $item->body }}
+    {{ trim($item->body) }}
     {{ $item->image_caption }}
 
 

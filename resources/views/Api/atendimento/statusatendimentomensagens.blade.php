@@ -1,12 +1,12 @@
 @if ($item->status == 'sent')
-    {{-- Enviado --}}
+
     @if ($NomeAtendido->status_mensagem_entregue == null || $NomeAtendido->status_mensagem_entregue == false)
         <img src="/icones/visto2azul.png" alt="lido">
     @elseif(\Carbon\Carbon::parse($item['created_at']) > \Carbon\Carbon::parse($NomeAtendido->ultima_leitura))
-        {{-- <button type="submit" class="btn btn-secondary">//2</button> --}}
+
         <img src="/icones/enviado2opaco.png" alt="entregue">
     @elseif(\Carbon\Carbon::parse($item['created_at']) < \Carbon\Carbon::parse($NomeAtendido->ultima_entrega))
-        {{-- <button type="submit" class="btn btn-primary">///3</button> --}}
+
         <img src="/icones/visto2azul.png" alt="lido">
     @endif
 @elseif($item->status == 'delivered')
@@ -22,13 +22,13 @@
         </form>
     @endif
     @if ($NomeAtendido->status_mensagem_entregue == true)
-        {{-- @if ($item['created_at'] < $NomeAtendido->ultima_entrega)) --}}
+
         <img src="/icones/visto2azul.png" alt="Lido">
     @endif
 @elseif($item->status == 'failed')
     Falhou
 @elseif($item->status == 'received')
-    {{-- Recebido --}}
+ 
     @if ($item->statusconfirmado == false)
         @if ($NomeAtendido->user_atendimento == Auth::user()->email)
             <form action="{{ route('whatsapp.ConfirmaRecebimentoMensagem', $item->id) }}" method="get"

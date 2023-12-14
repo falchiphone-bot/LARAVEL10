@@ -1,5 +1,9 @@
 @if ($item->messagesFrom)
-    {{ $item->body }}
+    @if(!empty($item->body))
+       {{trim($item->body) }}
+    @endif
+
+
 @elseif($item->status == 'failed')
     Problema no envio por não autorização do cliente.
     Deve enviar mensagem convidando-o a autorizar o envio de

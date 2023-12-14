@@ -10,10 +10,6 @@
         @if ($item->document_mime_type == 'application/pdf')
             <a href="{{ '../' . $item->url_arquivo }}" target="_blank" style="display: block; text-align: center;">
 
-
-
-
-
                 @if ($item->document_mime_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
                     <p>Documento do Microsoft Word (DOCX)</p>
                 @endif
@@ -32,7 +28,7 @@
         @endif
         @if (file_exists($item->url_arquivo))
             Documento qualquer format
-            <iframe src="{{ '/storage/' . $item->url_arquivo }}" width="100%" height="1200" target="_blank"
+            <iframe src="{{ '/storage/' . $item->url_arquivo }}" width="100%" height="400" target="_blank"
                 style="border: none;"></iframe>
             <a href="{{ '/storage/' . $item->url_arquivo }}" download>{{ $item->document_filename }}</a>
             </td>

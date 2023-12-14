@@ -15,7 +15,9 @@
 
 <div class="card" style="background-color: #b3ffb3; padding: 1px; margin-top: 1px;">
 
-        <table body-responsive>
+    <div class="table-responsive">
+        <table class="table">
+
             <thead>
                 <tr>
                     @if($QuantidadeCanalAtendimento == 1)
@@ -43,19 +45,23 @@
 
                         <tr>
 
-                            <td>
-                                <hr>
+                            <td style="max-width: 200px; word-wrap: break-word;">
+ 
                                @include('Api.atendimento.statusatendimentomensagens')
                                @if($QuantidadeCanalAtendimento > 1)
 
                                <span class="red-strong">{{ $item->Entrada->usuario }}</span><br>
                                     {{  $item->Entrada->telefone  }}
-                                    <hr>
+
                                 @endif
                             </td>
 
-                            <td>
+                            <td style="max-width:300px; word-wrap: break-word;">
+
                                 @include('Api.atendimento.mostracorpomensagemtabela')
+
+
+
                                 @can('WHATSAPP - ATUALIZAR REGISTRO - BAIXAR URL MIDIA')
                                     @include('Api.baixarmidiacriaurl')
                                     @include('Api.mostraimagem')
@@ -75,7 +81,7 @@
                                 @endcan
                             </td>
 
-                            <td>
+                            <td style="max-width:300px; word-wrap: break-word;">
                                 @include('Api.atendimento.mostracorpomensagemtabelaenviada')
 
                             </td>
@@ -88,11 +94,12 @@
                                 $NomeAtendido->status_mensagem_enviada == 0 &&
                                     $item->status == 'sent' &&
                                     $item['created_at'] > $NomeAtendido->ultima_leitura)
-                                <td style="background-color: red;">
+
+                                <td style="max-width:200px; word-wrap: break-word; "background-color: red;">
                                     {{ $formattedDate ?? null }}
                                 </td>
                             @else
-                                <td>
+                            <td style="max-width:200px; word-wrap: break-word;">
                                     {{ $formattedDate ?? null }}
                                 </td>
                             @endif
@@ -103,5 +110,5 @@
 
             @endif
         </table>
-
+    </div>
 </div>

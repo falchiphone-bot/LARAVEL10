@@ -8,12 +8,12 @@
 
         @if ($item->messagesType == 'image')
 
-            <div class="text-left">
+
                 <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $item->image_id ?? null) }}" target="_blank"
                     rel="noopener noreferrer">
                     <img src="{{ '/storage/' . $item->url_arquivo }}" alt="Imagem" style="max-width: 100px;">
                 </a>
-            </div>
+
         @endif
 
         @if ($item->messagesType == 'sticker')
@@ -23,12 +23,12 @@
             </a>
         @endif
     @else
-        <a href="{{ '/storage/' . $item->url_arquivo }}" target="_blank" rel="noopener noreferrer">
             @if (file_exists($item->url_arquivo))
-                <img src="{{ '/storage/'  . $item->url_arquivo }}" alt="Imagem" style="max-width: 100px;"
-            @endif
+            <a href="{{ '/storage/' . $item->url_arquivo }}" target="_blank" rel="noopener noreferrer">
+                <img src="{{ '/storage/'  . $item->url_arquivo }}" alt="Imagem" style="max-width: 100px;">
+            </a>
+        @endif
 
-        </a>
     @endif
 
 @endif

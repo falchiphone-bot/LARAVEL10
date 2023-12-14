@@ -4,12 +4,12 @@
 
                         @if ($item->messagesType == 'image')
 
-                            <div class="text-center">
+
                                 <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $item->image_id) }}"
                                 class="btn btn-warning mx-auto" tabindex="-1" role="button" aria-disabled="true">
                                 <img src="/icones/icone-download-verde.jpeg" alt="Ver arquivo de vídeo" class="img-thumbnail" width="30" height="30">
                                 </a>
-                            </div>
+       
                         @endif
             @endcan
         @endif
