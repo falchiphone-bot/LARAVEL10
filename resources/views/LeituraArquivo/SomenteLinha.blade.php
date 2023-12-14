@@ -55,11 +55,11 @@
                             <label for="fim">Arquivo de extrato Sicredi pessoa jurídica - PJ e pessoa física -
                                 PF</label>
                             <br>
-                            <input type="checkbox" name="DESCONSIDERAR_BLOQUEIOS_EMPRESAS" value='true'>
+                            <input type="checkbox" name="DESCONSIDERAR_BLOQUEIOS_EMPRESAS" value='true' checked>
                             <label for="checkbox_enviar">DESCONSIDERAR BLOQUEIOS DA EMPRESA</label>
                             <br>
 
-                            <input type="checkbox" name="DESCONSIDERAR_BLOQUEIOS_CONTAS" value='true'>
+                            <input type="checkbox" name="DESCONSIDERAR_BLOQUEIOS_CONTAS" value='true' checked>
                             <label for="checkbox_enviar">DESCONSIDERAR BLOQUEIOS DAS CONTAS</label>
                             <br>
                             <input type="checkbox" name="filtrarnaolocalizou" value='true'>
@@ -95,7 +95,7 @@
                             <br>
                             @endcan
 
-                            <input type="checkbox" name="bloquearconta" value='true'>
+                            <input type="checkbox" name="bloquearconta" value='true' checked>
                             <label for="checkbox_verarray">Bloquear conta</label>
                             <br>
 

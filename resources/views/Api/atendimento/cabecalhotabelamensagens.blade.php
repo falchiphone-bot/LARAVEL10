@@ -1,10 +1,10 @@
-<div class="card-body" style="max-width: 1024px; max-height: 900px; overflow: hidden;">
-
+<div class="card-body" style="max-width: 1024px; max-height: 900px; overflow: hidden; padding: 1px; margin-top: 1px;">
+ 
     @include('Api.atendimento.nomecontato')
     @include('Api.atendimento.temposessao')
     @include('Api.atendimento.clientesendoatendido')
 
-    
+
     @if ($NomeAtendido->user_atendimento === Auth::user()->email && $NomeAtendido->transferido_para)
         @include('Api.atendimento.cancelartransferenciaatendimento')
         @include('Api.atendimento.mensagemaserenviada')
