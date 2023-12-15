@@ -13,6 +13,7 @@ use App\Models\WebhookConfig;
 use App\Models\webhookContact;
 use App\Models\WebhookTemplate;
 use App\Services\WebhookServico;
+use App\Services\WebhookContactsServico;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -394,7 +395,15 @@ class ApiController extends Controller
          };
 
 
-         $registro = webhookContact::where('recipient_id', $recipient_id)->first();
+        //  $registro = webhookContact::
+        //  where('recipient_id', $recipient_id)
+        //  ->first();
+
+         $registro = webhookContact::
+         where('recipient_id', $recipient_id)
+         ->where('entry_id', $entry_id)
+         ->orderBy('id', 'desc')
+        ->first();
 
          if ($registro) {
             //  $updateData = [
@@ -1464,27 +1473,9 @@ class ApiController extends Controller
                     ->get();
 
 
-            if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
-                $RegistrosContatos = webhookContact::where('ocultar_lista_atendimento', null)
-                ->whereIn('entry_id', ['167722543083127', '189514994242034'])
-                ->orderBy('updated_at', 'desc')
-                ->get();
-            }
-            else
-            if (Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
-                $RegistrosContatos = webhookContact::where('ocultar_lista_atendimento', null)
-                ->whereIn('entry_id', ['189514994242034'])
-                ->orderBy('updated_at', 'desc')
-                ->get();
-            }
-            else
-            if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {
-                $RegistrosContatos = webhookContact::where('ocultar_lista_atendimento', null)
-                ->whereIn('entry_id', ['167722543083127'])
-                ->orderBy('updated_at', 'desc')
-                ->get();
-
-            }
+                    $resultado = WebhookContactsServico::FiltraCanaisUsuariosAtivos();
+                    $RegistrosContatos = $resultado['RegistrosContatos'];
+                    $QuantidadeCanalAtendimento = $resultado['QuantidadeCanalAtendimento'];
 
             $selecao = null;
             if( $RegistrosContatos == null)
@@ -1514,33 +1505,9 @@ class ApiController extends Controller
         $selecao = null;
         $QuantidadeCanalAtendimento = 0;
 
-        if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
-            $RegistrosContatos = webhookContact::where('ocultar_lista_atendimento', null)
-            ->whereIn('entry_id', ['167722543083127', '189514994242034'])
-            ->orderBy('updated_at', 'desc')
-            ->get();
-
-
-            $QuantidadeCanalAtendimento = 2;
-
-        }
-        else
-        if (Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
-            $RegistrosContatos = webhookContact::where('ocultar_lista_atendimento', null)
-                ->whereIn('entry_id', ['189514994242034'])
-                ->orderBy('updated_at', 'desc')
-                ->get();
-            $QuantidadeCanalAtendimento = 1;
-        }
-        else
-        if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {
-            $RegistrosContatos = webhookContact::where('ocultar_lista_atendimento', null)
-                ->whereIn('entry_id', ['167722543083127'])
-                ->orderBy('updated_at', 'desc')
-                ->get();
-            $QuantidadeCanalAtendimento = 1;
-        }
-
+        $resultado = WebhookContactsServico::FiltraCanaisUsuariosAtivos();
+        $RegistrosContatos = $resultado['RegistrosContatos'];
+        $QuantidadeCanalAtendimento = $resultado['QuantidadeCanalAtendimento'];
 
 
         $NomeAtendido =  webhookContact::

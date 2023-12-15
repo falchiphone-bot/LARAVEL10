@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ContatosWhatsappCreateRequest;
 use App\Models\ContatosWhatsapp;
 use App\Models\webhookContact;
+use App\Models\webhook;
+
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -27,6 +29,19 @@ class ContatosWhatsappController extends Controller
     {
        $model= null;
 
+    //     $mensagem = webhook::orderby('created_at','desc')->first();
+ 
+    //     $recipient_id = trim($mensagem->messagesFrom);
+    //     $entry_id = trim($mensagem->entry_id);
+
+    // /   $registro = webhookContact::
+    //        where('recipient_id', $recipient_id)
+    //      ->where('entry_id', $entry_id)
+    //      ->orderBy('id', 'desc')
+    //      ->get();
+     
+
+    //      dd( $registro,$recipient_id , $entry_id, $mensagem );
 
             if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
                 $model = webhookContact::where('contactName', '!=', '')

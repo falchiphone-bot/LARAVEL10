@@ -829,9 +829,17 @@ class WebhookServico
     public static  function avisomensagemrecebidasupervisor($MensagemRecebida, $recipient_id,  $entry_id, $messagesTimestamp, $contactName)
     {
 
-        Log::info(' Texto: ' . $MensagemRecebida .' -  VARIAVEIS: Telefone:' . $recipient_id .' - Nome: ' . $contactName .' - Canal: ' . $entry_id.' - TimeStamp: '  . $messagesTimestamp);
+        Log::info(' Texto: ' . $MensagemRecebida
+         .' -  VARIAVEIS: Telefone:'
+          . $recipient_id 
+          .' - Nome: ' 
+          . $contactName 
+          .' - Canal: '
+           . $entry_id
+            .' - TimeStamp: '
+              . $messagesTimestamp);
 
-        return;
+        // return;
 
         // $id, $UsuarioID, $NomeAtendido, $idatendido,
 
