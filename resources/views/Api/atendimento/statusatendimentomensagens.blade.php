@@ -31,21 +31,21 @@
  
     @if ($item->statusconfirmado == false)
         @if ($NomeAtendido->user_atendimento == Auth::user()->email)
-            <form action="{{ route('whatsapp.ConfirmaRecebimentoMensagem', $item->id) }}" method="get"
+              <form action="{{ route('whatsapp.ConfirmaRecebimentoMensagem', ['id'           => $item->id          , 'entry_id'        => $item->entry_id          ] ) }}" method="get"
+                      {{-- href="{{ route('whatsapp.atendimentoWhatsappFiltroTe', ['recipient_id' => $item->recipient_id, 'campo_adicional' => $valor_do_campo_adicional] ) }}" --}}
+
                 enctype="multipart/form-data">
                 @csrf
-                <button type="submit" class="btn btn-success">Confirma
-                    recebimento</button>
+                <button type="submit" class="btn btn-success">Confirma recebimento</button>
             </form>
         @endif
 
         @if ($NomeAtendido->user_atendimento !== Auth::user()->email)
         @can('WHATSAPP - ATENDIMENTO - ATENDER SIMULTANEAMENTE')
-            <form action="{{ route('whatsapp.ConfirmaRecebimentoMensagem', $item->id) }}" method="get"
+                <form action="{{ route('whatsapp.ConfirmaRecebimentoMensagem', ['id' => $item->id,'entry_id' => $item->entry_id]) }}" method="get"
                 enctype="multipart/form-data">
                 @csrf
-                <button type="submit" class="btn btn-success">Confirma
-                    recebimento</button>
+                <button type="submit" class="btn btn-success">Confirma recebimento</button>
             </form>
             @endcan
         @endif

@@ -2330,12 +2330,16 @@ else
     }
 
 
-    public function ConfirmaRecebimentoMensagem(string $id)
+    public function ConfirmaRecebimentoMensagem($id, $entry_id)
     {
         $registro = webhook::find($id);
-        $entry_id = $registro->entry_id;
+        // $entry_id = $registro->entry_id;
 
-        $NomeAtendido =  webhookContact::where('recipient_id', $registro->messagesFrom)->get()->first();
+        
+
+        $NomeAtendido =  webhookContact::where('recipient_id', $registro->messagesFrom)
+        ->where('entry_id', $entry_id)
+        ->get()->first();
        $calculo =  $NomeAtendido->quantidade_nao_lida - 1;
         $NomeAtendido->update([
             'quantidade_nao_lida' => $calculo

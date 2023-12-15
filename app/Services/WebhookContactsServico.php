@@ -51,11 +51,11 @@ class WebhookContactsServico
         $QuantidadeCanalAtendimento = 1;
     }
 
-    // Adicione as variáveis aos resultados
+ 
     $result['RegistrosContatos'] = $RegistrosContatos;
     $result['QuantidadeCanalAtendimento'] = $QuantidadeCanalAtendimento;
 
-    // Retorne os resultados para a controller
+ 
     return $result;
 }
 
