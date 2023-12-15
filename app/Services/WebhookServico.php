@@ -91,7 +91,7 @@ class WebhookServico
 
     public static function phone_number_id($entry_id)
     {
- 
+
         $WebhookConfig =  WebhookConfig::Where('identificacaocontawhatsappbusiness',trim($entry_id))->first();
         $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
         return $phone_number_id;
@@ -832,9 +832,9 @@ class WebhookServico
 
         Log::info(' Texto: ' . $MensagemRecebida
          .' -  VARIAVEIS: Telefone:'
-          . $recipient_id 
-          .' - Nome: ' 
-          . $contactName 
+          . $recipient_id
+          .' - Nome: '
+          . $contactName
           .' - Canal: '
            . $entry_id
             .' - TimeStamp: '
@@ -843,9 +843,9 @@ class WebhookServico
 
 //              $User = user::where('whatsapp',$UsuarioID)->first();
 //              $NomeAtendente = $User->name;
-
+        $User = user::where('alerta_mensagem_recebida', true)->first();
              $WebhookConfig =  WebhookConfig::
-             Where('identificacaocontawhatsappbusiness', $entry_id)           
+             Where('identificacaocontawhatsappbusiness', $entry_id)
              ->OrderBy('usuario')->get()->first();
 
              Log::info(' Canal: ' . $entry_id . '=' . $WebhookConfig->identificacaocontawhatsappbusiness);
@@ -864,13 +864,11 @@ class WebhookServico
                 $message = "Tem mensagem recebida na plataforma de canal: " . $WebhookConfig->telefone.  " para ser atendido.  "
                  .  " Contato de nome " . $contactName  . ", aguardando. Verifique!";
 
-
-                //   $message = $message . "\n" . ' (Enviada por supervisor(a) ' . Auth::user()->name . ")";
-
+                //   $message = $message . "\n" . ' (Enviada por supervisor(a) ' . Auth::user()->name . ")"
 
                     $requestData = [
                         'messaging_product' => 'whatsapp',
-                        'to' => $recipient_id,
+                        'to' => $User->whatsapp,
                         'type' => 'text',
                         'text' => [
                             'body' => $message,

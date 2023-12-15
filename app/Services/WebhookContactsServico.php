@@ -16,7 +16,7 @@ class WebhookContactsServico
 {
     public static function FiltraCanaisUsuariosAtivos()
 {
-    $result = []; // Array para armazenar os resultados
+    $result = []; 
 
     if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
         $RegistrosContatos = webhookContact::

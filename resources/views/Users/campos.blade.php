@@ -47,6 +47,18 @@
                    </div>
                </div>
            </div>
+            <div class="row">
+               <div class="col-6">
+                   <div class="form-check">
+                       <label class="form-check-label" style="color: green" for="flexCheckDefault">
+                           Recebe alerta de mensagem recebida no Whatsapp
+                       </label>
+                       <input type="hidden" name="alerta_mensagem_recebida" value="0">
+                       <input class="form-check-input" name="alerta_mensagem_recebida" type="checkbox"
+                           @if ($cadastro->alerta_mensagem_recebida) checked @endif value="1" id="flexCheckDefault">
+                   </div>
+               </div>
+           </div>
 
 
 

@@ -395,10 +395,6 @@ class ApiController extends Controller
          };
 
 
-        //  $registro = webhookContact::
-        //  where('recipient_id', $recipient_id)
-        //  ->first();
-
          $registro = webhookContact::
          where('recipient_id', $recipient_id)
          ->where('entry_id', $entry_id)
