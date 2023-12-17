@@ -114,7 +114,7 @@
                 @error('ultima_leitura')
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
-                <label class="form-check-label" style="color: green" for="flexCheckDefault">
+                <label class="form-check-label" style="color: green" for="timestamp">
                            Timestamp de 1 dia atrás:  {{ $umDiaAtras = strtotime('-1 day') }}
                 </label>
             </div>
@@ -122,12 +122,12 @@
             <div class="row">
                 <div class="col-6">
                     <div class="form-check">
-                        <label class="form-check-label" style="color: green" for="flexCheckDefault">
+                        <label class="form-check-label" style="color: green" for="status_mensagem_entregue">
                             STATUS DA MENSAGEM ENTREGUE
                         </label>
                         <input type="hidden" name="status_mensagem_entregue" value="0">
                         <input class="form-check-input" name="status_mensagem_entregue" type="checkbox"
-                            @if ($model->status_mensagem_entregue) checked @endif value="1" id="flexCheckDefault">
+                            @if ($model->status_mensagem_entregue) checked @endif value="1" id="status_mensagem_entregue">
                     </div>
                 </div>
             </div>
@@ -136,43 +136,45 @@
             <div class="row">
                 <div class="col-6">
                     <div class="form-check">
-                        <label class="form-check-label" style="color: red" for="flexCheckDefault">
+                        <label class="form-check-label" style="color: red" for="pagina_refresh">
                             ATUALIZAR PÁGINA NO ATENDIMENTO
                         </label>
                         <input type="hidden" name="pagina_refresh" value="0">
                         <input class="form-check-input" name="pagina_refresh" type="checkbox"
-                            @if ($model->pagina_refresh) checked @endif value="1" id="flexCheckDefault">
+                            @if ($model->pagina_refresh) checked @endif value="1" id="pagina_refresh">
                     </div>
                 </div>
             </div>
 
-            <div class="row">
+             
+
+
+<div class="row">
                 <div class="col-6">
                     <div class="form-check">
-                        <label class="form-check-label" style="color: red" for="flexCheckDefault">
-                            OCULTAR DA LISTA DE ATENDIMENTO
+                        <label class="form-check-label" style="color: red" for="ocultar_lista_atendimento">
+                            OCULTAR NA LISTA DE ATENDIMENTO
                         </label>
                         <input type="hidden" name="ocultar_lista_atendimento" value="0">
                         <input class="form-check-input" name="ocultar_lista_atendimento" type="checkbox"
-                            @if ($model->ocultar_lista_atendimento) checked @endif value="1" id="flexCheckDefault">
+                            @if ($model->ocultar_lista_atendimento) checked @endif value="1" id="ocultar_lista_atendimento">
                     </div>
                 </div>
             </div>
-            <div class="row">
+
+
+<div class="row">
                 <div class="col-6">
                     <div class="form-check">
-                        <label class="form-check-label" style="color: red" for="flexCheckDefault">
-                            ALERTA DE MENSAGEM RECEBIDA
+                        <label class="form-check-label" style="color: red" for="alerta_mensagem_recebida">
+                                                       ALERTA DE MENSAGEM RECEBIDA
                         </label>
-                        <input type="hidden" name="ocultar_lista_atendimento" value="0">
+                        <input type="hidden" name="alerta_mensagem_recebida" value="0">
                         <input class="form-check-input" name="alerta_mensagem_recebida" type="checkbox"
-                            @if ($model->alerta_mensagem_recebida) checked @endif value="1" id="flexCheckDefault">
+                            @if ($model->alerta_mensagem_recebida) checked @endif value="1" id="alerta_mensagem_recebida">
                     </div>
                 </div>
             </div>
-
-            
-
         </div>
     </div>
 

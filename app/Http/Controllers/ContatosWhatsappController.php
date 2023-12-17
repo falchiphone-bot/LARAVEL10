@@ -156,7 +156,7 @@ class ContatosWhatsappController extends Controller
 
         $cadastro->fill($request->all()) ;
 
-
+// dd($request->all());
         $cadastro->save();
 
 
