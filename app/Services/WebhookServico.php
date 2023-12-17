@@ -26,13 +26,19 @@ class WebhookServico
             ]);
         }
         else {
-            $newWebhookContact = WebhookContact::create([
+            if($recipient_id)
+            {
+                $newWebhookContact = WebhookContact::create([
                 'contactName' => $contactName ?? null,
                 'recipient_id' => $recipient_id ?? null,
                 'user_updated' => Auth::user()->email ?? null,
                 'timestamp' => $messagesTimestamp,
                 'entry_id' => $entry_id,
-            ]);
+                ]);
+
+                Log::info('Criado novo contato' . $recipient_id . ' - ' . $contactName);
+            }
+
         }
 
         Log::info($messagesTimestamp);
