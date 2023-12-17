@@ -29,6 +29,8 @@ class webhookContact extends Model
         'timestamp',
         'entry_id',
         'ocultar_lista_atendimento',
+        'alerta_mensagem_recebida',
+        
     ];
 
     public function TelefoneWhatsApp(): HasOne

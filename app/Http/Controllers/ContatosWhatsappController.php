@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ContatosWhatsappCreateRequest;
 use App\Models\ContatosWhatsapp;
 use App\Models\webhookContact;
+use App\Services\WebhookContactsServico;
 use App\Models\webhook;
-
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
+
 
 
 class ContatosWhatsappController extends Controller
@@ -186,4 +187,29 @@ class ContatosWhatsappController extends Controller
         return redirect(route('ContatosWhatsapp.index'));
 
     }
+
+    public function temposessaocontato()
+    {
+        $entry_id = '16772254308312';
+        $alerta= webhookContact::
+        where('alerta_mensagem_recebida', 1)
+        ->orwhere('entry_id', $entry_id)
+        ->orderby('recipient_id')
+        ->get();
+
+
+
+        foreach($alerta as $contatos)
+        {
+           $TempoSessao = WebhookContactsServico::temposessao($contatos);
+           echo ' Contato: ' , $contatos->contactName, ' Tempo da sessão: ' ,$TempoSessao['parte_inteira'], " ";
+
+        }
+
+
+
+
+
+    }
+
 }

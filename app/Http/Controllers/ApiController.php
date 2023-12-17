@@ -428,6 +428,8 @@ class ApiController extends Controller
                 . $body
                 . ' - TimeStamp:'
                 . $messagesTimestamp;
+
+
                 WebhookServico::avisomensagemrecebidasupervisor($MensagemRecebida, $recipient_id, $entry_id, $messagesTimestamp, $contactName);
 
                 $somarecebida = $registro->quantidade_nao_lida + 1;
@@ -1634,7 +1636,7 @@ $tempo_em_segundos  = null;
             return redirect(route('whatsapp.atendimentoWhatsapp'));
         }
 
-       
+
 
         // dd('1',$recipient_id, $entry_id, $selecao);
         $id = $recipient_id;

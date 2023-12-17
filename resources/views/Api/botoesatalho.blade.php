@@ -30,3 +30,9 @@
         role="button" aria-disabled="true">Agradecimento pelo contato - ANGELICA</a>
 </td>
 @endcan
+
+ 
+<td>
+    <a href="{{ route('temposessaocontato.temposessao') }}" class="btn btn-secondary" tabindex="-1"
+        role="button" aria-disabled="true">Verifica tempo das sessões de usuários</a>
+</td>

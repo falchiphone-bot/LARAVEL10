@@ -82,6 +82,7 @@ class WebhookContactsServico
         $tempo_em_horas = null;
         $tempo_em_minutos = null;
 
+
         if ($contatos->timestamp) {
             $tempo_em_segundos = strtotime(now()) - $contatos->timestamp;
             $tempo_em_horas = $tempo_em_segundos / 3600;
@@ -94,7 +95,8 @@ class WebhookContactsServico
         $parte_decimal = isset($partes[1]) ? (float) ('0.' . $partes[1]) : 0;
         $parte_decimal_minutos = round($parte_decimal * 60);
 
-        return [
+        return  [
+            'contato' => $contatos->contactName,
             'tempo_em_segundos' => $tempo_em_segundos,
             'tempo_em_horas' => $tempo_em_horas,
             'tempo_em_minutos' => $tempo_em_minutos,

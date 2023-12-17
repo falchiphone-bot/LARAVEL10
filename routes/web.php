@@ -125,7 +125,8 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
 
  # Contatos do Whatsapp
  Route::resource('ContatosWhatsapp', App\Http\Controllers\ContatosWhatsappController::class);
-
+ Route::get('contatos/temposessao',[App\Http\Controllers\ContatosWhatsappController::class,'temposessaocontato'])->name('temposessaocontato.temposessao');
+ 
 
 
 
