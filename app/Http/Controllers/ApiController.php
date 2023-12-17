@@ -402,9 +402,8 @@ class ApiController extends Controller
         ->first();
 
          if ($registro) {
-            //  $updateData = [
-            //      'user_updated' => 'webhook@falchi.com.br',
-            //  ];
+             $updateData = [
+             ];
 
              if ($status === 'delivered') {
                  $updateData['ultima_entrega'] = now();
@@ -422,7 +421,13 @@ class ApiController extends Controller
                  $updateData['user_updated'] = 'webhook@falchi.com.br';
 
             } elseif ($status === 'received') {
-                $MensagemRecebida = 'Mensagem recebida de: ' . $messagesFrom . ' - ' . $contactName . ' - Com a mensagem: ' . $body . ' - TimeStamp:' . $messagesTimestamp;
+                $MensagemRecebida = 'Mensagem recebida de: '
+                . $messagesFrom
+                . ' - ' . $contactName
+                . ' - Com a mensagem: '
+                . $body
+                . ' - TimeStamp:'
+                . $messagesTimestamp;
                 WebhookServico::avisomensagemrecebidasupervisor($MensagemRecebida, $recipient_id, $entry_id, $messagesTimestamp, $contactName);
 
                 $somarecebida = $registro->quantidade_nao_lida + 1;
@@ -1556,7 +1561,9 @@ $tempo_em_segundos  = null;
 
         // dd($NomeAtendido->user_atendimento, $Ultimo_atendente->user_atendimento);
 
-        if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
+        if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')
+        && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')
+        && Gate::allows('WHATSAPP_ENTRY_ID_179613235241221')) {
 
                 $selecao = webhook::limit(1000)
                 ->where(function($query) use ($entry_id) {
@@ -1573,7 +1580,22 @@ $tempo_em_segundos  = null;
 
         }
         else
-                if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {
+                if (Gate::allows('WHATSAPP_ENTRY_ID_179613235241221')) {
+                    $selecao = webhook::limit(1000)
+                    ->where('entry_id','179613235241221')
+                    ->where(function($query) use ($recipient_id, $entry_id) {
+                        $query->where('recipient_id', $recipient_id)
+                            ->orwhere('messagesFrom', $recipient_id)
+                            ->where('entry_id', $entry_id);
+                    })
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+                    $QuantidadeCanalAtendimento = 1;
+
+                }
+
+       else
+       if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {
                     $selecao = webhook::limit(1000)
                     ->where('entry_id','167722543083127')
                     ->where(function($query) use ($recipient_id, $entry_id) {
@@ -1612,7 +1634,7 @@ $tempo_em_segundos  = null;
             return redirect(route('whatsapp.atendimentoWhatsapp'));
         }
 
-
+       
 
         // dd('1',$recipient_id, $entry_id, $selecao);
         $id = $recipient_id;
@@ -2331,7 +2353,7 @@ else
         $registro = webhook::find($id);
         // $entry_id = $registro->entry_id;
 
-        
+
 
         $NomeAtendido =  webhookContact::where('recipient_id', $registro->messagesFrom)
         ->where('entry_id', $entry_id)

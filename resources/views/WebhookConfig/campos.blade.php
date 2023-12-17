@@ -21,7 +21,7 @@
 
             <div class="col-2">
                 <label for="telefone">Número de telefone</label>
-                <input class="form-control @error('telefone') is-invalid @else is-valid @enderror" name="telefone" 
+                <input class="form-control @error('telefone') is-invalid @else is-valid @enderror" name="telefone"
                 type="text" required id="telefone" value="{{$WebhookConfig->telefone ?? null}}">
                 @error('telefone')
                 <div class="alert alert-danger">{{ $message }}</div>
@@ -72,7 +72,7 @@
                        </label>
                        <input type="hidden" name="ativado" value="0">
                        <input class="form-check-input" name="ativado" type="checkbox"
-                           @if ($WebhookConfig->ativado) checked @endif value="1" id="flexCheckDefault">
+                           {{ $WebhookConfig->ativado ?? null}} checked  value="1" id="flexCheckDefault">
                    </div>
                </div>
            </div>

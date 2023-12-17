@@ -16,19 +16,26 @@ class WebhookContactsServico
 {
     public static function FiltraCanaisUsuariosAtivos()
 {
-    $result = []; 
+    $result = [];
 
-    if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
+//     $RegistrosContatos = webhookContact::get();
+//   dd($RegistrosContatos);
+
+    if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')
+    && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')
+    && Gate::allows('WHATSAPP_ENTRY_ID_179613235241221')) {
         $RegistrosContatos = webhookContact::
             where(function ($query) {
                 $query->whereNull('ocultar_lista_atendimento')
                     ->orWhere('ocultar_lista_atendimento', 0);
             })
-            ->whereIn('entry_id', ['189514994242034', '167722543083127'])
+            ->whereIn('entry_id', ['189514994242034', '167722543083127', '179613235241221'])
             ->orderby('updated_at', 'desc')
             ->get();
 
         $QuantidadeCanalAtendimento = 2;
+
+
     } elseif (Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
         $RegistrosContatos = webhookContact::
             where(function ($query) {
@@ -49,13 +56,23 @@ class WebhookContactsServico
             ->orderby('updated_at', 'desc')
             ->get();
         $QuantidadeCanalAtendimento = 1;
+    } elseif (Gate::allows('WHATSAPP_ENTRY_ID_179613235241221')) {
+        $RegistrosContatos = webhookContact::
+            where(function ($query) {
+                $query->whereNull('ocultar_lista_atendimento')
+                    ->orWhere('ocultar_lista_atendimento', 0);
+            })
+            ->whereIn('entry_id', ['179613235241221'])
+            ->orderby('updated_at', 'desc')
+            ->get();
+        $QuantidadeCanalAtendimento = 1;
     }
 
- 
+
     $result['RegistrosContatos'] = $RegistrosContatos;
     $result['QuantidadeCanalAtendimento'] = $QuantidadeCanalAtendimento;
 
- 
+
     return $result;
 }
 

@@ -885,7 +885,8 @@ class WebhookServico
                         ]
                     );
 
-        //  if ($response->getStatusCode() == 200) {
+         if ($response->getStatusCode() == 200) {
+            Log::info(' Avisado: ' . $User->whatsapp);
 
         //             //              $responseData = json_decode($response->getBody());
         //             //              // Faça algo com a resposta, se necessário
@@ -914,7 +915,7 @@ class WebhookServico
         //             //                  'status' => 'sent' ?? null,
         //             //                  'user_atendimento' => Auth::user()->email,
         //             //              ]);
-        // }
+        }
 
 
 }
