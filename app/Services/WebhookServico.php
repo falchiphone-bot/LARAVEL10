@@ -728,16 +728,16 @@ class WebhookServico
     public static function avisomensagemrecebidasupervisor($MensagemRecebida, $recipient_id, $entry_id, $messagesTimestamp, $contactName)
     {
         Log::info(' Texto: ' . $MensagemRecebida . ' -  VARIAVEIS: Telefone:' . $recipient_id . ' - Nome: ' . $contactName . ' - Canal: ' . $entry_id . ' - TimeStamp: ' . $messagesTimestamp);
- 
-      
- 
+
+
+
 
 
 
         $client = new Client();
         $requestData = [];
 
-       
+
         //   $message = $message . "\n" . ' (Enviada por supervisor(a) ' . Auth::user()->name . ")"
 
                     $alerta= webhookContact::
@@ -747,10 +747,10 @@ class WebhookServico
                     ->get();
                     foreach($alerta as $contatos)
                     {
-                        
+
                         // Log::info(' Contato ' . $contactName);
                         // continue;
-                        
+
                         $TempoSessao = WebhookContactsServico::temposessao($contatos);
 
 
@@ -758,10 +758,10 @@ class WebhookServico
                         ->OrderBy('usuario')
                         ->get()
                         ->first();
-            
+
                     Log::info(' Canal: ' . $entry_id . '=' . $WebhookConfig->identificacaocontawhatsappbusiness);
                     Log::info(' Telefone: ' . $recipient_id);
-            
+
                     $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
                     $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
                     $Token = $WebhookConfig->token24horas;
@@ -781,13 +781,13 @@ class WebhookServico
                             ];
                         }
                         else{
-                            Log::info(' Template: aviso_mensagem_recebida no canal WhatsApp');
+                            Log::info(' Template: aviso_mensagem_recebida_no_canal_whatsapp');
                             $requestData = [
                                 'messaging_product' => 'whatsapp',
                                 'to' => $contatos->recipient_id,
                                 'type' => 'template',
                                 'template' => [
-                                    'name' => 'aviso_mensagem_recebida no canal WhatsApp',
+                                    'name' => 'aviso_mensagem_recebida_no_canal_whatsapp',
                                     'language' => [
                                         'code' => 'pt_BR',
                                     ],
