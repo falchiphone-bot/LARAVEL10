@@ -33,6 +33,7 @@ class Webhook extends Model
         'image_mime_type',
 
         'document_filename',
+        'document_caption',
         'document_id',
         'document_sha256',
         'document_mime_type',
@@ -90,7 +91,7 @@ class Webhook extends Model
         return $this->hasOne(webhookContact::class, 'recipient_id', 'recipient_messages');
     }
 
-    public function Entrada()  
+    public function Entrada()
     {
         return $this->hasOne(webhookConfig::class, 'identificacaocontawhatsappbusiness', 'entry_id');
     }

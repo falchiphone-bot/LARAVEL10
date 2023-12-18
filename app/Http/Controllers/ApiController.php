@@ -89,6 +89,7 @@ class ApiController extends Controller
         $image_sha256 = null;
         $image_mime_type = null;
         $document_filename = null;
+        $document_caption = null;
         $document_mime_type = null;
         $document_sha256 = null;
         $document_id = null;
@@ -177,6 +178,7 @@ class ApiController extends Controller
             if($document)
             {
                 $document_filename = $document['filename'] ?? null;
+                $document_caption = $document['caption'] ?? null;
                 $document_mime_type = $document['mime_type'] ?? null;
                 $document_sha256 = $document['sha256'] ?? null;
                 $document_id = $document['id'] ?? null;
@@ -302,6 +304,7 @@ class ApiController extends Controller
             . "mime_type: " . $mime_type . "\n"
             . "filename: " . $filename . "\n"
             . "document_filename" . $document_filename . "\n"
+            . "document_caption" . $document_caption . "\n"
             . "document_mime_type" . $document_mime_type . "\n"
             . "document_sha256" . $document_sha256  . "\n"
             . 'document_id' . $document_id . "\n"
@@ -462,6 +465,7 @@ class ApiController extends Controller
             'mime_type' => $mime_type ?? null,
             'filename' => $filename ?? null,
             'document_filename' => $document_filename ?? null,
+            'document_caption' => $document_caption ?? null,
             'document_mime_type' => $document_mime_type ?? null,
             'document_sha256' => $document_sha256 ?? null,
             'document_id' => $document_id ?? null,
@@ -1110,6 +1114,7 @@ class ApiController extends Controller
         $image_sha256 = null;
         $image_mime_type = null;
         $document_filename = null;
+        $document_capiotn = null;
         $document_mime_type = null;
         $document_sha256 = null;
         $document_id = null;
@@ -1183,6 +1188,7 @@ class ApiController extends Controller
             if($document)
             {
                 $document_filename = $document['filename'] ?? null;
+                $document_caption = $document['caption'] ?? null;
                 $document_mime_type = $document['mime_type'] ?? null;
                 $document_sha256 = $document['sha256'] ?? null;
                 $document_id = $document['id'] ?? null;
@@ -1332,6 +1338,7 @@ class ApiController extends Controller
             'mime_type' => $mime_type ?? null,
             'filename' => $filename ?? null,
             'document_filename' => $document_filename ?? null,
+            'document_caption' => $document_caption ?? null,
             'document_mime_type' => $document_mime_type ?? null,
             'document_sha256' => $document_sha256 ?? null,
             'document_id' => $document_id ?? null,
@@ -1400,6 +1407,7 @@ class ApiController extends Controller
             . "mime_type: " . $mime_type . "\n"
             . "filename: " . $filename . "\n"
             . "document_filename" . $document_filename . "\n"
+            . "document_caption" . $document_caption . "\n"
             . "document_mime_type" . $document_mime_type . "\n"
             . "document_sha256" . $document_sha256  . "\n"
             . "document_id" . $document_id . "\n"
@@ -1977,6 +1985,7 @@ else
                 'document_caption' => $requestData['document']['caption'] ?? null,
                 'document_id' => $requestData['document']['id'] ?? null,
                 'document_filename' => $name ?? null,
+                'document_caption' => $document_caption ?? null,
                 'video_caption' => $requestData['video']['caption'] ?? null,
                 'video_id' => $requestData['video']['id'] ?? null,
                 'user_atendimento' => Auth::user()->email,
@@ -2574,6 +2583,7 @@ else
                 'document_caption' => $requestData['document']['caption'] ?? null,
                 'document_id' => $requestData['document']['id'] ?? null,
                 'document_filename' => $name ?? null,
+                'document_caption' => $document_caption ?? null,
                 'video_caption' => $requestData['video']['caption'] ?? null,
                 'video_id' => $requestData['video']['id'] ?? null,
                 'user_atendimento' => Auth::user()->email,
@@ -2760,6 +2770,7 @@ else
                 'document_caption' => $requestData['document']['caption'] ?? null,
                 'document_id' => $requestData['document']['id'] ?? null,
                 'document_filename' => $name ?? null,
+                'document_caption' => $document_caption ?? null,
                 'video_caption' => $requestData['video']['caption'] ?? null,
                 'video_id' => $requestData['video']['id'] ?? null,
                 'user_atendimento' => Auth::user()->email,
@@ -2976,6 +2987,7 @@ else
                 'document_caption' => $requestData['document']['caption'] ?? null,
                 'document_id' => $requestData['document']['id'] ?? null,
                 'document_filename' => $name ?? null,
+                'document_caption' => $document_caption ?? null,
                 'video_caption' => $requestData['video']['caption'] ?? null,
                 'video_id' => $requestData['video']['id'] ?? null,
                 'user_atendimento' => Auth::user()->email,
