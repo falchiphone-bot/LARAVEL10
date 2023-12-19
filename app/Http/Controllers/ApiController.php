@@ -1814,7 +1814,10 @@ else
         $model = webhook::where('messagesFrom',$id)->first();
         $entry_id = $model->entry_id;
 
-        $WebhookConfig =  WebhookConfig::where('ativado','1')->first();
+        // $WebhookConfig =  WebhookConfig::where('ativado','1')->first();
+
+        $WebhookConfig =  WebhookConfig::where('identificacaocontawhatsappbusiness',$entry_id)->first();
+
         $phone_number_id = WebhookServico::phone_number_id($entry_id);
         $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
         $Token = $WebhookConfig->token24horas;
@@ -1985,11 +1988,13 @@ else
                 'document_caption' => $requestData['document']['caption'] ?? null,
                 'document_id' => $requestData['document']['id'] ?? null,
                 'document_filename' => $name ?? null,
-                'document_caption' => $document_caption ?? null,
+                // 'document_caption' => $document_caption ?? null,
                 'video_caption' => $requestData['video']['caption'] ?? null,
                 'video_id' => $requestData['video']['id'] ?? null,
                 'user_atendimento' => Auth::user()->email,
             ]);
+
+
 
             $recipient_id = $requestData['to'];
             $contactName = $request->contactName;
