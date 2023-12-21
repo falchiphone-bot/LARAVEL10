@@ -686,7 +686,7 @@ class ApiController extends Controller
     public function indexlista()
     {
         date_default_timezone_set('UTC');
-        $model = webhook::orderBy("id", "desc")->get();
+        $model = webhook::limit(30)->orderBy("id", "desc")->get();
         // $model = webhook::where("id",158)->orderBy("id", "desc")->get();
 
 
@@ -921,7 +921,7 @@ class ApiController extends Controller
 
         $displayPhoneNumber = $metadata['display_phone_number'] ?? null;
         $phoneNumberId = $metadata['phone_number_id'] ?? null;
-         dd($data, $statuses );
+
 
         if (isset($value) && is_array($value) && count($value) > 0) {
             $event = $value['event'] ?? null;
@@ -1114,7 +1114,7 @@ class ApiController extends Controller
         $image_sha256 = null;
         $image_mime_type = null;
         $document_filename = null;
-        $document_capiotn = null;
+        $document_caption = null;
         $document_mime_type = null;
         $document_sha256 = null;
         $document_id = null;
@@ -1164,6 +1164,8 @@ class ApiController extends Controller
         $entry = $data['entry'][0] ?? null;
 
 
+
+
         if ($entry) {
             $entry_id = $entry['id'] ?? null;
             $entry_time = $entry['time'] ?? null;
@@ -1174,6 +1176,28 @@ class ApiController extends Controller
             $document =  $data['entry'][0]['changes'][0]['value']['messages'][0]['document'] ?? null;
 
             $sticker =  $data['entry'][0]['changes'][0]['value']['messages'][0]['sticker'] ?? null;
+
+            $interactive =  $data['entry'][0]['changes'][0]['value']['messages'][0]['interactive'] ?? null;
+            $interactive_type =  $data['entry'][0]['changes'][0]['value']['messages'][0]['interactive']['type'] ?? null;
+            $interactive_nfm_reply =  $data['entry'][0]['changes'][0]['value']['messages'][0]['interactive']['nfm_reply'] ?? null;
+            $interactive_nfm_reply_response_json =  $data['entry'][0]['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['response_json'] ?? null;
+            $interactive_nfm_reply_body =  $data['entry'][0]['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['body'] ?? null;
+            $interactive_nfm_reply_name =  $data['entry'][0]['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['name'] ?? null;
+
+            // Decodificando o JSON para um array associativo
+            $data = json_decode($interactive_nfm_reply_response_json, true);
+
+            // Atribuindo cada valor a uma variável
+            $nome = $data["nome"];
+            $dataNascimento = $data["dataNascimento"];
+            $flow_token = $data["flow_token"];
+            $nomePai = $data["nomePai"];
+            $nomeMae = $data["nomeMae"];
+
+
+            dd($interactive, $interactive_type, $interactive_nfm_reply, $interactive_nfm_reply_response_json,  $interactive_nfm_reply_body,  $interactive_nfm_reply_name,
+
+        $nome, $dataNascimento, $flow_token, $nomePai, $nomeMae);
 
             $statuses =  $data['entry'][0]['changes'][0]['value']['statuses'][0] ?? null;
             if ($statuses) {
