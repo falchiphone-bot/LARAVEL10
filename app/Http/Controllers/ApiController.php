@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FormandoBaseWhatsapp;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -14,6 +15,7 @@ use App\Models\webhookContact;
 use App\Models\WebhookTemplate;
 use App\Services\WebhookServico;
 use App\Services\WebhookContactsServico;
+use DateTime;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -686,7 +688,7 @@ class ApiController extends Controller
     public function indexlista()
     {
         date_default_timezone_set('UTC');
-        $model = webhook::limit(30)->orderBy("id", "desc")->get();
+        $model = webhook::limit(1000)->orderBy("id", "desc")->get();
         // $model = webhook::where("id",158)->orderBy("id", "desc")->get();
 
 
@@ -1158,6 +1160,8 @@ class ApiController extends Controller
         $changes_value_metadata_phone_number_id = null;
         $changes_value_ban_info_waba_ban_state = null;
         $changes_value_ban_info_waba_ban_date = null;
+        $flow_token = null;
+        $flow_description = null;
 
 
         $object = $data['object'] ?? null;
@@ -1177,27 +1181,10 @@ class ApiController extends Controller
 
             $sticker =  $data['entry'][0]['changes'][0]['value']['messages'][0]['sticker'] ?? null;
 
-            $interactive =  $data['entry'][0]['changes'][0]['value']['messages'][0]['interactive'] ?? null;
-            $interactive_type =  $data['entry'][0]['changes'][0]['value']['messages'][0]['interactive']['type'] ?? null;
-            $interactive_nfm_reply =  $data['entry'][0]['changes'][0]['value']['messages'][0]['interactive']['nfm_reply'] ?? null;
-            $interactive_nfm_reply_response_json =  $data['entry'][0]['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['response_json'] ?? null;
-            $interactive_nfm_reply_body =  $data['entry'][0]['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['body'] ?? null;
-            $interactive_nfm_reply_name =  $data['entry'][0]['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['name'] ?? null;
-
-            // Decodificando o JSON para um array associativo
-            $data = json_decode($interactive_nfm_reply_response_json, true);
-
-            // Atribuindo cada valor a uma variável
-            $nome = $data["nome"];
-            $dataNascimento = $data["dataNascimento"];
-            $flow_token = $data["flow_token"];
-            $nomePai = $data["nomePai"];
-            $nomeMae = $data["nomeMae"];
+//////// flow interativos
+             WebhookServico::interactive($entry);
 
 
-            dd($interactive, $interactive_type, $interactive_nfm_reply, $interactive_nfm_reply_response_json,  $interactive_nfm_reply_body,  $interactive_nfm_reply_name,
-
-        $nome, $dataNascimento, $flow_token, $nomePai, $nomeMae);
 
             $statuses =  $data['entry'][0]['changes'][0]['value']['statuses'][0] ?? null;
             if ($statuses) {
@@ -1409,6 +1396,8 @@ class ApiController extends Controller
             'changes_value_metadata_phone_number_id' => $changes_value_metadata_phone_number_id ?? null,
             'changes_value_ban_info_waba_ban_state' => $changes_value_ban_info_waba_ban_state ?? null,
             'changes_value_ban_info_waba_ban_date' => $changes_value_ban_info_waba_ban_date ?? null,
+            'flow_token' => $flow_token ?? null,
+            'flow_description' => $flow_description ?? null,
         ];
 
         $model->update($atualiza);
@@ -1479,6 +1468,8 @@ class ApiController extends Controller
             . "changes_value_metadata_phone_number_id: " . $changes_value_metadata_phone_number_id . "\n"
             . "changes_value_ban_info_waba_ban_state: " . $changes_value_ban_info_waba_ban_state . "\n"
             . "changes_value_ban_info_waba_ban_date:  " . $changes_value_ban_info_waba_ban_date . "\n"
+            . "flow_token:  " . $flow_token . "\n"
+            . "flow_description:  " . $flow_description . "\n"
             . "=================================================\n";
 
         // Caminho para o arquivo de log
@@ -1527,7 +1518,6 @@ class ApiController extends Controller
 
     public function atendimentoWhatsappFiltroTelefone(string $recipient_id, string $entry_id, request $request)
     {
-
         $textopesquisar = null;
 
         $Contatos = webhook::select(DB::raw('CONCAT(recipient_id, messagesFrom) AS recipient_messages'))

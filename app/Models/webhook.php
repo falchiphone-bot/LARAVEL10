@@ -82,7 +82,9 @@ class Webhook extends Model
         'changes_value_ban_info_waba_ban_date',
         'url_arquivo',
         'statusconfirmado',
-        'user_atendimento'
+        'user_atendimento',
+        'flow_token',
+        'flow_description',
     ];
 
 

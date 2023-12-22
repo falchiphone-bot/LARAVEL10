@@ -22,6 +22,7 @@ class FormandoBaseWhatsapp extends Model
     'nomeMae',
     'nomePai',
     'flow_token',
+    'flow_description',
  ];
 
     protected $casts = [
@@ -39,6 +40,7 @@ class FormandoBaseWhatsapp extends Model
         'nomeMae' => 'string',
         'nomePai' => 'string',
         'flow_token' => 'string',
+        'flow_description' => 'string',
     ];
 
 

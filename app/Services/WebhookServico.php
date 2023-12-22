@@ -1,5 +1,7 @@
 <?php
 namespace App\Services;
+
+use App\Models\FormandoBaseWhatsapp;
 use App\Models\webhookAtendimentoEncerrado;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
@@ -8,6 +10,7 @@ use App\Models\webhook;
 use App\Models\WebhookContact;
 use App\Models\WebhookConfig;
 use App\Models\WebhookTemplate;
+use DateTime;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Gate;
@@ -729,111 +732,268 @@ class WebhookServico
     {
         Log::info(' Texto: ' . $MensagemRecebida . ' -  VARIAVEIS: Telefone:' . $recipient_id . ' - Nome: ' . $contactName . ' - Canal: ' . $entry_id . ' - TimeStamp: ' . $messagesTimestamp);
 
-
-
-
-
-
         $client = new Client();
         $requestData = [];
 
-
         //   $message = $message . "\n" . ' (Enviada por supervisor(a) ' . Auth::user()->name . ")"
 
-                    $alerta= webhookContact::
-                    where('alerta_mensagem_recebida', 1)
-                    ->where('entry_id', $entry_id)
-                    ->orderby('recipient_id')
-                    ->get();
-                    foreach($alerta as $contatos)
-                    {
+        $alerta = webhookContact::where('alerta_mensagem_recebida', 1)
+            ->where('entry_id', $entry_id)
+            ->orderby('recipient_id')
+            ->get();
+        foreach ($alerta as $contatos) {
+            // Log::info(' Contato ' . $contactName);
+            // continue;
 
-                        // Log::info(' Contato ' . $contactName);
-                        // continue;
+            $TempoSessao = WebhookContactsServico::temposessao($contatos);
 
-                        $TempoSessao = WebhookContactsServico::temposessao($contatos);
+            $WebhookConfig = WebhookConfig::Where('identificacaocontawhatsappbusiness', $entry_id)
+                ->OrderBy('usuario')
+                ->get()
+                ->first();
+
+            Log::info(' Canal: ' . $entry_id . '=' . $WebhookConfig->identificacaocontawhatsappbusiness);
+            Log::info(' Telefone: ' . $recipient_id);
+
+            $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
+            $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
+            $Token = $WebhookConfig->token24horas;
+
+            $message = 'Tem mensagem recebida na plataforma de canal: ' . $WebhookConfig->telefone . ' para ser atendido.  ' . ' Contato de nome ' . $contactName . ', aguardando. Verifique!';
+
+            Log::info($TempoSessao['parte_inteira']);
+            if ($TempoSessao['parte_inteira'] < 24) {
+                Log::info($message);
+                $requestData = [
+                    'messaging_product' => 'whatsapp',
+                    'to' => $contatos->recipient_id,
+                    'type' => 'text',
+                    'text' => [
+                        'body' => $message,
+                    ],
+                ];
+            } else {
+                Log::info(' Template: aviso_mensagem_recebida_no_canal_whatsapp');
+                $requestData = [
+                    'messaging_product' => 'whatsapp',
+                    'to' => $contatos->recipient_id,
+                    'type' => 'template',
+                    'template' => [
+                        'name' => 'aviso_mensagem_recebida_no_canal_whatsapp',
+                        'language' => [
+                            'code' => 'pt_BR',
+                        ],
+                    ],
+                ];
+            }
+            $response = $client->post('https://graph.facebook.com/v18.0/' . $phone_number_id . '/messages', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $Token,
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => $requestData,
+            ]);
+
+            if ($response->getStatusCode() == 200) {
+                Log::info(' Avisado: ' . $contatos->recipient_id);
+
+                //             //              $responseData = json_decode($response->getBody());
+                //             //              // Faça algo com a resposta, se necessário
+                //             //              // dd("Mensagem nova enviada", $responseData);
+                //             //   ///////////////////Gravar
+                //             //             //  $registro = webhookContact::where('recipient_id', $phone)->get()->first();
+                //             //             $registro =  $webhootContact;
+
+                //             //              $registro->update([
+                //             //               'status_mensagem_enviada' => 0,
+                //             //               'user_updated' => $usuario,
+                //             //               'quantidade_nao_lida' => $registro->quantidade_nao_lida+1,
+                //             //             ]);
+                //             //             $registro->save();
+
+                //             //              $newWebhook = webhook::create([
+                //             //                  'webhook' =>  null,
+                //             //                  'value_messaging_product' => $requestData['messaging_product'] ?? null,
+                //             //                  'object' => $requestData['messaging_product'] ?? null,
+                //             //                  'entry_id' => $identificacaocontawhatsappbusiness ?? null,
+                //             //                  'contactName' => $registro->contactName ?? null,
+                //             //                  'recipient_id' => $requestData['to'] ?? null,
+                //             //                  'type' => $requestData['type'] ?? null,
+                //             //                  'messagesType' => $requestData['type'] ?? null,
+                //             //                  'body' => $requestData['text']['body'] ?? null,
+                //             //                  'status' => 'sent' ?? null,
+                //             //                  'user_atendimento' => Auth::user()->email,
+                //             //              ]);
+            }
+        }
+    }
+
+    public static function interactive($entry)
+    {
+            $data['entry'] = $entry;
+             // DD($data['entry']);
+            /////////   usando flow - recebendo informacoes do formulario
+            $interactive = $entry['changes'][0]['value']['messages'][0]['interactive'] ?? null;
+
+            // DD($interactive, $entry);
+            $interactive_type = $entry['changes'][0]['value']['messages'][0]['interactive']['type'] ?? null;
+            $interactive_nfm_reply = $entry['changes'][0]['value']['messages'][0]['interactive']['nfm_reply'] ?? null;
+            $interactive_nfm_reply_response_json = $entry['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['response_json'] ?? null;
+            $interactive_nfm_reply_body = $entry['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['body'] ?? null;
+            $interactive_nfm_reply_name = $entry['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['name'] ?? null;
+            $messagesFrom = $entry['changes'][0]['value']['messages'][0]['from'] ?? null;
+            $data = json_decode($interactive_nfm_reply_response_json, true);
+            $flow_token = $data['flow_token'];
 
 
-                        $WebhookConfig = WebhookConfig::Where('identificacaocontawhatsappbusiness', $entry_id)
-                        ->OrderBy('usuario')
-                        ->get()
-                        ->first();
 
-                    Log::info(' Canal: ' . $entry_id . '=' . $WebhookConfig->identificacaocontawhatsappbusiness);
-                    Log::info(' Telefone: ' . $recipient_id);
+            if($flow_token = '2120367534804891'){
 
-                    $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
-                    $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
-                    $Token = $WebhookConfig->token24horas;
+                 WebhookServico::CadastrarFlow_token($entry);
+            }
 
- $message = 'Tem mensagem recebida na plataforma de canal: ' . $WebhookConfig->telefone . ' para ser atendido.  ' . ' Contato de nome ' . $contactName . ', aguardando. Verifique!';
 
- Log::info($TempoSessao['parte_inteira']);
-                        if($TempoSessao['parte_inteira'] < 24){
-                            Log::info($message);
-                            $requestData = [
-                                'messaging_product' => 'whatsapp',
-                                'to' => $contatos->recipient_id,
-                                'type' => 'text',
-                                'text' => [
-                                    'body' => $message,
-                                ],
-                            ];
-                        }
-                        else{
-                            Log::info(' Template: aviso_mensagem_recebida_no_canal_whatsapp');
-                            $requestData = [
-                                'messaging_product' => 'whatsapp',
-                                'to' => $contatos->recipient_id,
-                                'type' => 'template',
-                                'template' => [
-                                    'name' => 'aviso_mensagem_recebida_no_canal_whatsapp',
-                                    'language' => [
-                                        'code' => 'pt_BR',
-                                    ],
-                                ],
-                            ];
+            // if ($interactive) {
+            //         // Decodificando o JSON para um array associativo
+            //         $data = json_decode($interactive_nfm_reply_response_json, true);
+            //         // Atribuindo cada valor a uma variável
+            //         $nome = $data['nome'];
+            //         $dataNascimento = $data['dataNascimento'];
+            //         $dataNascimentoObj = DateTime::createFromFormat('d/m/Y', $dataNascimento);
 
-                        }
-                        $response = $client->post('https://graph.facebook.com/v18.0/' . $phone_number_id . '/messages', [
-                            'headers' => [
-                                'Authorization' => 'Bearer ' . $Token,
-                                'Content-Type' => 'application/json',
-                            ],
-                            'json' => $requestData,
-                        ]);
 
-                        if ($response->getStatusCode() == 200) {
-                            Log::info(' Avisado: ' . $contatos->recipient_id);
+            //         if ($dataNascimentoObj != false) {
+            //             $dataNascimentoInt = $dataNascimentoObj->format('Y-m-d');
+            //         }
+            //         $flow_token = $data['flow_token'];
+            //         $nomePai = $data['nomePai'];
+            //         $nomeMae = $data['nomeMae'];
+            //         $flow_description = $data['description'];
+            //         if ($entry_id = '189514994242034') {
+            //             $empresaID = 1029;
+            //         }
 
-                            //             //              $responseData = json_decode($response->getBody());
-                                //             //              // Faça algo com a resposta, se necessário
-                                //             //              // dd("Mensagem nova enviada", $responseData);
-                                //             //   ///////////////////Gravar
-                                //             //             //  $registro = webhookContact::where('recipient_id', $phone)->get()->first();
-                                //             //             $registro =  $webhootContact;
 
-                                //             //              $registro->update([
-                                //             //               'status_mensagem_enviada' => 0,
-                                //             //               'user_updated' => $usuario,
-                                //             //               'quantidade_nao_lida' => $registro->quantidade_nao_lida+1,
-                                //             //             ]);
-                                //             //             $registro->save();
+            //         $formandobasewhatsappContagem = formandobasewhatsapp::where('EmpresaID', $empresaID)
+            //         ->where('flow_token',$flow_token)
+            //         ->where('telefone', $messagesFrom)
+            //         ->get()->count();
 
-                                //             //              $newWebhook = webhook::create([
-                                //             //                  'webhook' =>  null,
-                                //             //                  'value_messaging_product' => $requestData['messaging_product'] ?? null,
-                                //             //                  'object' => $requestData['messaging_product'] ?? null,
-                                //             //                  'entry_id' => $identificacaocontawhatsappbusiness ?? null,
-                                //             //                  'contactName' => $registro->contactName ?? null,
-                                //             //                  'recipient_id' => $requestData['to'] ?? null,
-                                //             //                  'type' => $requestData['type'] ?? null,
-                                //             //                  'messagesType' => $requestData['type'] ?? null,
-                                //             //                  'body' => $requestData['text']['body'] ?? null,
-                                //             //                  'status' => 'sent' ?? null,
-                                //             //                  'user_atendimento' => Auth::user()->email,
-                                //             //              ]);
-                            }
-                        }
+
+            //         ////// incluir registros
+            //         if ($formandobasewhatsappContagem < 6) {
+
+            //             $formandobasewhatsapp = formandobasewhatsapp::where('EmpresaID', $empresaID)
+            //                 ->where('nome', $nome)
+            //                 ->where('flow_token',$flow_token)
+            //                 ->where('telefone', $messagesFrom)
+            //                 ->first();
+
+            //             if ($formandobasewhatsapp) {
+            //                 $formandobasewhatsapp->update([
+            //                     'EmpresaID' => $empresaID,
+            //                     'nome' => $nome ?? null,
+            //                     'nascimento' => $dataNascimentoInt ?? null, // Remova um $ extra de $$dataNascimentoInt
+            //                     'flow_token' => $flow_token ?? null,
+            //                     'nomePai' => $nomePai ?? null,
+            //                     'nomeMae' => $nomeMae ?? null,
+            //                     'flow_description' => $flow_description ?? null,
+            //                     'user_atendimento' => Auth::user()->name ?? null,
+            //                     'telefone' => $messagesFrom ?? null,
+            //                 ]);
+            //             } else {
+            //                 $newformandobasewhatsapp = FormandoBaseWhatsapp::create([
+            //                     'EmpresaID' => $empresaID,
+            //                     'nome' => $nome ?? null,
+            //                     'nascimento' => $dataNascimentoInt ?? null,
+            //                     'flow_token' => $flow_token ?? null,
+            //                     'nomePai' => $nomePai ?? null,
+            //                     'nomeMae' => $nomeMae ?? null,
+            //                     'flow_description' => $flow_description ?? null,
+            //                     'user_atendimento' => Auth::user()->name ?? null,
+            //                     'telefone' => $messagesFrom ?? null,
+            //                 ]);
+            //                 // dd($interactive, $interactive_type, $interactive_nfm_reply, $interactive_nfm_reply_response_json,  $interactive_nfm_reply_body,  $interactive_nfm_reply_name,
+            //                 // $nome, $dataNascimento, $flow_token, $nomePai, $nomeMae, $flow_description, $empresaID, $formandobasewhatsapp, $newformandobasewhatsapp );
+            //             }
+
+            //         }
+            // }
+    }
+
+    public static function CadastrarFlow_token($entry)
+    {
+        // DD($data['entry']);
+       /////////   usando flow - recebendo informacoes do formulario
+       $interactive = $entry['changes'][0]['value']['messages'][0]['interactive'] ?? null;
+
+       // DD($interactive, $entry);
+       $interactive_type = $entry['changes'][0]['value']['messages'][0]['interactive']['type'] ?? null;
+       $interactive_nfm_reply = $entry['changes'][0]['value']['messages'][0]['interactive']['nfm_reply'] ?? null;
+       $interactive_nfm_reply_response_json = $entry['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['response_json'] ?? null;
+       $interactive_nfm_reply_body = $entry['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['body'] ?? null;
+       $interactive_nfm_reply_name = $entry['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['name'] ?? null;
+       $messagesFrom = $entry['changes'][0]['value']['messages'][0]['from'] ?? null;
+
+       if ($interactive) {
+               // Decodificando o JSON para um array associativo
+               $data = json_decode($interactive_nfm_reply_response_json, true);
+               // Atribuindo cada valor a uma variável
+               $nome = $data['nome'];
+               $dataNascimento = $data['dataNascimento'];
+               $dataNascimentoObj = DateTime::createFromFormat('d/m/Y', $dataNascimento);
+
+
+               if ($dataNascimentoObj != false) {
+                   $dataNascimentoInt = $dataNascimentoObj->format('Y-m-d');
+               }
+               $flow_token = $data['flow_token'];
+               $nomePai = $data['nomePai'];
+               $nomeMae = $data['nomeMae'];
+               $flow_description = $data['description'];
+               if ($entry_id = '189514994242034') {
+                   $empresaID = 1029;
+               }
+
+
+               $formandobasewhatsappContagem = formandobasewhatsapp::where('EmpresaID', $empresaID)
+               ->where('flow_token',$flow_token)
+               ->where('telefone', $messagesFrom)
+               ->get()->count();
+
+
+               ////// incluir registros
+               if ($formandobasewhatsappContagem <= 6) {
+
+                   $formandobasewhatsapp = formandobasewhatsapp::where('EmpresaID', $empresaID)
+                       ->where('nome', $nome)
+                       ->where('flow_token',$flow_token)
+                       ->where('telefone', $messagesFrom)
+                       ->first();
+
+                   if (!$formandobasewhatsapp) {
+                       $newformandobasewhatsapp = FormandoBaseWhatsapp::create([
+                           'EmpresaID' => $empresaID,
+                           'nome' => $nome ?? null,
+                           'nascimento' => $dataNascimentoInt ?? null,
+                           'flow_token' => $flow_token ?? null,
+                           'nomePai' => $nomePai ?? null,
+                           'nomeMae' => $nomeMae ?? null,
+                           'flow_description' => $flow_description ?? null,
+                           'user_atendimento' => Auth::user()->name ?? null,
+                           'telefone' => $messagesFrom ?? null,
+                       ]);
+                    //    dd($interactive, $interactive_type, $interactive_nfm_reply, $interactive_nfm_reply_response_json,  $interactive_nfm_reply_body,  $interactive_nfm_reply_name,
+                    //    $nome, $dataNascimento, $flow_token, $nomePai, $nomeMae, $flow_description, $empresaID, $formandobasewhatsapp, $newformandobasewhatsapp );
                     }
+                    else{
+                        dd('ja existe');
+                    }
+               }
+               else{
+                   dd('Atingiu o limite máximo de cadastros pelo número do Whatsapp');
+               }
+       }
+    }
+
 }
