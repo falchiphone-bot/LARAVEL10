@@ -1,7 +1,7 @@
 @include('Layout.Padrao')
 
-<h1 class="text-center">Testes iniciais de Laravel - Inclusão</h1>
+<h1 class="text-center">Empresas - Inclusão</h1>
 <hr>
-<form method="POST" action="/Testes" accept-charset="UTF-8">
-    @include('Testes.campos')
+<form method="POST" action="/Empresas" accept-charset="UTF-8">
+    @include('Empresas.campos')
 </form>

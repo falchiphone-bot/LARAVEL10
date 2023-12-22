@@ -2100,9 +2100,9 @@ else
         $WebhookConfig =  WebhookConfig::find($idWebhookConfig);
 
         $phone_number_id  = $WebhookConfig->identificacaonumerotelefone;
+        $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
 
-
-        // dd($WebhookConfig, $phone_number_id);
+        // dd($WebhookConfig->identificacaocontawhatsappbusiness, $phone_number_id);
         if ($token == 'token24horas') {
             $accessToken = $WebhookConfig->token24horas;
         } elseif ($token == 'tokenpermanenteusuario') {
@@ -2154,7 +2154,7 @@ else
                 'message_template_name' => $requestData['template']['name'] ?? null,
                 'message_template_language' => $requestData['template']['language']['code'] ?? null,
                 'status' => 'sent' ?? null,
-                'entry_id' => $WebhookConfig->identificacaocontawhatsappbusiness ?? null,
+                'entry_id' => $identificacaocontawhatsappbusiness ?? null,
                 'user_updated' =>  $user_updated ?? null,
                 'ContactName'=>   $contactName ?? null,
                 'body'=> $body ?? null,

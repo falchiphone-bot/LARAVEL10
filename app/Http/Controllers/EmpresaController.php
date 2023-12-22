@@ -84,7 +84,9 @@ class EmpresaController extends Controller
         $dados = $request->all();
         //dd($dados);
 
-        Empresa::create($dados);
+        $Empresas = Empresa::create($dados);
+        $Empresas()->save();
+
 
         return redirect(route('Empresas.index'));
     }

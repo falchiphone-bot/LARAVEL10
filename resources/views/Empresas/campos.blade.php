@@ -43,7 +43,9 @@
 
                    <label for="Bloqueiodataanterior" style="color: black;">Bloqueio datas anteriores</label>
                    <input class="form-control" name="Bloqueiodataanterior" type="date" step="1"
-                       id="Bloqueiodataanterior" value="{{ $cadastro->Bloqueiodataanterior->format('Y-m-d') ?? null }}">
+                   id="Bloqueiodataanterior"
+                   value="{{ isset($cadastro->Bloqueiodataanterior) ? $cadastro->Bloqueiodataanterior->format('Y-m-d') : '' }}">
+
                </div>
            </div>
 
@@ -55,7 +57,9 @@
                        </label>
                        <input type="hidden" name="Bloqueio" value="0">
                        <input class="form-check-input" name="Bloqueio" type="checkbox"
-                           @if ($cadastro->Bloqueio) checked @endif value="1" id="flexCheckDefault">
+       @if (isset($cadastro->Bloqueio) && $cadastro->Bloqueio) checked @endif
+       value="1" id="flexCheckDefault">
+
                    </div>
                </div>
            </div>
