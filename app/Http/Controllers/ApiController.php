@@ -462,13 +462,13 @@ class ApiController extends Controller
 
              $data = json_decode($interactive_nfm_reply_response_json, true);
 
-             $nome = $data['nome'];
-             $dataNascimento = $data['dataNascimento'];
+             $nome = $data['nome'] ?? null;
+             $dataNascimento = $data['dataNascimento'] ?? null;
              $dataNascimentoObj = DateTime::createFromFormat('d/m/Y', $dataNascimento);
-             $flow_token = $data['flow_token'];
-             $nomePai = $data['nomePai'];
-             $nomeMae = $data['nomeMae'];
-             $flow_description = $data['description'];
+             $flow_token = $data['flow_token'] ?? null;
+             $nomePai = $data['nomePai'] ?? null;
+             $nomeMae = $data['nomeMae'] ?? null;
+             $flow_description = $data['description'] ?? null;
 
              $body = 'Nome: ' . $nome . " | " .
              'Data de Nascimento: ' . $dataNascimento . " | " .
@@ -476,7 +476,7 @@ class ApiController extends Controller
              'Nome da Mãe: ' . $nomeMae . " | " .
              'Descrição: ' . $flow_description . " | " .
              'Flow Token: ' . $flow_token . " | " .
-             'Código registro: ' . $messagesTimestamp . " | ";
+             'Código registro: ' . $messagesTimestamp . " | " ?? null;
          }
 
             $newWebhook = webhook::create([

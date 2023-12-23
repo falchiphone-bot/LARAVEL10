@@ -843,7 +843,7 @@ class WebhookServico
             $interactive_nfm_reply_name = $entry['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['name'] ?? null;
             $messagesFrom = $entry['changes'][0]['value']['messages'][0]['from'] ?? null;
             $data = json_decode($interactive_nfm_reply_response_json, true);
-            $flow_token = $data['flow_token'];
+            $flow_token = $data['flow_token'] ?? null;
             $codigo_registro = $entry['changes'][0]['value']['messages']['timestamp'] ?? null;
 
 
@@ -942,18 +942,18 @@ class WebhookServico
                // Decodificando o JSON para um array associativo
                $data = json_decode($interactive_nfm_reply_response_json, true);
                // Atribuindo cada valor a uma variável
-               $nome = $data['nome'];
-               $dataNascimento = $data['dataNascimento'];
+               $nome = $data['nome'] ?? null;
+               $dataNascimento = $data['dataNascimento'] ?? null;
                $dataNascimentoObj = DateTime::createFromFormat('d/m/Y', $dataNascimento);
 
 
                if ($dataNascimentoObj != false) {
-                   $dataNascimentoInt = $dataNascimentoObj->format('Y-m-d');
+                   $dataNascimentoInt = $dataNascimentoObj->format('Y-m-d' ?? null);
                }
-               $flow_token = $data['flow_token'];
-               $nomePai = $data['nomePai'];
-               $nomeMae = $data['nomeMae'];
-               $flow_description = $data['description'];
+               $flow_token = $data['flow_token'] ?? null;
+               $nomePai = $data['nomePai'] ?? null;
+               $nomeMae = $data['nomeMae'] ?? null;
+               $flow_description = $data['description'] ?? null;
                if ($entry_id = '189514994242034') {
                    $empresaID = 1029;
                }
@@ -979,7 +979,8 @@ class WebhookServico
                         ->where('telefone', $messagesFrom)
                         ->first();
 
-                        $messagesTimestampCadastro = $formandobasewhatsapp->codigo_registro;
+                        $messagesTimestampCadastro = $formandobasewhatsapp->codigo_registro ?? null;
+                        Log::info($messagesTimestampCadastro);
 
                     if (!$formandobasewhatsapp) {
                         $usuario = Auth::user(); // Garantir que o usuário está autenticado
@@ -997,6 +998,7 @@ class WebhookServico
                             'telefone' => $messagesFrom ?? null,
                             'codigo_registro' => $messagesTimestamp ?? null,
                         ]);
+                        Log::info('ANTES ENVIAR MENSAGEM DE CADASTRO');
                         WebhookServico::avisoInteractiveCadastrado($entry, $messagesFrom, $phone_number_id, $nome_contato, $messagesTimestamp, $nome);
                     }
                     else
@@ -1010,14 +1012,14 @@ class WebhookServico
     public static function avisoInteractiveCadastrado($entry, $messagesFrom, $phone_number_id, $nome_contato, $messagesTimestamp, $nome)
     {
         $message =  $nome_contato . ', o registro com nome de ' . $nome .  ' no CADASTROS DE ATLETAS foi cadastrado com sucesso! O mesmo está vinculado a este whatsapp.
-        O Código do registro é: ' . $messagesTimestamp . 'ANOTE ESTE CÓDIGO PARA FUTURAS CONSULTAS.';
+        O Código do registro é: ' . $messagesTimestamp . '. ANOTE ESTE CÓDIGO PARA FUTURAS CONSULTAS.';
         WebhookServico::EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message);
     }
 
     public static function avisoInteractiveJaCadastrado($entry, $messagesFrom, $phone_number_id, $nome_contato, $nome, $messagesTimestampCadastro)
     {
         $message =  $nome_contato . ', o registro com nome de ' . $nome .  ' no CADASTROS DE ATLETAS já existe! O mesmo está vinculado a este whatsapp.' .'
-        O Código do registro é: ' . $messagesTimestampCadastro . 'ANOTE ESTE CÓDIGO PARA FUTURAS CONSULTAS.';
+        O Código do registro é: ' . $messagesTimestampCadastro . '. ANOTE ESTE CÓDIGO PARA FUTURAS CONSULTAS.';
         WebhookServico::EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message);
     }
 
