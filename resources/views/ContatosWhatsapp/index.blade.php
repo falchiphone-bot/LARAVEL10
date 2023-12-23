@@ -90,9 +90,11 @@
                                 @endif
                                </td>
                                <td>
+                                @if($Model->TelefoneWhatsApp)
                                     <a
                                         href="{{ route('WebhookConfig.index', $Model->TelefoneWhatsApp->telefone) }}">{{ $Model->TelefoneWhatsApp->telefone }}
                                     </a>
+                                @endif
                               </td>
 
                                 @can('WHATSAPP - MENSAGEMAPROVADA')
