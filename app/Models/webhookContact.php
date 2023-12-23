@@ -30,7 +30,8 @@ class webhookContact extends Model
         'entry_id',
         'ocultar_lista_atendimento',
         'alerta_mensagem_recebida',
-        
+        'bloquear_entrada_mensagem',
+
     ];
 
     public function TelefoneWhatsApp(): HasOne
