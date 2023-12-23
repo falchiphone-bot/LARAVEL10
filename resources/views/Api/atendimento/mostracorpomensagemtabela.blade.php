@@ -1,8 +1,13 @@
+
+
 @if ($item->messagesFrom)
+
+    @if ($item->messagesType == 'interactive')
+        CADASTRO
+    @endif
     @if(!empty($item->body))
        {{trim($item->body) }}
     @endif
-
 
 @elseif($item->status == 'failed')
     Problema no envio por não autorização do cliente.

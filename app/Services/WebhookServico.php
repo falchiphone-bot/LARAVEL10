@@ -844,7 +844,7 @@ class WebhookServico
             $messagesFrom = $entry['changes'][0]['value']['messages'][0]['from'] ?? null;
             $data = json_decode($interactive_nfm_reply_response_json, true);
             $flow_token = $data['flow_token'];
-
+            $codigo_registro = $entry['changes'][0]['value']['messages']['timestamp'] ?? null;
 
 
             if($flow_token = '2120367534804891'){
@@ -926,6 +926,7 @@ class WebhookServico
         // DD($data['entry']);
        /////////   usando flow - recebendo informacoes do formulario
        $interactive = $entry['changes'][0]['value']['messages'][0]['interactive'] ?? null;
+       $messagesTimestamp= $entry['changes'][0]['value']['messages'][0]['timestamp'] ?? null;
 
        // DD($interactive, $entry);
        $interactive_type = $entry['changes'][0]['value']['messages'][0]['interactive']['type'] ?? null;
@@ -973,11 +974,11 @@ class WebhookServico
                         ->where('flow_token', $flow_token)
                         ->where('telefone', $messagesFrom)
                         ->first();
-                
+
                     if (!$formandobasewhatsapp) {
                         $usuario = Auth::user(); // Garantir que o usuário está autenticado
                         $userName = $usuario ? $usuario->name : null;
-                
+
                         $newformandobasewhatsapp = FormandoBaseWhatsapp::create([
                             'EmpresaID' => $empresaID,
                             'nome' => $nome ?? null,
@@ -988,39 +989,40 @@ class WebhookServico
                             'flow_description' => $flow_description ?? null,
                             'user_atendimento' => $userName,
                             'telefone' => $messagesFrom ?? null,
+                            'codigo_registro' => $messagesTimestamp ?? null,
                         ]);
                     }
                     else
                     {
-                        WebhookServico::avisoInteractiveJaCadastrado($entry, $messagesFrom, $phone_number_id, $nome_contato); 
+                        WebhookServico::avisoInteractiveJaCadastrado($entry, $messagesFrom, $phone_number_id, $nome_contato);
                     }
                 }
-            
+
        }
     }
-    
+
 
     public static function avisoInteractiveJaCadastrado($entry, $messagesFrom, $phone_number_id, $nome_contato)
     {
         $interactive_nfm_reply_response_json = $entry['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['response_json'] ?? null;
         $data = json_decode($interactive_nfm_reply_response_json, true);
-        $nome = $data['nome'];      
- 
+        $nome = $data['nome'];
+
         $message =  $nome_contato . ', o registro com nome de ' . $nome .  ' no CADASTROS DE ATLETAS já existe! O mesmo está vinculado a este whatsapp.';
 
         WebhookServico::EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message);
 
     }
-    
+
     public static function avisoInteractiveJaAtingiuLimite($entry, $messagesFrom, $phone_number_id, $nome_contato)
-    {      
+    {
         $message =  $nome_contato . ', você atingiu o limite de registros no CADASTROS DE ATLETAS pelo número desse whatsapp!';
 
         WebhookServico::EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message);
     }
 
     public static function EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message)
-    {     
+    {
         $WebhookConfig = WebhookConfig::Where('identificacaonumerotelefone', $phone_number_id)
         ->OrderBy('usuario')
         ->get()
@@ -1051,7 +1053,7 @@ class WebhookServico
         ]);
         // Verifique a resposta
         if ($response->getStatusCode() == 200) {
-            
+
         }
     }
 
