@@ -143,6 +143,8 @@ class ApiController extends Controller
         $entry = $data['entry'][0] ?? null;
 
 
+
+
         if ($entry) {
             $entry_id = $entry['id'] ?? null;
             $entry_time = $entry['time'] ?? null;
@@ -156,6 +158,10 @@ class ApiController extends Controller
                 $recipient_id = $statuses['recipient_id'] ?? null;
                 $conversation_id = $statuses['id'] ?? null;
             }
+
+
+
+
 
             $audio =  $data['entry'][0]['changes'][0]['value']['messages'][0]['audio'] ?? null;
 
@@ -378,6 +384,7 @@ class ApiController extends Controller
         }
 
 
+
         $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName, $messagesTimestamp, $entry_id, $contactName);
 
         $Achou = webhook::where('status',$status)
@@ -407,6 +414,14 @@ class ApiController extends Controller
          ->where('entry_id', $entry_id)
          ->orderBy('id', 'desc')
         ->first();
+                ////////////////////////////////////  se bloquear entrada de mensagem
+                        $bloquear_entrada_mensagem = $registro->bloquear_entrada_mensagem;
+                        $nome_contato = $registro->contactName;
+                        WebhookServico::VerificaBloqueadoEntradaMensagem($entry_id,
+                        $bloquear_entrada_mensagem,
+                        $status, $messagesFrom, $nome_contato);
+                //////////////////////////////////////////////
+
 
          if ($registro) {
              $updateData = [

@@ -1030,6 +1030,15 @@ class WebhookServico
         WebhookServico::EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message);
     }
 
+    public static function avisoMensagemBloqueadaEntrada($entry, $messagesFrom, $phone_number_id, $nome_contato)
+    {
+        $message =  'O teu número está bloqueado para receber mensagem. PROCURE ALGUÉM DA ADMINISTRAÇÃO!';
+
+         Log::info('Mensagem:' .  $message);
+        WebhookServico::EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message);
+
+    }
+
     public static function EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message)
     {
         $WebhookConfig = WebhookConfig::Where('identificacaonumerotelefone', $phone_number_id)
@@ -1038,9 +1047,16 @@ class WebhookServico
         ->first();
 
 
-        $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
-        $Token = $WebhookConfig->token24horas;
+        Log::info('Identificação:'.  $WebhookConfig->identificacaocontawhatsappbusiness);
 
+        $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
+
+        if( $phone_number_id != $identificacaocontawhatsappbusiness)
+        {
+            $phone_number_id = $identificacaocontawhatsappbusiness;
+        }
+
+        $Token = $WebhookConfig->token24horas;
 
         $client = new Client();
         $requestData = [];
@@ -1062,9 +1078,46 @@ class WebhookServico
         ]);
         // Verifique a resposta
         if ($response->getStatusCode() == 200) {
+            Log::info('Mensagem enviada com sucesso na linha 1081!');
 
         }
     }
+
+    public static function VerificaBloqueadoEntradaMensagem ($entry_id,
+    $bloquear_entrada_mensagem,
+     $status, $messagesFrom, $nome_contato)
+    {
+        if($bloquear_entrada_mensagem)
+        {
+            if($status == 'received'){
+            $WebhookConfig = WebhookConfig::Where('identificacaonumerotelefone', $entry_id)
+            ->OrderBy('usuario')
+            ->get()
+            ->first();
+
+            if( $WebhookConfig == null){
+                Log::info('Canal nulo');
+                                exit;
+            }
+
+            $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
+
+            Log::info('bloquear_entrada_mensagem como verdadeiro: ' . $bloquear_entrada_mensagem);
+            Log::info('Telefone:'.  $messagesFrom);
+            Log::info('canal:'.  $phone_number_id);
+            Log::info('Contato:'.  $nome_contato);
+
+            WebhookServico::avisoMensagemBloqueadaEntrada($entry_id, $messagesFrom, $phone_number_id, $nome_contato);
+
+             exit;
+            }
+        }
+
+
+
+    }
+
+
 
 
 }
