@@ -148,6 +148,8 @@ class ApiController extends Controller
             $entry_time = $entry['time'] ?? null;
             $changes = $entry['changes'][0] ?? null;
 
+            
+
             $statuses =  $data['entry'][0]['changes'][0]['value']['statuses'][0] ?? null;
             if ($statuses) {
                 $status = $statuses['status'] ?? null;
@@ -525,7 +527,7 @@ class ApiController extends Controller
         // $contactName = $contactName;
 
 
-
+        WebhookServico::interactive($entry);
 
         $value = $request['hub_challenge'];
         return response($value);
