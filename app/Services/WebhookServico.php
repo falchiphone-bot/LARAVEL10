@@ -934,6 +934,8 @@ class WebhookServico
        $interactive_nfm_reply_body = $entry['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['body'] ?? null;
        $interactive_nfm_reply_name = $entry['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['name'] ?? null;
        $messagesFrom = $entry['changes'][0]['value']['messages'][0]['from'] ?? null;
+       $phone_number_id = $entry['changes'][0]['value']['metadata']['phone_number_id'] ?? null;
+       $nome_contato = $entry['changes'][0]['value']['contacts'][0]['profile']['name'] ?? null;
 
        if ($interactive) {
                // Decodificando o JSON para um array associativo
@@ -963,37 +965,95 @@ class WebhookServico
 
 
                ////// incluir registros
-               if ($formandobasewhatsappContagem <= 6) {
-
-                   $formandobasewhatsapp = formandobasewhatsapp::where('EmpresaID', $empresaID)
-                       ->where('nome', $nome)
-                       ->where('flow_token',$flow_token)
-                       ->where('telefone', $messagesFrom)
-                       ->first();
-
-                   if (!$formandobasewhatsapp) {
-                       $newformandobasewhatsapp = FormandoBaseWhatsapp::create([
-                           'EmpresaID' => $empresaID,
-                           'nome' => $nome ?? null,
-                           'nascimento' => $dataNascimentoInt ?? null,
-                           'flow_token' => $flow_token ?? null,
-                           'nomePai' => $nomePai ?? null,
-                           'nomeMae' => $nomeMae ?? null,
-                           'flow_description' => $flow_description ?? null,
-                           'user_atendimento' => Auth::user()->name ?? null,
-                           'telefone' => $messagesFrom ?? null,
-                       ]);
-                    //    dd($interactive, $interactive_type, $interactive_nfm_reply, $interactive_nfm_reply_response_json,  $interactive_nfm_reply_body,  $interactive_nfm_reply_name,
-                    //    $nome, $dataNascimento, $flow_token, $nomePai, $nomeMae, $flow_description, $empresaID, $formandobasewhatsapp, $newformandobasewhatsapp );
+                if ($formandobasewhatsappContagem >= 6) {
+                    WebhookServico::avisoInteractiveJaAtingiuLimite($entry, $messagesFrom, $phone_number_id, $nome_contato);
+                } else {
+                    $formandobasewhatsapp = FormandoBaseWhatsapp::where('EmpresaID', $empresaID)
+                        ->where('nome', $nome)
+                        ->where('flow_token', $flow_token)
+                        ->where('telefone', $messagesFrom)
+                        ->first();
+                
+                    if (!$formandobasewhatsapp) {
+                        $usuario = Auth::user(); // Garantir que o usuário está autenticado
+                        $userName = $usuario ? $usuario->name : null;
+                
+                        $newformandobasewhatsapp = FormandoBaseWhatsapp::create([
+                            'EmpresaID' => $empresaID,
+                            'nome' => $nome ?? null,
+                            'nascimento' => $dataNascimentoInt ?? null,
+                            'flow_token' => $flow_token ?? null,
+                            'nomePai' => $nomePai ?? null,
+                            'nomeMae' => $nomeMae ?? null,
+                            'flow_description' => $flow_description ?? null,
+                            'user_atendimento' => $userName,
+                            'telefone' => $messagesFrom ?? null,
+                        ]);
                     }
-                    else{
-                        dd('ja existe');
+                    else
+                    {
+                        WebhookServico::avisoInteractiveJaCadastrado($entry, $messagesFrom, $phone_number_id, $nome_contato); 
                     }
-               }
-               else{
-                   dd('Atingiu o limite máximo de cadastros pelo número do Whatsapp');
-               }
+                }
+            
        }
     }
+    
+
+    public static function avisoInteractiveJaCadastrado($entry, $messagesFrom, $phone_number_id, $nome_contato)
+    {
+        $interactive_nfm_reply_response_json = $entry['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['response_json'] ?? null;
+        $data = json_decode($interactive_nfm_reply_response_json, true);
+        $nome = $data['nome'];      
+ 
+        $message =  $nome_contato . ', o registro com nome de ' . $nome .  ' no CADASTROS DE ATLETAS já existe! O mesmo está vinculado a este whatsapp.';
+
+        WebhookServico::EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message);
+
+    }
+    
+    public static function avisoInteractiveJaAtingiuLimite($entry, $messagesFrom, $phone_number_id, $nome_contato)
+    {      
+        $message =  $nome_contato . ', você atingiu o limite de registros no CADASTROS DE ATLETAS pelo número desse whatsapp!';
+
+        WebhookServico::EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message);
+    }
+
+    public static function EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message)
+    {     
+        $WebhookConfig = WebhookConfig::Where('identificacaonumerotelefone', $phone_number_id)
+        ->OrderBy('usuario')
+        ->get()
+        ->first();
+
+
+        $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
+        $Token = $WebhookConfig->token24horas;
+
+
+        $client = new Client();
+        $requestData = [];
+
+        $requestData = [
+            'messaging_product' => 'whatsapp',
+            'to' => $messagesFrom,
+            'type' => 'text',
+            'text' => [
+                'body' => $message,
+            ],
+        ];
+        $response = $client->post('https://graph.facebook.com/v18.0/' . $phone_number_id . '/messages', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $Token,
+                'Content-Type' => 'application/json',
+            ],
+            'json' => $requestData,
+        ]);
+        // Verifique a resposta
+        if ($response->getStatusCode() == 200) {
+            
+        }
+    }
+
 
 }
