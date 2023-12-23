@@ -528,6 +528,29 @@ class ApiController extends Controller
 
 
         WebhookServico::interactive($entry);
+        if($messagesType == 'interactive')
+        {
+            $messagesTimestamp= $entry['changes'][0]['value']['messages'][0]['timestamp'] ?? null;
+            $interactive_nfm_reply_response_json = $entry['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['response_json'] ?? null;
+
+            $data = json_decode($interactive_nfm_reply_response_json, true);
+
+            $nome = $data['nome'];
+            $dataNascimento = $data['dataNascimento'];
+            $dataNascimentoObj = DateTime::createFromFormat('d/m/Y', $dataNascimento);
+            $flow_token = $data['flow_token'];
+            $nomePai = $data['nomePai'];
+            $nomeMae = $data['nomeMae'];
+            $flow_description = $data['description'];
+
+            $body = 'Nome: ' . $nome . " | " .
+            'Data de Nascimento: ' . $dataNascimento . " | " .
+            'Nome do Pai: ' . $nomePai . " | " .
+            'Nome da Mãe: ' . $nomeMae . " | " .
+            'Descrição: ' . $flow_description . " | " .
+            'Flow Token: ' . $flow_token . " | " .
+            'Código registro: ' . $messagesTimestamp . " | ";
+        }
 
         $value = $request['hub_challenge'];
         return response($value);

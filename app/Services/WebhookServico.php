@@ -967,7 +967,7 @@ class WebhookServico
 
                ////// incluir registros
                 if ($formandobasewhatsappContagem >= 6) {
-                    WebhookServico::avisoInteractiveJaAtingiuLimite($entry, $messagesFrom, $phone_number_id, $nome_contato);
+                    WebhookServico::avisoInteractiveJaAtingiuLimite($entry, $messagesFrom, $phone_number_id, $nome_contato, $nome);
                 } else {
                     $formandobasewhatsapp = FormandoBaseWhatsapp::where('EmpresaID', $empresaID)
                         ->where('nome', $nome)
@@ -991,30 +991,31 @@ class WebhookServico
                             'telefone' => $messagesFrom ?? null,
                             'codigo_registro' => $messagesTimestamp ?? null,
                         ]);
+                        WebhookServico::avisoInteractiveCadastrado($entry, $messagesFrom, $phone_number_id, $nome_contato, $messagesTimestamp, $nome);
                     }
                     else
                     {
-                        WebhookServico::avisoInteractiveJaCadastrado($entry, $messagesFrom, $phone_number_id, $nome_contato);
+                        WebhookServico::avisoInteractiveJaCadastrado($entry, $messagesFrom, $phone_number_id, $nome_contato, $nome);
                     }
                 }
 
        }
     }
 
-
-    public static function avisoInteractiveJaCadastrado($entry, $messagesFrom, $phone_number_id, $nome_contato)
+    public static function avisoInteractiveCadastrado($entry, $messagesFrom, $phone_number_id, $nome_contato, $messagesTimestamp, $nome)
     {
-        $interactive_nfm_reply_response_json = $entry['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['response_json'] ?? null;
-        $data = json_decode($interactive_nfm_reply_response_json, true);
-        $nome = $data['nome'];
-
-        $message =  $nome_contato . ', o registro com nome de ' . $nome .  ' no CADASTROS DE ATLETAS já existe! O mesmo está vinculado a este whatsapp.';
-
+        $message =  $nome_contato . ', o registro com nome de ' . $nome .  ' no CADASTROS DE ATLETAS foi cadastrado com sucesso! O mesmo está vinculado a este whatsapp.
+        O Código do registro é: ' . $messagesTimestamp . 'ANOTE ESTE CÓDIGO PARA FUTURAS CONSULTAS.';
         WebhookServico::EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message);
-
     }
 
-    public static function avisoInteractiveJaAtingiuLimite($entry, $messagesFrom, $phone_number_id, $nome_contato)
+    public static function avisoInteractiveJaCadastrado($entry, $messagesFrom, $phone_number_id, $nome_contato, $nome)
+    {
+        $message =  $nome_contato . ', o registro com nome de ' . $nome .  ' no CADASTROS DE ATLETAS já existe! O mesmo está vinculado a este whatsapp.';
+        WebhookServico::EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message);
+    }
+
+    public static function avisoInteractiveJaAtingiuLimite($entry, $messagesFrom, $phone_number_id, $nome_contato, $nome)
     {
         $message =  $nome_contato . ', você atingiu o limite de registros no CADASTROS DE ATLETAS pelo número desse whatsapp!';
 
