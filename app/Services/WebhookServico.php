@@ -975,6 +975,8 @@ class WebhookServico
                         ->where('telefone', $messagesFrom)
                         ->first();
 
+                        $messagesTimestampCadastro = $formandobasewhatsapp->codigo_registro;
+
                     if (!$formandobasewhatsapp) {
                         $usuario = Auth::user(); // Garantir que o usuário está autenticado
                         $userName = $usuario ? $usuario->name : null;
@@ -995,10 +997,9 @@ class WebhookServico
                     }
                     else
                     {
-                        WebhookServico::avisoInteractiveJaCadastrado($entry, $messagesFrom, $phone_number_id, $nome_contato, $nome);
+                        WebhookServico::avisoInteractiveJaCadastrado($entry, $messagesFrom, $phone_number_id, $nome_contato, $nome, $messagesTimestampCadastro );
                     }
                 }
-
        }
     }
 
@@ -1009,9 +1010,10 @@ class WebhookServico
         WebhookServico::EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message);
     }
 
-    public static function avisoInteractiveJaCadastrado($entry, $messagesFrom, $phone_number_id, $nome_contato, $nome)
+    public static function avisoInteractiveJaCadastrado($entry, $messagesFrom, $phone_number_id, $nome_contato, $nome, $messagesTimestampCadastro)
     {
-        $message =  $nome_contato . ', o registro com nome de ' . $nome .  ' no CADASTROS DE ATLETAS já existe! O mesmo está vinculado a este whatsapp.';
+        $message =  $nome_contato . ', o registro com nome de ' . $nome .  ' no CADASTROS DE ATLETAS já existe! O mesmo está vinculado a este whatsapp.' .'
+        O Código do registro é: ' . $messagesTimestampCadastro . 'ANOTE ESTE CÓDIGO PARA FUTURAS CONSULTAS.';
         WebhookServico::EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message);
     }
 
