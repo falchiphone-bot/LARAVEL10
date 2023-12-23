@@ -964,9 +964,13 @@ class WebhookServico
                ->where('telefone', $messagesFrom)
                ->get()->count();
 
-
+               $QuantidadeCadastro = 100;
+               if($messagesFrom != '5517997662949')
+               {
+                $QuantidadeCadastro = 6;
+               }
                ////// incluir registros
-                if ($formandobasewhatsappContagem > 6) {
+                if ($formandobasewhatsappContagem > $QuantidadeCadastro) {
                     WebhookServico::avisoInteractiveJaAtingiuLimite($entry, $messagesFrom, $phone_number_id, $nome_contato, $nome);
                 } else {
                     $formandobasewhatsapp = FormandoBaseWhatsapp::where('EmpresaID', $empresaID)
