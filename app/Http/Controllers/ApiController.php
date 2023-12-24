@@ -1389,13 +1389,15 @@ class ApiController extends Controller
 
             $data = json_decode($interactive_nfm_reply_response_json, true);
 
-            $nome = $data['nome'];
-            $dataNascimento = $data['dataNascimento'];
-            $dataNascimentoObj = DateTime::createFromFormat('d/m/Y', $dataNascimento);
-            $flow_token = $data['flow_token'];
-            $nomePai = $data['nomePai'];
-            $nomeMae = $data['nomeMae'];
-            $flow_description = $data['description'];
+            $nome = $data['nome'] ?? null;
+            $dataNascimento = $data['dataNascimento'] ?? null;
+            $dataNascimentoObj = DateTime::createFromFormat('d/m/Y', $dataNascimento);         
+            $nomePai = $data['nomePai'] ?? null;
+            $nomeMae = $data['nomeMae'] ?? null;
+
+            $flow_description = $data['description'] ?? null;
+            $flow_token = $data['flow_token'] ?? null;
+
 
             $body = 'Nome: ' . $nome . " | " .
             'Data de Nascimento: ' . $dataNascimento . " | " .
