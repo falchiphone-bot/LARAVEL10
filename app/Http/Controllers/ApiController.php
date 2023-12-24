@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use PhpOffice\PhpSpreadsheet\Calculation\Web;
 use Illuminate\Support\Facades\Gate;
+use App\Models\WebhookContactsEnviarFlow;
 
 class ApiController extends Controller
 {
@@ -36,9 +37,11 @@ class ApiController extends Controller
 
     }
 
-
-    //
-
+    public function enviarFlowAlterarCPF($recipient_id, $entry_id)
+    {
+        dd($recipient_id, $entry_id);
+        WebServico::WebhookContactsEnviarFlow($recipient_id, $entry_id);
+    }
 
     public function salvararquivoPostWebhook()
     {
