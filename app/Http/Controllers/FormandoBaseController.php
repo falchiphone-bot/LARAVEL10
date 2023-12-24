@@ -75,12 +75,6 @@ class FormandoBaseController extends Controller
             $request['Limite'] = null;
         }
 
-
-
-
-
-
-
         $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
         ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
         ->OrderBy('Descricao')

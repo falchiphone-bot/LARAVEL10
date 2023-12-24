@@ -751,7 +751,7 @@ class WebhookServico
                 ->OrderBy('usuario')
                 ->get()
                 ->first();
-                
+
 
             // $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
             $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
@@ -996,6 +996,7 @@ class WebhookServico
                             'nomePai' => $nomePai ?? null,
                             'nomeMae' => $nomeMae ?? null,
                             'flow_description' => $flow_description ?? null,
+                            'user_created' => $flow_token ?? null,
                             'user_atendimento' => $userName,
                             'telefone' => $messagesFrom ?? null,
                             'codigo_registro' => $messagesTimestamp ?? null,
@@ -1035,6 +1036,15 @@ class WebhookServico
                // Atribuindo cada valor a uma variável
 
                $Cpf = $data['Cpf'] ;
+
+
+               if (!validarCPF($Cpf)) {
+                    $message =  $nome_contato . ', o CPF: ' . $Cpf . ' é inválido, errado! Verifique o que digitou!' ;
+                    WebhookServico::EnviaMensagem(
+                        $entry, $messagesFrom, $phone_number_id, $nome_contato, $message);
+                    exit;
+               }
+
                $codigoRegistro = $data['codigoRegistro'] ;
 
                $flow_token = $data['flow_token'] ;
@@ -1060,6 +1070,7 @@ class WebhookServico
 
                         $atualiza = [
                             'cpf' => $Cpf,
+                            'user_updated' => $codigoRegistro,
                         ];
                         $formandoBaseWhatsapp->update($atualiza);
 
@@ -1087,8 +1098,7 @@ class WebhookServico
     public static function avisoInteractiveCpfAlterado($entry, $messagesFrom, $phone_number_id, $nome_contato, $messagesTimestamp, $nome, $Cpf)
     {
         $message =  $nome_contato . ', o registro com nome de ' . $nome .
-         ' no CADASTROS DE ATLETAS foi alterado com sucesso o campo CPF para: '. $Cpf .'! O mesmo está vinculado a este whatsapp.
-        O Código do registro é: ' . $messagesTimestamp . '. ANOTE ESTE CÓDIGO PARA FUTURAS CONSULTAS.';
+         ' no CADASTROS DE ATLETAS foi alterado com sucesso o campo CPF para: '. $Cpf .'.';
         WebhookServico::EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message);
     }
 
@@ -1128,7 +1138,7 @@ class WebhookServico
         Log::info('Identificação:' . $phone_number_id);
 
 
-        $WebhookConfig = WebhookConfig::Where('identificacaocontawhatsappbusiness', $phone_number_id)
+        $WebhookConfig = WebhookConfig::Where('identificacaonumerotelefone', $phone_number_id)
         ->OrderBy('usuario')
         ->get()
         ->first();
@@ -1136,13 +1146,11 @@ class WebhookServico
 
         Log::info('Identificação:'.  $WebhookConfig->identificacaocontawhatsappbusiness);
 
-        $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
         $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
-        // if( $phone_number_id != $identificacaocontawhatsappbusiness)
-        // {
-        //     $phone_number_id = $identificacaocontawhatsappbusiness;
-        // }
+        
+        Log::info('Validado:');
 
+        
         $Token = $WebhookConfig->token24horas;
 
         $client = new Client();
@@ -1165,7 +1173,7 @@ class WebhookServico
         ]);
         // Verifique a resposta
         if ($response->getStatusCode() == 200) {
-            Log::info('Mensagem enviada com sucesso na linha 1171!');
+            Log::info('Mensagem enviada com sucesso na linha 1175!');
 
         }
     }
