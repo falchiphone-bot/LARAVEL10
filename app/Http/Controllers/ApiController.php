@@ -1902,10 +1902,12 @@ else
 
 
 
-        $model = webhook::where('messagesFrom',$id)->first();
-        $entry_id = $model->entry_id;
+        // $model = webhook::where('messagesFrom',$id)->first();
+        // $entry_id = $model->entry_id;
 
         // $WebhookConfig =  WebhookConfig::where('ativado','1')->first();
+
+        $entry_id = $request->entry_id;
 
         $WebhookConfig =  WebhookConfig::where('identificacaocontawhatsappbusiness',$entry_id)->first();
 
@@ -2472,7 +2474,7 @@ else
 
 // dd($registro,$NomeAtendido);
 
-        $accessToken = WebhookServico::token24horas();
+        $accessToken = WebhookServico::token24horas($entry_id);
         $phone_number_id = WebhookServico::phone_number_id($entry_id);
 
         $client = new Client();
@@ -2939,6 +2941,7 @@ else
         $usuario = trim(Auth::user()->email);
         $id_arquivo = null;
         $arquivo = $request->file('arquivo') ?? null;
+    
 
       if($arquivo)
       {
@@ -2948,14 +2951,19 @@ else
         $mime_type = $arquivo->getMimeType()  ;
         $id_arquivo = ApiController::Enviar_Arquivo($arquivo, $path, $name, $extension, $mime_type);
       }
-        $idWebhook = $request->recipient_id;
-        $model = webhook::where('messagesFrom',$idWebhook)->first();
+        // $idWebhook = $request->recipient_id;
+        // $model = webhook::where('messagesFrom',$idWebhook)->first();
         $message = $request->input('mensagem');
-        $entry_id = $model->entry_id;
+        // $entry_id = $model->entry_id;
+
+        $entry_id = $request->entry_id;
+
+        
         $WebhookConfig =  WebhookConfig::where('identificacaocontawhatsappbusiness',$entry_id)
         ->get()->first();
-        $phone_number_id = WebhookServico::phone_number_id($entry_id);
+        // $phone_number_id = WebhookServico::phone_number_id($entry_id);
         $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
+        $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
         $Token = $WebhookConfig->token24horas;
             // dd($entry_id, $WebhookConfig, $model, $idWebhook, $phone_number_id  );
 
@@ -2964,8 +2972,15 @@ else
                 ->flash('MensagemNaoPreenchida', 'Token não definido por algum erro. Verifique. Linha 1142!');
                 return redirect()->back();
         }
-        $client = new Client();
+
+
+
+
+   
         $phone = $request->recipient_id; // Número de telefone de destino
+// dd($entry_id,$phone_number_id, $phone);
+
+
         $client = new Client();
         $requestData = [];
 // ================arquivo em anexo como $responseData

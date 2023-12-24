@@ -80,9 +80,9 @@ class WebhookServico
         }
     }
 
-    public static function Token24horas()
+    public static function Token24horas($entry_id)
     {
-        $WebhookConfig = WebhookConfig::Where('ativado', '1')
+        $WebhookConfig = WebhookConfig::Where('identificacaocontawhatsappbusiness', $entry_id)
             ->OrderBy('usuario')
             ->get()
             ->first();
@@ -311,7 +311,7 @@ class WebhookServico
         $User = user::where('email', $UsuarioID)->first();
         $NomeAtendente = $User->name;
 
-        $WebhookConfig = WebhookConfig::Where('ativado', '1')
+        $WebhookConfig = WebhookConfig::Where('identificacaocontawhatsappbusiness', $entry_id)
             ->OrderBy('usuario')
             ->get()
             ->first();
@@ -391,7 +391,7 @@ class WebhookServico
         }
         $webhootContact = webhookcontact::find($id);
 
-        $WebhookConfig = WebhookConfig::Where('ativado', '1')
+        $WebhookConfig = WebhookConfig::Where('identificacaocontawhatsappbusiness', $entry_id)
             ->OrderBy('usuario')
             ->get()
             ->first();
@@ -470,7 +470,7 @@ class WebhookServico
         $User = user::where('whatsapp', $UsuarioID)->first();
         $NomeAtendente = $User->name;
 
-        $WebhookConfig = WebhookConfig::Where('ativado', '1')
+        $WebhookConfig = WebhookConfig::Where('identificacaocontawhatsappbusiness', $entry_id)
             ->OrderBy('usuario')
             ->get()
             ->first();
@@ -549,7 +549,7 @@ class WebhookServico
             $User = user::where('email', $UsuarioID)->first();
             $NomeAtendente = $User->name;
 
-            $WebhookConfig = WebhookConfig::Where('ativado', '1')
+            $WebhookConfig = WebhookConfig::Where('identificacaocontawhatsappbusiness', $entry_id)
                 ->OrderBy('usuario')
                 ->get()
                 ->first();
@@ -673,7 +673,7 @@ class WebhookServico
     public static function Avisaparaatender($recipient_id, $NomeAtendido)
     {
         $accessToken = WebhookServico::Token24horas();
-        $WebhookConfig = WebhookConfig::Where('ativado', '1')
+        $WebhookConfig = WebhookConfig::Where('identificacaocontawhatsappbusiness', $entry_id)
             ->OrderBy('usuario')
             ->get()
             ->first();
@@ -747,14 +747,14 @@ class WebhookServico
 
             $TempoSessao = WebhookContactsServico::temposessao($contatos);
 
-            $WebhookConfig = WebhookConfig::Where('identificacaonumerotelefone', $entry_id)
+            $WebhookConfig = WebhookConfig::Where('identificacaocontawhatsappbusiness', $entry_id)
                 ->OrderBy('usuario')
                 ->get()
                 ->first();
+                
 
-
-            $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
-            $phone_number_id = $WebhookConfig->identificacaocontawhatsappbusiness;
+            // $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
+            $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
             $Token = $WebhookConfig->token24horas;
 
             $message = 'Tem mensagem recebida na plataforma de canal: ' . $WebhookConfig->telefone . ' para ser atendido.  ' . ' Contato de nome ' . $contactName . ', aguardando. Verifique!';
@@ -1013,7 +1013,7 @@ class WebhookServico
 
     public static function AlterarCPF_Flow_token($entry)
     {
-     
+
        /////////   usando flow - recebendo informacoes do formulario
        $interactive = $entry['changes'][0]['value']['messages'][0]['interactive'] ?? null;
        $messagesTimestamp= $entry['changes'][0]['value']['messages'][0]['timestamp'] ?? null;
@@ -1033,31 +1033,31 @@ class WebhookServico
                // Decodificando o JSON para um array associativo
                $data = json_decode($interactive_nfm_reply_response_json, true);
                // Atribuindo cada valor a uma variável
-                
+
                $Cpf = $data['Cpf'] ;
-               $codigoRegistro = $data['codigoRegistro'] ;                             
-               
+               $codigoRegistro = $data['codigoRegistro'] ;
+
                $flow_token = $data['flow_token'] ;
-                           
+
                if ($entry_id = '189514994242034') {
                    $empresaID = 1029;
-               }    
-              
-                    $formandoBaseWhatsapp = FormandoBaseWhatsapp:: 
+               }
+
+                    $formandoBaseWhatsapp = FormandoBaseWhatsapp::
                         where('codigo_registro', $codigoRegistro)
                         ->first();
 
-                    
+
 
                         // DD($entry, $Cpf, $Rg, $codigoRegistro,$flow_token, $flow_description, $formandobasewhatsapp);
-                        $messagesTimestampCadastro = $formandobasewhatsapp->codigo_registro ?? null;
+                        $messagesTimestampCadastro = $formandoBaseWhatsapp->codigo_registro ?? null;
                         Log::info($messagesTimestampCadastro);
 
                     if ($formandoBaseWhatsapp) {
                         $nome = $formandoBaseWhatsapp->nome;
                         // $usuario = Auth::user(); // Garantir que o usuário está autenticado
                         // $userName = $usuario ? $usuario->name : null;
-                      
+
                         $atualiza = [
                             'cpf' => $Cpf,
                         ];
@@ -1073,7 +1073,7 @@ class WebhookServico
                         WebhookServico::avisoInteractiveCpfAlteradoNaoAchado($entry, $messagesFrom, $phone_number_id, $nome_contato, $messagesTimestamp, $nome, $Cpf, $codigoRegistro);
 
                     }
-                
+
        }
     }
 
@@ -1086,7 +1086,7 @@ class WebhookServico
 
     public static function avisoInteractiveCpfAlterado($entry, $messagesFrom, $phone_number_id, $nome_contato, $messagesTimestamp, $nome, $Cpf)
     {
-        $message =  $nome_contato . ', o registro com nome de ' . $nome . 
+        $message =  $nome_contato . ', o registro com nome de ' . $nome .
          ' no CADASTROS DE ATLETAS foi alterado com sucesso o campo CPF para: '. $Cpf .'! O mesmo está vinculado a este whatsapp.
         O Código do registro é: ' . $messagesTimestamp . '. ANOTE ESTE CÓDIGO PARA FUTURAS CONSULTAS.';
         WebhookServico::EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message);
@@ -1125,6 +1125,9 @@ class WebhookServico
 
     public static function EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message)
     {
+        Log::info('Identificação:' . $phone_number_id);
+
+
         $WebhookConfig = WebhookConfig::Where('identificacaocontawhatsappbusiness', $phone_number_id)
         ->OrderBy('usuario')
         ->get()
@@ -1134,11 +1137,11 @@ class WebhookServico
         Log::info('Identificação:'.  $WebhookConfig->identificacaocontawhatsappbusiness);
 
         $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
-
-        if( $phone_number_id != $identificacaocontawhatsappbusiness)
-        {
-            $phone_number_id = $identificacaocontawhatsappbusiness;
-        }
+        $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
+        // if( $phone_number_id != $identificacaocontawhatsappbusiness)
+        // {
+        //     $phone_number_id = $identificacaocontawhatsappbusiness;
+        // }
 
         $Token = $WebhookConfig->token24horas;
 
@@ -1174,7 +1177,7 @@ class WebhookServico
         if($bloquear_entrada_mensagem)
         {
             if($status == 'received'){
-            $WebhookConfig = WebhookConfig::Where('identificacaonumerotelefone', $entry_id)
+            $WebhookConfig = WebhookConfig::Where('identificacaocontawhatsappbusiness', $entry_id)
             ->OrderBy('usuario')
             ->get()
             ->first();
