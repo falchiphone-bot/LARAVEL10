@@ -1,11 +1,14 @@
 
 <div class="container">
-    <h1 class="text-center bg-success text-white">
-                     <a
-                        href="{{ route('whatsapp.enviarFlowAlterarCPF', ['recipient_id' => $NomeAtendido->recipient_id, 
-                        'entry_id' => $NomeAtendido->entry_id]) }}">Enviar flow para alterar CPF
-                    </a>
+        
+             <div class="badge bg-primary text-wrap" style="width: 100%;font-size: 24px;lign=˜Center˜">
+                <a href="{{ route('whatsapp.enviarFlowAlterarCPF', ['recipient_id' => $NomeAtendido->recipient_id, 
+                                'entry_id' => $NomeAtendido->entry_id]) }}" class="btn btn-danger" tabindex="-1"
+                role="button" aria-disabled="true">Enviar flow para alterar CPF</a>
+             </div>
 
+
+    <h1 class="text-center bg-success text-white">              
         {{ $NomeAtendido->contactName ?? null }}</h1>
 
         @if($QuantidadeCanalAtendimento == 1) 

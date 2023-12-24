@@ -12,55 +12,51 @@ use Illuminate\Support\Facades\Log;
 class WebhookContactsEnviarFlow
 {
 
-    // public static function EnviaMensagemFlowAlterarCpf($entry, $messagesFrom, $phone_number_id, $nome_contato, $message)
-    public static function EnviaMensagemFlowAlterarCpf()
+    public static function EnviaMensagemFlowAlterarCpf($recipient_id, $entry_id)
     {
         
-      $messagesFrom = '5517997662949';
-      $phone_number_id = '179589645239799';
-    
-      Log::info('Identificação:' . $phone_number_id);
+      Log::info('Telefone contato:' . $recipient_id . ' canal:'. $entry_id);
 
-        $WebhookConfig = WebhookConfig::Where('identificacaonumerotelefone', $phone_number_id)
+        $WebhookConfig = WebhookConfig::Where('identificacaocontawhatsappbusiness', $entry_id)
         ->OrderBy('usuario')
         ->get()
         ->first();
-  
-
         $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
-
         $Token = $WebhookConfig->token24horas;
+
 
         $client = new Client();
         $requestData = [];
 
         $requestData = [
-          "messaging_product": "whatsapp",
-          "recipient_type": "individual",
-          "to": $messagesFrom,
-          "type": "template",
-          "template": {
-            "name": "cadastro_alterar_cpf",
-            "language": {
-              "code": "pt_BR"
-            },
-            "components": [
-              {
-                "type": "button",
-                "sub_type": "flow",
-                "index": "0",
-                "parameters": [
-                  {
-                    "type": "action",
-                    "action": {
-                      "flow_token": "372275572014981" 
-                    }
-                  }
-                ]
-              }
-            ]
-          }
-        ];
+          'messaging_product' => 'whatsapp',
+          'recipient_type' => 'individual',
+          'to' => $recipient_id,
+          'type' => 'template',
+          'template' => [
+              'name' => 'cadastro_alterar_cpf',
+              'language' => [
+                  'code' => 'pt_BR'
+              ],
+              'components' => [
+                  [
+                      'type' => 'button',
+                      'sub_type' => 'flow',
+                      'index' => '0',
+                      'parameters' => [
+                          [
+                              'type' => 'action',
+                              'action' => [
+                                  'flow_token' => '372275572014981'
+                              ]
+                          ]
+                      ]
+                  ]
+              ]
+          ]
+      ];
+      
+ 
 
         $response = $client->post('https://graph.facebook.com/v18.0/' . $phone_number_id . '/messages', [
             'headers' => [
@@ -73,7 +69,27 @@ class WebhookContactsEnviarFlow
         if ($response->getStatusCode() == 200) {
             Log::info('Flow enviado com sucesso!');
 
-        }
+            $contatos = WebhookContact::where('recipient_id', $recipient_id)
+            ->where('entry_id', $entry_id)
+            ->first();
+
+            $newWebhook = webhook::create([
+              'webhook' => json_encode($requestData) ?? null,
+              'value_messaging_product' => $requestData['messaging_product'] ?? null,
+              'object' => $requestData['messaging_product'] ?? null,
+              'entry_id' => $entry_id?? null,
+              'contactName' => $contatos->contactName ?? null,
+              'recipient_id' => $requestData['to'] ?? null,
+              'type' => $requestData['type'] ?? null,
+              'messagesType' => $requestData['type'] ?? null,
+              'body' => 'Enviado o flow  cadastro_alterar_cpf, token 372275572014981',
+              'status' => 'sent' ?? null,
+              'user_atendimento' => Auth::user()->email,
+              'flow_token' => '372275572014981',
+              'flow_description'=> 'cadastro_alterar_cpf',
+          ]);
+        }    
+ 
     }
 
 }
