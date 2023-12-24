@@ -849,9 +849,9 @@ class WebhookServico
 
                  WebhookServico::CadastrarFlow_token($entry);
             }
-            if($flow_token == '2077273635961118'){
+            if($flow_token == '372275572014981'){
 
-                WebhookServico::AlterarCPF_RG_Flow_token($entry);
+                WebhookServico::AlterarCPF_Flow_token($entry);
            }
 
 
@@ -1011,7 +1011,7 @@ class WebhookServico
        }
     }
 
-    public static function AlterarCPF_RG_Flow_token($entry)
+    public static function AlterarCPF_Flow_token($entry)
     {
      
        /////////   usando flow - recebendo informacoes do formulario
