@@ -23,6 +23,7 @@ use PhpOffice\PhpSpreadsheet\Calculation\Web;
 use Illuminate\Support\Facades\Gate;
 use App\Services\WebhookContactsEnviarFlow;
 
+
 class ApiController extends Controller
 {
 
@@ -486,22 +487,16 @@ class ApiController extends Controller
              $interactive_nfm_reply_response_json = $entry['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['response_json'] ?? null;
 
              $data = json_decode($interactive_nfm_reply_response_json, true);
+             $body =  WebhookContactsEnviarFlow::montabodyflow($data, $messagesTimestamp);
+            
 
-             $nome = $data['nome'] ?? null;
-             $dataNascimento = $data['dataNascimento'] ?? null;
-             $dataNascimentoObj = DateTime::createFromFormat('d/m/Y', $dataNascimento);
-             $flow_token = $data['flow_token'] ?? null;
-             $nomePai = $data['nomePai'] ?? null;
-             $nomeMae = $data['nomeMae'] ?? null;
-             $flow_description = $data['description'] ?? null;
-
-             $body = 'Nome: ' . $nome . " | " .
-             'Data de Nascimento: ' . $dataNascimento . " | " .
-             'Nome do Pai: ' . $nomePai . " | " .
-             'Nome da Mãe: ' . $nomeMae . " | " .
-             'Descrição: ' . $flow_description . " | " .
-             'Flow Token: ' . $flow_token . " | " .
-             'Código registro: ' . $messagesTimestamp . " | " ?? null;
+            //  $body = 'Nome: ' . $nome . " | " .
+            //  'Data de Nascimento: ' . $dataNascimento . " | " .
+            //  'Nome do Pai: ' . $nomePai . " | " .
+            //  'Nome da Mãe: ' . $nomeMae . " | " .
+            //  'Descrição: ' . $flow_description . " | " .
+            //  'Flow Token: ' . $flow_token . " | " .
+            //  'Código registro: ' . $messagesTimestamp . " | " ?? null;
          }
 
             $newWebhook = webhook::create([
@@ -1399,23 +1394,48 @@ class ApiController extends Controller
 
             $data = json_decode($interactive_nfm_reply_response_json, true);
 
-            $nome = $data['nome'] ?? null;
-            $dataNascimento = $data['dataNascimento'] ?? null;
-            $dataNascimentoObj = DateTime::createFromFormat('d/m/Y', $dataNascimento);         
-            $nomePai = $data['nomePai'] ?? null;
-            $nomeMae = $data['nomeMae'] ?? null;
+            // $nome = $data['nome'] ?? null;
+            // $dataNascimento = $data['dataNascimento'] ?? null;
+            // $dataNascimentoObj = DateTime::createFromFormat('d/m/Y', $dataNascimento);         
+            // $nomePai = $data['nomePai'] ?? null;
+            // $nomeMae = $data['nomeMae'] ?? null;
+            // $Cpf = $data['Cpf'] ?? null;
 
-            $flow_description = $data['description'] ?? null;
-            $flow_token = $data['flow_token'] ?? null;
+            // $flow_description = $data['description'] ?? null;
+            // $flow_token = $data['flow_token'] ?? null;
 
 
-            $body = 'Nome: ' . $nome . " | " .
-            'Data de Nascimento: ' . $dataNascimento . " | " .
-            'Nome do Pai: ' . $nomePai . " | " .
-            'Nome da Mãe: ' . $nomeMae . " | " .
-            'Descrição: ' . $flow_description . " | " .
-            'Flow Token: ' . $flow_token . " | " .
-            'Código registro: ' . $messagesTimestamp . " | ";
+            $body = WebhookContactsEnviarFlow::montabodyflow($data);
+            // $body = '';
+
+            // if ($nome) {
+            //     $body .= 'Nome: ' . $nome . " | ";
+            // }
+            // if ($dataNascimento) {
+            //     $body .= 'Data de Nascimento: ' . $dataNascimento . " | ";
+            // }
+            // if ($nomePai) {
+            //     $body .= 'Nome do Pai: ' . $nomePai . " | ";
+            // }
+            // if ($nomeMae) {
+            //     $body .= 'Nome da Mãe: ' . $nomeMae . " | ";
+            // }
+            // if ($flow_description) {
+            //     $body .= 'Descrição: ' . $flow_description . " | ";
+            // }
+            // if ($flow_token) {
+            //     $body .= 'Flow Token: ' . $flow_token . " | ";
+            // }
+            // if ($Cpf) {
+            //     $body .= 'CPF: ' . $Cpf . " | ";
+            // }
+            // if ($messagesTimestamp) {
+            //     $body .= 'Código registro: ' . $messagesTimestamp . " | ";
+            // }
+            
+            // // Remover o último " | " se necessário
+            // $body = rtrim($body, " | ");
+            
         }
 
 
@@ -3161,7 +3181,6 @@ public function enviarMensagemEncerramentoAtendimentoSemAviso(Request $request, 
     return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $phone, 'entry_id' => $registro->entry_id]));
 
 }
-
 
 
 

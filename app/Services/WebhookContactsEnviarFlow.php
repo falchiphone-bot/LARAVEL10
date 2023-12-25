@@ -8,6 +8,7 @@ use App\Models\WebhookConfig;
 use App\Models\WebhookTemplate;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use DateTime;
 
 class WebhookContactsEnviarFlow
 {
@@ -111,6 +112,54 @@ class WebhookContactsEnviarFlow
       }    
 
     }
+
+    public static function montabodyflow($data, $messagesTimestamp)
+{
+    
+    $nome = $data['nome'] ?? null;
+    $dataNascimento = $data['dataNascimento'] ?? null;
+    $dataNascimentoObj = DateTime::createFromFormat('d/m/Y', $dataNascimento);
+    $flow_token = $data['flow_token'] ?? null;
+    $nomePai = $data['nomePai'] ?? null;
+    $nomeMae = $data['nomeMae'] ?? null;
+    $Cpf = $data['Cpf'] ?? null;
+    $flow_description = $data['description'] ?? null;
+    $flow_token = $data['flow_token'] ?? null;
+    $messagesTimestamp = $data['messagesTimestamp'] ?? null;
+
+  $body = '';
+
+            if ($nome) {
+                $body .= 'Nome: ' . $nome . " | ";
+            }
+            if ($dataNascimento) {
+                $body .= 'Data de Nascimento: ' . $dataNascimento . " | ";
+            }
+            if ($nomePai) {
+                $body .= 'Nome do Pai: ' . $nomePai . " | ";
+            }
+            if ($nomeMae) {
+                $body .= 'Nome da Mãe: ' . $nomeMae . " | ";
+            }
+            if ($flow_description) {
+                $body .= 'Descrição: ' . $flow_description . " | ";
+            }
+            if ($flow_token) {
+                $body .= 'Flow Token: ' . $flow_token . " | ";
+            }
+            if ($Cpf) {
+                $body .= 'CPF: ' . $Cpf . " | ";
+            }
+            if ($messagesTimestamp) {
+                $body .= 'Código registro: ' . $messagesTimestamp . " | ";
+            }
+            
+            // Remover o último " | " se necessário
+            $body = rtrim($body, " | ");
+
+            return $body;
+}
+
 
 }
 
