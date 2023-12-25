@@ -33,6 +33,7 @@ class WebhookContactsEnviarFlow
         WebhookContactsEnviarFlow::EnviaMensagemGrava($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id );
     }
 
+
     public static function EnviaMensagemFlowAlterarRg($recipient_id, $entry_id)
     {
       // DADOS DO FLOW CRIADO A MENSAGEM = ID 348317521263758
@@ -44,6 +45,20 @@ class WebhookContactsEnviarFlow
       $flow_token = '348317521263758';
         $flow_name = 'cadastro_alterar_rg';
         $flow_description = 'Enviado o flow  cadastro_alterar_rg, token 348317521263758';
+        WebhookContactsEnviarFlow::EnviaMensagemGrava($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id );
+    }
+
+    public static function EnviaMensagemFlowAlterarCidadeUf($recipient_id, $entry_id)
+    {
+      // DADOS DO FLOW CRIADO A MENSAGEM = ID 381547034317574
+      // {
+      //   "id": "904034640924140",
+      //   "status": "PENDING",
+      //   "category": "MARKETING"
+      // }
+      $flow_token = '381547034317574';
+        $flow_name = 'cadastro_alterar_cidade_uf';
+        $flow_description = 'Enviado o flow  cadastro_alterar_cidade_uf, token 381547034317574';
         WebhookContactsEnviarFlow::EnviaMensagemGrava($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id );
     }
 

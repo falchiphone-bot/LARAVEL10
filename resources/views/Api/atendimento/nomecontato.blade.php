@@ -16,6 +16,11 @@
                                 'entry_id' => $NomeAtendido->entry_id]) }}" class="btn btn-warning" tabindex="-1"
                 role="button" aria-disabled="true">Enviar flow para alterar DOCUMENTO/RG</a>
 
+                <a href="{{ route('whatsapp.enviarFlowAlterarCidadeUf', ['recipient_id' => $NomeAtendido->recipient_id,
+                    'entry_id' => $NomeAtendido->entry_id]) }}" class="btn btn-primary" tabindex="-1"
+                     role="button" aria-disabled="true">Enviar flow para alterar CIDADE/UF</a>
+
+
              </div>
 
 
