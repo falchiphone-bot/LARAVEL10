@@ -51,6 +51,12 @@ class ApiController extends Controller
         return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $recipient_id, 'entry_id' => $entry_id]));
     }
 
+    public function enviarFlowAlterarRG($recipient_id, $entry_id)
+    {
+        WebhookContactsEnviarFlow::EnviaMensagemFlowAlterarRg($recipient_id, $entry_id);
+        return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $recipient_id, 'entry_id' => $entry_id]));
+    }
+
     public function salvararquivoPostWebhook()
     {
         $storagePath = storage_path();
@@ -488,7 +494,7 @@ class ApiController extends Controller
 
              $data = json_decode($interactive_nfm_reply_response_json, true);
              $body =  WebhookContactsEnviarFlow::montabodyflow($data, $messagesTimestamp);
-            
+
 
             //  $body = 'Nome: ' . $nome . " | " .
             //  'Data de Nascimento: ' . $dataNascimento . " | " .
@@ -1396,7 +1402,7 @@ class ApiController extends Controller
 
             // $nome = $data['nome'] ?? null;
             // $dataNascimento = $data['dataNascimento'] ?? null;
-            // $dataNascimentoObj = DateTime::createFromFormat('d/m/Y', $dataNascimento);         
+            // $dataNascimentoObj = DateTime::createFromFormat('d/m/Y', $dataNascimento);
             // $nomePai = $data['nomePai'] ?? null;
             // $nomeMae = $data['nomeMae'] ?? null;
             // $Cpf = $data['Cpf'] ?? null;
@@ -1432,10 +1438,10 @@ class ApiController extends Controller
             // if ($messagesTimestamp) {
             //     $body .= 'Código registro: ' . $messagesTimestamp . " | ";
             // }
-            
+
             // // Remover o último " | " se necessário
             // $body = rtrim($body, " | ");
-            
+
         }
 
 
@@ -2971,7 +2977,7 @@ else
         $usuario = trim(Auth::user()->email);
         $id_arquivo = null;
         $arquivo = $request->file('arquivo') ?? null;
-    
+
 
       if($arquivo)
       {
@@ -2988,7 +2994,7 @@ else
 
         $entry_id = $request->entry_id;
 
-        
+
         $WebhookConfig =  WebhookConfig::where('identificacaocontawhatsappbusiness',$entry_id)
         ->get()->first();
         // $phone_number_id = WebhookServico::phone_number_id($entry_id);
@@ -3006,7 +3012,7 @@ else
 
 
 
-   
+
         $phone = $request->recipient_id; // Número de telefone de destino
 // dd($entry_id,$phone_number_id, $phone);
 
