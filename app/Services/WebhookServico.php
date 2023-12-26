@@ -856,8 +856,12 @@ class WebhookServico
            if($flow_token == '348317521263758'){
 
             WebhookServico::AlterarRG_Flow_token($entry);
-       }
+          }
 
+            if($flow_token == '381547034317574'){
+
+            WebhookServico::AlterarCidadeUf_Flow_token($entry);
+            }
 
             // if ($interactive) {
             //         // Decodificando o JSON para um array associativo
@@ -1141,7 +1145,7 @@ class WebhookServico
                         $formandoBaseWhatsapp->update($atualiza);
 
 
-                        Log::info('ANTES ENVIAR MENSAGEM DE CADASTRO');
+                        Log::info('ANTES ENVIAR MENSAGEM DE CADASTRO para alterar RG');
 
                         WebhookServico::avisoInteractiveRgAlterado($entry, $messagesFrom, $phone_number_id, $nome_contato, $messagesTimestamp, $nome, $Rg);
                     }
@@ -1246,6 +1250,7 @@ class WebhookServico
     {
         $message =  $nome_contato . ', o registro com nome de ' . $nome .
          ' no CADASTROS DE ATLETAS foi alterado com sucesso o campo RG para: '. $Rg .'.';
+         WebhookServico::EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message);
     }
     public static function avisoInteractiveCidadeUfAlterado($entry, $messagesFrom, $phone_number_id, $nome_contato, $messagesTimestamp, $nome, $Cidade, $Uf)
     {
@@ -1253,7 +1258,7 @@ class WebhookServico
          ' no CADASTROS DE ATLETAS foi alterado com sucesso o campo CIDADE e UF/ESTADO para: '. $Cidade. '-'. $Uf .'.';
         WebhookServico::EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message);
     }
-     
+
 
     public static function avisoInteractiveCadastrado($entry, $messagesFrom, $phone_number_id, $nome_contato, $messagesTimestamp, $nome)
     {
@@ -1325,7 +1330,7 @@ class WebhookServico
         ]);
         // Verifique a resposta
         if ($response->getStatusCode() == 200) {
-            Log::info('Mensagem enviada com sucesso na linha 1175!');
+            Log::info('Mensagem enviada com sucesso na linha 1332!');
 
         }
     }
