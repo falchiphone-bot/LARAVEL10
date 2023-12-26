@@ -13,6 +13,20 @@ use DateTime;
 class WebhookContactsEnviarFlow
 {
 
+    public static function EnviaMensagemFlowMenuCadastroBasico($recipient_id, $entry_id)
+    {
+      // DADOS DO FLOW CRIADO A MENSAGEM = ID 348317521263758
+      // {
+      //   "id": "744795220448470",
+      //   "status": "PENDING",
+      //   "category": "MARKETING"
+      // }
+      $flow_token = '1145104546467989';
+        $flow_name = 'menu_cadastro_basico_formandos_afins';
+        $flow_description = 'Enviado o flow  menu_cadastro_basico_formandos_afins , token 1145104546467989';
+        WebhookContactsEnviarFlow::EnviaMensagemGrava($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id );
+    }
+
   public static function EnviaMensagemFlowCadastro($recipient_id, $entry_id)
   {
 
@@ -164,6 +178,7 @@ class WebhookContactsEnviarFlow
         $flow_description = $data['description'] ?? null;
         $flow_token = $data['flow_token'] ?? null;
         $messagesTimestamp = $data['messagesTimestamp'] ?? null;
+        $topicRadio = $data['topicRadio'] ?? null;
 
       $body = '';
 
@@ -190,6 +205,9 @@ class WebhookContactsEnviarFlow
                 }
                 if ($Rg) {
                     $body .= 'RG: ' . $Rg . " | ";
+                }
+                if ($Rg) {
+                    $body .= 'Opção cadastro: ' . $topicRadio . " | ";
                 }
                 if ($messagesTimestamp) {
                     $body .= 'Código registro: ' . $messagesTimestamp . " | ";

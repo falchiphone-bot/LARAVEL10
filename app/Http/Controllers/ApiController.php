@@ -38,7 +38,11 @@ class ApiController extends Controller
 
     }
 
-
+    public function enviarFlowMenuCadastroBasico($recipient_id, $entry_id)
+    {
+        WebhookContactsEnviarFlow::EnviaMensagemFlowMenuCadastroBasico($recipient_id, $entry_id);
+        return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $recipient_id, 'entry_id' => $entry_id]));
+    }
     public function enviarFlowCadastro($recipient_id, $entry_id)
     {
         WebhookContactsEnviarFlow::EnviaMensagemFlowCadastro($recipient_id, $entry_id);

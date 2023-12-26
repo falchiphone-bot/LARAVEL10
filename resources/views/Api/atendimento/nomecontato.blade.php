@@ -3,6 +3,11 @@
 
              <div class="badge bg-secondary text-wrap" style="width: 100%;font-size: 24px;lign='Center'">
 
+                <a href="{{ route('whatsapp.enviarFlowMenuCadastroBasico', ['recipient_id' => $NomeAtendido->recipient_id,
+                    'entry_id' => $NomeAtendido->entry_id]) }}" class="btn btn-primary" tabindex="-1"
+                    role="button" aria-disabled="true">Enviar flow menu do cadastro básico</a>
+
+
                 <a href="{{ route('whatsapp.enviarFlowCadastro', ['recipient_id' => $NomeAtendido->recipient_id,
                                 'entry_id' => $NomeAtendido->entry_id]) }}" class="btn btn-success" tabindex="-1"
                 role="button" aria-disabled="true">Enviar flow para cadastrar formandos/atletas</a>
@@ -19,7 +24,7 @@
 
 
                 <a href="{{ route('whatsapp.enviarFlowAlterarRG', ['recipient_id' => $NomeAtendido->recipient_id,
-                                'entry_id' => $NomeAtendido->entry_id]) }}" class="btn btn-warning" tabindex="-1"
+                                'entry_id' => $NomeAtendido->entry_id]) }}" class="btn btn-secondary" tabindex="-1"
                 role="button" aria-disabled="true">Enviar flow para alterar DOCUMENTO/RG</a>
 
                 <a href="{{ route('whatsapp.enviarFlowAlterarCidadeUf', ['recipient_id' => $NomeAtendido->recipient_id,
