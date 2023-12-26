@@ -859,9 +859,12 @@ class WebhookServico
           }
 
             if($flow_token == '381547034317574'){
-
-            WebhookServico::AlterarCidadeUf_Flow_token($entry);
+              WebhookServico::AlterarCidadeUf_Flow_token($entry);
             }
+
+            if($flow_token == '1434146677313794'){
+                WebhookServico::AlterarNome_Flow_token($entry);
+              }
 
             // if ($interactive) {
             //         // Decodificando o JSON para um array associativo
@@ -1219,7 +1222,69 @@ class WebhookServico
 
        }
     }
+    public static function AlterarNome_Flow_token($entry)
+    {
 
+       /////////   usando flow - recebendo informacoes do formulario
+       $interactive = $entry['changes'][0]['value']['messages'][0]['interactive'] ?? null;
+       $messagesTimestamp= $entry['changes'][0]['value']['messages'][0]['timestamp'] ?? null;
+
+       // DD($interactive, $entry);
+       $interactive_type = $entry['changes'][0]['value']['messages'][0]['interactive']['type'] ?? null;
+       $interactive_nfm_reply = $entry['changes'][0]['value']['messages'][0]['interactive']['nfm_reply'] ?? null;
+       $interactive_nfm_reply_response_json = $entry['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['response_json'] ?? null;
+       $interactive_nfm_reply_body = $entry['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['body'] ?? null;
+       $interactive_nfm_reply_name = $entry['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['name'] ?? null;
+       $messagesFrom = $entry['changes'][0]['value']['messages'][0]['from'] ?? null;
+       $phone_number_id = $entry['changes'][0]['value']['metadata']['phone_number_id'] ?? null;
+       $nome_contato = $entry['changes'][0]['value']['contacts'][0]['profile']['name'] ?? null;
+       $nome = null;
+
+       if ($interactive) {
+               // Decodificando o JSON para um array associativo
+               $data = json_decode($interactive_nfm_reply_response_json, true);
+               // Atribuindo cada valor a uma variável
+
+               $NomeCompleto = $data['Nome'] ;
+
+
+               $codigoRegistro = $data['codigoRegistro'] ;
+
+               $flow_token = $data['flow_token'] ;
+
+               if ($entry_id = '189514994242034') {
+                   $empresaID = 1029;
+               }
+
+                    $formandoBaseWhatsapp = FormandoBaseWhatsapp::
+                        where('codigo_registro', $codigoRegistro)
+                        ->first();
+                        $messagesTimestampCadastro = $formandoBaseWhatsapp->codigo_registro ?? null;
+                        Log::info($messagesTimestampCadastro);
+
+                    if ($formandoBaseWhatsapp) {
+                        $nome = $formandoBaseWhatsapp->nome;
+                        $atualiza = [
+                            'nome' => $NomeCompleto,
+                            'user_updated' => $codigoRegistro,
+                        ];
+                        $formandoBaseWhatsapp->update($atualiza);
+
+
+                        Log::info('ANTES ENVIAR MENSAGEM DE CADASTRO PARA ALTERAR NOME');
+
+                        WebhookServico::avisoInteractiveNomeAlterado($entry, $messagesFrom, $phone_number_id, $nome_contato,
+                         $messagesTimestamp, $nome, $NomeCompleto);
+                    }
+                    else
+                    {
+                        WebhookServico::avisoInteractiveNomeAlteradoNaoAchado($entry, $messagesFrom, $phone_number_id, $nome_contato,
+                        $messagesTimestamp, $nome, $NomeCompleto, $codigoRegistro);
+
+                    }
+
+       }
+    }
 
     public static function avisoInteractiveCpfAlteradoNaoAchado($entry, $messagesFrom, $phone_number_id, $nome_contato, $messagesTimestamp, $nome, $Cpf, $codigoRegistro)
     {
@@ -1252,6 +1317,21 @@ class WebhookServico
          ' no CADASTROS DE ATLETAS foi alterado com sucesso o campo RG para: '. $Rg .'.';
          WebhookServico::EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message);
     }
+    public static function avisoInteractiveNomeAlterado($entry, $messagesFrom, $phone_number_id, $nome_contato, $messagesTimestamp, $nome, $NomeCompleto)
+    {
+        $message =  $nome_contato . ', o registro com nome de ' . $nome .
+         ' no CADASTROS DE ATLETAS foi alterado com sucesso o campo RG para: '. $NomeCompleto .'.';
+         WebhookServico::EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message);
+    }
+    public static function avisoInteractiveNomeAlteradoNaoAchado($entry, $messagesFrom, $phone_number_id, $nome_contato,
+     $messagesTimestamp, $nome, $NomeCompleto, $codigoRegistro)
+    {
+        $message =  $nome_contato . ', O NÚMERO DE CODIGO DE REGISTRO: '
+        . $codigoRegistro . ' para o NOME COMPLETO: ' . $NomeCompleto . ' NÃO FOI LOCALIZADO! VERIFIQUE O QUE DIGITOU!' ;
+        WebhookServico::EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message);
+    }
+
+
     public static function avisoInteractiveCidadeUfAlterado($entry, $messagesFrom, $phone_number_id, $nome_contato, $messagesTimestamp, $nome, $Cidade, $Uf)
     {
         $message =  $nome_contato . ', o registro com nome de ' . $nome .

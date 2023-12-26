@@ -62,6 +62,21 @@ class WebhookContactsEnviarFlow
         WebhookContactsEnviarFlow::EnviaMensagemGrava($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id );
     }
 
+    public static function EnviaMensagemFlowAlterarNome($recipient_id, $entry_id)
+    {
+      // DADOS DO FLOW CRIADO A MENSAGEM = ID 381547034317574
+      // {
+      //   "id": "896152218616381",
+      //   "status": "PENDING",
+      //   "category": "MARKETING"
+      // }
+      $flow_token = '1434146677313794';
+        $flow_name = 'cadastro_alterar_nome_completo';
+        $flow_description = 'Enviado o flow  cadastro_alterar_nome_completo, token 1434146677313794';
+        WebhookContactsEnviarFlow::EnviaMensagemGrava($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id );
+    }
+
+
     public static function  EnviaMensagemGrava($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id)
     {
 
