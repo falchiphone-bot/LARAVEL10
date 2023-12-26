@@ -877,10 +877,28 @@ class WebhookServico
                 if ($topicRadio == 'ALTERAR_CPF') {
 
                     WebhookContactsEnviarFlow::EnviaMensagemFlowAlterarCpf($recipient_id, $entry_id);
-                     
-                } elseif ($topicRadio == 'CADASTROBASICO') {
+
+                } elseif ($topicRadio == 'ALTERAR_RG') {
+                    WebhookContactsEnviarFlow::EnviaMensagemFlowAlterarRg($recipient_id, $entry_id);
 
                 }
+                elseif ($topicRadio == 'ALTERAR_NOMECOMPLETO') {
+                    WebhookContactsEnviarFlow::EnviaMensagemFlowAlterarNome($recipient_id, $entry_id);
+
+                }
+                elseif ($topicRadio == 'ALTERAR_CIDADEUF') {
+                    WebhookContactsEnviarFlow::EnviaMensagemFlowAlterarCidadeUf($recipient_id, $entry_id);
+
+                }
+                elseif ($topicRadio == 'CADASTROBASICO') {
+                    WebhookContactsEnviarFlow::EnviaMensagemFlowCadastro($recipient_id, $entry_id);
+
+                }
+                elseif ($topicRadio == 'ALTERAR_DATANASCIMENTO') {
+
+                }
+
+
             }
 
 

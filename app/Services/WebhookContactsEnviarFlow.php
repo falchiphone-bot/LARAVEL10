@@ -155,11 +155,11 @@ class WebhookContactsEnviarFlow
               'recipient_id' => $requestData['to'] ?? null,
               'type' => $requestData['type'] ?? null,
               'messagesType' => $requestData['type'] ?? null,
-              'body' => $flow_description,
+              'body' => $flow_description ?? null,
               'status' => 'sent' ?? null,
-              'user_atendimento' => Auth::user()->email,
-              'flow_token' => $flow_token,
-              'flow_description'=> $flow_description,
+              'user_atendimento' => Auth::user()->email ?? null,
+              'flow_token' => $flow_token ?? null,
+              'flow_description'=> $flow_description ?? null,
           ]);
         }
     }
