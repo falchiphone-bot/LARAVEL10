@@ -206,7 +206,7 @@ class WebhookContactsEnviarFlow
                 if ($Rg) {
                     $body .= 'RG: ' . $Rg . " | ";
                 }
-                if ($Rg) {
+                if ($topicRadio) {
                     $body .= 'Opção cadastro: ' . $topicRadio . " | ";
                 }
                 if ($messagesTimestamp) {
