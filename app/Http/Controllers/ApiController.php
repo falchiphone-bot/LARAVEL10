@@ -610,6 +610,19 @@ class ApiController extends Controller
 
         WebhookServico::interactive($entry);
 
+        ///////////////// se tiver as palavras faça isso
+        if($status == 'received' && $messagesType == 'text')
+        {
+                 if($body == 'OPÇÃO' || $body == 'opção' || $body == 'Opção'
+                 || $body == 'OPCAO' || $body == 'opcao' || $body == 'Opcao')
+                {
+                    $recipient_id = $messagesFrom;
+                    WebhookContactsEnviarFlow::
+                    EnviaMensagemFlowMenuCadastroBasico($recipient_id, $entry_id);
+
+                }
+        }
+
 
         $value = $request['hub_challenge'];
         return response($value);
