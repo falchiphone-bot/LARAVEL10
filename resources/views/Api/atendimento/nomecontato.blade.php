@@ -15,7 +15,7 @@
 
                 <a href="{{ route('whatsapp.enviarFlowAlterarNomeCompleto', ['recipient_id' => $NomeAtendido->recipient_id,
                     'entry_id' => $NomeAtendido->entry_id]) }}" class="btn btn-warning" tabindex="-1"
-    role="button" aria-disabled="true">Enviar flow para alterar o NOME COMPLETO</a>
+                 role="button" aria-disabled="true">Enviar flow para alterar o NOME COMPLETO</a>
 
 
                 <a href="{{ route('whatsapp.enviarFlowAlterarCPF', ['recipient_id' => $NomeAtendido->recipient_id,
@@ -33,9 +33,11 @@
 
                      <a href="{{ route('whatsapp.enviarFlowAlterarNascimento', ['recipient_id' => $NomeAtendido->recipient_id,
                         'entry_id' => $NomeAtendido->entry_id]) }}" class="btn btn-danger" tabindex="-1"
-        role="button" aria-disabled="true">Enviar flow para alterar NASCIMENTO</a>
+                     role="button" aria-disabled="true">Enviar flow para alterar NASCIMENTO</a>
 
-
+                    <a href="{{ route('whatsapp.enviarFlowAlterarNomeMae', ['recipient_id' => $NomeAtendido->recipient_id,
+                        'entry_id' => $NomeAtendido->entry_id]) }}" class="btn btn-danger" tabindex="-1"
+                    role="button" aria-disabled="true">Enviar flow para alterar NOME DA MÃE</a>
 
 
              </div>
