@@ -76,6 +76,22 @@ class WebhookContactsEnviarFlow
         WebhookContactsEnviarFlow::EnviaMensagemGrava($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id );
     }
 
+    public static function EnviaMensagemFlowAlterarNascimento($recipient_id, $entry_id)
+    {
+      // DADOS DO FLOW CRIADO A MENSAGEM = ID 3496535283943398
+      // {
+      //   "id": "317767004567130",
+      //   "status": "PENDING",
+      //   "category": "MARKETING"
+      // }
+      $flow_token = '3496535283943398';
+        $flow_name = 'cadastro_alterar_data_de_nascimento';
+        $flow_description = 'Enviado o flow  cadastro_alterar_data_de_nascimento, token 3496535283943398';
+        WebhookContactsEnviarFlow::EnviaMensagemGrava($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id );
+    }
+
+
+
     public static function EnviaMensagemFlowAlterarNome($recipient_id, $entry_id)
     {
       // DADOS DO FLOW CRIADO A MENSAGEM = ID 381547034317574
