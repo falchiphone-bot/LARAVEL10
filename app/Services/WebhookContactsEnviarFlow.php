@@ -1,5 +1,7 @@
 <?php
 namespace App\Services;
+
+use App\Models\FormandoBaseWhatsapp;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use App\Models\webhook;
@@ -9,6 +11,7 @@ use App\Models\WebhookTemplate;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use DateTime;
+use PhpParser\Node\Stmt\Foreach_;
 
 class WebhookContactsEnviarFlow
 {
@@ -264,6 +267,106 @@ class WebhookContactsEnviarFlow
                 $body = rtrim($body, " | ");
 
                 return $body;
+    }
+
+
+    public static function  EnviaMensagemGravaDados($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id, $mensagem)
+    {
+
+      $WebhookConfig = WebhookConfig::Where('identificacaocontawhatsappbusiness', $entry_id)
+      ->OrderBy('usuario')
+      ->get()
+      ->first();
+      $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
+      $Token = $WebhookConfig->token24horas;
+
+      $client = new Client();
+      $requestData = [];
+
+
+
+    $requestData = [
+        'messaging_product' => 'whatsapp',
+        'to' => $recipient_id,
+        'type' => 'text',
+        'text' => [
+            'body' => $mensagem,
+        ],
+    ];
+
+        $response = $client->post('https://graph.facebook.com/v18.0/' . $phone_number_id . '/messages', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $Token,
+                'Content-Type' => 'application/json',
+            ],
+            'json' => $requestData,
+        ]);
+
+        if ($response->getStatusCode() == 200) {
+            Log::info('Flow enviado com sucesso!');
+
+            $contatos = WebhookContact::where('recipient_id', $recipient_id)
+            ->where('entry_id', $entry_id)
+            ->first();
+
+            $newWebhook = webhook::create([
+              'webhook' => json_encode($requestData) ?? null,
+              'value_messaging_product' => $requestData['messaging_product'] ?? null,
+              'object' => $requestData['messaging_product'] ?? null,
+              'entry_id' => $entry_id?? null,
+              'contactName' => $contatos->contactName ?? null,
+              'recipient_id' => $requestData['to'] ?? null,
+              'type' => $requestData['type'] ?? null,
+              'messagesType' => $requestData['type'] ?? null,
+              'body' => $mensagem ?? null,
+              'status' => 'sent' ?? null,
+              'user_atendimento' => Auth::user()->email ?? null,
+              'flow_token' => $flow_token ?? null,
+              'flow_description'=> $flow_description ?? null,
+          ]);
+        }
+    }
+
+
+
+    public static function EnviaMensagemDadosCadastroBasico($recipient_id, $entry_id)
+    {
+        $CadastroBasico = FormandoBaseWhatsapp::where('recipient_id', $recipient_id)->get();
+
+        $mensagem = "📋 *Dados do Cadastro Básico*\n\n";
+
+        // Adiciona cabeçalhos
+        $mensagem .= "👤 *Código registro* |👤 *Nome* | 🎂 *Data Nasc.* | 👨‍👦 *Pai* | 👩‍👦 *Mãe* | 🆔 *CPF* | 🆔 *RG* | 🕒 *Cidade* | 📻 *UF*\n";
+
+        foreach ($CadastroBasico as $Cadastro) {
+            $mensagem .= sprintf(
+                "%s |%s | %s | %s | %s | %s | %s | %s | %s\n",
+                $Cadastro->codigo_registro,
+                $Cadastro->nome,
+                $Cadastro->dataNascimento,
+                $Cadastro->nomePai,
+                $Cadastro->nomeMae,
+                $Cadastro->Cpf,
+                $Cadastro->Rg,
+                $Cadastro->cidade,
+                $Cadastro->UF
+            );
+        }
+
+
+dd($mensagem);
+
+        // Enviar a mensagem via WhatsApp aqui
+        // Exemplo: WhatsappApi::enviarMensagem($recipient_id, $entry_id ,$mensagem);
+
+        // WebhookServico::avisoInteractiveCadastrado($entry, $messagesFrom, $phone_number_id, $nome_contato, $messagesTimestamp, $nome);
+
+
+        $flow_token = null;
+        $flow_name = 'Dados do Cadastro Básico';
+        $flow_description = 'Enviado os dados do cadastro básico.';
+        WebhookContactsEnviarFlow::EnviaMensagemGrava($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id );
+
     }
 
 

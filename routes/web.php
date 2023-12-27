@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\OAuthController;
+use App\Http\Services;
 
 /*
 |--------------------------------------------------------------------------
@@ -200,6 +201,7 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
  Route::get('/whatsapp/enviarFlowAlterarNascimento/{recipient_id}/{entry_id}', [App\Http\Controllers\ApiController::class, 'enviarFlowAlterarNascimento'])->name('whatsapp.enviarFlowAlterarNascimento');
  Route::get('/whatsapp/enviarFlowAlterarNomeMae/{recipient_id}/{entry_id}', [App\Http\Controllers\ApiController::class, 'enviarFlowAlterarNomeMae'])->name('whatsapp.enviarFlowAlterarNomeMae');
  Route::get('/whatsapp/enviarFlowAlterarNomePai/{recipient_id}/{entry_id}', [App\Http\Controllers\ApiController::class, 'enviarFlowAlterarNomePai'])->name('whatsapp.enviarFlowAlterarNomePai');
+Route::get('/whatsapp/EnviaMensagemDadosCadastroBasico/{recipient_id}/{entry_id}', [App\Http\Controllers\ApiController::class, 'EnviaMensagemDadosCadastroBasico'])->name('whatsapp.EnviaMensagemDadosCadastroBasico');
 
 
  Route::get('/whatsapp/atualizaregistro/{id}', [App\Http\Controllers\ApiController::class, 'atualizaregistro'])->name('whatsapp.atualizaregistro');

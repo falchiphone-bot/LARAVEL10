@@ -3232,7 +3232,43 @@ public function enviarMensagemEncerramentoAtendimentoSemAviso(Request $request, 
 
 }
 
+public function EnviaMensagemDadosCadastroBasico($recipient_id, $entry_id)
+    {
+        $CadastroBasico = FormandoBaseWhatsapp::where('telefone', $recipient_id)->get();
 
+
+
+        $mensagem = "📋 *Dados do Cadastro Básico*\n\n";
+
+        // Adiciona cabeçalhos
+        // $mensagem .= "👤 *Código registro* |👤 *Nome* | 🎂 *Data Nasc.* | 👨‍👦 *Pai* | 👩‍👦 *Mãe* | 🆔 *CPF* | 🆔 *RG* | 🕒 *Cidade* | 📻 *UF*\n";
+        $mensagem .= "\n";
+
+        foreach ($CadastroBasico as $Cadastro) {
+            $mensagem .= sprintf(
+                "%s | %s | %s | %s | %s | %s | %s | %s | %s\n",
+                "Código de registro: ".trim($Cadastro->codigo_registro)."\n",
+                "Nome: ". trim($Cadastro->nome)."\n",
+                "Data de nascimento: ".trim($Cadastro->nascimento->format('d/m/Y'))."\n",
+                "Nome do pai: ".trim($Cadastro->nomePai)."\n",
+                "Nome da mãe: ".trim($Cadastro->nomeMae)."\n",
+                "CPF: ". trim($Cadastro->cpf)."\n",
+                "RG: ".trim($Cadastro->rg)."\n",
+                "Cidade: ".trim($Cadastro->cidade)."\n",
+                "UF/Estado: ".trim($Cadastro->uf)."\n",
+            );
+        }
+
+
+
+
+        $flow_token = null;
+        $flow_name = 'Dados do Cadastro Básico';
+        $flow_description = 'Enviado os dados do cadastro básico.';
+        WebhookContactsEnviarFlow::EnviaMensagemGravaDados($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id, $mensagem);
+        return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $recipient_id, 'entry_id' => $entry_id]));
+
+    }
 
 
 

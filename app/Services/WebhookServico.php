@@ -1398,6 +1398,12 @@ class WebhookServico
 
             $dataNascimento = $data['dataNascimento'] ?? null;
 
+            $dataNascimentoObj = DateTime::createFromFormat('d/m/Y', $dataNascimento);
+
+            if ($dataNascimentoObj != false) {
+                $dataNascimentoInt = $dataNascimentoObj->format('Y-m-d' ?? null);
+            }
+
             $codigoRegistro = $data['codigoRegistro'];
 
             $flow_token = $data['flow_token'];
@@ -1413,7 +1419,7 @@ class WebhookServico
             if ($formandoBaseWhatsapp) {
                 $nome = $formandoBaseWhatsapp->nome;
                 $atualiza = [
-                    'nascimento' => $dataNascimento,
+                    'nascimento' => $dataNascimentoInt,
                     'user_updated' => $codigoRegistro,
                 ];
                 $formandoBaseWhatsapp->update($atualiza);

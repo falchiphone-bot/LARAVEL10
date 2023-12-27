@@ -44,6 +44,11 @@
                     role="button" aria-disabled="true">Enviar flow para alterar NOME DO PAI</a>
 
 
+                    <a href="{{ route('whatsapp.EnviaMensagemDadosCadastroBasico', ['recipient_id' => $NomeAtendido->recipient_id,
+                        'entry_id' => $NomeAtendido->entry_id]) }}" class="btn btn-warning" tabindex="-1"
+                    role="button" aria-disabled="true">Enviar os dados do cadastro básico</a>
+
+
              </div>
 
 
