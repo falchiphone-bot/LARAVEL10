@@ -81,6 +81,12 @@ class ApiController extends Controller
         WebhookContactsEnviarFlow::EnviaMensagemFlowAlterarNomeMae($recipient_id, $entry_id);
         return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $recipient_id, 'entry_id' => $entry_id]));
     }
+    public function enviarFlowAlterarNomePai($recipient_id, $entry_id)
+    {
+        WebhookContactsEnviarFlow::EnviaMensagemFlowAlterarNomePai($recipient_id, $entry_id);
+        return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $recipient_id, 'entry_id' => $entry_id]));
+    }
+
 
     public function salvararquivoPostWebhook()
     {
@@ -1436,7 +1442,7 @@ class ApiController extends Controller
             // $flow_token = $data['flow_token'] ?? null;
 
 
-            $body = WebhookContactsEnviarFlow::montabodyflow($data);
+            $body = WebhookContactsEnviarFlow::montabodyflow($data, $messagesTimestamp);
             // $body = '';
 
             // if ($nome) {

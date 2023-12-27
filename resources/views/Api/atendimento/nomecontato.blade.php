@@ -36,8 +36,12 @@
                      role="button" aria-disabled="true">Enviar flow para alterar NASCIMENTO</a>
 
                     <a href="{{ route('whatsapp.enviarFlowAlterarNomeMae', ['recipient_id' => $NomeAtendido->recipient_id,
-                        'entry_id' => $NomeAtendido->entry_id]) }}" class="btn btn-danger" tabindex="-1"
+                        'entry_id' => $NomeAtendido->entry_id]) }}" class="btn btn-success" tabindex="-1"
                     role="button" aria-disabled="true">Enviar flow para alterar NOME DA MÃE</a>
+
+                    <a href="{{ route('whatsapp.enviarFlowAlterarNomePai', ['recipient_id' => $NomeAtendido->recipient_id,
+                        'entry_id' => $NomeAtendido->entry_id]) }}" class="btn btn-warning" tabindex="-1"
+                    role="button" aria-disabled="true">Enviar flow para alterar NOME DO PAI</a>
 
 
              </div>

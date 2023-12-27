@@ -861,7 +861,7 @@ class WebhookServico
         }elseif ($flow_token == '338160952497179') {
             WebhookServico::AlterarNomeMae_Flow_token($entry);
         }
-        elseif ($flow_token == ' ') {
+        elseif ($flow_token == '1082401946512589') {
             WebhookServico::AlterarNomePai_Flow_token($entry);
         }
 
@@ -879,6 +879,12 @@ class WebhookServico
                 WebhookContactsEnviarFlow::EnviaMensagemFlowCadastro($recipient_id, $entry_id);
             } elseif ($topicRadio == 'ALTERAR_DATANASCIMENTO') {
                 WebhookContactsEnviarFlow::EnviaMensagemFlowAlterarNascimento($recipient_id, $entry_id);
+            }
+            elseif ($topicRadio == 'ALTERAR_MAE') {
+                WebhookContactsEnviarFlow::EnviaMensagemFlowAlterarNomeMae($recipient_id, $entry_id);
+            }
+            elseif ($topicRadio == 'ALTERAR_PAI') {
+                WebhookContactsEnviarFlow::EnviaMensagemFlowAlterarNomePai($recipient_id, $entry_id);
             }
         }
 
@@ -1312,6 +1318,62 @@ class WebhookServico
         }
     }
 
+    public static function AlterarNomePai_Flow_token($entry)
+    {
+        /////////   usando flow - recebendo informacoes do formulario
+        $interactive = $entry['changes'][0]['value']['messages'][0]['interactive'] ?? null;
+        $messagesTimestamp = $entry['changes'][0]['value']['messages'][0]['timestamp'] ?? null;
+
+        // DD($interactive, $entry);
+        $interactive_type = $entry['changes'][0]['value']['messages'][0]['interactive']['type'] ?? null;
+        $interactive_nfm_reply = $entry['changes'][0]['value']['messages'][0]['interactive']['nfm_reply'] ?? null;
+        $interactive_nfm_reply_response_json = $entry['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['response_json'] ?? null;
+        $interactive_nfm_reply_body = $entry['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['body'] ?? null;
+        $interactive_nfm_reply_name = $entry['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['name'] ?? null;
+        $messagesFrom = $entry['changes'][0]['value']['messages'][0]['from'] ?? null;
+        $phone_number_id = $entry['changes'][0]['value']['metadata']['phone_number_id'] ?? null;
+        $nome_contato = $entry['changes'][0]['value']['contacts'][0]['profile']['name'] ?? null;
+        $nome = null;
+
+        if ($interactive) {
+            // Decodificando o JSON para um array associativo
+            $data = json_decode($interactive_nfm_reply_response_json, true);
+            // Atribuindo cada valor a uma variável
+
+            $nomePai = $data['nomePai'];
+
+
+            $codigoRegistro = $data['codigoRegistro'];
+
+            $flow_token = $data['flow_token'];
+
+            if ($entry_id = '189514994242034') {
+                $empresaID = 1029;
+            }
+
+            $formandoBaseWhatsapp = FormandoBaseWhatsapp::where('codigo_registro', $codigoRegistro)->first();
+            $messagesTimestampCadastro = $formandoBaseWhatsapp->codigo_registro ?? null;
+            Log::info($messagesTimestampCadastro);
+
+            if ($formandoBaseWhatsapp) {
+                $nome = $formandoBaseWhatsapp->nome;
+                $atualiza = [
+                    'nomePai' => $nomePai,
+                    'user_updated' => $codigoRegistro,
+                ];
+                $formandoBaseWhatsapp->update($atualiza);
+
+                Log::info('ANTES ENVIAR MENSAGEM DE CADASTRO PARA ALTERAR NOME DO PAI');
+
+                WebhookServico::avisoInteractiveNomePaiAlterado($entry, $messagesFrom, $phone_number_id, $nome_contato,
+                 $messagesTimestamp, $nome, $nomePai);
+            } else {
+                WebhookServico::avisoInteractiveNomePaiAlteradoNaoAchado($entry, $messagesFrom, $phone_number_id,
+                $nome_contato, $messagesTimestamp, $nome, $nomePai, $codigoRegistro);
+            }
+        }
+    }
+
     public static function AlterarNascimento_Flow_token($entry)
     {
         /////////   usando flow - recebendo informacoes do formulario
@@ -1431,6 +1493,22 @@ class WebhookServico
     {
         $message = $nome_contato . ', O NÚMERO DE CODIGO DE REGISTRO: ' . $codigoRegistro .
          ' para o NOME DA MÃE: ' . $nomeMae . ' NÃO FOI LOCALIZADO! VERIFIQUE O QUE DIGITOU!';
+        WebhookServico::EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message);
+    }
+
+    public static function avisoInteractiveNomePaiAlterado($entry, $messagesFrom, $phone_number_id, $nome_contato,
+    $messagesTimestamp, $nome, $nomePai)
+    {
+        $message = $nome_contato . ', o registro com nome de ' . $nome .
+        ' no CADASTROS DE ATLETAS foi alterado com sucesso o campo NOME PAI para: ' . $nomePai . '.';
+        WebhookServico::EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message);
+    }
+
+    public static function avisoInteractiveNomePaiAlteradoNaoAchado($entry, $messagesFrom, $phone_number_id,
+     $nome_contato, $messagesTimestamp, $nome, $nomePai, $codigoRegistro)
+    {
+        $message = $nome_contato . ', O NÚMERO DE CODIGO DE REGISTRO: ' . $codigoRegistro .
+         ' para o NOME DO PAI: ' . $nomePai . ' NÃO FOI LOCALIZADO! VERIFIQUE O QUE DIGITOU!';
         WebhookServico::EnviaMensagem($entry, $messagesFrom, $phone_number_id, $nome_contato, $message);
     }
 
