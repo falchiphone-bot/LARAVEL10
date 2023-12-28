@@ -2243,13 +2243,16 @@ else
 
         $idWebhookConfig = $request->idWebhookConfig;
 
-        // $WebhookConfig =  WebhookConfig::where('ativado','1')
-        // ->first();
+        $WebhookConfig =  WebhookConfig::where('ativado','1')
+        ->first();
 
-        $WebhookConfig =  WebhookConfig::find($idWebhookConfig);
+        // $WebhookConfig =  WebhookConfig::find($idWebhookConfig);
+
+      
 
         $phone_number_id  = $WebhookConfig->identificacaonumerotelefone;
         $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
+//   DD($WebhookConfig,$idWebhookConfig, $request->all(),  $phone_number_id  );
 
         // dd($WebhookConfig->identificacaocontawhatsappbusiness, $phone_number_id);
         if ($token == 'token24horas') {

@@ -33,6 +33,19 @@ class WebhookContactsEnviarFlow
         EnviaMensagemGrava($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id );
     }
 
+    public static function EnviaMensagemEstamosTrabalhando($recipient_id, $entry_id)
+    {
+       
+      $flow_token = '';
+        // $flow_name = 'menu_cadastro_basico_formandos_afins';
+
+        $flow_name = 'trabalhando_para_mais_opcoes';
+        $flow_description = 'Enviado trabalhando_para_mais_opcoes';
+        WebhookContactsEnviarFlow::
+        EnviaMensagemGravaTemplate($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id );
+    }
+
+
   public static function EnviaMensagemFlowCadastro($recipient_id, $entry_id)
   {
 
@@ -408,7 +421,64 @@ class WebhookContactsEnviarFlow
 
     }
 
+    public static function  EnviaMensagemGravaTemplate($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id)
+    {
 
+      $WebhookConfig = WebhookConfig::Where('identificacaocontawhatsappbusiness', $entry_id)
+      ->OrderBy('usuario')
+      ->get()
+      ->first();
+      $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
+      $Token = $WebhookConfig->token24horas;
+
+      $client = new Client();
+      $requestData = [];
+
+      $requestData = [
+        'messaging_product' => 'whatsapp',
+        'to' => $recipient_id,  
+        'type' => 'template',
+        'template' => [
+            'name' => $flow_name,
+            'language' => [
+                'code' => 'pt_BR',
+            ],
+        ],
+    ];
+    Log::info('Template:'. $flow_name);
+
+        $response = $client->post('https://graph.facebook.com/v18.0/' . $phone_number_id . '/messages', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $Token,
+                'Content-Type' => 'application/json',
+            ],
+            'json' => $requestData,
+        ]);
+
+        if ($response->getStatusCode() == 200) {
+            Log::info('Flow enviado com sucesso!');
+
+            $contatos = WebhookContact::where('recipient_id', $recipient_id)
+            ->where('entry_id', $entry_id)
+            ->first();
+
+            $newWebhook = webhook::create([
+              'webhook' => json_encode($requestData) ?? null,
+              'value_messaging_product' => $requestData['messaging_product'] ?? null,
+              'object' => $requestData['messaging_product'] ?? null,
+              'entry_id' => $entry_id?? null,
+              'contactName' => $contatos->contactName ?? null,
+              'recipient_id' => $requestData['to'] ?? null,
+              'type' => $requestData['type'] ?? null,
+              'messagesType' => $requestData['type'] ?? null,
+              'body' => $flow_description ?? null,
+              'status' => 'sent' ?? null,
+              'user_atendimento' => Auth::user()->email ?? null,
+              'flow_token' => $flow_token ?? null,
+              'flow_description'=> $flow_description ?? null,
+          ]);
+        }
+    }
 
 
 }
