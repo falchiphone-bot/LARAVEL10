@@ -9,7 +9,9 @@
         @if ($item->messagesType == 'image')
 
 
-                <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $item->image_id ?? null) }}" target="_blank"
+                <a href="{{  route('whatsapp.Pegar_URL_Arquivo', ['id' =>$item->image_id, 'entry_id' => $entry_id]) }}" target="_blank"
+
+                   
                     rel="noopener noreferrer">
                     <img src="{{ '/storage/' . $item->url_arquivo }}" alt="Imagem" style="max-width: 100px;">
                 </a>
@@ -25,6 +27,7 @@
     @else
             @if (file_exists($item->url_arquivo))
             <a href="{{ '/storage/' . $item->url_arquivo }}" target="_blank" rel="noopener noreferrer">
+                
                 <img src="{{ '/storage/'  . $item->url_arquivo }}" alt="Imagem" style="max-width: 100px;">
             </a>
         @endif

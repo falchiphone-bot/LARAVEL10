@@ -2248,7 +2248,7 @@ else
 
         // $WebhookConfig =  WebhookConfig::find($idWebhookConfig);
 
-      
+
 
         $phone_number_id  = $WebhookConfig->identificacaonumerotelefone;
         $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
@@ -2326,9 +2326,11 @@ else
         }
     }
 
-    public function Pegar_URL_Arquivo(string $id)
+    public function Pegar_URL_Arquivo(string $id, $entry_id)
     {
-        $accessToken = WebhookServico::token24horas();
+        $accessToken = WebhookServico::accessToken($entry_id);
+
+
         $client = new Client();
         $response = $client->get("https://graph.facebook.com/v18.0/".trim($id),
             [
@@ -2457,7 +2459,9 @@ else
 
     public function Enviar_Arquivo($arquivo, $path, $name, $extension, $mime_type, $entry_id)
     {
-        $accessToken = WebhookServico::token24horas();
+        // $id ="0";
+        // $accessToken = WebhookServico::token24horas($id, $entry_id);
+        $accessToken = WebhookServico::accessToken($entry_id);
         $phone_number_id = WebhookServico::phone_number_id($entry_id);
         $id_arquivo = null;
 

@@ -210,7 +210,7 @@ Route::get('/whatsapp/EnviaMensagemDadosCadastroBasico/{recipient_id}/{entry_id}
 
  Route::get('/whatsapp/salvararquivoPostWebhook', [App\Http\Controllers\ApiController::class, 'salvararquivoPostWebhook'])->name('whatsapp.salvararquivoPostWebhook');
 
- Route::get('/whatsapp/Pegar_URL_Arquivo/{id}', [App\Http\Controllers\ApiController::class,
+ Route::get('/whatsapp/Pegar_URL_Arquivo/{id}/{entry_id}', [App\Http\Controllers\ApiController::class,
  'Pegar_URL_Arquivo'])->name('whatsapp.Pegar_URL_Arquivo');
  Route::get('/whatsapp/ConvidarMensagemAprovada/{id}', [App\Http\Controllers\ApiController::class,
  'ConvidarMensagemAprovada'])->name('whatsapp.ConvidarMensagemAprovada');

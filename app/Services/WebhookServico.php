@@ -90,6 +90,13 @@ class WebhookServico
         return $accessToken;
     }
 
+    public static function accessToken($entry_id)
+    {
+        $WebhookConfig = WebhookConfig::Where('identificacaocontawhatsappbusiness', trim($entry_id))->first();
+        $accessToken = $WebhookConfig->token24horas;
+        return $accessToken;
+    }
+
     public static function phone_number_id($entry_id)
     {
         $WebhookConfig = WebhookConfig::Where('identificacaocontawhatsappbusiness', trim($entry_id))->first();
