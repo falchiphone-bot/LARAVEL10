@@ -866,7 +866,7 @@ class WebhookServico
         }
 
         ///////////////// menu de opcoes
-        if ($flow_token == '1145104546467989') {
+        if ($flow_token == '383392457504361') {
             if ($topicRadio == 'ALTERAR_CPF') {
                 WebhookContactsEnviarFlow::EnviaMensagemFlowAlterarCpf($recipient_id, $entry_id);
             } elseif ($topicRadio == 'ALTERAR_RG') {
@@ -885,6 +885,14 @@ class WebhookServico
             }
             elseif ($topicRadio == 'ALTERAR_PAI') {
                 WebhookContactsEnviarFlow::EnviaMensagemFlowAlterarNomePai($recipient_id, $entry_id);
+            }
+            elseif ($topicRadio == 'MEUS_CADASTROS') {
+                WebhookContactsEnviarFlow::EnviaMensagemMeusDadosCadastroBasico($recipient_id, $entry_id);
+                // return redirect(route('whatsapp.EnviaMensagemDadosCadastroBasico', ['recipient_id' => $recipient_id,
+                //         'entry_id' => $entry_id]));
+            }
+            elseif ($topicRadio == 'OUTRAS_OPCOES') {
+
             }
         }
 
