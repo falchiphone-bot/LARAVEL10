@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Http;
 use PhpOffice\PhpSpreadsheet\Calculation\Web;
 use Illuminate\Support\Facades\Gate;
 use App\Services\WebhookContactsEnviarFlow;
-
+use App\Services\WebhookServicoInteligencia;
 
 class ApiController extends Controller
 {
@@ -613,14 +613,17 @@ class ApiController extends Controller
         ///////////////// se tiver as palavras faça isso
         if($status == 'received' && $messagesType == 'text')
         {
-                 if($body == 'OPÇÃO' || $body == 'opção' || $body == 'Opção'
-                 || $body == 'OPCAO' || $body == 'opcao' || $body == 'Opcao')
-                {
-                    $recipient_id = $messagesFrom;
-                    WebhookContactsEnviarFlow::
-                    EnviaMensagemFlowMenuCadastroBasico($recipient_id, $entry_id);
 
-                }
+                //  if($body == 'OPÇÃO' || $body == 'opção' || $body == 'Opção'
+                //  || $body == 'OPCAO' || $body == 'opcao' || $body == 'Opcao')
+                // {
+                //     $recipient_id = $messagesFrom;
+                //     WebhookContactsEnviarFlow::
+                //     EnviaMensagemFlowMenuCadastroBasico($recipient_id, $entry_id);
+
+                // }
+                WebhookServicoInteligencia::selecaotexto($entry);
+
         }
 
 
@@ -820,6 +823,8 @@ class ApiController extends Controller
             $entry = $data['entry'][0] ?? null;
 
             // dd($data);
+
+            //
 
             if ($entry) {
                 $entry_id = $entry['id'] ?? null;
@@ -1263,7 +1268,6 @@ class ApiController extends Controller
 
         $object = $data['object'] ?? null;
         $entry = $data['entry'][0] ?? null;
-
 
 
 

@@ -104,6 +104,20 @@ class WebhookContactsServico
         ];
     }
 
+    public static function canal_empresa($entry_id)
+    {
+        if ($entry_id = '189514994242034') {
+            $empresaID = 1029;
+        }
+        else
+        if ($entry_id = '179613235241221') {
+            $empresaID = 1025;
+        }
+
+        return $empresaID;
+    }
+
+
 
 }
 

@@ -918,9 +918,7 @@ class WebhookServico
         //         $nomePai = $data['nomePai'];
         //         $nomeMae = $data['nomeMae'];
         //         $flow_description = $data['description'];
-        //         if ($entry_id = '189514994242034') {
-        //             $empresaID = 1029;
-        //         }
+        //          WebhookContactsServico::canal_empresa($entry_id);
 
         //         $formandobasewhatsappContagem = formandobasewhatsapp::where('EmpresaID', $empresaID)
         //         ->where('flow_token',$flow_token)
@@ -973,6 +971,7 @@ class WebhookServico
         // DD($data['entry']);
         /////////   usando flow - recebendo informacoes do formulario
         $interactive = $entry['changes'][0]['value']['messages'][0]['interactive'] ?? null;
+        $entry_id = $entry['id'] ?? null;
         $messagesTimestamp = $entry['changes'][0]['value']['messages'][0]['timestamp'] ?? null;
 
         // DD($interactive, $entry);
@@ -1000,9 +999,8 @@ class WebhookServico
             $nomePai = $data['nomePai'] ?? null;
             $nomeMae = $data['nomeMae'] ?? null;
             $flow_description = $data['description'] ?? null;
-            if ($entry_id = '189514994242034') {
-                $empresaID = 1029;
-            }
+
+            WebhookContactsServico::canal_empresa($entry_id);
 
             $formandobasewhatsappContagem = formandobasewhatsapp::where('EmpresaID', $empresaID)
                 ->where('flow_token', $flow_token)
@@ -1057,6 +1055,7 @@ class WebhookServico
     {
         /////////   usando flow - recebendo informacoes do formulario
         $interactive = $entry['changes'][0]['value']['messages'][0]['interactive'] ?? null;
+        $entry_id = $entry['id'] ?? null;
         $messagesTimestamp = $entry['changes'][0]['value']['messages'][0]['timestamp'] ?? null;
 
         // DD($interactive, $entry);
@@ -1087,9 +1086,9 @@ class WebhookServico
 
             $flow_token = $data['flow_token'];
 
-            if ($entry_id = '189514994242034') {
-                $empresaID = 1029;
-            }
+
+
+            WebhookContactsServico::canal_empresa($entry_id);
 
             $formandoBaseWhatsapp = FormandoBaseWhatsapp::where('codigo_registro', $codigoRegistro)->first();
 
@@ -1120,6 +1119,7 @@ class WebhookServico
     {
         /////////   usando flow - recebendo informacoes do formulario
         $interactive = $entry['changes'][0]['value']['messages'][0]['interactive'] ?? null;
+       $entry_id = $entry['id'] ?? null;
         $messagesTimestamp = $entry['changes'][0]['value']['messages'][0]['timestamp'] ?? null;
 
         // DD($interactive, $entry);
@@ -1144,9 +1144,8 @@ class WebhookServico
 
             $flow_token = $data['flow_token'];
 
-            if ($entry_id = '189514994242034') {
-                $empresaID = 1029;
-            }
+
+            WebhookContactsServico::canal_empresa($entry_id);
 
             $formandoBaseWhatsapp = FormandoBaseWhatsapp::where('codigo_registro', $codigoRegistro)->first();
             $messagesTimestampCadastro = $formandoBaseWhatsapp->codigo_registro ?? null;
@@ -1175,6 +1174,7 @@ class WebhookServico
     {
         /////////   usando flow - recebendo informacoes do formulario
         $interactive = $entry['changes'][0]['value']['messages'][0]['interactive'] ?? null;
+        $entry_id = $entry['id'] ?? null;
         $messagesTimestamp = $entry['changes'][0]['value']['messages'][0]['timestamp'] ?? null;
 
         // DD($interactive, $entry);
@@ -1200,9 +1200,7 @@ class WebhookServico
 
             $flow_token = $data['flow_token'];
 
-            if ($entry_id = '189514994242034') {
-                $empresaID = 1029;
-            }
+            WebhookContactsServico::canal_empresa($entry_id);
 
             $formandoBaseWhatsapp = FormandoBaseWhatsapp::where('codigo_registro', $codigoRegistro)->first();
             $messagesTimestampCadastro = $formandoBaseWhatsapp->codigo_registro ?? null;
@@ -1229,6 +1227,7 @@ class WebhookServico
     {
         /////////   usando flow - recebendo informacoes do formulario
         $interactive = $entry['changes'][0]['value']['messages'][0]['interactive'] ?? null;
+        $entry_id = $entry['id'] ?? null;
         $messagesTimestamp = $entry['changes'][0]['value']['messages'][0]['timestamp'] ?? null;
 
         // DD($interactive, $entry);
@@ -1253,9 +1252,7 @@ class WebhookServico
 
             $flow_token = $data['flow_token'];
 
-            if ($entry_id = '189514994242034') {
-                $empresaID = 1029;
-            }
+            WebhookContactsServico::canal_empresa($entry_id);
 
             $formandoBaseWhatsapp = FormandoBaseWhatsapp::where('codigo_registro', $codigoRegistro)->first();
             $messagesTimestampCadastro = $formandoBaseWhatsapp->codigo_registro ?? null;
@@ -1282,6 +1279,7 @@ class WebhookServico
     {
         /////////   usando flow - recebendo informacoes do formulario
         $interactive = $entry['changes'][0]['value']['messages'][0]['interactive'] ?? null;
+        $entry_id = $entry['id'] ?? null;
         $messagesTimestamp = $entry['changes'][0]['value']['messages'][0]['timestamp'] ?? null;
 
         // DD($interactive, $entry);
@@ -1306,9 +1304,7 @@ class WebhookServico
 
             $flow_token = $data['flow_token'];
 
-            if ($entry_id = '189514994242034') {
-                $empresaID = 1029;
-            }
+            WebhookContactsServico::canal_empresa($entry_id);
 
             $formandoBaseWhatsapp = FormandoBaseWhatsapp::where('codigo_registro', $codigoRegistro)->first();
             $messagesTimestampCadastro = $formandoBaseWhatsapp->codigo_registro ?? null;
@@ -1336,6 +1332,7 @@ class WebhookServico
     public static function AlterarNomePai_Flow_token($entry)
     {
         /////////   usando flow - recebendo informacoes do formulario
+        $entry_id = $entry['id'];
         $interactive = $entry['changes'][0]['value']['messages'][0]['interactive'] ?? null;
         $messagesTimestamp = $entry['changes'][0]['value']['messages'][0]['timestamp'] ?? null;
 
@@ -1362,9 +1359,10 @@ class WebhookServico
 
             $flow_token = $data['flow_token'];
 
-            if ($entry_id = '189514994242034') {
-                $empresaID = 1029;
-            }
+
+
+            WebhookContactsServico::canal_empresa($entry_id);
+
 
             $formandoBaseWhatsapp = FormandoBaseWhatsapp::where('codigo_registro', $codigoRegistro)->first();
             $messagesTimestampCadastro = $formandoBaseWhatsapp->codigo_registro ?? null;
@@ -1393,6 +1391,7 @@ class WebhookServico
     {
         /////////   usando flow - recebendo informacoes do formulario
         $interactive = $entry['changes'][0]['value']['messages'][0]['interactive'] ?? null;
+        $entry_id = $entry['id'];
         $messagesTimestamp = $entry['changes'][0]['value']['messages'][0]['timestamp'] ?? null;
 
         // DD($interactive, $entry);
@@ -1423,9 +1422,7 @@ class WebhookServico
 
             $flow_token = $data['flow_token'];
 
-            if ($entry_id = '189514994242034') {
-                $empresaID = 1029;
-            }
+            WebhookContactsServico::canal_empresa($entry_id);
 
             $formandoBaseWhatsapp = FormandoBaseWhatsapp::where('codigo_registro', $codigoRegistro)->first();
             $messagesTimestampCadastro = $formandoBaseWhatsapp->codigo_registro ?? null;

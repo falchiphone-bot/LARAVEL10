@@ -35,7 +35,7 @@ class WebhookContactsEnviarFlow
 
     public static function EnviaMensagemEstamosTrabalhando($recipient_id, $entry_id)
     {
-       
+
       $flow_token = '';
         // $flow_name = 'menu_cadastro_basico_formandos_afins';
 
@@ -397,11 +397,19 @@ class WebhookContactsEnviarFlow
         $mensagem .= "\n";
 
         foreach ($CadastroBasico as $Cadastro) {
+
+            if($Cadastro->nascimento){
+                $dtn = "Data de nascimento: ".trim($Cadastro->nascimento->format('d/m/Y'))."\n";
+            }
+            else
+            {
+                $dtn = "Data de nascimento: "."\n";
+            }
             $mensagem .= sprintf(
                 "%s | %s | %s | %s | %s | %s | %s | %s | %s\n",
                 "Código de registro: ".trim($Cadastro->codigo_registro)."\n",
                 "Nome: ". trim($Cadastro->nome)."\n",
-                "Data de nascimento: ".trim($Cadastro->nascimento->format('d/m/Y'))."\n",
+                $dtn,
                 "Nome do pai: ".trim($Cadastro->nomePai)."\n",
                 "Nome da mãe: ".trim($Cadastro->nomeMae)."\n",
                 "CPF: ". trim($Cadastro->cpf)."\n",
@@ -436,7 +444,7 @@ class WebhookContactsEnviarFlow
 
       $requestData = [
         'messaging_product' => 'whatsapp',
-        'to' => $recipient_id,  
+        'to' => $recipient_id,
         'type' => 'template',
         'template' => [
             'name' => $flow_name,
