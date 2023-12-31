@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\Gate;
 class WebhookServicoInteligencia
 {
 
-
     public static function selecaotexto($entry)
     {
         Log::info('Em selecaotexto pelo procedimento de inteligencia artificial');
@@ -24,7 +23,7 @@ class WebhookServicoInteligencia
         $messagesFrom = $entry['changes'][0]['value']['messages'][0]['from'] ?? null;
         $body = $entry['changes'][0]['value']['messages'][0]['text']['body'] ?? null;
         $recipient_id  =  $messagesFrom;
-        
+
                  if($body == 'OPÇÃO' || $body == 'opção' || $body == 'Opção'
                  || $body == 'OPCAO' || $body == 'opcao' || $body == 'Opcao')
                     {
@@ -32,11 +31,30 @@ class WebhookServicoInteligencia
                         WebhookContactsEnviarFlow::
                         EnviaMensagemFlowMenuCadastroBasico($recipient_id, $entry_id);
                         // dd('achou!',$body, $recipient_id, $entry_id );
-                    }
-                // dd('NAO ACHADO',$body, $recipient_id, $entry_id);
+                    }else
+                    if($body =='AVALIACAO' ||
+                       $body =='avaliacao' ||
+                       $body =='Avaliacao' ||
+                       $body =='AVALIAÇÃO' ||
+                       $body =='avaliação' ||
+                       $body =='Avaliação' ||
+                       $body == 'AVALIAÇÕES' ||
+                       $body == 'avaliações' ||
+                       $body == 'Avaliações' ||
+                       $body == 'AVALIACOES' ||
+                       $body == 'avaliacoes' ||
+                       $body == 'Avaliacoes' || $body == 'AVALIAÇÃO' ||
+                      $body == 'Avaliação');
+                       {
+                           Log::info('Pesquisa:'.$body);
+                           WebhookMensagensAprovadas::
+                           AvaliacaoBreve($recipient_id, $entry_id);
+                           // dd('achou!',$body, $recipient_id, $entry_id );
+                       }
+
+                    // dd('achou!',$body, $recipient_id, $entry_id );
     }
 
-
-
+                // dd('NAO ACHADO',$body, $recipient_id, $entry_id);
 }
 
