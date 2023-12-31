@@ -30,7 +30,6 @@ class WebhookServicoInteligencia
                         Log::info('Pesquisa:'.$body);
                         WebhookContactsEnviarFlow::
                         EnviaMensagemFlowMenuCadastroBasico($recipient_id, $entry_id);
-                        // dd('achou!',$body, $recipient_id, $entry_id );
                     }else
                     if($body =='AVALIACAO' ||
                        $body =='avaliacao' ||
@@ -44,17 +43,28 @@ class WebhookServicoInteligencia
                        $body == 'AVALIACOES' ||
                        $body == 'avaliacoes' ||
                        $body == 'Avaliacoes' || $body == 'AVALIAÇÃO' ||
-                      $body == 'Avaliação');
+                      $body == 'Avaliação')
                        {
                            Log::info('Pesquisa:'.$body);
                            WebhookMensagensAprovadas::
                            AvaliacaoBreve($recipient_id, $entry_id);
-                           // dd('achou!',$body, $recipient_id, $entry_id );
-                       }
+                       }else
+                       if($body == 'saf' ||
+                        $body == 'SAF' ||
+                        $body == 'Saf' ||
+                        $body == 'TANABI SAF' ||
+                        $body == 'Tanabi Saf' ||
+                        $body == 'Tanabi saf' ||
+                        $body == 'tanabi saf')
+                        {
+                                Log::info('Pesquisa:'.$body);
+                                WebhookMensagensAprovadas::
+                                pagina_tanabi_saf_facebook($recipient_id, $entry_id);
 
-                    // dd('achou!',$body, $recipient_id, $entry_id );
+                        }
+
     }
 
-                // dd('NAO ACHADO',$body, $recipient_id, $entry_id);
+
 }
 
