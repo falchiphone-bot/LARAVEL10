@@ -4,7 +4,7 @@
         @if ($item->url_arquivo == null)
                 Imagem ID:
                 {{ $item->audio_id }}
-                <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $item->audio_id) }}"
+                <a href="{{ route('whatsapp.Pegar_URL_Arquivo', ['id' =>$item->audio_id, 'entry_id' => $entry_id]) }}"
                     class="btn btn-warning" tabindex="-1" role="button"
                     aria-disabled="true">Ver arquivo áudio</a>
         @else

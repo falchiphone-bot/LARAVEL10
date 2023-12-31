@@ -3,7 +3,8 @@
     @if ($item->url_arquivo == null)
         Documento ID:
         {{ $item->document_id }}
-        <a href="{{ route('whatsapp.Pegar_URL_Arquivo', $item->document_id) }}" class="btn btn-warning" tabindex="-1"
+        <a href="{{  route('whatsapp.Pegar_URL_Arquivo', ['id' =>$item->document_id, 'entry_id' => $entry_id]) }}" class="btn btn-warning" tabindex="-1"
+
             role="button" aria-disabled="true">Ver arquivo documento</a>
     @else
         Documento
