@@ -21,7 +21,6 @@ class WebhookContactsEnviarFlow
 
         if($entry_id == '189514994242034')
         {
-
             // DADOS DO FLOW CRIADO A MENSAGEM = ID 1145104546467989 / 383392457504361
             // {
             //   "id": "744795220448470", // 25366076489658611
@@ -344,7 +343,7 @@ class WebhookContactsEnviarFlow
         ]);
 
         if ($response->getStatusCode() == 200) {
-            Log::info('Flow enviado com sucesso!');
+            Log::info('Flow ' . $flow_name . ' enviado com sucesso!');
 
             $contatos = WebhookContact::where('recipient_id', $recipient_id)
             ->where('entry_id', $entry_id)

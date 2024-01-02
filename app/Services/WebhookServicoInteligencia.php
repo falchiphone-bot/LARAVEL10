@@ -17,12 +17,15 @@ class WebhookServicoInteligencia
 
     public static function selecaotexto($entry)
     {
-        Log::info('Em selecaotexto pelo procedimento de inteligencia artificial');
+        Log::info('Em selecao texto pelo procedimento de inteligencia artificial');
         $entry_id = $entry['id'] ?? null;
         $body  =  $entry[0]['changes'][0]['value']['messages'][0]['body'] ?? null;
         $messagesFrom = $entry['changes'][0]['value']['messages'][0]['from'] ?? null;
         $body = $entry['changes'][0]['value']['messages'][0]['text']['body'] ?? null;
         $recipient_id  =  $messagesFrom;
+
+        Log::info('CANAL: '. $entry_id);
+        Log::info('TELEFONE: '. $recipient_id);
 
                  if($body == 'OPÇÃO' || $body == 'opção' || $body == 'Opção'
                  || $body == 'OPCAO' || $body == 'opcao' || $body == 'Opcao')
