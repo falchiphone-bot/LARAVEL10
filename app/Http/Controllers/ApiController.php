@@ -3245,12 +3245,23 @@ public function enviarMensagemEncerramentoAtendimentoSemAviso(Request $request, 
 
 public function EnviaMensagemDadosCadastroBasico($recipient_id, $entry_id)
     {
-        $CadastroBasico = FormandoBaseWhatsapp::where('telefone', $recipient_id)->get();
 
+        $CadastroBasico = FormandoBaseWhatsapp::where([
+            'telefone' => $recipient_id,
+            'entry_id' => $entry_id
+        ])
+        ->get();
 
+        if($CadastroBasico->Count() > 0)
+        {
+            $mensagem = "📋 *Dados do Cadastro Básico*\n\n";
+        }
+        else
+        {
+            $mensagem = "📋 *NENHUM REGISTRO*\n\n";
+        }
 
-        $mensagem = "📋 *Dados do Cadastro Básico*\n\n";
-
+       
         // Adiciona cabeçalhos
         // $mensagem .= "👤 *Código registro* |👤 *Nome* | 🎂 *Data Nasc.* | 👨‍👦 *Pai* | 👩‍👦 *Mãe* | 🆔 *CPF* | 🆔 *RG* | 🕒 *Cidade* | 📻 *UF*\n";
         $mensagem .= "\n";

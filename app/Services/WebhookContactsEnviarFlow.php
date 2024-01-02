@@ -18,10 +18,10 @@ class WebhookContactsEnviarFlow
 
     public static function EnviaMensagemFlowMenuCadastroBasico($recipient_id, $entry_id)
     {
-      
+
         if($entry_id == '189514994242034')
         {
-            
+
             // DADOS DO FLOW CRIADO A MENSAGEM = ID 1145104546467989 / 383392457504361
             // {
             //   "id": "744795220448470", // 25366076489658611
@@ -65,16 +65,16 @@ class WebhookContactsEnviarFlow
   {
         if($entry_id == '189514994242034')
         {
-             
+
             $flow_token = '2120367534804891';
             $flow_name = 'cadastro_de_atletas';
             $flow_description = 'Enviado o flow  EnviaMensagemFlowCadastro , token '. $flow_token;
         }else
         if($entry_id == '179613235241221')
         {
-            // DADOS DO FLOW CRIADO A MENSAGEM = ID 380310001057380 
+            // DADOS DO FLOW CRIADO A MENSAGEM = ID 380310001057380
             // {
-            //   "id": 1309532939706842 
+            //   "id": 1309532939706842
             //   "status": "PENDING",
             //   "category": "MARKETING"
             // }
@@ -96,9 +96,9 @@ class WebhookContactsEnviarFlow
         }else
         if($entry_id == '179613235241221')
         {
-            // DADOS DO FLOW CRIADO A MENSAGEM = ID 1427482604781479 
+            // DADOS DO FLOW CRIADO A MENSAGEM = ID 1427482604781479
             // {
-            //   "id": 392895259868351 
+            //   "id": 392895259868351
             //   "status": "PENDING",
             //   "category": "MARKETING"
             // }
@@ -112,7 +112,7 @@ class WebhookContactsEnviarFlow
 
     public static function EnviaMensagemFlowAlterarRg($recipient_id, $entry_id)
     {
-      
+
         if($entry_id == '189514994242034')
         {
                 // DADOS DO FLOW CRIADO A MENSAGEM = ID 348317521263758
@@ -127,9 +127,9 @@ class WebhookContactsEnviarFlow
         }else
         if($entry_id == '179613235241221')
         {
-            // DADOS DO FLOW CRIADO A MENSAGEM = ID 1438375836712494   
+            // DADOS DO FLOW CRIADO A MENSAGEM = ID 1438375836712494
             // {
-            //   "id": 908952390359202 
+            //   "id": 908952390359202
             //   "status": "PENDING",
             //   "category": "MARKETING"
             // }
@@ -156,7 +156,7 @@ class WebhookContactsEnviarFlow
         }else
         if($entry_id == '179613235241221')
         {
-            // DADOS DO FLOW CRIADO A MENSAGEM = ID  358895973412960   
+            // DADOS DO FLOW CRIADO A MENSAGEM = ID  358895973412960
             // {
             //   "id":   1025136535245872
             //   "status": "PENDING",
@@ -185,9 +185,9 @@ class WebhookContactsEnviarFlow
         }else
         if($entry_id == '179613235241221')
         {
-            // DADOS DO FLOW CRIADO A MENSAGEM = ID  1478186329427489   
+            // DADOS DO FLOW CRIADO A MENSAGEM = ID  1478186329427489
             // {
-            //   "id":  897015888636132 
+            //   "id":  897015888636132
             //   "status": "PENDING",
             //   "category": "MARKETING"
             // }
@@ -216,9 +216,9 @@ class WebhookContactsEnviarFlow
         }else
         if($entry_id == '179613235241221')
         {
-            // DADOS DO FLOW CRIADO A MENSAGEM = ID 680413520953704     
+            // DADOS DO FLOW CRIADO A MENSAGEM = ID 680413520953704
             // {
-            //   "id":  668410952126259  
+            //   "id":  668410952126259
             //   "status": "PENDING",
             //   "category": "MARKETING"
             // }
@@ -239,19 +239,19 @@ class WebhookContactsEnviarFlow
             //   "category": "MARKETING"
             // }
             $flow_token = '338160952497179';
-            $flow_name = 'cadastro_alterar_nome_da_mae'; 
+            $flow_name = 'cadastro_alterar_nome_da_mae';
             $flow_description = 'Enviado o flow' .  $flow_name . ', token '. $flow_token;
         }else
         if($entry_id == '179613235241221')
         {
-            // DADOS DO FLOW CRIADO A MENSAGEM = ID  213814095142059    
+            // DADOS DO FLOW CRIADO A MENSAGEM = ID  213814095142059
             // {
-            //   "id": 845106654030865   
+            //   "id": 845106654030865
             //   "status": "PENDING",
             //   "category": "MARKETING"
             // }
             $flow_token = '213814095142059';
-            $flow_name = 'cadastro_alterar_nome_da_mae'; 
+            $flow_name = 'cadastro_alterar_nome_da_mae';
             $flow_description = 'Enviado o flow' .  $flow_name . ', token '. $flow_token;
         }
         WebhookContactsEnviarFlow::EnviaMensagemGrava($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id );
@@ -267,28 +267,23 @@ class WebhookContactsEnviarFlow
             //   "category": "MARKETING"
             // }
             $flow_token = '1082401946512589';
-            $flow_name = 'cadastro_alterar_nome_de_pai'; 
+            $flow_name = 'cadastro_alterar_nome_de_pai';
             $flow_description = 'Enviado o flow' .  $flow_name . ', token '. $flow_token;
         }else
         if($entry_id == '179613235241221')
         {
-            // DADOS DO FLOW CRIADO A MENSAGEM = ID 311444757904313   
+            // DADOS DO FLOW CRIADO A MENSAGEM = ID 311444757904313
             // {
-            //   "id": 777116537590184    
+            //   "id": 777116537590184
             //   "status": "PENDING",
             //   "category": "MARKETING"
             // }
             $flow_token = '311444757904313';
-            $flow_name = 'cadastro_alterar_nome_de_pai'; 
+            $flow_name = 'cadastro_alterar_nome_de_pai';
             $flow_description = 'Enviado o flow' .  $flow_name . ', token '. $flow_token;
         }
         WebhookContactsEnviarFlow::EnviaMensagemGrava($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id );
     }
-
-
-
-
-
 
     public static function  EnviaMensagemGrava($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id)
     {
@@ -480,7 +475,14 @@ class WebhookContactsEnviarFlow
 
     public static function EnviaMensagemDadosCadastroBasico($recipient_id, $entry_id)
     {
-        $CadastroBasico = FormandoBaseWhatsapp::where('recipient_id', $recipient_id)->get();
+        $CadastroBasico = FormandoBaseWhatsapp::where([
+            'recipient_id' => $recipient_id,
+            'entry_id' => $entry_id
+        ])
+        ->get();
+
+
+dd  ($CadastroBasico);
 
         $mensagem = "📋 *Dados do Cadastro Básico*\n\n";
 
@@ -520,8 +522,15 @@ class WebhookContactsEnviarFlow
 
     public static function EnviaMensagemMeusDadosCadastroBasico($recipient_id, $entry_id)
     {
-        $CadastroBasico = FormandoBaseWhatsapp::where('telefone', $recipient_id)->get();
+        // $CadastroBasico = FormandoBaseWhatsapp::where('telefone', $recipient_id)
+        // ->where('entry_id', $entry_id)
+        // ->get();
 
+        $CadastroBasico = FormandoBaseWhatsapp::where([
+            'telefone' => $recipient_id,
+            'entry_id' => $entry_id
+        ])
+        ->get();
 
 
         $mensagem = "📋 *Dados do Cadastro Básico*\n\n";
