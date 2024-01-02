@@ -1002,7 +1002,7 @@ class WebhookServico
             $nomeMae = $data['nomeMae'] ?? null;
             $flow_description = $data['description'] ?? null;
 
-            WebhookContactsServico::canal_empresa($entry_id);
+            $empresaID = WebhookContactsServico::canal_empresa($entry_id);
 
             $formandobasewhatsappContagem = formandobasewhatsapp::where('EmpresaID', $empresaID)
                 ->where('flow_token', $flow_token)
