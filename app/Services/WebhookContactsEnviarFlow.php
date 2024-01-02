@@ -18,17 +18,32 @@ class WebhookContactsEnviarFlow
 
     public static function EnviaMensagemFlowMenuCadastroBasico($recipient_id, $entry_id)
     {
-      // DADOS DO FLOW CRIADO A MENSAGEM = ID 1145104546467989 / 383392457504361
-      // {
-      //   "id": "744795220448470", // 25366076489658611
-      //   "status": "PENDING",
-      //   "category": "MARKETING"
-      // }
-      $flow_token = '383392457504361';
-        // $flow_name = 'menu_cadastro_basico_formandos_afins';
-
-        $flow_name = 'menu_cadastro_com_opcoes';
-        $flow_description = 'Enviado o flow  menu_cadastro_com_opcoes , token 383392457504361';
+      
+        if($entry_id == '189514994242034')
+        {
+            
+            // DADOS DO FLOW CRIADO A MENSAGEM = ID 1145104546467989 / 383392457504361
+            // {
+            //   "id": "744795220448470", // 25366076489658611
+            //   "status": "PENDING",
+            //   "category": "MARKETING"
+            // }
+            $flow_token = '383392457504361';
+            $flow_name = 'menu_cadastro_com_opcoes';
+            $flow_description = 'Enviado o flow  menu_cadastro_com_opcoes , token '. $flow_token;
+        }else
+        if($entry_id == '179613235241221')
+        {
+            // DADOS DO FLOW CRIADO A MENSAGEM = ID 867844158418937
+            // {
+            //   "id": 676937214523206
+            //   "status": "PENDING",
+            //   "category": "MARKETING"
+            // }
+            $flow_token = '867844158418937';
+            $flow_name = 'menu_cadastro_com_opcoes';
+            $flow_description = 'Enviado o flow  menu_cadastro_com_opcoes , token '. $flow_token;
+        }
         WebhookContactsEnviarFlow::
         EnviaMensagemGrava($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id );
     }
@@ -48,64 +63,138 @@ class WebhookContactsEnviarFlow
 
   public static function EnviaMensagemFlowCadastro($recipient_id, $entry_id)
   {
-
-      $flow_token = '2120367534804891';
-      $flow_name = 'cadastro_de_atletas';
-      $flow_description = 'Enviado o flow  cadastro_de_atleta, token 2120367534804891';
-
+        if($entry_id == '189514994242034')
+        {
+             
+            $flow_token = '2120367534804891';
+            $flow_name = 'cadastro_de_atletas';
+            $flow_description = 'Enviado o flow  EnviaMensagemFlowCadastro , token '. $flow_token;
+        }else
+        if($entry_id == '179613235241221')
+        {
+            // DADOS DO FLOW CRIADO A MENSAGEM = ID 380310001057380 
+            // {
+            //   "id": 1309532939706842 
+            //   "status": "PENDING",
+            //   "category": "MARKETING"
+            // }
+            $flow_token = '380310001057380';
+            $flow_name = 'cadastro_de_atletas';
+            $flow_description = 'Enviado o flow  EnviaMensagemFlowCadastro , token '. $flow_token;
+        }
       WebhookContactsEnviarFlow::EnviaMensagemGrava($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id );
-
-
   }
 
     public static function EnviaMensagemFlowAlterarCpf($recipient_id, $entry_id)
     {
-        $flow_token = '372275572014981';
-        $flow_name = 'cadastro_alterar_cpf';
-        $flow_description = 'Enviado o flow  cadastro_alterar_cpf, token 372275572014981';
+        if($entry_id == '189514994242034')
+        {
+            $flow_token = '372275572014981';
+            $flow_name = 'cadastro_alterar_cpf';
+            $flow_description = 'Enviado o flow  cadastro_alterar_cpf , token '. $flow_token;
+
+        }else
+        if($entry_id == '179613235241221')
+        {
+            // DADOS DO FLOW CRIADO A MENSAGEM = ID 1427482604781479 
+            // {
+            //   "id": 392895259868351 
+            //   "status": "PENDING",
+            //   "category": "MARKETING"
+            // }
+            $flow_token = '1427482604781479';
+            $flow_name = 'cadastro_alterar_cpf';
+            $flow_description = 'Enviado o flow  cadastro_alterar_cpf , token '. $flow_token;
+        }
         WebhookContactsEnviarFlow::EnviaMensagemGrava($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id );
     }
 
 
     public static function EnviaMensagemFlowAlterarRg($recipient_id, $entry_id)
     {
-      // DADOS DO FLOW CRIADO A MENSAGEM = ID 348317521263758
-      // {
-      //   "id": "1284925575611992",
-      //   "status": "PENDING",
-      //   "category": "MARKETING"
-      // }
-      $flow_token = '348317521263758';
-        $flow_name = 'cadastro_alterar_rg';
-        $flow_description = 'Enviado o flow  cadastro_alterar_rg, token 348317521263758';
+      
+        if($entry_id == '189514994242034')
+        {
+                // DADOS DO FLOW CRIADO A MENSAGEM = ID 348317521263758
+        // {
+        //   "id": "1284925575611992",
+        //   "status": "PENDING",
+        //   "category": "MARKETING"
+        // }
+            $flow_token = '348317521263758';
+            $flow_name = 'cadastro_alterar_rg';
+            $flow_description = 'Enviado o flow  cadastro_alterar_rg , token '. $flow_token;
+        }else
+        if($entry_id == '179613235241221')
+        {
+            // DADOS DO FLOW CRIADO A MENSAGEM = ID 1438375836712494   
+            // {
+            //   "id": 908952390359202 
+            //   "status": "PENDING",
+            //   "category": "MARKETING"
+            // }
+            $flow_token = '1438375836712494';
+            $flow_name = 'cadastro_alterar_rg';
+            $flow_description = 'Enviado o flow  cadastro_alterar_rg , token '. $flow_token;
+        }
         WebhookContactsEnviarFlow::EnviaMensagemGrava($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id );
     }
 
     public static function EnviaMensagemFlowAlterarCidadeUf($recipient_id, $entry_id)
     {
-      // DADOS DO FLOW CRIADO A MENSAGEM = ID 381547034317574
-      // {
-      //   "id": "904034640924140",
-      //   "status": "PENDING",
-      //   "category": "MARKETING"
-      // }
-      $flow_token = '381547034317574';
-        $flow_name = 'cadastro_alterar_cidade_uf';
-        $flow_description = 'Enviado o flow  cadastro_alterar_cidade_uf, token 381547034317574';
-        WebhookContactsEnviarFlow::EnviaMensagemGrava($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id );
+        if($entry_id == '189514994242034')
+        {
+            // DADOS DO FLOW CRIADO A MENSAGEM = ID 381547034317574
+            // {
+            //   "id": "904034640924140",
+            //   "status": "PENDING",
+            //   "category": "MARKETING"
+            // }
+            $flow_token = '381547034317574';
+            $flow_name = 'cadastro_alterar_cidade_uf';
+            $flow_description = 'Enviado o flow  cadastro_alterar_cidade_uf , token '. $flow_token;
+        }else
+        if($entry_id == '179613235241221')
+        {
+            // DADOS DO FLOW CRIADO A MENSAGEM = ID  358895973412960   
+            // {
+            //   "id":   1025136535245872
+            //   "status": "PENDING",
+            //   "category": "MARKETING"
+            // }
+            $flow_token = '358895973412960';
+            $flow_name = 'cadastro_alterar_cidade_uf';
+            $flow_description = 'Enviado o flow  cadastro_alterar_cidade_uf , token '. $flow_token;
+        }
+           WebhookContactsEnviarFlow::EnviaMensagemGrava($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id );
     }
 
     public static function EnviaMensagemFlowAlterarNascimento($recipient_id, $entry_id)
     {
-      // DADOS DO FLOW CRIADO A MENSAGEM = ID 3496535283943398
-      // {
-      //   "id": "317767004567130",
-      //   "status": "PENDING",
-      //   "category": "MARKETING"
-      // }
-      $flow_token = '3496535283943398';
-        $flow_name = 'cadastro_alterar_data_de_nascimento';
-        $flow_description = 'Enviado o flow  cadastro_alterar_data_de_nascimento, token 3496535283943398';
+        if($entry_id == '189514994242034')
+        {
+           // DADOS DO FLOW CRIADO A MENSAGEM = ID 3496535283943398
+            // {
+            //   "id": "317767004567130",
+            //   "status": "PENDING",
+            //   "category": "MARKETING"
+            // }
+            $flow_token = '3496535283943398';
+            $flow_name = 'cadastro_alterar_data_de_nascimento';
+            $flow_description = 'Enviado o flow  cadastro_alterar_data_de_nascimento , token '. $flow_token;
+        }else
+        if($entry_id == '179613235241221')
+        {
+            // DADOS DO FLOW CRIADO A MENSAGEM = ID  1478186329427489   
+            // {
+            //   "id":  897015888636132 
+            //   "status": "PENDING",
+            //   "category": "MARKETING"
+            // }
+            $flow_token = '1478186329427489';
+            $flow_name = 'cadastro_alterar_data_de_nascimento';
+            $flow_description = 'Enviado o flow  cadastro_alterar_data_de_nascimento , token '. $flow_token;
+        }
         WebhookContactsEnviarFlow::EnviaMensagemGrava($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id );
     }
 
@@ -113,15 +202,35 @@ class WebhookContactsEnviarFlow
 
     public static function EnviaMensagemFlowAlterarNome($recipient_id, $entry_id)
     {
-      // DADOS DO FLOW CRIADO A MENSAGEM = ID 381547034317574
-      // {
-      //   "id": "896152218616381",
-      //   "status": "PENDING",
-      //   "category": "MARKETING"
-      // }
-      $flow_token = '1434146677313794';
-        $flow_name = 'cadastro_alterar_nome_completo';
+        
         $flow_description = 'Enviado o flow  cadastro_alterar_nome_completo, token 1434146677313794';
+  
+        if($entry_id == '189514994242034')
+        {
+          // DADOS DO FLOW CRIADO A MENSAGEM = ID 381547034317574
+        // {
+        //   "id": "896152218616381",
+        //   "status": "PENDING",
+        //   "category": "MARKETING"
+        // }
+        $flow_token = '1434146677313794';
+        $flow_name = 'cadastro_alterar_nome_completo';
+        $flow_description = 'Enviado o flow' .  $flow_name . ', token '. $flow_token;
+        }else
+        if($entry_id == '179613235241221')
+        {
+            // DADOS DO FLOW CRIADO A MENSAGEM = ID 680413520953704     
+            // {
+            //   "id":  668410952126259  
+            //   "status": "PENDING",
+            //   "category": "MARKETING"
+            // }
+            $flow_token = '680413520953704';
+            $flow_name = 'cadastro_alterar_nome_completo';
+            $flow_description = 'Enviado o flow' .  $flow_name . ', token '. $flow_token;
+        }
+  
+  
         WebhookContactsEnviarFlow::EnviaMensagemGrava($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id );
     }
     public static function EnviaMensagemFlowAlterarNomeMae($recipient_id, $entry_id)
