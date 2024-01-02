@@ -59,7 +59,17 @@ class WebhookContactsEnviarFlow
         WebhookContactsEnviarFlow::
         EnviaMensagemGravaTemplate($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id );
     }
+    public static function EnviaMensagemSobreSAF($recipient_id, $entry_id)
+    {
 
+      $flow_token = '';
+        // $flow_name = 'menu_cadastro_basico_formandos_afins';
+
+        $flow_name = 'pagina_tanabi_saf_facebook';
+        $flow_description = 'Sobre SAF';
+        WebhookContactsEnviarFlow::
+        EnviaMensagemGravaTemplate($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id );
+    }
 
   public static function EnviaMensagemFlowCadastro($recipient_id, $entry_id)
   {
@@ -532,8 +542,15 @@ dd  ($CadastroBasico);
         ])
         ->get();
 
+        if($CadastroBasico->Count() > 0)
+        {
+            $mensagem = "📋 *Dados do Cadastro Básico*\n\n";
+        }
+        else{
+              $mensagem = "📋 *NENHUM REGISTRO*\n\n";
+        }
 
-        $mensagem = "📋 *Dados do Cadastro Básico*\n\n";
+
 
         // Adiciona cabeçalhos
         // $mensagem .= "👤 *Código registro* |👤 *Nome* | 🎂 *Data Nasc.* | 👨‍👦 *Pai* | 👩‍👦 *Mãe* | 🆔 *CPF* | 🆔 *RG* | 🕒 *Cidade* | 📻 *UF*\n";

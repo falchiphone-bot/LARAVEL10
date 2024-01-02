@@ -525,15 +525,6 @@ class ApiController extends Controller
 
              $data = json_decode($interactive_nfm_reply_response_json, true);
              $body =  WebhookContactsEnviarFlow::montabodyflow($data, $messagesTimestamp);
-
-
-            //  $body = 'Nome: ' . $nome . " | " .
-            //  'Data de Nascimento: ' . $dataNascimento . " | " .
-            //  'Nome do Pai: ' . $nomePai . " | " .
-            //  'Nome da Mãe: ' . $nomeMae . " | " .
-            //  'Descrição: ' . $flow_description . " | " .
-            //  'Flow Token: ' . $flow_token . " | " .
-            //  'Código registro: ' . $messagesTimestamp . " | " ?? null;
          }
 
             $newWebhook = webhook::create([
@@ -1447,48 +1438,7 @@ class ApiController extends Controller
             $interactive_nfm_reply_response_json = $entry['changes'][0]['value']['messages'][0]['interactive']['nfm_reply']['response_json'] ?? null;
 
             $data = json_decode($interactive_nfm_reply_response_json, true);
-
-            // $nome = $data['nome'] ?? null;
-            // $dataNascimento = $data['dataNascimento'] ?? null;
-            // $dataNascimentoObj = DateTime::createFromFormat('d/m/Y', $dataNascimento);
-            // $nomePai = $data['nomePai'] ?? null;
-            // $nomeMae = $data['nomeMae'] ?? null;
-            // $Cpf = $data['Cpf'] ?? null;
-
-            // $flow_description = $data['description'] ?? null;
-            // $flow_token = $data['flow_token'] ?? null;
-
-
             $body = WebhookContactsEnviarFlow::montabodyflow($data, $messagesTimestamp);
-            // $body = '';
-
-            // if ($nome) {
-            //     $body .= 'Nome: ' . $nome . " | ";
-            // }
-            // if ($dataNascimento) {
-            //     $body .= 'Data de Nascimento: ' . $dataNascimento . " | ";
-            // }
-            // if ($nomePai) {
-            //     $body .= 'Nome do Pai: ' . $nomePai . " | ";
-            // }
-            // if ($nomeMae) {
-            //     $body .= 'Nome da Mãe: ' . $nomeMae . " | ";
-            // }
-            // if ($flow_description) {
-            //     $body .= 'Descrição: ' . $flow_description . " | ";
-            // }
-            // if ($flow_token) {
-            //     $body .= 'Flow Token: ' . $flow_token . " | ";
-            // }
-            // if ($Cpf) {
-            //     $body .= 'CPF: ' . $Cpf . " | ";
-            // }
-            // if ($messagesTimestamp) {
-            //     $body .= 'Código registro: ' . $messagesTimestamp . " | ";
-            // }
-
-            // // Remover o último " | " se necessário
-            // $body = rtrim($body, " | ");
 
         }
 
@@ -3261,7 +3211,7 @@ public function EnviaMensagemDadosCadastroBasico($recipient_id, $entry_id)
             $mensagem = "📋 *NENHUM REGISTRO*\n\n";
         }
 
-       
+
         // Adiciona cabeçalhos
         // $mensagem .= "👤 *Código registro* |👤 *Nome* | 🎂 *Data Nasc.* | 👨‍👦 *Pai* | 👩‍👦 *Mãe* | 🆔 *CPF* | 🆔 *RG* | 🕒 *Cidade* | 📻 *UF*\n";
         $mensagem .= "\n";

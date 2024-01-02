@@ -853,27 +853,26 @@ class WebhookServico
         $entry_id = $entry['id'] ?? null;
         $codigo_registro = $entry['changes'][0]['value']['messages']['timestamp'] ?? null;
 
-        if ($flow_token == '2120367534804891') {
+        if ($flow_token == '2120367534804891' || $flow_token == '380310001057380') {
             WebhookServico::CadastrarFlow_token($entry);
-        } elseif ($flow_token == '372275572014981') {
+        } elseif ($flow_token == '372275572014981'|| $flow_token == '1427482604781479') {
             WebhookServico::AlterarCPF_Flow_token($entry);
-        } elseif ($flow_token == '348317521263758') {
+        } elseif ($flow_token == '348317521263758' || $flow_token == '1438375836712494') {
             WebhookServico::AlterarRG_Flow_token($entry);
-        } elseif ($flow_token == '381547034317574') {
+        } elseif ($flow_token == '381547034317574' || $flow_token == '358895973412960') {
             WebhookServico::AlterarCidadeUf_Flow_token($entry);
-        } elseif ($flow_token == '1434146677313794') {
+        } elseif ($flow_token == '1434146677313794' || $flow_token == '680413520953704') {
             WebhookServico::AlterarNome_Flow_token($entry);
-        } elseif ($flow_token == '3496535283943398') {
+        } elseif ($flow_token == '3496535283943398' || $flow_token == '1478186329427489') {
             WebhookServico::AlterarNascimento_Flow_token($entry);
-        }elseif ($flow_token == '338160952497179') {
+        }elseif ($flow_token == '338160952497179'|| $flow_token == '213814095142059') {
             WebhookServico::AlterarNomeMae_Flow_token($entry);
-        }
-        elseif ($flow_token == '1082401946512589') {
+        }elseif ($flow_token == '1082401946512589' || $flow_token == '311444757904313') {
             WebhookServico::AlterarNomePai_Flow_token($entry);
         }
 
         ///////////////// menu de opcoes
-        if ($flow_token == '383392457504361') {
+        if ($flow_token == '383392457504361' || $flow_token == '867844158418937') {
             if ($topicRadio == 'ALTERAR_CPF') {
                 WebhookContactsEnviarFlow::EnviaMensagemFlowAlterarCpf($recipient_id, $entry_id);
             } elseif ($topicRadio == 'ALTERAR_RG') {
@@ -900,6 +899,9 @@ class WebhookServico
             }
             elseif ($topicRadio == 'OUTRAS_OPCOES') {
                 WebhookContactsEnviarFlow::EnviaMensagemEstamosTrabalhando($recipient_id, $entry_id);
+            }
+            elseif ($topicRadio == 'SOBRE_SAF') {
+                WebhookContactsEnviarFlow::EnviaMensagemSobreSAF($recipient_id, $entry_id);
             }
         }
 
@@ -1031,6 +1033,7 @@ class WebhookServico
 
                     $newformandobasewhatsapp = FormandoBaseWhatsapp::create([
                         'EmpresaID' => $empresaID,
+                        'entry_id' => $entry_id,
                         'nome' => $nome ?? null,
                         'nascimento' => $dataNascimentoInt ?? null,
                         'flow_token' => $flow_token ?? null,
