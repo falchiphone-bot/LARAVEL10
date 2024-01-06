@@ -1651,4 +1651,26 @@ class WebhookServico
             }
         }
     }
+
+
+    public static function BodyErrors($entry, $body)
+    {
+
+
+    $messagesErrors = $entry['changes'][0]['value']['messages'][0]['errors'] ?? null;
+    $messagesErrors_code = $entry['changes'][0]['value']['messages'][0]['errors'][0]['code'] ?? null;
+    $messagesErrors_title = $entry['changes'][0]['value']['messages'][0]['errors'][0]['title'] ?? null;
+    $messagesErrors_message = $entry['changes'][0]['value']['messages'][0]['errors'][0]['message'] ?? null;
+    $messagesErrors_message_error_data_details = $entry['changes'][0]['value']['messages'][0]['errors'][0]['error_data']['details'] ?? null;
+
+
+        if($messagesErrors || $messagesErrors_code || $messagesErrors_title || $messagesErrors_message || $messagesErrors_message_error_data_details)
+        {
+            $body = $body . ' Código do erro: ' . $messagesErrors_code . ' Título: ' . $messagesErrors_title . ' Mensagem: '. $messagesErrors_message . ' Detalhes: ' . $messagesErrors_message_error_data_details ?? null;
+        }
+
+//  dd($messagesErrors, $messagesErrors_code, $messagesErrors_title,$messagesErrors_message,   $messagesErrors_message_error_data_details,  $body);
+
+    }
+
 }

@@ -1,6 +1,7 @@
 @include('Api.atendimento.tabelacontatos')
 
 <div class="col-9">
+
     <div class="card-body">
         @can('WHATSAPP - LISTAR')
             <div class="card-footer">
@@ -11,10 +12,10 @@
         @endcan
 
         @can('WHATSAPP - VISUALIZAR MENSAGENS SEM ATENDER')
-            @include('Api.atendimento.cabecalhotabelamensagens')
+            @include('Api.atendimento.cabecalhotabelamensagens')a
             @include('Api.atendimento.tabelamensagens')
         @endcan
 
     </div>
 </div>
- 
+

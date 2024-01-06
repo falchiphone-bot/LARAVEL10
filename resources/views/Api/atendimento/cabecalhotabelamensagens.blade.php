@@ -1,5 +1,4 @@
-<div class="card-body" style="max-width: 1024px; max-height: 900px; overflow: hidden; padding: 1px; margin-top: 1px;">
- 
+<div class="card-body" style="max-width: 1600px; max-height: 900px; overflow: hidden; padding: 1px; margin-top: 1px;">
     @include('Api.atendimento.nomecontato')
     @include('Api.atendimento.temposessao')
     @include('Api.atendimento.clientesendoatendido')
@@ -11,8 +10,11 @@
 
     @elseif ($NomeAtendido->user_atendimento === Auth::user()->email &&  $parte_inteira < 24)
          @include('Api.atendimento.transferiratendimento')
+cccasa
          @include('Api.atendimento.mensagemaserenviada')
+
          @include('Api.atendimento.encerramentodoatendimento')
+
     @else
         @if ($NomeAtendido->user_atendimento !== Auth::user()->email)
             @can('WHATSAPP - ATENDIMENTO - TRANSFERIR SIMULTANEAMENTE')

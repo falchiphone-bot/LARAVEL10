@@ -21,6 +21,8 @@
             <input type="file" id="arquivo" name="arquivo" class="form-control-file">
         </div>
         <button type="submit" class="btn btn-success">Enviar a
-            mensagem</button>
+            mensagem preenchida</button>
     </div>
 </form>
+
+{{-- @include('Api.atendimento.encerramentodoatendimento') --}}

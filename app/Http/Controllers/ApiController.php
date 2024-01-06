@@ -433,7 +433,8 @@ class ApiController extends Controller
 
 
 
-        $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName, $messagesTimestamp, $entry_id, $contactName);
+        $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName, $messagesTimestamp, $entry_id);
+
 
         $Achou = webhook::where('status',$status)
         ->where('messages_id',$messages_id)
@@ -526,6 +527,10 @@ class ApiController extends Controller
              $data = json_decode($interactive_nfm_reply_response_json, true);
              $body =  WebhookContactsEnviarFlow::montabodyflow($data, $messagesTimestamp);
          }
+
+
+
+         WebhookServico:: BodyErrors($entry, $body);
 
             $newWebhook = webhook::create([
             'webhook' => $jsonData ?? null,
@@ -681,7 +686,9 @@ class ApiController extends Controller
 
             $recipient_id = $requestData['to'];
             $contactName = null;
-            $newWebhookContact = WebhookServico::updateOrCreateWebhookContact($recipient_id, $contactName);
+            $messagesTimestamp = null;
+
+            $newWebhookContact = WebhookServico::AtualizaOuCriaWebhookContact($recipient_id, $contactName, $messagesTimestamp, $entry_id);
 
 
 
@@ -779,9 +786,10 @@ class ApiController extends Controller
     public function indexlista()
     {
         date_default_timezone_set('UTC');
-        $model = webhook::limit(1000)->orderBy("id", "desc")->get();
+        // $model = webhook::where( 'webhook', 'like' , '%erro%')->limit(1000)->orderBy("id", "desc")->get();
         // $model = webhook::where("id",158)->orderBy("id", "desc")->get();
 
+        $model = webhook::limit(1000)->orderBy("id", "desc")->get();
 
         $mergedData = array(); // Inicialize o array $mergedData fora do loop foreach
 
@@ -1443,6 +1451,7 @@ class ApiController extends Controller
         }
 
 
+        WebhookServico:: BodyErrors($entry, $body);
 
 
         $atualiza = [

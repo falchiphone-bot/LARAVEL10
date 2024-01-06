@@ -1,4 +1,4 @@
-
+ 
    <!DOCTYPE html>
    <html lang="en">
    <head>
@@ -12,7 +12,6 @@
            }
        </style>
    </head>
-
 <div class="card" style="background-color: #b3ffb3; padding: 1px; margin-top: 1px;">
 
     <div class="table-responsive">
@@ -46,7 +45,7 @@
                         <tr>
 
                             <td style="max-width: 200px; word-wrap: break-word;">
- 
+
                                @include('Api.atendimento.statusatendimentomensagens')
                                @if($QuantidadeCanalAtendimento > 1)
 
