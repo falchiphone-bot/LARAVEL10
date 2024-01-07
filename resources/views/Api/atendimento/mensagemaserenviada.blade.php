@@ -19,10 +19,12 @@
         <div class="form-group">
             <label for="arquivo">Selecionar um arquivo:</label>
             <input type="file" id="arquivo" name="arquivo" class="form-control-file">
+            <button type="submit" class="btn btn-success">Enviar a
+                mensagem preenchida</button>
         </div>
-        <button type="submit" class="btn btn-success">Enviar a
-            mensagem preenchida</button>
+
     </div>
+    
 </form>
 
 {{-- @include('Api.atendimento.encerramentodoatendimento') --}}
