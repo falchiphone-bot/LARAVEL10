@@ -1,3 +1,4 @@
+
 @if ($NomeAtendido->pagina_refresh == true)
     @include('Api.atendimento.headrefresh')
 @endif
@@ -14,8 +15,11 @@
 
                 <div class="card-body">
                      @include('Api.atendimento.mostrasessaoalerta')
+                     @include('Api.atendimento.BuscarContato')
+
 
                     @can('WHATSAPP - ATENDIMENTO - VER CONTATOS')
+
                         @include('Api.atendimento.contatostabelamensagens')
                     @endcan
                 </div>

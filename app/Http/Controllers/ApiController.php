@@ -1632,6 +1632,38 @@ class ApiController extends Controller
 
             // dd($Contatos, $RegistrosContatos);
             $textopesquisar = null;
+            $Buscar = null;
+            return view('api.atendimentoWhatsapp', compact('Contatos', 'selecao', 'RegistrosContatos', 'textopesquisar', 'Buscar'));
+        }
+
+        public function atendimentoWhatsappBuscar(Request $request)
+        {
+            $Contatos = NULL;
+            $RegistrosContatos = NULL;
+            $Buscar = $request->Buscar;
+
+                 $Contatos = webhook::select(DB::raw('CONCAT(recipient_id, messagesFrom) AS recipient_messages'))
+                    ->groupBy(DB::raw('CONCAT(recipient_id, messagesFrom)'))
+                    ->where(DB::raw('CONCAT(recipient_id, messagesFrom)'), '<>', '')
+                    ->get();
+
+
+                    $resultado = WebhookContactsServico::FiltraCanaisUsuariosAtivosBuscar($Buscar);
+
+
+                    $RegistrosContatos = $resultado['RegistrosContatos'];
+                    $QuantidadeCanalAtendimento = $resultado['QuantidadeCanalAtendimento'];
+
+            $selecao = null;
+            if( $RegistrosContatos == null)
+            {
+                session(['error' => 'Nada pesquisado! Usuário sem permissão de acesso a nenhum canal de atendimento!']);
+                return redirect(route('dashboard'));
+            }
+
+            // dd($Contatos, $RegistrosContatos);
+            $textopesquisar = null;
+          
             return view('api.atendimentoWhatsapp', compact('Contatos', 'selecao', 'RegistrosContatos', 'textopesquisar'));
         }
 

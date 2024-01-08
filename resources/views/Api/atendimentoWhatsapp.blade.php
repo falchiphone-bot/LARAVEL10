@@ -20,7 +20,7 @@
              {{ session(['error' => null]) }}
             @endif
 
-
+            @include('Api.atendimento.BuscarContato')
                  @include('Api.atendimento.tabelacontatos')
 
             </div>
