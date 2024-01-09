@@ -106,6 +106,7 @@ public static function FiltraCanaisUsuariosAtivosBuscar($Buscar)
                     ->orWhere('ocultar_lista_atendimento', 0);
             })
             ->whereIn('entry_id', ['189514994242034'])
+            ->where('ContactName', 'like', '%' . $Buscar . '%')
             ->orderby('updated_at', 'desc')
             ->get();
         $QuantidadeCanalAtendimento = 1;
@@ -116,6 +117,7 @@ public static function FiltraCanaisUsuariosAtivosBuscar($Buscar)
                     ->orWhere('ocultar_lista_atendimento', 0);
             })
             ->whereIn('entry_id', ['167722543083127'])
+            ->where('ContactName', 'like', '%' . $Buscar . '%')
             ->orderby('updated_at', 'desc')
             ->get();
         $QuantidadeCanalAtendimento = 1;
@@ -126,6 +128,7 @@ public static function FiltraCanaisUsuariosAtivosBuscar($Buscar)
                     ->orWhere('ocultar_lista_atendimento', 0);
             })
             ->whereIn('entry_id', ['179613235241221'])
+            ->where('ContactName', 'like', '%' . $Buscar . '%')
             ->orderby('updated_at', 'desc')
             ->get();
         $QuantidadeCanalAtendimento = 1;

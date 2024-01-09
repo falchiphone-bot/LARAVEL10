@@ -30,17 +30,6 @@ class ContatosWhatsappController extends Controller
     {
        $model= null;
 
-    //     $mensagem = webhook::orderby('created_at','desc')->first();
-
-    //     $recipient_id = trim($mensagem->messagesFrom);
-    //     $entry_id = trim($mensagem->entry_id);
-
-    // /   $registro = webhookContact::
-    //        where('recipient_id', $recipient_id)
-    //      ->where('entry_id', $entry_id)
-    //      ->orderBy('id', 'desc')
-    //      ->get();
-
 
     //      dd( $registro,$recipient_id , $entry_id, $mensagem );
 
@@ -85,6 +74,63 @@ class ContatosWhatsappController extends Controller
 
         return view('ContatosWhatsapp.index',compact('model'));
     }
+
+    public function indexBuscar(Request $request)
+    {
+       $model= null;
+
+       $Buscar = $request->Buscar;
+
+    //      dd( $registro,$recipient_id , $entry_id, $mensagem );
+
+            if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')
+              && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034'
+              && Gate::allows('WHATSAPP_ENTRY_ID_ 179613235241221'))) {
+                $model = webhookContact::where('contactName', '!=', '')
+                ->where('contactName', 'like', '%' . $Buscar . '%')
+                    ->where(function($query) {
+                        $query->where('entry_id', '167722543083127')
+                            ->orWhere('entry_id', '189514994242034')
+                            ->orWhere('entry_id', '179613235241221');;
+                    })
+                    ->orderBy('contactName')
+                    ->get();
+            }
+
+        else
+       if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')) {
+           $model= webhookContact::Where('contactName','!=','')
+           ->where('contactName', 'like', '%' . $Buscar . '%')
+           ->where('entry_id',167722543083127)
+           ->OrderBy('contactName')->get();
+       }
+       else
+       if (Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
+            $model= webhookContact::Where('contactName','!=','')
+            ->where('contactName', 'like', '%' . $Buscar . '%')
+            ->where('entry_id',189514994242034)
+            ->OrderBy('contactName')->get();
+        }
+        else
+        if (Gate::allows('WHATSAPP_ENTRY_ID_179613235241221')) {
+             $model= webhookContact::Where('contactName','!=','')
+             ->where('contactName', 'like', '%' . $Buscar . '%')
+             ->where('entry_id',179613235241221)
+             ->OrderBy('contactName')->get();
+         }
+
+
+     if($model == null)
+     {
+         session(['error' => 'Nada pesquisado! Usuário sem permissão de acesso!']);
+         return redirect(route('whatsapp.atendimentoWhatsapp'));
+     }
+
+        return view('ContatosWhatsapp.index',compact('model'));
+    }
+
+
+
 
     /**
      * Show the form for creating a new resource.
