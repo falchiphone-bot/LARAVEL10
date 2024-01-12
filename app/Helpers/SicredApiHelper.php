@@ -38,7 +38,7 @@ class SicredApiHelper
             ])
             ->json();
         if (empty($auth['access_token'])) {
-            dd($conta, $agencia, $update_token = false, $token_conta_sicred, $client_id, $secret_id, $token_desenvolvedor);
+            dd($conta, $agencia, $update_token = false, $token_conta_sicred, $client_id, $secret_id, $token_desenvolvedor, 'Sem autorização para acessar o recurso');
         }
 
         return $auth;

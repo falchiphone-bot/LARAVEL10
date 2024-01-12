@@ -1663,7 +1663,7 @@ class ApiController extends Controller
 
             // dd($Contatos, $RegistrosContatos);
             $textopesquisar = null;
-          
+
             return view('api.atendimentoWhatsapp', compact('Contatos', 'selecao', 'RegistrosContatos', 'textopesquisar'));
         }
 
@@ -2212,7 +2212,6 @@ else
 
     public function enviarMensagemAprovada(Request $request)
     {
-
         $request->validate([
             'idcontato' => 'required',
             'idtemplate' => 'required',
@@ -2223,33 +2222,30 @@ else
 
         $efetuar = $request->all();
 
-        // dd( $efetuar, $efetuar['idcontato'], $efetuar['idtemplate'] );
-
         $contatos = webhookContact::find($efetuar['idcontato']);
+ 
         $recipient_id = $contatos->recipient_id;
         $contactName = $contatos->contactName;
+        $entry_id = $contatos->entry_id;
+
 
         $template = WebhookTemplate::find($efetuar['idtemplate']);
-
         $name = $template->name  ;
         $language = $template->language;
         $body = $template->texto ;
         $template_id = $template->id;
 
-        $idWebhookConfig = $request->idWebhookConfig;
-
-        $WebhookConfig =  WebhookConfig::where('ativado','1')
-        ->first();
-
-        // $WebhookConfig =  WebhookConfig::find($idWebhookConfig);
-
-
-
+        $registro =  webhookContact::where('recipient_id',  $recipient_id)
+        ->where('entry_id', $entry_id)
+        ->get()->first();
+  
+        $WebhookConfig =  WebhookConfig::OrderBy('usuario')
+        ->where('identificacaocontawhatsappbusiness',$entry_id)
+        ->get()->first();
+        
         $phone_number_id  = $WebhookConfig->identificacaonumerotelefone;
         $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
-//   DD($WebhookConfig,$idWebhookConfig, $request->all(),  $phone_number_id  );
 
-        // dd($WebhookConfig->identificacaocontawhatsappbusiness, $phone_number_id);
         if ($token == 'token24horas') {
             $accessToken = $WebhookConfig->token24horas;
         } elseif ($token == 'tokenpermanenteusuario') {
@@ -2257,6 +2253,7 @@ else
             $accessToken = $WebhookConfig->tokenpermanenteusuario;
         }
 
+  
 
         $client = new Client();
 
@@ -3204,17 +3201,25 @@ else
 ///////////////////////////////////////////
 public function enviarMensagemEncerramentoAtendimentoSemAviso(Request $request, $id)
 {
-
     $usuario = trim(Auth::user()->email);
     $id_arquivo = null;
     $arquivo = $request->file('arquivo') ?? null;
     $phone = $request->recipient_id;
 
-    $model = webhook::find($id);
+    // $model = webhook::find($id);
+    // dd($id);
+    // $entry_id = $model->entry;
+
+    $entry_id = $request->entry_id;
 
 
-    $registro = webhookContact::where('recipient_id', $phone)->get()->first();
-    $id_contact = $registro->id;
+
+    $registro =  webhookContact::where('recipient_id', $phone)
+    ->where('entry_id', $entry_id)
+    ->get()->first();
+
+
+    // $id_contact = $request->id;
 
 
     $registro->update([

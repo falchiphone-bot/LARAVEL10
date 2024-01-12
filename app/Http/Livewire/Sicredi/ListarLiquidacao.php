@@ -39,6 +39,8 @@ class ListarLiquidacao extends Component
         $this->consulta = SicredApiHelper::boletoLiquidadoDia($contaCobranca, $consultaDia->format('d/m/Y'));
 
         $this->msgSalvarRecebimentos = '';
+
+
     }
 
     public function mount()
@@ -53,6 +55,7 @@ class ListarLiquidacao extends Component
 
         $consulta = SicredApiHelper::boletoLiquidadoDia($contaCobranca, $now->format('d/m/Y'));
         $this->consulta = $consulta;
+
     }
 
     public function limparCache($key)
@@ -64,6 +67,7 @@ class ListarLiquidacao extends Component
     public function criarLancamento($valorLiquido)
     {
         $contaCobranca = $this->contaCobranca;
+
 
         if (isset($contaCobranca->d_cobranca) && isset($contaCobranca->d_tarifa)) {
             $dataTarifa = Carbon::createFromFormat('Y-m-d', $this->consultaDia);
@@ -180,7 +184,10 @@ class ListarLiquidacao extends Component
 
     public function render()
     {
+
         $contasCobrancas = ContaCobranca::pluck('associadobeneficiario', 'id');
+
+
         return view('livewire.sicredi.listar-liquidacao', compact('contasCobrancas'));
     }
 }

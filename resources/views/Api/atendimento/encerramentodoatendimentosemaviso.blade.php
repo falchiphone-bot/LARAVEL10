@@ -4,6 +4,7 @@
     <div class="card" style="background-color: #ffffcc; padding: 20px;">
         <input type="hidden" name="recipient_id" value="{{ $NomeAtendido->recipient_id ?? null }}">
         <input type="hidden" name="contactName" value="{{ $NomeAtendido->contactName ?? null }}">
+        <input type="hidden" name="entry_id" value="{{ $NomeAtendido->entry_id ?? null }}">
         <input type="hidden" name="status_mensagem_enviada"
             value="{{ $NomeAtendido->status_mensagem_enviada ?? null }}">
 
