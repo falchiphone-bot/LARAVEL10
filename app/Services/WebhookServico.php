@@ -705,6 +705,7 @@ class WebhookServico
             ->get()
             ->first();
 
+            $entry_id = $Atendido->entry_id;
         $idatendido = $Atendido->id;
         $NomeAtendido = $Atendido->contactName;
         $NomeTransferido = webhookContact::where('recipient_id', $id)
@@ -731,7 +732,7 @@ class WebhookServico
         // dd('parte inteira: ' . $parte_inteira, 'parte decimal: ' . $parte_decimal);
 
         if ($parte_inteira > 23) {
-            $Avisa = WebhookServico::Avisaparaatender($id, $NomeAtendido);
+            $Avisa = WebhookServico::Avisaparaatender($id, $NomeAtendido, $entry_id);
         } else {
             // dd($id, $UsuarioID, $NomeAtendido, $idatendido);
             $TransfereAvisa = WebhookServico::avisotransferiratendimento($id, $UsuarioID, $NomeAtendido, $idatendido);
@@ -740,9 +741,9 @@ class WebhookServico
     }
 
 
-    public static function Avisaparaatender($recipient_id, $NomeAtendido)
+    public static function Avisaparaatender($recipient_id, $NomeAtendido, $entry_id)
     {
-        $accessToken = WebhookServico::Token24horas();
+        $accessToken = WebhookServico::accessToken($entry_id);
         $WebhookConfig = WebhookConfig::Where('identificacaocontawhatsappbusiness', $entry_id)
             ->OrderBy('usuario')
             ->get()

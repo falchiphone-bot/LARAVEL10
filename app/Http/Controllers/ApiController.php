@@ -2979,15 +2979,21 @@ else
 
         $UsuarioID = $request->UsuarioID;
 
-        // dd($id, $request->all(), $contato, $UsuarioID, $idcontato);
+        // dd("id:" . $id, $request->all(), "Contato:" .$contato, "UsuarioID:" .$UsuarioID, "idcontato:" .$idcontato);
 
         $AvisoTransferencia = User::where('email', $UsuarioID)->get()->first()->whatsapp;
 
+if($AvisoTransferencia == null)
+{
+      dd("==============================================================================================================================================================================",
+       "Número do whatsapp do usuário para ser avisado está nulo no cadastro do atendente! VERIFIQUE!", "id:" .$id, "UsuarioID:" .$UsuarioID, "Linha:" . 2986, "NÚMERO WHATSAPP para ser avisado:" .$AvisoTransferencia,"idcontato:" .$idcontato );
+}
+else
+{
+    // dd("VAI AVISAR O WHATSAPP: " . $AvisoTransferencia);
+    $TransfereAvisa = WebhookServico::VerificaSessaoTransferir($AvisoTransferencia,$idcontato);
+}
 
-
-        $TransfereAvisa = WebhookServico::VerificaSessaoTransferir($AvisoTransferencia,$idcontato);
-
-        dd($id, $UsuarioID );
         $contato->update([
             'transferido_para' => $UsuarioID ,
             'quantidade_nao_lida' => $contato->quantidade_nao_lida+1,

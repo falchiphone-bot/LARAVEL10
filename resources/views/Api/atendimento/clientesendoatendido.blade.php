@@ -1,4 +1,5 @@
 @if ($NomeAtendido->user_atendimento != null || $NomeAtendido->user_atendimento != trim(Auth::user()->email))
+Se usuário atendimento é nulo ou usuário é diferente do usuário logado <br
     @if($NomeAtendido->user_atendimento)
         <span style="color: green; margin: 0; padding: 0;">Cliente sendo atendido por: </span>
         <span style="color: blue; margin: 0; padding: 0;">{{ $NomeAtendido->user_atendimento }}</span>
