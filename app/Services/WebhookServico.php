@@ -178,9 +178,13 @@ class WebhookServico
         return;
     }
 
-    public function refreshpagina($id)
+    public function refreshpagina($id, $entry_id)
     {
-        $User_Atendente = WebhookContact::where('recipient_id', $id)->first();
+
+
+        $User_Atendente = WebhookContact::where('recipient_id', $id)
+        ->where('entry_id', $entry_id)
+        ->first();
 
         if ($User_Atendente) {
             if ($User_Atendente->pagina_refresh == null || $User_Atendente->pagina_refresh == false) {
@@ -193,6 +197,7 @@ class WebhookServico
                 'pagina_refresh' => $atualiza_pagina,
             ]);
         }
+
 
         return redirect()->back();
     }
@@ -499,12 +504,12 @@ class WebhookServico
         $Token = $WebhookConfig->token24horas;
 
 
-      
+
 
         $client = new Client();
-       
-        
-     
+
+
+
         $client = new Client();
         $requestData = [];
 

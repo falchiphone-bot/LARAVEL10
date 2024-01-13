@@ -2785,11 +2785,14 @@ else
     public function enviarMensagemInicioAtendimento(Request $request, $id)
     {
 
+
+   
         $usuario = trim(Auth::user()->email);
         $nomeatendente = trim(Auth::user()->name);
 
         $id_arquivo = null;
         $arquivo = $request->file('arquivo') ?? null;
+        $entry_id = $request->entry_id;
 
       if($arquivo)
       {
@@ -2815,8 +2818,11 @@ else
 
 
 
-            $WebhookConfig =  WebhookConfig::OrderBy('usuario')->get()->first();
-            $phone_number_id = WebhookServico::phone_number_id();
+            $WebhookConfig =  WebhookConfig::OrderBy('usuario')
+            ->where('identificacaocontawhatsappbusiness', $entry_id)
+            ->get()->first();
+
+            $phone_number_id = WebhookServico::phone_number_id($entry_id);
             $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
             $Token = $WebhookConfig->token24horas;
 

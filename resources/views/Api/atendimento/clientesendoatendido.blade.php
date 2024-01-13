@@ -6,7 +6,7 @@ Se usuário atendimento é nulo ou usuário é diferente do usuário logado <br
     @endif
 @endif
 
-<form action="{{ route('whatsapp.refreshpagina', $id) }}" method="POST">
+<form action="{{ route('whatsapp.refreshpagina', ['id' => $id, 'entry_id' => $NomeAtendido->entry_id ]) }}" method="POST">
     @csrf
     <div class="card" style="background-color: #ffffcc; padding: 1px; margin-top: 1px;">
         <input type="hidden" name="recipient_id" value="{{ $NomeAtendido->recipient_id ?? null }}">

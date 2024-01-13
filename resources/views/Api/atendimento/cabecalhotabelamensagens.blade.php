@@ -39,8 +39,6 @@
                 @endcan
 
 
-
-
                 @can('WHATSAPP - ATENDIMENTO - ENCERRAR SIMULTANEAMENTE')
                          @include('Api.atendimento.encerramentodoatendimento')
                 @endcan
