@@ -1,3 +1,4 @@
+
 <form action="{{ route('whatsapp.enviarMensagemRespostaAtendimento', ['id' => $id, 'entry_id' => $NomeAtendido->entry_id] ) }}" method="POST"
 
     enctype="multipart/form-data">
@@ -24,7 +25,6 @@
         </div>
 
     </div>
-    
 </form>
 
 {{-- @include('Api.atendimento.encerramentodoatendimento') --}}

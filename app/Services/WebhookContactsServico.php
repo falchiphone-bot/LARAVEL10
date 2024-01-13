@@ -21,6 +21,9 @@ class WebhookContactsServico
 //     $RegistrosContatos = webhookContact::get();
 //   dd($RegistrosContatos);
 
+    $RegistrosContatos = null;
+    $QuantidadeCanalAtendimento = null;
+
     if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127')
     && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')
     && Gate::allows('WHATSAPP_ENTRY_ID_179613235241221')) {

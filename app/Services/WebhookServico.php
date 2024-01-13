@@ -331,7 +331,7 @@ class WebhookServico
         $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
         $phone_number_id = $WebhookConfig->identificacaonumerotelefone;
         $Token = $WebhookConfig->token24horas;
- 
+
         $client = new Client();
         $phone = $webhootContact->recipient_id; // Número de telefone de destino
         $client = new Client();
@@ -479,8 +479,12 @@ class WebhookServico
     public static function avisotransferiratendimento($id, $UsuarioID, $NomeAtendido, $idatendido)
     {
         $usuario = trim(Auth::user()->email);
+
         $User = user::where('whatsapp', $UsuarioID)->first();
+        dd( $User,  $UsuarioID);
         $NomeAtendente = $User->name;
+        $phone = $User->whatsapp;
+//    dd($id, $UsuarioID, $NomeAtendido, $idatendido, $phone);
 
         $webhootContact = webhookcontact::find($idatendido);
 
@@ -495,8 +499,12 @@ class WebhookServico
         $Token = $WebhookConfig->token24horas;
 
 
+      
+
         $client = new Client();
-        $phone = $User->whatsapp;
+       
+        
+     
         $client = new Client();
         $requestData = [];
 
@@ -686,6 +694,51 @@ class WebhookServico
         }
         return $parte_inteira;
     }
+
+    public static function VerificaSessaoTransferir($AvisoTransferencia, $idcontato)
+    {
+        $id = $AvisoTransferencia;
+
+        $UsuarioID = $id;
+        $Atendido = webhookContact::where('id', $idcontato)
+            ->OrderBy('updated_at', 'desc')
+            ->get()
+            ->first();
+
+        $idatendido = $Atendido->id;
+        $NomeAtendido = $Atendido->contactName;
+        $NomeTransferido = webhookContact::where('recipient_id', $id)
+            ->OrderBy('updated_at', 'desc')
+            ->get()
+            ->first();
+
+        $tempo_em_segundos = null;
+        $tempo_em_horas = null;
+        $tempo_em_minutos = null;
+        if ($NomeTransferido->timestamp) {
+            $tempo_em_segundos = strtotime(now()) - $NomeTransferido->timestamp;
+            $tempo_em_horas = $tempo_em_segundos / 3600;
+            $tempo_em_minutos = $tempo_em_segundos / 60;
+        }
+        $numero = $tempo_em_horas;
+        // Separar valores antes e depois do ponto
+        $partes = explode('.', $numero);
+
+        // Atribuir partes
+        $parte_inteira = (int) $partes[0];
+        $parte_decimal = isset($partes[1]) ? (float) ('0.' . $partes[1]) : 0;
+
+        // dd('parte inteira: ' . $parte_inteira, 'parte decimal: ' . $parte_decimal);
+
+        if ($parte_inteira > 23) {
+            $Avisa = WebhookServico::Avisaparaatender($id, $NomeAtendido);
+        } else {
+            // dd($id, $UsuarioID, $NomeAtendido, $idatendido);
+            $TransfereAvisa = WebhookServico::avisotransferiratendimento($id, $UsuarioID, $NomeAtendido, $idatendido);
+        }
+        return $parte_inteira;
+    }
+
 
     public static function Avisaparaatender($recipient_id, $NomeAtendido)
     {

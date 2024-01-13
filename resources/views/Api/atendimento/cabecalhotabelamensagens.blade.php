@@ -5,12 +5,14 @@
 
 
     @if ($NomeAtendido->user_atendimento === Auth::user()->email && $NomeAtendido->transferido_para)
+        Usuário atendimento é igual ao usuário logado e o atendimento foi transferido o usuário logado
         @include('Api.atendimento.cancelartransferenciaatendimento')
         @include('Api.atendimento.mensagemaserenviada')
 
     @elseif ($NomeAtendido->user_atendimento === Auth::user()->email &&  $parte_inteira < 24)
+         Usuário atendimento é igual ao usuário logado e as horas da sessão menor que 24
          @include('Api.atendimento.transferiratendimento')
-verificar daqui
+
          @include('Api.atendimento.mensagemaserenviada')
 
          @include('Api.atendimento.encerramentodoatendimento')
@@ -18,21 +20,25 @@ verificar daqui
     @else
         @if ($NomeAtendido->user_atendimento !== Auth::user()->email)
             @can('WHATSAPP - ATENDIMENTO - TRANSFERIR SIMULTANEAMENTE')
+            O usuário atendimento é diferente do usuário logado
                 @if ($NomeAtendido->transferido_para !== null)
+                O usuário atendimento é diferente do usuário logado e o atendimento foi transferido para alguém
                     @include('Api.atendimento.cancelartransferenciaatendimento')
                 @endif
             @endcan
 
             @if ($NomeAtendido->user_atendimento)
+            O usuário atendimento, ou seja, o usuário que está atendendo este contato é diferente do usuário logado
                 @can('WHATSAPP - ATENDIMENTO - TRANSFERIR SIMULTANEAMENTE')
+                    Pode transferir o atendimento
                     @if ($NomeAtendido->transferido_para === null)
+                        Se não transferido para alguém
                         @include('Api.atendimento.transferiratendimento')
                     @endif
-                @endcan
-
-                @can('WHATSAPP - ATENDIMENTO - ATENDER SIMULTANEAMENTE')
                     @include('Api.atendimento.mensagemaserenviada')
                 @endcan
+
+
 
 
                 @can('WHATSAPP - ATENDIMENTO - ENCERRAR SIMULTANEAMENTE')

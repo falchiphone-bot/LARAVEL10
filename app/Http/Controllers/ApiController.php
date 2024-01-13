@@ -1633,7 +1633,7 @@ class ApiController extends Controller
             // dd($Contatos, $RegistrosContatos);
             $textopesquisar = null;
             $Buscar = null;
-          
+
             return view('api.atendimentoWhatsapp', compact('Contatos', 'selecao', 'RegistrosContatos', 'textopesquisar', 'Buscar'));
         }
 
@@ -1687,7 +1687,7 @@ class ApiController extends Controller
         $RegistrosContatos = $resultado['RegistrosContatos'];
         $QuantidadeCanalAtendimento = $resultado['QuantidadeCanalAtendimento'];
 
-     
+
         $NomeAtendido =  webhookContact::
         where('recipient_id', $recipient_id)
         ->Where('entry_id', $entry_id)
@@ -2223,7 +2223,7 @@ else
         $efetuar = $request->all();
 
         $contatos = webhookContact::find($efetuar['idcontato']);
- 
+
         $recipient_id = $contatos->recipient_id;
         $contactName = $contatos->contactName;
         $entry_id = $contatos->entry_id;
@@ -2238,7 +2238,7 @@ else
         $registro =  webhookContact::where('recipient_id',  $recipient_id)
         ->where('entry_id', $entry_id)
         ->get()->first();
-  
+
         $WebhookConfig =  WebhookConfig::OrderBy('usuario')
         ->where('identificacaocontawhatsappbusiness',$entry_id)
         ->get()->first();
@@ -2253,7 +2253,7 @@ else
             $accessToken = $WebhookConfig->tokenpermanenteusuario;
         }
 
-  
+
 
         $client = new Client();
 
@@ -2972,16 +2972,22 @@ else
 
     public function TransferirAtendimento(request $request, string $id)
     {
+
+
         $contato = webhookContact::find($id);
         $idcontato = $contato->id;
 
         $UsuarioID = $request->UsuarioID;
 
+        // dd($id, $request->all(), $contato, $UsuarioID, $idcontato);
+
         $AvisoTransferencia = User::where('email', $UsuarioID)->get()->first()->whatsapp;
 
-        $TransfereAvisa = WebhookServico::VerificaSessao($AvisoTransferencia,$idcontato);
 
 
+        $TransfereAvisa = WebhookServico::VerificaSessaoTransferir($AvisoTransferencia,$idcontato);
+
+        dd($id, $UsuarioID );
         $contato->update([
             'transferido_para' => $UsuarioID ,
             'quantidade_nao_lida' => $contato->quantidade_nao_lida+1,
