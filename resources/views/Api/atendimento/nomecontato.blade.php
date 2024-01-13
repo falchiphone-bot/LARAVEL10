@@ -57,7 +57,7 @@
 
         @if($QuantidadeCanalAtendimento == 1)
         Canal de entrada:
-         <span class="red-strong">{{ $NomeAtendido->TelefoneWhatsApp->usuario }}</span>
+        <span class="red-strong">{{ $NomeAtendido->TelefoneWhatsApp->usuario }}</span>
              {{ '('. $NomeAtendido->TelefoneWhatsApp->telefone . ')'}}
              <hr>
          @endif

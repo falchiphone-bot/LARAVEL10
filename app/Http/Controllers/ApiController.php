@@ -1633,6 +1633,7 @@ class ApiController extends Controller
             // dd($Contatos, $RegistrosContatos);
             $textopesquisar = null;
             $Buscar = null;
+          
             return view('api.atendimentoWhatsapp', compact('Contatos', 'selecao', 'RegistrosContatos', 'textopesquisar', 'Buscar'));
         }
 
@@ -1686,7 +1687,7 @@ class ApiController extends Controller
         $RegistrosContatos = $resultado['RegistrosContatos'];
         $QuantidadeCanalAtendimento = $resultado['QuantidadeCanalAtendimento'];
 
-
+     
         $NomeAtendido =  webhookContact::
         where('recipient_id', $recipient_id)
         ->Where('entry_id', $entry_id)
@@ -1782,7 +1783,6 @@ $tempo_em_segundos  = null;
                     ->orderBy('created_at', 'desc')
                     ->get();
                     $QuantidadeCanalAtendimento = 1;
-
                 }
 
 
@@ -2242,7 +2242,7 @@ else
         $WebhookConfig =  WebhookConfig::OrderBy('usuario')
         ->where('identificacaocontawhatsappbusiness',$entry_id)
         ->get()->first();
-        
+
         $phone_number_id  = $WebhookConfig->identificacaonumerotelefone;
         $identificacaocontawhatsappbusiness = $WebhookConfig->identificacaocontawhatsappbusiness;
 
