@@ -1,3 +1,4 @@
+@if($NomeAtendido->carregamento_multimidia == true)
 @if ($item->messagesType == 'document' || $item->type == 'document')
 
     @if ($item->url_arquivo == null)
@@ -35,4 +36,5 @@
             </td>
         @endif
     @endif
+@endif
 @endif

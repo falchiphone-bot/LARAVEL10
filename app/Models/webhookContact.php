@@ -31,6 +31,7 @@ class webhookContact extends Model
         'ocultar_lista_atendimento',
         'alerta_mensagem_recebida',
         'bloquear_entrada_mensagem',
+        'carregamento_multimidia',
 
     ];
 

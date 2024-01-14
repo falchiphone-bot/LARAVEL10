@@ -62,19 +62,24 @@
 
 
                                 @can('WHATSAPP - ATUALIZAR REGISTRO - BAIXAR URL MIDIA')
-                                    @include('Api.baixarmidiacriaurl')
-                                    @include('Api.mostraimagem')
-                                    @include('Api.mostradocumento')
-                                    @include('Api.mostravideo')
-                                    @include('Api.mostraaudio')
 
-                                @else
-                                    @if ($NomeAtendido->user_atendimento !== null)
                                         @include('Api.baixarmidiacriaurl')
                                         @include('Api.mostraimagem')
                                         @include('Api.mostradocumento')
                                         @include('Api.mostravideo')
                                         @include('Api.mostraaudio')
+
+                                @else
+
+                                    @if ($NomeAtendido->user_atendimento !== null)
+
+
+                                            @include('Api.baixarmidiacriaurl')
+                                            @include('Api.mostraimagem')
+                                            @include('Api.mostradocumento')
+                                            @include('Api.mostravideo')
+                                            @include('Api.mostraaudio')
+                                    
                                     @endif
 
                                 @endcan

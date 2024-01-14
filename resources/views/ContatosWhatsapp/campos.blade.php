@@ -157,6 +157,19 @@
                 </div>
             </div>
 
+            <div class="row">
+                <div class="col-6">
+                    <div class="form-check">
+                        <label class="form-check-label" style="color: red" for="carregamento_multimidia">
+                            ATIVAR/DESATIVAR CARREGAMENTO DE MULTIMIDIA NO ATENDIMENTO
+                        </label>
+                        <input type="hidden" name="carregamento_multimidia" value="0">
+                        <input class="form-check-input" name="carregamento_multimidia" type="checkbox"
+                            @if ($model->carregamento_multimidia) checked @endif value="1" id="carregamento_multimidia">
+                    </div>
+                </div>
+            </div>
+
 
 
 

@@ -1,5 +1,5 @@
 
-
+@if($NomeAtendido->carregamento_multimidia == true)
     @if ($item->messagesType == 'audio' || $item->type == 'audio')
         @if ($item->url_arquivo == null)
                 Imagem ID:
@@ -16,4 +16,4 @@
 
         @endif
     @endif
-
+@endif
