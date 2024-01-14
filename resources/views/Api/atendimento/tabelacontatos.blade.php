@@ -18,11 +18,25 @@
            </nav>
 
             @endcan
+
+
+
             @foreach ($RegistrosContatos  as $item)
             <tr>
                 @if ($item->recipient_id)
                     <td>
-                    <a href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $item->recipient_id, 'entry_id' => $item->entry_id]) }}">{{ $item->contactName }}</a>
+                    @if($QuantidadeCanalAtendimento > 1)
+                    <a href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $item->recipient_id, 'entry_id' => $item->entry_id]) }}">
+                        {{ $item->contactName }} <span style="color: red;"> Canal -> <span style="color: black;">{{ $item->TelefoneWhatsApp->usuario }}</span>
+                    </a>
+
+                    @else
+                       <a href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $item->recipient_id, 'entry_id' => $item->entry_id]) }}">
+                            {{ $item->contactName }}
+                        </a>
+                 @endif
+
+                    <hr>
                     </td>
                 @endif
             <td>

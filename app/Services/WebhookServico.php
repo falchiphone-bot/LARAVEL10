@@ -202,6 +202,30 @@ class WebhookServico
         return redirect()->back();
     }
 
+    public function carregamentomultimidia($id, $entry_id)
+    {
+
+
+        $User_Atendente = WebhookContact::where('recipient_id', $id)
+        ->where('entry_id', $entry_id)
+        ->first();
+
+        if ($User_Atendente) {
+            if ($User_Atendente->carregamento_multimidia == null || $User_Atendente->carregamento_multimidia == false) {
+                $carregamento_multimidia = true;
+            } else {
+                $carregamento_multimidia = false;
+            }
+
+            $User_Atendente->update([
+                'carregamento_multimidia' => $carregamento_multimidia,
+            ]);
+        }
+
+
+        return redirect()->back();
+    }
+
     public function PesquisaMensagens($id, Request $request)
     {
         $recipient_id = $id;

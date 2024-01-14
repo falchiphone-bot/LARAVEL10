@@ -20,6 +20,20 @@ Se usuário atendimento é nulo ou usuário é diferente do usuário logado <br
         @endif
     </div>
 </form>
+<form action="{{ route('whatsapp.carregamentomultimidia', ['id' => $id, 'entry_id' => $NomeAtendido->entry_id ]) }}" method="POST">
+    @csrf
+    <div class="card" style="background-color: #ffffcc; padding: 1px; margin-top: 1px;">
+        <input type="hidden" name="recipient_id" value="{{ $NomeAtendido->recipient_id ?? null }}">
+        <input type="hidden" name="contactName" value="{{ $NomeAtendido->contactName ?? null }}">
+        <input type="hidden" name="status_mensagem_enviada" value="{{ $NomeAtendido->status_mensagem_enviada ?? null }}">
+
+        @if ($NomeAtendido->carregamento_multimidia == null || $NomeAtendido->carregamento_multimidia == false)
+            <button type="submit" class="btn btn-success">Ativar recarregamento multimídia</button>
+        @else
+            <button type="submit" class="btn btn-danger">Desativar recarregamento multimídia</button>
+        @endif
+    </div>
+</form>
 
 <form action="{{ route('whatsapp.PesquisaMensagens', $id) }}" method="GET">
     @csrf

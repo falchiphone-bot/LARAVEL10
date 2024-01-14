@@ -1623,6 +1623,9 @@ class ApiController extends Controller
                     $RegistrosContatos = $resultado['RegistrosContatos'];
                     $QuantidadeCanalAtendimento = $resultado['QuantidadeCanalAtendimento'];
 
+
+
+
             $selecao = null;
             if( $RegistrosContatos == null)
             {
@@ -1634,7 +1637,7 @@ class ApiController extends Controller
             $textopesquisar = null;
             $Buscar = null;
 
-            return view('api.atendimentoWhatsapp', compact('Contatos', 'selecao', 'RegistrosContatos', 'textopesquisar', 'Buscar'));
+            return view('api.atendimentoWhatsapp', compact('Contatos', 'selecao', 'RegistrosContatos', 'QuantidadeCanalAtendimento', 'textopesquisar', 'Buscar'));
         }
 
         public function atendimentoWhatsappBuscar(Request $request)
@@ -1665,7 +1668,7 @@ class ApiController extends Controller
             // dd($Contatos, $RegistrosContatos);
             $textopesquisar = null;
 
-            return view('api.atendimentoWhatsapp', compact('Contatos', 'selecao', 'RegistrosContatos', 'textopesquisar'));
+            return view('api.atendimentoWhatsapp', compact('Contatos', 'selecao', 'RegistrosContatos', 'QuantidadeCanalAtendimento', 'textopesquisar'));
         }
 
 
@@ -1687,13 +1690,16 @@ class ApiController extends Controller
         $RegistrosContatos = $resultado['RegistrosContatos'];
         $QuantidadeCanalAtendimento = $resultado['QuantidadeCanalAtendimento'];
 
+        $QCanalAtendimento = [];
+        $QCanalAtendimento['QuantidadeCanalAtendimento'] = $QuantidadeCanalAtendimento;
+
+
 
         $NomeAtendido =  webhookContact::
         where('recipient_id', $recipient_id)
         ->Where('entry_id', $entry_id)
         ->OrderBy('updated_at', 'desc')
         ->get()->first();
-
 
 
         $Usuarios = User::where('email', '!=', Auth::user()->email)
@@ -1817,7 +1823,7 @@ $tempo_em_segundos  = null;
         return view('api.atendimentoWhatsappFiltro',
          compact('id', 'entry_id','Contatos','selecao','NomeAtendido',
          'Usuarios','Ultimo_atendente', 'tempo_em_horas',
-         'tempo_em_segundos','tempo_em_minutos','parte_inteira','parte_decimal_minutos','RegistrosContatos', 'QuantidadeCanalAtendimento', 'textopesquisar'));
+         'tempo_em_segundos','tempo_em_minutos','parte_inteira','parte_decimal_minutos','RegistrosContatos','QCanalAtendimento', 'QuantidadeCanalAtendimento', 'textopesquisar'));
     }
 
 
@@ -2786,7 +2792,7 @@ else
     {
 
 
-   
+
         $usuario = trim(Auth::user()->email);
         $nomeatendente = trim(Auth::user()->name);
 
