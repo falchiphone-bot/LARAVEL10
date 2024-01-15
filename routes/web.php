@@ -237,6 +237,10 @@ Route::resource('FormandoBaseArquivos', App\Http\Controllers\FormandoBaseArquivo
 Route::resource('FormandoBaseAvaliacao', App\Http\Controllers\FormandoBaseAvaliacaoController::class);
 
 
+ # Formandos base whatsapp - cadastros via flow
+ Route::post('FormandoBaseWhatsapp/indexBusca', [App\Http\Controllers\FormandoBaseWhatsappController::class, 'indexBusca'])->name('FormandoBaseWhatsapp.indexBusca');
+Route::resource('FormandoBaseWhatsapp', App\Http\Controllers\FormandoBaseWhatsappController::class);
+
 
 # Formandos base recebimentos
 Route::get('FormandoBase/ConsultaFormandoBaseRecebimento/{id}', [App\Http\Controllers\FormandoBaseRecebimentosController::class, 'ConsultaFormandoBaseRecebimento'])->name('formandoBase.ConsultaFormandoBaseRecebimento');;

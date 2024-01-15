@@ -1,4 +1,7 @@
- 
+<nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+    <a class="btn btn-success" href="/FormandoBaseWhatsapp" target="_blank">Formandos - atletas - cadastros via flow whatsapp </a>
+</nav>
+
 <form method="GET" action="{{ route('whatsapp.atendimentoWhatsappBuscar') }}" accept-charset="UTF-8" class="text-center">
 
     @csrf

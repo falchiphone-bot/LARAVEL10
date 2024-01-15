@@ -27,7 +27,7 @@
                     <td>
                     @if($QuantidadeCanalAtendimento > 1)
                     <a href="{{ route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $item->recipient_id, 'entry_id' => $item->entry_id]) }}">
-                        {{ $item->contactName }} <span style="color: red;"> Canal -> <span style="color: black;">{{ $item->TelefoneWhatsApp->usuario }}</span>
+                        {{ $item->contactName }} <span style="color: red;"> <br>Canal -> <span style="color: black;">{{ $item->TelefoneWhatsApp->usuario }}</span>
                     </a>
 
                     @else

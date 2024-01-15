@@ -65,6 +65,16 @@
                                     </th>
                                 @endcan
                             </tr>
+                            <tr>
+                                @can('FORMANDOBASEWHATSAPP - LISTAR')
+
+                                    <th>
+                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                            <a class="btn btn-success" href="/FormandoBaseWhatsapp">Formandos - atletas - cadastros via flow whatsapp </a>
+                                        </nav>
+                                    </th>
+                                @endcan
+                            </tr>
                                 <tr>
                                     @can('REPRESENTANTES - LISTAR')
                                         <th>
