@@ -27,8 +27,9 @@ class WebhookServicoInteligencia
         Log::info('CANAL: '. $entry_id);
         Log::info('TELEFONE: '. $recipient_id);
 
-                 if($body == 'OPÇÃO' || $body == 'opção' || $body == 'Opção'
-                 || $body == 'OPCAO' || $body == 'opcao' || $body == 'Opcao')
+                 if($body == 'OPÇÃO' || $body == 'opção' || $body == 'Opção' || $body == 'Opções'
+                 || $body == 'OPCAO' || $body == 'opcao' || $body == 'Opcao' || $body == 'cadastro'
+                 || $body == 'CADASTRO' || $body == 'Cadastro' || $body == 'Cadastros' || $body == 'cadastros')
                     {
                         Log::info('Pesquisa:'.$body);
                         WebhookContactsEnviarFlow::

@@ -1,5 +1,6 @@
-<div class="container">
 
+<div class="container">
+ 
     <div class="badge bg-secondary text-wrap" style="width: 100%;font-size: 24px;lign='Center'">
 
        <a href="{{ route('whatsapp.enviarFlowMenuCadastroBasico', ['recipient_id' => $NomeAtendido->recipient_id,

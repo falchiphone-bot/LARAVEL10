@@ -178,7 +178,8 @@
                                     {{ $Model->rg }}
                                 </td>
                                 <td class="">
-                                    {{ $Model->nascimento->format('d/m/Y') }}
+                                    {{ $Model->nascimento }}
+                                    {{-- {{ $Model->nascimento->format('d/m/Y') }} --}}
                                 </td>
                                 {{-- <td class="">
                                     {{ $Model->MostraRepresentante->nome ?? null }}
