@@ -22,6 +22,14 @@ class WebhookMensagensAprovadas
         WebhookMensagensAprovadas::EnviaMensagemAprovadaSalva($recipient_id, $entry_id, $name );
     }
 
+    public static function avaliacao_ate_01032024($recipient_id, $entry_id)
+    {
+        $name = 'avaliacao_ate_01032024';
+        WebhookMensagensAprovadas::EnviaMensagemAprovadaSalva($recipient_id, $entry_id, $name );
+    }
+
+
+
       public static function pagina_tanabi_saf_facebook ($recipient_id, $entry_id)
       {
         $name = 'pagina_tanabi_saf_facebook';
