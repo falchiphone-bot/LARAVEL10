@@ -98,27 +98,54 @@
            BUSCAR POR NOME EM TODOS CLUBES PERMITIDOS AO USUÁRIO
        </div>
 
-       <div class="col-6">
+       <div class="col-12">
 
             <label for="Texto" style="color: black;">sequência de texto a pesquisar</label>
             <input class="form-control @error('Descricao') is-invalid @else is-valid @enderror"
                 name="BuscarNome" size="70" type="text" id="BuscarNome"
                 value="{{ $retorno['BuscarNome'] ?? null }}">
             </div>
+        <div>
 
-                            <div class="col-3">
-
+            <div class="col-12">
+                <div class="col-3">
                 <label for="Limite" style="color: black;">Limite de registros para retorno</label>
                 <input class="form-control @error('limite') is-invalid @else is-valid @enderror"
                     name="Limite" size="10" type="number" step="1" id="Limite"
                     value="{{ $retorno['Limite'] ?? null }}">
+               </div>
+            <div>
+
+
+                <div class="col-4">
+                    <input type="radio" name="Avaliacao" value="1" id="periodoTodos">
+                    <label for="periodoTodos">Avaliações no período de 29.01.2024 a 01.03.2024 (TODOS PERIODO)</label>
                 </div>
 
+                <div class="col-4">
+                    <input type="radio" name="Avaliacao" value="AVALIACAO_FUTEBOL_29012024_02022024" id="periodo0202">
+                    <label for="periodo0202">Avaliações no período de 29.01.2024 a 02.02.2024</label>
+                </div>
+
+                <div class="col-4">
+                    <input type="radio" name="Avaliacao" value="AVALIACAO_FUTEBOL_05022024_09022024" id="periodo0902">
+                    <label for="periodo0902">Avaliações no período de 05.02.2024 a 09.02.2024</label>
+                </div>
+
+                <div class="col-4">
+                    <input type="radio" name="Avaliacao" value="AVALIACAO_FUTEBOL_19022024_23022024" id="periodo2302">
+                    <label for="periodo2302">Avaliações no período de 19.02.2024 a 23.02.2024</label>
+                </div>
+
+                <div class="col-4">
+                    <input type="radio" name="Avaliacao" value="AVALIACAO_FUTEBOL 26022024_01032024" id="periodo0103">
+                    <label for="periodo0103">Avaliações no período de 26.02.2024 a 01.03.2024</label>
+                </div>
 
 
            <div class="row mt-2">
                <div class="col-4">
-                   <button class="btn btn-success mx-auto">Filtrar por texto no nome</button>
+                   <button class="btn btn-success mx-auto">Filtrar/Pesquisar</button>
                </div>
            </div>
    </form>
@@ -150,7 +177,7 @@
                             <th scope="col" class="px-6 py-4">TELEFONE</th>
                             {{-- <th scope="col" class="px-6 py-4">EMAIL</th> --}}
                             <th scope="col" class="px-6 py-4">CPF</th>
-                            <th scope="col" class="px-6 py-4">RG</th>
+                            <th scope="col" class="px-6 py-4">MOTIVO CADASTRO</th>
                             <th scope="col" class="px-6 py-4">NASCIMENTO</th>
                             {{-- <th scope="col" class="px-6 py-4">REPRESENTANTE PRINCIPAL</th> --}}
 
@@ -175,7 +202,7 @@
                                     {{ $Model->cpf }}
                                 </td>
                                 <td class="">
-                                    {{ $Model->rg }}
+                                    {{ $Model->motivo_cadastro }}
                                 </td>
                                 <td class="">
                                     {{ $Model->nascimento }}

@@ -71,6 +71,9 @@ class FormandoBaseWhatsappController extends Controller
             $request['Limite'] = null;
         }
 
+
+       $Avaliacao = $request->Avaliacao;
+
         $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
         ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
         ->OrderBy('Descricao')
@@ -83,15 +86,33 @@ class FormandoBaseWhatsappController extends Controller
                 ->where('nome', 'like', '%' . $texto . '%')
                 ->orderBy('nome', 'asc')
                 ->get();
-
-
             }
             else{
                 $model = FormandoBaseWhatsapp::limit($limite)
                ->orderBy('nome', 'asc')
                 ->get();
-
             }
+
+    
+            if($Avaliacao == 1){
+                $model = FormandoBaseWhatsapp::limit($limite)
+                ->where('motivo_cadastro', '!=', '')
+                ->orderBy('motivo_cadastro', 'asc')
+                ->orderBy('nome', 'asc')
+                ->get();
+            }
+            else
+             {
+                $model = FormandoBaseWhatsapp::limit($limite)
+                ->where('motivo_cadastro', $Avaliacao)
+                ->orderBy('motivo_cadastro', 'asc')
+                ->orderBy('nome', 'asc')
+                ->get();
+            }
+
+
+
+
 
 
  $retorno =$request->all();
