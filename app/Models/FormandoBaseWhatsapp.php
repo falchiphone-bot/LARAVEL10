@@ -29,6 +29,7 @@ class FormandoBaseWhatsapp extends Model
     'codigo_registro',
     'cidade',
     'uf',
+    'motivo_cadastro',
  ];
 
     protected $casts = [
@@ -53,6 +54,7 @@ class FormandoBaseWhatsapp extends Model
         'codigo_registro' => 'string',
         'cidade' => 'string',
         'uf' => 'string',
+        'motivo_cadastro' => 'string',
 
     ];
 

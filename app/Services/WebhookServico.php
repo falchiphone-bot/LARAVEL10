@@ -948,7 +948,7 @@ class WebhookServico
         $entry_id = $entry['id'] ?? null;
         $codigo_registro = $entry['changes'][0]['value']['messages']['timestamp'] ?? null;
 
-        if ($flow_token == '2120367534804891' || $flow_token == '380310001057380' || $flow_token == '7172134036189172') {
+        if ($flow_token == '2120367534804891' || $flow_token == '380310001057380' || $flow_token == '760242515437256') {
             WebhookServico::CadastrarFlow_token($entry);
         } elseif ($flow_token == '372275572014981'|| $flow_token == '1427482604781479') {
             WebhookServico::AlterarCPF_Flow_token($entry);
@@ -1081,6 +1081,7 @@ class WebhookServico
         $phone_number_id = $entry['changes'][0]['value']['metadata']['phone_number_id'] ?? null;
         $nome_contato = $entry['changes'][0]['value']['contacts'][0]['profile']['name'] ?? null;
 
+
         if ($interactive) {
             // Decodificando o JSON para um array associativo
             $data = json_decode($interactive_nfm_reply_response_json, true);
@@ -1098,6 +1099,9 @@ class WebhookServico
             $nomeResponsavel = $data['nomeResponsavel'] ?? null;
             $Posicao = $data['Posicao'] ?? null;
             $flow_description = $data['description'] ?? null;
+            $topicRadioMotivo = $data['topicRadio'] ?? null;
+
+
 
             $empresaID = WebhookContactsServico::canal_empresa($entry_id);
 
@@ -1143,6 +1147,8 @@ class WebhookServico
                         'user_atendimento' => $userName,
                         'telefone' => $messagesFrom ?? null,
                         'codigo_registro' => $messagesTimestamp ?? null,
+                        'motivo_cadastro' => $topicRadioMotivo ?? null,
+
                     ]);
                     Log::info('ANTES ENVIAR MENSAGEM DE CADASTRO');
                     WebhookServico::avisoInteractiveCadastrado($entry, $messagesFrom, $phone_number_id, $nome_contato, $messagesTimestamp, $nome);
