@@ -942,11 +942,13 @@ class WebhookServico
         $data = json_decode($interactive_nfm_reply_response_json, true);
         $flow_token = $data['flow_token'] ?? null;
         $topicRadio = $data['topicRadio'] ?? null;
+        $Posicao = $data['Posicao'] ?? null;
+        $nomeResponsavel = $data['nomeResponsavel'] ?? null;
         $recipient_id = $entry['changes'][0]['value']['messages'][0]['from'] ?? null;
         $entry_id = $entry['id'] ?? null;
         $codigo_registro = $entry['changes'][0]['value']['messages']['timestamp'] ?? null;
 
-        if ($flow_token == '2120367534804891' || $flow_token == '380310001057380') {
+        if ($flow_token == '2120367534804891' || $flow_token == '380310001057380' || $flow_token == '7172134036189172') {
             WebhookServico::CadastrarFlow_token($entry);
         } elseif ($flow_token == '372275572014981'|| $flow_token == '1427482604781479') {
             WebhookServico::AlterarCPF_Flow_token($entry);
@@ -1093,6 +1095,8 @@ class WebhookServico
             $flow_token = $data['flow_token'] ?? null;
             $nomePai = $data['nomePai'] ?? null;
             $nomeMae = $data['nomeMae'] ?? null;
+            $nomeResponsavel = $data['nomeResponsavel'] ?? null;
+            $Posicao = $data['Posicao'] ?? null;
             $flow_description = $data['description'] ?? null;
 
             $empresaID = WebhookContactsServico::canal_empresa($entry_id);
@@ -1132,6 +1136,8 @@ class WebhookServico
                         'flow_token' => $flow_token ?? null,
                         'nomePai' => $nomePai ?? null,
                         'nomeMae' => $nomeMae ?? null,
+                        'nomeResponsavel' => $nomeResponsavel?? null,
+                        'posicao' => $Posicao ?? null,
                         'flow_description' => $flow_description ?? null,
                         'user_created' => $flow_token ?? null,
                         'user_atendimento' => $userName,

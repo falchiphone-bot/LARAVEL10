@@ -1,7 +1,11 @@
 
 <div class="container">
- 
+
     <div class="badge bg-secondary text-wrap" style="width: 100%;font-size: 24px;lign='Center'">
+
+        <a href="{{ route('whatsapp.enviarFlowAvaliacao29012024_01032024', ['recipient_id' => $NomeAtendido->recipient_id,
+            'entry_id' => $NomeAtendido->entry_id]) }}" class="btn btn-primary" tabindex="-1"
+            role="button" aria-disabled="true">Enviar flow cadastro avaliação - 29.01.2024 a 01.03.2024</a>
 
        <a href="{{ route('whatsapp.enviarFlowMenuCadastroBasico', ['recipient_id' => $NomeAtendido->recipient_id,
            'entry_id' => $NomeAtendido->entry_id]) }}" class="btn btn-primary" tabindex="-1"

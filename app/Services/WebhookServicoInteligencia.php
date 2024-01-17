@@ -51,8 +51,8 @@ class WebhookServicoInteligencia
                       $body == 'Avaliação')
                        {
                            Log::info('Pesquisa:'.$body);
-                           WebhookMensagensAprovadas::
-                           avaliacao_ate_01032024($recipient_id, $entry_id);
+                           WebhookContactsEnviarFlow::
+                           enviarFlowAvaliacao29012024_01032024($recipient_id, $entry_id);
                        }else
                        if($body == 'saf' ||
                         $body == 'SAF' ||

@@ -22,9 +22,9 @@ class WebhookMensagensAprovadas
         WebhookMensagensAprovadas::EnviaMensagemAprovadaSalva($recipient_id, $entry_id, $name );
     }
 
-    public static function avaliacao_ate_01032024($recipient_id, $entry_id)
+    public static function avaliacao_29012024_ate_01032024($recipient_id, $entry_id)
     {
-        $name = 'avaliacao_ate_01032024';
+        $name = 'avaliacao_29012024_ate_01032024_2';
         WebhookMensagensAprovadas::EnviaMensagemAprovadaSalva($recipient_id, $entry_id, $name );
     }
 

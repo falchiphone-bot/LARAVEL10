@@ -178,6 +178,37 @@ class WebhookContactsEnviarFlow
            WebhookContactsEnviarFlow::EnviaMensagemGrava($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id );
     }
 
+    public static function enviarFlowAvaliacao29012024_01032024($recipient_id, $entry_id)
+    {
+        // if($entry_id == '189514994242034')
+        // {
+        //    // DADOS DO FLOW CRIADO A MENSAGEM = ID 3496535283943398
+        //     // {
+        //     //   "id": "317767004567130",
+        //     //   "status": "PENDING",
+        //     //   "category": "MARKETING"
+        //     // }
+        //     $flow_token = '3496535283943398';
+        //     $flow_name = 'cadastro_alterar_data_de_nascimento';
+        //     $flow_description = 'Enviado o flow  cadastro_alterar_data_de_nascimento , token '. $flow_token;
+        // }else
+        if($entry_id == '179613235241221')
+        {
+            // DADOS DO FLOW CRIADO A MENSAGEM = ID  7172134036189172
+            // {
+            //   "id":  390976976651555
+            //   "status": "PENDING",
+            //   "category": "MARKETING"
+            // }
+            $flow_token = '7172134036189172';
+            $flow_name = 'avaliacao_29012024_ate_01032024_2';
+            $flow_description = 'Enviado o flow para avaliacao 29/01/2024 ate 01/03/2024 , token '. $flow_token;
+        }
+        WebhookContactsEnviarFlow::EnviaMensagemGrava($flow_token, $flow_name, $flow_description, $recipient_id, $entry_id );
+    }
+
+
+
     public static function EnviaMensagemFlowAlterarNascimento($recipient_id, $entry_id)
     {
         if($entry_id == '189514994242034')
@@ -370,6 +401,7 @@ class WebhookContactsEnviarFlow
     public static function montabodyflow($data, $messagesTimestamp)
     {
 
+        // dd($data);
         $nome = $data['nome'] ?? null;
         $dataNascimento = $data['dataNascimento'] ?? null;
         $dataNascimentoObj = DateTime::createFromFormat('d/m/Y', $dataNascimento);
@@ -382,6 +414,8 @@ class WebhookContactsEnviarFlow
         $flow_token = $data['flow_token'] ?? null;
         $messagesTimestamp = $data['messagesTimestamp'] ?? null;
         $topicRadio = $data['topicRadio'] ?? null;
+        $Posicao = $data['Posicao'] ?? null;
+        $nomeResponsavel = $data['nomeResponsavel'] ?? null;
 
       $body = '';
 
@@ -414,6 +448,12 @@ class WebhookContactsEnviarFlow
                 }
                 if ($messagesTimestamp) {
                     $body .= 'Código registro: ' . $messagesTimestamp . " | ";
+                }
+                if ($Posicao) {
+                    $body .= 'Posição: ' . $Posicao . " | ";
+                }
+                if ($nomeResponsavel) {
+                    $body .= 'Nome do responsável: ' . $nomeResponsavel . " | ";
                 }
 
                 // Remover o último " | " se necessário
@@ -491,7 +531,7 @@ class WebhookContactsEnviarFlow
         ->get();
 
 
-dd  ($CadastroBasico);
+// dd  ($CadastroBasico);
 
         $mensagem = "📋 *Dados do Cadastro Básico*\n\n";
 

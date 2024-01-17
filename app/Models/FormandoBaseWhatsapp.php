@@ -22,6 +22,8 @@ class FormandoBaseWhatsapp extends Model
     'nascimento',
     'nomeMae',
     'nomePai',
+    'nomeResponsavel',
+    'posicao',
     'flow_token',
     'flow_description',
     'codigo_registro',
@@ -44,11 +46,14 @@ class FormandoBaseWhatsapp extends Model
         'nascimento' => 'date',
         'nomeMae' => 'string',
         'nomePai' => 'string',
+        'nomeResponsavel' => 'string',
+        'posicao' => 'string',
         'flow_token' => 'string',
         'flow_description' => 'string',
         'codigo_registro' => 'string',
         'cidade' => 'string',
         'uf' => 'string',
+
     ];
 
 

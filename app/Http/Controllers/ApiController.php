@@ -35,7 +35,12 @@ class ApiController extends Controller
         // $this->middleware(['permission:CATEGORIAS - VER'])->only(['edit', 'update']);
         // $this->middleware(['permission:CATEGORIAS - EXCLUIR'])->only('destroy');
         $this->middleware(['permission:WHATSAPP - LISTAR'])->only('indexlista');
+    }
 
+    public function enviarFlowAvaliacao29012024_01032024($recipient_id, $entry_id)
+    {
+        WebhookContactsEnviarFlow::enviarFlowAvaliacao29012024_01032024($recipient_id, $entry_id);
+        return redirect(route('whatsapp.atendimentoWhatsappFiltroTelefone', ['recipient_id' => $recipient_id, 'entry_id' => $entry_id]));
     }
 
     public function enviarFlowAlterarNascimento($recipient_id, $entry_id)

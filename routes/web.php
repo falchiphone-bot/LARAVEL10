@@ -204,6 +204,7 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
  Route::get('/whatsapp/enviarFlowAlterarNomeMae/{recipient_id}/{entry_id}', [App\Http\Controllers\ApiController::class, 'enviarFlowAlterarNomeMae'])->name('whatsapp.enviarFlowAlterarNomeMae');
  Route::get('/whatsapp/enviarFlowAlterarNomePai/{recipient_id}/{entry_id}', [App\Http\Controllers\ApiController::class, 'enviarFlowAlterarNomePai'])->name('whatsapp.enviarFlowAlterarNomePai');
 Route::get('/whatsapp/EnviaMensagemDadosCadastroBasico/{recipient_id}/{entry_id}', [App\Http\Controllers\ApiController::class, 'EnviaMensagemDadosCadastroBasico'])->name('whatsapp.EnviaMensagemDadosCadastroBasico');
+Route::get('/whatsapp/enviarFlowAvaliacao29012024_01032024/{recipient_id}/{entry_id}', [App\Http\Controllers\ApiController::class, 'enviarFlowAvaliacao29012024_01032024'])->name('whatsapp.enviarFlowAvaliacao29012024_01032024');
 
 
  Route::get('/whatsapp/atualizaregistro/{id}', [App\Http\Controllers\ApiController::class, 'atualizaregistro'])->name('whatsapp.atualizaregistro');
