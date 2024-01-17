@@ -510,7 +510,7 @@ class WebhookServico
         $usuario = trim(Auth::user()->email);
 
         $User = user::where('whatsapp', $UsuarioID)->first();
-        dd( $User,  $UsuarioID);
+        // dd('513',$User,  $UsuarioID);
         $NomeAtendente = $User->name;
         $phone = $User->whatsapp;
 //    dd($id, $UsuarioID, $NomeAtendido, $idatendido, $phone);
@@ -741,6 +741,8 @@ class WebhookServico
             ->OrderBy('updated_at', 'desc')
             ->get()
             ->first();
+
+            // dd('Renan',$NomeTransferido);
 
         $tempo_em_segundos = null;
         $tempo_em_horas = null;
