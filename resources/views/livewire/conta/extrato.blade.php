@@ -155,7 +155,9 @@
                     <button id="buscar" wire:click='searchPDF()' type="button" class="btn btn-danger btn-sm" target="_blank">
                         <i class="fa fa-dot-circle-o"></i> Buscar informações e gerar PDF
                     </button>
-
+                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                        <a class="btn btn-success" href="/lancamentos/ExportarExtratoExcel">Exportar lançamentos para extrato por período e empresa selecionada no formato EXCEL</a>
+                    </nav>
                 </div>
 
 

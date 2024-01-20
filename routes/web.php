@@ -338,6 +338,11 @@ Route::resource('RedeSocialUsuarios', App\Http\Controllers\RedeSocialUsuarioCont
     Route::resource('PlanoContas', App\Http\Controllers\PlanoContaController::class);
 
     #Lançamentos
+
+
+    Route::get('lancamentos/ExportarExtratoExcel',[App\Http\Controllers\LancamentosController::class,'ExportarExtratoExcel'])->name('lancamentos.ExportarExtratoExcel');
+    Route::post('Lancamentos/ExportarExtratoExcelpost',[App\Http\Controllers\LancamentosController::class,'ExportarExtratoExcelpost'])->name('lancamentos.ExportarExtratoExcelpost');
+
     Route::post('Lancamentos/ExportarSkalaExcelpost',[App\Http\Controllers\LancamentosController::class,'ExportarSkalaExcelpost'])->name('lancamentos.exportarskalaExcelpost');
     Route::post('Lancamentos/ExportarSkalapost',[App\Http\Controllers\LancamentosController::class,'ExportarSkalapost'])->name('lancamentos.exportarskalapost');
     Route::post('lancamentos/lancamentotabelaprice',[App\Http\Controllers\LancamentosController::class,'lancamentotabelaprice'])->name('lancamentos.lancamentotabelaprice');
