@@ -2533,7 +2533,9 @@ else
                 || $mime_type == 'text/csv'
                 || $mime_type == 'application/vnd.ms-excel'
                 || $mime_type == 'application/msword'
-                || $mime_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+                || $mime_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                || $mime_type == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                )
         {
             $tipoarquivo = 'document';
 
@@ -2543,6 +2545,7 @@ else
         //     $tipoarquivo = 'text';
         // }
 // dd( $tipoarquivo);
+// dd($mime_type); application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
         return $tipoarquivo;
     }
 

@@ -228,14 +228,15 @@ class WebhookServico
 
     public function PesquisaMensagens($id, Request $request)
     {
+        // 179613235241221 =   TANABI ESPORTE CLUBE
         $recipient_id = $id;
         $textopesquisar = request()->input('pesquisar_mensagem');
         $entry_id = request()->input('entry_id');
         $quantidademensagem = request()->input('quantidademensagem');
 
-        if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
+        if (Gate::allows('WHATSAPP_ENTRY_ID_167722543083127') && Gate::allows('WHATSAPP_ENTRY_ID_189514994242034') && Gate::allows('WHATSAPP_ENTRY_ID_179613235241221')) {
             $selecao = Webhook::limit($quantidademensagem)
-                ->whereIn('entry_id', ['167722543083127', '189514994242034'])
+                ->whereIn('entry_id', ['167722543083127', '189514994242034','179613235241221'])
                 ->where(function ($query) use ($recipient_id) {
                     $query->where('recipient_id', $recipient_id)->orWhere('messagesFrom', $recipient_id);
                 })
@@ -246,7 +247,7 @@ class WebhookServico
             $QuantidadeCanalAtendimento = 2;
 
             $RegistrosContatos = webhookContact::where('ocultar_lista_atendimento', null)
-                ->whereIn('entry_id', ['167722543083127', '189514994242034'])
+                ->whereIn('entry_id', ['167722543083127', '189514994242034','179613235241221'])
                 ->orderBy('updated_at', 'desc')
                 ->get();
         } elseif (Gate::allows('WHATSAPP_ENTRY_ID_189514994242034')) {
@@ -291,8 +292,25 @@ class WebhookServico
                 ->whereIn('entry_id', ['167722543083127'])
                 ->orderBy('updated_at', 'desc')
                 ->get();
+        } elseif (Gate::allows('WHATSAPP_ENTRY_ID_179613235241221')) {
+        $selecao = Webhook::limit($quantidademensagem);
+        $selecao = $selecao->whereIn('entry_id', ['179613235241221'])->where(function ($query) use ($recipient_id) {
+            $query->where('recipient_id', $recipient_id)->orWhere('messagesFrom', $recipient_id);
+        });
+
+        if ($textopesquisar) {
+            $selecao = $selecao->where('body', 'like', '%' . $textopesquisar . '%');
         }
 
+        $selecao = $selecao->orderBy('created_at', 'desc')->get();
+
+        $QuantidadeCanalAtendimento = 2;
+
+        $RegistrosContatos = webhookContact::where('ocultar_lista_atendimento', null)
+            ->whereIn('entry_id', ['179613235241221'])
+            ->orderBy('updated_at', 'desc')
+            ->get();
+    }
         // dd($quantidademensagem, $selecao);
 
         $Usuarios = User::where('email', '!=', Auth::user()->email)

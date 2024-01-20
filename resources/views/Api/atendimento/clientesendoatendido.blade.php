@@ -45,7 +45,7 @@ Se usuário atendimento é nulo ou usuário é diferente do usuário logado <br
             <input type="hidden" name="status_mensagem_enviada" value="{{ $NomeAtendido->status_mensagem_enviada ?? null }}">
 
             <div class="col-8">
-                <label for="pesquisar_mensagem">Texto para efetuar pesquisa</label>
+                <label for="pesquisar_mensagem">Texto para efetuar pesquisa no cliente</label>
                 <input class="form-control @error('pesquisar_mensagem') is-invalid @else is-valid @enderror"
                     name="pesquisar_mensagem" type="text" id="pesquisar_mensagem" value="{{ $textopesquisar }}">
             </div>

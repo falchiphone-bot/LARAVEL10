@@ -304,6 +304,7 @@ class ExtratoCaixaController extends Controller
 
             if ($criarlancamentos) {
                  if ($linha_1B === 'CAIXA ENTRADA') {
+               
                     $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
                         ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
                         ->where('Descricao', $arraydatanova['Descricao'])

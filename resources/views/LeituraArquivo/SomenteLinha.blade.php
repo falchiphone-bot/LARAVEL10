@@ -320,7 +320,7 @@
                             <p class="my-2">
                                 <button type="submit" class="btn btn-success">Enviar o arquivo EXCEL para a pasta
                                     do sistema e
-                                    consulta o arquivo total.</button>
+                                    consulta o arquivo total.  Os lançamentos estarão na conta CAIXA TEC. A célula no arquivo EXCEL deverá ser formato TEXTO. Para os lançamentos serem efetuados deverá marcar o check AUTORIZAR CRIAR LANÇAMENTOS.</button>
                             </p>
                     </form>
                 </div>
