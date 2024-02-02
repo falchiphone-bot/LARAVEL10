@@ -706,7 +706,7 @@ $Valor = str_replace(",", ".", $Valor);
                 $contasPagar->update([
                     'LancamentoID' => $duplicadoconsulta->ID,
                 ]);
-                session(['contabilidade' => 'Lançamento já inserido na contabilidade! Autalizei o Contas a Pagar neste registro!']);
+                session(['contabilidade' => 'Lançamento já inserido na contabilidade! Atualizei o Contas a Pagar neste registro!']);
             } else {
                 Lancamento::create($Lancamento);
                 Lancamento::saved($Lancamento);
