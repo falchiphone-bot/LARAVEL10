@@ -613,6 +613,8 @@ $Valor = str_replace(",", ".", $Valor);
             }
 
 
+
+
             $data_lancamento_bloqueio_debito = $contasPagar->ContaDebito->Bloqueiodataanterior;
 
 
@@ -710,6 +712,23 @@ $Valor = str_replace(",", ".", $Valor);
             } else {
                 Lancamento::create($Lancamento);
                 Lancamento::saved($Lancamento);
+
+                $duplicadoconsulta = Lancamento::where([
+                    'EmpresaID' => $contasPagar->EmpresaID,
+                    'Descricao' => $contasPagar->Descricao,
+                    'Valor' => $contasPagar->Valor,
+                    'DataContabilidade' => $dataContabilidade,
+                    'ContaDebitoID' => $contasPagar->ContaFornecedorID,
+                    'ContaCreditoID' => $contasPagar->ContaPagamentoID,
+                ])->first();
+
+
+                $contasPagar = ContasPagar::find($id);
+                $contasPagar->update([
+                    'LancamentoID' => $duplicadoconsulta->ID,
+                ]);
+
+
                 session(['success' => 'Lançamento incluído na contabilidade!']);
             }
         };
