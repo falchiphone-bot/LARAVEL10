@@ -13,14 +13,36 @@ use App\Helpers\Enumerators;
 
 class ClientIxc extends Model
 {
-    /**
-     * @var string
-     */
-    public $table = 'cliente';
 
-    /**
-     * @var string
-     */
+    protected $primaryKey = "ID";
+    protected $table = 'cliente';
+
+    public $timestamps = false;
+
+    protected $fillable = [
+        'id',
+        'razao',
+        'fantsaia',
+        'endereco',
+        'numero',
+        'bairro',
+        'cidade',
+        'uf',
+        'cnpj_cpf',
+        'email',
+        'tipo_pessoa',
+        'id_tipo_cliente',
+        'ativo',
+        'id_conta',
+        'status_internet',
+        'data_cadastro',
+        'id_condominio',
+        'bloco',
+        'apartamento',
+        'whatsapp',
+    ];
+
+
     public $connection = 'ixc';
 
     /**

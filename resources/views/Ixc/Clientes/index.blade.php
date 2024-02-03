@@ -28,7 +28,7 @@
 
                 <div class="card-header">
                     <div class="badge bg-info text-wrap" style="width: 100%;font-size: 24px">
-                        <p>Total de clientes cadastradas no sistema de gerenciamento administrativo e contábil:
+                        <p>Total de clientes selecionados no sistema de gerenciamento administrativo e contábil:
                             {{ $clientes->count() ?? 0 }}</p>
                     </div>
                 </div>
@@ -42,7 +42,7 @@
                     <thead>
                         <tr>
                             <th scope="col" class="px-6 py-4">NOME</th>
-                            <th scope="col" class="px-6 py-4">OBSERVAÇÃO</th>
+                            <th scope="col" class="px-6 py-4">ATIVO</th>
                             <th scope="col" class="px-6 py-4"></th>
                             <th scope="col" class="px-6 py-4"></th>
                             <th scope="col" class="px-6 py-4"></th>
@@ -53,11 +53,11 @@
                         @foreach ($clientes as $cliente)
                             <tr>
                                 <td class="">
-                                    {{ $cliente->nome }}
+                                    {{ $cliente->razao }}
                                     </a>
                                 </td>
                                 <td class="">
-                                    {{ $cliente->observacao }}
+                                    {{ $cliente->ativo }}
                                 </td>
                             </tr>
                         @endforeach

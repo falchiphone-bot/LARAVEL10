@@ -23,9 +23,11 @@ class ClientesIxcController extends Controller
 
     public function index()
     {
-       $cliente= ClientIxc::limit(500)->get();
+       $clientes = ClientIxc::limit(500)
+       ->orderBy('id','desc')
+       ->get();
 
-        return view('Ixc/Clientes.index',compact('cliente'));
+        return view('Ixc/Clientes.index',compact('clientes'));
     }
 
 }
