@@ -10,15 +10,14 @@ class ClientesIxcController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        // $this->middleware(['permission:MOEDAS - LISTAR'])->only('index');
-
+        $this->middleware(['CLIENTESIXCNETRUBI - LISTAR'])->only('index');
     }
 
 
-    // public function dashboard()
-    // {
-    //     return view('Moedas.dashboard');
-    // }
+    public function dashboard()
+    {
+        return view('Ixc/Clientes/dashboard');
+    }
 
 
     public function index()

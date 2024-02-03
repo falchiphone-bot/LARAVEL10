@@ -126,6 +126,7 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
 
  # Clientes IXC
  Route::resource('ClientesIxc', App\Http\Controllers\ClientesIxcController::class);
+ Route::get('Ixc/dashboard', [App\Http\Controllers\ClientesIxcController::class, 'dashboard'])->name('Ixc.dashboard');
 
  # Contatos do Whatsapp
  Route::resource('ContatosWhatsapp', App\Http\Controllers\ContatosWhatsappController::class);
