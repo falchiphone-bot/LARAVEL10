@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Helpers\Enumerators;
 
-class Client extends Model
+class ClientIxc extends Model
 {
     /**
      * @var string

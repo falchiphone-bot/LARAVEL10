@@ -124,13 +124,13 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
  Route::get('ContasPagar/IncluirLancamentoContasPagar/{id}',[App\Http\Controllers\ContasPagarController::class,'IncluirLancamentoContasPagar'])->name('contaspagar.IncluirLancamentoContasPagar');
 
 
+ # Clientes IXC
+ Route::resource('ClientesIxc', App\Http\Controllers\ClientesIxcController::class);
+
  # Contatos do Whatsapp
  Route::resource('ContatosWhatsapp', App\Http\Controllers\ContatosWhatsappController::class);
  Route::get('contatos/temposessao',[App\Http\Controllers\ContatosWhatsappController::class,'temposessaocontato'])->name('temposessaocontato.temposessao');
  Route::get('contatos/indexbuscar',[App\Http\Controllers\ContatosWhatsappController::class,'indexbuscar'])->name('contatos.indexbuscar');
-
-
-
 
  # API WHATSAPP
  Route::get('/whatsapp/TransferirAtendimento/{id}', [App\Http\Controllers\ApiController::class, 'TransferirAtendimento'])->name('whatsapp.TransferirAtendimento');
