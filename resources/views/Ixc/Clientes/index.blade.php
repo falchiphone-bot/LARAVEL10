@@ -43,10 +43,12 @@
                    </tr>
 
                    <tr>
-                    <th scope="col" class="px-6 py-4">Internet ativa no cadastro de clientes:{{$status_internet_Ativo}}</th>
-                    <th scope="col" class="px-6 py-4">Internet não ativa no cadastro de clientes:{{$status_internet_NAOAtivo}}</th>
-
-               </tr>
+                        <th scope="col" class="px-6 py-4">Internet ativa no cadastro de clientes:{{$status_internet_Ativo}}</th>
+                        <th scope="col" class="px-6 py-4">Internet não ativa no cadastro de clientes:{{$status_internet_NAOAtivo}}</th>
+                   </tr>
+                   tr>
+                        <th scope="col" class="px-6 py-4">Quantos registros com número de Whatsapp:{{$tem_whatsapp}}</th>
+                   </tr>
 
             </thead>
             </table>

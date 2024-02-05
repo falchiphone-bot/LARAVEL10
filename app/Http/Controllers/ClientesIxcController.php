@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Models\Ixc\ClientIxc;
 use Illuminate\Support\Facades\Validator;
 
+use function PHPUnit\Framework\assertNotEmpty;
 
 class ClientesIxcController extends Controller
 {
@@ -42,12 +43,18 @@ class ClientesIxcController extends Controller
        where('status_internet','N')
        ->count();
 
+
+       $tem_whatsapp = ClientIxc::
+       where('whatsapp', '!=' ,'')
+       ->count();
+
         return view('Ixc/Clientes.index',compact('clientes',
          'CadastroClientesAtivo',
          'CadastroClientesNaoAtivo',
          'CadastroClientes',
          'status_internet_Ativo',
          'status_internet_NAOAtivo',
+         'tem_whatsapp',
         ));
     }
 
