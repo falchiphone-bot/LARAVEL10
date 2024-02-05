@@ -40,7 +40,14 @@
 
                        <th scope="col" class="px-6 py-4">Cadastro de clientes</th>
                        <th scope="col" class="px-2 py-4">{{$CadastroClientes}}</th>
-                </tr>
+                   </tr>
+
+                   <tr>
+                    <th scope="col" class="px-6 py-4">Internet ativa no cadastro de clientes:{{$status_internet_Ativo}}</th>
+                    <th scope="col" class="px-6 py-4">Internet não ativa no cadastro de clientes:{{$status_internet_NAOAtivo}}</th>
+
+               </tr>
+
             </thead>
             </table>
 

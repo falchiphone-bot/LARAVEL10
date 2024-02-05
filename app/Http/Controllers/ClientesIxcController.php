@@ -34,7 +34,21 @@ class ClientesIxcController extends Controller
        ->count();
        $CadastroClientes = ClientIxc::count();
 
-        return view('Ixc/Clientes.index',compact('clientes', 'CadastroClientesAtivo','CadastroClientesNaoAtivo','CadastroClientes'));
+       $status_internet_Ativo = ClientIxc::
+       where('status_internet','A')
+       ->count();
+
+       $status_internet_NAOAtivo = ClientIxc::
+       where('status_internet','N')
+       ->count();
+
+        return view('Ixc/Clientes.index',compact('clientes',
+         'CadastroClientesAtivo',
+         'CadastroClientesNaoAtivo',
+         'CadastroClientes',
+         'status_internet_Ativo',
+         'status_internet_NAOAtivo',
+        ));
     }
 
 }
