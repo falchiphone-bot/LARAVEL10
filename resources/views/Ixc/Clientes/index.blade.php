@@ -26,25 +26,42 @@
 
 
 
+
+            </div>
+
+
+            <table class="table" style="background-color: rgb(195, 245, 130);">
+                <thead>
+                    <tr>
+                        <th scope="col" class="px-6 py-4">Ativos no cadastro de clientes:{{$CadastroClientesAtivo}}</th>
+
+                        <th scope="col" class="px-6 py-4">NÃO ativos no cadastro de clientes</th>
+                        <th scope="col" class="px-2 py-4">{{$CadastroClientesNaoAtivo}}</th>
+
+                       <th scope="col" class="px-6 py-4">Cadastro de clientes</th>
+                       <th scope="col" class="px-2 py-4">{{$CadastroClientes}}</th>
+                </tr>
+            </thead>
+            </table>
+
+
+            <tbody>
                 <div class="card-header">
                     <div class="badge bg-info text-wrap" style="width: 100%;font-size: 24px">
                         <p>Total de clientes selecionados no sistema de gerenciamento administrativo e contábil:
                             {{ $clientes->count() ?? 0 }}</p>
                     </div>
                 </div>
-
-
-
-            </div>
-
-            <tbody>
+                <div class="badge bg-info text-wrap" style="width: 100%;font-size: 24px">
+                    <p>Últimos cadastrados</p>
+                </div>
                 <table class="table" style="background-color: rgb(247, 247, 213);">
                     <thead>
                         <tr>
                             <th scope="col" class="px-6 py-4">NOME</th>
                             <th scope="col" class="px-6 py-4">ATIVO</th>
-                            <th scope="col" class="px-6 py-4"></th>
-                            <th scope="col" class="px-6 py-4"></th>
+                            <th scope="col" class="px-6 py-4">CIDADE</th>
+                            <th scope="col" class="px-6 py-4">DATA CADASTRO</th>
                             <th scope="col" class="px-6 py-4"></th>
                         </tr>
                     </thead>
@@ -58,6 +75,17 @@
                                 </td>
                                 <td class="">
                                     {{ $cliente->ativo }}
+                                </td>
+                                <td class="">
+                                    {{ $cliente->City->nome }}
+                                </td>
+                                <td class="">
+                                    <?php
+                                        $dataCadastroObjeto = new DateTime($cliente->data_cadastro);
+                                        $dataCadastroFormatada = $dataCadastroObjeto->format('d/m/Y');
+                                    ?>
+
+                                    {{ $dataCadastroFormatada }}
                                 </td>
                             </tr>
                         @endforeach

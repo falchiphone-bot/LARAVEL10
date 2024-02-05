@@ -5,6 +5,7 @@ namespace App\Models\Ixc;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Ixc\Cidade;
 use App\Models\BillingServices\CustomerService;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -90,7 +91,7 @@ class ClientIxc extends Model
      **/
     public function city(): BelongsTo
     {
-        return $this->belongsTo(City::class, 'cidade');
+        return $this->belongsTo(Cidade::class, 'cidade');
     }
 
     /**

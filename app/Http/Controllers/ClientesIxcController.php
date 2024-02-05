@@ -10,7 +10,7 @@ class ClientesIxcController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware(['CLIENTESIXCNETRUBI - LISTAR'])->only('index');
+        $this->middleware(['permission:CLIENTESIXCNETRUBI - LISTAR'])->only('index');
     }
 
 
@@ -26,7 +26,15 @@ class ClientesIxcController extends Controller
        ->orderBy('id','desc')
        ->get();
 
-        return view('Ixc/Clientes.index',compact('clientes'));
+       $CadastroClientesAtivo = ClientIxc::
+       where('ativo','S')
+       ->count();
+       $CadastroClientesNaoAtivo = ClientIxc::
+       where('ativo','N')
+       ->count();
+       $CadastroClientes = ClientIxc::count();
+
+        return view('Ixc/Clientes.index',compact('clientes', 'CadastroClientesAtivo','CadastroClientesNaoAtivo','CadastroClientes'));
     }
 
 }
