@@ -126,7 +126,12 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
 
  # Clientes IXC
  Route::resource('ClientesIxc', App\Http\Controllers\ClientesIxcController::class);
- Route::get('Ixc/dashboard', [App\Http\Controllers\ClientesIxcController::class, 'dashboard'])->name('Ixc.dashboard');
+ Route::get('/Ixc', function () { return view('Ixc.dashboard');})->name('ixc.dashboard');
+ Route::get('Ixc/Clientes/dashboard', [App\Http\Controllers\ClientesIxcController::class, 'dashboard'])->name('ClientesIxc.dashboard');
+
+ # Receber IXC
+ Route::resource('ReceberIxc', App\Http\Controllers\ReceberIxcController::class);
+ Route::get('Ixc/Receber/dashboard', [App\Http\Controllers\ReceberIxcController::class, 'dashboard'])->name('ReceberIxc.dashboard');
 
  # Contatos do Whatsapp
  Route::resource('ContatosWhatsapp', App\Http\Controllers\ContatosWhatsappController::class);

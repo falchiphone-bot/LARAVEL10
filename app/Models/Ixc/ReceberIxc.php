@@ -13,17 +13,28 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class AccountReceivable extends Model
+class ReceberIxc extends Model
 {
     public $table = 'fn_areceber';
 
     public $connection = 'ixc';
 
-    /**
-     * The attributes that should be casted to native types.
-     *
-     * @var array
-     */
+    protected $fillable = [
+        'id',
+        'data_emissao',
+        'valor',
+        'status',
+        'valor_recebido',
+        'liberado',
+        'id_cliente',
+        'data_vencimento',
+        'id_conta',
+        'tipo_recebimento',
+        'nn_boleto',
+        'pagamento_valor',
+        'pagamento_data',
+     ];
+
     protected $casts = [
         'data_vencimento' => 'datetime:d/m/Y',
         'ultima_conexao_inicial' => 'datetime:d/m/Y',
@@ -36,7 +47,7 @@ class AccountReceivable extends Model
      **/
     public function client(): BelongsTo
     {
-        return $this->belongsTo(Client::class, 'id_cliente');
+        return $this->belongsTo(ClientIxc::class, 'id_cliente');
     }
 
     /**
@@ -75,7 +86,7 @@ class AccountReceivable extends Model
         $userId = false;
         $initials = TelephoneExtension::where('ixc_user_id',$setup->usuario_id)->first();
 
-        $query = Client::join('fn_areceber', 'cliente.id', '=', 'fn_areceber.id_cliente')
+        $query = ClientIxc::join('fn_areceber', 'cliente.id', '=', 'fn_areceber.id_cliente')
         ->join('cliente_contrato', function ($join) { $join->on('cliente_contrato.id','=','fn_areceber.id_contrato')->orOn('cliente_contrato.id','=','fn_areceber.id_contrato_avulso');})
         ->whereDate('data_vencimento', '<', now())
         ->where('cliente.ativo', 'S')

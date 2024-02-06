@@ -22,7 +22,7 @@
                 @endif
 
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                    <a class="btn btn-warning" href="/Moedas/dashboard">Retornar a lista de opções</a> </nav>
+                    <a class="btn btn-warning" href="/Ixc">Retornar a lista de opções</a> </nav>
 
 
 
@@ -46,7 +46,7 @@
                         <th scope="col" class="px-6 py-4">Internet ativa no cadastro de clientes:{{$status_internet_Ativo}}</th>
                         <th scope="col" class="px-6 py-4">Internet não ativa no cadastro de clientes:{{$status_internet_NAOAtivo}}</th>
                    </tr>
-                   tr>
+                   <tr>
                         <th scope="col" class="px-6 py-4">Quantos registros com número de Whatsapp:{{$tem_whatsapp}}</th>
                    </tr>
 

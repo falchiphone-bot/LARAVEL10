@@ -67,7 +67,7 @@
                             @can('CLIENTESIXCNETRUBI - LISTAR')
                                 <th>
                                     <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                        <a class="btn btn-primary" href="Ixc/dashboard">IXC NET RUBI</a>
+                                        <a class="btn btn-primary" href="Ixc">IXC NET RUBI</a>
                                     </nav>
                                 </th>
                             @endcan

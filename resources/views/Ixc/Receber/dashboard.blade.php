@@ -7,7 +7,7 @@
                 <div class="card-header">
                     <div class="badge bg-primary text-wrap" style="width: 100%;
                     ;font-size: 24px;lign=˜Center˜">
-                        Menu Principal do sistema administrativo e contábil - IXC NET RUBI - CLIENTES
+                        Menu Principal do sistema administrativo e contábil - IXC NET RUBI - RECEBER
                     </div>
                 </div>
                 <div class="card-body">
@@ -20,11 +20,11 @@
                         </thead>
                         <tbody>
 
-                            @can('CLIENTESIXCNETRUBI - LISTAR')
+                            @can('RECEBERIXCNETRUBI - LISTAR')
                                 <tr>
                                     <th>
                                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-success" href="/ClientesIxc">Clientes</a>
+                                            <a class="btn btn-success" href="/ReceberIxc">Recebimentos</a>
                                         </nav>
 
                                         {{-- <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
