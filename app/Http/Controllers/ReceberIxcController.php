@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 use App\Models\Ixc\ReceberIxc;
+use DateTime;
+use Exception;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Carbon;
 
 use function PHPUnit\Framework\assertNotEmpty;
 
@@ -23,13 +26,19 @@ class ReceberIxcController extends Controller
 
     public function index()
     {
-       $receber = ReceberIxc::limit(500)
-       ->orderBy('id','desc')
-       ->get();
 
+                $data_vencimento_inicial = now()->format('Y-m-d');
+                $data_vencimento_final = now()->endOfMonth()->format('Y-m-d');
 
-        return view('Ixc/Clientes.index',compact('receber',
-        ));
+                $receber = ReceberIxc::
+                whereBetween('data_vencimento', [$data_vencimento_inicial, $data_vencimento_final])
+                ->where('status', 'A')
+                    ->orderBy('data_vencimento', 'asc')
+                    ->get();
+
+            dd($receber->sum('valor'));
+
+        // return view('Ixc/Clientes.index',compact('receber',));
     }
 
 }

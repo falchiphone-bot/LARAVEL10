@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ReceberIxc extends Model
 {
+
     public $table = 'fn_areceber';
 
     public $connection = 'ixc';
@@ -36,10 +37,10 @@ class ReceberIxc extends Model
      ];
 
     protected $casts = [
-        'data_vencimento' => 'datetime:d/m/Y',
-        'ultima_conexao_inicial' => 'datetime:d/m/Y',
-        'ultima_conexao_final' => 'datetime:d/m/Y',
-        'nao_bloquear_ate' => 'datetime:d/m/Y',
+        // 'data_vencimento' => 'datetime:d/m/Y',
+        // 'ultima_conexao_inicial' => 'datetime:d/m/Y',
+        // 'ultima_conexao_final' => 'datetime:d/m/Y',
+        // 'nao_bloquear_ate' => 'datetime:d/m/Y',
     ];
 
     /**

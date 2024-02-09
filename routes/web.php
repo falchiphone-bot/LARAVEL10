@@ -17,7 +17,7 @@ use App\Http\Services;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-
+Route::get('php', function () { return phpinfo();})->name('php');
 Route::resource('teste', App\Http\Controllers\TesteController::class);
 
 Route::get('/', function () {
