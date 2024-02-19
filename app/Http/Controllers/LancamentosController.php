@@ -946,9 +946,15 @@ return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
 
     public function Solicitacoes()
     {
-        $solicitacoes = SolicitacaoExclusao::orderBy('ID', 'DESC')->get();
-        dd($solicitacoes);
-        return view('Lancamentos.solicitacoes', compact('solicitacoes'));
+        $solicitacoes = SolicitacaoExclusao::
+       orderBy('ID', 'DESC')->get();
+        // dd($solicitacoes);
+
+        $solicitacoes = $solicitacoes->reject(function ($solicitacao) {
+            return $solicitacao->ID <= 19000;
+        });
+
+        return view('contabilidade.solicitacoes', compact('solicitacoes'));
     }
 
 }

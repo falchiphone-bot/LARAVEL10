@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class SolicitacaoExclusao extends Model
 {
@@ -26,6 +27,15 @@ class SolicitacaoExclusao extends Model
         "ContaCreditoID",
     ];
 
+    public function usuario()
+    {
+        return $this->belongsTo(User::class, 'UsuarioID');
+    }
 
+
+    public function lancamento(): HasOne
+    {
+        return $this->hasOne(lancamento::class, 'ID', 'TableID');
+    }
 
 }
