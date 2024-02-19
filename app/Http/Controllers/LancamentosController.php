@@ -18,6 +18,7 @@ use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\Calculation\DateTimeExcel\Days;
 use Carbon\Carbon;
 use App\Exports\LancamentoExport;
+use App\Models\SolicitacaoExclusao;
 use LancamentoExport as GlobalLancamentoExport;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -212,7 +213,7 @@ class LancamentosController extends Controller
         {
            $EmpresaID = $request->EmpresaSelecionada;
            $ContaID = $request->ContaSelecionada;
-     
+
 
            $ContaPequisada = Conta::Where("EmpresaID",'=',"$EmpresaID")
            ->Where("Planocontas_id",'=',"$ContaID")
@@ -942,4 +943,12 @@ return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
             $this->addError('download', 'Arquivo não localizado para baixar.');
         }
     }
+
+    public function Solicitacoes()
+    {
+        $solicitacoes = SolicitacaoExclusao::orderBy('ID', 'DESC')->get();
+        dd($solicitacoes);
+        return view('Lancamentos.solicitacoes', compact('solicitacoes'));
+    }
+
 }

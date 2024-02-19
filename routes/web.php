@@ -359,7 +359,7 @@ Route::resource('RedeSocialUsuarios', App\Http\Controllers\RedeSocialUsuarioCont
     Route::post('lancamentos/tabelaprice',[App\Http\Controllers\LancamentosController::class,'tabelaprice'])->name('lancamentos.tabelaprice');
     Route::get('lancamentos/download/{id}',[App\Http\Controllers\LancamentosController::class,'baixarArquivo'])->name('lancamentos.download');
     Route::get('Lancamentos/tabelaprice', function () { return view('Lancamento.tabelaprice');})->name('lancamentos.tabelapriceresultado');
-
+    Route::get('lancamentos/solicitacoes',[App\Http\Controllers\LancamentosController::class,'Solicitacoes'])->name('lancamentos.solicitacoes');
 
 
     #Contas
