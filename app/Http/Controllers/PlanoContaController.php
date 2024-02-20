@@ -935,13 +935,29 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
 
         $linhas = count($cadastros);
 
-
-        return view('PlanoContas.index', compact('cadastros', 'linhas'));
+        // $cadastros = PlanoConta::where('Agrupamento',5)->orderBy('codigo', 'asc')->get();
+        $Agrupamento = AgrupamentosContas::orderBy('nome', 'asc')
+        ->select(['nome', 'id'])
+        ->get();
+        // dd( $Agrupamento);
+        return view('PlanoContas.index', compact('cadastros', 'linhas', 'Agrupamento'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+
+    public function FiltroAgrupamento(request $request)
+    {
+        $Agrupamento = $request->nomeagrupamento;
+
+
+        $cadastros = PlanoConta::where('Agrupamento', $Agrupamento)->orderBy('codigo', 'asc')->get();
+        $linhas = count($cadastros);
+        $Agrupamento = AgrupamentosContas::orderBy('nome', 'asc')
+        ->select(['nome', 'id'])
+        ->get();
+        return view('PlanoContas.index', compact('cadastros', 'linhas', 'Agrupamento'));
+    }
+
+
     public function create()
     {
         return view('PlanoContas.create');

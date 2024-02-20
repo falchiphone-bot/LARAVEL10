@@ -42,6 +42,39 @@
                 @endcan
                 <p>Total de contas: {{ $linhas }}</p>
 
+
+                <form method="POST" action="{{ route('planocontas.FiltroAgrupamento') }}">
+                    @csrf
+                    <input type="hidden" name="_method" value="">
+
+
+                        @csrf
+                            <div class="col-sm-6">
+                                <label for="nomeagrupamento" style="color: black;">Agrupamento a ser filtrado</label>
+                                <select required class="form-control select2" id="idmoeda" name="nomeagrupamento">
+                                    <option value="">
+                                        Selecionar agrupamento
+                                    </option>
+
+                                    @foreach ($Agrupamento as $Agrupamentos)
+                                        <option @if ($Agrupamento ?? null)
+                                        {{-- @if ($moedasvalores->idmoeda == $moeda->id) selected @endif --}}
+                                            @endif
+                                            value="{{ $Agrupamentos->id }}">
+                                            {{ $Agrupamentos->nome }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="row mt-2">
+                                <div class="col-6">
+                                    <button class="btn btn-primary">Filtrar pela seleção</button>
+                                </div>
+                            </div>
+                     </form>
+
+
                 <table class="table table-bordered">
 
                     <tr>
@@ -119,7 +152,7 @@
                                 {{ $cadastro->CodigoSkala }}
                             </td>
                             <td>
-                                {{   $cadastro->MostraNome->id ?? null
+                                {{   $cadastro->MostraNome->nome ?? null
 
                                  }}
                             </td>
@@ -170,11 +203,23 @@
             @endsection
 
             @push('scripts')
+
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
+            <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+            <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
                 <link rel="stylesheet"
                     href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
+                {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script> --}}
 
                 <script>
+
+                    $(document).ready(function() {
+                                $('.select2').select2();
+                            });
+
+
                     $('form').submit(function(e) {
                         e.preventDefault();
                         $.confirm({

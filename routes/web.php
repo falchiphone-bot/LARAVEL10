@@ -343,6 +343,8 @@ Route::resource('RedeSocialUsuarios', App\Http\Controllers\RedeSocialUsuarioCont
     Route::get('PlanoContas/Balancetespdf', [App\Http\Controllers\PlanoContaController::class, 'Balancetesgerarpdf'])->name('planocontas.Balancetesgerarpdf');
     Route::resource('PlanoContas', App\Http\Controllers\PlanoContaController::class);
 
+    Route::post('PlanoContas/FiltroAgrupamento', [App\Http\Controllers\PlanoContaController::class, 'FiltroAgrupamento'])->name('planocontas.FiltroAgrupamento');
+
     #Lançamentos
 
 
