@@ -40,18 +40,23 @@
                     <a href="{{ route('PlanoContas.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1"
                         role="button" aria-disabled="true">Incluir contas no plano de contas padrão</a>
                 @endcan
+
+                <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                    <a class="btn btn-success" href="/PlanoContas">Plano de Contas - mostrar todas contas</a>
+                </nav>
+
+
+
                 <p>Total de contas: {{ $linhas }}</p>
 
 
                 <form method="POST" action="{{ route('planocontas.FiltroAgrupamento') }}">
                     @csrf
                     <input type="hidden" name="_method" value="">
-
-
                         @csrf
                             <div class="col-sm-6">
                                 <label for="nomeagrupamento" style="color: black;">Agrupamento a ser filtrado</label>
-                                <select required class="form-control select2" id="idmoeda" name="nomeagrupamento">
+                                <select  class="form-control select2" id="nomeagrupamento" name="nomeagrupamento">
                                     <option value="">
                                         Selecionar agrupamento
                                     </option>
@@ -67,12 +72,28 @@
                                 </select>
                             </div>
 
+                            <div class="col-12">
+
+                                <input type="radio" name="Selecao" id="semagrupamento" value="semagrupamento" >
+                                <label for="visualizarCheckbox">Visualizar na tela sem agrupamentos com grau 5</label>
+
+
+                                <input type="radio" name="Selecao" id="semagrupamento" value="semagrupamentocalcular" >
+                                <label for="visualizarCheckbox">Visualizar na tela sem agrupamentos com grau 5 - CALCULAR</label>
+
+                            </div>
+
+
+
+
                             <div class="row mt-2">
                                 <div class="col-6">
                                     <button class="btn btn-primary">Filtrar pela seleção</button>
                                 </div>
                             </div>
-                     </form>
+                </form>
+
+
 
 
                 <table class="table table-bordered">

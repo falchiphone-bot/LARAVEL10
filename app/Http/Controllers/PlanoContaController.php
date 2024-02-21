@@ -407,6 +407,8 @@ class PlanoContaController extends Controller
                     ->orWhereNull('Agrupamento');
                 });
 
+                // dd($contasEmpresa);
+
             } else
             if ($Selecao == "Agrupados") {
                 $contasEmpresa->where('Agrupamento', '>', 0);
@@ -730,6 +732,8 @@ uasort($registrosAgrupados, function($a, $b) {
         return 0;
     }
 });
+// DD($Agrupamentovazio);
+
 
 if ($Agrupamentovazio == 'Agrupadosvazio') {
     // Itera pelos registros em $registrosAgrupados
@@ -740,6 +744,7 @@ if ($Agrupamentovazio == 'Agrupadosvazio') {
             unset($registrosAgrupados[$indice]);
         }
     }
+
 }
 
 
@@ -946,14 +951,49 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
 
     public function FiltroAgrupamento(request $request)
     {
-        $Agrupamento = $request->nomeagrupamento;
+        $Agrupamentoselecionado = $request->nomeagrupamento;
+        $Selecao= $request->Selecao;
 
 
-        $cadastros = PlanoConta::where('Agrupamento', $Agrupamento)->orderBy('codigo', 'asc')->get();
-        $linhas = count($cadastros);
+        // dd($request->all());
+
+        $cadastros = null;
+        $linhas = null;
+
         $Agrupamento = AgrupamentosContas::orderBy('nome', 'asc')
-        ->select(['nome', 'id'])
-        ->get();
+            ->get();
+
+
+
+        if($Agrupamentoselecionado)
+         {
+            $cadastros = PlanoConta::where('Agrupamento', $Agrupamentoselecionado)->orderBy('codigo', 'asc')->get();
+            $linhas = count($cadastros);
+            $SemAgrupamento = null;
+
+        }
+        else
+        if($Selecao == 'semagrupamento'){
+            $cadastros = PlanoConta::where('Agrupamento' , null)
+            ->where('Grau' , 5)
+            ->orderBy('codigo', 'asc')->get();
+            $linhas = count($cadastros);
+
+        }
+        else
+        if($Selecao == 'semagrupamentocalcular'){
+            $cadastros = PlanoConta::where('Agrupamento' , null)
+            ->where('Grau' , 5)
+            ->orderBy('codigo', 'asc')->get();
+            $linhas = count($cadastros);
+            dd($Selecao);
+
+            
+
+
+
+        }
+        $Agrupamentoselecionado = null;
         return view('PlanoContas.index', compact('cadastros', 'linhas', 'Agrupamento'));
     }
 
