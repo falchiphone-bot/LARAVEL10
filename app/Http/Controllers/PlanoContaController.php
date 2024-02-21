@@ -993,8 +993,6 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
             $linhas = count($cadastros);
 
 
-
-
             $informacoesArray = [];
 
             foreach ($cadastros as $cadastro) {
@@ -1010,12 +1008,22 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
 
                 }
 
-                            $saldolancamento = Lancamento::where('EmpresaID', 5)
-                ->where(function ($query) use ($cadastro) {
-                    $query->where('ContaCreditoID', $cadastro->ID)
-                        ->orWhere('ContaDebitoID', $cadastro->ID);
-                })
-                ->sum('Valor');
+                //             $saldolancamento = Lancamento::where('EmpresaID', 5)
+                // ->where(function ($query) use ($cadastro) {
+                //     $query->where('ContaCreditoID', $cadastro->ID)
+                //         ->orWhere('ContaDebitoID', $cadastro->ID);
+                // })
+                // ->sum('Valor');
+
+
+                $saldolancamento = Lancamento::where('EmpresaID', 5)
+    ->where(function ($query) use ($cadastro) {
+        $query->where('ContaCreditoID', $cadastro->ID)
+            ->orWhere('ContaDebitoID', $cadastro->ID);
+    })
+    ->whereYear('DataContabilidade', '>', 2023) // Adiciona esta linha para filtrar por ano maior que 2023
+    ->sum('Valor');
+
 
 
                 // Verifica se o valor total é maior que 0
