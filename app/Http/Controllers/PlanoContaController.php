@@ -982,15 +982,60 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
         }
         else
         if($Selecao == 'semagrupamentocalcular'){
-            $cadastros = PlanoConta::where('Agrupamento' , null)
-            ->where('Grau' , 5)
-            ->orderBy('codigo', 'asc')->get();
+            // $cadastros = PlanoConta::where('Agrupamento' , null)
+            // ->where('Grau' , 5)
+            // ->orderBy('codigo', 'asc')->get();
+
+
+            $cadastros = Conta::limit(1000000000)
+            ->orderBy('Planocontas_id', 'asc')->get();
+
             $linhas = count($cadastros);
-            dd($Selecao);
-
-            
 
 
+
+
+            $informacoesArray = [];
+
+            foreach ($cadastros as $cadastro) {
+
+                $Codigo = $cadastro->PlanoConta->Codigo;
+                $CodigoPrimeiroCaracter  = substr($Codigo, 0, 1);
+
+
+                if($cadastro->PlanoConta->Codigo == 3 && $cadastro->PlanoConta->Grau != 5 && $cadastro->EmpresaID != 5)
+                {
+
+                    continue;
+
+                }
+
+                            $saldolancamento = Lancamento::where('EmpresaID', 5)
+                ->where(function ($query) use ($cadastro) {
+                    $query->where('ContaCreditoID', $cadastro->ID)
+                        ->orWhere('ContaDebitoID', $cadastro->ID);
+                })
+                ->sum('Valor');
+
+
+                // Verifica se o valor total é maior que 0
+                if ($saldolancamento > 0 && $cadastro->PlanoConta->Agrupamento == null && $CodigoPrimeiroCaracter  == 3)  {
+                    // Adiciona as informações ao array
+                    $informacoesArray[] = [
+                        'ContaID' => $cadastro->ID,
+                        'IDConta' => $cadastro->Planocontas_id,
+                        'NomeConta' => $cadastro->PlanoConta->Descricao,
+                        'CodigoConta' => $cadastro->PlanoConta->Codigo,
+                        'Empresa' => $cadastro->Empresa->Descricao,
+                        'ValorTotal' => $saldolancamento,
+                        'Agrupamento' => $cadastro->PlanoConta->Agrupamento,
+                        'NomeAgrupamento' => $cadastro->PlanoConta->MostraNome->nome ?? null,
+                    ];
+                }
+            }
+
+
+            dd($cadastro, $cadastro->ID,$saldolancamento, $informacoesArray);
 
         }
         $Agrupamentoselecionado = null;
