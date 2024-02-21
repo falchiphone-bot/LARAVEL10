@@ -1002,7 +1002,7 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
                 $CodigoPrimeiroCaracter  = substr($Codigo, 0, 1);
 
 // $cadastro->PlanoConta->Codigo == $Codigo &&
-                if($cadastro->PlanoConta->Grau != 5 && $cadastro->EmpresaID != 1021)
+                if($cadastro->PlanoConta->Grau != 5 && $cadastro->EmpresaID != 5)
                 {
 
                     continue;
@@ -1015,7 +1015,7 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
                     // 3 = STTARMAAKE
                     // 4 = FIBRA
 
-                $saldolancamento = Lancamento::where('EmpresaID', 1021)
+                $saldolancamento = Lancamento::where('EmpresaID', 5)
                                     ->where(function ($query) use ($cadastro) {
                                         $query->where('ContaCreditoID', $cadastro->ID)
                                             ->orWhere('ContaDebitoID', $cadastro->ID);
@@ -1026,7 +1026,7 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
 
 
                 // Verifica se o valor total é maior que 0
-                if ($saldolancamento > 0 && $cadastro->PlanoConta->Agrupamento == null && $CodigoPrimeiroCaracter  == 4)  {
+                if ($saldolancamento > 0 && $cadastro->PlanoConta->Agrupamento == null && $CodigoPrimeiroCaracter  == 2)  {
                     // Adiciona as informações ao array
                     $informacoesArray[] = [
                         'ContaID' => $cadastro->ID,
