@@ -19,6 +19,7 @@ use Nette\Utils\Strings;
 use PHPUnit\Framework\Constraint\Count;
 use Dompdf\Dompdf;
 use Dompdf\Options;
+use Google\Service\CloudDataplex\GoogleCloudDataplexV1TaskInfrastructureSpecVpcNetwork;
 use PhpParser\Node\Stmt\Else_;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Illuminate\Support\Facades\Response;
@@ -1000,34 +1001,32 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
                 $Codigo = $cadastro->PlanoConta->Codigo;
                 $CodigoPrimeiroCaracter  = substr($Codigo, 0, 1);
 
-
-                if($cadastro->PlanoConta->Codigo == 3 && $cadastro->PlanoConta->Grau != 5 && $cadastro->EmpresaID != 5)
+// $cadastro->PlanoConta->Codigo == $Codigo &&
+                if($cadastro->PlanoConta->Grau != 5 && $cadastro->EmpresaID != 1021)
                 {
 
                     continue;
 
                 }
 
-                //             $saldolancamento = Lancamento::where('EmpresaID', 5)
-                // ->where(function ($query) use ($cadastro) {
-                //     $query->where('ContaCreditoID', $cadastro->ID)
-                //         ->orWhere('ContaDebitoID', $cadastro->ID);
-                // })
-                // ->sum('Valor');
+                    // 5 = INFRANET
+                    // 1027 = NET RUBI SERVICOS
+                    // 1021 = PRF
+                    // 3 = STTARMAAKE
+                    // 4 = FIBRA
 
-
-                $saldolancamento = Lancamento::where('EmpresaID', 5)
-    ->where(function ($query) use ($cadastro) {
-        $query->where('ContaCreditoID', $cadastro->ID)
-            ->orWhere('ContaDebitoID', $cadastro->ID);
-    })
-    ->whereYear('DataContabilidade', '>', 2023) // Adiciona esta linha para filtrar por ano maior que 2023
-    ->sum('Valor');
+                $saldolancamento = Lancamento::where('EmpresaID', 1021)
+                                    ->where(function ($query) use ($cadastro) {
+                                        $query->where('ContaCreditoID', $cadastro->ID)
+                                            ->orWhere('ContaDebitoID', $cadastro->ID);
+                                    })
+                                    ->whereYear('DataContabilidade', '>', 2023) // Adiciona esta linha para filtrar por ano maior que 2023
+                                    ->sum('Valor');
 
 
 
                 // Verifica se o valor total é maior que 0
-                if ($saldolancamento > 0 && $cadastro->PlanoConta->Agrupamento == null && $CodigoPrimeiroCaracter  == 3)  {
+                if ($saldolancamento > 0 && $cadastro->PlanoConta->Agrupamento == null && $CodigoPrimeiroCaracter  == 4)  {
                     // Adiciona as informações ao array
                     $informacoesArray[] = [
                         'ContaID' => $cadastro->ID,
@@ -1043,7 +1042,7 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
             }
 
 
-            dd($cadastro, $cadastro->ID,$saldolancamento, $informacoesArray);
+            dd($cadastro, $cadastro->ID,$saldolancamento, $informacoesArray, $CodigoPrimeiroCaracter);
 
         }
         $Agrupamentoselecionado = null;
