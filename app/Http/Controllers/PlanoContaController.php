@@ -380,7 +380,8 @@ class PlanoContaController extends Controller
 
             if($EmpresaID == 5)
             {
-                $EmpresasID = [5,11,1027,3,4,1021];
+                // $EmpresasID = [5,11,1027,3,4,1021];
+                $EmpresasID = [5,1027,3,4,1021];
             }
             else
             {
