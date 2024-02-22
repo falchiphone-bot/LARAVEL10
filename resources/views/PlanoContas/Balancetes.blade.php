@@ -105,6 +105,9 @@
 
                                             <input type="radio" name="Selecao" id="Agrupados" value="Agrupados">
                                             <label for="pdfvisualizarCheckbox">Selecionar os agrupados</label>
+
+                                            <input type="radio" name="Selecao" id="Agrupados" value="TodasEmprestimos">
+                                            <label for="pdfvisualizarCheckbox">Selecionar os agrupados com somente empréstimos</label>
                                     </div>
                                     <div class="col-12">
                                                 <input type="radio" name="Agrupamentovazio" id="Agrupadosvazio" value="Agrupadosvazio">

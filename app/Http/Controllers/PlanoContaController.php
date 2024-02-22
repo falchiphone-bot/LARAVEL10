@@ -392,6 +392,7 @@ class PlanoContaController extends Controller
                 dd($EmpresasID);
             }
 
+            // $Selecao = "TodasEmprestimos";
 
 
             $contasEmpresa = Conta::whereIn('EmpresaID', $EmpresasID)
@@ -418,11 +419,17 @@ class PlanoContaController extends Controller
             if ($Selecao == "Agrupados") {
                 $contasEmpresa->where(function ($query) {
                     $query->where('Agrupamento', '>', 0)
-                          ->orWhere('Agrupamento', '!=', 46);
+                          ->where('Agrupamento', '!=', 46);
                 });
 
-
             }
+            else
+            if ($Selecao == "TodasEmprestimos") {
+                $contasEmpresa->where('Agrupamento', 46);
+
+                    dd($pdfgerar, $tela, $Agrupar, $Selecao, $Agrupamentovazio, $MostrarValorRecebido, $contasEmpresa->get());
+            }
+            else
             if ($Selecao == "Todas") {
                 $contasEmpresa->where('Agrupamento', '!=', 46);
             }
@@ -690,6 +697,7 @@ if($Agrupar == 'Descricao')
         }
     }
     // dd('Descricao',$registrosAgrupados[$descricao]);
+
 }
 elseif($Agrupar == 'Agrupamento')
 {
@@ -714,9 +722,10 @@ elseif($Agrupar == 'Agrupamento')
         }
     }
 //   dd('Agrupamento', $registrosAgrupados);
+
 }
 
-
+// DD($Agrupamentovazio, $registro, $registrosAgrupados);
 
 $somaPercentual = 0;
 foreach($registrosAgrupados as $soma)
@@ -741,7 +750,7 @@ uasort($registrosAgrupados, function($a, $b) {
         return 0;
     }
 });
-// DD($Agrupamentovazio);
+
 
 
 if ($Agrupamentovazio == 'Agrupadosvazio') {
@@ -757,10 +766,7 @@ if ($Agrupamentovazio == 'Agrupadosvazio') {
 }
 
 
-
 $contasEmpresa = $registrosAgrupados;
-
-// dd($contasEmpresa);
 
 
 
