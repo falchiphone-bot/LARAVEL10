@@ -173,6 +173,9 @@ class PlanoContaController extends Controller
             $Agrupamentovazio = $request->Agrupamentovazio;
             $MostrarValorRecebido = $request->MostrarValorRecebido;
 
+
+            // dd($pdfgerar, $tela, $Agrupar, $Selecao, $Agrupamentovazio, $MostrarValorRecebido);
+
             if($tela){
                 $pdfgerar = null;
             }
@@ -413,11 +416,15 @@ class PlanoContaController extends Controller
 
             } else
             if ($Selecao == "Agrupados") {
-                $contasEmpresa->where('Agrupamento', '>', 0);
+                $contasEmpresa->where(function ($query) {
+                    $query->where('Agrupamento', '>', 0)
+                          ->orWhere('Agrupamento', '!=', 46);
+                });
+
+
             }
             if ($Selecao == "Todas") {
-                $contasEmpresa = $contasEmpresa;
-
+                $contasEmpresa->where('Agrupamento', '!=', 46);
             }
 
             $contasEmpresa->where(function ($query) use ($Ativo, $Passivo, $Despesas, $Receitas) {

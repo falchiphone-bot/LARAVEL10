@@ -173,7 +173,7 @@
                                 {{ $cadastro->CodigoSkala }}
                             </td>
                             <td>
-                                {{   $cadastro->MostraNome->nome ?? null
+                                {{   $cadastro->Agrupamento ?? null
 
                                  }}
                             </td>
