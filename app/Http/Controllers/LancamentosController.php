@@ -18,6 +18,7 @@ use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\Calculation\DateTimeExcel\Days;
 use Carbon\Carbon;
 use App\Exports\LancamentoExport;
+use App\Models\ContasPagar;
 use App\Models\SolicitacaoExclusao;
 use Illuminate\Support\Facades\Lang;
 use LancamentoExport as GlobalLancamentoExport;
@@ -1052,6 +1053,8 @@ return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
     {
         $SolicitacaoTransferir = Lancamento::find($id);
 
+
+        $ContasPagar = ContasPagar::where("LancamentoID",$id)->first();
         // dd($SolicitacaoTransferir, $id);
 
          if ($SolicitacaoTransferir) {
@@ -1059,6 +1062,13 @@ return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
             $SolicitacaoTransferir->ContaDebitoID = 16;
             $SolicitacaoTransferir->ContaCreditoID = 6011;
             $SolicitacaoTransferir->update();
+
+            $ContasPagar->EmpresaID = 1;
+            $ContasPagar->ContaFornecedorID = 16;
+            $ContasPagar->ContaPagamentoID = 6011;
+            $ContasPagar->update();
+
+
             session()->flash('success', 'Transferido com sucesso o registro');
         } else {
             session()->flash('error', 'Registro não encontrado');
@@ -1067,7 +1077,10 @@ return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
 
 
         $SolicitacaoExclusao = SolicitacaoExclusao::where("TableID",$id)->first();
-        // dd($SolicitacaoTransferir, $id,  $SolicitacaoExclusao->ID,  $SolicitacaoExclusao);
+
+
+
+        // dd($SolicitacaoTransferir, $id,  $SolicitacaoExclusao->ID,  $SolicitacaoExclusao, $ContasPagar);
 
         return redirect(route('lancamentos.solicitacoesexcluir',  $SolicitacaoExclusao->ID));
 
