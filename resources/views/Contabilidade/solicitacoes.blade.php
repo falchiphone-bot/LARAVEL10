@@ -21,7 +21,7 @@
                             {{ session('error') }}
                             {{session(['error' => null]) }}
                         </div>
-                       
+
                     @endif
 
                     <div class="card-header">
@@ -123,6 +123,18 @@
                                                 <input type="hidden" name="_method" value="DELETE">
                                                 <button type="submit" class="btn btn-danger">
                                                     Excluir solicitação/cancela
+                                                </button>
+                                            </form>
+                                    </td>
+                                @endcan
+
+                                @can('SOLICITACOES - TRANSFERIR EMPRESA')
+                                    <td>
+                                           <form method="GET" action="{{ route('lancamentos.solicitacoestransferir', $cadastro->TableID) }}">
+                                                @csrf
+                                                <input type="hidden" name="_method" value="DELETE">
+                                                <button type="submit" class="btn btn-warning">
+                                                    Transferir solicitação para outra empresa
                                                 </button>
                                             </form>
                                     </td>

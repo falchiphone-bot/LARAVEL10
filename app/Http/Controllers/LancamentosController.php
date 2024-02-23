@@ -19,6 +19,7 @@ use PhpOffice\PhpSpreadsheet\Calculation\DateTimeExcel\Days;
 use Carbon\Carbon;
 use App\Exports\LancamentoExport;
 use App\Models\SolicitacaoExclusao;
+use Illuminate\Support\Facades\Lang;
 use LancamentoExport as GlobalLancamentoExport;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -1008,6 +1009,8 @@ return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
                 // A data de lançamento é maior do que a data limite permitida
                 session([
                     'error' =>
+                    'EMPRESA BLOQUEADA: ' .
+                    $EmpresaBloqueada->Descricao .
                     'A data de lançamento não pode ser maior do que ' . $data_lancamento_bloqueio_empresa->format('d/m/Y') . ' que é a data limite do bloqueio. - CÓDIGO L1099'
                 ]);
                 return redirect(route('lancamentos.solicitacoes'));
@@ -1044,5 +1047,32 @@ return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
         return redirect(route('lancamentos.solicitacoes'));
 
     }
+
+    public function SolicitacoesTransferir($id)
+    {
+        $SolicitacaoTransferir = Lancamento::find($id);
+
+        // dd($SolicitacaoTransferir, $id);
+
+         if ($SolicitacaoTransferir) {
+            $SolicitacaoTransferir->EmpresaID = 1;
+            $SolicitacaoTransferir->ContaDebitoID = 16;
+            $SolicitacaoTransferir->ContaCreditoID = 6011;
+            $SolicitacaoTransferir->update();
+            session()->flash('success', 'Transferido com sucesso o registro');
+        } else {
+            session()->flash('error', 'Registro não encontrado');
+        }
+
+
+
+        $SolicitacaoExclusao = SolicitacaoExclusao::where("TableID",$id)->first();
+        // dd($SolicitacaoTransferir, $id,  $SolicitacaoExclusao->ID,  $SolicitacaoExclusao);
+
+        return redirect(route('lancamentos.solicitacoesexcluir',  $SolicitacaoExclusao->ID));
+
+    }
+
+
 
 }
