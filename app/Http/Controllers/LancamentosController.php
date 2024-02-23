@@ -1063,10 +1063,14 @@ return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
             $SolicitacaoTransferir->ContaCreditoID = 6011;
             $SolicitacaoTransferir->update();
 
-            $ContasPagar->EmpresaID = 1;
-            $ContasPagar->ContaFornecedorID = 16;
-            $ContasPagar->ContaPagamentoID = 6011;
-            $ContasPagar->update();
+            if($ContasPagar)
+            {
+                $ContasPagar->EmpresaID = 1;
+                $ContasPagar->ContaFornecedorID = 16;
+                $ContasPagar->ContaPagamentoID = 6011;
+                $ContasPagar->update();
+            }
+
 
 
             session()->flash('success', 'Transferido com sucesso o registro');
