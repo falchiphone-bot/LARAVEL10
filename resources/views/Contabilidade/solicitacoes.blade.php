@@ -9,16 +9,19 @@
                     SOLICITAÇÕES PARA EXCLUSÃO - SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
                 </div>
 
-
                 <div class="card-body">
                     @if (session('success'))
                         <div class="alert alert-success">
                             {{ session('success') }}
+                            {{session(['success' => null]) }}
                         </div>
+
                     @elseif (session('error'))
                         <div class="alert alert-danger">
                             {{ session('error') }}
+                            {{session(['error' => null]) }}
                         </div>
+                       
                     @endif
 
                     <div class="card-header">
@@ -101,35 +104,29 @@
                                     {{ $cadastro->lancamento->Valor }}
                                 </td>
                                 <td class="">
-                                    {{ $cadastro->ContaDebitoID  }}
+                                    {{ $cadastro->lancamento->ContaDebito->PlanoConta->Descricao  }}
                                 </td>
 
                                 <td class="">
-                                    {{ $cadastro->contaDebito  }}
+                                    {{ $cadastro->lancamento->ContaCredito->PlanoConta->Descricao  }}
                                 </td>
                                 <td class="">
                                     {{ $cadastro->ContaCreditoID }}
                                 </td>
 
-                                {{-- <td class="">
-                                    @if ($cadastro->Bloqueio)
-                                        Sim
-                                    @else
-                                        Não
-                                    @endif
-                                </td>
-                                <td class="">
-                                    {{ $cadastro->Bloqueiodataanterior?->format('d/m/Y') }}
-                                </td>
 
-                                @can('EMPRESAS - EDITAR')
+
+                                @can('SOLICITACOES - EXCLUIR')
                                     <td>
-                                        <a href="{{ route('Empresas.edit', $cadastro->EmpresaID) }}" class="btn btn-success"
-                                            tabindex="-1" role="button" aria-disabled="true">Editar</a>
+                                           <form method="GET" action="{{ route('lancamentos.solicitacoesexcluir', $cadastro->ID) }}">
+                                                @csrf
+                                                <input type="hidden" name="_method" value="DELETE">
+                                                <button type="submit" class="btn btn-danger">
+                                                    Excluir solicitação/cancela
+                                                </button>
+                                            </form>
                                     </td>
-                                @endcan --}}
-
-
+                                @endcan
                             </tr>
                         @endforeach
                     </tbody>
