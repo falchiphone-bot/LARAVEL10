@@ -961,41 +961,43 @@ return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
     {
         $SolicitacaoExclusao = SolicitacaoExclusao::find($id);
 
+        $DataContabilidade = $SolicitacaoExclusao->lancamento->DataContabilidade;
+
         // $conta = conta::where('ID', $SolicitacaoExclusao->ContaID)->first();
 
-        // $data_lancamento_bloqueio_debito =  $SolicitacaoExclusao ->lancamento->ContaDebito->PlanoConta;
-        // $data_lancamento_bloqueio_credito =  $SolicitacaoExclusao ->lancamento->ContaCredito->PlanoConta;
-        // ;
-        // dd( $SolicitacaoExclusao, $data_lancamento_bloqueio_debito, $data_lancamento_bloqueio_credito);
+        $data_lancamento_bloqueio_debito =  $SolicitacaoExclusao ->lancamento->ContaDebito->Bloqueiodataanterior;
+        $data_lancamento_bloqueio_credito =  $SolicitacaoExclusao ->lancamento->ContaCredito->Bloqueiodataanterior;
 
-        //     if ($data_lancamento_bloqueio_debito !== null && $data_lancamento_bloqueio_debito->greaterThanOrEqualTo($DataContabilidade)) {
-        //         // O código aqui será executado se $data_lancamento_bloqueio_debito não for nulo e for maior ou igual a $DataContabilidade
-        //         session([
-        //             'Lancamento' =>
-        //             'Conta DÉBITO: ' .
-        //                 $contasPagar->ContaDebito->PlanoConta->Descricao .
-        //                 ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
-        //              da conta para seguir este procedimento. Bloqueada para até ' .
-        //                 $data_lancamento_bloqueio_debito->format('d/m/Y') .  '  - CÓDIGO L492'
-        //         ]);
-        //         return redirect()->route('ContasPagar.edit', $id);
-        //     }
+        // dd( "Exclusão: ". $SolicitacaoExclusao, "DÉBITO: ". $data_lancamento_bloqueio_debito, "CRÉDITO: ".$data_lancamento_bloqueio_credito);
 
-        //     $data_lancamento_bloqueio_credito = $contasPagar->ContaCredito->Bloqueiodataanterior;
-        //     if ($data_lancamento_bloqueio_credito !== null && $data_lancamento_bloqueio_credito->greaterThanOrEqualTo($DataContabilidade)) {
-        //         // O código aqui será executado se $data_lancamento_bloqueio_debito não for nulo e for maior ou igual a $DataContabilidade
-        //         session([
-        //             'Lancamento' =>
-        //             'Conta CRÉDITO: ' .
-        //                 $contasPagar->ContaCredito->PlanoConta->Descricao .
-        //                 ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
-        //              da conta para seguir este procedimento. Bloqueada para até ' .
-        //                 $data_lancamento_bloqueio_credito->format('d/m/Y') .  '  - CÓDIGO L506'
-        //         ]);
-        //         return redirect()->route('ContasPagar.edit', $id);
-        //     }
+            if ($data_lancamento_bloqueio_debito !== null && $data_lancamento_bloqueio_debito->greaterThanOrEqualTo($DataContabilidade)) {
+                // O código aqui será executado se $data_lancamento_bloqueio_debito não for nulo e for maior ou igual a $DataContabilidade
+                session([
+                    'error' =>
+                    'Conta DÉBITO: ' .
+                    $SolicitacaoExclusao->lancamento->ContaDebito->PlanoConta->Descricao .
+                        ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                     da conta para seguir este procedimento. Bloqueada para até ' .
+                        $data_lancamento_bloqueio_debito->format('d/m/Y') .  '  - CÓDIGO L981'
+                ]);
+                return redirect(route('lancamentos.solicitacoes'));
+            }
 
-        $DataContabilidade = $SolicitacaoExclusao->lancamento->DataContabilidade;
+
+            if ($data_lancamento_bloqueio_credito !== null && $data_lancamento_bloqueio_credito->greaterThanOrEqualTo($DataContabilidade)) {
+                // O código aqui será executado se $data_lancamento_bloqueio_debito não for nulo e for maior ou igual a $DataContabilidade
+                session([
+                    'error' =>
+                    'Conta CRÉDITO: ' .
+                       $SolicitacaoExclusao->lancamento->ContaCredito->PlanoConta->Descricao .
+                        ' bloqueada no sistema para o lançamento solicitado! Deverá desbloquear a data de bloqueio
+                     da conta para seguir este procedimento. Bloqueada para até ' .
+                        $data_lancamento_bloqueio_credito->format('d/m/Y') .  '  - CÓDIGO L995'
+                ]);
+                return redirect(route('lancamentos.solicitacoes'));
+            }
+
+
 
             $EmpresaBloqueada = Empresa::where('ID', '=', $SolicitacaoExclusao->lancamento->EmpresaID)->first();
 
@@ -1026,11 +1028,11 @@ return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
 
 
 
-     dd("SOLICITAÇÃO". $SolicitacaoExclusao,
-      "DATA CONTABILIDADE: " . $DataContabilidade,
-      "DATA BLOQUEIO DA EMPRESA: " .$EmpresaBloqueada,
-      "DATA LANCAMENTO BLOQUEIO DA EMPRESA: " . $data_lancamento_bloqueio_empresa,
-      "DATA LIMITE DA EMPRESA: " .$dataLimite);
+    //  dd("SOLICITAÇÃO". $SolicitacaoExclusao,
+    //   "DATA CONTABILIDADE: " . $DataContabilidade,
+    //   "DATA BLOQUEIO DA EMPRESA: " .$EmpresaBloqueada,
+    //   "DATA LANCAMENTO BLOQUEIO DA EMPRESA: " . $data_lancamento_bloqueio_empresa,
+    //   "DATA LIMITE DA EMPRESA: " .$dataLimite);
 
 
         if ($SolicitacaoExclusao) {
