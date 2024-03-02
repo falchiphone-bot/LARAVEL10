@@ -369,7 +369,7 @@ class PlanoContaController extends Controller
         echo "NET RUBI SERVICOS     :  " . number_format(abs($soma1027), 2, ',', '.')     . "<br>";
         echo "NET RUBI SERVICO CIELO: " . number_format(abs($soma1027CIELO), 2, ',', '.')     . "<br>". "<br>";
 
-        dd();
+        dd('Valor recebido');
     }
                 // $ValorRecebido = 1752890.08;
 
@@ -427,7 +427,8 @@ class PlanoContaController extends Controller
             if ($Selecao == "TodasEmprestimos") {
                 $contasEmpresa->where('Agrupamento', 46);
 
-                    dd($pdfgerar, $tela, $Agrupar, $Selecao, $Agrupamentovazio, $MostrarValorRecebido, $contasEmpresa->get());
+                    // dd($pdfgerar, $tela, $Agrupar, $Selecao, $Agrupamentovazio, $MostrarValorRecebido, $contasEmpresa->get());
+
             }
             else
             if ($Selecao == "Todas") {
@@ -569,7 +570,12 @@ class PlanoContaController extends Controller
 
                 $Resultado['ValorRecebido'] = $ValorRecebido;
 
-                $Resultado['PercentualValorRecebido'] = ($SaldoAtual/$ValorRecebido)*100;
+                if($ValorRecebido > 0)
+                {
+                   $Resultado['PercentualValorRecebido'] = ($SaldoAtual/$ValorRecebido)*100;
+                }
+
+
 
                 $ResultadoLoop[] = $Resultado;
                 // selecionar se já existe. Se existir acumular.;
@@ -594,6 +600,9 @@ class PlanoContaController extends Controller
 
 
         $contasEmpresa = $ResultadoLoop;
+        $contasEmpresaEmprestimos =$contasEmpresa;
+
+
 
 // dd( $contasEmpresa);
 
@@ -696,6 +705,65 @@ if($Agrupar == 'Descricao')
             $registrosAgrupados[$descricao] = $registro;
         }
     }
+
+    if ($Selecao == "TodasEmprestimos") {
+
+
+        $somaPercentual = 0;
+
+        foreach ($dados as $registro) {
+            $descricao = $registro["Descricao"];
+            // Verifique se a descrição já existe no array de registros agrupados
+            if (array_key_exists($descricao, $registrosAgrupados)) {
+                // Se existir, some os campos relevantes
+                $registrosAgrupados[$descricao]["SaldoAtual"] += floatval($registro["SaldoAtual"]);
+                $registrosAgrupados[$descricao]["SaldoAtualPassivo"] += floatval($registro["SaldoAtualPassivo"]);
+                $registrosAgrupados[$descricao]["ValorRecebido"] += floatval($registro["ValorRecebido"]);
+                $registrosAgrupados[$descricao]["PercentualValorRecebido"] = ( $registrosAgrupados[$descricao]["SaldoAtual"]/$ValorRecebido)*100;
+                // Adicione qualquer outro campo que você queira somar ou manipular aqui
+            } else {
+                // Se não existir, crie um novo registro no array de registros agrupados
+                $registrosAgrupados[$descricao] = $registro;
+            }
+        }
+
+
+        foreach($registrosAgrupados as $soma)
+        {
+            $Valor = $soma["PercentualValorRecebido"];
+            $somaPercentual +=  $Valor;
+
+        }
+        dd(7322,$pdfgerar, $tela, $Agrupar, $Selecao, $Agrupamentovazio, $MostrarValorRecebido, $contasEmpresa);
+
+        // $somaSaldoAtual = 0;
+        // $somaPercentual = 0;
+        //  $contasEmpresa = $registrosAgrupados;
+
+        //  dd(738,$contasEmpresa );
+
+        return view('PlanoContas.BalanceteEmpresaEmprestimos', compact(
+            'retorno',
+            "ValorRecebido",
+            'somaSaldoAtual',
+            'SaldoAtualPassivo',
+            'SaldoAtualAtivo',
+            'contasEmpresa',
+            'somaSaldoAtualAtivo',
+            'somaSaldoAtualReceitas',
+            'somaSaldoAtualDespesas',
+            'somaSaldoAtualAtivo',
+            'somaSaldoAtualPassivo',
+            'ResultadoReceitasDespesas',
+            'somaPercentual',
+            'Agrupar',
+            'Selecao',
+            'Ativo',
+            'Passivo',
+            'Agrupamentovazio'
+        ));
+    }
+
     // dd('Descricao',$registrosAgrupados[$descricao]);
 
 }
@@ -730,9 +798,12 @@ elseif($Agrupar == 'Agrupamento')
 $somaPercentual = 0;
 foreach($registrosAgrupados as $soma)
 {
-    $Valor = $soma["PercentualValorRecebido"];
-    $somaPercentual +=  $Valor;
 
+    if( $soma["PercentualValorRecebido"])
+    {
+       $Valor = $soma["PercentualValorRecebido"];
+         $somaPercentual +=  $Valor;
+    }
 }
 
 
