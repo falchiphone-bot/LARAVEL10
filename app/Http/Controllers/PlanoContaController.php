@@ -471,13 +471,13 @@ class PlanoContaController extends Controller
             foreach ($contasEmpresa as $contasEmpresa5) {
 
 
-                if (strpos($contasEmpresa5->Descricao, 'C3163070') !== false) {
-                    //    DD(478, $contasEmpresa5);
+                // if (strpos($contasEmpresa5->Descricao, 'C3163070') !== false) {
 
-                }else
-                {
-                    continue;
-                }
+
+                // }else
+                // {
+                //     continue;
+                // }
 
                 $contaID = $contasEmpresa5->ID;
 
