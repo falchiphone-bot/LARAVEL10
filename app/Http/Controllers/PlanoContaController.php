@@ -425,10 +425,10 @@ class PlanoContaController extends Controller
             }
             else
             if ($Selecao == "TodasEmprestimos") {
-                $contasEmpresa->where('Agrupamento', 46);
-
-                    // dd($pdfgerar, $tela, $Agrupar, $Selecao, $Agrupamentovazio, $MostrarValorRecebido, $contasEmpresa->get());
-
+                $contasEmpresa->where('Agrupamento', 46)
+                ->select(['Contas.ID', 'Contas.Planocontas_id', 'Descricao', 'Codigo', 'Grau', 'Agrupamento']);
+                    // dd(430,$pdfgerar, $tela, $Agrupar, $Selecao, $Agrupamentovazio, $MostrarValorRecebido, $contasEmpresa->get());
+                    // DD(429,$contasEmpresa);
             }
             else
             if ($Selecao == "Todas") {
@@ -451,31 +451,40 @@ class PlanoContaController extends Controller
             });
             if($Agrupar == 'Descricao' && $Selecao == "Agrupados" || $Selecao == "Todas" )
             {
-                $contasEmpresa->select(['Contas.ID', 'Descricao', 'Codigo', 'Grau', 'Agrupamento']);
+                $contasEmpresa->select(['Contas.ID', 'Contas.Planocontas_id', 'Descricao', 'Codigo', 'Grau', 'Agrupamento']);
+
 
             }
             else
             if($Agrupar == 'Agrupamento' && $Selecao == "Agrupados")
             {
-                $contasEmpresa->select(['Contas.ID', 'Descricao', 'Codigo', 'Grau', 'Agrupamento', 'Agrupamentos.nome']);
+                $contasEmpresa->select(['Contas.ID', 'Contas.Planocontas_id','Descricao', 'Codigo', 'Grau', 'Agrupamento', 'Agrupamentos.nome']);
 
             }
 
 
                 $contasEmpresa = $contasEmpresa->get();
 
-
-
-
                 $Resultado = [];
                 $ResultadoLoop = [];
 
             foreach ($contasEmpresa as $contasEmpresa5) {
+
+
+                if (strpos($contasEmpresa5->Descricao, 'C3163070') !== false) {
+                    //    DD(478, $contasEmpresa5);
+
+                }else
+                {
+                    continue;
+                }
+
                 $contaID = $contasEmpresa5->ID;
+
 
                 $Agrupamento = $contasEmpresa5->Agrupamento;
                 $NomeAgrupamento = $contasEmpresa5->nome;
-
+// DD(487,$contasEmpresa5);
 
 
                 $totalCredito = Lancamento::where(function ($q) use ($DataInicial, $DataFinal, $contaID, $EmpresasID) {
@@ -501,6 +510,9 @@ class PlanoContaController extends Controller
 
                 $saldoAnterior = $totalDebito - $totalCredito;
 
+
+                // DD(514,$totalDebito, $DataInicial, $DataFinal, $contaID, $EmpresasID);
+
                 $SaldoDia = SaldoLancamentoHelper::Dia($DataFinal, $contaID, $EmpresaID);
 
                 $SaldoAtual = $saldoAnterior + $SaldoDia;
@@ -515,6 +527,14 @@ class PlanoContaController extends Controller
                     })
                         ->whereDoesntHave('SolicitacaoExclusao')
                         ->sum('Lancamentos.Valor');
+
+// dd(531, $SaldoAtual, $contasEmpresa5, $totalCredito, $totalDebito, $saldoAnterior, $SaldoDia,
+// $totalDebitoPassivo, $totalDebitoAtivo, $ValorRecebido, $Agrupamento, $NomeAgrupamento, $Ativo, $Passivo, $Despesas, $Receitas, $contasEmpresa5,
+//  $ResultadoLoop, $EmpresasID, $DataInicial, $DataFinal, $contaID, $EmpresasID, $DataInicial, $DataFinal, $contaID, $EmpresasID, $DataInicial,
+//  $DataFinal, $contaID, $EmpresasID, $DataInicial, $DataFinal, $contaID, $EmpresasID, $DataInicial, $DataFinal, $contaID, $EmpresasID, $DataInicial,
+//   $DataFinal, $contaID, $EmpresasID, $DataInicial, $DataFinal, $contaID, $EmpresasID, $DataInicial, $DataFinal, $contaID, $EmpresasID, $DataInicial, $DataFinal, $contaID,
+//    $EmpresasID, $DataInicial, $DataFinal, $contaID, $EmpresasID, $DataInicial, $DataFinal, $contaID, $EmpresasID);
+
                 }
 
                 if($Ativo){
@@ -604,7 +624,7 @@ class PlanoContaController extends Controller
 
 
 
-// dd( $contasEmpresa);
+// dd( 607, $contasEmpresa);
 
 
 
@@ -640,6 +660,7 @@ if($Passivo) {
             $registrosValores = array_filter($registros, function ($registro) {
                 return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0 && substr($registro['Codigo'], 0, 1) === '2';
             });
+
 
             $somaSaldoAtualPassivo = 0;
             $SaldoAtualPassivo = 0;
@@ -734,7 +755,7 @@ if($Agrupar == 'Descricao')
             $somaPercentual +=  $Valor;
 
         }
-        dd(7322,$pdfgerar, $tela, $Agrupar, $Selecao, $Agrupamentovazio, $MostrarValorRecebido, $contasEmpresa);
+        // dd(758,$pdfgerar, $tela, $Agrupar, $Selecao, $Agrupamentovazio, $MostrarValorRecebido, $contasEmpresa);
 
         // $somaSaldoAtual = 0;
         // $somaPercentual = 0;
@@ -742,7 +763,7 @@ if($Agrupar == 'Descricao')
 
         //  dd(738,$contasEmpresa );
 
-        return view('PlanoContas.BalanceteEmpresaEmprestimos', compact(
+        return view('PlanoContas.BalanceteEmpresa', compact(
             'retorno',
             "ValorRecebido",
             'somaSaldoAtual',
