@@ -468,16 +468,19 @@ class PlanoContaController extends Controller
                 $Resultado = [];
                 $ResultadoLoop = [];
 
+                $totalDebitoSoma =  0;
+                $totalCreditoSoma =  0;
+
+
             foreach ($contasEmpresa as $contasEmpresa5) {
+//                 if (strpos($contasEmpresa5->Descricao, 'SANDRA E') !== false) {
 
+// // dd('LINHA: 477' ,' ID: '.$contasEmpresa5->ID);
 
-                // if (strpos($contasEmpresa5->Descricao, 'C3163070') !== false) {
-
-
-                // }else
-                // {
-                //     continue;
-                // }
+//                 }else
+//                 {
+//                     continue;
+//                 }
 
                 $contaID = $contasEmpresa5->ID;
 
@@ -516,6 +519,10 @@ class PlanoContaController extends Controller
                 $SaldoDia = SaldoLancamentoHelper::Dia($DataFinal, $contaID, $EmpresaID);
 
                 $SaldoAtual = $saldoAnterior + $SaldoDia;
+                // $SaldoAtual = $totalDebito - $totalCredito;
+
+
+////////////////////////////////////// inicio do passivo
 
                 if($Passivo  ){
                     $totalDebitoPassivo = Lancamento::where(function ($q) use ($DataInicial, $DataFinal, $contaID, $EmpresasID) {
@@ -528,14 +535,59 @@ class PlanoContaController extends Controller
                         ->whereDoesntHave('SolicitacaoExclusao')
                         ->sum('Lancamentos.Valor');
 
-// dd(531, $SaldoAtual, $contasEmpresa5, $totalCredito, $totalDebito, $saldoAnterior, $SaldoDia,
-// $totalDebitoPassivo, $totalDebitoAtivo, $ValorRecebido, $Agrupamento, $NomeAgrupamento, $Ativo, $Passivo, $Despesas, $Receitas, $contasEmpresa5,
-//  $ResultadoLoop, $EmpresasID, $DataInicial, $DataFinal, $contaID, $EmpresasID, $DataInicial, $DataFinal, $contaID, $EmpresasID, $DataInicial,
-//  $DataFinal, $contaID, $EmpresasID, $DataInicial, $DataFinal, $contaID, $EmpresasID, $DataInicial, $DataFinal, $contaID, $EmpresasID, $DataInicial,
-//   $DataFinal, $contaID, $EmpresasID, $DataInicial, $DataFinal, $contaID, $EmpresasID, $DataInicial, $DataFinal, $contaID, $EmpresasID, $DataInicial, $DataFinal, $contaID,
-//    $EmpresasID, $DataInicial, $DataFinal, $contaID, $EmpresasID, $DataInicial, $DataFinal, $contaID, $EmpresasID);
 
-                }
+                        $totalDebitoSoma = $totalDebitoSoma + $totalDebito;
+                        $totalCreditoSoma =  $totalCreditoSoma +$totalCredito;
+                        $SaldoAtualConta = $totalDebitoSoma -  $totalCreditoSoma ;
+                        // echo '  <br>';
+                        // echo 'LINHA: 532'.'<br>';
+                        // echo 'DEBITO: ' . $totalDebito . '<br>';
+                        // echo 'CREDITO: ' . $totalCredito . '<br>';
+                        // echo 'ID: ' . $contaID . '<br>';
+                        // echo 'SALDO: ' . $SaldoAtual . '<br>';
+                        // echo 'ANTERIOR: ' . $saldoAnterior . '<br>';
+                        // echo 'SALDO DO DIA: ' . $SaldoDia . '<br>';
+                        // echo '  <br>';
+                        // echo 'SALDO DEBITO: ' . $totalDebitoSoma  . '<br>';
+                        // echo 'SALDO CREDITO: ' . $totalCreditoSoma  . '<br>';
+                        // echo 'SALDO ATUAL GERAL: ' . $SaldoAtualConta  . '<br>';
+
+                        $somaSaldoAtual = $SaldoAtualConta;
+                        $somaPercentual = 0;
+
+                        // dd(531, $SaldoAtual, $contasEmpresa5, $totalCredito, $totalDebito, $saldoAnterior, $SaldoDia,
+                        // $totalDebitoPassivo, $totalDebitoAtivo, $ValorRecebido, $Agrupamento, $NomeAgrupamento, $Ativo, $Passivo, $Despesas, $Receitas, $contasEmpresa5,
+                        //  $ResultadoLoop, $EmpresasID, $DataInicial, $DataFinal, $contaID, $EmpresasID, $DataInicial, $DataFinal, $contaID, $EmpresasID, $DataInicial,
+                        //  $DataFinal, $contaID, $EmpresasID, $DataInicial, $DataFinal, $contaID, $EmpresasID, $DataInicial, $DataFinal, $contaID, $EmpresasID, $DataInicial,
+                        //   $DataFinal, $contaID, $EmpresasID, $DataInicial, $DataFinal, $contaID, $EmpresasID, $DataInicial, $DataFinal, $contaID, $EmpresasID, $DataInicial, $DataFinal, $contaID,
+                        //    $EmpresasID, $DataInicial, $DataFinal, $contaID, $EmpresasID, $DataInicial, $DataFinal, $contaID, $EmpresasID);
+
+
+                        // return view('PlanoContas.BalanceteEmpresa', compact(
+                        //     'retorno',
+                        //     "ValorRecebido",
+                        //     'somaSaldoAtual',
+                        //     'SaldoAtualPassivo',
+                        //     'SaldoAtualAtivo',
+                        //     'contasEmpresa',
+                        //     'somaSaldoAtualAtivo',
+                        //     'somaSaldoAtualReceitas',
+                        //     'somaSaldoAtualDespesas',
+                        //     'somaSaldoAtualAtivo',
+                        //     'somaSaldoAtualPassivo',
+                        //     'ResultadoReceitasDespesas',
+                        //     'somaPercentual',
+                        //     'Agrupar',
+                        //     'Selecao',
+                        //     'Ativo',
+                        //     'Passivo',
+                        //     'Agrupamentovazio',
+                        // ));
+
+                    }
+//////////////////////////////////// final do passivo
+
+
 
                 if($Ativo){
                     $totalDebitoAtivo = Lancamento::where(function ($q) use ($DataInicial, $DataFinal, $contaID, $EmpresasID) {
@@ -600,7 +652,8 @@ class PlanoContaController extends Controller
                 $ResultadoLoop[] = $Resultado;
                 // selecionar se já existe. Se existir acumular.;
 
-                // dd($contasEmpresa5,$Resultado, $Ativo, $Passivo, $Despesas, $Receitas);
+
+                // DD(604,$contasEmpresa5,$totalDebito, $totalCredito, $contaID, $EmpresasID  );
             }
 
 
@@ -622,10 +675,10 @@ class PlanoContaController extends Controller
         $contasEmpresa = $ResultadoLoop;
         $contasEmpresaEmprestimos =$contasEmpresa;
 
-
+        // dd(678,$contasEmpresa, $Passivo) ;
 
 // dd( 607, $contasEmpresa);
-
+// DD(628,$contasEmpresa5,$totalDebito, $totalCredito, $contaID, $EmpresasID  );
 
 
 /////////////// filtra somente o valor maior que 0
@@ -634,6 +687,8 @@ class PlanoContaController extends Controller
         $registrosValoresTodos = array_filter($registros, function ($registro) {
             return isset($registro['SaldoAtual']) && $registro['SaldoAtual'] !== 0;
         });
+
+        //  dd(691,$registrosValoresTodos, $Passivo) ;
 ////////////////////////////// /////////////// /////////////// /////////////// ///////////////
 
 /////////////// filtra somente as contas do ativo = 1.X.XX.XX
@@ -668,6 +723,8 @@ if($Passivo) {
                 $somaSaldoAtualPassivo += $registro['SaldoAtual'];
                 $SaldoAtualPassivo += $registro['SaldoAtualPassivo'];
             }
+
+            // dd(727,$somaSaldoAtualPassivo);
             ////////////////////////////// /////////////// /////////////// /////////////// ///////////////
 }
 
@@ -728,8 +785,6 @@ if($Agrupar == 'Descricao')
     }
 
     if ($Selecao == "TodasEmprestimos") {
-
-
         $somaPercentual = 0;
 
         foreach ($dados as $registro) {
@@ -760,8 +815,8 @@ if($Agrupar == 'Descricao')
         // $somaSaldoAtual = 0;
         // $somaPercentual = 0;
         //  $contasEmpresa = $registrosAgrupados;
-
-        //  dd(738,$contasEmpresa );
+        $contasEmpresa = $dados ;
+        //  dd(819,$contasEmpresa );
 
         return view('PlanoContas.BalanceteEmpresa', compact(
             'retorno',
@@ -830,20 +885,20 @@ foreach($registrosAgrupados as $soma)
 
 
 
-uasort($registrosAgrupados, function($a, $b) {
-    $saldoA = floatval($a['SaldoAtual']);
-    $saldoB = floatval($b['SaldoAtual']);
+                        uasort($registrosAgrupados, function($a, $b) {
+                            $saldoA = floatval($a['SaldoAtual']);
+                            $saldoB = floatval($b['SaldoAtual']);
 
-    if ($saldoA > $saldoB) {
-        return -1;
-    } elseif ($saldoA < $saldoB) {
-        return 1;
-    } else {
-        return 0;
-    }
-});
+                            if ($saldoA > $saldoB) {
+                                return -1;
+                            } elseif ($saldoA < $saldoB) {
+                                return 1;
+                            } else {
+                                return 0;
+                            }
+                        });
 
-
+// dd(901, $registrosAgrupados);
 
 if ($Agrupamentovazio == 'Agrupadosvazio') {
     // Itera pelos registros em $registrosAgrupados

@@ -184,7 +184,7 @@
                         @if ($Ativo)
                                  {{ number_format(abs($conta['SaldoAtualAtivo']), 2, ',', '.') }}
                         @elseif ($Passivo)
-                                 {{ number_format(abs($conta['SaldoAtualPassivo']), 2, ',', '.') }}
+                                 {{ number_format(abs($conta['SaldoAtual']), 2, ',', '.') }}
                         @else
                              {{ number_format(abs($conta['SaldoAtual']), 2, ',', '.') }}
                         @endif
