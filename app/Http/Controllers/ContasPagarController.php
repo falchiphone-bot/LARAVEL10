@@ -428,8 +428,20 @@ class ContasPagarController extends Controller
     public function update(Request $request, string $id)
     {
 
-
         $contasPagar = ContasPagar::find($id);
+
+        if($request->input('LancamentoID') == null){
+            $contasPagar->update([
+
+                'LancamentoID' =>  " ",
+              ]);
+
+            $contasPagar->save();
+
+            return redirect()->route('ContasPagar.edit', $id)->with('success', 'Conta a pagar atualizada com sucesso!', 'error');
+        }
+
+
 
         if (!$contasPagar) {
             dd('Conta a pagar não encontrada!', 'ID: ' . $id, 'ContasPagarController@update');
@@ -556,6 +568,7 @@ $Valor = str_replace(",", ".", $Valor);
                 'ContaDebitoID' => $request->input('ContaFornecedorID') ?? null,
                 'ContaCreditoID' => $request->input('ContaPagamentoID') ?? null,
                 'Usuarios_id' => $auth = Auth::user()->id,
+                'LancamentoID' => $contasPagar->LancamentoID,
                 'Created' => $now = Carbon::now()->format('Y-m-d'),
             ]);
             $Lancamento->save();
@@ -573,6 +586,7 @@ $Valor = str_replace(",", ".", $Valor);
             'DataDocumento' =>  $request->input('DataDocumento') ?? null,
             'NumTitulo' => $request->input('NumTitulo') ?? null,
             'ContaFornecedorID' => $request->input('ContaFornecedorID') ?? null,
+            'LancamentoID' => $contasPagar->LancamentoID,
             'ContaPagamentoID' => $request->input('ContaPagamentoID') ?? null,
         ]);
 
@@ -700,6 +714,7 @@ $Valor = str_replace(",", ".", $Valor);
                 'ContaCreditoID' => $contasPagar->ContaPagamentoID,
             ])->first();
 
+                
 
 
             if ($duplicadoconsulta) {

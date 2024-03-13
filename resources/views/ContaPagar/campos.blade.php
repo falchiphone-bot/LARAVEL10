@@ -53,7 +53,11 @@
        <div class="row">
            <div class="col-2">
                <label for="LancamentoID">Identificação no lançamento</label>
-               <input class="form-control @error('LancamentoID') is-invalid @else is-valid @enderror" name="LancamentoID" type="int" id="LancamentoID" value="{{$contasPagar->LancamentoID??null}}" disabled>
+               @can('CONTASPAGAR - RETIRARLANCAMENTOID')
+                 <input class="form-control @error('LancamentoID') is-invalid @else is-valid @enderror" name="LancamentoID" type="int" id="LancamentoID" value="{{$contasPagar->LancamentoID??null}}">
+               @else
+                 <input class="form-control @error('LancamentoID') is-invalid @else is-valid @enderror" name="LancamentoID" type="int" id="LancamentoID" value="{{$contasPagar->LancamentoID??null}}" disabled>
+               @endcan
                @error('EmpresaID')
                <div class="alert alert-danger">{{ $message }}</div>
                @enderror
