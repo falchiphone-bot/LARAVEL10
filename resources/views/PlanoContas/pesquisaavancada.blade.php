@@ -18,10 +18,12 @@
                 </div>
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                     <a class="btn btn-warning" href="/Contabilidade">Retornar e ou ir para Contabilidade</a>
-                    <a class="btn btn-success" href="/Historicos">Históricos para lançamentos
-                        contábeis</a>
+                    <a class="btn btn-success" href="/Historicos">Históricos para lançamentos contábeis</a>
+                     <a class="btn btn-primary" href="/PlanoContas">Plano de Contas</a>
+
+
                     @can('LANCAMENTOS DOCUMENTOS - LISTAR')
-                      <a class="btn btn-primary" href="/LancamentosDocumentos">Documentos</a>
+                      <a class="btn btn-secondary" href="/LancamentosDocumentos">Documentos</a>
                    @endcan
                     <a class="btn btn-danger" href="/Lancamentos/create">Incluir lançamento</a>
                 </nav>
