@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
+
+use App\Models\Ixc\Cidade;
 use App\Models\Ixc\ReceberIxc;
 use DateTime;
 use Exception;
@@ -30,13 +32,15 @@ class ReceberIxcController extends Controller
                 $data_vencimento_inicial = now()->format('Y-m-d');
                 $data_vencimento_final = now()->endOfMonth()->format('Y-m-d');
 
+                $Cidade = cidade::get();
+
                 $receber = ReceberIxc::
                 whereBetween('data_vencimento', [$data_vencimento_inicial, $data_vencimento_final])
                 ->where('status', 'A')
                     ->orderBy('data_vencimento', 'asc')
                     ->get();
 
-            dd($receber->sum('valor'));
+            dd($Cidade, $receber->sum('valor'));
 
         // return view('Ixc/Clientes.index',compact('receber',));
     }

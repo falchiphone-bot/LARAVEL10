@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class Cidade extends Model
 {
     protected $table = 'cidade';
+    public $connection = 'ixc';
 
     public $timestamps = false;
 
