@@ -24,5 +24,8 @@ class Cidade extends Model
 
     ];
 
+
+    
+
 }
 

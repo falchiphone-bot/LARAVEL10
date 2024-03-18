@@ -22,4 +22,9 @@ class Radpop extends Model
 
     ];
 
+    public function cidade(): HasOne
+    {
+        return $this->hasOne(cidade::class, 'id', 'id_cidade');
+    }
+
 }
