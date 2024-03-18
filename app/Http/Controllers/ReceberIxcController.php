@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Ixc\Cidade;
 use App\Models\Ixc\ReceberIxc;
+use App\Models\Ixc\ClientIxc;
 use DateTime;
 use Exception;
 use Illuminate\Support\Facades\Validator;
@@ -32,7 +33,13 @@ class ReceberIxcController extends Controller
                 $data_vencimento_inicial = now()->format('Y-m-d');
                 $data_vencimento_final = now()->endOfMonth()->format('Y-m-d');
 
-                $Cidade = cidade::get();
+                $Cidade = cidade::limit(50)
+                ->where('nome', 'like', 'Votu%')
+                ->get();
+
+                $clienteixc = ClientIxc::limit(50)
+                ->where('cidade',3907)
+                ->get();
 
                 $receber = ReceberIxc::
                 whereBetween('data_vencimento', [$data_vencimento_inicial, $data_vencimento_final])
@@ -40,7 +47,7 @@ class ReceberIxcController extends Controller
                     ->orderBy('data_vencimento', 'asc')
                     ->get();
 
-            dd($Cidade, $receber->sum('valor'));
+            dd($Cidade, $clienteixc, $receber->sum('valor'));
 
         // return view('Ixc/Clientes.index',compact('receber',));
     }
