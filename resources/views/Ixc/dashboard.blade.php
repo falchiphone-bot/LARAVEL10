@@ -27,7 +27,7 @@
                                             <a class="btn btn-success" href="/ClientesIxc">Clientes IXC NET RUBI</a>
                                         </nav>
                                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-success" href="/ReceberIxc">Recebimentos IXC NET RUBI</a>
+                                            <a class="btn btn-success" href="/Ixc/Receber/receberperiodo">Recebimentos IXC NET RUBI por período</a>
                                         </nav>
 
                                         {{-- <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">

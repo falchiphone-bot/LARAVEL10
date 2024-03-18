@@ -28,7 +28,7 @@ class ReceberIxcController extends Controller
     }
 
 
-    public function index()
+    public function receberperiodo()
     {
 
                 $data_vencimento_inicial = now()->format('Y-m-d');
@@ -105,7 +105,7 @@ class ReceberIxcController extends Controller
             $receberperiodo = collect($receberperiodo);
             // dd($receberperiodo);
 
-            return view('Ixc/Receber.receberperiodo',compact('receberperiodo'));
+            return view('Ixc/Receber.receberperiodo',compact('receberperiodo', 'data_vencimento_inicial', 'data_vencimento_final'));
     }
 
 }

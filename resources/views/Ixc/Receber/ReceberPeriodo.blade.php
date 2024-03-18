@@ -8,6 +8,19 @@
 <body>
 
 
+
+    @php
+    $inicio = DateTime::createFromFormat('Y-m-d', $data_vencimento_inicial);
+    $fim = DateTime::createFromFormat('Y-m-d', $data_vencimento_final);
+    @endphp
+
+    <h1>
+        Início em: {{ $inicio->format('d/m/Y') }}
+        até {{ $fim->format('d/m/Y') }}
+    </h1>
+
+
+
 <table border="1">
     <tr>
         <th>Código cidade</th>
@@ -15,7 +28,21 @@
         <th>Total</th>
         <th>Quantidade clientes</th>
     </tr>
+
+    @php
+        $totalSum = 0;
+        $totalCount = 0;
+    @endphp
+
+
+
    @foreach ($receberperiodo as $item)
+
+   @php
+        $totalSum += $item['Sum'];
+        $totalCount += $item['Count'];
+    @endphp
+
         <tr>
             <td>{{ $item['Cidade'] }}</td>
             <td>{{ $item['NomeCidade'] }}</td>
@@ -26,6 +53,16 @@
 
         </tr>
     @endforeach
+    <tr>
+        <td> </td>
+        <td> TOTAL </td>
+        <td style="text-align: right;">{{ number_format($totalSum, 2, ',', '.') }} </td>
+
+
+        <td style="text-align: center;">{{ $totalCount }}</td>
+
+    </tr>
+
 </table>
 
 </body>
