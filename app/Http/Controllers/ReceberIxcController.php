@@ -34,10 +34,23 @@ class ReceberIxcController extends Controller
                 $data_vencimento_inicial = now()->format('Y-m-d');
                 $data_vencimento_final = now()->endOfMonth()->format('Y-m-d');
 
-                $Radpop = Radpop::get();
+                $Radpop = Radpop::
+                orderby('id_cidade', 'asc')
+                ->get();
+                $id_cidades_unicas = array();
+
+                foreach ($Radpop as $item) {
+                    $id_cidade = $item->id_cidade;
+                    if (!isset($id_cidades_unicas[$id_cidade])) {
+                        $id_cidades_unicas[$id_cidade] = $item;
+                    }
+                }
+
+// Agora $id_cidades_unicas contém os itens únicos baseados no campo id_cidade
 
 
-            foreach ($Radpop as $pop) {
+
+            foreach ($id_cidades_unicas as $pop) {
 
 
 
@@ -76,7 +89,7 @@ class ReceberIxcController extends Controller
                 // Exemplo de uso do array formado
                 echo $array["Cidade"] . ", " . $array["Count"] . ", " . $array["Sum"] . "<br>";
 
-              
+
              }
         // return view('Ixc/Clientes.index',compact('receber',));
     }
