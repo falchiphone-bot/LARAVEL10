@@ -33,21 +33,27 @@ class ReceberIxcController extends Controller
                 $data_vencimento_inicial = now()->format('Y-m-d');
                 $data_vencimento_final = now()->endOfMonth()->format('Y-m-d');
 
-                $Cidade = cidade::limit(50)
-                ->where('nome', 'like', 'Votu%')
-                ->get();
+                // Obtendo o ID da cidade
+$Cidade = cidade::where('nome', 'like', 'Alvares Florence%')->first()->id;
 
-                $clienteixc = ClientIxc::limit(50)
-                ->where('cidade',3907)
-                ->get();
+// Obtendo os clientes da cidade
+$clienteixc = ClientIxc::where('cidade', $Cidade)->limit(1000)->get();
 
-                $receber = ReceberIxc::
-                whereBetween('data_vencimento', [$data_vencimento_inicial, $data_vencimento_final])
-                ->where('status', 'A')
-                    ->orderBy('data_vencimento', 'asc')
-                    ->get();
+// Obtendo os recebimentos dentro do intervalo de datas para clientes da cidade
+$receber = ReceberIxc::whereBetween('data_vencimento', [$data_vencimento_inicial, $data_vencimento_final])
+            ->where('status', 'A')
+            ->whereHas('client', function($query) use ($Cidade) {
+                $query->where('cidade', $Cidade);
+            })
+            ->orderBy('data_vencimento', 'asc')
+            ->get();
 
-            dd($Cidade, $clienteixc, $receber->sum('valor'));
+
+
+
+
+
+            dd($Cidade, $clienteixc->Count() ,$clienteixc, $receber->sum('valor'));
 
         // return view('Ixc/Clientes.index',compact('receber',));
     }
