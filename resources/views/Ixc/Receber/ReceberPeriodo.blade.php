@@ -1,9 +1,14 @@
+@extends('layouts.bootstrap5')
+@section('content')
+<div class="py-5 bg-light">
+    <div class="container">
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Visualização do Array</title>
+<title>Visualização</title>
 </head>
 <body>
 
@@ -20,51 +25,46 @@
     </h1>
 
 
-
-<table border="1">
-    <tr>
-        <th>Código cidade</th>
-        <th>Nome cidade</th>
-        <th>Total</th>
-        <th>Quantidade clientes</th>
-    </tr>
-
-    @php
-        $totalSum = 0;
-        $totalCount = 0;
-    @endphp
-
-
-
-   @foreach ($receberperiodo as $item)
-
-   @php
-        $totalSum += $item['Sum'];
-        $totalCount += $item['Count'];
-    @endphp
-
-        <tr>
-            <td>{{ $item['Cidade'] }}</td>
-            <td>{{ $item['NomeCidade'] }}</td>
-            <td style="text-align: right;">{{ number_format($item['Sum'], 2, ',', '.') }} </td>
-
-
-            <td style="text-align: center;">{{ $item['Count'] }}</td>
-
+    {{-- <table border="4" responsive> --}}
+        <table class="table">
+        <tr style="background-color: lightblue; color: white;">
+            <th>Código cidade</th>
+            <th>Nome cidade</th>
+            <th>Total</th>
+            <th>Quantidade clientes</th>
         </tr>
-    @endforeach
-    <tr>
-        <td> </td>
-        <td> TOTAL </td>
-        <td style="text-align: right;">{{ number_format($totalSum, 2, ',', '.') }} </td>
+
+        @php
+            $totalSum = 0;
+            $totalCount = 0;
+        @endphp
+
+        @foreach ($receberperiodo as $item)
+
+        @php
+            $totalSum += $item['Sum'];
+            $totalCount += $item['Count'];
+        @endphp
+
+            <tr>
+                <td>{{ $item['Cidade'] }}</td>
+                <td>{{ $item['NomeCidade'] }}</td>
+                <td style="text-align: right;">{{ number_format($item['Sum'], 2, ',', '.') }} </td>
+                <td style="text-align: center;">{{ $item['Count'] }}</td>
+            </tr>
+        @endforeach
+        <tr style="background-color: lightblue; color: white;">
+            <td> </td>
+            <td> TOTAL </td>
+            <td style="text-align: right;">{{ number_format($totalSum, 2, ',', '.') }} </td>
+            <td style="text-align: center;">{{ $totalCount }}</td>
+        </tr>
+    </table>
 
 
-        <td style="text-align: center;">{{ $totalCount }}</td>
-
-    </tr>
-
-</table>
-
+</div>
+</div>
+@endsection
 </body>
 </html>
 

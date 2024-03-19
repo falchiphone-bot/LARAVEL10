@@ -30,7 +30,7 @@ class ReceberIxcController extends Controller
 
     public function receberperiodo()
     {
-                 $ativo = false;
+                 $ativo = true;
                 $data_vencimento_inicial = now()->format('Y-m-d');
                 $data_vencimento_final = now()->endOfMonth()->format('Y-m-d');
 
