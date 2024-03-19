@@ -30,7 +30,7 @@ class ReceberIxcController extends Controller
 
     public function receberperiodo()
     {
-
+                 $ativo = false;
                 $data_vencimento_inicial = now()->format('Y-m-d');
                 $data_vencimento_final = now()->endOfMonth()->format('Y-m-d');
 
@@ -68,9 +68,13 @@ class ReceberIxcController extends Controller
                 $clienteixc = ClientIxc::where('cidade', $Cidade)->limit(20000)->get();
 
                 // Obtendo os recebimentos dentro do intervalo de datas para clientes da cidade
-                $receber = ReceberIxc::whereBetween('data_vencimento', [$data_vencimento_inicial, $data_vencimento_final])
-                            ->where('status', 'A')
-                            ->whereHas('client', function($query) use ($Cidade) {
+                $receber = ReceberIxc::whereBetween('data_vencimento', [$data_vencimento_inicial, $data_vencimento_final]);
+                        if($ativo)
+                            {
+
+                                $receber ->where('status', 'A');
+                            }
+                            $receber ->whereHas('client', function($query) use ($Cidade) {
                                 $query->where('cidade', $Cidade);
                             })
                             ->orderBy('data_vencimento', 'asc')
