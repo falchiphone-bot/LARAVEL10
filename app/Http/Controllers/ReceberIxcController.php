@@ -10,6 +10,7 @@ use DateTime;
 use Exception;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Carbon;
+use Illuminate\Http\Request;
 
 use function PHPUnit\Framework\assertNotEmpty;
 
@@ -27,12 +28,22 @@ class ReceberIxcController extends Controller
         return view('Ixc/Receber/dashboard');
     }
 
-
-    public function receberperiodo()
+    public function index()
     {
-                 $ativo = true;
-                $data_vencimento_inicial = now()->format('Y-m-d');
-                $data_vencimento_final = now()->endOfMonth()->format('Y-m-d');
+        $data_vencimento_inicial = now()->format('Y-m-d');
+        $data_vencimento_final = now()->endOfMonth()->format('Y-m-d');
+
+        Return view('Ixc/Receber/index');
+    }
+
+    public function receberperiodo(Request  $request )
+    {
+
+        $ativo = true;
+
+
+                $data_vencimento_inicial = $request->data_vencimento_inicial ;
+                $data_vencimento_final = $request->data_vencimento_final; ;
 
 
                 $Radpop = Radpop::orderBy('id_cidade', 'asc')->get();

@@ -12,7 +12,11 @@
 </head>
 <body>
 
-
+    <nav class="navbar navbar-secondary" style="background-color: hsla(244, 92%, 27%, 0.096);">
+        <form method="get" action="/ReceberIxc" accept-charset="UTF-8">
+                <button type="submit" class="btn btn-primary">Pesquisar/selecionar por data</button>
+        </form>
+</nav>
 
     @php
     $inicio = DateTime::createFromFormat('Y-m-d', $data_vencimento_inicial);
