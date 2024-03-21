@@ -39,9 +39,9 @@ class ReceberIxcController extends Controller
     public function receberperiodo(Request  $request )
     {
 
-        $ativo = true;
+                $ativo = true;
 
-
+                $selecao = $request->Selecao;
                 $data_vencimento_inicial = $request->data_vencimento_inicial ;
                 $data_vencimento_final = $request->data_vencimento_final; ;
 
@@ -63,49 +63,68 @@ class ReceberIxcController extends Controller
                 }
 
 
-// Agora $id_cidades_unicas contém os itens únicos baseados no campo id_cidade
-
 // dd($id_cidades_unicas);
             $receberperiodo = array();
             foreach ($id_cidades_unicas as $pop) {
 
-
-
-                // Obtendo o ID da cidade
-                // $Cidade = cidade::where('nome', 'like', 'Valentim Gentil%')->first()->id;
                 $Cidade = $pop->id_cidade;
 
-                // Obtendo os clientes da cidade
-                $clienteixc = ClientIxc::where('cidade', $Cidade)->limit(20000)->get();
+
+                $clienteixc = ClientIxc::where('cidade', $Cidade)->get();
+                $countAtivado = 0;
+                $countDesativado =  0;
+                foreach ($clienteixc as $clienteixAt) {
+
+                    if ($clienteixAt->cidade == $Cidade) {
+
+                        if($clienteixAt->ativo == 'S')
+                        {
+                            $countAtivado = $countAtivado + 1;
+
+                        }
+                        else
+                        {
+
+                            $countDesativado =  $countDesativado + 1;
+                        }
+
+                    }
+                }
+
 
                 // Obtendo os recebimentos dentro do intervalo de datas para clientes da cidade
                 $receber = ReceberIxc::whereBetween('data_vencimento', [$data_vencimento_inicial, $data_vencimento_final]);
-                        if($ativo)
-                            {
-
-                                $receber ->where('status', 'A');
-                            }
-                            $receber ->whereHas('client', function($query) use ($Cidade) {
-                                $query->where('cidade', $Cidade);
-                            })
-                            ->orderBy('data_vencimento', 'asc')
-                            ->get();
-
-                //  dd($Cidade, $clienteixc->Count() ,$clienteixc, $receber->sum('valor'));
+                if($selecao == 'Receber' )
+                {
+                    $receber ->where('status', 'A');
+                }
+                else if($selecao == 'Recebido')
+                {
+                    $receber ->where('status', 'R');
+                }
 
 
-                // Supondo que $Cidade, $clienteixc, e $receber estejam definidos anteriormente
+                $receber ->whereHas('client', function($query) use ($Cidade) {
+                    $query->where('cidade', $Cidade);
+                })
+                ->orderBy('data_vencimento', 'asc')
+                ->get();
 
-                // Obtenha os valores das variáveis
                 $count = $clienteixc->Count();
+
+
+
                 $sum = $receber->sum('valor');
                 $NomeCidade = $pop->nome_cidade;
 
                 // Forme o array com as variáveis
+
                 $array = array(
                     "Cidade" => $Cidade,
                     "NomeCidade" => $NomeCidade,
                     "Count" => $count,
+                    "CountAtivado" => $countAtivado,
+                    "CountDesativado" => $countDesativado,
                     "Sum" => $sum
                 );
 
@@ -120,7 +139,7 @@ class ReceberIxcController extends Controller
             $receberperiodo = collect($receberperiodo);
             // dd($receberperiodo);
 
-            return view('Ixc/Receber.receberperiodo',compact('receberperiodo', 'data_vencimento_inicial', 'data_vencimento_final'));
+            return view('Ixc/Receber.receberperiodo',compact('receberperiodo', 'data_vencimento_inicial', 'data_vencimento_final', 'selecao'));
     }
 
 }

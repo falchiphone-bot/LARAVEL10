@@ -23,7 +23,7 @@ class ClientIxc extends Model
     protected $fillable = [
         'id',
         'razao',
-        'fantsaia',
+        'fantasia',
         'endereco',
         'numero',
         'bairro',

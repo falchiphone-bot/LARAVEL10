@@ -28,6 +28,15 @@
                 <label for="data_vencimento_final">Data final:</label>
                 <input required type="date" id="data_vencimento_final" name="data_vencimento_final">
 
+                <div class="col-12">
+                    <input type="radio" name="Selecao" id="Receber" value="Receber" checked>
+                    <label for="pdfCheckbox">A RECEBER</label>
+
+                    <input type="radio" name="Selecao" id="Recebido" value="Recebido">
+                    <label for="pdfCheckbox">RECEBIDOS</label>
+            </div>
+
+
                 <button type="submit" class="btn btn-primary">Pesquisar/selecionar por data</button>
         </form>
 </nav>

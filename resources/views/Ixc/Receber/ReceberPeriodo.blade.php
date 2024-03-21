@@ -27,20 +27,24 @@
         Início em: {{ $inicio->format('d/m/Y') }}
         até {{ $fim->format('d/m/Y') }}
     </h1>
-
+    <p>Tipo de seleção: {{ $selecao}}</p>
 
     {{-- <table border="4" responsive> --}}
         <table class="table">
-        <tr style="background-color: lightblue; color: white;">
+         <tr style="background-color: lightblue; color: rgb(8, 8, 198);">
             <th>Código cidade</th>
             <th>Nome cidade</th>
             <th>Total</th>
+            <th>Clientes ativados</th>
+            <th>Clientes desativados</th>
             <th>Quantidade clientes</th>
         </tr>
 
         @php
             $totalSum = 0;
             $totalCount = 0;
+            $totalCountAtivado = 0;
+            $totalCountDesativado = 0;
         @endphp
 
         @foreach ($receberperiodo as $item)
@@ -48,19 +52,25 @@
         @php
             $totalSum += $item['Sum'];
             $totalCount += $item['Count'];
+            $totalCountAtivado += $item['CountAtivado'];
+            $totalCountDesativado += $item['CountDesativado'];
         @endphp
 
             <tr>
                 <td>{{ $item['Cidade'] }}</td>
                 <td>{{ $item['NomeCidade'] }}</td>
                 <td style="text-align: right;">{{ number_format($item['Sum'], 2, ',', '.') }} </td>
+                <td style="text-align: center;">{{ $item['CountAtivado'] }}</td>
+                <td style="text-align: center;">{{ $item['CountDesativado'] }}</td>
                 <td style="text-align: center;">{{ $item['Count'] }}</td>
             </tr>
         @endforeach
-        <tr style="background-color: lightblue; color: white;">
+        <tr style="background-color: lightblue; color: rgb(8, 8, 198);">
             <td> </td>
             <td> TOTAL </td>
             <td style="text-align: right;">{{ number_format($totalSum, 2, ',', '.') }} </td>
+            <td style="text-align: center;">{{ $totalCountAtivado }}</td>
+            <td style="text-align: center;">{{ $totalCountDesativado }}</td>
             <td style="text-align: center;">{{ $totalCount }}</td>
         </tr>
     </table>
