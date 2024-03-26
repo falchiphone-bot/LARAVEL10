@@ -33,7 +33,7 @@ class FaturamentosController extends Controller
     {
        $faturamentos= Faturamentos::OrderBy('data')->get();
 
-        $empresas = Empresa::get();
+       $empresas = Empresa::OrderBy('Descricao')->get();
 
         return view('Faturamentos.index',compact('faturamentos','empresas'));
     }
@@ -44,7 +44,9 @@ class FaturamentosController extends Controller
                 $data_vencimento_inicial = $request->data_vencimento_inicial ;
                 $data_vencimento_final = $request->data_vencimento_final; ;
 
-                $empresas = Empresa::get();
+                // $empresas = Empresa::
+                // Where('X',0)->OrderBy('Descricao')->get();
+                $empresas = Empresa::OrderBy('Descricao')->get();
 
                 $faturamentos= Faturamentos::
                 where('data','>=',$data_vencimento_inicial)
