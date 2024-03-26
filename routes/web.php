@@ -419,6 +419,7 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     Route::post('ConectCar/ExtratoConectCar', [App\Http\Controllers\ExtratoConectCarController::class, 'ExtratoConectar'])->name('ConectCar.ExtratoConectCar');
 
     #Faturamentos
+    Route::get('Faturamentos/selecaoperiodoempresa', [App\Http\Controllers\FaturamentosController::class, 'selecaoperiodoempresa'])->name('Faturamentos.selecaoperiodoempresa');
     Route::resource('Faturamentos', App\Http\Controllers\FaturamentosController::class);
 
     #Sicredi

@@ -35,10 +35,40 @@
                             {{ $faturamentos->count() ?? 0 }}</p>
                         </div>
                     </div>
-
-
-
                 </div>
+
+
+                <nav class="navbar navbar-secondary" style="background-color: hsla(244, 92%, 27%, 0.096);">
+                    <form action="{{ route('Faturamentos.selecaoperiodoempresa') }}" method="get">
+                            <label for="data_vencimento_inicial">Data inicial:</label>
+                            <input required type="date" id="data_vencimento_inicial" name="data_vencimento_inicial">
+
+                            <label for="data_vencimento_final">Data final:</label>
+                            <input required type="date" id="data_vencimento_final" name="data_vencimento_final">
+
+                            <div class="col-12">
+                                <label for="EmpresaID" style="color: black;">Empresas disponíveis</label>
+                                <select required class="form-control select2" id="EmpresaID" name="EmpresaID"> --}}
+                                    <option value="">
+                                        Selecionar empresa
+                                    </option>
+                                    @foreach ($empresas as $EmpresasSelecionar)
+                                        <option
+
+                                            value="{{ $EmpresasSelecionar->ID }}">
+                                            {{ $EmpresasSelecionar->Descricao }}
+                                        </option>
+                                    @endforeach
+
+
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Pesquisar/selecionar por data</button>
+                    </form>
+            </nav>
+
+
 
                 <tbody>
                     <table class="table" style="background-color: rgb(247, 247, 213);">
@@ -58,6 +88,14 @@
                         </thead>
 
                         <tbody>
+
+
+                            @php
+                                $totalFaturamento = 0;
+                                $totalImposto = 0;
+                                $totalBaseLucroLiquido = 0;
+                                $totalLucroLiquido = 0;
+                           @endphp
                             @foreach ($faturamentos as $Fatura)
                                 <tr>
                                     <td style='text-align:right'>
@@ -116,8 +154,68 @@
                                     </td>
                                     @endcan
                                 </tr>
+
+
+                                @php
+                                    $totalFaturamento += $Fatura['ValorFaturamento'];
+                                    $totalImposto += $Fatura['ValorImposto'];
+                                    $totalBaseLucroLiquido += $Fatura['ValorBaseLucroLiquido'];
+                                    $totalLucroLiquido += $Fatura['LucroLiquido'];
+                                @endphp
+
                             @endforeach
                         </tbody>
+
+
+
+                    <tr>
+                        <td style='text-align:right'>
+
+                        </td>
+                        <td style='text-align:right'>
+                                TOTAL
+                        </td>
+                        <td style='text-align:right'>
+                            {{  number_format($totalFaturamento,2,",", ".")}}
+                        </td>
+                        <td style='text-align:right'>
+                            {{  number_format($totalImposto,2,",", ".")}}
+                        </td>
+                        <td style='text-align:right'>
+                            {{  number_format($totalBaseLucroLiquido,2,",", ".")}}
+                        </td>
+                        <td style='text-align:right'>
+
+                        </td>
+                        <td style='text-align:right'>
+                            {{  number_format($totalLucroLiquido,2,",", ".")}}
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style='text-align:right'>
+
+                        </td>
+                        <td style='text-align:right'>
+
+                        </td>
+                        <td style='text-align:right'>
+
+                        </td>
+                        <td style='text-align:right'>
+                            {{  number_format(($totalImposto/$totalFaturamento)*100,2,",", ".")}}%
+                        </td>
+                        <td style='text-align:right'>
+
+                        </td>
+                        <td style='text-align:right'>
+
+                        </td>
+                        <td style='text-align:right'>
+                            {{  number_format(($totalLucroLiquido/$totalFaturamento)*100,2,",", ".")}}%
+                        </td>
+                    </tr>
+
                     </table>
             </div>
         </div>
