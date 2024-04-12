@@ -511,8 +511,8 @@ class LeituraArquivoController extends Controller
 
     public function SelecionaDatasExtratoSicrediPJ(Request $request)
     {
-     
- 
+
+
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         $DESCONSIDERAR_BLOQUEIOS_EMPRESA = $request->DESCONSIDERAR_BLOQUEIOS_EMPRESAS;
         $DESCONSIDERAR_BLOQUEIOS_CONTAS = $request->DESCONSIDERAR_BLOQUEIOS_CONTAS;
@@ -657,6 +657,7 @@ class LeituraArquivoController extends Controller
             }
         }
 
+        // $novadata = array_slice($cellData, 10);
         $novadata = array_slice($cellData, 10);
 
         // $novadata = array_slice($cellData, 152);
@@ -678,10 +679,15 @@ class LeituraArquivoController extends Controller
 
         foreach ($array as $PegaLinha => $item) {
             $Data = $item[1];
+            // dd($Data);
+
+
+
             $Descricao = $item[2];
             $linha = $PegaLinha + 10; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
 
-            if ($Data == '') {
+            if ($Data == '' || $Data == 'Valores das operações dos produtos de Crédito sujeitos a alterações') {
+
                 $rowData = $cellData;
                 $SaldoAnterior = SaldoLancamentoHelper::Anterior($UltimoDia, $Conta, $Empresa);
                 $SaldoDia = SaldoLancamentoHelper::Dia($UltimoDia, $Conta, $Empresa);
@@ -870,6 +876,7 @@ class LeituraArquivoController extends Controller
                 $carbon_data = Carbon::createFromFormat('d/m/Y', $Data);
             } catch (\Exception $e) {
                 session(['Lancamento' => 'Ocorreu um erro ao converter a variável em uma data: ' . $e->getMessage() . '. Valor do campo data: ' . $Data]);
+
                 return redirect(route('LeituraArquivo.index'));
             }
 
@@ -920,7 +927,7 @@ class LeituraArquivoController extends Controller
                     if ($lancamentoCobranca) {
                         if (strpos(trim($Descricao), 'LIQ.COBRANCA SIMPLES') !== false) {
 
-                           
+
                             if ($lancamentoCobranca->Valor != $valor_formatado) {
 
                                 Lancamento::where('id', $lancamentoCobranca->ID)->update([
@@ -933,17 +940,17 @@ class LeituraArquivoController extends Controller
                                     dd('Forçado a alterar o valor para : ' . number_format($valor_formatado, 2, ',', '.'));
                                 }
                             }
-                            
+
                             continue;
                         }
-                        
+
                             // dd($lancamentoCobranca->Valor, $valor_formatado);
                     }
 
 
             }
-            
-             
+
+
             if ($Valor_Negativo) {
                 $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
                     ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
