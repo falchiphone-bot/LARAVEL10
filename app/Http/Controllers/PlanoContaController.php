@@ -770,6 +770,8 @@ if($Agrupar == 'Descricao')
     // Percorra o array original
     foreach ($dados as $registro) {
         $descricao = $registro["Descricao"];
+
+
         // Verifique se a descrição já existe no array de registros agrupados
         if (array_key_exists($descricao, $registrosAgrupados)) {
             // Se existir, some os campos relevantes
@@ -846,9 +848,13 @@ if($Agrupar == 'Descricao')
 elseif($Agrupar == 'Agrupamento')
 {
     // Percorra o array original
-
+    $SVA = 0;
     foreach ($dados as $registro) {
         $nomeagrupamento = $registro["NomeAgrupamento"];
+        if (strpos($registro["NomeAgrupamento"], 'SVA') !== false) {
+          $SVA = 1;
+        }
+
 
         // Verifique se a descrição já existe no array de registros agrupados
         if (array_key_exists($nomeagrupamento, $registrosAgrupados)) {
@@ -864,6 +870,9 @@ elseif($Agrupar == 'Agrupamento')
             $registrosAgrupados[$nomeagrupamento] = $registro;
 
         }
+        if (  $SVA == 1) {
+            dd(874, $nomeagrupamento, $registrosAgrupados[$nomeagrupamento] );
+          }
     }
 //   dd('Agrupamento', $registrosAgrupados);
 
