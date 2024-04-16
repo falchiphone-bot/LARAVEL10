@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use App\Models\Ixc\ClientIxc;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Ixc\vd_contratos;
 
 use function PHPUnit\Framework\assertNotEmpty;
 
@@ -57,6 +58,27 @@ class ClientesIxcController extends Controller
          'tem_whatsapp',
         ));
     }
+
+    public function contratos_ixc_tv()
+    {
+
+            $contratos = vd_contratos::select('id', 'nome', 'valor_contrato')
+                ->where('nome', 'like', '%tv%')
+                ->get();
+
+                dd($contratos, $contratos->count());
+   }
+   public function contratos_ixc_app()
+   {
+
+           $contratos = vd_contratos::select('id', 'nome', 'valor_contrato')
+               ->where('nome', 'like', '%app%')
+               ->get();
+
+               dd($contratos, $contratos->count());
+  }
+
+
 
 }
 
