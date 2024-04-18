@@ -96,7 +96,32 @@ class ClientesIxcController extends Controller
         "Quantidades selecionados com plano DESATIVADO de app:" . $somaDesativado);
   }
 
+  public function contratos_ixc_HBO()
+  {
 
+       //    $contratos = vd_contratos::select('id', 'nome', 'valor_contrato')
+       //        ->where('nome', 'like', '%app%')
+       //        ->get();
+
+       //        dd($contratos, "Quantidades selecionados com plano de app:" . $contratos->count());
+
+       $planos = VdContrato::where('nome','like','%HBO%')->get();
+       $soma = 0;
+       $somaAtivo = 0;
+       $somaDesativado = 0;
+       foreach ($planos as $plano) {
+
+           foreach ($plano->contratos as $contrato) {
+               //$this->info($contrato->client->razao);
+           }
+           $soma += $plano->contratos()->count();
+           $somaAtivo += $plano->contratos()->where('status','A')->count();
+           $somaDesativado += $plano->contratos()->whereIn('status',['N','I'])->count();
+       }
+       dd($planos, "Quantidades selecionados total com plano de app- HBO:" . $soma,
+       "Quantidades selecionados com plano ATIVO de app - HBO:" . $somaAtivo,
+       "Quantidades selecionados com plano DESATIVADO de app - HBO:" . $somaDesativado);
+ }
 
 }
 

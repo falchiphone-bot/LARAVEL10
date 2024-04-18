@@ -130,6 +130,8 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
  Route::get('Ixc/Clientes/dashboard', [App\Http\Controllers\ClientesIxcController::class, 'dashboard'])->name('ClientesIxc.dashboard');
  Route::get('Ixc/Clientes/contratostv', [App\Http\Controllers\ClientesIxcController::class, 'contratos_ixc_tv'])->name('ClientesIxc.contratos_ixc_tv');
  Route::get('Ixc/Clientes/contratosapp', [App\Http\Controllers\ClientesIxcController::class, 'contratos_ixc_app'])->name('ClientesIxc.contratos_ixc_app');
+ Route::get('Ixc/Clientes/contratosHBO', [App\Http\Controllers\ClientesIxcController::class, 'contratos_ixc_HBO'])->name('ClientesIxc.contratos_ixc_HBO');
+
 
  # Receber IXC
  Route::resource('ReceberIxc', App\Http\Controllers\ReceberIxcController::class);
