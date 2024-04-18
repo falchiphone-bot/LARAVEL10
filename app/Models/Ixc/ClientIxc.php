@@ -2,15 +2,16 @@
 
 namespace App\Models\Ixc;
 
+use App\Models\Ixc\Cidade;
+use App\Helpers\Enumerators;
+use App\Models\Ixc\ClientContract;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Model;
-use App\Models\Ixc\Cidade;
 use App\Models\BillingServices\CustomerService;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Helpers\Enumerators;
 
 class ClientIxc extends Model
 {

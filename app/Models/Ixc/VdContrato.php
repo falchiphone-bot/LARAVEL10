@@ -1,24 +1,18 @@
 <?php
 
-
 namespace App\Models\Ixc;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class vd_contratos extends Model
+class VdContrato extends Model
 {
     use HasFactory;
 
-    public $table = 'vd_contratos';
-
-    public $connection = 'ixc';
+    protected $connection = 'ixc';
 
     public function contratos()
     {
-        return $this->hasMany(ClientContract::class, 'id', 'id_contrato');
+        return $this->hasMany(ClientContract::class,'id_vd_contrato','id');
     }
 }
-
-
-

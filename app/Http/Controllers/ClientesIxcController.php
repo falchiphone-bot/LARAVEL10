@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 use App\Models\Ixc\ClientIxc;
-use Illuminate\Support\Facades\Validator;
+use App\Models\Ixc\VdContrato;
 use App\Models\Ixc\vd_contratos;
 
+use Illuminate\Support\Facades\Validator;
 use function PHPUnit\Framework\assertNotEmpty;
 
 class ClientesIxcController extends Controller
@@ -71,11 +72,28 @@ class ClientesIxcController extends Controller
    public function contratos_ixc_app()
    {
 
-           $contratos = vd_contratos::select('id', 'nome', 'valor_contrato')
-               ->where('nome', 'like', '%app%')
-               ->get();
+        //    $contratos = vd_contratos::select('id', 'nome', 'valor_contrato')
+        //        ->where('nome', 'like', '%app%')
+        //        ->get();
 
-               dd($contratos, "Quantidades selecionados com plano de app:" . $contratos->count());
+        //        dd($contratos, "Quantidades selecionados com plano de app:" . $contratos->count());
+
+        $planos = VdContrato::where('nome','like','%app%')->get();
+        $soma = 0;
+        $somaAtivo = 0;
+        $somaDesativado = 0;
+        foreach ($planos as $plano) {
+
+            foreach ($plano->contratos as $contrato) {
+                //$this->info($contrato->client->razao);
+            }
+            $soma += $plano->contratos()->count();
+            $somaAtivo += $plano->contratos()->where('status','A')->count();
+            $somaDesativado += $plano->contratos()->whereIn('status',['N','I'])->count();
+        }
+        dd($planos, "Quantidades selecionados total com plano de app:" . $soma,
+        "Quantidades selecionados com plano ATIVO de app:" . $somaAtivo,
+        "Quantidades selecionados com plano DESATIVADO de app:" . $somaDesativado);
   }
 
 
