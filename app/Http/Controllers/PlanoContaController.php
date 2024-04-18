@@ -870,7 +870,7 @@ elseif($Agrupar == 'Agrupamento')
             $registrosAgrupados[$nomeagrupamento] = $registro;
 
         }
-        if (  $SVA == 1) {
+        if (  $SVA == 11) {
             dd(874, $nomeagrupamento, $registrosAgrupados[$nomeagrupamento] );
           }
     }

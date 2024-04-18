@@ -66,7 +66,7 @@ class ClientesIxcController extends Controller
                 ->where('nome', 'like', '%tv%')
                 ->get();
 
-                dd($contratos, $contratos->count());
+                dd($contratos,  "Quantidades selecionados com plano de tv:" . $contratos->count());
    }
    public function contratos_ixc_app()
    {
@@ -75,7 +75,7 @@ class ClientesIxcController extends Controller
                ->where('nome', 'like', '%app%')
                ->get();
 
-               dd($contratos, $contratos->count());
+               dd($contratos, "Quantidades selecionados com plano de app:" . $contratos->count());
   }
 
 

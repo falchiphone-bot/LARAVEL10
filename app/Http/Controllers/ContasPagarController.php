@@ -161,6 +161,11 @@ class ContasPagarController extends Controller
         $ContaFornecedor = Conta::join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.Planocontas_id')
             ->join('Contabilidade.Empresas', 'Empresas.ID', '=', 'Contas.EmpresaID')
             ->where('Contabilidade.PlanoContas.Grau', '=', '5')
+            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%Aplicação%')
+            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%Subscricao%')
+            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%transferencia%')
+            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%modobank%')
+            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%poupanca%')
             ->select('Contas.ID', DB::raw("CONCAT(PlanoContas.Descricao,' | ', Empresas.Descricao) as Descricao"))
             ->orderby('PlanoContas.Descricao')
             ->get();
@@ -168,6 +173,11 @@ class ContasPagarController extends Controller
         $ContaPagamento = Conta::join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.Planocontas_id')
             ->join('Contabilidade.Empresas', 'Empresas.ID', '=', 'Contas.EmpresaID')
             ->where('Contabilidade.PlanoContas.Grau', '=', '5')
+            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%Aplicação%')
+            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%Subscricao%')
+            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%transferencia%')
+            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%modobank%')
+            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%poupanca%')
             ->select('Contas.ID', DB::raw("CONCAT(PlanoContas.Descricao,' | ', Empresas.Descricao) as Descricao"))
             ->orderby('PlanoContas.Descricao')
             ->get();
@@ -398,6 +408,11 @@ class ContasPagarController extends Controller
         $ContaFornecedor = Conta::join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.Planocontas_id')
             ->join('Contabilidade.Empresas', 'Empresas.ID', '=', 'Contas.EmpresaID')
             ->where('Contas.EmpresaID', '=', $contasPagar->EmpresaID)
+            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%Aplicação%')
+            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%Subscricao%')
+            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%transferencia%')
+            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%modobank%')
+            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%poupanca%')
             ->select('Contas.ID', DB::raw("CONCAT(PlanoContas.Descricao,' | ', Empresas.Descricao) as Descricao"))
             ->orderby('PlanoContas.Descricao')
             ->get();
@@ -406,6 +421,11 @@ class ContasPagarController extends Controller
         $ContaPagamento = Conta::join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.Planocontas_id')
             ->join('Contabilidade.Empresas', 'Empresas.ID', '=', 'Contas.EmpresaID')
             ->where('Contas.EmpresaID', '=', $contasPagar->EmpresaID)
+            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%Aplicação%')
+            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%Subscricao%')
+            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%transferencia%')
+            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%modobank%')
+            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%poupanca%')
             ->select('Contas.ID', DB::raw("CONCAT(PlanoContas.Descricao,' | ', Empresas.Descricao) as Descricao"))
             ->orderby('PlanoContas.Descricao')
             ->get();
@@ -714,7 +734,7 @@ $Valor = str_replace(",", ".", $Valor);
                 'ContaCreditoID' => $contasPagar->ContaPagamentoID,
             ])->first();
 
-                
+
 
 
             if ($duplicadoconsulta) {
