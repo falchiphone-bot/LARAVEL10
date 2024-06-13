@@ -398,6 +398,7 @@ class ContasPagarController extends Controller
         }
 
 
+
         $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
             ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
             ->OrderBy('Descricao')
@@ -450,7 +451,9 @@ class ContasPagarController extends Controller
 
         $contasPagar = ContasPagar::find($id);
 
-        if($request->input('LancamentoID') == null){
+        // if($request->input('LancamentoID') == null){
+        if($contasPagar->LancamentoID == null){
+            // dd($request->input('LancamentoID'));
             $contasPagar->update([
 
                 'LancamentoID' =>  " ",
@@ -458,7 +461,7 @@ class ContasPagarController extends Controller
 
             $contasPagar->save();
 
-            return redirect()->route('ContasPagar.edit', $id)->with('success', 'Conta a pagar atualizada com sucesso!', 'error');
+            return redirect()->route('ContasPagar.edit', $id)->with('success', 'Conta a pagar atualizada com sucesso! Não foi localizado o ID do lançamento! VERIFICAR LINHA 464', 'error');
         }
 
 
@@ -572,10 +575,10 @@ class ContasPagarController extends Controller
 
             $Valor = $request->input('Valor');
 // Remove pontos de milhar e substitui vírgula por ponto decimal
-$Valor = str_replace(".", "", $Valor);
-$Valor = str_replace(",", ".", $Valor);
-            $ValorFloat = (float) $Valor; // Converte a string em um número de ponto flutuante
-            $ValorDecimal = number_format($ValorFloat, 2, '.', ''); // Formata com duas casas decimais
+             $Valor = str_replace(".", "", $Valor);
+             $Valor = str_replace(",", ".", $Valor);
+             $ValorFloat = (float) $Valor; // Converte a string em um número de ponto flutuante
+             $ValorDecimal = number_format($ValorFloat, 2, '.', ''); // Formata com duas casas decimais
 
 
 
@@ -597,6 +600,9 @@ $Valor = str_replace(",", ".", $Valor);
         };
 
         $request['Valor'] = str_replace(",", ".", str_replace('.', '', $request['Valor']));
+
+
+
 
         $contasPagar->update([
             'Descricao' => $request->input('Descricao'),

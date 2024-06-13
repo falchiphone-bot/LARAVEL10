@@ -54,6 +54,8 @@ class LeituraArquivoController extends Controller
         $GerarPdf = $request->GerarPDF;
 
         $caminho = storage_path($arquivosalvo);
+
+        // dd($caminho);
         if (File::exists($caminho)) {
             // Abre o arquivo Excel
             $spreadsheet = IOFactory::load($caminho);
