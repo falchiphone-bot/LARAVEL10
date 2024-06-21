@@ -81,7 +81,7 @@
                                     <option @if ($retorno['ContaSelecionada'] == $Conta->ID) selected @endif
                                         value="{{ $Conta->ID }}">
 
-                                        {{ $Conta->Descricao }}
+                                        {{ $Conta->Descricao  . " - " . $Conta  }}
                                     </option>
                                 @endforeach
                             </select>

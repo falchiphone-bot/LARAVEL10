@@ -26,7 +26,7 @@ class Conta extends Model
         'BalancoEncerrado',
         'ContaPublica',
         'Nota',
-        
+
     ];
 
     /**
@@ -61,4 +61,5 @@ class Conta extends Model
     {
         return $this->hasOne(Empresa::class,'ID','EmpresaID');
     }
+     
 }
