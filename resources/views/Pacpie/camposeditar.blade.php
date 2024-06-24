@@ -22,12 +22,12 @@
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
 
-                @can('REPRESENTANTES - LIBERA VALIDAR CNPJ')
+                @can('PACPIE - LIBERA VALIDAR CNPJ')
                     <input type="checkbox" name="liberacnpj" value="1">
                     <label for="checkbox_liberacnpj">Libera validação do CNPJ</label>
                     <br>
                 @endcan
-                @can('REPRESENTANTES - LIMPA CAMPO CNPJ')
+                @can('PACPIE - LIMPA CAMPO CNPJ')
                     <input type="checkbox" name="limpacnpj" value="1">
                     <label for="checkbox_limpacnpj">Limpa campo CNPJ</label>
                     <br>
@@ -60,20 +60,7 @@
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
             </div>
-            <div class="col-6">
-                <label for="telefone">Tipo de representante</label>
-                <select class="form-control select2" id="tipo_representante" name="tipo_representante">
-                    <option value="">
-                        Tipos de representantes
-                    </option>
-                    @foreach ($tipor as $item)
-                        <option @required(true) @if ($tiporep['tiporepresentante'] == $item->id) selected @endif
-                            value="{{ $item->id }}">
-                            {{ $item->nome }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+
         </div>
 
         <div class="row mt-12">
@@ -83,82 +70,10 @@
         </div>
         </form>
         <hr>
-        <div class="card-body">
-            {{-- //////////////////////////////////// REDES SOCIAIS --}}
-            <form method="POST" action="/Representantes/CreateRedeSocialRepresentantes" accept-charset="UTF-8">
-                @csrf
-                <input required
-                    class="form-control @error('RedeSocialRepresentante_id') is-invalid @else is-valid @enderror d-none"
-                    name="RedeSocialRepresentante_id" type="text" id="RedeSocialRepresentante_id"
-                    value="{{ $model->id ?? null }}">
-                <div class="col-6">
-                    <label for="Limite" style="color: black;">Incluir redes sociais</label>
-                    <select class="form-control select2" id="RedeSocial" name="RedeSocial">
-                        <option value="">
-                            Selecionar rede social
-                        </option>
-                        @foreach ($RedeSocial as $redesociais)
-                            <option @required(true) @if ($retorno['redesocial'] == $redesociais->id) selected @endif
-                                value="{{ $redesociais->id }}">
-                                {{ $redesociais->nome }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <input required
-                        class="form-control @error('RedeSocial_complemento') is-invalid @else is-valid @enderror"
-                        name="RedeSocial_complemento" type="text" id="RedeSocial_complemento"
-                        value="{{ $model->RedeSocial_complemento ?? null }}">
-                </div>
-                <div class="row mt-2">
-                    <div class="col-2">
-                        <button class="btn btn-danger">Salvar rede social</button>
-                    </div>
-                </div>
-            </form>
-            <table>
-                <tr>
-                    <th>Rede Social</th>
-                    <th>Link</th>
-                    <th></th>
-                </tr>
-                @foreach ($redesocialUsuario as $item)
-                    <style>
-                        table {
-                            border-collapse: collapse;
-                            width: 100%;
-                        }
-                        th,
-                        td {
-                            border: 1px solid black;
-                            padding: 8px;
-                        }
-                        th {
-                            background-color: #f2f2f2;
-                        }
-                    </style>
-                    <tr>
-                        <td>{{ $item->RedeSociais->nome ?? null }}:</td>
-                        <td><a href="{{ $item->RedeSocial_complemento ?? null }}"
-                                target="_blank">{{ $item->RedeSocial_complemento ?? null }}</a></td>
-                        @can('REDESOCIALUSUARIO - EXCLUIR')
-                            <td>
-                                <form method="POST" action="{{ route('RedeSocialUsuarios.destroy', $item->id) }}">
-                                    @csrf
-                                    <input type="hidden" name="_method" value="DELETE">
-                                    <button type="submit" class="btn btn-danger">
-                                        Excluir
-                                    </button>
-                                </form>
-                            </td>
-                        @endcan
-                    </tr>
-                @endforeach
-            </table>
-            {{-- //////////////////////////////////// FIM REDES SOCIAIS --}}
-        </div>
+
         <div class="row mt-12">
             <div class="col-12 d-flex justify-content-center">
-                <a href="{{ route('Representantes.index') }}" class="btn btn-warning">Retornar para lista</a>
+                <a href="{{ route('Pacpie.index') }}" class="btn btn-warning">Retornar para lista</a>
             </div>
         </div>
     </div>

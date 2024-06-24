@@ -75,6 +75,17 @@
 
                         <tr>
 
+                            @can('PACPIE - LISTAR')
+                                <th>
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="Pacpie">EMPRESAS PARA PAC PIE - ESTADO DE SÃO PAULO</a>
+                                    </nav>
+                                </th>
+                            @endcan
+                        </tr>
+
+                        <tr>
+
                             @can('ENERGIAINJETADA - DASHBOARD')
                                 <th>
                                     <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">

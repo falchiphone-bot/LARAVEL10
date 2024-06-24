@@ -112,19 +112,12 @@ class PacpieController extends Controller
     public function edit(string $id)
     {
         session(['Representante_id' => $id]);
-        $RedeSocial = RedeSocial::orderBy('nome')->get();
 
-        $redesocialUsuario = RedeSocialUsuarios::where('RedeSocialRepresentante_id', $id)
-            ->orderBy('RedeSocialRepresentante')
-            ->get();
 
-        $tipor = TipoRepresentante::orderBy('nome')->get();
+        $model = Pacpie::find($id);
 
-        $model = Representantes::find($id);
-        $retorno['redesocial'] = $model->RedeSocial;
-        $tiporep['tiporepresentante'] = $model->tipo_representante;
 
-        return view('Representantes.edit', compact('model', 'RedeSocial', 'retorno', 'redesocialUsuario', 'tipor', 'tiporep'));
+        return view('Pacpie.edit', compact('model'));
     }
 
     /**
@@ -160,7 +153,7 @@ class PacpieController extends Controller
                     session(['cnpj' => 'CNPJ:  ' . $request->cnpj . ', VALIDADO! ']);
                 } else {
                     session(['error' => 'CNPJ:  ' . $request->cnpj . ', DEVE SER CORRIGIDO! NADA ALTERADO! ']);
-                    return redirect(route('Representantes.edit', $id));
+                    return redirect(route('Pacpie.edit', $id));
                 }
             }
         } else {
@@ -182,7 +175,7 @@ class PacpieController extends Controller
             // ...
 
             session(['error' => 'EMAIL:  ' . $request->email . ', DEVE SER CORRIGIDO! NADA ALTERADO! RETORNADO AO VALOR JÁ REGISTRADO! ']);
-            return redirect(route('Representantes.edit', $id));
+            return redirect(route('Pacpie.edit', $id));
 
             // Definir o endereço de e-mail corrigido como vazio ou null
             // $emailCorrigido = '';
@@ -199,7 +192,7 @@ class PacpieController extends Controller
         $cadastro->save();
 
         session(['success' => 'NOME:  ' . $request->nome . ', ALTERADO! ']);
-        return redirect(route('Representantes.edit',$id));
+        return redirect(route('Pacpie.edit',$id));
     }
 
     /**
@@ -207,10 +200,10 @@ class PacpieController extends Controller
      */
     public function destroy(string $id)
     {
-        $model = Representantes::find($id);
+        $model = Pacpie::find($id);
 
         $model->delete();
-        return redirect(route('Representantes.index'));
+        return redirect(route('Pacpie.index'));
     }
 
     public function CreateRedeSocialRepresentantes(RedeSocialRepresentantesCreateRequest $request)
