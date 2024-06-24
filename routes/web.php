@@ -264,6 +264,8 @@ Route::resource('FormandoBaseRecebimentos', App\Http\Controllers\FormandoBaseRec
     Route::get('Representantes/RepresentantesCadastro', [App\Http\Controllers\RepresentantesController::class, 'representantecadastro'])->name('representantes.cadastrorepresentante');
     Route::resource('Representantes', App\Http\Controllers\RepresentantesController::class);
 
+ #PAC PIE
+  Route::resource('Pacpie', App\Http\Controllers\PacpieController::class);
 
 
     # ENERGIA INJETADA
