@@ -13,25 +13,6 @@
             {{ session(['error' => null]) }}
         @endif
 
-        <div class="form-group">
-            <label for="cpf">CPF</label>
-            <input required class="form-control @error('cpf') is-invalid @else is-valid @enderror" name="cpf"
-                type="text" id="cpf" value="{{ $model->cpf ?? null }}">
-            @error('cpf')
-                <div class="alert alert-danger">{{ $message }}</div>
-            @enderror
-
-            @can('REPRESENTANTES - LIBERA VALIDAR CPF')
-                <input type="checkbox" name="liberacpf" value="1">
-                <label for="checkbox_liberacpf">Libera validação do CPF</label>
-                <br>
-            @endcan
-            @can('REPRESENTANTES - LIMPA CAMPO CPF')
-                <input type="checkbox" name="limpacpf" value="1">
-                <label for="checkbox_limpacpf">Limpa campo do CPF</label>
-                <br>
-            @endcan
-        </div>
 
         <div class="form-group">
             <label for="cnpj">CNPJ</label>
@@ -82,7 +63,7 @@
 
         <div class="row mt-12">
             <div class="col-12 text-center">
-                <button class="btn btn-primary">Salvar ficha do representante</button>
+                <button class="btn btn-primary">Salvar ficha da empresa</button>
             </div>
         </div>
         </form>
@@ -90,7 +71,7 @@
 
         <div class="row mt-12">
             <div class="col-12 d-flex justify-content-center">
-                <a href="{{ route('Representantes.index') }}" class="btn btn-warning">Retornar para lista</a>
+                <a href="{{ route('Picpei.index') }}" class="btn btn-warning">Retornar para lista</a>
             </div>
         </div>
     </div>

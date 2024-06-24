@@ -2,19 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\FeriadoCreateRequest;
-use App\Http\Requests\FeriadosCreateRequest;
-use App\Http\Requests\RepresentantesCreateRequest;
-use App\Http\Requests\RedeSocialRepresentantesCreateRequest;
-use App\Models\Feriado;
-use App\Models\Representantes;
+
+use App\Models\Pacpie;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App;
-use App\Models\RedeSocial;
-use App\Models\RedeSocialUsuarios;
-use App\Models\TipoRepresentante;
+
 
 use Google\Service\ServiceControl\Auth as ServiceControlAuth;
 use Illuminate\Support\Facades\Auth;
@@ -27,7 +21,7 @@ use Illuminate\Support\Facades\Gate;
 
 require_once app_path('helpers.php');
 
-class RepresentantesController extends Controller
+class PacpieController extends Controller
 {
     public function __construct()
     {
@@ -47,9 +41,13 @@ class RepresentantesController extends Controller
                     //     ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
                     //     ->orderBy('nome')
                     //     ->get();
-                    //  return view('Representantes.index', compact('model'));
+                    //
 
-                    dd('PACPIE INDEX');
+                    $model = Pacpie::all();
+
+                    // dd('PACPIE INDEX', $Pacpie);
+
+                    return view('Pacpie.index', compact('model'));
 
     }
 

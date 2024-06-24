@@ -43,8 +43,8 @@
                 </div>
 
                 @can('REPRESENTANTES - INCLUIR')
-                    <a href="{{ route('Representantes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
-                        aria-disabled="true">Incluir representante</a>
+                    <a href="{{ route('Pacpie.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
+                        aria-disabled="true">Incluir empresa</a>
                 @endcan
 
             </div>
@@ -55,13 +55,11 @@
                         <th scope="col" class="px-6 py-4">NOME</th>
                         <th scope="col" class="px-6 py-4">TELEFONE</th>
                         <th scope="col" class="px-6 py-4">EMAIL</th>
-                        <th scope="col" class="px-6 py-4">CPF</th>
-
 
                         <th scope="col" class="px-6 py-4">CNPJ</th>
 
 
-                        <th scope="col" class="px-6 py-4">CLUBE</th>
+                        <th scope="col" class="px-6 py-4">EMPRESA</th>
                         <th scope="col" class="px-6 py-4"></th>
                     </tr>
                 </thead>
