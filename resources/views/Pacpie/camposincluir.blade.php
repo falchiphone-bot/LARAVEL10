@@ -45,7 +45,7 @@
 
         <div class="form-group">
             <label for="email">Email</label>
-            <input required class="form-control @error('email') is-invalid @else is-valid @enderror" name="email"
+            <input  class="form-control @error('email') is-invalid @else is-valid @enderror" name="email"
                 type="text" id="email" value="{{ $model->email ?? null }}">
             @error('email')
                 <div class="alert alert-danger">{{ $message }}</div>
