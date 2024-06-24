@@ -71,7 +71,7 @@
 
         <div class="row mt-12">
             <div class="col-12 d-flex justify-content-center">
-                <a href="{{ route('Picpei.index') }}" class="btn btn-warning">Retornar para lista</a>
+                <a href="{{ route('Pacpie.index') }}" class="btn btn-warning">Retornar para lista</a>
             </div>
         </div>
     </div>

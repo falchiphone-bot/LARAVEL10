@@ -76,32 +76,30 @@
                             <td class="">
                                 {{ $Model->email }}
                             </td>
-                            <td class="">
-                                {{ $Model->cpf }}
-                            </td>
+
                             <td class="">
                                 {{ $Model->cnpj }}
                             </td>
                             <td class="">
                                 {{ $Model->MostraEmpresa->Descricao }}
                             </td>
-                            @can('REPRESENTANTES - EDITAR')
+                            @can('PACPIE - EDITAR')
                                 <td>
-                                    <a href="{{ route('Representantes.edit', $Model->id) }}" class="btn btn-success" tabindex="-1"
+                                    <a href="{{ route('Pacpie.edit', $Model->id) }}" class="btn btn-success" tabindex="-1"
                                         role="button" aria-disabled="true">Editar</a>
                                 </td>
                             @endcan
 
-                            @can('REPRESENTANTES - VER')
+                            @can('PACPIE - VER')
                                 <td>
-                                    <a href="{{ route('Representantes.show', $Model->id) }}" class="btn btn-info" tabindex="-1"
+                                    <a href="{{ route('Pacpie.show', $Model->id) }}" class="btn btn-info" tabindex="-1"
                                         role="button" aria-disabled="true">Ver</a>
                                 </td>
                             @endcan
 
-                            @can('REPRESENTANTES - EXCLUIR')
+                            @can('PACPIE - EXCLUIR')
                                 <td>
-                                    <form method="POST" action="{{ route('Representantes.destroy', $Model->id) }}">
+                                    <form method="POST" action="{{ route('Pacpie.destroy', $Model->id) }}">
                                         @csrf
                                         <input type="hidden" name="_method" value="DELETE">
                                         <button type="submit" class="btn btn-danger">

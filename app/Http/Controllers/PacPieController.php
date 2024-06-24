@@ -8,8 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App;
-
-
+use App\Http\Requests\PacpieCreateRequest;
 use Google\Service\ServiceControl\Auth as ServiceControlAuth;
 use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Models\Role;
@@ -51,55 +50,23 @@ class PacpieController extends Controller
 
     }
 
-    public function representantecadastro()
-    {
-        if ($this->middleware('permission:REPRESENTANTES - CADASTRO DO USUARIO')) {
-            $model = Representantes::join('Contabilidade.EmpresasUsuarios', 'Representantes.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
-                ->where('email', 'like', Auth::user()->email)
-                ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
-                ->orderBy('nome')
-                ->get();
-                return view('Representantes.index', compact('model'));
-        }
 
-    }
 
     public function create()
     {
-        return view('Representantes.create');
+        return view('Pacpie.create');
     }
 
-    public function store(RepresentantesCreateRequest $request)
+    public function store( PacpieCreateRequest $request)
     {
-        $cpf = $request->cpf;
         $cnpj = $request->cnpj;
-        $LiberaCPF = $request->liberacpf;
+
         $LiberaCNPJ = $request->liberacnpj;
-        $limpacpf = $request->limpacpf;
+
         $limpacnpj = $request->limpacnpj;
 
         $request['nome'] = strtoupper($request['nome']);
 
-        $existecadastro = Representantes::where('nome', trim($request['nome']))->first();
-        if ($existecadastro) {
-            session(['error' => 'NOME:  ' . $request->nome . ', já existe! NADA INCLUÍDO! ']);
-            return redirect(route('Representantes.index'));
-        }
-
-        if ($LiberaCPF == null) {
-            if ($cpf) {
-                if (validarCPF($cpf)) {
-                    session(['cpf' => 'CPF:  ' . $request->cpf . ', VALIDADO! ']);
-                } else {
-                    session(['error' => 'CPF:  ' . $request->cpf . ', DEVE SER CORRIGIDO! NADA ALTERADO! ']);
-                    return redirect(route('Representantes.edit', $id));
-                }
-            }
-        } else {
-            if ($limpacpf) {
-                $request['cpf'] = '';
-            }
-        }
 
         if ($LiberaCNPJ == null) {
             if ($cnpj) {
@@ -107,7 +74,7 @@ class PacpieController extends Controller
                     session(['cnpj' => 'CNPJ:  ' . $request->cnpj . ', VALIDADO! ']);
                 } else {
                     session(['error' => 'CNPJ:  ' . $request->cnpj . ', DEVE SER CORRIGIDO! NADA ALTERADO! ']);
-                    return redirect(route('Representantes.edit', $id));
+                    return redirect(route('Pacpie.edit', $id));
                 }
             }
         } else {
@@ -121,10 +88,13 @@ class PacpieController extends Controller
         $request['email'] = $enderecoEmailCorrigido;
 
         $request['user_updated'] = Auth::user()->email;
+        $request['EmpresaID'] = 11;
         $model = $request->all();
-        Representantes::create($model);
 
-        return redirect(route('Representantes.index'));
+
+// dd($model);
+ Pacpie::create($model);
+        return redirect(route('Pacpie.index'));
     }
 
     /**
@@ -221,7 +191,7 @@ class PacpieController extends Controller
         // Atualiza a propriedade email do objeto $request com o endereço corrigido
         $request['email'] = $emailCorrigido;
 
-        $cadastro = Representantes::find($id);
+        $cadastro = Pacpie::find($id);
         $request['nome'] = strtoupper($request['nome']);
         $request['user_updated'] = Auth::user()->email;
         $cadastro->fill($request->all());
