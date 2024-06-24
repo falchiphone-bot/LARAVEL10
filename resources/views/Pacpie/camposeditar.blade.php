@@ -61,6 +61,23 @@
                 @enderror
             </div>
 
+            <div class="col-6">
+                <label for="emailprimeirocontato">Enviado email para primeiro contato</label>
+                <input type="hidden" name="emailprimeirocontato" value="0"> <!-- Para garantir que "0" seja enviado quando o checkbox estiver desmarcado -->
+                <input
+                    name="emailprimeirocontato"
+                    type="checkbox"
+                    id="emailprimeirocontato"
+                    value="1"
+                    {{ old('emailprimeirocontato', $model->emailprimeirocontato ?? 0) == 1 ? 'checked' : '' }}>
+                @error('emailprimeirocontato')
+                    <div class="alert alert-danger">{{ $message }}</div>
+                @enderror
+            </div>
+
+
+
+
         </div>
 
         <div class="row mt-12">

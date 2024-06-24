@@ -132,6 +132,7 @@ class PacpieController extends Controller
         $limpacpf = $request->limpacpf;
         $limpacnpj = $request->limpacnpj;
 
+
         if ($LiberaCPF == null) {
             if ($cpf) {
                 if (validarCPF($cpf)) {
@@ -165,6 +166,7 @@ class PacpieController extends Controller
         // Obtém o endereço de e-mail do objeto $request
         $email = $request->email;
 
+
         // Remove caracteres inválidos do endereço de e-mail
         $emailCorrigido = preg_replace('/[^a-zA-Z0-9.@_-]/', '', $email);
 
@@ -185,14 +187,21 @@ class PacpieController extends Controller
         $request['email'] = $emailCorrigido;
 
         $cadastro = Pacpie::find($id);
+
+
         $request['nome'] = strtoupper($request['nome']);
         $request['user_updated'] = Auth::user()->email;
+        $request['emailprimeirocontato'] = $request->emailprimeirocontato;
         $cadastro->fill($request->all());
 
-        $cadastro->save();
+        // dd($request->all());
 
+        $cadastro->save();
+// dd($cadastro);
         session(['success' => 'NOME:  ' . $request->nome . ', ALTERADO! ']);
-        return redirect(route('Pacpie.edit',$id));
+        // return redirect(route('Pacpie.edit',$id));
+
+        return redirect(route('Pacpie.index'));
     }
 
     /**

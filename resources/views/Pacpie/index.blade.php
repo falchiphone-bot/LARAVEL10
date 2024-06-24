@@ -60,6 +60,7 @@
 
 
                         <th scope="col" class="px-6 py-4">EMPRESA</th>
+                        <th scope="col" class="px-6 py-4">Primeiro contato via email</th>
                         <th scope="col" class="px-6 py-4"></th>
                     </tr>
                 </thead>
@@ -83,6 +84,10 @@
                             <td class="">
                                 {{ $Model->MostraEmpresa->Descricao }}
                             </td>
+                            <td class="">
+                                {{ $Model->emailprimeirocontato }}
+                            </td>
+
                             @can('PACPIE - EDITAR')
                                 <td>
                                     <a href="{{ route('Pacpie.edit', $Model->id) }}" class="btn btn-success" tabindex="-1"
