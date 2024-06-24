@@ -42,7 +42,7 @@
                     </div>
                 </div>
 
-                @can('REPRESENTANTES - INCLUIR')
+                @can('PACPIE - INCLUIR')
                     <a href="{{ route('Pacpie.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
                         aria-disabled="true">Incluir empresa</a>
                 @endcan

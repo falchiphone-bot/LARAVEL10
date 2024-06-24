@@ -25,12 +25,12 @@ class PacpieController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware(['permission:REPRESENTANTES - CADASTRO DO REPRESENTANTE'])->only('representantecadastro');
-        $this->middleware(['permission:REPRESENTANTES - LISTAR'])->only('index');
-        $this->middleware(['permission:REPRESENTANTES - INCLUIR'])->only(['create', 'store']);
-        $this->middleware(['permission:REPRESENTANTES - EDITAR'])->only(['edit', 'update']);
-        $this->middleware(['permission:REPRESENTANTES - VER'])->only(['edit', 'update']);
-        $this->middleware(['permission:REPRESENTANTES - EXCLUIR'])->only('destroy');
+
+        $this->middleware(['permission:PACPIE - LISTAR'])->only('index');
+        $this->middleware(['permission:PACPIE - INCLUIR'])->only(['create', 'store']);
+        $this->middleware(['permission:PACPIE - EDITAR'])->only(['edit', 'update']);
+        $this->middleware(['permission:PACPIE - VER'])->only(['edit', 'update']);
+        $this->middleware(['permission:PACPIE - EXCLUIR'])->only('destroy');
     }
 
     public function index()
