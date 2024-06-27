@@ -181,17 +181,17 @@ class PacpieController extends Controller
         $emailCorrigido = preg_replace('/[^a-zA-Z0-9.@_-]/', '', $email);
 
         // Verifica se o símbolo "@" está presente no endereço corrigido
-        if (strpos($emailCorrigido, '@') === false) {
-            // Endereço de e-mail inválido, pode lidar com o erro aqui
-            // Por exemplo, lançar uma exceção ou retornar uma mensagem de erro
-            // ...
+        // if (strpos($emailCorrigido, '@') === false) {
+        //     // Endereço de e-mail inválido, pode lidar com o erro aqui
+        //     // Por exemplo, lançar uma exceção ou retornar uma mensagem de erro
+        //     // ...
 
-            session(['error' => 'EMAIL:  ' . $request->email . ', DEVE SER CORRIGIDO! NADA ALTERADO! RETORNADO AO VALOR JÁ REGISTRADO! ']);
-            return redirect(route('Pacpie.edit', $id));
+        //     session(['error' => 'EMAIL:  ' . $request->email . ', DEVE SER CORRIGIDO! NADA ALTERADO! RETORNADO AO VALOR JÁ REGISTRADO! ']);
+        //     return redirect(route('Pacpie.edit', $id));
 
-            // Definir o endereço de e-mail corrigido como vazio ou null
-            // $emailCorrigido = '';
-        }
+        //     // Definir o endereço de e-mail corrigido como vazio ou null
+        //     // $emailCorrigido = '';
+        // }
 
         // Atualiza a propriedade email do objeto $request com o endereço corrigido
         $request['email'] = $emailCorrigido;
@@ -214,7 +214,7 @@ class PacpieController extends Controller
         // return redirect(route('Pacpie.index'));
 
         return view('Pacpie/go-back-twice-and-refresh');
- 
+
     }
 
     /**
@@ -258,4 +258,30 @@ class PacpieController extends Controller
         session(['success' => 'REDE SOCIAIS:  ' . $model->RedeSocialRepresentantes->nome . ' EXCLUÍDO COM SUCESSO!']);
         return redirect(route('Representantes.edit'));
     }
+
+    public function MarcaEnviadoemailparaprimeirocontato (Request $request)
+    {
+
+        $id = $request->id;
+        $cadastro = Pacpie::find($id);
+
+//  dd(274, $request->all(), $request->id,  $cadastro);
+
+        $request['user_updated'] = Auth::user()->email;
+        $request['emailprimeirocontato'] = true;
+        $cadastro->fill($request->all());
+
+
+
+        $cadastro->save();
+
+        // session(['success' => 'NOME:  ' . $request->nome . ', ALTERADO! ']);
+
+
+        return view('Pacpie/go-back-twice-and-refresh');
+
+    }
+
+
+
 }

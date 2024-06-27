@@ -85,8 +85,16 @@
                                 {{ $Model->MostraEmpresa->Descricao }}
                             </td>
                             <td class="">
-                                {{ $Model->emailprimeirocontato }}
+                                {{ $Model->emailprimeirocontato == 1 ? 'SIM' : '' }}
+
                             </td>
+                            <td class="">
+                                @if ($Model->emailprimeirocontato == null)
+                                    <a href="{{ route('Pacpie.MarcaEnviadoemailparaprimeirocontato', $Model->id) }}" class="btn btn-danger" tabindex="-1"
+                                        role="button" aria-disabled="true">Marcar</a>
+                                @endif
+
+                             </td>
 
                             @can('PACPIE - EDITAR')
                                 <td>

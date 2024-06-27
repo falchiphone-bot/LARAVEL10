@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html>
 <head>
     <title>Retornar e Atualizar</title>
@@ -8,13 +8,15 @@
         window.onload = function() {
             // Volta duas páginas no histórico
             history.go(-2);
-            // Aguarda 1 segundo e depois dá refresh na página atual
-            window.addEventListener('popstate', function() {
-                location.reload(true);
-            });
+
+            // Aguardar um pequeno período antes de forçar o refresh
+            setTimeout(function() {
+                location.reload();
+            }, 500); // Ajuste o tempo conforme necessário
         };
     </script>
     <p>Redirecionando para as páginas anteriores...</p>
 </body>
 </html>
+
 

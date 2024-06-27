@@ -270,7 +270,7 @@ Route::resource('FormandoBaseRecebimentos', App\Http\Controllers\FormandoBaseRec
  #PAC PIE
   Route::resource('Pacpie', App\Http\Controllers\PacpieController::class);
   Route::get('Pacpie/go-back-twice-and-refresh', [App\Http\Controllers\PacpieController::class, 'retornar2paginasatualizar']);
-
+  Route::get('MarcaEnviadoemailparaprimeirocontato/{id}', [App\Http\Controllers\PacpieController::class, 'MarcaEnviadoemailparaprimeirocontato'])->name('Pacpie.MarcaEnviadoemailparaprimeirocontato');
 
     # ENERGIA INJETADA
 Route::get('EnergiaInjetada/dashboard', [App\Http\Controllers\EnergiaInjetada\EnergiaInjetadaController::class, 'dashboard'])->name('EnergiaInjetada.dashboard');
