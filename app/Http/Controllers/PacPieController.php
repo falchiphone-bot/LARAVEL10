@@ -33,6 +33,15 @@ class PacpieController extends Controller
         $this->middleware(['permission:PACPIE - EXCLUIR'])->only('destroy');
     }
 
+
+
+    public function retornar2paginasatualizar()
+    {
+        dd(39);
+        return view('Pacpie/go-back-twice-and-refresh');
+    }
+
+
     public function index()
     {
 
@@ -102,8 +111,9 @@ class PacpieController extends Controller
      */
     public function show(string $id)
     {
-        $cadastro = Representantes::find($id);
-        return view('Representantes.show', compact('cadastro'));
+        $cadastro = Pacpie::find($id);
+
+        return view('Pacpie.show', compact('cadastro'));
     }
 
     /**
@@ -201,7 +211,10 @@ class PacpieController extends Controller
         session(['success' => 'NOME:  ' . $request->nome . ', ALTERADO! ']);
         // return redirect(route('Pacpie.edit',$id));
 
-        return redirect(route('Pacpie.index'));
+        // return redirect(route('Pacpie.index'));
+
+        return view('Pacpie/go-back-twice-and-refresh');
+ 
     }
 
     /**

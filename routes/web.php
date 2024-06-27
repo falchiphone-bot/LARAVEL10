@@ -17,6 +17,9 @@ use App\Http\Services;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+
+
+
 Route::get('php', function () { return phpinfo();})->name('php');
 Route::resource('teste', App\Http\Controllers\TesteController::class);
 
@@ -266,6 +269,7 @@ Route::resource('FormandoBaseRecebimentos', App\Http\Controllers\FormandoBaseRec
 
  #PAC PIE
   Route::resource('Pacpie', App\Http\Controllers\PacpieController::class);
+  Route::get('Pacpie/go-back-twice-and-refresh', [App\Http\Controllers\PacpieController::class, 'retornar2paginasatualizar']);
 
 
     # ENERGIA INJETADA
