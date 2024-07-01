@@ -7,11 +7,11 @@
     <script>
         window.onload = function() {
             // Volta duas páginas no histórico
-            history.go(-2);
+            history.go(-1);
 
             // Aguardar um pequeno período antes de forçar o refresh
             setTimeout(function() {
-                location.reload();
+                location.reload(true);
             }, 500); // Ajuste o tempo conforme necessário
         };
     </script>

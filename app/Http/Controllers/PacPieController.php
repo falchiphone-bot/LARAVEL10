@@ -59,6 +59,41 @@ class PacpieController extends Controller
 
     }
 
+    public function indexSelecao(Request $request)
+    {
+
+                    $selecaoFiltro = $request->Selecao;
+
+                    // $model = Pacpie::all();
+
+// dd($selecaoFiltro);
+
+                    if ($selecaoFiltro == 'SemPrimeiroContatoEmail') {
+                        $model = Pacpie::where('emailprimeirocontato', '=', false)
+                        ->get();
+                    }
+                    else
+                    if ($selecaoFiltro == 'SemEmail') {
+                        $model = Pacpie::where('email', '=', NULL)->get();
+                    }
+                    else
+                    if ($selecaoFiltro == 'SemNome') {
+                        $model = Pacpie::whereNull('nome')
+                                    ->orWhere('nome', '=', '')
+                                    ->get();
+                    }
+
+                    else
+                    {
+                        $model = Pacpie::all();
+                    }
+
+                    // dd('PACPIE INDEX', $Pacpie);
+
+                    return view('Pacpie.index', compact('model'));
+
+    }
+
 
 
     public function create()

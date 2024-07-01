@@ -49,6 +49,28 @@
 
             </div>
 
+            <div class="col-12">
+                <form method="GET" action="{{ route('Pacpie.indexSelecao') }}">
+                    @csrf
+
+                    <input type="radio" name="Selecao" id="semagrupamento" value="SemNome" >
+                    <label for="visualizarCheckbox">Filtrar sem nome preenchido</label>
+
+                    <input type="radio" name="Selecao" id="semagrupamento" value="SemPrimeiroContatoEmail" >
+                    <label for="visualizarCheckbox">Filtrar sem primeiro contato por email</label>
+
+
+                    <input type="radio" name="Selecao" id="semagrupamento" value="SemEmail" >
+                    <label for="visualizarCheckbox">Filtrar sem email</label>
+                    <button type="submit" class="btn btn-danger">
+                        Selecionar filtro
+                    </button>
+                </form>
+
+
+
+            </div>
+
             <table class="table" style="background-color: rgb(247, 247, 255);">
                 <thead>
                     <tr>
@@ -92,6 +114,8 @@
                                 @if ($Model->emailprimeirocontato == null)
                                     <a href="{{ route('Pacpie.MarcaEnviadoemailparaprimeirocontato', $Model->id) }}" class="btn btn-danger" tabindex="-1"
                                         role="button" aria-disabled="true">Marcar</a>
+                                        <button onclick="location.reload(true);">Recarregar Página</button>
+
                                 @endif
 
                              </td>
