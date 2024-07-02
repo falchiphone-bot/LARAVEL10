@@ -93,7 +93,7 @@
                                 </td>
 
                                 <td class="">
-                                    {{ $cadastro->usuario->name }}
+                                    {{ $cadastro->usuario->name ?? ''}}
                                 </td>
 
                                 <td class="">
