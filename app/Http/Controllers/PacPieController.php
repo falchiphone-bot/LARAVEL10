@@ -64,12 +64,12 @@ class PacpieController extends Controller
 
                     $selecaoFiltro = $request->Selecao;
 
-                    // $model = Pacpie::all();
-
-// dd($selecaoFiltro);
-
                     if ($selecaoFiltro == 'SemPrimeiroContatoEmail') {
                         $model = Pacpie::where('emailprimeirocontato', '=', false)
+                        ->get();
+                    }
+                    if ($selecaoFiltro == 'Emailcomfalha') {
+                        $model = Pacpie::where('emailcomfalhas', '=', true)
                         ->get();
                     }
                     else
@@ -237,6 +237,7 @@ class PacpieController extends Controller
         $request['nome'] = strtoupper($request['nome']);
         $request['user_updated'] = Auth::user()->email;
         $request['emailprimeirocontato'] = $request->emailprimeirocontato;
+        $request['emailcomfalha'] = $request->emailcomfalha;
         $cadastro->fill($request->all());
 
         // dd($request->all());
@@ -305,18 +306,24 @@ class PacpieController extends Controller
         $request['user_updated'] = Auth::user()->email;
         $request['emailprimeirocontato'] = true;
         $cadastro->fill($request->all());
-
-
-
         $cadastro->save();
-
-        // session(['success' => 'NOME:  ' . $request->nome . ', ALTERADO! ']);
-
-
         return view('Pacpie/go-back-twice-and-refresh');
 
     }
+    public function Marcaemailcomfalhas (Request $request)
+    {
+        $id = $request->id;
+        $cadastro = Pacpie::find($id);
+        $request['user_updated'] = Auth::user()->email;
+        $request['emailcomfalhas'] = true;
+        $request['emailprimeirocontato'] = false;
+        $cadastro->fill($request->all());
+        $cadastro->save();
 
+        // dd($cadastro);
+        return view('Pacpie/go-back-twice-and-refresh');
+
+    }
 
 
 }

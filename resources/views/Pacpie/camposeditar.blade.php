@@ -74,7 +74,19 @@
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
             </div>
-
+            <div class="col-6">
+                <label for="emailcomfalha">Email com falha</label>
+                <input type="hidden" name="emailcomfalha" value="0"> <!-- Para garantir que "0" seja enviado quando o checkbox estiver desmarcado -->
+                <input
+                    name="emailcomfalha"
+                    type="checkbox"
+                    id="emailcomfalha"
+                    value="1"
+                    {{ old('emailcomfalha', $model->emailcomfalha ?? 0) == 1 ? 'checked' : '' }}>
+                @error('emailcomfalha')
+                    <div class="alert alert-danger">{{ $message }}</div>
+                @enderror
+            </div>
 
 
 

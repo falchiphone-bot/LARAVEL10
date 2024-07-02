@@ -59,6 +59,8 @@
                     <input type="radio" name="Selecao" id="semagrupamento" value="SemPrimeiroContatoEmail" >
                     <label for="visualizarCheckbox">Filtrar sem primeiro contato por email</label>
 
+                    <input type="radio" name="Selecao" id="semagrupamento" value="Emailcomfalha" >
+                    <label for="visualizarCheckbox">Email com falha</label>
 
                     <input type="radio" name="Selecao" id="semagrupamento" value="SemEmail" >
                     <label for="visualizarCheckbox">Filtrar sem email</label>
@@ -83,6 +85,8 @@
 
                         <th scope="col" class="px-6 py-4">EMPRESA</th>
                         <th scope="col" class="px-6 py-4">Primeiro contato via email</th>
+                        <th scope="col" class="px-6 py-4"></th>
+                        <th scope="col" class="px-6 py-4">Email com falha</th>
                         <th scope="col" class="px-6 py-4"></th>
                     </tr>
                 </thead>
@@ -113,12 +117,23 @@
                             <td class="">
                                 @if ($Model->emailprimeirocontato == null)
                                     <a href="{{ route('Pacpie.MarcaEnviadoemailparaprimeirocontato', $Model->id) }}" class="btn btn-danger" tabindex="-1"
-                                        role="button" aria-disabled="true">Marcar</a>
+                                        role="button" aria-disabled="true">Marcar primeiro contato por email</a>
                                         <button onclick="location.reload(true);">Recarregar Página</button>
 
                                 @endif
 
                              </td>
+
+                             <td class="">
+                                {{ $Model->emailcomfalhas == 1 ? 'SIM' : '' }}
+                                @if ($Model->emailprimeirocontato == true)
+                                    <a href="{{ route('Pacpie.Marcaemailcomfalhas', $Model->id) }}" class="btn btn-warning" tabindex="-1"
+                                        role="button" aria-disabled="true">Marcar email com falhas</a>
+                                        <button onclick="location.reload(true);">Recarregar Página</button>
+                                   @endif
+
+                             </td>
+
 
                             @can('PACPIE - EDITAR')
                                 <td>
