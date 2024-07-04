@@ -175,10 +175,12 @@
                         <tr>
                             <th scope="col" class="px-6 py-4">NOME</th>
                             <th scope="col" class="px-6 py-4">TELEFONE</th>
+                            <th scope="col" class="px-6 py-4">WHATSAPP</th>
                             {{-- <th scope="col" class="px-6 py-4">EMAIL</th> --}}
                             <th scope="col" class="px-6 py-4">CPF</th>
                             <th scope="col" class="px-6 py-4">MOTIVO CADASTRO</th>
                             <th scope="col" class="px-6 py-4">NASCIMENTO</th>
+                            <th scope="col" class="px-6 py-4">ANOTAÇÃO</th>
                             {{-- <th scope="col" class="px-6 py-4">REPRESENTANTE PRINCIPAL</th> --}}
 
                             <th scope="col" class="px-6 py-4"></th>
@@ -195,6 +197,9 @@
                                 <td class="">
                                     {{ $Model->telefone }}
                                 </td>
+                                <td class="">
+                                    {{ $Model->whatsapp }}
+                                </td>
                                 {{-- <td class="">
                                     {{ $Model->email }}
                                 </td> --}}
@@ -208,9 +213,17 @@
                                     {{ $Model->nascimento }}
                                     {{-- {{ $Model->nascimento->format('d/m/Y') }} --}}
                                 </td>
+
+
                                 {{-- <td class="">
                                     {{ $Model->MostraRepresentante->nome ?? null }}
                                 </td> --}}
+
+                                <td class="">
+                                    {{ $Model->flow_description }}
+                                    {{-- {{ $Model->nascimento->format('d/m/Y') }} --}}
+                                </td>
+
                                 @can('FORMANDOBASE - EDITAR')
                                     <td>
                                         <a href="{{ route('FormandoBaseWhatsapp.edit', $Model->id) }}" class="btn btn-success" tabindex="-1"

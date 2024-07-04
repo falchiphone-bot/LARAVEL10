@@ -1131,7 +1131,7 @@ class WebhookServico
                 ->get()
                 ->count();
 
-            $QuantidadeCadastro = 100;
+            $QuantidadeCadastro = 1000;
             if ($messagesFrom != '5517997662949') {
                 $QuantidadeCadastro = 6;
             }

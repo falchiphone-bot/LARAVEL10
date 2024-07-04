@@ -85,14 +85,23 @@
             @enderror
         </div> --}}
         <div class="form-group">
-            <label for="telefone">Telefone</label>
+            <label for="telefone">Telefone (13 caracteres)</label>
             <input required class="form-control @error('telefone') is-invalid @else is-valid @enderror" name="telefone"
-                type="text" id="telefone" value="{{ $model->telefone ?? null }}">
+                type="text" id="telefone" value="{{ $model->telefone ?? null }}"  maxlength="13" minlength="13">
             @error('telefone')
                 <div class="alert alert-danger">{{ $message }}</div>
             @enderror
         </div>
 
+        <div class="form-group">
+            <label for="whatsapp">Whatsapp (13 caracteres)</label>
+            <input required class="form-control @error('whatsapp') is-invalid @else is-valid @enderror" name="whatsapp"
+                type="text" id="whatsapp" value="{{ $model->whatsapp ?? null }}" maxlength="13" minlength="13">
+            @error('whatsapp')
+                <div class="alert alert-danger">{{ $message }}</div>
+            @enderror
+        </div>
+        
 
 
         {{-- <input required class="form-control @error('formandobase_id') is-invalid @else is-valid @enderror d-none"

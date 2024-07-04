@@ -93,7 +93,7 @@ class FormandoBaseWhatsappController extends Controller
                 ->get();
             }
 
-    
+
             if($Avaliacao == 1){
                 $model = FormandoBaseWhatsapp::limit($limite)
                 ->where('motivo_cadastro', '!=', '')
@@ -347,6 +347,7 @@ class FormandoBaseWhatsappController extends Controller
         $LiberaCNPJ = $request->liberacnpj;
         $limpacpf = $request->limpacpf;
         $limpacnpj = $request->limpacnpj;
+        $whatsapp = $request->whatsapp;
 
         if ($LiberaCPF == null) {
             if ($cpf) {
@@ -399,11 +400,11 @@ class FormandoBaseWhatsappController extends Controller
 
         // Atualiza a propriedade email do objeto $request com o endereço corrigido
         $request['email'] = $emailCorrigido;
-
+        $request['whatsapp'] = $whatsapp;
         $cadastro = FormandoBaseWhatsapp::find($id);
         $request['nome'] = strtoupper($request['nome']);
         // $cadastro->avaliacao = round($request->avaliacao, 2);
-
+        // dd($request->all());
         $cadastro->fill($request->all());
 
         $cadastro->save();
