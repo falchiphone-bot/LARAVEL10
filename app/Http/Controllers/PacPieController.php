@@ -64,10 +64,46 @@ class PacpieController extends Controller
 
                     $selecaoFiltro = $request->Selecao;
 
+
                     if ($selecaoFiltro == 'SemPrimeiroContatoEmail') {
-                        $model = Pacpie::where('emailprimeirocontato', '=', false)
-                        ->get();
+
+
+
+///////////////////////////////////FUNCIONANDO////////////////////////////////////////
+                                                // $model = Pacpie::where(function($query) {
+                                                //     $query->whereNull('emailprimeirocontato')
+                                                //           ->orWhere('emailprimeirocontato', '=', false);
+                                                // })
+
+                                                // ->where(function($query) {
+                                                //     $query->where('emailcomfalhas', '=', false);
+                                                // })
+                                                // ->whereNotNull('email')
+                                                // ->get();
+///////////////////////////////////FUNCIONANDO////////////////////////////////////////
+
+
+///////////////////////////////////FUNCIONANDO////////////////////////////////////////
+$model = Pacpie::
+
+where(function($query) {
+    $query->whereNotNull('email')
+          ->orWhere('email', '=', '');
+})
+
+->where(function($query) {
+    $query->whereNull('emailprimeirocontato')
+          ->orWhere('emailprimeirocontato', '=', false)
+          ->where('emailcomfalhas', '=', false);
+})
+
+->get();
+
+///////////////////////////////////FUNCIONANDO////////////////////////////////////////
+
                     }
+
+                    else
                     if ($selecaoFiltro == 'Emailcomfalha') {
                         $model = Pacpie::where('emailcomfalhas', '=', true)
                         ->get();
