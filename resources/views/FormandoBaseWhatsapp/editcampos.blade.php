@@ -68,13 +68,39 @@
             @enderror
         </div>
         <div class="form-group">
-            <label for="nascimento">Nascimento</label>
+                    <?php
+                    // Data de nascimento no formato AAAA-MM-DD
+                    $data_nascimento =  $model->nascimento;
+
+                    // Converte a string da data de nascimento para um objeto DateTime
+                    $data_nascimento = new DateTime($data_nascimento);
+
+                    // Obtém a data atual
+                    $data_atual = new DateTime();
+
+                    // Calcula a diferença entre a data atual e a data de nascimento
+                    $intervalo = $data_atual->diff($data_nascimento);
+
+                    // Obtém a idade em anos
+                    $idade = $intervalo->y;
+
+                    ?>
+            <label for="nascimento">Nascimento: {{ "Idade: $idade "}} </label>
             <input required class="form-control @error('nascimento') is-invalid @else is-valid @enderror"
                 name="nascimento" type="date" id="nascimento"
                 value="{{ $model->nascimento->format('Y-m-d') ?? null }}">
             @error('nascimento')
                 <div class="alert alert-danger">{{ $message }}</div>
             @enderror
+
+            <label for="idade">Idade: {{ "Idade: $idade"}} </label>
+            <input required class="form-control @error('idade') is-invalid @else is-valid @enderror"
+                name="idade" type="number" id="idade"
+                value="{{ $model->idade ?? null }}">
+            @error('idade')
+                <div class="alert alert-danger">{{ $message }}</div>
+            @enderror
+
         </div>
         {{-- <div class="form-group">
             <label for="email">Email</label>
@@ -101,7 +127,7 @@
                 <div class="alert alert-danger">{{ $message }}</div>
             @enderror
         </div>
-        
+
 
 
         {{-- <input required class="form-control @error('formandobase_id') is-invalid @else is-valid @enderror d-none"

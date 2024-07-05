@@ -149,6 +149,19 @@
                </div>
            </div>
    </form>
+
+   <form method="POST" action="{{ route('FormandoBaseWhatsapp.indexBusca') }}" accept-charset="UTF-8" class="text-center">
+         @csrf
+         <div class="form-group">
+        <div class="badge bg-danger text-wrap" style="width: 100%; height: 50%; font-size: 24px;">
+            ATUALIZAR IDADE NO BANCO DE DADOS DE TODOS REGISTROS
+        </div>
+        <div class="row mt-2">
+            <div class="col-4">
+                <button class="btn btn-success mx-auto">ACIONAR</button>
+            </div>
+        </div>
+    </form>
 </div>
 
 
@@ -189,6 +202,28 @@
 
                     <tbody>
                         @foreach ($model as $Model)
+                            <?php
+                                    // Data de nascimento no formato AAAA-MM-DD
+                                    $data_nascimento =  $Model->nascimento;
+
+                                    // Converte a string da data de nascimento para um objeto DateTime
+                                    $data_nascimento = new DateTime($data_nascimento);
+
+                                    // Obtém a data atual
+                                    $data_atual = new DateTime();
+
+                                    // Calcula a diferença entre a data atual e a data de nascimento
+                                    $intervalo = $data_atual->diff($data_nascimento);
+
+                                    // Obtém a idade em anos
+                                    $idade = $intervalo->y;
+
+
+                            ?>
+
+
+
+
                             <tr>
 
                                 <td class="">
@@ -210,8 +245,14 @@
                                     {{ $Model->motivo_cadastro }}
                                 </td>
                                 <td class="">
-                                    {{ $Model->nascimento }}
-                                    {{-- {{ $Model->nascimento->format('d/m/Y') }} --}}
+                                    {{ $Model->nascimento->format('d/m/Y') . " Idade:" . $idade }}
+
+                                        @if ($Model->idade != null)
+                                          {{ "Idade: $Model->idade | "}}
+                                        @endif
+                                        @if ($Model->idade == $idade)
+                                         CORRETO NO BD
+                                        @endif
                                 </td>
 
 

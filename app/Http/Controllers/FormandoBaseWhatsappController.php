@@ -348,6 +348,7 @@ class FormandoBaseWhatsappController extends Controller
         $limpacpf = $request->limpacpf;
         $limpacnpj = $request->limpacnpj;
         $whatsapp = $request->whatsapp;
+        $idade = $request->idade;
 
         if ($LiberaCPF == null) {
             if ($cpf) {
@@ -403,6 +404,7 @@ class FormandoBaseWhatsappController extends Controller
         $request['whatsapp'] = $whatsapp;
         $cadastro = FormandoBaseWhatsapp::find($id);
         $request['nome'] = strtoupper($request['nome']);
+        $request['idade'] = strtoupper($request['idade']);
         // $cadastro->avaliacao = round($request->avaliacao, 2);
         // dd($request->all());
         $cadastro->fill($request->all());
