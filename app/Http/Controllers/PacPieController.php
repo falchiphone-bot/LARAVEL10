@@ -65,6 +65,17 @@ class PacpieController extends Controller
                     $selecaoFiltro = $request->Selecao;
 
 
+
+                    if($selecaoFiltro == null)
+                    {
+                        $request = session('request');
+
+                        // dd($request);
+                        $selecaoFiltro = $request['emailprimeirocontato'];
+                    };
+
+ 
+
                     if ($selecaoFiltro == 'SemPrimeiroContatoEmail') {
 
 
@@ -342,11 +353,13 @@ where(function($query) {
         $request['user_updated'] = Auth::user()->email;
         $request['emailprimeirocontato'] = true;
         $request['emailcomfalhas'] = false;
-    
+
         $cadastro->fill($request->all());
         $cadastro->save();
         // return view('Pacpie/go-back-twice-and-refresh');
-        return redirect(route('Pacpie.indexSelecao'));
+        return redirect()->route('Pacpie.indexSelecao')->with([
+            'request' => $request->all()
+        ]);
     }
     public function Marcaemailcomfalhas (Request $request)
     {

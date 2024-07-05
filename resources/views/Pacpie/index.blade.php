@@ -119,7 +119,7 @@
                                             <form method="GET" action="{{ route('Pacpie.MarcaEnviadoemailparaprimeirocontato', $Model->id) }}">
                                                 @csrf
                                                 <button type="submit" class="btn btn-danger">Marcar primeiro contato por email</button>
-                                                <button onclick="location.reload(true);">Recarregar Página</button>
+                                                {{-- <button onclick="location.reload(true);">Recarregar Página</button> --}}
                                             </form>
                                 @endif
                              </td>
