@@ -102,7 +102,7 @@ public function AtualizaIdade()
 
 
 
-    session(['success' => 'ATUALIZADO AS IDADES NO BANCO DE DADOS, ATUALIZADO! ']);
+    session(['success' => 'ATUALIZADO AS IDADES NO BANCO DE DADOS! ']);
     return view('FormandoBaseWhatsapp.index', compact('model','Empresas', 'retorno'));
 }
 // ==============================

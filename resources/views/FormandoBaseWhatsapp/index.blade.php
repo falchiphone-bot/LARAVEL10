@@ -156,9 +156,9 @@
         <div class="badge bg-danger text-wrap" style="width: 100%; height: 50%; font-size: 24px;">
             ATUALIZAR IDADE NO BANCO DE DADOS DE TODOS REGISTROS
         </div>
-        <div class="row mt-2">
-            <div class="col-4">
-                <button class="btn btn-success mx-auto">ACIONAR</button>
+        <div class="row mt-12">
+            <div class="col-8">
+                <button class="btn btn-warning mx-auto"> CLIQUE PARA ATUALIZAR IDADE NO BANCO DE DADOS DE TODOS REGISTROS</button>
             </div>
         </div>
     </form>
