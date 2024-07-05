@@ -275,6 +275,7 @@ Route::resource('FormandoBaseRecebimentos', App\Http\Controllers\FormandoBaseRec
   Route::get('MarcaEnviadoemailparaprimeirocontato/{id}', [App\Http\Controllers\PacpieController::class, 'MarcaEnviadoemailparaprimeirocontato'])->name('Pacpie.MarcaEnviadoemailparaprimeirocontato');
   Route::get('Marcaemailcomfalhas/{id}', [App\Http\Controllers\PacpieController::class, 'Marcaemailcomfalhas'])->name('Pacpie.Marcaemailcomfalhas');
   Route::get('indexSelecao', [App\Http\Controllers\PacpieController::class, 'indexSelecao'])->name('Pacpie.indexSelecao');
+  Route::post('BuscarTexto', [App\Http\Controllers\PacpieController::class, 'BuscarTexto'])->name('Pacpie.BuscarTexto');
 
 
     # ENERGIA INJETADA

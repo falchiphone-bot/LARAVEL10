@@ -53,6 +53,9 @@
                 <form method="GET" action="{{ route('Pacpie.indexSelecao') }}">
                     @csrf
 
+                    <input type="radio" name="Selecao" id="semagrupamento" value="Todos" >
+                    <label for="visualizarCheckbox">Todos registros</label>
+
                     <input type="radio" name="Selecao" id="semagrupamento" value="SemNome" >
                     <label for="visualizarCheckbox">Filtrar sem nome preenchido</label>
 
@@ -68,10 +71,35 @@
                         Selecionar filtro
                     </button>
                 </form>
-
-
-
             </div>
+
+            <form method="POST" action="{{ route('Pacpie.BuscarTexto') }}" accept-charset="UTF-8">
+                @csrf
+
+                <div class="card">
+                    <div class="card-body" style="background-color: rgb(33, 244, 33)">
+                        <div class="row">
+                            <div class="col-6">
+
+                                <label for="Texto" style="color: black;">Texto a pesquisar</label>
+                                <input class="form-control @error('Descricao') is-invalid @else is-valid @enderror" name="Texto" size="70" type="text" id="Texto" value="{{ $retorno['Texto'] ?? null }}">
+                            </div>
+                        </div>
+
+
+                        <div class="row mt-2">
+                            <div class="col-6">
+                                <button class="btn btn-primary">Pesquisar conforme informações constantes do
+                                    formulário</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+
+            </form>
 
             <table class="table" style="background-color: rgb(247, 247, 255);">
                 <thead>

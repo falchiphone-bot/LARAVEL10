@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App;
 use App\Http\Requests\PacpieCreateRequest;
+use Google\Service\AnalyticsData\OrderBy;
 use Google\Service\ServiceControl\Auth as ServiceControlAuth;
 use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Models\Role;
@@ -59,10 +60,27 @@ class PacpieController extends Controller
 
     }
 
+    public function BuscarTexto(Request $request)
+    {
+
+                    $model = Pacpie::Where('nome', 'LIKE', '%' . $request->Texto . '%')
+                    ->OrWhere('email', 'LIKE', '%' . $request->Texto . '%')
+
+                    ->get();
+
+                    // dd('PACPIE INDEX', $Pacpie);
+
+                    return view('Pacpie.index', compact('model'));
+
+    }
+
+
+
     public function indexSelecao(Request $request)
     {
 
                     $selecaoFiltro = $request->Selecao;
+
 
 
 
@@ -71,10 +89,10 @@ class PacpieController extends Controller
                         $request = session('request');
 
                         // dd($request);
-                        $selecaoFiltro = $request['emailprimeirocontato'];
+                        $selecaoFiltro = $request['emailprimeirocontato'] ?? null;
                     };
 
- 
+
 
                     if ($selecaoFiltro == 'SemPrimeiroContatoEmail') {
 
@@ -126,10 +144,12 @@ where(function($query) {
                     else
                     if ($selecaoFiltro == 'SemNome') {
                         $model = Pacpie::whereNull('nome')
-                                    ->orWhere('nome', '=', '')
-                                    ->get();
-                    }
+                        ->orWhere('nome', '=', '')
+                        ->orderBy('nome', 'desc')
+                        ->get();
 
+
+                    }
                     else
                     {
                         $model = Pacpie::all();
