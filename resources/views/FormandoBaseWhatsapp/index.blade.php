@@ -150,7 +150,7 @@
            </div>
    </form>
 
-   <form method="POST" action="{{ route('FormandoBaseWhatsapp.indexBusca') }}" accept-charset="UTF-8" class="text-center">
+   <form method="POST" action="{{ route('FormandoBaseWhatsapp.AtualizaIdade') }}" accept-charset="UTF-8" class="text-center">
          @csrf
          <div class="form-group">
         <div class="badge bg-danger text-wrap" style="width: 100%; height: 50%; font-size: 24px;">

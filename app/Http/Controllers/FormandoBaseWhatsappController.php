@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 use App\Models;
+use App\Helpers;
 use App\Models\Empresa;
 use App\Http\Requests\FormandoBaseCreateRequest;
 use App\Models\FormandoBase;
@@ -26,6 +27,7 @@ use App\Models\RecebimentoFormandoBase;
 use App\Models\RedeSocial;
 use App\Models\RedeSocialUsuarios;
 use App\Models\TipoRepresentante;
+use DateTime;
 use Illuminate\Support\Facades\Auth;
 
 require_once app_path('helpers.php');
@@ -60,6 +62,53 @@ class FormandoBaseWhatsappController extends Controller
 
         return view('FormandoBaseWhatsapp.index', compact('model','Empresas', 'retorno'));
     }
+// ==============================
+public function AtualizaIdade()
+{
+    $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+    ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+    ->OrderBy('Descricao')
+    ->select(['Empresas.ID', 'Empresas.Descricao'])
+    ->get();
+
+    $limite = 10000000;
+    $retorno['Limite'] = $limite;
+    $model = FormandoBaseWhatsapp::limit($limite)
+    ->orderBy('nome')
+    ->get();
+
+    foreach ($model as $item) {
+        $dataNascimento = $item->nascimento;
+
+
+        // Converte a string da data de nascimento para um objeto DateTime
+        $data_nascimento = new DateTime($dataNascimento);
+
+        // Obtém a data atual
+        $data_atual = new DateTime();
+
+        // Calcula a diferença entre a data atual e a data de nascimento
+        $intervalo = $data_atual->diff($dataNascimento);
+
+        // Obtém a idade em anos
+        $idade = $intervalo->y;
+
+
+        $item->idade = $idade;
+        $item->save();
+
+        // dd($item->idade);
+    }
+
+
+
+    session(['success' => 'ATUALIZADO AS IDADES NO BANCO DE DADOS, ATUALIZADO! ']);
+    return view('FormandoBaseWhatsapp.index', compact('model','Empresas', 'retorno'));
+}
+// ==============================
+
+
+
 
     public function indexBusca(Request $request)
     {

@@ -238,6 +238,7 @@ Route::get('/whatsapp/enviarFlowAvaliacao29012024_01032024/{recipient_id}/{entry
 Route::resource('WebhookConfig', App\Http\Controllers\WebhookConfigController::class);
 
  # Formandos base
+
  Route::post('FormandoBase/indexBusca', [App\Http\Controllers\FormandoBaseController::class, 'indexBusca'])->name('FormandoBase.indexBusca');
  Route::post('FormandoBase/CreateArquivoFormandoBase', [App\Http\Controllers\FormandoBaseController::class, 'CreateArquivoFormandoBase'])->name('FormandoBase.ArquivoFormandoBase');
  Route::post('FormandoBase/CreateRecebimentoFormandoBase', [App\Http\Controllers\FormandoBaseController::class, 'CreateRecebimentoFormandoBase'])->name('FormandoBase.RecebimentoFormandoBase');
@@ -254,6 +255,7 @@ Route::resource('FormandoBaseAvaliacao', App\Http\Controllers\FormandoBaseAvalia
 
  # Formandos base whatsapp - cadastros via flow
  Route::post('FormandoBaseWhatsapp/indexBusca', [App\Http\Controllers\FormandoBaseWhatsappController::class, 'indexBusca'])->name('FormandoBaseWhatsapp.indexBusca');
+ Route::post('FFormandoBaseWhatsapp.AtualizaIdade/AtualizaIdade', [App\Http\Controllers\FormandoBaseWhatsappController::class, 'AtualizaIdade'])->name('FormandoBaseWhatsapp.AtualizaIdade');
 Route::resource('FormandoBaseWhatsapp', App\Http\Controllers\FormandoBaseWhatsappController::class);
 
 
