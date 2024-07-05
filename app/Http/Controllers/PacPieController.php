@@ -341,10 +341,12 @@ where(function($query) {
 
         $request['user_updated'] = Auth::user()->email;
         $request['emailprimeirocontato'] = true;
+        $request['emailcomfalhas'] = false;
+    
         $cadastro->fill($request->all());
         $cadastro->save();
-        return view('Pacpie/go-back-twice-and-refresh');
-
+        // return view('Pacpie/go-back-twice-and-refresh');
+        return redirect(route('Pacpie.indexSelecao'));
     }
     public function Marcaemailcomfalhas (Request $request)
     {
@@ -357,8 +359,8 @@ where(function($query) {
         $cadastro->save();
 
         // dd($cadastro);
-        return view('Pacpie/go-back-twice-and-refresh');
-
+        // return view('Pacpie/go-back-twice-and-refresh');
+        return redirect(route('Pacpie.indexSelecao'));
     }
 
 

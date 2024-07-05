@@ -116,20 +116,22 @@
                             </td>
                             <td class="">
                                 @if ($Model->emailprimeirocontato == null)
-                                    <a href="{{ route('Pacpie.MarcaEnviadoemailparaprimeirocontato', $Model->id) }}" class="btn btn-danger" tabindex="-1"
-                                        role="button" aria-disabled="true">Marcar primeiro contato por email</a>
-                                        <button onclick="location.reload(true);">Recarregar Página</button>
-
+                                            <form method="GET" action="{{ route('Pacpie.MarcaEnviadoemailparaprimeirocontato', $Model->id) }}">
+                                                @csrf
+                                                <button type="submit" class="btn btn-danger">Marcar primeiro contato por email</button>
+                                                <button onclick="location.reload(true);">Recarregar Página</button>
+                                            </form>
                                 @endif
-
                              </td>
 
                              <td class="">
                                 {{ $Model->emailcomfalhas == 1 ? 'SIM' : '' }}
-                                @if ($Model->emailprimeirocontato == true)
-                                    <a href="{{ route('Pacpie.Marcaemailcomfalhas', $Model->id) }}" class="btn btn-warning" tabindex="-1"
-                                        role="button" aria-disabled="true">Marcar email com falhas</a>
-                                        <button onclick="location.reload(true);">Recarregar Página</button>
+                                     @if ($Model->emailprimeirocontato == true)
+                                        <form method="GET" action="{{  route('Pacpie.Marcaemailcomfalhas', $Model->id) }}">
+                                            @csrf
+                                            <button type="submit" class="btn btn-warning">Marcar email com falhas</button>
+                                            <button onclick="location.reload(true);">Recarregar Página</button>
+                                        </form>
                                    @endif
 
                              </td>
