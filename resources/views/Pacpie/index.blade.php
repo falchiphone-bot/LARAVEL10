@@ -115,6 +115,8 @@
                         <th scope="col" class="px-6 py-4">Primeiro contato via email</th>
                         <th scope="col" class="px-6 py-4"></th>
                         <th scope="col" class="px-6 py-4">Email com falha</th>
+                        <th scope="col" class="px-6 py-4">Data cadastro</th>
+                        <th scope="col" class="px-6 py-4">Usuário</th>
                         <th scope="col" class="px-6 py-4"></th>
                     </tr>
                 </thead>
@@ -163,7 +165,14 @@
                                    @endif
 
                              </td>
+                             <td class="">
+                                {{ $Model->created_at->format('d/m/Y H:m:s') }}
 
+                            </td>
+                            <td class="">
+                                {{ $Model->user_updated }}
+
+                            </td>
 
                             @can('PACPIE - EDITAR')
                                 <td>
