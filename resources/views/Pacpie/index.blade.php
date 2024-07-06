@@ -139,7 +139,7 @@
                 <tbody>
                     @foreach ($model as $Model)
                     <tr class="highlight-row">
-                        <td colspan="10">ORIGINADO DE: {{ $Model->MostraOrigem->nome }}</td>
+                        <td colspan="10">ORIGINADO DE: {{ $Model->MostraOrigem->nome ?? null }}</td>
                     </tr>
                     <tr>
                         <td>{{ $Model->nome }}</td>
