@@ -277,6 +277,10 @@ Route::resource('FormandoBaseRecebimentos', App\Http\Controllers\FormandoBaseRec
   Route::get('indexSelecao', [App\Http\Controllers\PacpieController::class, 'indexSelecao'])->name('Pacpie.indexSelecao');
   Route::post('BuscarTexto', [App\Http\Controllers\PacpieController::class, 'BuscarTexto'])->name('Pacpie.BuscarTexto');
 
+#ORIGEM DE EMPRESAS PARA PAC PIE
+Route::resource('OrigemPacpie', App\Http\Controllers\OrigemPacpieController::class);
+
+
 
     # ENERGIA INJETADA
 Route::get('EnergiaInjetada/dashboard', [App\Http\Controllers\EnergiaInjetada\EnergiaInjetadaController::class, 'dashboard'])->name('EnergiaInjetada.dashboard');

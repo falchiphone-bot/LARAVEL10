@@ -198,7 +198,7 @@ where(function($query) {
         $enderecoEmailCorrigido = corrigirEnderecoEmail($enderecoEmailIncorreto);
         $request['email'] = $enderecoEmailCorrigido;
 
-        $request['user_updated'] = Auth::user()->email;
+        $request['user_created'] = Auth::user()->email;
         $request['EmpresaID'] = 11;
         $model = $request->all();
 
