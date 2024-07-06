@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App;
 use App\Http\Requests\PacpieCreateRequest;
+use App\Models\OrigemPacpie;
 use Google\Service\AnalyticsData\OrderBy;
 use Google\Service\ServiceControl\Auth as ServiceControlAuth;
 use Illuminate\Support\Facades\Auth;
@@ -227,12 +228,16 @@ where(function($query) {
 
 
         $model = Pacpie::find($id);
+        $OrigemPacpie = OrigemPacpie::orderBy('Nome')->get();
+        // dd($OrigemPacpie);
+        $retorno['origem_cadastro'] = $model->origem_cadastro ?? null;
 
+        // dd($model, $retorno['origem_cadastro']);
 
-        return view('Pacpie.edit', compact('model'));
+        return view('Pacpie.edit', compact('model', 'OrigemPacpie', 'retorno'));
     }
 
-    /**
+    /*
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)
@@ -243,7 +248,7 @@ where(function($query) {
         $LiberaCNPJ = $request->liberacnpj;
         $limpacpf = $request->limpacpf;
         $limpacnpj = $request->limpacnpj;
-
+        // $OrigemPacpie = $request->origem_cadastro;
 
         if ($LiberaCPF == null) {
             if ($cpf) {
@@ -298,10 +303,12 @@ where(function($query) {
         // Atualiza a propriedade email do objeto $request com o endereço corrigido
         $request['email'] = $emailCorrigido;
 
+
         $cadastro = Pacpie::find($id);
 
 
         $request['nome'] = strtoupper($request['nome']);
+        $request['origem_cadastro'] = $request['origem_cadastro'] ?? null;
         $request['user_updated'] = Auth::user()->email;
         $request['emailprimeirocontato'] = $request->emailprimeirocontato;
         $request['emailcomfalha'] = $request->emailcomfalha;
@@ -312,11 +319,11 @@ where(function($query) {
         $cadastro->save();
 // dd($cadastro);
         session(['success' => 'NOME:  ' . $request->nome . ', ALTERADO! ']);
-        // return redirect(route('Pacpie.edit',$id));
+        return redirect(route('Pacpie.edit',$id));
 
         // return redirect(route('Pacpie.index'));
 
-        return view('Pacpie/go-back-twice-and-refresh');
+        // return view('Pacpie/go-back-twice-and-refresh');
 
     }
 

@@ -126,89 +126,72 @@
                         <th scope="col" class="px-6 py-4">Usuário</th>
                         <th scope="col" class="px-6 py-4"></th>
                     </tr>
-                </thead>
 
+
+
+                </thead>
+                <style>
+                    .highlight-row {
+                        background-color: #f2f2f2; /* Escolha a cor que preferir */
+                        text-align: center;
+                    }
+                </style>
                 <tbody>
                     @foreach ($model as $Model)
-                        <tr>
-                            <td class="">
-                                {{ $Model->nome }}
-                            </td>
-                            <td class="">
-                                {{ $Model->telefone }}
-                            </td>
-                            <td class="">
-                                {{ $Model->email }}
-                            </td>
-
-                            <td class="">
-                                {{ $Model->cnpj }}
-                            </td>
-                            <td class="">
-                                {{ $Model->MostraEmpresa->Descricao }}
-                            </td>
-                            <td class="">
-                                {{ $Model->emailprimeirocontato == 1 ? 'SIM' : '' }}
-
-                            </td>
-                            <td class="">
-                                @if ($Model->emailprimeirocontato == null)
-                                            <form method="GET" action="{{ route('Pacpie.MarcaEnviadoemailparaprimeirocontato', $Model->id) }}">
-                                                @csrf
-                                                <button type="submit" class="btn btn-danger">Marcar primeiro contato por email</button>
-                                                {{-- <button onclick="location.reload(true);">Recarregar Página</button> --}}
-                                            </form>
-                                @endif
-                             </td>
-
-                             <td class="">
-                                {{ $Model->emailcomfalhas == 1 ? 'SIM' : '' }}
-                                     @if ($Model->emailprimeirocontato == true)
-                                        <form method="GET" action="{{  route('Pacpie.Marcaemailcomfalhas', $Model->id) }}">
-                                            @csrf
-                                            <button type="submit" class="btn btn-warning">Marcar email com falhas</button>
-                                            <button onclick="location.reload(true);">Recarregar Página</button>
-                                        </form>
-                                   @endif
-
-                             </td>
-                             <td class="">
-                                {{ $Model->created_at->format('d/m/Y H:m:s') }}
-
-                            </td>
-                            <td class="">
-                                {{ $Model->user_updated }}
-
-                            </td>
-
-                            @can('PACPIE - EDITAR')
-                                <td>
-                                    <a href="{{ route('Pacpie.edit', $Model->id) }}" class="btn btn-success" tabindex="-1"
-                                        role="button" aria-disabled="true">Editar</a>
-                                </td>
-                            @endcan
-
-                            @can('PACPIE - VER')
-                                <td>
-                                    <a href="{{ route('Pacpie.show', $Model->id) }}" class="btn btn-info" tabindex="-1"
-                                        role="button" aria-disabled="true">Ver</a>
-                                </td>
-                            @endcan
-
-                            @can('PACPIE - EXCLUIR')
-                                <td>
-                                    <form method="POST" action="{{ route('Pacpie.destroy', $Model->id) }}">
-                                        @csrf
-                                        <input type="hidden" name="_method" value="DELETE">
-                                        <button type="submit" class="btn btn-danger">
-                                            Excluir
-                                        </button>
-                                    </form>
-                                </td>
-                            @endcan
-                        </tr>
+                    <tr class="highlight-row">
+                        <td colspan="10">ORIGINADO DE: {{ $Model->MostraOrigem->nome }}</td>
+                    </tr>
+                    <tr>
+                        <td>{{ $Model->nome }}</td>
+                        <td>{{ $Model->telefone }}</td>
+                        <td>{{ $Model->email }}</td>
+                        <td>{{ $Model->cnpj }}</td>
+                        <td>{{ $Model->MostraEmpresa->Descricao }}</td>
+                        <td>{{ $Model->emailprimeirocontato == 1 ? 'SIM' : '' }}</td>
+                        <td>
+                            @if ($Model->emailprimeirocontato == null)
+                            <form method="GET" action="{{ route('Pacpie.MarcaEnviadoemailparaprimeirocontato', $Model->id) }}">
+                                @csrf
+                                <button type="submit" class="btn btn-danger">Marcar primeiro contato por email</button>
+                                {{-- <button onclick="location.reload(true);">Recarregar Página</button> --}}
+                            </form>
+                            @endif
+                        </td>
+                        <td>
+                            {{ $Model->emailcomfalhas == 1 ? 'SIM' : '' }}
+                            @if ($Model->emailprimeirocontato == true)
+                            <form method="GET" action="{{  route('Pacpie.Marcaemailcomfalhas', $Model->id) }}">
+                                @csrf
+                                <button type="submit" class="btn btn-warning">Marcar email com falhas</button>
+                                <button onclick="location.reload(true);">Recarregar Página</button>
+                            </form>
+                            @endif
+                        </td>
+                        <td>{{ $Model->created_at->format('d/m/Y H:i:s') }}</td>
+                        <td>{{ $Model->user_updated }}</td>
+                        @can('PACPIE - EDITAR')
+                        <td>
+                            <a href="{{ route('Pacpie.edit', $Model->id) }}" class="btn btn-success" tabindex="-1" role="button" aria-disabled="true">Editar</a>
+                        </td>
+                        @endcan
+                        @can('PACPIE - VER')
+                        <td>
+                            <a href="{{ route('Pacpie.show', $Model->id) }}" class="btn btn-info" tabindex="-1" role="button" aria-disabled="true">Ver</a>
+                        </td>
+                        @endcan
+                        @can('PACPIE - EXCLUIR')
+                        <td>
+                            <form method="POST" action="{{ route('Pacpie.destroy', $Model->id) }}">
+                                @csrf
+                                <input type="hidden" name="_method" value="DELETE">
+                                <button type="submit" class="btn btn-danger">Excluir</button>
+                            </form>
+                        </td>
+                        @endcan
+                    </tr>
                     @endforeach
                 </tbody>
+
             </table>
         </div>
     </div>

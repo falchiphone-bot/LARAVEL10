@@ -17,10 +17,10 @@ class OrigemPacpie extends Model
     ];
 
 
-    public function MostraEmpresa(): HasOne
-    {
-        return $this->hasOne(Empresa::class, 'id', 'EmpresaID');
-    }
+    // public function MostraOrigem(): HasOne
+    // {
+    //     return $this->hasOne(Pacpie::class, 'origem_cadastro', "id");
+    // }
 
 
 }
