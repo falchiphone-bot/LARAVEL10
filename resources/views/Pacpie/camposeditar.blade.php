@@ -14,7 +14,7 @@
         @endif
 
         <div class="row">
-            <div class="col-6">
+            <div class="col-md-6 col-12 mb-3">
                 <label for="cnpj">CNPJ</label>
                 <input class="form-control @error('cnpj') is-invalid @else is-valid @enderror" name="cnpj"
                     type="text" id="cnpj" value="{{ $model->cnpj ?? null }}">
@@ -34,38 +34,7 @@
                 @endcan
             </div>
 
-            <div class="form-group">
-                <div class="badge bg-warning text-wrap" style="width: 100%; height: 50%; font-size: 24px;">
-                    ORIGEM DO CADASTRO
-                </div>
-
-
-                <div class="form-group">
-                    <label for="nome">Originado de: </label>
-                    <select required class="form-control select2" id="origem_cadastro" name="origem_cadastro">
-                        <option value="">Selecionar origem das empresas</option>
-                        @foreach ($OrigemPacpie as $origempacpie)
-                            <option @if ($retorno['origem_cadastro'] == $origempacpie->id) selected @endif value="{{ $origempacpie->id }}">
-                                {{ $origempacpie->nome }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-
-
-                <div class="badge bg-danger text-wrap" style="width: 100%; height: 25%; font-size: 18px;">
-                    o acima é a origem do cadastro da empresa
-                </div>
-
-
-
-            </div>
-
-
-            </div>
-
-            <div class="col-6">
+            <div class="col-md-6 col-12 mb-3">
                 <label for="nome">Nome</label>
                 <input required class="form-control @error('nome') is-invalid @else is-valid @enderror" name="nome"
                     type="text" id="nome" value="{{ $model->nome ?? null }}">
@@ -74,16 +43,16 @@
                 @enderror
             </div>
 
-            <div class="col-6">
+            <div class="col-md-6 col-12 mb-3">
                 <label for="email">Email</label>
-                <input   class="form-control @error('email') is-invalid @else is-valid @enderror" name="email"
+                <input class="form-control @error('email') is-invalid @else is-valid @enderror" name="email"
                     type="text" id="email" value="{{ $model->email ?? null }}">
                 @error('email')
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
             </div>
 
-            <div class="col-6">
+            <div class="col-md-6 col-12 mb-3">
                 <label for="telefone">Telefone</label>
                 <input required class="form-control @error('telefone') is-invalid @else is-valid @enderror"
                     name="telefone" type="text" id="telefone" value="{{ $model->telefone ?? null }}">
@@ -92,7 +61,7 @@
                 @enderror
             </div>
 
-            <div class="col-6">
+            <div class="col-md-6 col-12 mb-3">
                 <label for="emailprimeirocontato">Enviado email para primeiro contato</label>
                 <input type="hidden" name="emailprimeirocontato" value="0"> <!-- Para garantir que "0" seja enviado quando o checkbox estiver desmarcado -->
                 <input
@@ -105,7 +74,8 @@
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
             </div>
-            <div class="col-6">
+
+            <div class="col-md-6 col-12 mb-3">
                 <label for="emailcomfalha">Email com falha</label>
                 <input type="hidden" name="emailcomfalha" value="0"> <!-- Para garantir que "0" seja enviado quando o checkbox estiver desmarcado -->
                 <input
@@ -119,25 +89,44 @@
                 @enderror
             </div>
 
+            <div class="col-12 mb-3">
+                <div class="badge bg-warning text-wrap" style="width: 100%; font-size: 24px;">
+                    ORIGEM DO CADASTRO
+                </div>
 
+                <label for="nome">Originado de: </label>
+                <select required class="form-control select2" id="origem_cadastro" name="origem_cadastro">
+                    <option value="">Selecionar origem das empresas</option>
+                    @foreach ($OrigemPacpie as $origempacpie)
+                        <option @if ($retorno['origem_cadastro'] == $origempacpie->id) selected @endif value="{{ $origempacpie->id }}">
+                            {{ $origempacpie->nome }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="col-12 mb-3">
+                <div class="badge bg-danger text-wrap" style="width: 100%; font-size: 18px;">
+                    o acima é a origem do cadastro da empresa
+                </div>
+            </div>
 
         </div>
 
-        <div class="row mt-12">
+        <div class="row mt-3">
             <div class="col-12 text-center">
                 <button class="btn btn-primary">Salvar ficha do representante</button>
             </div>
         </div>
-        </form>
         <hr>
-
-        <div class="row mt-12">
+        <div class="row mt-3">
             <div class="col-12 d-flex justify-content-center">
                 <a href="{{ route('Pacpie.index') }}" class="btn btn-warning">Retornar para lista</a>
             </div>
         </div>
     </div>
 </div>
+
 @push('scripts')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
@@ -155,27 +144,18 @@
                 content: 'Confirma?',
                 buttons: {
                     confirmar: function() {
-                        // $.alert('Confirmar!');
                         $.confirm({
                             title: 'Confirmar!',
                             content: 'Deseja realmente continuar?',
                             buttons: {
                                 confirmar: function() {
-                                    // $.alert('Confirmar!');
                                     e.currentTarget.submit()
                                 },
-                                cancelar: function() {
-                                    // $.alert('Cancelar!');
-                                },
-
+                                cancelar: function() {},
                             }
                         });
-
                     },
-                    cancelar: function() {
-                        // $.alert('Cancelar!');
-                    },
-
+                    cancelar: function() {},
                 }
             });
         });
