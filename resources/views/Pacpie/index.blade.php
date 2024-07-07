@@ -8,13 +8,13 @@
                     <div class="alert alert-success">
                         {{ session('success') }}
                     </div>
-                     {{ session(['success' => NULL])}}
-                 @elseif(session('cpf'))
+                    {{ session(['success' => NULL])}}
+                @elseif(session('cpf'))
                     <div class="alert alert-success">
                         {{ session('success') }}
                     </div>
                     {{ session(['cpf' => NULL])}}
-                    @elseif(session('cnpj'))
+                @elseif(session('cnpj'))
                     <div class="alert alert-success">
                         {{ session('success') }}
                     </div>
@@ -34,29 +34,24 @@
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                     <a class="btn btn-warning" href="/Cadastros">Retornar a lista de opções</a>
 
-
                     @can('ORIGEMPACPIE - LISTAR')
-                        <a href="{{ route('OrigemPacpie.index') }}" class="btn btn-success btn-lg enabled" tabindex="-1"
-                            role="button" aria-disabled="true">Origem PAC e PIE</a>
-
+                        <a href="{{ route('OrigemPacpie.index') }}" class="btn btn-success btn-lg enabled" tabindex="-1" role="button" aria-disabled="true">Origem PAC e PIE</a>
                     @endcan
                 </nav>
 
                 <div class="card-header">
                     <div class="badge bg-info text-wrap" style="width: 100%;font-size: 24px;text-align: center;">
-                        <p>Total de empresas PAC e PIE - cadastrados no sistema de gerenciamento administrativo e contábil:
-                            {{ $model->count() ?? 0 }}</p>
+                        <p>Total de empresas PAC e PIE - cadastrados no sistema de gerenciamento administrativo e contábil: {{ $model->count() ?? 0 }}</p>
                     </div>
                 </div>
 
                 @can('PACPIE - INCLUIR')
-                    <a href="{{ route('Pacpie.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
-                        aria-disabled="true">Incluir empresa</a>
+                    <a href="{{ route('Pacpie.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button" aria-disabled="true">Incluir empresa</a>
                 @endcan
 
             </div>
 
-            <div class="col-12">
+            {{-- <div class="col-12">
                 <form method="GET" action="{{ route('Pacpie.indexSelecao') }}">
                     @csrf
 
@@ -78,7 +73,40 @@
                         Selecionar filtro
                     </button>
                 </form>
-            </div>
+            </div> --}}
+
+
+            <form method="GET" action="{{ route('Pacpie.indexSelecao') }}">
+                @csrf
+
+                <div class="form-check">
+                    <input type="radio" class="form-check-input" name="Selecao" id="todos" value="Todos">
+                    <label class="form-check-label" for="todos">Todos registros</label>
+                </div>
+
+                <div class="form-check">
+                    <input type="radio" class="form-check-input" name="Selecao" id="semNome" value="SemNome">
+                    <label class="form-check-label" for="semNome">Filtrar sem nome preenchido</label>
+                </div>
+
+                <div class="form-check">
+                    <input type="radio" class="form-check-input" name="Selecao" id="semPrimeiroContatoEmail" value="SemPrimeiroContatoEmail">
+                    <label class="form-check-label" for="semPrimeiroContatoEmail">Filtrar sem primeiro contato por email</label>
+                </div>
+
+                <div class="form-check">
+                    <input type="radio" class="form-check-input" name="Selecao" id="emailComFalha" value="Emailcomfalha">
+                    <label class="form-check-label" for="emailComFalha">Email com falha</label>
+                </div>
+
+                <div class="form-check">
+                    <input type="radio" class="form-check-input" name="Selecao" id="semEmail" value="SemEmail">
+                    <label class="form-check-label" for="semEmail">Filtrar sem email</label>
+                </div>
+
+                <button type="submit" class="btn btn-danger mt-2">Selecionar filtro</button>
+            </form>
+
 
             <form method="POST" action="{{ route('Pacpie.BuscarTexto') }}" accept-charset="UTF-8">
                 @csrf
@@ -86,38 +114,28 @@
                 <div class="card">
                     <div class="card-body" style="background-color: rgb(33, 244, 33)">
                         <div class="row">
-                            <div class="col-6">
-
+                            <div class="col-12 col-md-6">
                                 <label for="Texto" style="color: black;">Texto a pesquisar</label>
                                 <input class="form-control @error('Descricao') is-invalid @else is-valid @enderror" name="Texto" size="70" type="text" id="Texto" value="{{ $retorno['Texto'] ?? null }}">
                             </div>
                         </div>
 
-
                         <div class="row mt-2">
-                            <div class="col-6">
-                                <button class="btn btn-primary">Pesquisar conforme informações constantes do
-                                    formulário</button>
+                            <div class="col-12 col-md-6">
+                                <button class="btn btn-primary">Pesquisar conforme informações constantes do formulário</button>
                             </div>
                         </div>
                     </div>
-
                 </div>
-
-
-
             </form>
 
-            <table class="table" style="background-color: rgb(247, 247, 255);">
+            <table class="table table-responsive" style="background-color: rgb(247, 247, 255);">
                 <thead>
                     <tr>
                         <th scope="col" class="px-6 py-4">NOME</th>
                         <th scope="col" class="px-6 py-4">TELEFONE</th>
                         <th scope="col" class="px-6 py-4">EMAIL</th>
-
                         <th scope="col" class="px-6 py-4">CNPJ</th>
-
-
                         <th scope="col" class="px-6 py-4">EMPRESA</th>
                         <th scope="col" class="px-6 py-4">Primeiro contato via email</th>
                         <th scope="col" class="px-6 py-4"></th>
@@ -126,9 +144,6 @@
                         <th scope="col" class="px-6 py-4">Usuário</th>
                         <th scope="col" class="px-6 py-4"></th>
                     </tr>
-
-
-
                 </thead>
                 <style>
                     .highlight-row {
@@ -153,7 +168,6 @@
                             <form method="GET" action="{{ route('Pacpie.MarcaEnviadoemailparaprimeirocontato', $Model->id) }}">
                                 @csrf
                                 <button type="submit" class="btn btn-danger">Marcar primeiro contato por email</button>
-                                {{-- <button onclick="location.reload(true);">Recarregar Página</button> --}}
                             </form>
                             @endif
                         </td>
@@ -191,7 +205,6 @@
                     </tr>
                     @endforeach
                 </tbody>
-
             </table>
         </div>
     </div>
@@ -214,27 +227,22 @@
                 content: 'Confirma?',
                 buttons: {
                     confirmar: function() {
-                        // $.alert('Confirmar!');
                         $.confirm({
                             title: 'Confirmar!',
                             content: 'Deseja realmente continuar?',
                             buttons: {
                                 confirmar: function() {
-                                    // $.alert('Confirmar!');
-                                    e.currentTarget.submit()
+                                    e.currentTarget.submit();
                                 },
                                 cancelar: function() {
-                                    // $.alert('Cancelar!');
+                                    // Cancel action
                                 },
-
                             }
                         });
-
                     },
                     cancelar: function() {
-                        // $.alert('Cancelar!');
+                        // Cancel action
                     },
-
                 }
             });
         });
