@@ -88,7 +88,7 @@
                                     <div class="row">
                                         <div class="col-12 col-md-6">
                                             <label for="Texto" style="color: black;">Texto a pesquisar</label>
-                                            <input class="form-control @error('Descricao') is-invalid @else is-valid @enderror" name="Texto" size="70" type="text" id="Texto" value="{{ $retorno['Texto'] ?? null }}">
+                                            <input class="form-control @error('Descricao') is-invalid @else is-valid @enderror" name="Texto" size="70" type="text" id="Texto" value="{{ session('textoBusca') }}">
                                         </div>
                                     </div>
                                     <div class="row mt-2">
@@ -173,20 +173,24 @@
                                     <tr>
                                         <td>
                                             <div class="btn-group" role="group" aria-label="Ações"></div>
-                                                <div class="card" style="float: right; background-color: #E3F2FD; padding: 50px;">
+                                                <div class="card" style="float: center; background-color: #E3F2FD; padding: 50px;">
 
-                                                @can('PACPIE - EDITAR')
-                                                <a href="{{ route('Pacpie.edit', $Model->id) }}" class="btn btn-primary">Editar</a>
-                                                @endcan
-                                                @can('PACPIE - VISUALIZAR')
-                                                <a href="{{ route('Pacpie.show', $Model->id) }}" class="btn btn-secondary">Visualizar</a>
-                                                @endcan
-                                                @can('PACPIE - EXCLUIR')
-                                                <form method="POST" action="{{ route('Pacpie.destroy', $Model->id) }}">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger" onclick="return confirm('Tem certeza que deseja excluir este registro?')">Excluir</button>
-                                                </form>
+                                                        @can('PACPIE - EDITAR')
+                                                        <a href="{{ route('Pacpie.edit', $Model->id) }}" class="btn btn-primary">Editar</a>
+                                                        @endcan
+
+                                                        @can('PACPIE - VISUALIZAR')
+                                                        <a href="{{ route('Pacpie.show', $Model->id) }}" class="btn btn-secondary">Visualizar</a>
+                                                        @endcan
+
+
+                                                        @can('PACPIE - EXCLUIR')
+                                                           <form method="POST" action="{{ route('Pacpie.destroy', $Model->id) }}">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit" class="btn btn-danger"
+                                                                onclick="return confirm('Tem certeza que deseja excluir este registro?')">Excluir</button>
+                                                        </form>
                                                 @endcan
                                             </div>
                                         </td>

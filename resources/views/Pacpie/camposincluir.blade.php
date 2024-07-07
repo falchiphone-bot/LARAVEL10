@@ -34,6 +34,30 @@
             @endcan
         </div>
 
+        <div class="col-12 mb-3">
+            <div class="badge bg-warning text-wrap" style="width: 100%; font-size: 24px;">
+                ORIGEM DO CADASTRO
+            </div>
+
+            <label for="nome">Originado de: </label>
+            <select required class="form-control select2" id="origem_cadastro" name="origem_cadastro">
+                <option value="">Selecionar origem das empresas</option>
+                @foreach ($OrigemPacpie as $origempacpie)
+                    <option  value="{{ $origempacpie->id }}">
+                        {{ $origempacpie->nome }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="col-12 mb-3">
+            <div class="badge bg-danger text-wrap" style="width: 100%; font-size: 18px;">
+                o acima é a origem do cadastro da empresa
+            </div>
+        </div>
+
+
+
         <div class="form-group">
             <label for="nome">Nome</label>
             <input required class="form-control @error('nome') is-invalid @else is-valid @enderror" name="nome"

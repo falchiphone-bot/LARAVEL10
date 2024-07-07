@@ -64,14 +64,20 @@ class PacpieController extends Controller
     public function BuscarTexto(Request $request)
     {
 
+                    // Armazena o texto da busca na sessão
+                    $request->session()->put('textoBusca', $request->Texto);
+
                     $model = Pacpie::Where('nome', 'LIKE', '%' . $request->Texto . '%')
                     ->OrWhere('email', 'LIKE', '%' . $request->Texto . '%')
 
                     ->get();
 
+
                     // dd('PACPIE INDEX', $Pacpie);
 
-                    return view('Pacpie.index', compact('model'));
+                    // return view('Pacpie.index', compact('model'));
+                    return view('Pacpie.index', compact('model'))->with('textoBusca', $request->Texto);
+
 
     }
 
@@ -166,7 +172,10 @@ where(function($query) {
 
     public function create()
     {
-        return view('Pacpie.create');
+
+        $OrigemPacpie = OrigemPacpie::orderBy('Nome')->get();
+
+        return view('Pacpie.create', compact('OrigemPacpie'));
     }
 
     public function store( PacpieCreateRequest $request)
@@ -178,6 +187,7 @@ where(function($query) {
         $limpacnpj = $request->limpacnpj;
 
         $request['nome'] = strtoupper($request['nome']);
+        $id = $request->id;
 
 
         if ($LiberaCNPJ == null) {
@@ -203,10 +213,12 @@ where(function($query) {
         $request['EmpresaID'] = 11;
         $model = $request->all();
 
+        $request->session()->put('textoBusca',  $request['nome']);
 
-// dd($model);
- Pacpie::create($model);
+
+        Pacpie::create($model);
         return redirect(route('Pacpie.index'));
+        // return view('Pacpie.index', compact('model'))->with('textoBusca', $request->Texto);
     }
 
     /**
@@ -224,12 +236,12 @@ where(function($query) {
      */
     public function edit(string $id)
     {
-        session(['Representante_id' => $id]);
+        // session(['Representante_id' => $id]);
 
 
         $model = Pacpie::find($id);
         $OrigemPacpie = OrigemPacpie::orderBy('Nome')->get();
-        // dd($OrigemPacpie);
+
         $retorno['origem_cadastro'] = $model->origem_cadastro ?? null;
 
         // dd($model, $retorno['origem_cadastro']);

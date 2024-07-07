@@ -41,7 +41,7 @@
                             </p>
                         </div>
                         <div class="card-footer">
-                            <a href="{{ route('Representantes.index') }}">Retornar para a lista</a>
+                            <a href="{{ route('Pacpie.index') }}">Retornar para a lista</a>
                         </div>
                     </div>
                 </div>
