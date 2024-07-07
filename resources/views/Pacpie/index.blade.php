@@ -3,6 +3,9 @@
     <div class="py-5 bg-light">
         <div class="container">
 
+
+
+
             <div class="card-body">
                 @if (session('success'))
                     <div class="alert alert-success">
@@ -51,63 +54,60 @@
 
             </div>
 
-            {{-- <div class="col-12">
-                <form method="GET" action="{{ route('Pacpie.indexSelecao') }}">
-                    @csrf
-
-                    <input type="radio" name="Selecao" id="semagrupamento" value="Todos" >
-                    <label for="visualizarCheckbox">Todos registros</label>
-
-                    <input type="radio" name="Selecao" id="semagrupamento" value="SemNome" >
-                    <label for="visualizarCheckbox">Filtrar sem nome preenchido</label>
-
-                    <input type="radio" name="Selecao" id="semagrupamento" value="SemPrimeiroContatoEmail" >
-                    <label for="visualizarCheckbox">Filtrar sem primeiro contato por email</label>
-
-                    <input type="radio" name="Selecao" id="semagrupamento" value="Emailcomfalha" >
-                    <label for="visualizarCheckbox">Email com falha</label>
-
-                    <input type="radio" name="Selecao" id="semagrupamento" value="SemEmail" >
-                    <label for="visualizarCheckbox">Filtrar sem email</label>
-                    <button type="submit" class="btn btn-danger">
-                        Selecionar filtro
-                    </button>
-                </form>
-            </div> --}}
 
 
+
+
+
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="card-title mb-0">Selecionar Filtro</h5>
+        </div>
+        <div class="card-body">
             <form method="GET" action="{{ route('Pacpie.indexSelecao') }}">
                 @csrf
 
-                <div class="form-check">
+                <div class="form-check mb-2">
                     <input type="radio" class="form-check-input" name="Selecao" id="todos" value="Todos">
                     <label class="form-check-label" for="todos">Todos registros</label>
                 </div>
 
-                <div class="form-check">
+                <div class="form-check mb-2">
                     <input type="radio" class="form-check-input" name="Selecao" id="semNome" value="SemNome">
                     <label class="form-check-label" for="semNome">Filtrar sem nome preenchido</label>
                 </div>
 
-                <div class="form-check">
+                <div class="form-check mb-2">
                     <input type="radio" class="form-check-input" name="Selecao" id="semPrimeiroContatoEmail" value="SemPrimeiroContatoEmail">
                     <label class="form-check-label" for="semPrimeiroContatoEmail">Filtrar sem primeiro contato por email</label>
                 </div>
 
-                <div class="form-check">
+                <div class="form-check mb-2">
                     <input type="radio" class="form-check-input" name="Selecao" id="emailComFalha" value="Emailcomfalha">
                     <label class="form-check-label" for="emailComFalha">Email com falha</label>
                 </div>
 
-                <div class="form-check">
+                <div class="form-check mb-2">
                     <input type="radio" class="form-check-input" name="Selecao" id="semEmail" value="SemEmail">
                     <label class="form-check-label" for="semEmail">Filtrar sem email</label>
                 </div>
 
-                <button type="submit" class="btn btn-danger mt-2">Selecionar filtro</button>
+                <button type="submit" class="btn btn-danger mt-3 w-100">Selecionar filtro</button>
             </form>
+        </div>
+    </div>
+</div>
 
 
+
+
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="card-title mb-0">Pesquisar</h5>
+        </div>
+        <div class="card-body">
             <form method="POST" action="{{ route('Pacpie.BuscarTexto') }}" accept-charset="UTF-8">
                 @csrf
 
@@ -128,8 +128,11 @@
                     </div>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
 
-            <table class="table table-responsive" style="background-color: rgb(247, 247, 255);">
+            {{-- <table class="table table-responsive" style="background-color: rgb(247, 247, 255);">
                 <thead>
                     <tr>
                         <th scope="col" class="px-6 py-4">NOME</th>
@@ -205,16 +208,156 @@
                     </tr>
                     @endforeach
                 </tbody>
-            </table>
-        </div>
-    </div>
+            </table> --}}
+
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Tabela em Card</title>
+                <!-- Bootstrap CSS -->
+                <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+            </head>
+            <body>
+
+            <div class="container mt-5">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">Registros</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover" style="background-color: rgb(247, 247, 255);">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-4">NOME</th>
+                                        <th scope="col" class="px-6 py-4">TELEFONE</th>
+                                        <th scope="col" class="px-6 py-4">EMAIL</th>
+                                        <th scope="col" class="px-6 py-4">CNPJ</th>
+                                        <th scope="col" class="px-6 py-4">EMPRESA</th>
+                                        {{-- <th scope="col" class="px-6 py-4">Primeiro contato via email</th>
+                                        <th scope="col" class="px-6 py-4"></th>
+                                        <th scope="col" class="px-6 py-4">Email com falha</th>
+                                        <th scope="col" class="px-6 py-4">Data cadastro</th>
+                                        <th scope="col" class="px-6 py-4">Usuário</th>
+                                        <th scope="col" class="px-6 py-4"></th> --}}
+                                    </tr>
+                                </thead>
+                                <style>
+                                    .highlight-row {
+                                        background-color: #f2f2f2; /* Escolha a cor que preferir */
+                                        text-align: center;
+                                    }
+                                </style>
+                                <tbody>
+                                    @foreach ($model as $Model)
+                                    <tr class="highlight-row">
+                                        <td colspan="11">ORIGINADO DE: {{ $Model->MostraOrigem->nome ?? null }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>{{ $Model->nome }}</td>
+                                        <td>{{ $Model->telefone }}</td>
+                                        <td>{{ $Model->email }}</td>
+                                        <td>{{ $Model->cnpj }}</td>
+                                        <td>{{ $Model->MostraEmpresa->Descricao }}</td>
+                                    </tr>
+
+                                    <tr>
+                                       <td>Primeiro contato: {{ $Model->emailprimeirocontato == 1 ? 'SIM' : '' }}
+
+
+                                            @if ($Model->emailprimeirocontato == null)
+                                            <form method="GET" action="{{ route('Pacpie.MarcaEnviadoemailparaprimeirocontato', $Model->id) }}">
+                                                @csrf
+                                                <button type="submit" class="btn btn-danger">Marcar primeiro contato por email</button>
+                                            </form>
+                                            @endif
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>Email com falhas:
+                                            {{ $Model->emailcomfalhas == 1 ? 'SIM' : '' }}
+
+                                            @if ($Model->emailprimeirocontato == true)
+                                            <form method="GET" action="{{  route('Pacpie.Marcaemailcomfalhas', $Model->id) }}">
+                                                @csrf
+                                                <button type="submit" class="btn btn-warning">Marcar email com falhas</button>
+                                                {{-- <button onclick="location.reload(true);" class="btn btn-secondary">Recarregar Página</button> --}}
+                                            </form>
+                                            @endif
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>Data do registro: {{ $Model->created_at->format('d/m/Y H:i:s') }}</td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>Usuário que atualizou a ficha: {{ $Model->user_updated }}</td>
+                                    </tr>
+
+                                    
+                                    <div class="card-body">
+                                            @can('PACPIE - EDITAR')
+                                            <tr>
+                                                <td>
+                                                    <a href="{{ route('Pacpie.edit', $Model->id) }}" class="btn btn-success" tabindex="-1" role="button" aria-disabled="true">Editar</a>
+                                                </td>
+                                            </tr>
+                                            @endcan
+
+
+                                            @can('PACPIE - VER')
+                                                <tr>
+                                                    <td>
+                                                        <a href="{{ route('Pacpie.show', $Model->id) }}" class="btn btn-info" tabindex="-1" role="button" aria-disabled="true">Ver</a>
+                                                    </td>
+                                                </tr>
+                                            @endcan
+
+
+                                            @can('PACPIE - EXCLUIR')
+                                                <tr>
+                                                    <td>
+                                                        <form method="POST" action="{{ route('Pacpie.destroy', $Model->id) }}">
+                                                            @csrf
+                                                            <input type="hidden" name="_method" value="DELETE">
+                                                            <button type="submit" class="btn btn-danger">Excluir</button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                            @endcan
+                                    </div>
+
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            </body>
+            </html>
+
+
+
+
 @endsection
+
+
+
 
 @push('scripts')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/js/bootstrap.min.js"></script>
     <script>
         $(document).ready(function() {
             $('.select2').select2();
