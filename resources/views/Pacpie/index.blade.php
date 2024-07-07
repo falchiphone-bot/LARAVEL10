@@ -24,6 +24,13 @@
                 </div>
 
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                    @can('ORIGEMPACPIE - LISTAR')
+                        <a href="{{ route('Pacpie.AjustaCampos') }}" class="btn btn-warning btn-lg enabled" tabindex="-1" role="button" aria-disabled="true">Atualiza campos do cadastro</a>
+                    @endcan
+                </nav>
+
+
+                <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                     <a class="btn btn-warning" href="/Cadastros">Retornar a lista de opções</a>
                     @can('ORIGEMPACPIE - LISTAR')
                         <a href="{{ route('OrigemPacpie.index') }}" class="btn btn-success btn-lg enabled" tabindex="-1" role="button" aria-disabled="true">Origem PAC e PIE</a>

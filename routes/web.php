@@ -271,11 +271,14 @@ Route::resource('FormandoBaseRecebimentos', App\Http\Controllers\FormandoBaseRec
 
  #PAC PIE
   Route::resource('Pacpie', App\Http\Controllers\PacpieController::class);
+
+
   Route::get('Pacpie/go-back-twice-and-refresh', [App\Http\Controllers\PacpieController::class, 'retornar2paginasatualizar']);
   Route::get('MarcaEnviadoemailparaprimeirocontato/{id}', [App\Http\Controllers\PacpieController::class, 'MarcaEnviadoemailparaprimeirocontato'])->name('Pacpie.MarcaEnviadoemailparaprimeirocontato');
   Route::get('Marcaemailcomfalhas/{id}', [App\Http\Controllers\PacpieController::class, 'Marcaemailcomfalhas'])->name('Pacpie.Marcaemailcomfalhas');
   Route::get('indexSelecao', [App\Http\Controllers\PacpieController::class, 'indexSelecao'])->name('Pacpie.indexSelecao');
   Route::post('BuscarTexto', [App\Http\Controllers\PacpieController::class, 'BuscarTexto'])->name('Pacpie.BuscarTexto');
+  Route::post('Pacpie/AjustaCampos', [App\Http\Controllers\PacpieController::class, 'AjustaCampos'])->name('Pacpie.AjustaCampos');
 
 #ORIGEM DE EMPRESAS PARA PAC PIE
 Route::resource('OrigemPacpie', App\Http\Controllers\OrigemPacpieController::class);

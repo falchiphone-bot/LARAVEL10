@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-
 use App\Models\Pacpie;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -35,8 +34,6 @@ class PacpieController extends Controller
         $this->middleware(['permission:PACPIE - EXCLUIR'])->only('destroy');
     }
 
-
-
     public function retornar2paginasatualizar()
     {
         dd(39);
@@ -44,141 +41,98 @@ class PacpieController extends Controller
     }
 
 
+
     public function index()
     {
+        // $model = Pacpie::join('Contabilidade.EmpresasUsuarios', 'Representantes.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
+        //     ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+        //     ->orderBy('nome')
+        //     ->get();
+        //
 
-                    // $model = Pacpie::join('Contabilidade.EmpresasUsuarios', 'Representantes.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
-                    //     ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
-                    //     ->orderBy('nome')
-                    //     ->get();
-                    //
+        $model = Pacpie::limit(0);
 
-                    $model = Pacpie::limit(0);
+        // dd('PACPIE INDEX', $Pacpie);
 
-                    // dd('PACPIE INDEX', $Pacpie);
-
-                    return view('Pacpie.index', compact('model'));
-
+        return view('Pacpie.index', compact('model'));
     }
 
     public function BuscarTexto(Request $request)
     {
+        // Armazena o texto da busca na sessão
+        $request->session()->put('textoBusca', $request->Texto);
 
-                    // Armazena o texto da busca na sessão
-                    $request->session()->put('textoBusca', $request->Texto);
+        $model = Pacpie::Where('nome', 'LIKE', '%' . $request->Texto . '%')
+            ->OrWhere('email', 'LIKE', '%' . $request->Texto . '%')
 
-                    $model = Pacpie::Where('nome', 'LIKE', '%' . $request->Texto . '%')
-                    ->OrWhere('email', 'LIKE', '%' . $request->Texto . '%')
+            ->get();
 
-                    ->get();
+        // dd('PACPIE INDEX', $Pacpie);
 
-
-                    // dd('PACPIE INDEX', $Pacpie);
-
-                    // return view('Pacpie.index', compact('model'));
-                    return view('Pacpie.index', compact('model'))->with('textoBusca', $request->Texto);
-
-
+        // return view('Pacpie.index', compact('model'));
+        return view('Pacpie.index', compact('model'))->with('textoBusca', $request->Texto);
     }
-
-
 
     public function indexSelecao(Request $request)
     {
+        $selecaoFiltro = $request->Selecao;
 
-                    $selecaoFiltro = $request->Selecao;
+        if ($selecaoFiltro == null) {
+            $request = session('request');
 
+            // dd($request);
+            $selecaoFiltro = $request['emailprimeirocontato'] ?? null;
+        }
 
+        if ($selecaoFiltro == 'SemPrimeiroContatoEmail') {
+            ///////////////////////////////////FUNCIONANDO////////////////////////////////////////
+            // $model = Pacpie::where(function($query) {
+            //     $query->whereNull('emailprimeirocontato')
+            //           ->orWhere('emailprimeirocontato', '=', false);
+            // })
 
+            // ->where(function($query) {
+            //     $query->where('emailcomfalhas', '=', false);
+            // })
+            // ->whereNotNull('email')
+            // ->get();
+            ///////////////////////////////////FUNCIONANDO////////////////////////////////////////
 
-                    if($selecaoFiltro == null)
-                    {
-                        $request = session('request');
+            ///////////////////////////////////FUNCIONANDO////////////////////////////////////////
+            $model = Pacpie::where(function ($query) {
+                $query->whereNotNull('email')->orWhere('email', '=', '');
+            })
 
-                        // dd($request);
-                        $selecaoFiltro = $request['emailprimeirocontato'] ?? null;
-                    };
+                ->where(function ($query) {
+                    $query->whereNull('emailprimeirocontato')->orWhere('emailprimeirocontato', '=', false)->where('emailcomfalhas', '=', false);
+                })
 
+                ->get();
 
+            ///////////////////////////////////FUNCIONANDO////////////////////////////////////////
+        } elseif ($selecaoFiltro == 'Emailcomfalha') {
+            $model = Pacpie::where('emailcomfalhas', '=', true)->get();
+        } elseif ($selecaoFiltro == 'SemEmail') {
+            $model = Pacpie::where('email', '=', null)->get();
+        } elseif ($selecaoFiltro == 'SemNome') {
+            $model = Pacpie::whereNull('nome')->orWhere('nome', '=', '')->orderBy('nome', 'desc')->get();
+        } else {
+            $model = Pacpie::all();
+        }
 
-                    if ($selecaoFiltro == 'SemPrimeiroContatoEmail') {
+        // dd('PACPIE INDEX', $Pacpie);
 
-
-
-///////////////////////////////////FUNCIONANDO////////////////////////////////////////
-                                                // $model = Pacpie::where(function($query) {
-                                                //     $query->whereNull('emailprimeirocontato')
-                                                //           ->orWhere('emailprimeirocontato', '=', false);
-                                                // })
-
-                                                // ->where(function($query) {
-                                                //     $query->where('emailcomfalhas', '=', false);
-                                                // })
-                                                // ->whereNotNull('email')
-                                                // ->get();
-///////////////////////////////////FUNCIONANDO////////////////////////////////////////
-
-
-///////////////////////////////////FUNCIONANDO////////////////////////////////////////
-$model = Pacpie::
-
-where(function($query) {
-    $query->whereNotNull('email')
-          ->orWhere('email', '=', '');
-})
-
-->where(function($query) {
-    $query->whereNull('emailprimeirocontato')
-          ->orWhere('emailprimeirocontato', '=', false)
-          ->where('emailcomfalhas', '=', false);
-})
-
-->get();
-
-///////////////////////////////////FUNCIONANDO////////////////////////////////////////
-
-                    }
-
-                    else
-                    if ($selecaoFiltro == 'Emailcomfalha') {
-                        $model = Pacpie::where('emailcomfalhas', '=', true)
-                        ->get();
-                    }
-                    else
-                    if ($selecaoFiltro == 'SemEmail') {
-                        $model = Pacpie::where('email', '=', NULL)->get();
-                    }
-                    else
-                    if ($selecaoFiltro == 'SemNome') {
-                        $model = Pacpie::whereNull('nome')
-                        ->orWhere('nome', '=', '')
-                        ->orderBy('nome', 'desc')
-                        ->get();
-
-
-                    }
-                    else
-                    {
-                        $model = Pacpie::all();
-                    }
-
-                    // dd('PACPIE INDEX', $Pacpie);
-
-                    return view('Pacpie.index', compact('model'));
-
+        return view('Pacpie.index', compact('model'));
     }
-
-
 
     public function create()
     {
-
         $OrigemPacpie = OrigemPacpie::orderBy('Nome')->get();
 
         return view('Pacpie.create', compact('OrigemPacpie'));
     }
 
-    public function store( PacpieCreateRequest $request)
+    public function store(PacpieCreateRequest $request)
     {
         $cnpj = $request->cnpj;
 
@@ -188,7 +142,6 @@ where(function($query) {
 
         $request['nome'] = strtoupper($request['nome']);
         $id = $request->id;
-
 
         if ($LiberaCNPJ == null) {
             if ($cnpj) {
@@ -213,8 +166,7 @@ where(function($query) {
         $request['EmpresaID'] = 11;
         $model = $request->all();
 
-        $request->session()->put('textoBusca',  $request['nome']);
-
+        $request->session()->put('textoBusca', $request['nome']);
 
         Pacpie::create($model);
         return redirect(route('Pacpie.index'));
@@ -231,13 +183,37 @@ where(function($query) {
         return view('Pacpie.show', compact('cadastro'));
     }
 
+
+    public function AjustaCampos()
+    {
+
+        dd('AjustaCampos');
+        $model = Pacpie::Where('email','!=', null)->get();
+
+        foreach ($model as $item) {
+            $item->email = strtolower($item->email);
+
+            try {
+                $item->save();
+            } catch (Exception $e) {
+                // Handle the exception as needed
+                echo 'Falha ao salvar: ',  $e->getMessage(), "\n";
+                session(['error' => 'Falha ao salvar: ',  $e->getMessage(), "\n"]);
+            }
+        }
+
+        dd($model);
+        session(['success' => 'ATUALIZADO COM SUCESSO!']);
+        return view('Pacpie.index', compact('model'));
+    }
+
+
     /**
      * Show the form for editing the specified resource.
      */
     public function edit(string $id)
     {
         // session(['Representante_id' => $id]);
-
 
         $model = Pacpie::find($id);
         $OrigemPacpie = OrigemPacpie::orderBy('Nome')->get();
@@ -295,7 +271,6 @@ where(function($query) {
         // Obtém o endereço de e-mail do objeto $request
         $email = $request->email;
 
-
         // Remove caracteres inválidos do endereço de e-mail
         $emailCorrigido = preg_replace('/[^a-zA-Z0-9.@_-]/', '', $email);
 
@@ -315,9 +290,7 @@ where(function($query) {
         // Atualiza a propriedade email do objeto $request com o endereço corrigido
         $request['email'] = $emailCorrigido;
 
-
         $cadastro = Pacpie::find($id);
-
 
         $request['nome'] = strtoupper($request['nome']);
         $request['origem_cadastro'] = $request['origem_cadastro'] ?? null;
@@ -329,14 +302,13 @@ where(function($query) {
         // dd($request->all());
 
         $cadastro->save();
-// dd($cadastro);
+        // dd($cadastro);
         session(['success' => 'NOME:  ' . $request->nome . ', ALTERADO! ']);
-        return redirect(route('Pacpie.edit',$id));
+        return redirect(route('Pacpie.edit', $id));
 
         // return redirect(route('Pacpie.index'));
 
         // return view('Pacpie/go-back-twice-and-refresh');
-
     }
 
     /**
@@ -356,7 +328,7 @@ where(function($query) {
         $model = $request->all();
         RedeSocialUsuarios::create($model);
 
-        return redirect(route('Representantes.edit',$request->RedeSocialRepresentante_id));
+        return redirect(route('Representantes.edit', $request->RedeSocialRepresentante_id));
     }
 
     // public function UpdateRedeSocialRepresentantes(Request $request, string $id)
@@ -381,13 +353,12 @@ where(function($query) {
         return redirect(route('Representantes.edit'));
     }
 
-    public function MarcaEnviadoemailparaprimeirocontato (Request $request)
+    public function MarcaEnviadoemailparaprimeirocontato(Request $request)
     {
-
         $id = $request->id;
         $cadastro = Pacpie::find($id);
 
-//  dd(274, $request->all(), $request->id,  $cadastro);
+        //  dd(274, $request->all(), $request->id,  $cadastro);
 
         $request['user_updated'] = Auth::user()->email;
         $request['emailprimeirocontato'] = true;
@@ -396,11 +367,13 @@ where(function($query) {
         $cadastro->fill($request->all());
         $cadastro->save();
         // return view('Pacpie/go-back-twice-and-refresh');
-        return redirect()->route('Pacpie.indexSelecao')->with([
-            'request' => $request->all()
-        ]);
+        return redirect()
+            ->route('Pacpie.indexSelecao')
+            ->with([
+                'request' => $request->all(),
+            ]);
     }
-    public function Marcaemailcomfalhas (Request $request)
+    public function Marcaemailcomfalhas(Request $request)
     {
         $id = $request->id;
         $cadastro = Pacpie::find($id);
@@ -414,6 +387,4 @@ where(function($query) {
         // return view('Pacpie/go-back-twice-and-refresh');
         return redirect(route('Pacpie.indexSelecao'));
     }
-
-
 }
