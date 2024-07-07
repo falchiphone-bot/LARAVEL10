@@ -53,7 +53,7 @@ class PacpieController extends Controller
                     //     ->get();
                     //
 
-                    $model = Pacpie::all();
+                    $model = Pacpie::limit(0);
 
                     // dd('PACPIE INDEX', $Pacpie);
 
