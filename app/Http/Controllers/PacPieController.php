@@ -187,8 +187,9 @@ class PacpieController extends Controller
     public function AjustaCampos()
     {
 
-        dd('AjustaCampos');
-        $model = Pacpie::Where('email','!=', null)->get();
+        // $model = Pacpie::whereNotNull('email')->get();
+
+        $model = Pacpie::all();
 
         foreach ($model as $item) {
             $item->email = strtolower($item->email);
@@ -202,9 +203,10 @@ class PacpieController extends Controller
             }
         }
 
-        dd($model);
         session(['success' => 'ATUALIZADO COM SUCESSO!']);
-        return view('Pacpie.index', compact('model'));
+        return redirect(route('Pacpie.index', compact('model')));
+        // return view('Pacpie.index', compact('model'));
+
     }
 
 

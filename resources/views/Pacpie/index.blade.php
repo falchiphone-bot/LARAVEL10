@@ -3,18 +3,32 @@
     <div class="py-5 bg-light">
         <div class="container">
             <div class="card-body">
+
+                {{-- @if (session('success'))
+                <div class="alert alert-success">
+                    {{ session('success') }}
+                </div>
+                {{ session(['success' => null]) }}
+            @elseif (session('error'))
+                <div class="alert alert-danger">
+                    {{ session('error') }}
+                </div>
+                {{ session(['error' => null]) }}
+            @endif --}}
+
+
                 @if (session('success'))
                     <div class="alert alert-success">{{ session('success') }}</div>
-                    {{ session(['success' => NULL]) }}
+                    {{ session(['success' => null]) }}
                 @elseif(session('cpf'))
                     <div class="alert alert-success">{{ session('success') }}</div>
-                    {{ session(['cpf' => NULL]) }}
+                    {{ session(['cpf' => null]) }}
                 @elseif(session('cnpj'))
                     <div class="alert alert-success">{{ session('success') }}</div>
-                    {{ session(['cnpj' => NULL]) }}
+                    {{ session(['cnpj' => null]) }}
                 @elseif (session('error'))
                     <div class="alert alert-danger">{{ session('error') }}</div>
-                    {{ session(['error' => NULL]) }}
+                    {{ session(['error' => null]) }}
                 @endif
 
                 <div class="card">
@@ -25,8 +39,12 @@
 
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                     @can('ORIGEMPACPIE - LISTAR')
-                        <a href="{{ route('Pacpie.AjustaCampos') }}" class="btn btn-warning btn-lg enabled" tabindex="-1" role="button" aria-disabled="true">Atualiza campos do cadastro</a>
-                    @endcan
+                        <form action="{{ route('Pacpie.AjustaCampos') }}" method="POST">
+                            @csrf
+                            <button type="submit" class="btn btn-warning btn-lg enabled" tabindex="-1" role="button" aria-disabled="true">Ajustar Campos</button>
+                        </form>
+
+                     @endcan
                 </nav>
 
 

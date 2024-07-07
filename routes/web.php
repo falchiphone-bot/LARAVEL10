@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\OAuthController;
 use App\Http\Services;
+use App\Http\Controllers\PacpieController;
 
 /*
 |--------------------------------------------------------------------------
@@ -278,7 +279,7 @@ Route::resource('FormandoBaseRecebimentos', App\Http\Controllers\FormandoBaseRec
   Route::get('Marcaemailcomfalhas/{id}', [App\Http\Controllers\PacpieController::class, 'Marcaemailcomfalhas'])->name('Pacpie.Marcaemailcomfalhas');
   Route::get('indexSelecao', [App\Http\Controllers\PacpieController::class, 'indexSelecao'])->name('Pacpie.indexSelecao');
   Route::post('BuscarTexto', [App\Http\Controllers\PacpieController::class, 'BuscarTexto'])->name('Pacpie.BuscarTexto');
-  Route::post('Pacpie/AjustaCampos', [App\Http\Controllers\PacpieController::class, 'AjustaCampos'])->name('Pacpie.AjustaCampos');
+  Route::post('Pacpie/AjustaCampos', [PacpieController::class, 'AjustaCampos'])->name('Pacpie.AjustaCampos');
 
 #ORIGEM DE EMPRESAS PARA PAC PIE
 Route::resource('OrigemPacpie', App\Http\Controllers\OrigemPacpieController::class);
