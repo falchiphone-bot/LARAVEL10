@@ -187,13 +187,11 @@ class PacpieController extends Controller
     public function AjustaCampos()
     {
 
-        // $model = Pacpie::whereNotNull('email')->get();
-
-        $model = Pacpie::all();
+        $model = Pacpie::whereNotNull('email')->get();
 
         foreach ($model as $item) {
             $item->email = strtolower($item->email);
-
+            $item->nome = strtoupper($item->nome);
             try {
                 $item->save();
             } catch (Exception $e) {
@@ -203,7 +201,7 @@ class PacpieController extends Controller
             }
         }
 
-        session(['success' => 'ATUALIZADO COM SUCESSO!']);
+        session(['success' => 'ATUALIZADO COM SUCESSO! Campo email para tudo minúsculo como padrão e campo nome para tudo maiusculo como padrão' ]);
         return redirect(route('Pacpie.index', compact('model')));
         // return view('Pacpie.index', compact('model'));
 
