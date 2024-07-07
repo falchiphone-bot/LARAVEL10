@@ -298,38 +298,26 @@
                                         <td>Usuário que atualizou a ficha: {{ $Model->user_updated }}</td>
                                     </tr>
 
-                                    
-                                    <div class="card-body">
-                                            @can('PACPIE - EDITAR')
-                                            <tr>
-                                                <td>
-                                                    <a href="{{ route('Pacpie.edit', $Model->id) }}" class="btn btn-success" tabindex="-1" role="button" aria-disabled="true">Editar</a>
-                                                </td>
-                                            </tr>
-                                            @endcan
 
+                                    <td>
+                                        <div class="btn-group" role="group" aria-label="Ações">
+                                            @can('PACPIE - EDITAR')
+                                            <a href="{{ route('Pacpie.edit', $Model->id) }}" class="btn btn-success" tabindex="-1" role="button" aria-disabled="true">Editar</a>
+                                            @endcan
 
                                             @can('PACPIE - VER')
-                                                <tr>
-                                                    <td>
-                                                        <a href="{{ route('Pacpie.show', $Model->id) }}" class="btn btn-info" tabindex="-1" role="button" aria-disabled="true">Ver</a>
-                                                    </td>
-                                                </tr>
+                                            <a href="{{ route('Pacpie.show', $Model->id) }}" class="btn btn-info" tabindex="-1" role="button" aria-disabled="true">Ver</a>
                                             @endcan
-
 
                                             @can('PACPIE - EXCLUIR')
-                                                <tr>
-                                                    <td>
-                                                        <form method="POST" action="{{ route('Pacpie.destroy', $Model->id) }}">
-                                                            @csrf
-                                                            <input type="hidden" name="_method" value="DELETE">
-                                                            <button type="submit" class="btn btn-danger">Excluir</button>
-                                                        </form>
-                                                    </td>
-                                                </tr>
+                                            <form method="POST" action="{{ route('Pacpie.destroy', $Model->id) }}" class="d-inline">
+                                                @csrf
+                                                <input type="hidden" name="_method" value="DELETE">
+                                                <button type="submit" class="btn btn-danger">Excluir</button>
+                                            </form>
                                             @endcan
-                                    </div>
+                                        </div>
+                                      </td>
 
                                     @endforeach
                                 </tbody>
