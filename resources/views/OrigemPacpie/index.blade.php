@@ -137,7 +137,7 @@
 
 
                             <td class="">
-                                {{ $Model->MostraEmpresa->Descricao }}
+                                {{ $Model->MostraEmpresa->Descricao ?? null}}
                             </td>
 
 
