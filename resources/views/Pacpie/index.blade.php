@@ -231,17 +231,9 @@
                             <table class="table table-bordered table-hover" style="background-color: rgb(247, 247, 255);">
                                 <thead class="table-light">
                                     <tr>
-                                        <th scope="col" class="px-6 py-4">NOME</th>
-                                        <th scope="col" class="px-6 py-4">TELEFONE</th>
-                                        <th scope="col" class="px-6 py-4">EMAIL</th>
-                                        <th scope="col" class="px-6 py-4">CNPJ</th>
-                                        <th scope="col" class="px-6 py-4">EMPRESA</th>
-                                        {{-- <th scope="col" class="px-6 py-4">Primeiro contato via email</th>
-                                        <th scope="col" class="px-6 py-4"></th>
-                                        <th scope="col" class="px-6 py-4">Email com falha</th>
-                                        <th scope="col" class="px-6 py-4">Data cadastro</th>
-                                        <th scope="col" class="px-6 py-4">Usuário</th>
-                                        <th scope="col" class="px-6 py-4"></th> --}}
+
+                                        <th scope="col" class="px-6 py-4">FICHAS DE EMPRESAS PARA BUSCA DE INCENTIVOS A PROJETOS</th>
+
                                     </tr>
                                 </thead>
                                 <style>
@@ -255,13 +247,31 @@
                                     <tr class="highlight-row">
                                         <td colspan="11">ORIGINADO DE: {{ $Model->MostraOrigem->nome ?? null }}</td>
                                     </tr>
+
                                     <tr>
-                                        <td>{{ $Model->nome }}</td>
-                                        <td>{{ $Model->telefone }}</td>
-                                        <td>{{ $Model->email }}</td>
-                                        <td>{{ $Model->cnpj }}</td>
-                                        <td>{{ $Model->MostraEmpresa->Descricao }}</td>
+                                        <td><strong>Nome:</strong> {{ $Model->nome }}</td>
                                     </tr>
+
+                                    <tr>
+                                        <td>Telefone: {{ $Model->telefone }}</td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>Email: {{ $Model->email }}</td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>CNPJ: {{ $Model->cnpj }}</td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>PROPRIETÁRIO DOS DADOS: {{ $Model->MostraEmpresa->Descricao }}</td>
+                                    </tr>
+
+
+
+
+
 
                                     <tr>
                                        <td>Primeiro contato: {{ $Model->emailprimeirocontato == 1 ? 'SIM' : '' }}
