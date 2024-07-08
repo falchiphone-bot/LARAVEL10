@@ -61,7 +61,37 @@
                     <div class="card-body">
                         <form method="GET" action="{{ route('Pacpie.indexSelecao') }}">
                             @csrf
-                            <table>
+                            <style>
+                                .table-bg-yellowgreen {
+                                  background-color: yellowgreen;
+                                }
+                                .table-bg-blue {
+                                  background-color: rgb(204, 204, 237);
+                                }
+                                .table-bg-whitesmoke {
+                                  background-color: whitesmoke);
+                                }
+                                .form-check-input:checked#todos ~ .form-check-label {
+                                  color: red;
+                                }
+                                .form-check-input:checked#semNome ~ .form-check-label {
+                                  color: green;
+                                }
+                                .form-check-input:checked#RetornoPrimeiroContatoEmail ~ .form-check-label {
+                                  color: blue;
+                                }
+                                .form-check-input:checked#semPrimeiroContatoEmail ~ .form-check-label {
+                                  color: purple;
+                                }
+                                .form-check-input:checked#emailComFalha ~ .form-check-label {
+                                  color: orange;
+                                }
+                                .form-check-input:checked#semEmail ~ .form-check-label {
+                                  color: brown;
+                                }
+                              </style>
+
+                              <table class="table-bg-whitesmoke">
                                 <tr>
                                   <td>
                                     <div class="form-check mb-2">
@@ -87,20 +117,21 @@
                                       <label class="form-check-label" for="semPrimeiroContatoEmail">Filtrar sem primeiro contato por email</label>
                                     </div>
                                   </td>
-                                <td>
+
+
+                                  <td>
                                     <div class="form-check mb-2">
                                       <input type="radio" class="form-check-input" name="Selecao" id="emailComFalha" value="Emailcomfalha">
                                       <label class="form-check-label" for="emailComFalha">Email com falha</label>
                                     </div>
                                   </td>
-                                </tr>
-                                <tr>
-                                  <td>
-                                    <div class="form-check mb-2">
-                                      <input type="radio" class="form-check-input" name="Selecao" id="semEmail" value="SemEmail">
-                                      <label class="form-check-label" for="semEmail">Filtrar sem email</label>
-                                    </div>
-                                  </td>
+                                  <tr>
+                                    <td>
+                                        <div class="form-check mb-2">
+                                        <input type="radio" class="form-check-input" name="Selecao" id="semEmail" value="SemEmail">
+                                        <label class="form-check-label" for="semEmail">Filtrar sem email</label>
+                                        </div>
+                                    </td>
                                   <td colspan="2"></td>
                                 </tr>
                               </table>
