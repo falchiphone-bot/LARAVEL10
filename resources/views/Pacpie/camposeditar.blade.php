@@ -135,10 +135,15 @@
             <div class="card" style="background-color: #f8f9fa; border: 1px solid #e3e6ea;">
                 <div class="card-body">
                     <div class="row">
-                        <label for="observacao">Observação / Anotação</label>
+                        <label for="observacao">Nova Observação / Anotação</label>
                         <div class="col-md-12 col-12 mb-3">
+                            <textarea name="observacaonova" id="observacaonova" rows="5" cols="100"></textarea>
+                        </div>
+                            <label for="observacao">Observação / Anotação</label>
+                    </div>
 
-                            <textarea name="observacao" id="observacao" rows="15" cols="100">{{ old('observacao', $model->observacao ?? '') }}</textarea>
+                    <textarea name="observacao" id="observacao" rows="15" cols="100" disabled style="background-color: #f0f0f0; cursor: not-allowed;">{{ old('observacao', $model->observacao ?? '') }}</textarea>
+
                             @error('observacao')
                                 <div class="alert alert-danger">{{ $message }}</div>
                             @enderror

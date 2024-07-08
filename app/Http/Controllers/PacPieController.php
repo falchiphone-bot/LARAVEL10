@@ -16,7 +16,7 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
-
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 require_once app_path('helpers.php');
@@ -274,37 +274,39 @@ class PacpieController extends Controller
         // Remove caracteres inválidos do endereço de e-mail
         $emailCorrigido = preg_replace('/[^a-zA-Z0-9.@_-]/', '', $email);
 
-        // Verifica se o símbolo "@" está presente no endereço corrigido
-        // if (strpos($emailCorrigido, '@') === false) {
-        //     // Endereço de e-mail inválido, pode lidar com o erro aqui
-        //     // Por exemplo, lançar uma exceção ou retornar uma mensagem de erro
-        //     // ...
 
-        //     session(['error' => 'EMAIL:  ' . $request->email . ', DEVE SER CORRIGIDO! NADA ALTERADO! RETORNADO AO VALOR JÁ REGISTRADO! ']);
-        //     return redirect(route('Pacpie.edit', $id));
-
-        //     // Definir o endereço de e-mail corrigido como vazio ou null
-        //     // $emailCorrigido = '';
-        // }
-
-        // Atualiza a propriedade email do objeto $request com o endereço corrigido
         $request['email'] = $emailCorrigido;
 
-        $cadastro = Pacpie::find($id);
 
-        $request['nome'] = strtoupper($request['nome']);
-        $request['responsavel'] = strtoupper($request['responsavel']);
-        $request['origem_cadastro'] = $request['origem_cadastro'] ?? null;
-        $request['user_updated'] = Auth::user()->email;
-        $request['emailprimeirocontato'] = $request->emailprimeirocontato;
-        $request['retornoemailprimeirocontato'] = $request->retornoemailprimeirocontato;
-        $request['emailcomfalha'] = $request->emailcomfalha;
-        $cadastro->fill($request->all());
 
-        // dd($request->all());
+$cadastro = Pacpie::find($id);
 
-        $cadastro->save();
-        // dd($cadastro);
+$request['nome'] = strtoupper($request['nome']);
+$request['responsavel'] = strtoupper($request['responsavel']);
+$request['origem_cadastro'] = $request['origem_cadastro'] ?? null;
+$request['user_updated'] = Auth::user()->email;
+$request['emailprimeirocontato'] = $request->emailprimeirocontato;
+$request['retornoemailprimeirocontato'] = $request->retornoemailprimeirocontato;
+$request['emailcomfalha'] = $request->emailcomfalha;
+
+// Adicione a data e o usuário às novas informações de observação
+$dataAtual = date('d-m-Y H:i:s');
+$usuario = Auth::user()->email;
+$novaObservacao = "[Data:   $dataAtual - Usuário: . $usuario]: " . ' Nova anotação: '. $request->observacaonova;
+
+// Concatenar as novas informações com as informações anteriores
+$observacaoAnterior = $cadastro->observacao;
+$observacaoAtualizada = $novaObservacao . "\n\n" . $observacaoAnterior ;
+
+// Atualizar a observação no request
+$request['observacao'] = $observacaoAtualizada;
+
+$cadastro->fill($request->all());
+$cadastro->save();
+
+
+
+
         session(['success' => 'NOME:  ' . $request->nome . ', ALTERADO! ']);
         return redirect(route('Pacpie.edit', $id));
 
