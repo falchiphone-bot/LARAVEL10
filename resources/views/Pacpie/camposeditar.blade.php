@@ -42,6 +42,14 @@
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
             </div>
+            <div class="col-md-6 col-12 mb-3">
+                <label for="responsavel">Responsável / contato</label>
+                <input required class="form-control @error('responsavel') is-invalid @else is-valid @enderror" name="responsavel"
+                    type="text" id="responsavel" value="{{ $model->responsavel ?? null }}">
+                @error('responsavel')
+                    <div class="alert alert-danger">{{ $message }}</div>
+                @enderror
+            </div>
 
             <div class="col-md-6 col-12 mb-3">
                 <label for="email">Email</label>
@@ -71,6 +79,19 @@
                     value="1"
                     {{ old('emailprimeirocontato', $model->emailprimeirocontato ?? 0) == 1 ? 'checked' : '' }}>
                 @error('emailprimeirocontato')
+                    <div class="alert alert-danger">{{ $message }}</div>
+                @enderror
+            </div>
+            <div class="col-md-6 col-12 mb-3">
+                <label for="retornoemailprimeirocontato">Retornou o email do primeiro contato</label>
+                <input type="hidden" name="retornoemailprimeirocontato" value="0"> <!-- Para garantir que "0" seja enviado quando o checkbox estiver desmarcado -->
+                <input
+                    name="retornoemailprimeirocontato"
+                    type="checkbox"
+                    id="retornoemailprimeirocontato"
+                    value="1"
+                    {{ old('retornoemailprimeirocontato', $model->emailprimeirocontato ?? 0) == 1 ? 'checked' : '' }}>
+                @error('retornoemailprimeirocontato')
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
             </div>
@@ -111,11 +132,28 @@
                 </div>
             </div>
 
+            <div class="card" style="background-color: #f8f9fa; border: 1px solid #e3e6ea;">
+                <div class="card-body">
+                    <div class="row">
+                        <label for="observacao">Observação / Anotação</label>
+                        <div class="col-md-12 col-12 mb-3">
+
+                            <textarea name="observacao" id="observacao" rows="15" cols="100">{{ old('observacao', $model->observacao ?? '') }}</textarea>
+                            @error('observacao')
+                                <div class="alert alert-danger">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
         </div>
 
         <div class="row mt-3">
             <div class="col-12 text-center">
-                <button class="btn btn-primary">Salvar ficha do representante</button>
+                <button class="btn btn-primary">Salvar ficha da empresa para PAC PIE</button>
             </div>
         </div>
         <hr>

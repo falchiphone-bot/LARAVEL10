@@ -293,9 +293,11 @@ class PacpieController extends Controller
         $cadastro = Pacpie::find($id);
 
         $request['nome'] = strtoupper($request['nome']);
+        $request['responsavel'] = strtoupper($request['responsavel']);
         $request['origem_cadastro'] = $request['origem_cadastro'] ?? null;
         $request['user_updated'] = Auth::user()->email;
         $request['emailprimeirocontato'] = $request->emailprimeirocontato;
+        $request['retornoemailprimeirocontato'] = $request->retornoemailprimeirocontato;
         $request['emailcomfalha'] = $request->emailcomfalha;
         $cadastro->fill($request->all());
 
@@ -373,6 +375,31 @@ class PacpieController extends Controller
                 'request' => $request->all(),
             ]);
     }
+
+    public function MarcaRetornoEnviadoemailparaprimeirocontato(Request $request)
+    {
+        $id = $request->id;
+        $cadastro = Pacpie::find($id);
+
+        //  dd(274, $request->all(), $request->id,  $cadastro);
+
+        $request['user_updated'] = Auth::user()->email;
+        $request['retornoemailprimeirocontato'] = true;
+
+
+        $cadastro->fill($request->all());
+        $cadastro->save();
+        // return view('Pacpie/go-back-twice-and-refresh');
+        return redirect()
+            ->route('Pacpie.indexSelecao')
+            ->with([
+                'request' => $request->all(),
+            ]);
+    }
+
+
+
+
     public function Marcaemailcomfalhas(Request $request)
     {
         $id = $request->id;

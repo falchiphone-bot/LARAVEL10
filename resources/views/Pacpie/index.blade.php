@@ -164,6 +164,18 @@
                                             @endif
                                         </td>
                                     </tr>
+
+                                    <tr>
+                                        <td><strong>Retorno do primeiro contato:</strong> {{ $Model->retornoemailprimeirocontato == 1 ? 'SIM' : '' }}
+                                            @if ($Model->retornoemailprimeirocontato == null)
+                                            <form method="GET" action="{{ route('Pacpie.MarcaRetornoEnviadoemailparaprimeirocontato', $Model->id) }}">
+                                                @csrf
+                                                <button type="submit" class="btn btn-danger">Marcar retorno do primeiro contato por email</button>
+                                            </form>
+                                            @endif
+                                        </td>
+                                    </tr>
+
                                     <tr>
                                         <td><strong>Email com falhas:</strong>
                                             {{ $Model->emailcomfalhas == 1 ? 'SIM' : '' }}

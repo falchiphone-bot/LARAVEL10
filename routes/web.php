@@ -276,6 +276,7 @@ Route::resource('FormandoBaseRecebimentos', App\Http\Controllers\FormandoBaseRec
 
   Route::get('Pacpie/go-back-twice-and-refresh', [App\Http\Controllers\PacpieController::class, 'retornar2paginasatualizar']);
   Route::get('MarcaEnviadoemailparaprimeirocontato/{id}', [App\Http\Controllers\PacpieController::class, 'MarcaEnviadoemailparaprimeirocontato'])->name('Pacpie.MarcaEnviadoemailparaprimeirocontato');
+  Route::get('MarcaRetornoEnviadoemailparaprimeirocontato/{id}', [App\Http\Controllers\PacpieController::class, 'MarcaRetornoEnviadoemailparaprimeirocontato'])->name('Pacpie.MarcaRetornoEnviadoemailparaprimeirocontato');
   Route::get('Marcaemailcomfalhas/{id}', [App\Http\Controllers\PacpieController::class, 'Marcaemailcomfalhas'])->name('Pacpie.Marcaemailcomfalhas');
   Route::get('indexSelecao', [App\Http\Controllers\PacpieController::class, 'indexSelecao'])->name('Pacpie.indexSelecao');
   Route::post('BuscarTexto', [App\Http\Controllers\PacpieController::class, 'BuscarTexto'])->name('Pacpie.BuscarTexto');
