@@ -54,29 +54,7 @@
 
             </div>
 
-            {{-- <div class="col-12">
-                <form method="GET" action="{{ route('Pacpie.indexSelecao') }}">
-                    @csrf
-
-                    <input type="radio" name="Selecao" id="semagrupamento" value="Todos" >
-                    <label for="visualizarCheckbox">Todos registros</label>
-
-                    <input type="radio" name="Selecao" id="semagrupamento" value="SemNome" >
-                    <label for="visualizarCheckbox">Filtrar sem nome preenchido</label>
-
-                    <input type="radio" name="Selecao" id="semagrupamento" value="SemPrimeiroContatoEmail" >
-                    <label for="visualizarCheckbox">Filtrar sem primeiro contato por email</label>
-
-                    <input type="radio" name="Selecao" id="semagrupamento" value="Emailcomfalha" >
-                    <label for="visualizarCheckbox">Email com falha</label>
-
-                    <input type="radio" name="Selecao" id="semagrupamento" value="SemEmail" >
-                    <label for="visualizarCheckbox">Filtrar sem email</label>
-                    <button type="submit" class="btn btn-danger">
-                        Selecionar filtro
-                    </button>
-                </form>
-            </div>
+           
 
             <form method="POST" action="{{ route('Pacpie.BuscarTexto') }}" accept-charset="UTF-8">
                 @csrf
