@@ -90,7 +90,7 @@
                     type="checkbox"
                     id="retornoemailprimeirocontato"
                     value="1"
-                    {{ old('retornoemailprimeirocontato', $model->emailprimeirocontato ?? 0) == 1 ? 'checked' : '' }}>
+                    {{ old('retornoemailprimeirocontato', $model->retornoemailprimeirocontato ?? 0) == 1 ? 'checked' : '' }}>
                 @error('retornoemailprimeirocontato')
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror

@@ -61,26 +61,50 @@
                     <div class="card-body">
                         <form method="GET" action="{{ route('Pacpie.indexSelecao') }}">
                             @csrf
-                            <div class="form-check mb-2">
-                                <input type="radio" class="form-check-input" name="Selecao" id="todos" value="Todos">
-                                <label class="form-check-label" for="todos">Todos registros</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input type="radio" class="form-check-input" name="Selecao" id="semNome" value="SemNome">
-                                <label class="form-check-label" for="semNome">Filtrar sem nome preenchido</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input type="radio" class="form-check-input" name="Selecao" id="semPrimeiroContatoEmail" value="SemPrimeiroContatoEmail">
-                                <label class="form-check-label" for="semPrimeiroContatoEmail">Filtrar sem primeiro contato por email</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input type="radio" class="form-check-input" name="Selecao" id="emailComFalha" value="Emailcomfalha">
-                                <label class="form-check-label" for="emailComFalha">Email com falha</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input type="radio" class="form-check-input" name="Selecao" id="semEmail" value="SemEmail">
-                                <label class="form-check-label" for="semEmail">Filtrar sem email</label>
-                            </div>
+                            <table>
+                                <tr>
+                                  <td>
+                                    <div class="form-check mb-2">
+                                      <input type="radio" class="form-check-input" name="Selecao" id="todos" value="Todos">
+                                      <label class="form-check-label" for="todos">Todos registros</label>
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <div class="form-check mb-2">
+                                      <input type="radio" class="form-check-input" name="Selecao" id="semNome" value="SemNome">
+                                      <label class="form-check-label" for="semNome">Filtrar sem nome preenchido</label>
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <div class="form-check mb-2">
+                                      <input type="radio" class="form-check-input" name="Selecao" id="RetornoPrimeiroContatoEmail" value="RetornoPrimeiroContatoEmail">
+                                      <label class="form-check-label" for="RetornoPrimeiroContatoEmail">Retornado pelo primeiro contato</label>
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <div class="form-check mb-2">
+                                      <input type="radio" class="form-check-input" name="Selecao" id="semPrimeiroContatoEmail" value="SemPrimeiroContatoEmail">
+                                      <label class="form-check-label" for="semPrimeiroContatoEmail">Filtrar sem primeiro contato por email</label>
+                                    </div>
+                                  </td>
+                                <td>
+                                    <div class="form-check mb-2">
+                                      <input type="radio" class="form-check-input" name="Selecao" id="emailComFalha" value="Emailcomfalha">
+                                      <label class="form-check-label" for="emailComFalha">Email com falha</label>
+                                    </div>
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td>
+                                    <div class="form-check mb-2">
+                                      <input type="radio" class="form-check-input" name="Selecao" id="semEmail" value="SemEmail">
+                                      <label class="form-check-label" for="semEmail">Filtrar sem email</label>
+                                    </div>
+                                  </td>
+                                  <td colspan="2"></td>
+                                </tr>
+                              </table>
+
                             <button type="submit" class="btn btn-danger mt-3 w-100">Selecionar filtro</button>
                         </form>
                     </div>
