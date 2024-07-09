@@ -20,6 +20,7 @@ class Pacpie extends Model
     'observacao',
     'promessa_aporte',
     'promessa_aporte_ano',
+    'promessa_aporte_valor',
     'aportou',
     'aportou_ano',
     'aportou_valor',
@@ -39,6 +40,8 @@ class Pacpie extends Model
         'observacao' => 'string',
         'promessa_aporte' => 'string',
         'promessa_aporte_ano' => 'string',
+        'promessa_aporte_valor' => 'float',
+
         'aportou' => 'string',
         'aportou_ano' => 'string',
         'aportou_valor' => 'float',

@@ -208,9 +208,11 @@
                                     </tr>
                                     <tr>
                                         <td><strong>Promessa de aporte:</strong> {{ $Model->promessa_aporte == 1 ? 'SIM' : '' }}</td>
-                                     
+
                                         <td><strong>Promessa de aporte no ano:</strong> {{ $Model->promessa_aporte_ano }}</td>
+                                        <td><strong>Promessa de aporte no valor:</strong> {{ $Model->promessa_aporte_valor }}</td>
                                     </tr>
+                                    
                                     <tr>
                                         <td><strong>Aportou :</strong> {{ $Model->aportou == 1 ? 'SIM' : '' }}</td>
                                         <td><strong>Aportou no ano:</strong> {{ $Model->aportou_ano }}</td>

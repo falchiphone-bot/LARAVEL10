@@ -136,6 +136,15 @@
                                 <div class="alert alert-danger">{{ $message }}</div>
                             @enderror
                         </td>
+                        <tr>
+                            <td>
+                                <label for="promessa_aporte_valor">Promessa de aporte no valor</label>
+                                <input class="form-control money @error('promessa_aporte_valor') is-invalid @else is-valid @enderror" name="promessa_aporte_valor" type="text" id="promessa_aporte_valor" value="{{$model->promessa_aporte_valor??null}}">
+                                @error('promessa_aporte_valor')
+                                <div class="alert alert-danger">{{ $message }}</div>
+                                @enderror
+                            </td>
+                        </tr>
                     </tr>
                 </table>
             </div>
@@ -190,7 +199,7 @@
                 <tr>
                     <td>
                         <label for="aportou_valor">Aportou valor</label>
-                     
+
 
                         <label for="aportou_valor">Aportou valor</label>
                         <input class="form-control money @error('aportou_valor') is-invalid @else is-valid @enderror" name="aportou_valor" type="text" id="aportou valor" value="{{$model->aportou_valor??null}}">

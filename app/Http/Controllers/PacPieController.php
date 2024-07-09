@@ -308,6 +308,16 @@ $Valor = $request->input('aportou_valor');
 
              $request['aportou_valor'] = $ValorDecimal;
 
+
+             $Valor = $request->input('promessa_aporte_valor');
+             // Remove pontos de milhar e substitui vírgula por ponto decimal
+                          $Valor = str_replace(".", "", $Valor);
+                          $Valor = str_replace(",", ".", $Valor);
+                          $ValorFloat = (float) $Valor; // Converte a string em um número de ponto flutuante
+                          $ValorDecimal = number_format($ValorFloat, 2, '.', ''); // Formata com duas casas decimais
+
+                          $request['promessa_aporte_valor'] = $ValorDecimal;
+
 // dd('PARADO',$ValorDecimal);
 
 // Adicione a data e o usuário às novas informações de observação
