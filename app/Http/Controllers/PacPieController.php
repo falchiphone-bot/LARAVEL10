@@ -291,11 +291,21 @@ $request['user_updated'] = Auth::user()->email;
 $request['emailprimeirocontato'] = $request->emailprimeirocontato;
 $request['retornoemailprimeirocontato'] = $request->retornoemailprimeirocontato;
 $request['emailcomfalha'] = $request->emailcomfalha;
+$request['promessa_aporte'] = $request->promessa_aporte;
+$request['promessa_aporte_ano'] = $request->promessa_aporte_ano;
+$request['aportou'] = $request->aportou;
+$request['aportou_ano'] = $request->aportou_ano;
+
+
 
 // Adicione a data e o usuário às novas informações de observação
 $dataAtual = date('d-m-Y H:i:s');
 $usuario = Auth::user()->email;
-$novaObservacao = "[Data:   $dataAtual - Usuário: . $usuario]: " . ' Nova anotação: '. $request->observacaonova;
+
+$observacaoNova = $request->observacaonova ?? 'Anotação não informada!';
+$novaObservacao = "[Data: $dataAtual - Usuário: $usuario]: Nova anotação: $observacaoNova";
+
+// $novaObservacao = "[Data:   $dataAtual - Usuário: . $usuario]: " . ' Nova anotação: '. $request->observacaonova ??  'Anotação não informada!';
 
 // Concatenar as novas informações com as informações anteriores
 $observacaoAnterior = $cadastro->observacao;

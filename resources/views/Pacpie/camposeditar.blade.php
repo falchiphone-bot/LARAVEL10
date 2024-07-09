@@ -97,7 +97,7 @@
             </div>
 
             <div class="col-md-6 col-12 mb-3">
-              
+
                     <table class="table table-borderless bg-secondary">
                     <tr>
                         <td>
@@ -140,6 +140,49 @@
                 </table>
             </div>
 
+            <div class="col-md-6 col-12 mb-3">
+
+                <table class="table table-borderless bg-info">
+                <tr>
+                    <td>
+                        <label for="aportou">Aportou</label>
+                    </td>
+                    <td>
+                        <input type="hidden" name="aportou" value="0">
+                        <input
+                            name="aportou"
+                            type="checkbox"
+                            id="aportou"
+                            value="1"
+                            {{ old('aportou', $model->aportou ?? 0) == 1 ? 'checked' : '' }}>
+                        @error('aportou')
+                            <div class="alert alert-danger">{{ $message }}</div>
+                        @enderror
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label for="aportou_ano">Com promessa de aporte para ano</label>
+                    </td>
+                    <td>
+                        <input type="hidden" name="aportou_ano" value="">
+                        <input
+                            name="aportou_ano"
+                            type="text"
+                            id="aportou_ano"
+                            value="{{ old('aportou_ano', $model->aportou_ano ?? '') }}"
+                            minlength="4"
+                            maxlength="4"
+                            size="4"
+                            pattern="\d{4}"
+                            title="O campo deve ter exatamente 4 dígitos.">
+                        @error('aportou_ano')
+                            <div class="alert alert-danger">{{ $message }}</div>
+                        @enderror
+                    </td>
+                </tr>
+            </table>
+        </div>
 
 
 

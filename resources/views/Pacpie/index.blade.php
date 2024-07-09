@@ -207,6 +207,20 @@
                                         <td><strong>CNPJ:</strong> {{ $Model->cnpj }}</td>
                                     </tr>
                                     <tr>
+                                        <td><strong>Promessa de aporte:</strong> {{ $Model->promessa_aporte == 1 ? 'SIM' : '' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Promessa de aporte no ano:</strong> {{ $Model->promessa_aporte_ano }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Aportou :</strong> {{ $Model->aportou == 1 ? 'SIM' : '' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Aportou no ano:</strong> {{ $Model->aportou_ano }}</td>
+                                    </tr>
+
+
+                                    <tr>
                                         <td><strong>PROPRIETÁRIO DOS DADOS:</strong> {{ $Model->MostraEmpresa->Descricao }}</td>
                                     </tr>
                                     <tr>
