@@ -77,6 +77,12 @@
                                 .form-check-input:checked#semNome ~ .form-check-label {
                                   color: green;
                                 }
+                                .form-check-input:checked#PromessaAporte ~ .form-check-label {
+                                  color: red;
+                                }
+                                .form-check-input:checked#Aportou ~ .form-check-label {
+                                  color: green;
+                                }
                                 .form-check-input:checked#RetornoPrimeiroContatoEmail ~ .form-check-label {
                                   color: blue;
                                 }
@@ -132,6 +138,23 @@
                                         <label class="form-check-label" for="semEmail">Filtrar sem email</label>
                                         </div>
                                     </td>
+
+
+                                    <td>
+                                        <div class="form-check mb-2">
+                                        <input type="radio" class="form-check-input" name="Selecao" id="PromessaAporte" value="PromessaAporte">
+                                        <label class="form-check-label" for="PromessaAporte">Promessa de aporte</label>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <div class="form-check mb-2">
+                                        <input type="radio" class="form-check-input" name="Selecao" id="Aportou" value="Aportou">
+                                        <label class="form-check-label" for="Aportou">Aportou</label>
+                                        </div>
+                                    </td>
+
+
                                   <td colspan="2"></td>
                                 </tr>
                               </table>
@@ -212,7 +235,7 @@
                                         <td><strong>Promessa de aporte no ano:</strong> {{ $Model->promessa_aporte_ano }}</td>
                                         <td><strong>Promessa de aporte no valor:</strong> {{ $Model->promessa_aporte_valor }}</td>
                                     </tr>
-                                    
+
                                     <tr>
                                         <td><strong>Aportou :</strong> {{ $Model->aportou == 1 ? 'SIM' : '' }}</td>
                                         <td><strong>Aportou no ano:</strong> {{ $Model->aportou_ano }}</td>

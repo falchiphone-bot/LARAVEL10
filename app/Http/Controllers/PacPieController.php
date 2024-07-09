@@ -117,6 +117,14 @@ class PacpieController extends Controller
         elseif ($selecaoFiltro == 'SemEmail') {
             $model = Pacpie::where('email', '=', null)->get();
         }
+        elseif ($selecaoFiltro == 'PromessaAporte') {
+            $model = Pacpie::where('promessa_aporte', '=', true)->get();
+      
+        }
+        elseif ($selecaoFiltro == 'Aportou') {
+            $model = Pacpie::where('aportou', '=', true)->get();
+
+        }
         elseif ($selecaoFiltro == 'SemNome') {
             $model = Pacpie::whereNull('nome')->orWhere('nome', '=', '')->orderBy('nome', 'desc')->get();
         } else {
