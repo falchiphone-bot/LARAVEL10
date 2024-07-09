@@ -83,6 +83,12 @@
                                 .form-check-input:checked#Aportou ~ .form-check-label {
                                   color: green;
                                 }
+                                .form-check-input:checked#PromessaAporteValor ~ .form-check-label {
+                                  color: rgb(140, 0, 255);
+                                }
+                                .form-check-input:checked#AportouValor ~ .form-check-label {
+                                  color: rgb(0, 98, 128);
+                                }
                                 .form-check-input:checked#RetornoPrimeiroContatoEmail ~ .form-check-label {
                                   color: blue;
                                 }
@@ -146,6 +152,12 @@
                                         <label class="form-check-label" for="PromessaAporte">Promessa de aporte</label>
                                         </div>
                                     </td>
+                                    <td>
+                                        <div class="form-check mb-2">
+                                        <input type="radio" class="form-check-input" name="Selecao" id="PromessaAporteValor" value="PromessaAporteValor">
+                                        <label class="form-check-label" for="PromessaAporte">Promessa de aporte com valor</label>
+                                        </div>
+                                    </td>
 
                                     <td>
                                         <div class="form-check mb-2">
@@ -154,7 +166,12 @@
                                         </div>
                                     </td>
 
-
+                                    <td>
+                                        <div class="form-check mb-2">
+                                        <input type="radio" class="form-check-input" name="Selecao" id="AportouValor" value="AportouValor">
+                                        <label class="form-check-label" for="Aportou">Aportou com valor</label>
+                                        </div>
+                                    </td>
                                   <td colspan="2"></td>
                                 </tr>
                               </table>

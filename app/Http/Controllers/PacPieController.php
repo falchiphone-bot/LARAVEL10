@@ -119,10 +119,23 @@ class PacpieController extends Controller
         }
         elseif ($selecaoFiltro == 'PromessaAporte') {
             $model = Pacpie::where('promessa_aporte', '=', true)->get();
-      
+
+        }
+        elseif ($selecaoFiltro == 'PromessaAporteValor') {
+            $model = Pacpie::where('promessa_aporte_valor', '>', 0)->get();
+            // dd(
+            //     'promessa_aporte_valor'
+            // );
         }
         elseif ($selecaoFiltro == 'Aportou') {
             $model = Pacpie::where('aportou', '=', true)->get();
+
+        }
+        elseif ($selecaoFiltro == 'AportouValor') {
+            $model = Pacpie::where('aportou_valor', '>', 0)->get();
+            // dd(
+            //     'aportou_valor'
+            // );
 
         }
         elseif ($selecaoFiltro == 'SemNome') {
