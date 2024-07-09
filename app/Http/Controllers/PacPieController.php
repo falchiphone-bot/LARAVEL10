@@ -298,6 +298,18 @@ $request['aportou_ano'] = $request->aportou_ano;
 
 
 
+
+$Valor = $request->input('aportou_valor');
+// Remove pontos de milhar e substitui vírgula por ponto decimal
+             $Valor = str_replace(".", "", $Valor);
+             $Valor = str_replace(",", ".", $Valor);
+             $ValorFloat = (float) $Valor; // Converte a string em um número de ponto flutuante
+             $ValorDecimal = number_format($ValorFloat, 2, '.', ''); // Formata com duas casas decimais
+
+             $request['aportou_valor'] = $ValorDecimal;
+
+// dd('PARADO',$ValorDecimal);
+
 // Adicione a data e o usuário às novas informações de observação
 $dataAtual = date('d-m-Y H:i:s');
 $usuario = Auth::user()->email;

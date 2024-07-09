@@ -22,6 +22,7 @@ class Pacpie extends Model
     'promessa_aporte_ano',
     'aportou',
     'aportou_ano',
+    'aportou_valor',
     'retornoemailprimeirocontato'];
 
     protected $casts = [
@@ -40,6 +41,7 @@ class Pacpie extends Model
         'promessa_aporte_ano' => 'string',
         'aportou' => 'string',
         'aportou_ano' => 'string',
+        'aportou_valor' => 'float',
 
     ];
 

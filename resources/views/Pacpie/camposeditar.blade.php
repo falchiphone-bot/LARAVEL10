@@ -162,7 +162,7 @@
                 </tr>
                 <tr>
                     <td>
-                        <label for="aportou_ano">Com promessa de aporte para ano</label>
+                        <label for="aportou_ano">Aportou no ano</label>
                     </td>
                     <td>
                         <input type="hidden" name="aportou_ano" value="">
@@ -180,7 +180,29 @@
                             <div class="alert alert-danger">{{ $message }}</div>
                         @enderror
                     </td>
+
+
                 </tr>
+
+
+
+
+                <tr>
+                    <td>
+                        <label for="aportou_valor">Aportou valor</label>
+                     
+
+                        <label for="aportou_valor">Aportou valor</label>
+                        <input class="form-control money @error('aportou_valor') is-invalid @else is-valid @enderror" name="aportou_valor" type="text" id="aportou valor" value="{{$model->aportou_valor??null}}">
+                        @error('aportou_valor')
+                        <div class="alert alert-danger">{{ $message }}</div>
+                        @enderror
+                    </td>
+                </tr>
+
+
+
+
             </table>
         </div>
 
@@ -267,10 +289,19 @@
 </div>
 
 @push('scripts')
+    {{-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script> --}}
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.6/jquery.inputmask.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
     <script>
         $(document).ready(function() {
             $('.select2').select2();
@@ -298,5 +329,19 @@
                 }
             });
         });
-    </script>
+
+
+
+
+
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.js"></script>
+   <script>
+       $(document).ready(function() {
+           $('.money').mask('000.000.000.000.000,00', {
+               reverse: true
+           });
+       });
+   </script>
+
 @endpush
