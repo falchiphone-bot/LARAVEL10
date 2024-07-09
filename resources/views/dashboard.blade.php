@@ -62,6 +62,21 @@
                             </div>
                         </div>
 
+
+
+                        @can('CONTABILIDADE - LISTAR-AQUI-TAMBEM')
+                            <tr>
+                                <th>
+
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-warning" href="/Contabilidade">Contabilidade</a>
+                                    </nav>
+
+                                </th>
+                            </tr>
+                         @endcan
+
+
                         <tr>
 
                             @can('CLIENTESIXCNETRUBI - LISTAR')

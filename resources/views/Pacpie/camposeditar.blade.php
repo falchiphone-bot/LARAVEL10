@@ -44,7 +44,7 @@
             </div>
             <div class="col-md-6 col-12 mb-3">
                 <label for="responsavel">Responsável / contato</label>
-                <input required class="form-control @error('responsavel') is-invalid @else is-valid @enderror" name="responsavel"
+                <input  class="form-control @error('responsavel') is-invalid @else is-valid @enderror" name="responsavel"
                     type="text" id="responsavel" value="{{ $model->responsavel ?? null }}">
                 @error('responsavel')
                     <div class="alert alert-danger">{{ $message }}</div>
@@ -95,6 +95,59 @@
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
             </div>
+
+            <div class="col-md-6 col-12 mb-3">
+              
+                    <table class="table table-borderless bg-secondary">
+                    <tr>
+                        <td>
+                            <label for="promessa_aporte">Com promessa de aporte</label>
+                        </td>
+                        <td>
+                            <input type="hidden" name="promessa_aporte" value="0"> <!-- Para garantir que "0" seja enviado quando o checkbox estiver desmarcado -->
+                            <input
+                                name="promessa_aporte"
+                                type="checkbox"
+                                id="promessa_aporte"
+                                value="1"
+                                {{ old('promessa_aporte', $model->promessa_aporte ?? 0) == 1 ? 'checked' : '' }}>
+                            @error('promessa_aporte')
+                                <div class="alert alert-danger">{{ $message }}</div>
+                            @enderror
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="promessa_aporte_ano">Com promessa de aporte para ano</label>
+                        </td>
+                        <td>
+                            <input type="hidden" name="promessa_aporte_ano" value="">
+                            <input
+                                name="promessa_aporte_ano"
+                                type="text"
+                                id="promessa_aporte_ano"
+                                value="{{ old('promessa_aporte_ano', $model->promessa_aporte_ano ?? '') }}"
+                                minlength="4"
+                                maxlength="4"
+                                size="4"
+                                pattern="\d{4}"
+                                title="O campo deve ter exatamente 4 dígitos.">
+                            @error('promessa_aporte_ano')
+                                <div class="alert alert-danger">{{ $message }}</div>
+                            @enderror
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+
+
+
+{{--
+            'aportou' => 'string',
+            'aportou_ano' => 'string', --}}
+
+
 
             <div class="col-md-6 col-12 mb-3">
                 <label for="emailcomfalha">Email com falha</label>
