@@ -40,6 +40,17 @@
                     @endcan
                 </nav>
 
+
+                <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                    @can('ORIGEMPACPIE - AJUSTACAMPOS')
+                        <form action="{{ route('OrigemPacpie.AjustaCampos') }}" method="POST">
+                            @csrf
+                            <button type="submit" class="btn btn-warning btn-lg enabled" tabindex="-1" role="button" aria-disabled="true">Ajustar Campos</button>
+                        </form>
+
+                     @endcan
+                </nav>
+
                 <div class="card-header">
                     <div class="badge bg-info text-wrap" style="width: 100%;font-size: 24px;text-align: center;">
                         <p>Total de cadastro de origem de empresas PAC e PIE - cadastrados no sistema de gerenciamento administrativo e contábil:
@@ -54,7 +65,7 @@
 
             </div>
 
-           
+
 
             <form method="POST" action="{{ route('Pacpie.BuscarTexto') }}" accept-charset="UTF-8">
                 @csrf
@@ -82,7 +93,7 @@
 
 
 
-            </form> --}}
+            </form>
 
             <table class="table" style="background-color: rgb(247, 247, 255);">
                 <thead>
@@ -131,21 +142,21 @@
 
                             @can('PACPIE - EDITAR')
                                 <td>
-                                    <a href="{{ route('Pacpie.edit', $Model->id) }}" class="btn btn-success" tabindex="-1"
+                                    <a href="{{ route('OrigemPacpie.edit', $Model->id) }}" class="btn btn-success" tabindex="-1"
                                         role="button" aria-disabled="true">Editar</a>
                                 </td>
                             @endcan
 
                             @can('PACPIE - VER')
                                 <td>
-                                    <a href="{{ route('Pacpie.show', $Model->id) }}" class="btn btn-info" tabindex="-1"
+                                    <a href="{{ route('OrigemPacpie.show', $Model->id) }}" class="btn btn-info" tabindex="-1"
                                         role="button" aria-disabled="true">Ver</a>
                                 </td>
                             @endcan
 
                             @can('PACPIE - EXCLUIR')
                                 <td>
-                                    <form method="POST" action="{{ route('Pacpie.destroy', $Model->id) }}">
+                                    <form method="POST" action="{{ route('OrigemPacpie.destroy', $Model->id) }}">
                                         @csrf
                                         <input type="hidden" name="_method" value="DELETE">
                                         <button type="submit" class="btn btn-danger">

@@ -25,7 +25,7 @@
                 </div>
 
                 <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                    @can('ORIGEMPACPIE - LISTAR')
+                    @can('PACPIE - AJUSTACAMPOS')
                         <form action="{{ route('Pacpie.AjustaCampos') }}" method="POST">
                             @csrf
                             <button type="submit" class="btn btn-warning btn-lg enabled" tabindex="-1" role="button" aria-disabled="true">Ajustar Campos</button>

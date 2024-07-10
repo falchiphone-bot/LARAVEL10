@@ -35,7 +35,28 @@ class OrigemPacpieController extends Controller
     }
 
 
+    public function AjustaCampos()
+    {
 
+        $model = OrigemPacpie::whereNotNull('email')->get();
+
+        foreach ($model as $item) {
+            $item->email = strtolower($item->email);
+            $item->nome = strtoupper($item->nome);
+            try {
+                $item->save();
+            } catch (Exception $e) {
+                // Handle the exception as needed
+                echo 'Falha ao salvar: ',  $e->getMessage(), "\n";
+                session(['error' => 'Falha ao salvar: ',  $e->getMessage(), "\n"]);
+            }
+        }
+
+        session(['success' => 'ATUALIZADO COM SUCESSO! Campo email para tudo minúsculo como padrão e campo nome para tudo maiusculo como padrão' ]);
+        return redirect(route('OrigemPacpie.index', compact('model')));
+        // return view('Pacpie.index', compact('model'));
+
+    }
 
 
     public function index()
@@ -111,10 +132,10 @@ class OrigemPacpieController extends Controller
      */
     public function edit(string $id)
     {
-        session(['Representante_id' => $id]);
 
 
-        $model = Pacpie::find($id);
+
+        $model = OrigemPacpie::find($id);
 
 
         return view('OrigemPacpie.edit', compact('model'));
@@ -145,16 +166,17 @@ class OrigemPacpieController extends Controller
 
         $cadastro->fill($request->all());
 
-        // dd($request->all());
+
 
         $cadastro->save();
-// dd($cadastro);
+
         session(['success' => 'NOME:  ' . $request->nome . ', ALTERADO! ']);
         // return redirect(route('Pacpie.edit',$id));
 
         // return redirect(route('Pacpie.index'));
 
-        return view('Pacpie/go-back-twice-and-refresh');
+        // return view('Pacpie/go-back-twice-and-refresh');
+        return redirect(route('OrigemPacpie.index'));
 
     }
 

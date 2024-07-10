@@ -22,12 +22,12 @@
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
 
-                @can('PACPIE - LIBERA VALIDAR CNPJ')
+                @can('ORIGEMPACPIE - LIBERA VALIDAR CNPJ')
                     <input type="checkbox" name="liberacnpj" value="1">
                     <label for="checkbox_liberacnpj">Libera validação do CNPJ</label>
                     <br>
                 @endcan
-                @can('PACPIE - LIMPA CAMPO CNPJ')
+                @can('ORIGEMPACPIE - LIMPA CAMPO CNPJ')
                     <input type="checkbox" name="limpacnpj" value="1">
                     <label for="checkbox_limpacnpj">Limpa campo CNPJ</label>
                     <br>
@@ -94,7 +94,7 @@
 
         <div class="row mt-12">
             <div class="col-12 text-center">
-                <button class="btn btn-primary">Salvar ficha do representante</button>
+                <button class="btn btn-primary">Salvar ficha da origem de PACPIE</button>
             </div>
         </div>
         </form>
@@ -102,7 +102,7 @@
 
         <div class="row mt-12">
             <div class="col-12 d-flex justify-content-center">
-                <a href="{{ route('Pacpie.index') }}" class="btn btn-warning">Retornar para lista</a>
+                <a href="{{ route('OrigemPacpie.index') }}" class="btn btn-warning">Retornar para lista</a>
             </div>
         </div>
     </div>

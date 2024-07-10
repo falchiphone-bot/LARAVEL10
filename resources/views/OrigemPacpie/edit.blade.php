@@ -6,7 +6,7 @@
 
 
 <div class="badge bg-primary text-wrap" style="width: 100%;">
-    EMPRESAS PARA PAC E PIE SP - SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
+    ORIGEM DAS EMPRESAS PARA PAC E PIE SP - SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
 </div>
 
 @if ($errors->any())
@@ -19,9 +19,9 @@
     </div>
 @endif
 
-<form method="POST" action="{{route('Pacpie.update',$model->id)}}" accept-charset="UTF-8">
+<form method="POST" action="{{route('OrigemPacpie.update',$model->id)}}" accept-charset="UTF-8">
     <input type="hidden" name="_method" value="PUT">
-    @include('Pacpie.camposeditar')
+    @include('OrigemPacpie.camposeditar')
 </form>
 
 @endsection

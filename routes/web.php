@@ -7,6 +7,8 @@ use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\OAuthController;
 use App\Http\Services;
 use App\Http\Controllers\PacpieController;
+use App\Http\Controllers\OrigemPacpieController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -284,7 +286,7 @@ Route::resource('FormandoBaseRecebimentos', App\Http\Controllers\FormandoBaseRec
 
 #ORIGEM DE EMPRESAS PARA PAC PIE
 Route::resource('OrigemPacpie', App\Http\Controllers\OrigemPacpieController::class);
-
+Route::post('OrigemPacpie/AjustaCampos', [OrigemPacpieController::class, 'AjustaCampos'])->name('OrigemPacpie.AjustaCampos');
 
 
     # ENERGIA INJETADA
