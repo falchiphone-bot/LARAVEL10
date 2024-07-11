@@ -213,6 +213,15 @@ class PacpieController extends Controller
         foreach ($model as $item) {
             $item->email = strtolower($item->email);
             $item->nome = strtoupper($item->nome);
+
+
+
+            if (empty($item->email)) {
+                 
+                $item->email = null;
+            }
+
+
             try {
                 $item->save();
             } catch (Exception $e) {
