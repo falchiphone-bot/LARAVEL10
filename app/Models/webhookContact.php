@@ -32,6 +32,7 @@ class webhookContact extends Model
         'alerta_mensagem_recebida',
         'bloquear_entrada_mensagem',
         'carregamento_multimidia',
+        'limita_cadastros',
 
     ];
 

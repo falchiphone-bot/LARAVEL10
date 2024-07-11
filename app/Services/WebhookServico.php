@@ -1131,10 +1131,23 @@ class WebhookServico
                 ->get()
                 ->count();
 
-            $QuantidadeCadastro = 1000;
-            if ($messagesFrom != '5517997662949') {
-                $QuantidadeCadastro = 6;
-            }
+
+                 $limita_cadastros = WebhookContact::where('entry_id', $$entry_id)
+                ->where('recipient_id', $messagesFrom)
+                ->first();
+
+
+                ///LIMITA CADASTRO
+            $QuantidadeCadastro = $limita_cadastros->limita_cadastros ?? 6;
+            // if ($messagesFrom != '5517997662949' && $messagesFrom != '5517992481483') {
+            //     $QuantidadeCadastro = 6;
+            // }
+            // else
+            // if ($messagesFrom == '5517992481483') {
+            //     $QuantidadeCadastro = 100;
+            // }
+
+
             ////// incluir registros
             if ($formandobasewhatsappContagem > $QuantidadeCadastro) {
                 WebhookServico::avisoInteractiveJaAtingiuLimite($entry, $messagesFrom, $phone_number_id, $nome_contato, $nome);

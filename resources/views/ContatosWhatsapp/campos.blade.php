@@ -217,6 +217,20 @@
         </div>
 
 
+        <div class="row">
+            <div class="col-6">
+                <div class="form-check">
+                    <label class="form-check-label" style="color: red" for="limita_cadastros">
+                        LIMITAR CADASTROS PELO TELEFONE
+                    </label>
+                    <input type="hidden" name="limita_cadastros" value="{{ $model->limita_cadastros}}">
+                    <input class="number" name="limita_cadastros" type="number"
+                     value="{{ $model->limita_cadastros}}" id="limita_cadastros">
+                </div>
+            </div>
+        </div>
+
+
 
 
 <div class="row mt-2">

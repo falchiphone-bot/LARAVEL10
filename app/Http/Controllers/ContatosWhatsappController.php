@@ -179,6 +179,13 @@ class ContatosWhatsappController extends Controller
     {
         $model= webhookContact::find($id);
 
+        // $empresaID = '189514994242034';
+        // $messagesFrom = $model->recipient_id;
+        // $limita_cadastros = WebhookContact::where('entry_id', $empresaID)
+        //         ->where('recipient_id', $messagesFrom)
+        //         ->first();
+
+        //         dd($limita_cadastros);
 
         return view('ContatosWhatsapp.edit',compact('model'));
     }
@@ -206,7 +213,8 @@ class ContatosWhatsappController extends Controller
         $cadastro->save();
 
 
-        return redirect(route('ContatosWhatsapp.index'));
+        return redirect(route('ContatosWhatsapp.edit', $id));
+
     }
 
     /**
