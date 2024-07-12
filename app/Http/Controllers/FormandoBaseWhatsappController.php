@@ -79,14 +79,20 @@ class FormandoBaseWhatsappController extends Controller
         ->orderBy('nome')
         ->get();
 
-        // dd($model);
+        // dd($model, $model->Count());
 
 
        if($model->Count() == 0){
-        session(['success' => 'NADA A ATUALIZAR! ']);
+        session(['error' => 'NADA A ATUALIZAR! ']);
+        return view('FormandoBaseWhatsapp.index', compact('model','Empresas' ));
        }
 
         foreach ($model as $item) {
+
+            if($item->whatsapp){
+                    continue;
+            }
+
             $whatsapp = trim($item->flow_description); // Remove espaços em branco no início e no fim
 
             // Remove espaços em branco extras no meio (opcional, dependendo da sua necessidade)
@@ -94,15 +100,15 @@ class FormandoBaseWhatsappController extends Controller
             $whatsapp = substr($whatsapp, 0, 15);
 
             if($whatsapp){
-                $whatsapp = "55" . $whatsapp; 
+                $whatsapp = "55" . $whatsapp;
             }
             $item->whatsapp = $whatsapp;
 
             // dd($whatsapp);
             $item->save();
 
-            session(['error' => 'ATUALIZADO O TELEFONE: '.$item->whatsapp ]);
-            return view('FormandoBaseWhatsapp.index', compact('model','Empresas' ));
+            // session(['error' => 'ATUALIZADO O TELEFONE: '.$item->whatsapp ]);
+            // return view('FormandoBaseWhatsapp.index', compact('model','Empresas' ));
 
             // break;
         }
