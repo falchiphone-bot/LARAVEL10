@@ -101,91 +101,75 @@
 
                 <div class="card">
 
-<form method="POST" action="{{ route('FormandoBaseWhatsapp.indexBusca') }}" accept-charset="UTF-8" class="text-center">
-       @csrf
-   <div class="form-group">
-       <div class="badge bg-info text-wrap" style="width: 100%; height: 50%; font-size: 24px;">
-           BUSCAR POR NOME EM TODOS CLUBES PERMITIDOS AO USUÁRIO
-       </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <tr>
+                                        <td colspan="5">
+                                            <div class="card">
+                                                <div class="card-header bg-info text-white">
+                                                    BUSCAR POR NOME EM TODOS CLUBES PERMITIDOS AO USUÁRIO
+                                                </div>
+                                                <div class="card-body">
+                                                    <form method="POST" action="{{ route('FormandoBaseWhatsapp.indexBusca') }}">
+                                                        @csrf
+                                                        <div class="form-group">
+                                                            <label for="BuscarNome">Sequência de texto a pesquisar:</label>
+                                                            <input class="form-control" name="BuscarNome" type="text" id="BuscarNome" value="{{ $retorno['BuscarNome'] ?? null }}">
+                                                        </div>
 
-       <div class="col-12">
+                                                        <div class="form-group">
+                                                            <label for="Limite">Limite de registros para retorno:</label>
+                                                            <input class="form-control" name="Limite" type="number" id="Limite" value="{{ $retorno['Limite'] ?? null }}">
+                                                        </div>
 
-            <label for="Texto" style="color: black;">sequência de texto a pesquisar</label>
-            <input class="form-control @error('Descricao') is-invalid @else is-valid @enderror"
-                name="BuscarNome" size="70" type="text" id="BuscarNome"
-                value="{{ $retorno['BuscarNome'] ?? null }}">
-            </div>
-        <div>
+                                                        <fieldset>
+                                                            <legend>Avaliações no período:</legend>
+                                                            @foreach (['todos' => '29.01.2024 a 01.03.2024 (TODOS PERIODO)', '0202' => '29.01.2024 a 02.02.2024', '0902' => '05.02.2024 a 09.02.2024', '2302' => '19.02.2024 a 23.02.2024', '0103' => '26.02.2024 a 01.03.2024'] as $value => $label)
+                                                                <div>
+                                                                    <input type="radio" name="Avaliacao" value="{{ $value === 'todos' ? 1 : 'AVALIACAO_FUTEBOL_' . $value }}" id="periodo{{ $value }}">
+                                                                    <label for="periodo{{ $value }}">{{ $label }}</label>
+                                                                </div>
+                                                            @endforeach
+                                                        </fieldset>
 
-            <div class="col-12">
-                <div class="col-3">
-                <label for="Limite" style="color: black;">Limite de registros para retorno</label>
-                <input class="form-control @error('limite') is-invalid @else is-valid @enderror"
-                    name="Limite" size="10" type="number" step="1" id="Limite"
-                    value="{{ $retorno['Limite'] ?? null }}">
-               </div>
-            <div>
-
-
-                <div class="col-4">
-                    <input type="radio" name="Avaliacao" value="1" id="periodoTodos">
-                    <label for="periodoTodos">Avaliações no período de 29.01.2024 a 01.03.2024 (TODOS PERIODO)</label>
-                </div>
-
-                <div class="col-4">
-                    <input type="radio" name="Avaliacao" value="AVALIACAO_FUTEBOL_29012024_02022024" id="periodo0202">
-                    <label for="periodo0202">Avaliações no período de 29.01.2024 a 02.02.2024</label>
-                </div>
-
-                <div class="col-4">
-                    <input type="radio" name="Avaliacao" value="AVALIACAO_FUTEBOL_05022024_09022024" id="periodo0902">
-                    <label for="periodo0902">Avaliações no período de 05.02.2024 a 09.02.2024</label>
-                </div>
-
-                <div class="col-4">
-                    <input type="radio" name="Avaliacao" value="AVALIACAO_FUTEBOL_19022024_23022024" id="periodo2302">
-                    <label for="periodo2302">Avaliações no período de 19.02.2024 a 23.02.2024</label>
-                </div>
-
-                <div class="col-4">
-                    <input type="radio" name="Avaliacao" value="AVALIACAO_FUTEBOL 26022024_01032024" id="periodo0103">
-                    <label for="periodo0103">Avaliações no período de 26.02.2024 a 01.03.2024</label>
-                </div>
+                                                        <fieldset>
+                                                            <legend>Categorias:</legend>
+                                                            @foreach (['11', '12', '13', '14', '15', '17', '20'] as $idade)
+                                                                <div>
+                                                                    <input type="radio" name="Categoria" value="sub{{ $idade }}" id="sub{{ $idade }}">
+                                                                    <label for="sub{{ $idade }}">Sub-{{ $idade }}</label>
+                                                                </div>
+                                                            @endforeach
+                                                        </fieldset>
 
 
-           <div class="row mt-2">
-               <div class="col-4">
-                   <button class="btn btn-success mx-auto">Filtrar/Pesquisar</button>
-               </div>
-           </div>
-   </form>
+                                                        <button class="btn btn-success mt-2">Filtrar/Pesquisar</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <form method="POST" action="{{ route('FormandoBaseWhatsapp.AtualizaIdade') }}">
+                                                @csrf
+                                                <button class="btn btn-warning btn-block">ATUALIZAR IDADE NO BANCO DE DADOS DE TODOS REGISTROS</button>
+                                            </form>
+                                        </td>
+                                        <td>
+                                            <form method="POST" action="{{ route('FormandoBaseWhatsapp.AtualizaWatsapp') }}">
+                                                @csrf
+                                                <button class="btn btn-warning btn-block">ATUALIZAR WHATSAPP NO BANCO DE DADOS DE TODOS REGISTROS</button>
+                                            </form>
+                                        </td>
+                                        <td colspan="3"></td> </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
 
-   <form method="POST" action="{{ route('FormandoBaseWhatsapp.AtualizaIdade') }}" accept-charset="UTF-8" class="text-center">
-         @csrf
-         <div class="form-group">
-        <div class="badge bg-danger text-wrap" style="width: 100%; height: 50%; font-size: 24px;">
-            ATUALIZAR IDADE NO BANCO DE DADOS DE TODOS REGISTROS
-        </div>
-        <div class="row mt-12">
-            <div class="col-8">
-                <button class="btn btn-warning mx-auto"> CLIQUE PARA ATUALIZAR IDADE NO BANCO DE DADOS DE TODOS REGISTROS</button>
-            </div>
-        </div>
-    </form>
-
-    <form method="POST" action="{{ route('FormandoBaseWhatsapp.AtualizaWatsapp') }}" accept-charset="UTF-8" class="text-center">
-        @csrf
-        <div class="form-group">
-       <div class="badge bg-danger text-wrap" style="width: 100%; height: 50%; font-size: 24px;">
-           ATUALIZAR WHATSAPP NO BANCO DE DADOS DE TODOS REGISTROS
-       </div>
-       <div class="row mt-12">
-           <div class="col-8">
-               <button class="btn btn-warning mx-auto"> CLIQUE PARA ATUALIZAR WHATSAPP NO BANCO DE DADOS DE TODOS REGISTROS</button>
-           </div>
-       </div>
-   </form>
-</div>
 
 
             {{-- </div>

@@ -212,8 +212,72 @@ public function AtualizaIdade()
                 ->get();
             }
 
-            $retorno =$request->all();
 
+
+
+            $retorno = $request->all();
+
+
+            if($retorno['Categoria'] == 'SUB11')
+            {
+                $model = FormandoBaseWhatsapp::limit($limite)
+                ->where('idade','=', 11)
+                ->orderBy('nome', 'asc')
+                ->get();
+            }
+            else
+            if($retorno['Categoria'] == 'SUB12')
+            {
+                $model = FormandoBaseWhatsapp::limit($limite)
+                ->where('idade','=', 12)
+                ->orderBy('nome', 'asc')
+                ->get();
+            }
+            else
+            if($retorno['Categoria'] == 'SUB13')
+            {
+                $model = FormandoBaseWhatsapp::limit($limite)
+                ->where('idade','=', 13)
+                ->orderBy('nome', 'asc')
+                ->get();
+            }
+            else
+            if($retorno['Categoria'] == 'SUB14')
+            {
+                $model = FormandoBaseWhatsapp::limit($limite)
+                ->where('idade','=', 14)
+                ->orderBy('nome', 'asc')
+                ->get();
+            }
+            else
+            if($retorno['Categoria'] == 'SUB15')
+            {
+                $model = FormandoBaseWhatsapp::limit($limite)
+                ->where('idade','=', 15)
+                ->orderBy('nome', 'asc')
+                ->get();
+            }
+            else
+            if($retorno['Categoria'] == 'SUB17')
+            {
+                $model = FormandoBaseWhatsapp::limit($limite)
+                ->where('idade','<=', 17)
+                ->where('idade','>=', 16)
+                ->orderBy('nome', 'asc')
+                ->get();
+            }
+            else
+            if($retorno['Categoria'] == 'SUB20')
+            {
+                $model = FormandoBaseWhatsapp::limit($limite)
+                ->where('idade','<=', 20)
+                ->where('idade','>=', 18)
+                ->orderBy('nome', 'asc')
+                ->get();
+            }
+
+// dd($retorno);
+            // dd($model, $model->Count()
         return view('FormandoBaseWhatsapp.index', compact('model','Empresas', 'retorno'));
     }
 
