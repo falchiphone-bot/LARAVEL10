@@ -173,8 +173,7 @@ public function AtualizaIdade()
             $request['Limite'] = null;
         }
 
-
-       $Avaliacao = $request->Avaliacao;
+    //    $Avaliacao = $request->Avaliacao;
 
         $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
         ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
@@ -188,96 +187,104 @@ public function AtualizaIdade()
                 ->where('nome', 'like', '%' . $texto . '%')
                 ->orderBy('nome', 'asc')
                 ->get();
+                $request['Categoria'] = null;
             }
             else{
                 $model = FormandoBaseWhatsapp::limit($limite)
                ->orderBy('nome', 'asc')
                 ->get();
+
             }
 
 
-            if($Avaliacao == 1){
-                $model = FormandoBaseWhatsapp::limit($limite)
-                ->where('motivo_cadastro', '!=', '')
-                ->orderBy('motivo_cadastro', 'asc')
-                ->orderBy('nome', 'asc')
-                ->get();
-            }
-            else
-             {
-                $model = FormandoBaseWhatsapp::limit($limite)
-                ->where('motivo_cadastro', $Avaliacao)
-                ->orderBy('motivo_cadastro', 'asc')
-                ->orderBy('nome', 'asc')
-                ->get();
-            }
-
-
-
+            // if($Avaliacao == 1){
+            //     $model = FormandoBaseWhatsapp::limit($limite)
+            //     ->where('motivo_cadastro', '!=', '')
+            //     ->orderBy('motivo_cadastro', 'asc')
+            //     ->orderBy('nome', 'asc')
+            //     ->get();
+            //     $request['Categoria'] = null;
+            // }
+            // else
+            //  {
+            //     $model = FormandoBaseWhatsapp::limit($limite)
+            //     ->where('motivo_cadastro', $Avaliacao)
+            //     ->orderBy('motivo_cadastro', 'asc')
+            //     ->orderBy('nome', 'asc')
+            //     ->get();
+            //     $request['Categoria'] = null;
+            // }
 
             $retorno = $request->all();
+            // DD($retorno);
 
 
-            if($retorno['Categoria'] == 'SUB11')
-            {
-                $model = FormandoBaseWhatsapp::limit($limite)
-                ->where('idade','=', 11)
-                ->orderBy('nome', 'asc')
-                ->get();
-            }
-            else
-            if($retorno['Categoria'] == 'SUB12')
-            {
-                $model = FormandoBaseWhatsapp::limit($limite)
-                ->where('idade','=', 12)
-                ->orderBy('nome', 'asc')
-                ->get();
-            }
-            else
-            if($retorno['Categoria'] == 'SUB13')
-            {
-                $model = FormandoBaseWhatsapp::limit($limite)
-                ->where('idade','=', 13)
-                ->orderBy('nome', 'asc')
-                ->get();
-            }
-            else
-            if($retorno['Categoria'] == 'SUB14')
-            {
-                $model = FormandoBaseWhatsapp::limit($limite)
-                ->where('idade','=', 14)
-                ->orderBy('nome', 'asc')
-                ->get();
-            }
-            else
-            if($retorno['Categoria'] == 'SUB15')
-            {
-                $model = FormandoBaseWhatsapp::limit($limite)
-                ->where('idade','=', 15)
-                ->orderBy('nome', 'asc')
-                ->get();
-            }
-            else
-            if($retorno['Categoria'] == 'SUB17')
-            {
-                $model = FormandoBaseWhatsapp::limit($limite)
-                ->where('idade','<=', 17)
-                ->where('idade','>=', 16)
-                ->orderBy('nome', 'asc')
-                ->get();
-            }
-            else
-            if($retorno['Categoria'] == 'SUB20')
-            {
-                $model = FormandoBaseWhatsapp::limit($limite)
-                ->where('idade','<=', 20)
-                ->where('idade','>=', 18)
-                ->orderBy('nome', 'asc')
-                ->get();
-            }
+                if($retorno['Categoria'] == 'sub11')
+                {
+                    $model = FormandoBaseWhatsapp::limit($limite)
+                    ->where('idade','=', 11)
+                    ->orderBy('nome', 'asc')
+                    ->get();
 
-// dd($retorno);
-            // dd($model, $model->Count()
+                }
+                else
+                if($retorno['Categoria'] == 'sub12')
+                {
+                    $model = FormandoBaseWhatsapp::limit($limite)
+                    ->where('idade','=', 12)
+                    ->orderBy('nome', 'asc')
+                    ->get();
+
+                }
+                else
+                if($retorno['Categoria'] == 'sub13')
+                {
+                    $model = FormandoBaseWhatsapp::limit($limite)
+                    ->where('idade','=', 13)
+                    ->orderBy('nome', 'asc')
+                    ->get();
+
+                }
+                else
+                if($retorno['Categoria'] == 'sub14')
+                {
+                    $model = FormandoBaseWhatsapp::limit($limite)
+                    ->where('idade','=', 14)
+                    ->orderBy('nome', 'asc')
+                    ->get();
+
+                }
+                else
+                if($retorno['Categoria'] == 'sub15')
+                {
+                    $model = FormandoBaseWhatsapp::limit($limite)
+                    ->where('idade','=', 15)
+                    ->orderBy('nome', 'asc')
+                    ->get();
+                    $request['Avaliacao'] = null;
+                }
+                else
+                if($retorno['Categoria'] == 'sub17')
+                {
+                    $model = FormandoBaseWhatsapp::limit($limite)
+                    ->where('idade','<=', 17)
+                    ->where('idade','>=', 16)
+                    ->orderBy('nome', 'asc')
+                    ->get();
+
+                }
+                else
+                if($retorno['Categoria'] == 'sub20')
+                {
+                    $model = FormandoBaseWhatsapp::limit($limite)
+                    ->where('idade','<=', 20)
+                    ->where('idade','>=', 18)
+                    ->orderBy('nome', 'asc')
+                    ->get();
+
+                }
+
+
         return view('FormandoBaseWhatsapp.index', compact('model','Empresas', 'retorno'));
     }
 
