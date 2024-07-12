@@ -259,7 +259,8 @@ Route::resource('FormandoBaseAvaliacao', App\Http\Controllers\FormandoBaseAvalia
  # Formandos base whatsapp - cadastros via flow
  Route::post('FormandoBaseWhatsapp/indexBusca', [App\Http\Controllers\FormandoBaseWhatsappController::class, 'indexBusca'])->name('FormandoBaseWhatsapp.indexBusca');
  Route::post('FFormandoBaseWhatsapp.AtualizaIdade/AtualizaIdade', [App\Http\Controllers\FormandoBaseWhatsappController::class, 'AtualizaIdade'])->name('FormandoBaseWhatsapp.AtualizaIdade');
-Route::resource('FormandoBaseWhatsapp', App\Http\Controllers\FormandoBaseWhatsappController::class);
+ Route::post('FormandoBaseWhatsapp.AtualizaWatsapp', [App\Http\Controllers\FormandoBaseWhatsappController::class, 'AtualizaWatsapp'])->name('FormandoBaseWhatsapp.AtualizaWatsapp');
+ Route::resource('FormandoBaseWhatsapp', App\Http\Controllers\FormandoBaseWhatsappController::class);
 
 
 # Formandos base recebimentos

@@ -62,6 +62,33 @@ class FormandoBaseWhatsappController extends Controller
 
         return view('FormandoBaseWhatsapp.index', compact('model','Empresas', 'retorno'));
     }
+
+
+    public function AtualizaWatsapp()
+    {
+        $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
+        ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+        ->OrderBy('Descricao')
+        ->select(['Empresas.ID', 'Empresas.Descricao'])
+        ->get();
+
+
+        $model = FormandoBaseWhatsapp::Where('whatsapp', NULL)
+        ->where('flow_description', '!=', NULL)
+        ->orderBy('nome')
+        ->get();
+        dd($model);
+        foreach ($model as $item) {
+            $whatsapp = $item->flow_description;
+
+            // $item->save();
+
+        }
+
+        session(['success' => 'ATUALIZADO OS TELEFONES DE WHATSAPP NO BANCO DE DADOS! ']);
+        return view('FormandoBaseWhatsapp.index', compact('model','Empresas' ));
+    }
+
 // ==============================
 public function AtualizaIdade()
 {
@@ -100,12 +127,9 @@ public function AtualizaIdade()
         // dd($item->idade);
     }
 
-
-
     session(['success' => 'ATUALIZADO AS IDADES NO BANCO DE DADOS! ']);
     return view('FormandoBaseWhatsapp.index', compact('model','Empresas', 'retorno'));
 }
-// ==============================
 
 
 
@@ -159,14 +183,8 @@ public function AtualizaIdade()
                 ->get();
             }
 
+            $retorno =$request->all();
 
-
-
-
-
- $retorno =$request->all();
-
-//  DD($retorno);
         return view('FormandoBaseWhatsapp.index', compact('model','Empresas', 'retorno'));
     }
 

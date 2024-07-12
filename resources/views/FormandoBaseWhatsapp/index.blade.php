@@ -41,9 +41,9 @@
                         <p>Total de cadastros pesquisados no cadastro  do sistema de gerenciamento administrativo e contábil:
                             {{ $model->count() ?? 0 }}</p>
 
-                        @if($retorno['Limite'] == null)
+                        {{-- @if($retorno['Limite'] == null)
                                  <p>Esta tela está limitada a 1000 registros, caso não foi efetuada pesquisa. Pesquise pelas opções abaixo caso possua para você.</p>
-                        @endif
+                        @endif --}}
                     </div>
                 </div>
 
@@ -162,6 +162,19 @@
             </div>
         </div>
     </form>
+
+    <form method="POST" action="{{ route('FormandoBaseWhatsapp.AtualizaWatsapp') }}" accept-charset="UTF-8" class="text-center">
+        @csrf
+        <div class="form-group">
+       <div class="badge bg-danger text-wrap" style="width: 100%; height: 50%; font-size: 24px;">
+           ATUALIZAR WHATSAPP NO BANCO DE DADOS DE TODOS REGISTROS
+       </div>
+       <div class="row mt-12">
+           <div class="col-8">
+               <button class="btn btn-warning mx-auto"> CLIQUE PARA ATUALIZAR WHATSAPP NO BANCO DE DADOS DE TODOS REGISTROS</button>
+           </div>
+       </div>
+   </form>
 </div>
 
 

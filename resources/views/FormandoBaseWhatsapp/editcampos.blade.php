@@ -128,7 +128,14 @@
             @enderror
         </div>
 
-
+        <div class="form-group">
+            <label for="whatsapp">Anotações)</label>
+            <input required class="form-control @error('flow_description') is-invalid @else is-valid @enderror" name="flow_description"
+                type="text" id="flow_description" value="{{ $model->flow_description ?? null }}"  ">
+            @error('whatsapp')
+                <div class="alert alert-danger">{{ $message }}</div>
+            @enderror
+        </div>
 
         {{-- <input required class="form-control @error('formandobase_id') is-invalid @else is-valid @enderror d-none"
             name="formandobase_id" type="text" id="formandobase_id" value="{{ $model->id ?? null }}"> --}}
