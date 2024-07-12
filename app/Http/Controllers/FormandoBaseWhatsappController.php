@@ -74,16 +74,39 @@ class FormandoBaseWhatsappController extends Controller
 
 
         $model = FormandoBaseWhatsapp::Where('whatsapp', NULL)
-        ->where('flow_description', '!=', NULL)
+        // ->where('flow_description', '!=', NULL)
+        // ->orwhere('flow_description', '!=', '')
         ->orderBy('nome')
         ->get();
-        dd($model);
+
+        // dd($model);
+
+
+       if($model->Count() == 0){
+        session(['success' => 'NADA A ATUALIZAR! ']);
+       }
+
         foreach ($model as $item) {
-            $whatsapp = $item->flow_description;
+            $whatsapp = trim($item->flow_description); // Remove espaços em branco no início e no fim
 
-            // $item->save();
+            // Remove espaços em branco extras no meio (opcional, dependendo da sua necessidade)
+            $whatsapp = preg_replace('/\s+/', '', $whatsapp);
+            $whatsapp = substr($whatsapp, 0, 15);
 
+            if($whatsapp){
+                $whatsapp = "55" . $whatsapp; 
+            }
+            $item->whatsapp = $whatsapp;
+
+            // dd($whatsapp);
+            $item->save();
+
+            session(['error' => 'ATUALIZADO O TELEFONE: '.$item->whatsapp ]);
+            return view('FormandoBaseWhatsapp.index', compact('model','Empresas' ));
+
+            // break;
         }
+
 
         session(['success' => 'ATUALIZADO OS TELEFONES DE WHATSAPP NO BANCO DE DADOS! ']);
         return view('FormandoBaseWhatsapp.index', compact('model','Empresas' ));
