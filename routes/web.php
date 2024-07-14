@@ -289,6 +289,12 @@ Route::resource('FormandoBaseRecebimentos', App\Http\Controllers\FormandoBaseRec
 Route::resource('OrigemPacpie', App\Http\Controllers\OrigemPacpieController::class);
 Route::post('OrigemPacpie/AjustaCampos', [OrigemPacpieController::class, 'AjustaCampos'])->name('OrigemPacpie.AjustaCampos');
 
+#TipoFormandoBaseWhatsapp
+Route::resource('TipoFormandoBaseWhatsapp', App\Http\Controllers\TipoFormandoBaseWhatsappController::class);
+// Route::post('OrigemPacpie/AjustaCampos', [OrigemPacpieController::class, 'AjustaCampos'])->name('OrigemPacpie.AjustaCampos');
+
+
+
 
     # ENERGIA INJETADA
 Route::get('EnergiaInjetada/dashboard', [App\Http\Controllers\EnergiaInjetada\EnergiaInjetadaController::class, 'dashboard'])->name('EnergiaInjetada.dashboard');

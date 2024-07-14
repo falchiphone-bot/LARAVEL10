@@ -278,7 +278,7 @@
 
 
                             @else
-                            <h5 class="card-title mb-0">Registros: Nada filtrado {{ Pesquisa: $emailComFalha}}</h5>
+                            <h5 class="card-title mb-0">Registros: Nada filtrado</h5>
                         @endif
 
 

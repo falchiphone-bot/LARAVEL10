@@ -9,6 +9,7 @@ class FormandoBaseWhatsapp extends Model
     public $timestamps = true;
     protected $fillable = [
     'nome',
+    'TipoCadastroFormando',
     'cpf',
     'rg',
     'email',
@@ -36,6 +37,7 @@ class FormandoBaseWhatsapp extends Model
 
     protected $casts = [
         'nome' => 'string',
+        'TipoCadastroFormando' => 'string',
         'cpf' => 'string',
         'rg' => 'string',
         'email' => 'string',
@@ -67,6 +69,12 @@ class FormandoBaseWhatsapp extends Model
     {
         return $this->hasOne(Representantes::class, 'id', 'representante_id');
     }
+    public function MostraTipoFormandoBase(): HasOne
+    {
+        return $this->hasOne(TipoFormandoBaseWhatsapp::class, 'id', 'TipoCadastroFormando');
+    }
+
+
 
     //  public function MostraFormandoBase(): HasOne
     //  {

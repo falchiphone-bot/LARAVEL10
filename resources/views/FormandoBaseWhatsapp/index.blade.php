@@ -37,7 +37,7 @@
                 @can('FORMANDOBASEWHATSAPP - LISTAR')
                     <th>
                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                            <a class="btn btn-success" href="/FormandoBaseWhatsapp">Formandos - atletas - cadastros via flow
+                            <a class="btn btn-success" href="/TipoFormandoBaseWhatsapp">Tipos de Formandos - atletas - cadastros via flow
                                 whatsapp </a>
                         </nav>
                     </th>
@@ -203,7 +203,7 @@
             </div> --}}
 
 
-                
+
                 <div class="card">
                     <div class="card-header bg-success text-white text-center">
                         SELECIONADOS/FILTRADOS POR CATEGORIA: {{ $retorno['Categoria'] ?? 'TODOS' }}
@@ -217,11 +217,12 @@
                         <thead>
                             <tr>
                                 <th scope="col" class="px-6 py-4">NOME</th>
+                                <th scope="col" class="px-6 py-4">TIPO CADASTRO</th>
                                 <th scope="col" class="px-6 py-4">TELEFONE</th>
                                 <th scope="col" class="px-6 py-4">WHATSAPP</th>
                                 {{-- <th scope="col" class="px-6 py-4">EMAIL</th> --}}
                                 <th scope="col" class="px-6 py-4">CPF</th>
-                                <th scope="col" class="px-6 py-4">MOTIVO CADASTRO</th>
+                                {{-- <th scope="col" class="px-6 py-4">MOTIVO CADASTRO</th> --}}
                                 <th scope="col" class="px-6 py-4">NASCIMENTO</th>
                                 <th scope="col" class="px-6 py-4">ANOTAÇÃO</th>
                                 {{-- <th scope="col" class="px-6 py-4">REPRESENTANTE PRINCIPAL</th> --}}
@@ -259,6 +260,9 @@
                                         {{ $Model->nome }}
                                     </td>
                                     <td class="">
+                                        {{ $Model->MostraTipoFormandoBase->nome ?? null }}
+                                    </td>
+                                    <td class="">
                                         {{ $Model->telefone }}
                                     </td>
                                     <td class="">
@@ -270,9 +274,9 @@
                                     <td class="">
                                         {{ $Model->cpf }}
                                     </td>
-                                    <td class="">
+                                    {{-- <td class="">
                                         {{ $Model->motivo_cadastro }}
-                                    </td>
+                                    </td> --}}
                                     <td class="">
                                         {{ $Model->nascimento->format('d/m/Y') . ' Idade:' . $idade }}
 

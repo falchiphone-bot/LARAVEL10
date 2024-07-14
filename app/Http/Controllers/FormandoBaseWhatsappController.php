@@ -26,6 +26,7 @@ use App\Models\Posicoes;
 use App\Models\RecebimentoFormandoBase;
 use App\Models\RedeSocial;
 use App\Models\RedeSocialUsuarios;
+use App\Models\TipoFormandoBaseWhatsapp;
 use App\Models\TipoRepresentante;
 use DateTime;
 use Illuminate\Support\Facades\Auth;
@@ -495,12 +496,17 @@ public function AtualizaIdade()
         $tiporep['tiporepresentante'] = $model->tipo_representante;
         $retorno['EmpresaSelecionada'] = $model->EmpresaID;
 
+        $retorno['TipoCadastroFormando'] = $model->TipoCadastroFormando;
+
         $representantes = Representantes::where('EmpresaID',$model->EmpresaID)->orderBy('nome')->get();
+
+        $TipoFormando = TipoFormandoBaseWhatsapp::orderBy('nome')->get();
+
 
         return view('FormandoBaseWhatsapp.edit', compact('model', 'RedeSocial', 'retorno', 'redesocialUsuario',
         'representantes', 'tiporep', 'Empresas','redeSocialExiste','Posicao','FormandoBasePosicao', 'FormandoBaseAvaliacao',
         'posicaoExiste', 'avaliacaoExiste','FormandoBaseRecebimento',
-        'recebimentoExiste', 'documento','arquivoExiste','FormandoBaseArquivo','TotalRecebido'));
+        'recebimentoExiste', 'documento','arquivoExiste','FormandoBaseArquivo','TotalRecebido','TipoFormando'));
     }
 
     /**
@@ -549,6 +555,7 @@ public function AtualizaIdade()
 
         // Obtém o endereço de e-mail do objeto $request
         $email = $request->email;
+        $TipoCadastroFormando = $request->TipoCadastroFormando;
 
         // Remove caracteres inválidos do endereço de e-mail
         $emailCorrigido = preg_replace('/[^a-zA-Z0-9.@_-]/', '', $email);
@@ -572,6 +579,7 @@ public function AtualizaIdade()
         $cadastro = FormandoBaseWhatsapp::find($id);
         $request['nome'] = strtoupper($request['nome']);
         $request['idade'] = strtoupper($request['idade']);
+        $request['TipoCadastroFormando'] = $TipoCadastroFormando;
         // $cadastro->avaliacao = round($request->avaliacao, 2);
         // dd($request->all());
         $cadastro->fill($request->all());

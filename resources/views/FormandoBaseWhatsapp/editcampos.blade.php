@@ -40,6 +40,24 @@
                 @endforeach
             </select>
         </div>
+
+       <div class="form-group">
+        <div class="badge bg-primary text-wrap" style="width: 100%; height: 50%; font-size: 24px;">
+            Tipo de cadastro a informar
+        </div>
+        <select required class="form-control select2" id="TipoCadastroFormando" name="TipoCadastroFormando">
+            <option value="">Tipo de cadastro</option>
+            @foreach ($TipoFormando as $item)
+                <option @if ($retorno['TipoCadastroFormando'] == $item->id) selected @endif value="{{ $item->id }}">
+                    {{ $item->nome }}
+                </option>
+            @endforeach
+        </select>
+    </div>
+
+
+
+
         <div class="form-group">
             <label for="cpf">CPF</label>
             <input required class="form-control @error('cpf') is-invalid @else is-valid @enderror" name="cpf"
