@@ -35,29 +35,6 @@ class TipoFormandoBaseWhatsappController extends Controller
     }
 
 
-    // public function AjustaCampos()
-    // {
-
-    //     $model = TipoFormandoBaseWhatsapp::whereNotNull('email')->get();
-
-    //     foreach ($model as $item) {
-    //         $item->email = strtolower($item->email);
-    //         $item->nome = strtoupper($item->nome);
-    //         try {
-    //             $item->save();
-    //         } catch (Exception $e) {
-    //             // Handle the exception as needed
-    //             echo 'Falha ao salvar: ',  $e->getMessage(), "\n";
-    //             session(['error' => 'Falha ao salvar: ',  $e->getMessage(), "\n"]);
-    //         }
-    //     }
-
-    //     session(['success' => 'ATUALIZADO COM SUCESSO! Campo email para tudo minúsculo como padrão e campo nome para tudo maiusculo como padrão' ]);
-    //     return redirect(route('TipoFormandoBaseWhatsapp.index', compact('model')));
-    //     // return view('Pacpie.index', compact('model'));
-
-    // }
-
 
     public function index()
     {
@@ -65,8 +42,6 @@ class TipoFormandoBaseWhatsappController extends Controller
 
                     return view('TipoFormandoBaseWhatsapp.index', compact('model'));
     }
-
-
 
 
 

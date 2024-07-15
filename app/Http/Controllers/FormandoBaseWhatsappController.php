@@ -54,11 +54,13 @@ class FormandoBaseWhatsappController extends Controller
         ->select(['Empresas.ID', 'Empresas.Descricao'])
         ->get();
 
-        $limite = 1000;
+        $limite = 0;
         $retorno['Limite'] = $limite;
-        $model = FormandoBaseWhatsapp::limit($limite)
-        ->orderBy('nome')
-        ->get();
+        // $model = FormandoBaseWhatsapp::orderBy('nome')
+        // ->take($limite)
+        // ->get();
+
+        $model = collect();
 
         $TipoCadastroFormando = TipoFormandoBaseWhatsapp::orderBy('nome')->get();
 
@@ -176,13 +178,35 @@ public function AtualizaIdade()
             $request['Limite'] = null;
         }
 
-        $TipoCadastroFormando = TipoFormandoBaseWhatsapp::orderBy('nome')->get();
-
         $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
         ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
         ->OrderBy('Descricao')
         ->select(['Empresas.ID', 'Empresas.Descricao'])
         ->get();
+
+
+        $TipoCadastroFormando = TipoFormandoBaseWhatsapp::orderBy('nome')->get();
+
+        $retorno = $request->all();
+
+        $Categoria = $retorno['Categoria'] ?? null;
+
+        $TipoCadastro = $request->TipoCadastroFormando ?? null;
+
+
+        if($request["BuscarNome"] == null && $request["Limite"] ==null && $request["TipoCadastroFormando"] == null && $request["Categoria"] == null){
+            session(['error' => 'NADA A BUSCAR! ']);
+             $model = collect();
+            //  dd($request->all());
+             return view('FormandoBaseWhatsapp.index', compact('model','Empresas', 'retorno', 'TipoCadastroFormando'));
+
+        }
+
+
+
+
+
+
 
             if ($request->BuscarNome) {
                 $texto = $request->BuscarNome;
@@ -199,11 +223,7 @@ public function AtualizaIdade()
             }
 
 
-            $retorno = $request->all();
 
-            $Categoria = $retorno['Categoria'] ?? null;
-
-            $TipoCadastro = $request->TipoCadastroFormando ?? null;
 
                  if($TipoCadastro)
                 {
