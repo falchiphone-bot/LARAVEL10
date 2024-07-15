@@ -174,7 +174,6 @@ public function AtualizaIdade()
             $request['Limite'] = null;
         }
 
-    //    $Avaliacao = $request->Avaliacao;
 
         $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
         ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
@@ -194,69 +193,54 @@ public function AtualizaIdade()
                 $model = FormandoBaseWhatsapp::limit($limite)
                ->orderBy('nome', 'asc')
                 ->get();
-
             }
 
 
-            // if($Avaliacao == 1){
-            //     $model = FormandoBaseWhatsapp::limit($limite)
-            //     ->where('motivo_cadastro', '!=', '')
-            //     ->orderBy('motivo_cadastro', 'asc')
-            //     ->orderBy('nome', 'asc')
-            //     ->get();
-            //     $request['Categoria'] = null;
-            // }
-            // else
-            //  {
-            //     $model = FormandoBaseWhatsapp::limit($limite)
-            //     ->where('motivo_cadastro', $Avaliacao)
-            //     ->orderBy('motivo_cadastro', 'asc')
-            //     ->orderBy('nome', 'asc')
-            //     ->get();
-            //     $request['Categoria'] = null;
-            // }
-
             $retorno = $request->all();
-            // DD($retorno);
+
+            $Categoria = $retorno['Categoria'] ?? null;
 
 
-                if($retorno['Categoria'] == 'sub11')
+                if($Categoria == 'Todos')
+                {
+                    $model = FormandoBaseWhatsapp::limit($limite)
+                    ->orderBy('nome', 'asc')
+                    ->get();
+                }
+                else
+                if($Categoria == 'sub11')
                 {
                     $model = FormandoBaseWhatsapp::limit($limite)
                     ->where('idade','=', 11)
                     ->orderBy('nome', 'asc')
                     ->get();
-
                 }
                 else
-                if($retorno['Categoria'] == 'sub12')
+                if($Categoria == 'sub12')
                 {
                     $model = FormandoBaseWhatsapp::limit($limite)
                     ->where('idade','=', 12)
                     ->orderBy('nome', 'asc')
                     ->get();
-
                 }
                 else
-                if($retorno['Categoria'] == 'sub13')
+                if($Categoria == 'sub13')
                 {
                     $model = FormandoBaseWhatsapp::limit($limite)
                     ->where('idade','=', 13)
                     ->orderBy('nome', 'asc')
                     ->get();
-
                 }
                 else
-                if($retorno['Categoria'] == 'sub14')
+                if($Categoria == 'sub14')
                 {
                     $model = FormandoBaseWhatsapp::limit($limite)
                     ->where('idade','=', 14)
                     ->orderBy('nome', 'asc')
                     ->get();
-
                 }
                 else
-                if($retorno['Categoria'] == 'sub15')
+                if($Categoria == 'sub15')
                 {
                     $model = FormandoBaseWhatsapp::limit($limite)
                     ->where('idade','=', 15)
@@ -265,24 +249,22 @@ public function AtualizaIdade()
                     $request['Avaliacao'] = null;
                 }
                 else
-                if($retorno['Categoria'] == 'sub17')
+                if($Categoria == 'sub17')
                 {
                     $model = FormandoBaseWhatsapp::limit($limite)
                     ->where('idade','<=', 17)
                     ->where('idade','>=', 16)
                     ->orderBy('nome', 'asc')
                     ->get();
-
                 }
                 else
-                if($retorno['Categoria'] == 'sub20')
+                if($Categoria == 'sub20')
                 {
                     $model = FormandoBaseWhatsapp::limit($limite)
                     ->where('idade','<=', 20)
                     ->where('idade','>=', 18)
                     ->orderBy('nome', 'asc')
                     ->get();
-
                 }
 
 

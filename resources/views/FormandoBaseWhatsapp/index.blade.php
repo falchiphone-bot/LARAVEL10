@@ -116,41 +116,44 @@
                                                 <form method="POST"
                                                     action="{{ route('FormandoBaseWhatsapp.indexBusca') }}">
                                                     @csrf
-                                                    <div class="form-group">
-                                                        <label for="BuscarNome">Sequência de texto a pesquisar:</label>
-                                                        <input class="form-control" name="BuscarNome" type="text"
-                                                            id="BuscarNome" value="{{ $retorno['BuscarNome'] ?? null }}">
-                                                    </div>
-
-                                                    <div class="form-group">
-                                                        <label for="Limite">Limite de registros para retorno:</label>
-                                                        <input class="form-control" name="Limite" type="number"
-                                                            id="Limite" value="{{ $retorno['Limite'] ?? null }}">
-                                                    </div>
-
-                                                    {{-- <fieldset>
-                                                        <legend>Avaliações no período:</legend>
-                                                        @foreach (['todos' => '29.01.2024 a 01.03.2024 (TODOS PERIODO)', '0202' => '29.01.2024 a 02.02.2024', '0902' => '05.02.2024 a 09.02.2024', '2302' => '19.02.2024 a 23.02.2024', '0103' => '26.02.2024 a 01.03.2024'] as $value => $label)
-                                                            <div>
-                                                                <input type="radio" name="Avaliacao"
-                                                                    value="{{ $value === 'todos' ? 1 : 'AVALIACAO_FUTEBOL_' . $value }}"
-                                                                    id="periodo{{ $value }}">
-                                                                <label
-                                                                    for="periodo{{ $value }}">{{ $label }}</label>
+                                                    <div class="container-flex">
+                                                        <div class="pesquisa">
+                                                            <div class="form-group">
+                                                                <label for="BuscarNome">Sequência de texto a pesquisar:</label>
+                                                                <input class="form-control" name="BuscarNome" type="text" id="BuscarNome" value="{{ $retorno['BuscarNome'] ?? null }}">
                                                             </div>
-                                                        @endforeach
-                                                    </fieldset> --}}
+                                                        </div>
+                                                        <div class="limite">
+                                                            <div class="form-group">
+                                                                <label for="Limite">Limite de registros para retorno:</label>
+                                                                <input class="form-control" name="Limite" type="number" id="Limite" value="{{ $retorno['Limite'] ?? null }}">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <style>
+                                                        .container-flex {
+                                                            display: flex;
+                                                            align-items: center;
+                                                        }
+
+                                                        .pesquisa {
+                                                            margin-right: 50px; /* Espaçamento entre os elementos */
+                                                        }
+                                                    </style>
+
+
 
                                                     <fieldset>
                                                         <legend>Categorias:</legend>
-                                                        @foreach (['11', '12', '13', '14', '15', '17', '20'] as $idade)
-                                                            <div>
+                                                        @foreach (['Todos','sub11', 'sub12', 'sub13', 'sub14', 'sub15', 'sub17', 'sub20'] as $idade)
+
                                                                 <input type="radio" name="Categoria"
-                                                                    value="sub{{ $idade }}"
-                                                                    id="sub{{ $idade }}">
+                                                                    value="{{ $idade }}"
+                                                                    id="{{ $idade }}">
                                                                 <label
-                                                                    for="sub{{ $idade }}">Sub-{{ $idade }}</label>
-                                                            </div>
+                                                                    for="{{ $idade }}">{{ $idade }}</label>
+
                                                         @endforeach
                                                     </fieldset>
 
