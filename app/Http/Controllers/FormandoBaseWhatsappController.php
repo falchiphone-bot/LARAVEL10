@@ -60,8 +60,10 @@ class FormandoBaseWhatsappController extends Controller
         ->orderBy('nome')
         ->get();
 
+        $TipoCadastroFormando = TipoFormandoBaseWhatsapp::orderBy('nome')->get();
 
-        return view('FormandoBaseWhatsapp.index', compact('model','Empresas', 'retorno'));
+
+        return view('FormandoBaseWhatsapp.index', compact('model','Empresas', 'retorno', 'TipoCadastroFormando'));
     }
 
 
@@ -174,6 +176,7 @@ public function AtualizaIdade()
             $request['Limite'] = null;
         }
 
+        $TipoCadastroFormando = TipoFormandoBaseWhatsapp::orderBy('nome')->get();
 
         $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
         ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
@@ -200,7 +203,16 @@ public function AtualizaIdade()
 
             $Categoria = $retorno['Categoria'] ?? null;
 
+            $TipoCadastro = $request->TipoCadastroFormando ?? null;
 
+                 if($TipoCadastro)
+                {
+                    $model = FormandoBaseWhatsapp::limit($limite)
+                    ->where('TipoCadastroFormando', $TipoCadastro)
+                    ->orderBy('nome', 'asc')
+                    ->get();
+                }
+                else
                 if($Categoria == 'Todos')
                 {
                     $model = FormandoBaseWhatsapp::limit($limite)
@@ -268,7 +280,7 @@ public function AtualizaIdade()
                 }
 
 
-        return view('FormandoBaseWhatsapp.index', compact('model','Empresas', 'retorno'));
+        return view('FormandoBaseWhatsapp.index', compact('model','Empresas', 'retorno', 'TipoCadastroFormando'));
     }
 
 

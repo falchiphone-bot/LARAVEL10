@@ -158,6 +158,20 @@
                                                     </fieldset>
 
 
+                                                    <div class="form-group">
+                                                        <div class="badge bg-primary text-wrap" style="width: 100%; height: 50%; font-size: 24px;">
+                                                            Tipo de cadastro a consultar/filtrar
+                                                        </div>
+                                                        <select class="form-control select2" id="TipoCadastroFormando" name="TipoCadastroFormando">
+                                                            <option value="">Tipo de cadastro</option>
+                                                            @foreach ($TipoCadastroFormando as $item)
+                                                                <option  value="{{ $item->id }}">
+                                                                    {{ $item->nome }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                      </div>
+
                                                     <button class="btn btn-success mt-2">Filtrar/Pesquisar</button>
                                                 </form>
                                             </div>
