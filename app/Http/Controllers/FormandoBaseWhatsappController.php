@@ -205,9 +205,6 @@ public function AtualizaIdade()
 
 
 
-
-
-
             if ($request->BuscarNome) {
                 $texto = $request->BuscarNome;
                 $model = FormandoBaseWhatsapp::limit($limite)
@@ -218,7 +215,8 @@ public function AtualizaIdade()
             }
             else{
                 $model = FormandoBaseWhatsapp::limit($limite)
-               ->orderBy('nome', 'asc')
+                ->orderBy('id', 'desc')
+               ->orderBy('nome', 'desc')
                 ->get();
             }
 
