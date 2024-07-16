@@ -73,6 +73,7 @@ class FormandoBaseWhatsappController extends Controller
     {
         $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
         ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+        ->WHERE('deleted_at', '=', NULL)
         ->OrderBy('Descricao')
         ->select(['Empresas.ID', 'Empresas.Descricao'])
         ->get();
@@ -128,6 +129,7 @@ public function AtualizaIdade()
 {
     $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
     ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+    ->WHERE('deleted_at', '=', NULL)
     ->OrderBy('Descricao')
     ->select(['Empresas.ID', 'Empresas.Descricao'])
     ->get();
@@ -209,12 +211,14 @@ public function AtualizaIdade()
                 $texto = $request->BuscarNome;
                 $model = FormandoBaseWhatsapp::limit($limite)
                 ->where('nome', 'like', '%' . $texto . '%')
+                ->where('deleted_at', '=', null)
                 ->orderBy('nome', 'asc')
                 ->get();
                 $request['Categoria'] = null;
             }
             else{
                 $model = FormandoBaseWhatsapp::limit($limite)
+                ->where('deleted_at', '=', null)
                 ->orderBy('id', 'desc')
                ->orderBy('nome', 'desc')
                 ->get();
@@ -227,6 +231,15 @@ public function AtualizaIdade()
                 {
                     $model = FormandoBaseWhatsapp::limit($limite)
                     ->where('TipoCadastroFormando', $TipoCadastro)
+                    ->where('deleted_at', '=', null)
+                    ->orderBy('nome', 'asc')
+                    ->get();
+                }
+                else
+                if($Categoria == 'Excluídos')
+                {
+                    $model = FormandoBaseWhatsapp::limit($limite)
+                    ->where('deleted_at', '<>', null)
                     ->orderBy('nome', 'asc')
                     ->get();
                 }
@@ -234,6 +247,7 @@ public function AtualizaIdade()
                 if($Categoria == 'Todos')
                 {
                     $model = FormandoBaseWhatsapp::limit($limite)
+                    ->where('deleted_at', '=', null)
                     ->orderBy('nome', 'asc')
                     ->get();
                 }
@@ -241,6 +255,7 @@ public function AtualizaIdade()
                 if($Categoria == 'sub11')
                 {
                     $model = FormandoBaseWhatsapp::limit($limite)
+                    ->where('deleted_at', '=', null)
                     ->where('idade','=', 11)
                     ->orderBy('nome', 'asc')
                     ->get();
@@ -249,6 +264,7 @@ public function AtualizaIdade()
                 if($Categoria == 'sub12')
                 {
                     $model = FormandoBaseWhatsapp::limit($limite)
+                    ->where('deleted_at', '=', null)
                     ->where('idade','=', 12)
                     ->orderBy('nome', 'asc')
                     ->get();
@@ -257,6 +273,7 @@ public function AtualizaIdade()
                 if($Categoria == 'sub13')
                 {
                     $model = FormandoBaseWhatsapp::limit($limite)
+                    ->where('deleted_at', '=', null)
                     ->where('idade','=', 13)
                     ->orderBy('nome', 'asc')
                     ->get();
@@ -265,6 +282,7 @@ public function AtualizaIdade()
                 if($Categoria == 'sub14')
                 {
                     $model = FormandoBaseWhatsapp::limit($limite)
+                    ->where('deleted_at', '=', null)
                     ->where('idade','=', 14)
                     ->orderBy('nome', 'asc')
                     ->get();
@@ -274,6 +292,7 @@ public function AtualizaIdade()
                 {
                     $model = FormandoBaseWhatsapp::limit($limite)
                     ->where('idade','=', 15)
+                    ->where('deleted_at', '=', null)
                     ->orderBy('nome', 'asc')
                     ->get();
                     $request['Avaliacao'] = null;
@@ -282,6 +301,7 @@ public function AtualizaIdade()
                 if($Categoria == 'sub17')
                 {
                     $model = FormandoBaseWhatsapp::limit($limite)
+                    ->where('deleted_at', '=', null)
                     ->where('idade','<=', 17)
                     ->where('idade','>=', 16)
                     ->orderBy('nome', 'asc')
@@ -291,6 +311,7 @@ public function AtualizaIdade()
                 if($Categoria == 'sub20')
                 {
                     $model = FormandoBaseWhatsapp::limit($limite)
+                    ->where('deleted_at', '=', null)
                     ->where('idade','<=', 20)
                     ->where('idade','>=', 18)
                     ->orderBy('nome', 'asc')
@@ -328,11 +349,11 @@ public function AtualizaIdade()
     public function Excluidos(Request $request)
     {
         if ($request['opcao'] = 'Excluidos') {
-            $model = FormandoBase::where('deleted_at', '!=', null)
+            $model = FormandoBaseWhatsapp::where('deleted_at', '!=', null)
                 ->orderBy('nome')
                 ->get();
         } elseif ($request['opcao'] = 'Ativados') {
-            $model = FormandoBase::where('deleted_at', '=', null)
+            $model = FormandoBaseWhatsapp::where('deleted_at', '=', null)
                 ->orderBy('nome')
                 ->get();
         }
@@ -345,7 +366,7 @@ public function AtualizaIdade()
 
 
 
-        return view('FormandoBase.excluidos', compact('model'));
+        return view('FormandoBaseWhatsapp.excluidos', compact('model'));
     }
 
     public function create()
@@ -608,18 +629,20 @@ public function AtualizaIdade()
     public function destroy(string $id)
     {
 
-       dd('NÃO AUTORIZADO A EXCLUIR. PROCURE O ADMINISTRADOR DO SISTEMA!');
-        $model = FormandoBase::find($id);
+    //    dd('NÃO AUTORIZADO A EXCLUIR. PROCURE O ADMINISTRADOR DO SISTEMA!');
+        $model = FormandoBaseWhatsapp::find($id);
 
         if ($model['deleted_at'] == null) {
             $model['deleted_at'] = Carbon::now();
+            session(['error' => 'REGISTRO MARCADO COMO EXCLUÍDO! NOME:  ' . $model->nome . ', ID: ' . $model->id]);
         } else {
             $model['deleted_at'] = null;
+            session(['success' => 'REGISTRO MARCADO COMO ATIVO! NOME:  ' . $model->nome . ', ID: ' . $model->id]);
         }
 
         // $model->delete();
         $model->save();
-        return redirect(route('FormandoBase.index'));
+        return redirect(route('FormandoBaseWhatsapp.index'));
     }
 
     public function CreateRedeSocialFormandoBase(RedeSocialFormandoBaseCreateRequest $request)

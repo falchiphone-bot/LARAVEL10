@@ -148,7 +148,7 @@
 
         <div class="form-group">
             <label for="whatsapp">Anotações)</label>
-            <input required class="form-control @error('flow_description') is-invalid @else is-valid @enderror" name="flow_description"
+            <input  class="form-control @error('flow_description') is-invalid @else is-valid @enderror" name="flow_description"
                 type="text" id="flow_description" value="{{ $model->flow_description ?? null }}"  ">
             @error('whatsapp')
                 <div class="alert alert-danger">{{ $message }}</div>

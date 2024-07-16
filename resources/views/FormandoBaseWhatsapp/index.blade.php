@@ -146,7 +146,7 @@
 
                                                     <fieldset>
                                                         <legend>Categorias:</legend>
-                                                        @foreach (['Todos','sub11', 'sub12', 'sub13', 'sub14', 'sub15', 'sub17', 'sub20'] as $idade)
+                                                        @foreach (['Todos','Excluídos','sub11', 'sub12', 'sub13', 'sub14', 'sub15', 'sub17', 'sub20'] as $idade)
 
                                                                 <input type="radio" name="Categoria"
                                                                     value="{{ $idade }}"
