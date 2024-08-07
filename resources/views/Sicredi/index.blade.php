@@ -1,16 +1,18 @@
 @extends('layouts.bootstrap5')
 @section('content')
     <div class="py-5 bg-light">
-
         <div class="container">
-
-            <a href="/Cobranca" class="btn btn-warning">Retornar para opções anteriores</a>
-            @livewire('sicredi.listar-liquidacao')
+            <div class="mb-3">
+                <a href="/Cobranca" class="btn btn-warning w-100">Retornar para opções anteriores</a>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    @livewire('sicredi.listar-liquidacao')
+                </div>
+            </div>
         </div>
-
     </div>
     <div class="b-example-divider"></div>
-    </div>
 @endsection
 
 @push('scripts')
@@ -30,27 +32,18 @@
                 content: 'Confirma?',
                 buttons: {
                     confirmar: function() {
-                        // $.alert('Confirmar!');
                         $.confirm({
                             title: 'Confirmar!',
                             content: 'Deseja realmente continuar?',
                             buttons: {
                                 confirmar: function() {
-                                    // $.alert('Confirmar!');
-                                    e.currentTarget.submit()
+                                    e.currentTarget.submit();
                                 },
-                                cancelar: function() {
-                                    // $.alert('Cancelar!');
-                                },
-
+                                cancelar: function() {},
                             }
                         });
-
                     },
-                    cancelar: function() {
-                        // $.alert('Cancelar!');
-                    },
-
+                    cancelar: function() {},
                 }
             });
         });

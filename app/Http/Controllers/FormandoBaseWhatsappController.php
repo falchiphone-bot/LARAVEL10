@@ -73,12 +73,11 @@ class FormandoBaseWhatsappController extends Controller
     {
         $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
         ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
-        ->WHERE('deleted_at', '=', NULL)
         ->OrderBy('Descricao')
         ->select(['Empresas.ID', 'Empresas.Descricao'])
         ->get();
 
-
+        $TipoCadastroFormando = TipoFormandoBaseWhatsapp::orderBy('nome')->get();
         $model = FormandoBaseWhatsapp::Where('whatsapp', NULL)
         // ->where('flow_description', '!=', NULL)
         // ->orwhere('flow_description', '!=', '')
@@ -90,7 +89,7 @@ class FormandoBaseWhatsappController extends Controller
 
        if($model->Count() == 0){
         session(['error' => 'NADA A ATUALIZAR! ']);
-        return view('FormandoBaseWhatsapp.index', compact('model','Empresas' ));
+        return view('FormandoBaseWhatsapp.index', compact('model','Empresas','TipoCadastroFormando' ));
        }
 
         foreach ($model as $item) {
@@ -121,7 +120,7 @@ class FormandoBaseWhatsappController extends Controller
 
 
         session(['success' => 'ATUALIZADO OS TELEFONES DE WHATSAPP NO BANCO DE DADOS! ']);
-        return view('FormandoBaseWhatsapp.index', compact('model','Empresas' ));
+        return view('FormandoBaseWhatsapp.index', compact('model','Empresas', 'TipoCadastroFormando'));
     }
 
 // ==============================
@@ -129,7 +128,6 @@ public function AtualizaIdade()
 {
     $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
     ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
-    ->WHERE('deleted_at', '=', NULL)
     ->OrderBy('Descricao')
     ->select(['Empresas.ID', 'Empresas.Descricao'])
     ->get();
@@ -140,6 +138,7 @@ public function AtualizaIdade()
     ->orderBy('nome')
     ->get();
 
+    $TipoCadastroFormando = TipoFormandoBaseWhatsapp::orderBy('nome')->get();
     foreach ($model as $item) {
         $dataNascimento = $item->nascimento;
 
@@ -164,7 +163,7 @@ public function AtualizaIdade()
     }
 
     session(['success' => 'ATUALIZADO AS IDADES NO BANCO DE DADOS! ']);
-    return view('FormandoBaseWhatsapp.index', compact('model','Empresas', 'retorno'));
+    return view('FormandoBaseWhatsapp.index', compact('model','Empresas', 'retorno', 'TipoCadastroFormando'));
 }
 
 
