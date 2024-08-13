@@ -11,6 +11,7 @@ class Pacpie extends Model
     'cnpj',
     'email',
     'telefone',
+    'whatsapp',
     'user_created',
     'user_updated',
     'emailprimeirocontato',
@@ -32,6 +33,7 @@ class Pacpie extends Model
         'cnpj' => 'string',
         'email' => 'string',
         'telefone' => 'string',
+        'whatsapp' => 'string',
         'EmpresaID' => 'int',
         'emailprimeirocontato' => 'boolean',
         'retornoemailprimeirocontato' => 'boolean',
@@ -41,7 +43,6 @@ class Pacpie extends Model
         'promessa_aporte' => 'string',
         'promessa_aporte_ano' => 'string',
         'promessa_aporte_valor' => 'float',
-
         'aportou' => 'string',
         'aportou_ano' => 'string',
         'aportou_valor' => 'float',

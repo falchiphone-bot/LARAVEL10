@@ -69,6 +69,16 @@
                 @enderror
             </div>
 
+
+            <div class="col-md-6 col-12 mb-3">
+                <label for="whatsapp">Whatsapp</label>
+                <input required class="form-control @error('whatsapp') is-invalid @else is-valid @enderror"
+                    name="whatsapp" type="text" id="whatsapp" value="{{ $model->whatsapp ?? null }}">
+                @error('whatsapp')
+                    <div class="alert alert-danger">{{ $message }}</div>
+                @enderror
+            </div>
+
             <div class="col-md-6 col-12 mb-3">
                 <label for="emailprimeirocontato">Enviado email para primeiro contato</label>
                 <input type="hidden" name="emailprimeirocontato" value="0"> <!-- Para garantir que "0" seja enviado quando o checkbox estiver desmarcado -->
@@ -138,8 +148,10 @@
                         </td>
                         <tr>
                             <td>
-                                <label for="promessa_aporte_valor">Promessa de aporte no valor</label>
-                                <input class="form-control money @error('promessa_aporte_valor') is-invalid @else is-valid @enderror" name="promessa_aporte_valor" type="text" id="promessa_aporte_valor" value="{{$model->promessa_aporte_valor??null}}">
+                               
+                                <label for="promessa_aporte_valor">Promessa de aporte no valor de </label>
+                                <input class="form-control money
+                                @error('promessa_aporte_valor') is-invalid @else is-valid @enderror" name="promessa_aporte_valor" type="text" id="promessa_aporte_valor" value="{{$model->promessa_aporte_valor??null}}">
                                 @error('promessa_aporte_valor')
                                 <div class="alert alert-danger">{{ $message }}</div>
                                 @enderror

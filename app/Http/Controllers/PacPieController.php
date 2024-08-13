@@ -259,6 +259,16 @@ class PacpieController extends Controller
         $LiberaCNPJ = $request->liberacnpj;
         $limpacpf = $request->limpacpf;
         $limpacnpj = $request->limpacnpj;
+        $whatsapp = $request->whatsapp;
+        $aportevalor = $request->aporte_valor;
+
+
+        $promessa_aporte_valor = $request->promessa_aporte_valor;
+        $promessa_aporte_valor = str_replace('.', '', $promessa_aporte_valor);
+        $promessa_aporte_valor = str_replace(',', '.', $promessa_aporte_valor);
+      
+
+        // dd($request->all(), $promessa_aporte_valor);
         // $OrigemPacpie = $request->origem_cadastro;
 
         if ($LiberaCPF == null) {
@@ -313,10 +323,11 @@ $request['retornoemailprimeirocontato'] = $request->retornoemailprimeirocontato;
 $request['emailcomfalha'] = $request->emailcomfalha;
 $request['promessa_aporte'] = $request->promessa_aporte;
 $request['promessa_aporte_ano'] = $request->promessa_aporte_ano;
+$request['promessa_aporte_valor'] = $promessa_aporte_valor;
 $request['aportou'] = $request->aportou;
 $request['aportou_ano'] = $request->aportou_ano;
-
-
+$request['whatsapp'] = $whatsapp;
+$request['aporte_valor'] = $request->aporte_valor;
 
 
 $Valor = $request->input('aportou_valor');
