@@ -1132,7 +1132,7 @@ class WebhookServico
                 ->count();
 
 
-                 $limita_cadastros = WebhookContact::where('entry_id', $$entry_id)
+                 $limita_cadastros = WebhookContact::where('entry_id', $entry_id)
                 ->where('recipient_id', $messagesFrom)
                 ->first();
 
