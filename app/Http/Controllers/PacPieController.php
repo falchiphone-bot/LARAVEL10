@@ -64,10 +64,9 @@ class PacpieController extends Controller
 
         $model = Pacpie::Where('nome', 'LIKE', '%' . $request->Texto . '%')
             ->OrWhere('email', 'LIKE', '%' . $request->Texto . '%')
-
             ->get();
 
-        // dd('PACPIE INDEX', $Pacpie);
+        // dd('PACPIE INDEX', $model);
 
         // return view('Pacpie.index', compact('model'));
         return view('Pacpie.index', compact('model'))->with('textoBusca', $request->Texto);
@@ -266,7 +265,7 @@ class PacpieController extends Controller
         $promessa_aporte_valor = $request->promessa_aporte_valor;
         $promessa_aporte_valor = str_replace('.', '', $promessa_aporte_valor);
         $promessa_aporte_valor = str_replace(',', '.', $promessa_aporte_valor);
-      
+
 
         // dd($request->all(), $promessa_aporte_valor);
         // $OrigemPacpie = $request->origem_cadastro;
@@ -315,6 +314,7 @@ class PacpieController extends Controller
 $cadastro = Pacpie::find($id);
 
 $request['nome'] = strtoupper($request['nome']);
+$request['recolhe_icms'] = $request->recolhe_icms;
 $request['responsavel'] = strtoupper($request['responsavel']);
 $request['origem_cadastro'] = $request['origem_cadastro'] ?? null;
 $request['user_updated'] = Auth::user()->email;

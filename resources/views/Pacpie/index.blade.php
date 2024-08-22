@@ -309,6 +309,9 @@
                                             <td><strong>Nome:</strong> {{ $Model->nome }}</td>
                                         </tr>
                                         <tr>
+                                            <td><strong>Recolhe ICMS :</strong> {{ $Model->recolhe_icms == 1 ? 'SIM' : 'NÃO' }}</td>
+                                        </tr>
+                                        <tr>
                                             <td><strong>Telefone:</strong> {{ $Model->telefone }}</td>
                                         </tr>
                                         <tr>

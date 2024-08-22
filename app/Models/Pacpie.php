@@ -7,7 +7,11 @@ class Pacpie extends Model
 {
     protected $table = 'Pacpie';
     public $timestamps = true;
-    protected $fillable = ['nome', 'EmpresaID',
+    protected $fillable =
+    [
+    'nome',
+    'recolhe_icms',
+    'EmpresaID',
     'cnpj',
     'email',
     'telefone',
@@ -25,10 +29,12 @@ class Pacpie extends Model
     'aportou',
     'aportou_ano',
     'aportou_valor',
-    'retornoemailprimeirocontato'];
+    'retornoemailprimeirocontato'
+    ];
 
     protected $casts = [
         'nome' => 'string',
+        'recolhe_icms' => 'int',
         'responsavel' => 'string',
         'cnpj' => 'string',
         'email' => 'string',
