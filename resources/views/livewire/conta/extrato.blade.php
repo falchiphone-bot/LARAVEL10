@@ -109,13 +109,15 @@
                                 wire:model.defer='Ate' class="required form-control " autocomplete="off">
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
-                            <label for="ate" class="px-1  form-control-label">Conferido</label>
+                            <label for="ate" class="px-1  form-control-label">Conferido/Saidas em geral</label>
                             <select name="Conferido" id="Conferido" class="form-control" wire:model.defer='Conferido'>
                                 <option value="">Todos</option>
                                 <option value="true">Conferido</option>
                                 <option value="false">Não conferido</option>
+                                <option value="SaidasGeral">Saidas em geral</option>
                             </select>
                         </div>
+
                         <div class="form-group col-sm-12 col-md-3">
                             <label for="Notificacao" class="px-1  form-control-label">Notificação</label>
                             <select name="Notificacao" id="Notificacao" class="form-control"
@@ -289,6 +291,16 @@
                                                 @else
                                                     <i class="cl-{{ $lancamento->ID }} fa fa-square-o"></i>
                                                 @endif
+                                            </button>
+
+                                            <button title="Botão de Saidas em geral" type="button"
+                                            class="btn-sm btn btn-outline-warning"
+                                            wire:click='confirmarLancamentoSaidasGeral({{ $lancamento->ID }})'>
+                                            @if ($lancamento->SaidasGeral)
+                                                <i class="cl-{{ $lancamento->ID }} fa fa-check-square-o"></i>
+                                            @else
+                                                <i class="cl-{{ $lancamento->ID }} fa fa-square-o"></i>
+                                            @endif
                                             </button>
 
                                             {{-- <button title="Sem notificação" data-id="84264" data-dias="" type="button"

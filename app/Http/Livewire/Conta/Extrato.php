@@ -37,6 +37,7 @@ class Extrato extends Component
     public $Descricao;
     public $DescricaoApartirDe;
     public $Conferido;
+    public $SaidasGeral;
     public $Notificacao;
     public $DataBloqueio;
     public $data_bloqueio_conta;
@@ -218,8 +219,22 @@ class Extrato extends Component
                     $lancamentos->where(function ($q) {
                         return $q->whereNull('Conferido')->orWhere('Conferido', 0);
                     });
-                } else {
+                }
+                if ($this->Conferido == 'SaidasGeral') {
+                    $lancamentos->where(function ($q) {
+                        return $q->whereNull('SaidasGeral')->orWhere('SaidasGeral', 1);
+                    });
+                }else {
                     $lancamentos->where('Conferido', $this->Conferido);
+                }
+            }
+            if ($this->SaidasGeral != '') {
+                if ($this->SaidasGeral == 'false') {
+                    $lancamentos->where(function ($q) {
+                        return $q->whereNull('SaidasGeral')->orWhere('SaidasGeral', 0);
+                    });
+                } else {
+                    $lancamentos->where('SaidasGeral', $this->SaidasGeral);
                 }
             }
             if ($this->Notificacao != '') {
@@ -229,7 +244,7 @@ class Extrato extends Component
                 ->orderBy('DataContabilidade')
                 ->whereDoesntHave('SolicitacaoExclusao')
                 ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
-                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID', 'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido']);
+                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID', 'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral']);
         } else {
             $this->Lancamentos = null;
         }
@@ -271,6 +286,17 @@ class Extrato extends Component
                     $lancamentos->where('Conferido', $this->Conferido);
                 }
             }
+
+            if ($this->SaidasGeral != '') {
+                if ($this->SaidasGeral == 'false') {
+                    $lancamentos->where(function ($q) {
+                        return $q->whereNull('SaidasGeral')->orWhere('SaidasGeral', 0);
+                    });
+                } else {
+                    $lancamentos->where('SaidasGeral', $this->SaidasGeral);
+                }
+            }
+
             if ($this->Notificacao != '') {
                 $lancamentos->where('notificacao', $this->Notificacao);
             }
@@ -278,7 +304,8 @@ class Extrato extends Component
                 ->orderBy('DataContabilidade')
                 ->whereDoesntHave('SolicitacaoExclusao')
                 ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
-                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID', 'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido']);
+                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID',
+                'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral']);
 
 
             return redirect()
@@ -303,8 +330,23 @@ class Extrato extends Component
         } else {
             $lancamento->Conferido = 1;
         }
+
+
         $lancamento->save();
         $this->dispatchBrowserEvent('confirmarLancamento', ['lancamento_id' => $lancamento_id, 'status' => $lancamento->Conferido]);
+    }
+    public function confirmarLancamentoSaidasGeral($lancamento_id)
+    {
+        $lancamento = Lancamento::find($lancamento_id);
+
+        if ($lancamento->SaidasGeral) {
+            $lancamento->SaidasGeral = 0;
+        } else {
+            $lancamento->SaidasGeral = 1;
+        }
+
+        $lancamento->save();
+        $this->dispatchBrowserEvent('confirmarLancamentoSaidasGeral', ['lancamento_id' => $lancamento_id, 'status' => $lancamento->SaidasGeral]);
     }
 
     public function alterarDataVencidoRapido($lancamento_id, $acao)
