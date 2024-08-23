@@ -244,11 +244,117 @@ class Extrato extends Component
                 ->orderBy('DataContabilidade')
                 ->whereDoesntHave('SolicitacaoExclusao')
                 ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
-                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID', 'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral']);
+                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade',
+                 'Lancamentos.ContaCreditoID', 'Lancamentos.ContaDebitoID',
+                  'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao',
+                  'Conferido', 'SaidasGeral']);
         } else {
             $this->Lancamentos = null;
         }
     }
+    public function searchSaidasGeral()
+    {
+        $contaID = session('extrato_ContaID') ?? $this->selConta;
+        $SaidasGeral = 1;
+
+            $lancamentos = Lancamento::where(function ($query) use ($SaidasGeral) {
+                return $query->where('Lancamentos.SaidasGeral', 1);
+            });
+
+
+              if ($this->De) {
+                if ($this->Descricao && $this->DescricaoApartirDe) {
+                    $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
+                } else {
+                    $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
+                }
+                $lancamentos->where('DataContabilidade', '>=', $de);
+                session(['Extrato_De' => $this->De]);
+            }
+            if ($this->Ate) {
+                $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
+                $lancamentos->where('DataContabilidade', '<=', $ate);
+                session(['Extrato_Ate' => $this->Ate]);
+            }
+
+
+            if ($this->Conferido != '') {
+                if ($this->Conferido == 'false') {
+                    $lancamentos->where(function ($q) {
+                        return $q->whereNull('Conferido')->orWhere('Conferido', 0);
+                    });
+                }
+                if ($this->Conferido == 'SaidasGeral') {
+                    $lancamentos->where(function ($q) {
+                        return $q->whereNull('SaidasGeral')->orWhere('SaidasGeral', 1);
+                    });
+                }else {
+                    $lancamentos->where('Conferido', $this->Conferido);
+                }
+            }
+
+            $this->Lancamentos = $lancamentos
+                ->orderBy('DataContabilidade')
+                ->whereDoesntHave('SolicitacaoExclusao')
+                ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
+                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID',
+                 'Lancamentos.Descricao',
+                 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral']);
+    }
+    public function searchSaidasGeralSoma()
+    {
+        $contaID = session('extrato_ContaID') ?? $this->selConta;
+        $SaidasGeral = 1;
+
+            $lancamentos = Lancamento::where(function ($query) use ($SaidasGeral) {
+                return $query->where('Lancamentos.SaidasGeral', 1);
+            });
+
+
+              if ($this->De) {
+                if ($this->Descricao && $this->DescricaoApartirDe) {
+                    $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
+                } else {
+                    $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
+                }
+                $lancamentos->where('DataContabilidade', '>=', $de);
+                session(['Extrato_De' => $this->De]);
+            }
+            if ($this->Ate) {
+                $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
+                $lancamentos->where('DataContabilidade', '<=', $ate);
+                session(['Extrato_Ate' => $this->Ate]);
+            }
+
+
+            if ($this->Conferido != '') {
+                if ($this->Conferido == 'false') {
+                    $lancamentos->where(function ($q) {
+                        return $q->whereNull('Conferido')->orWhere('Conferido', 0);
+                    });
+                }
+                if ($this->Conferido == 'SaidasGeral') {
+                    $lancamentos->where(function ($q) {
+                        return $q->whereNull('SaidasGeral')->orWhere('SaidasGeral', 1);
+                    });
+                }else {
+                    $lancamentos->where('Conferido', $this->Conferido);
+                }
+            }
+
+            $this->Lancamentos = $lancamentos
+                ->orderBy('DataContabilidade')
+                ->whereDoesntHave('SolicitacaoExclusao')
+                ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
+                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID',
+                 'Lancamentos.Descricao',
+                 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral']);
+            $totalsomado = $this->Lancamentos->sum('Valor');
+            dd('TOTAL SOMADO DE TODAS SAIDAS EM GERAL: ',$totalsomado );
+
+    }
+
+
     public function searchPDF()
     {
         $contaID = cache('extrato_ContaID') ?? $this->selConta;
@@ -346,7 +452,9 @@ class Extrato extends Component
         }
 
         $lancamento->save();
-        $this->dispatchBrowserEvent('confirmarLancamentoSaidasGeral', ['lancamento_id' => $lancamento_id, 'status' => $lancamento->SaidasGeral]);
+
+        $this->dispatchBrowserEvent('confirmarLancamentoSaidasGeral', ['lancamento_id' => $lancamento_id, 'statusSaidasGeral' => $lancamento->SaidasGeral]);
+      $this->search();
     }
 
     public function alterarDataVencidoRapido($lancamento_id, $acao)

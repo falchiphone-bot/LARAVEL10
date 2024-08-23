@@ -163,6 +163,12 @@
                     <button id="buscar" wire:click='search()' type="button" class="btn btn-primary btn-sm">
                         <i class="fa fa-dot-circle-o"></i>Buscar informações e atualizar visualização
                     </button>
+                    <button id="buscar" wire:click='searchSaidasGeral()' type="button" class="btn btn-info btn-sm">
+                        <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de saidas em geral
+                    </button>
+                    <button id="buscar" wire:click='searchSaidasGeralSoma()' type="button" class="btn btn-info btn-sm">
+                        <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de saidas em geral - SOMENTE SOMA
+                    </button>
                     <button id="buscar" wire:click='searchPDF()' type="button" class="btn btn-danger btn-sm" target="_blank">
                         <i class="fa fa-dot-circle-o"></i> Buscar informações e gerar PDF
                     </button>
@@ -204,6 +210,12 @@
                         <span class="sr-only"></span>
                     </div>
                 </div>
+                <div class="row text-center" wire:loading>
+                    <div class="spinner-border mx-auto mt-2" role="statusSaidasGeral">
+                        <span class="sr-only"></span>
+                    </div>
+                </div>
+
                 <div class="card-header">
                     <div class="form-group col md-12">
                         <h3 class="content"> {{ $exibicao_pesquisa }}</h3>
@@ -571,6 +583,15 @@
             }
         });
 
+        window.addEventListener('confirmarLancamentoSaidasGeral', event => {
+            if (event.detail.statusSaidasGeral) {
+                $('.cl-' + event.detail.lancamento_id).removeClass('fa-square-o');
+                $('.cl-' + event.detail.lancamento_id).addClass('fa-check-square-o');
+            } else {
+                $('.cl-' + event.detail.lancamento_id).removeClass('fa-check-square-o');
+                $('.cl-' + event.detail.lancamento_id).addClass('fa-square-o');
+            }
+        });
 
         // In your Javascript (external .js resource or <script> tag)
         $('.select2').select2({
