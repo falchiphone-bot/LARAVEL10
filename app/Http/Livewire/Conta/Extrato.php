@@ -300,6 +300,7 @@ class Extrato extends Component
                 ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID',
                  'Lancamentos.Descricao',
                  'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral']);
+         $SaidasGeral = 0;
     }
     public function searchSaidasGeralSoma()
     {
@@ -350,6 +351,7 @@ class Extrato extends Component
                  'Lancamentos.Descricao',
                  'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral']);
             $totalsomado = $this->Lancamentos->sum('Valor');
+            $SaidasGeral = 0;
             dd('TOTAL SOMADO DE TODAS SAIDAS EM GERAL: ',$totalsomado );
 
     }

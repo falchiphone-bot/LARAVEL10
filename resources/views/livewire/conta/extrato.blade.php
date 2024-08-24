@@ -265,7 +265,7 @@
                                             @endif
                                         </td>
                                         <td>
-                                            @if ($lancamento->SaidasGeral == 1)
+                                            @if ($Conferido == 'SaidasGeral')
                                                  {{ number_format($lancamento->Valor, 2, ',', '.') }}
                                                 @if (!in_array($lancamento->ID, $listaSoma))
                                                     @php($totalCredito += $lancamento->Valor)
@@ -273,7 +273,7 @@
                                                     @php($somatoria += $lancamento->Valor)
                                                  @endif
                                             @endif
-                                            @if ($Conta->ID == $lancamento->ContaCreditoID)
+                                            @if ($Conta->ID == $lancamento->ContaCreditoID and $Conferido !== 'SaidasGeral')
                                                 {{ number_format($lancamento->Valor, 2, ',', '.') }}
                                                 @if (!in_array($lancamento->ID, $listaSoma))
                                                     @php($totalCredito += $lancamento->Valor)
@@ -296,9 +296,9 @@
                                         <td colspan="3">
                                             <strong>Conta Partida: </strong>
                                             @if ($lancamento->ContaCreditoID != $Conta->ID)
-                                                {{ $lancamento->ContaCredito->PlanoConta->Descricao }}
+                                                {{ $lancamento->ContaCredito->PlanoConta->Descricao ?? null}}
                                             @else
-                                                {{ $lancamento->ContaDebito->PlanoConta->Descricao }}
+                                                {{ $lancamento->ContaDebito->PlanoConta->Descricao ?? null}}
                                             @endif
                                         </td>
                                         <td colspan="2" align="right">
