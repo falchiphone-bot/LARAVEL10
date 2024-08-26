@@ -221,57 +221,71 @@ class Extrato extends Component
                         return $q->whereNull('Conferido')->orWhere('Conferido', 0);
                     });
                 }
-                if ($this->Conferido == 'SaidasGeral') {
-                    $lancamentos->where(function ($q) {
-                        return $q->whereNull('SaidasGeral')->orWhere('SaidasGeral', 1);
-                    });
-                }
-                if ($this->Conferido == 'EntradasGeral') {
-                    $lancamentos->where(function ($q) {
-                        return $q->whereNull('EntradasGeral')->orWhere('EntradasGeral', 1);
-                    });
 
-                }else {
+                // if ($this->Conferido == 'SaidasGeral') {
+                //     $lancamentos->where(function ($q) {
+                //         return $q->whereNull('SaidasGeral')->orWhere('SaidasGeral', 1);
+                //     });
+                // }
+                // if ($this->Conferido == 'EntradasGeral') {
+                //     $lancamentos->where(function ($q) {
+                //         return $q->whereNull('EntradasGeral')->orWhere('EntradasGeral', 1);
+                //     });
+
+                // }else
+                {
                     $lancamentos->where('Conferido', $this->Conferido);
                 }
             }
-            if ($this->SaidasGeral != '') {
-                if ($this->SaidasGeral == 'false') {
-                    $lancamentos->where(function ($q) {
-                        return $q->whereNull('SaidasGeral')->orWhere('SaidasGeral', 0);
-                    });
-                } else {
-                    $lancamentos->where('SaidasGeral', $this->SaidasGeral);
-                }
-            }
+            // if ($this->SaidasGeral != '') {
+            //     if ($this->SaidasGeral == 'false') {
+            //         $lancamentos->where(function ($q) {
+            //             return $q->whereNull('SaidasGeral')->orWhere('SaidasGeral', 0);
+            //         });
+            //     } else {
+            //         $lancamentos->where('SaidasGeral', $this->SaidasGeral);
+            //     }
+            // }
 
-            if ($this->EntradasGeral != '') {
-                if ($this->EntradasGeral == 'false') {
-                    $lancamentos->where(function ($q) {
-                        return $q->whereNull('EntradasGeral')->orWhere('EntradasGeral', 0);
-                    });
-                } else {
-                    $lancamentos->where('EntradasGeral', $this->EntradasGeral);
-                }
-            }
+            // if ($this->EntradasGeral != '') {
+            //     if ($this->EntradasGeral == 'false') {
+            //         $lancamentos->where(function ($q) {
+            //             return $q->whereNull('EntradasGeral')->orWhere('EntradasGeral', 0);
+            //         });
+            //     } else {
+            //         $lancamentos->where('EntradasGeral', $this->EntradasGeral);
+            //     }
+            // }
 
             if ($this->Notificacao != '') {
                 $lancamentos->where('notificacao', $this->Notificacao);
             }
-            $this->Lancamentos = $lancamentos
-                ->orderBy('DataContabilidade')
-                ->whereDoesntHave('SolicitacaoExclusao')
-                ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
-                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade',
-                 'Lancamentos.ContaCreditoID', 'Lancamentos.ContaDebitoID',
-                  'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao',
-                  'Conferido', 'SaidasGeral', 'EntradasGeral']);
-        } else {
+
+
+                if($this->Conferido === 'SaidasGeral' || $this->Conferido === 'EntradasGeral'){
+                    dd('VERIFICAR A SELEÇÃO');
+                }
+
+                   $this->Lancamentos = $lancamentos
+                    ->orderBy('DataContabilidade')
+                    ->whereDoesntHave('SolicitacaoExclusao')
+                    ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
+                    ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID',
+                    'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral', 'EntradasGeral']);
+
+         } else {
             $this->Lancamentos = null;
+
         }
     }
     public function searchSaidasGeral()
     {
+
+
+        if($this->Conferido !== 'SaidasGeral'){
+            dd('VERIFICAR A SELEÇÃO');
+        }
+
         $contaID = session('extrato_ContaID') ?? $this->selConta;
         $SaidasGeral = 1;
 
@@ -311,13 +325,16 @@ class Extrato extends Component
                 }
             }
 
-            $this->Lancamentos = $lancamentos
-                ->orderBy('DataContabilidade')
-                ->whereDoesntHave('SolicitacaoExclusao')
-                ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
-                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID',
-                 'Lancamentos.Descricao',
-                 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral']);
+            if($this->Conferido == 'SaidasGeral'){
+                $this->Lancamentos = $lancamentos
+                    ->orderBy('DataContabilidade')
+                    ->whereDoesntHave('SolicitacaoExclusao')
+                    ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
+                    ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID',
+                    'Lancamentos.Descricao',
+                    'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral']);
+            }
+
          $SaidasGeral = 0;
     }
     public function searchSaidasGeralSoma()
@@ -367,6 +384,10 @@ class Extrato extends Component
 
     public function searchEntradasGeral()
     {
+        if($this->Conferido !== 'EntradasGeral'){
+            dd('VERIFICAR A SELEÇÃO');
+        }
+
         $contaID = session('extrato_ContaID') ?? $this->selConta;
         $EntradasGeral = 1;
 
@@ -405,14 +426,16 @@ class Extrato extends Component
                     $lancamentos->where('Conferido', $this->Conferido);
                 }
             }
-
-            $this->Lancamentos = $lancamentos
+            if($this->Conferido == 'EntradasGeral'){
+               $this->Lancamentos = $lancamentos
                 ->orderBy('DataContabilidade')
                 ->whereDoesntHave('SolicitacaoExclusao')
                 ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
                 ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID',
                  'Lancamentos.Descricao',
-                 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral', 'EntradasGeral']);
+                 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral','EntradasGeral']);
+            }
+
          $EntradasGeral = 0;
     }
 

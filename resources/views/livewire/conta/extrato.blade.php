@@ -17,7 +17,8 @@
                         </div>
 
                         <div class="col-2">
-                            <button wire:click="editarLancamento('novo',{{$selEmpresa}})" class="btn btn-danger">Iniciar um novo
+                            <button wire:click="editarLancamento('novo',{{ $selEmpresa }})"
+                                class="btn btn-danger">Iniciar um novo
                                 lançamento</button>
                         </div>
 
@@ -27,24 +28,24 @@
                             </button>
                         </div>
                         <div class="col-2">
-                             <a class="btn btn-success" href="/Historicos">Históricos para lançamentos</a>
+                            <a class="btn btn-success" href="/Historicos">Históricos para lançamentos</a>
                         </div>
 
                         @can('LANCAMENTOS DOCUMENTOS - LISTAR')
-                        <div class="col-2">
-                                        <a class="btn btn-primary" href="/LancamentosDocumentos">Documentos</a>
-                        </div>
+                            <div class="col-2">
+                                <a class="btn btn-primary" href="/LancamentosDocumentos">Documentos</a>
+                            </div>
                         @endcan
                         @can('SOLICITACOES - LISTAR')
-                        <div class="col-2">
+                            <div class="col-2">
 
                                 <a class="btn btn-success" href="/lancamentos/solicitacoes">Solicitações para exclusão</a>
 
 
-                        </div>
+                            </div>
                         @endcan
                         <div class="col-2">
-                          <a class="btn btn-success" href="/PlanoContas">Plano de Contas</a>
+                            <a class="btn btn-success" href="/PlanoContas">Plano de Contas</a>
                         </div>
                     </div>
                 </div>
@@ -132,8 +133,8 @@
                     <div class="row">
                         <div class="form-group col-sm-12 col-md-3">
                             <label for="de" class="pr-1  form-control-label">Buscar Descrição</label>
-                            <input type="text" value="" id="descricao" class="form-control" autocomplete="off"
-                                wire:model.lazy='Descricao'>
+                            <input type="text" value="" id="descricao" class="form-control"
+                                autocomplete="off" wire:model.lazy='Descricao'>
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
                             <label for="de" class="pr-1  form-control-label">A partir De:</label>
@@ -142,17 +143,22 @@
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
 
-                                <label for="data_bloqueio_conta" class="pr-1  form-control-label" style="color: red;">Data Bloqueio Conta:</label>
+                            <label for="data_bloqueio_conta" class="pr-1  form-control-label"
+                                style="color: red;">Data Bloqueio Conta:</label>
 
-                                <input type="date" value="" id="data_bloqueio_conta" class="form-control"
-                                autocomplete="off" wire:model.defer='data_bloqueio_conta' wire:change='updateDataBloqueioConta()' style="background-color: red; color: white">
+                            <input type="date" value="" id="data_bloqueio_conta" class="form-control"
+                                autocomplete="off" wire:model.defer='data_bloqueio_conta'
+                                wire:change='updateDataBloqueioConta()' style="background-color: red; color: white">
 
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
-                            <label for="data_bloqueio_empresa" class="pr-1  form-control-label" style="color: blue;">Data Bloqueio Empresa:</label>
+                            <label for="data_bloqueio_empresa" class="pr-1  form-control-label"
+                                style="color: blue;">Data Bloqueio Empresa:</label>
 
-                            <input type="date" value="" id="data_bloqueio_empresa" class="form-control" autocomplete="off"
-                             wire:model.defer='data_bloqueio_empresa' wire:change='updateDataBloqueioEmpresa()' style="background-color: blue; color: white">
+                            <input type="date" value="" id="data_bloqueio_empresa" class="form-control"
+                                autocomplete="off" wire:model.defer='data_bloqueio_empresa'
+                                wire:change='updateDataBloqueioEmpresa()'
+                                style="background-color: blue; color: white">
 
                         </div>
                     </div>
@@ -166,25 +172,29 @@
                     </button>
 
                     @can('LANCAMENTOS - CAIXAS GERAL')
-                        <button id="buscar" wire:click='searchSaidasGeral()' type="button" class="btn btn-info btn-sm">
-                        <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de saidas em geral
-                         </button>
+                        <button id="buscar" wire:click='searchSaidasGeral()' type="button"
+                            class="btn btn-info btn-sm">
+                            <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de saidas em geral
+                        </button>
 
-                        <button id="buscar" wire:click='searchSaidasGeralSoma()' type="button" class="btn btn-info btn-sm">
+                        <button id="buscar" wire:click='searchSaidasGeralSoma()' type="button"
+                            class="btn btn-info btn-sm">
                             <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de entradas e saidas em geral - CÁLCULOS
                         </button>
 
-                        <button id="buscar" wire:click='searchEntradasGeral()' type="button" class="btn btn-primary btn-sm">
+                        <button id="buscar" wire:click='searchEntradasGeral()' type="button"
+                            class="btn btn-primary btn-sm">
                             <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de entradas em geral
-                             </button>
-
+                        </button>
                     @endcan
 
-                    <button id="buscar" wire:click='searchPDF()' type="button" class="btn btn-danger btn-sm" target="_blank">
+                    <button id="buscar" wire:click='searchPDF()' type="button" class="btn btn-danger btn-sm"
+                        target="_blank">
                         <i class="fa fa-dot-circle-o"></i> Buscar informações e gerar PDF
                     </button>
                     <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                        <a class="btn btn-success" href="/lancamentos/ExportarExtratoExcel">Exportar lançamentos para extrato por período e empresa selecionada no formato EXCEL</a>
+                        <a class="btn btn-success" href="/lancamentos/ExportarExtratoExcel">Exportar lançamentos para
+                            extrato por período e empresa selecionada no formato EXCEL</a>
                     </nav>
                 </div>
 
@@ -271,6 +281,7 @@
 
                                         </td>
                                         <td>
+                                            {{-- //// extrato normal --}}
                                             @if ($Conta->ID == $lancamento->ContaDebitoID)
                                                 {{ number_format($lancamento->Valor, 2, ',', '.') }}
                                                 @if (!in_array($lancamento->ID, $listaSoma))
@@ -279,6 +290,7 @@
                                                     @php($somatoria += $lancamento->Valor)
                                                 @endif
                                             @endif
+                                            {{-- //// extrato normal --}}
 
                                             @if ($Conferido == 'EntradasGeral')
                                                 {{ number_format($lancamento->Valor, 2, ',', '.') }}
@@ -287,22 +299,23 @@
                                                     @php($saldo += $lancamento->Valor)
                                                     @php($somatoria += $lancamento->Valor)
                                                 @endif
-                                             @endif
+                                            @endif
                                         </td>
                                         <td>
 
                                             @if ($Conferido == 'SaidasGeral')
-                                                 {{ number_format($lancamento->Valor, 2, ',', '.') }}
+                                                {{ number_format($lancamento->Valor, 2, ',', '.') }}
 
                                                 @if (!in_array($lancamento->ID, $listaSoma))
                                                     @php($totalCredito += $lancamento->Valor)
                                                     @php($saldo += $lancamento->Valor)
                                                     @php($somatoria += $lancamento->Valor)
-                                                 @endif
+                                                @endif
                                             @endif
 
 
 
+                                            {{-- //// extrato normal --}}
                                             @if ($Conta->ID == $lancamento->ContaCreditoID and $Conferido !== 'SaidasGeral' and $Conferido !== 'EntradasGeral')
                                                 {{ number_format($lancamento->Valor, 2, ',', '.') }}
                                                 @if (!in_array($lancamento->ID, $listaSoma))
@@ -311,15 +324,15 @@
                                                     @php($somatoria -= $lancamento->Valor)
                                                 @endif
                                             @endif
-
-                                            @if ($Conta->ID == $lancamento->ContaDebitoID and $Conferido !== 'EntradasGeral')
-                                            {{ number_format($lancamento->Valor, 2, ',', '.') }}
-                                            @if (!in_array($lancamento->ID, $listaSoma))
-                                                @php($totalDebito += $lancamento->Valor)
-                                                @php($saldo -= $lancamento->Valor)
-                                                @php($somatoria -= $lancamento->Valor)
-                                            @endif
-                                        @endif
+                                            {{-- //// extrato normal --}}
+                                            {{-- @if ($Conta->ID == $lancamento->ContaDebitoID and $Conferido !== 'EntradasGeral')
+                                                {{ number_format($lancamento->Valor, 2, ',', '.') }}
+                                                @if (!in_array($lancamento->ID, $listaSoma))
+                                                    @php($totalDebito += $lancamento->Valor)
+                                                    @php($saldo -= $lancamento->Valor)
+                                                    @php($somatoria -= $lancamento->Valor)
+                                                @endif
+                                            @endif --}}
 
                                         </td>
 
@@ -336,9 +349,9 @@
                                         <td colspan="3">
                                             <strong>Conta Partida: </strong>
                                             @if ($lancamento->ContaCreditoID != $Conta->ID)
-                                                {{ $lancamento->ContaCredito->PlanoConta->Descricao ?? null}}
+                                                {{ $lancamento->ContaCredito->PlanoConta->Descricao ?? null }}
                                             @else
-                                                {{ $lancamento->ContaDebito->PlanoConta->Descricao ?? null}}
+                                                {{ $lancamento->ContaDebito->PlanoConta->Descricao ?? null }}
                                             @endif
                                         </td>
                                         <td colspan="2" align="right">
@@ -373,7 +386,6 @@
                                                         <i class="cl2-{{ $lancamento->ID }} fa fa-square-o"></i>
                                                     @endif
                                                 </button>
-
                                             @endcan
 
                                             {{-- <button title="Sem notificação" data-id="84264" data-dias="" type="button"
@@ -418,10 +430,12 @@
                                                 <i class="fa fa-arrow-right"></i>
                                             </button>
 
-                                            @if($lancamento->ContasPagarArquivo)
+                                            @if ($lancamento->ContasPagarArquivo)
                                                 @can('CONTASPAGAR - EDITAR')
-                                                    <a href="{{ route('ContasPagar.edit',  $lancamento->ContasPagarArquivo->ID ) }}" class="btn btn-success"
-                                                        tabindex="-1" role="button" aria-disabled="true" target="_blank">Editar Contas pagar/ver Documentos</a>
+                                                    <a href="{{ route('ContasPagar.edit', $lancamento->ContasPagarArquivo->ID) }}"
+                                                        class="btn btn-success" tabindex="-1" role="button"
+                                                        aria-disabled="true" target="_blank">Editar Contas pagar/ver
+                                                        Documentos</a>
                                                 @endcan
                                             @endif
 
@@ -436,6 +450,7 @@
 
                         </tbody>
                         <div class="card">
+                                    
                             <div class="badge bg-success text-wrap"
                                 style="width: 100%;
                  ;font-size: 16px; lign=˜Center˜">
