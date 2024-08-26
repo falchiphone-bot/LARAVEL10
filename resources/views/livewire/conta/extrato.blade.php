@@ -171,7 +171,7 @@
                          </button>
 
                         <button id="buscar" wire:click='searchSaidasGeralSoma()' type="button" class="btn btn-info btn-sm">
-                            <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de saidas em geral - SOMENTE SOMA
+                            <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de entradas e saidas em geral - CÁLCULOS
                         </button>
 
                         <button id="buscar" wire:click='searchEntradasGeral()' type="button" class="btn btn-primary btn-sm">

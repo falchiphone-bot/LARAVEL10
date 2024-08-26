@@ -324,11 +324,13 @@ class Extrato extends Component
     {
         $contaID = session('extrato_ContaID') ?? $this->selConta;
         $SaidasGeral = 1;
+        $EntraddasGeral = 1;
+        $totalsomadoSAIDAS = 0;
+        $totalsomadoEntradas = 0;
 
-            $lancamentos = Lancamento::where(function ($query) use ($SaidasGeral) {
-                return $query->where('Lancamentos.SaidasGeral', 1);
-            });
+        $lancamentosSaida = Lancamento::where('Lancamentos.SaidasGeral', 1);
 
+        $lancamentosEntrada = Lancamento::where('Lancamentos.EntradasGeral', 1);
 
               if ($this->De) {
                 if ($this->Descricao && $this->DescricaoApartirDe) {
@@ -336,43 +338,33 @@ class Extrato extends Component
                 } else {
                     $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
                 }
-                $lancamentos->where('DataContabilidade', '>=', $de);
+                $lancamentosSaida->where('DataContabilidade', '>=', $de);
                 session(['Extrato_De' => $this->De]);
             }
             if ($this->Ate) {
                 $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
-                $lancamentos->where('DataContabilidade', '<=', $ate);
+                $lancamentosSaida->where('DataContabilidade', '<=', $ate);
                 session(['Extrato_Ate' => $this->Ate]);
             }
 
 
-            if ($this->Conferido != '') {
-                if ($this->Conferido == 'false') {
-                    $lancamentos->where(function ($q) {
-                        return $q->whereNull('Conferido')->orWhere('Conferido', 0);
-                    });
-                }
-                if ($this->Conferido == 'SaidasGeral') {
-                    $lancamentos->where(function ($q) {
-                        return $q->whereNull('SaidasGeral')->orWhere('SaidasGeral', 1);
-                    });
-                }else {
-                    $lancamentos->where('Conferido', $this->Conferido);
-                }
-            }
+                    $totalsomadoSAIDAS = $lancamentosSaida->sum('Valor');
 
-            $this->Lancamentos = $lancamentos
-                ->orderBy('DataContabilidade')
-                ->whereDoesntHave('SolicitacaoExclusao')
-                ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
-                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID',
-                 'Lancamentos.Descricao',
-                 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral']);
-            $totalsomado = $this->Lancamentos->sum('Valor');
+                    $totalsomadoEntradas = $lancamentosEntrada->sum('Valor');
+
+                    dd(' TOTAL SOMADO DE TODAS ENTRADAS EM GERAL: ', $totalsomadoEntradas,
+                       ' TOTAL SOMADO DE TODAS SAIDAS EM GERAL: ', $totalsomadoSAIDAS,
+                       ' RESULTADO ENTRE ENTRADAS E SAIDAS: ', $totalsomadoEntradas - $totalsomadoSAIDAS
+
+                    );
+
+
+
+
             $SaidasGeral = 0;
-            dd('TOTAL SOMADO DE TODAS SAIDAS EM GERAL: ',$totalsomado );
-
     }
+
+
     public function searchEntradasGeral()
     {
         $contaID = session('extrato_ContaID') ?? $this->selConta;
