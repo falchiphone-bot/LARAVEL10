@@ -173,12 +173,12 @@
 
                     @can('LANCAMENTOS - CAIXAS GERAL')
                         <button id="buscar" wire:click='searchSaidasGeral()' type="button"
-                            class="btn btn-info btn-sm">
+                            class="btn btn-danger btn-sm">
                             <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de saidas em geral
                         </button>
 
                         <button id="buscar" wire:click='searchSaidasGeralSoma()' type="button"
-                            class="btn btn-info btn-sm">
+                            class="btn btn-secondary btn-sm">
                             <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de entradas e saidas em geral - CÁLCULOS
                         </button>
 
@@ -368,7 +368,7 @@
 
                                             @can('LANCAMENTOS - CAIXAS GERAL')
                                                 <button title="Botão de Saidas em geral" type="button"
-                                                    class="btn-sm btn btn-outline-warning"
+                                                    class="btn-sm btn btn-outline-danger"
                                                     wire:click='confirmarLancamentoSaidasGeral({{ $lancamento->ID }})'>
                                                     @if ($lancamento->SaidasGeral)
                                                         <i class="cl-{{ $lancamento->ID }} fa fa-check-square-o"></i>
@@ -450,7 +450,7 @@
 
                         </tbody>
                         <div class="card">
-                                    
+
                             <div class="badge bg-success text-wrap"
                                 style="width: 100%;
                  ;font-size: 16px; lign=˜Center˜">

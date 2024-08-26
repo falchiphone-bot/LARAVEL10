@@ -232,7 +232,8 @@ class Extrato extends Component
                 //         return $q->whereNull('EntradasGeral')->orWhere('EntradasGeral', 1);
                 //     });
 
-                // }else
+                // }
+                else
                 {
                     $lancamentos->where('Conferido', $this->Conferido);
                 }
