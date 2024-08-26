@@ -38,6 +38,7 @@ class Extrato extends Component
     public $DescricaoApartirDe;
     public $Conferido;
     public $SaidasGeral;
+    public $EntradasGeral;
     public $Notificacao;
     public $DataBloqueio;
     public $data_bloqueio_conta;
@@ -224,6 +225,12 @@ class Extrato extends Component
                     $lancamentos->where(function ($q) {
                         return $q->whereNull('SaidasGeral')->orWhere('SaidasGeral', 1);
                     });
+                }
+                if ($this->Conferido == 'EntradasGeral') {
+                    $lancamentos->where(function ($q) {
+                        return $q->whereNull('EntradasGeral')->orWhere('EntradasGeral', 1);
+                    });
+
                 }else {
                     $lancamentos->where('Conferido', $this->Conferido);
                 }
@@ -237,6 +244,17 @@ class Extrato extends Component
                     $lancamentos->where('SaidasGeral', $this->SaidasGeral);
                 }
             }
+
+            if ($this->EntradasGeral != '') {
+                if ($this->EntradasGeral == 'false') {
+                    $lancamentos->where(function ($q) {
+                        return $q->whereNull('EntradasGeral')->orWhere('EntradasGeral', 0);
+                    });
+                } else {
+                    $lancamentos->where('EntradasGeral', $this->EntradasGeral);
+                }
+            }
+
             if ($this->Notificacao != '') {
                 $lancamentos->where('notificacao', $this->Notificacao);
             }
@@ -247,7 +265,7 @@ class Extrato extends Component
                 ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade',
                  'Lancamentos.ContaCreditoID', 'Lancamentos.ContaDebitoID',
                   'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao',
-                  'Conferido', 'SaidasGeral']);
+                  'Conferido', 'SaidasGeral', 'EntradasGeral']);
         } else {
             $this->Lancamentos = null;
         }
@@ -355,7 +373,56 @@ class Extrato extends Component
             dd('TOTAL SOMADO DE TODAS SAIDAS EM GERAL: ',$totalsomado );
 
     }
+    public function searchEntradasGeral()
+    {
+        $contaID = session('extrato_ContaID') ?? $this->selConta;
+        $EntradasGeral = 1;
 
+            $lancamentos = Lancamento::where(function ($query) use ($EntradasGeral) {
+                return $query->where('Lancamentos.EntradasGeral', 1);
+            });
+
+
+              if ($this->De) {
+                if ($this->Descricao && $this->DescricaoApartirDe) {
+                    $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
+                } else {
+                    $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
+                }
+                $lancamentos->where('DataContabilidade', '>=', $de);
+                session(['Extrato_De' => $this->De]);
+            }
+            if ($this->Ate) {
+                $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
+                $lancamentos->where('DataContabilidade', '<=', $ate);
+                session(['Extrato_Ate' => $this->Ate]);
+            }
+
+
+            if ($this->Conferido != '') {
+                if ($this->Conferido == 'false') {
+                    $lancamentos->where(function ($q) {
+                        return $q->whereNull('Conferido')->orWhere('Conferido', 0);
+                    });
+                }
+                if ($this->Conferido == 'EntradasGeral') {
+                    $lancamentos->where(function ($q) {
+                        return $q->whereNull('EntradasGeral')->orWhere('EntradasGeral', 1);
+                    });
+                }else {
+                    $lancamentos->where('Conferido', $this->Conferido);
+                }
+            }
+
+            $this->Lancamentos = $lancamentos
+                ->orderBy('DataContabilidade')
+                ->whereDoesntHave('SolicitacaoExclusao')
+                ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
+                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID',
+                 'Lancamentos.Descricao',
+                 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral', 'EntradasGeral']);
+         $EntradasGeral = 0;
+    }
 
     public function searchPDF()
     {
@@ -413,7 +480,7 @@ class Extrato extends Component
                 ->whereDoesntHave('SolicitacaoExclusao')
                 ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
                 ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID',
-                'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral']);
+                'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral', 'EntradasGeral']);
 
 
             return redirect()
@@ -443,6 +510,28 @@ class Extrato extends Component
         $lancamento->save();
         $this->dispatchBrowserEvent('confirmarLancamento', ['lancamento_id' => $lancamento_id, 'status' => $lancamento->Conferido]);
     }
+
+    public function confirmarLancamentoEntradasGeral($lancamento_id)
+    {
+        $lancamento = Lancamento::find($lancamento_id);
+
+
+
+        if ($lancamento->EntradasGeral) {
+            $lancamento->EntradasGeral = 0;
+        } else {
+            $lancamento->EntradasGeral = 1;
+        }
+
+        $lancamento->save();
+
+        $this->dispatchBrowserEvent('confirmarLancamentoEntradasGeral', ['lancamento_id' => $lancamento_id, 'statusEntradasGeral' => $lancamento->EntradasGeral]);
+        // dd( $lancamento);
+        $this->search();
+    }
+
+
+
     public function confirmarLancamentoSaidasGeral($lancamento_id)
     {
         $lancamento = Lancamento::find($lancamento_id);

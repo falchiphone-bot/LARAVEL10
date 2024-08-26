@@ -29,6 +29,7 @@ class Lancamento extends Model
         'IdSolicitacaoEmpresarial',
         'Conferido',
         'SaidasGeral',
+        'EntradasGeral',
         'Notificacao',
         'DiasNotificacaoAntesVencimento',
     ];
@@ -37,6 +38,7 @@ class Lancamento extends Model
         'DataContabilidade' => 'date:Y-m-d',
         'Conferido' => 'boolean',
         'SaidasGeral' => 'boolean',
+        'EntradasGeral' => 'boolean',
     ];
 
     public function Empresa(): HasOne

@@ -115,6 +115,7 @@
                                 <option value="true">Conferido</option>
                                 <option value="false">Não conferido</option>
                                 <option value="SaidasGeral">Saidas em geral</option>
+                                <option value="EntradasGeral">Entradas em geral</option>
                             </select>
                         </div>
 
@@ -163,12 +164,22 @@
                     <button id="buscar" wire:click='search()' type="button" class="btn btn-primary btn-sm">
                         <i class="fa fa-dot-circle-o"></i>Buscar informações e atualizar visualização
                     </button>
-                    <button id="buscar" wire:click='searchSaidasGeral()' type="button" class="btn btn-info btn-sm">
+
+                    @can('LANCAMENTOS - CAIXAS GERAL')
+                        <button id="buscar" wire:click='searchSaidasGeral()' type="button" class="btn btn-info btn-sm">
                         <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de saidas em geral
-                    </button>
-                    <button id="buscar" wire:click='searchSaidasGeralSoma()' type="button" class="btn btn-info btn-sm">
-                        <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de saidas em geral - SOMENTE SOMA
-                    </button>
+                         </button>
+
+                        <button id="buscar" wire:click='searchSaidasGeralSoma()' type="button" class="btn btn-info btn-sm">
+                            <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de saidas em geral - SOMENTE SOMA
+                        </button>
+
+                        <button id="buscar" wire:click='searchEntradasGeral()' type="button" class="btn btn-primary btn-sm">
+                            <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de entradas em geral
+                             </button>
+
+                    @endcan
+
                     <button id="buscar" wire:click='searchPDF()' type="button" class="btn btn-danger btn-sm" target="_blank">
                         <i class="fa fa-dot-circle-o"></i> Buscar informações e gerar PDF
                     </button>
@@ -212,6 +223,11 @@
                 </div>
                 <div class="row text-center" wire:loading>
                     <div class="spinner-border mx-auto mt-2" role="statusSaidasGeral">
+                        <span class="sr-only"></span>
+                    </div>
+                </div>
+                <div class="row text-center" wire:loading>
+                    <div class="spinner-border mx-auto mt-2" role="statusEntradasGeral">
                         <span class="sr-only"></span>
                     </div>
                 </div>
@@ -263,17 +279,31 @@
                                                     @php($somatoria += $lancamento->Valor)
                                                 @endif
                                             @endif
+
+                                            @if ($Conferido == 'EntradasGeral')
+                                                {{ number_format($lancamento->Valor, 2, ',', '.') }}
+                                                @if (!in_array($lancamento->ID, $listaSoma))
+                                                    @php($totalDebito += $lancamento->Valor)
+                                                    @php($saldo += $lancamento->Valor)
+                                                    @php($somatoria += $lancamento->Valor)
+                                                @endif
+                                             @endif
                                         </td>
                                         <td>
+
                                             @if ($Conferido == 'SaidasGeral')
                                                  {{ number_format($lancamento->Valor, 2, ',', '.') }}
+
                                                 @if (!in_array($lancamento->ID, $listaSoma))
                                                     @php($totalCredito += $lancamento->Valor)
                                                     @php($saldo += $lancamento->Valor)
                                                     @php($somatoria += $lancamento->Valor)
                                                  @endif
                                             @endif
-                                            @if ($Conta->ID == $lancamento->ContaCreditoID and $Conferido !== 'SaidasGeral')
+
+
+
+                                            @if ($Conta->ID == $lancamento->ContaCreditoID and $Conferido !== 'SaidasGeral' and $Conferido !== 'EntradasGeral')
                                                 {{ number_format($lancamento->Valor, 2, ',', '.') }}
                                                 @if (!in_array($lancamento->ID, $listaSoma))
                                                     @php($totalCredito += $lancamento->Valor)
@@ -281,6 +311,16 @@
                                                     @php($somatoria -= $lancamento->Valor)
                                                 @endif
                                             @endif
+
+                                            @if ($Conta->ID == $lancamento->ContaDebitoID and $Conferido !== 'EntradasGeral')
+                                            {{ number_format($lancamento->Valor, 2, ',', '.') }}
+                                            @if (!in_array($lancamento->ID, $listaSoma))
+                                                @php($totalDebito += $lancamento->Valor)
+                                                @php($saldo -= $lancamento->Valor)
+                                                @php($somatoria -= $lancamento->Valor)
+                                            @endif
+                                        @endif
+
                                         </td>
 
                                         <td>
@@ -313,15 +353,28 @@
                                                 @endif
                                             </button>
 
-                                            <button title="Botão de Saidas em geral" type="button"
-                                            class="btn-sm btn btn-outline-warning"
-                                            wire:click='confirmarLancamentoSaidasGeral({{ $lancamento->ID }})'>
-                                            @if ($lancamento->SaidasGeral)
-                                                <i class="cl-{{ $lancamento->ID }} fa fa-check-square-o"></i>
-                                            @else
-                                                <i class="cl-{{ $lancamento->ID }} fa fa-square-o"></i>
-                                            @endif
-                                            </button>
+                                            @can('LANCAMENTOS - CAIXAS GERAL')
+                                                <button title="Botão de Saidas em geral" type="button"
+                                                    class="btn-sm btn btn-outline-warning"
+                                                    wire:click='confirmarLancamentoSaidasGeral({{ $lancamento->ID }})'>
+                                                    @if ($lancamento->SaidasGeral)
+                                                        <i class="cl-{{ $lancamento->ID }} fa fa-check-square-o"></i>
+                                                    @else
+                                                        <i class="cl-{{ $lancamento->ID }} fa fa-square-o"></i>
+                                                    @endif
+                                                </button>
+
+                                                <button title="Botão de Entradas em geral" type="button"
+                                                    class="btn-sm btn btn-outline-primary"
+                                                    wire:click='confirmarLancamentoEntradasGeral({{ $lancamento->ID }})'>
+                                                    @if ($lancamento->EntradasGeral)
+                                                        <i class="cl2-{{ $lancamento->ID }} fa fa-check-square-o"></i>
+                                                    @else
+                                                        <i class="cl2-{{ $lancamento->ID }} fa fa-square-o"></i>
+                                                    @endif
+                                                </button>
+
+                                            @endcan
 
                                             {{-- <button title="Sem notificação" data-id="84264" data-dias="" type="button"
                                         class="btn-sm btn btn-outline-info ligar-notificacao">
@@ -593,6 +646,16 @@
 
         window.addEventListener('confirmarLancamentoSaidasGeral', event => {
             if (event.detail.statusSaidasGeral) {
+                $('.cl-' + event.detail.lancamento_id).removeClass('fa-square-o');
+                $('.cl-' + event.detail.lancamento_id).addClass('fa-check-square-o');
+            } else {
+                $('.cl-' + event.detail.lancamento_id).removeClass('fa-check-square-o');
+                $('.cl-' + event.detail.lancamento_id).addClass('fa-square-o');
+            }
+        });
+
+        window.addEventListener('confirmarLancamentoEntradasGeral', event => {
+            if (event.detail.statusEntradasGeral) {
                 $('.cl-' + event.detail.lancamento_id).removeClass('fa-square-o');
                 $('.cl-' + event.detail.lancamento_id).addClass('fa-check-square-o');
             } else {
