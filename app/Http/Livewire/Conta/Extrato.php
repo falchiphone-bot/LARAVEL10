@@ -13,6 +13,9 @@ use Dompdf\Dompdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Route;
+
+use function JmesPath\search;
+
 class Extrato extends Component
 {
     //mudança de empresas e contas
@@ -525,15 +528,20 @@ class Extrato extends Component
 
         $lancamento->save();
         $this->dispatchBrowserEvent('confirmarLancamento', ['lancamento_id' => $lancamento_id, 'status' => $lancamento->Conferido]);
+        $this->search();
     }
 
     public function confirmarLancamentoEntradasGeral($lancamento_id)
     {
         $lancamento = Lancamento::find($lancamento_id);
 
+        if ($lancamento->SaidasGeral) {
+             dd("REGISTRO JÁ MARCADO COMO ENTRADA GERAL");
 
+        }
 
         if ($lancamento->EntradasGeral) {
+
             $lancamento->EntradasGeral = 0;
         } else {
             $lancamento->EntradasGeral = 1;
@@ -541,7 +549,7 @@ class Extrato extends Component
 
         $lancamento->save();
 
-        $this->dispatchBrowserEvent('confirmarLancamentoEntradasGeral', ['lancamento_id' => $lancamento_id, 'statusEntradasGeral' => $lancamento->EntradasGeral]);
+        // $this->dispatchBrowserEvent('confirmarLancamentoEntradasGeral', ['lancamento_id' => $lancamento_id, 'statusEntradasGeral' => $lancamento->EntradasGeral]);
         // dd( $lancamento);
         $this->search();
     }
@@ -551,6 +559,15 @@ class Extrato extends Component
     public function confirmarLancamentoSaidasGeral($lancamento_id)
     {
         $lancamento = Lancamento::find($lancamento_id);
+
+
+        // $this->dispatchBrowserEvent('alert', ['message' => 'REGISTRO JÁ MARCADO COMO ENTRADA GERAL']);
+        // return;
+
+        if ($lancamento->EntradasGeral) {
+            dd("REGISTRO JÁ MARCADO COMO SAIDA GERAL");
+
+       }
 
         if ($lancamento->SaidasGeral) {
             $lancamento->SaidasGeral = 0;
