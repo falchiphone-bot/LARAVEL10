@@ -353,6 +353,9 @@ class Extrato extends Component
 
         $lancamentosEntrada = Lancamento::where('Lancamentos.EntradasGeral', 1);
 
+
+
+
               if ($this->De) {
                 if ($this->Descricao && $this->DescricaoApartirDe) {
                     $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
@@ -360,11 +363,13 @@ class Extrato extends Component
                     $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
                 }
                 $lancamentosSaida->where('DataContabilidade', '>=', $de);
+                $lancamentosEntrada->where('DataContabilidade', '>=', $de);
                 session(['Extrato_De' => $this->De]);
             }
             if ($this->Ate) {
                 $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
                 $lancamentosSaida->where('DataContabilidade', '<=', $ate);
+                $lancamentosEntrada->where('DataContabilidade', '<=', $ate);
                 session(['Extrato_Ate' => $this->Ate]);
             }
 
@@ -375,8 +380,9 @@ class Extrato extends Component
 
                     dd(' TOTAL SOMADO DE TODAS ENTRADAS EM GERAL: ', $totalsomadoEntradas,
                        ' TOTAL SOMADO DE TODAS SAIDAS EM GERAL: ', $totalsomadoSAIDAS,
-                       ' RESULTADO ENTRE ENTRADAS E SAIDAS: ', $totalsomadoEntradas - $totalsomadoSAIDAS
-
+                       ' RESULTADO ENTRE ENTRADAS E SAIDAS: ', $totalsomadoEntradas - $totalsomadoSAIDAS,
+                       ' PERÍODO DE: ' .  $de,
+                       ' A ' . $ate
                     );
 
 
