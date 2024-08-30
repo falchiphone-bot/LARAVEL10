@@ -231,7 +231,7 @@
                         <span class="sr-only"></span>
                     </div>
                 </div>
-                <div class="row text-center" wire:loading>
+                {{-- <div class="row text-center" wire:loading>
                     <div class="spinner-border mx-auto mt-2" role="statusSaidasGeral">
                         <span class="sr-only"></span>
                     </div>
@@ -240,7 +240,7 @@
                     <div class="spinner-border mx-auto mt-2" role="statusEntradasGeral">
                         <span class="sr-only"></span>
                     </div>
-                </div>
+                </div> --}}
 
                 <div class="card-header">
                     <div class="form-group col md-12">
@@ -274,16 +274,19 @@
                             @if ($Lancamentos)
                                 @foreach ($Lancamentos as $lancamento)
                                     <tr class="tr-{{ $lancamento->ID }} border-bottom-5 border-start-5">
-                                        <td>
+                                        <td style="font-weight: bold; font-size: 1.2em;">
                                             {{ $lancamento->DataContabilidade->format('d/m/Y') }}
                                         </td>
+
                                         <td>
 
                                         </td>
                                         <td>
                                             {{-- //// extrato normal --}}
                                             @if ($Conta->ID == $lancamento->ContaDebitoID)
-                                                {{ number_format($lancamento->Valor, 2, ',', '.') }}
+                                                <span style="color: blue;">
+                                                    {{ number_format($lancamento->Valor, 2, ',', '.') }}
+                                                </span>
                                                 @if (!in_array($lancamento->ID, $listaSoma))
                                                     @php($totalDebito += $lancamento->Valor)
                                                     @php($saldo += $lancamento->Valor)
@@ -293,7 +296,9 @@
                                             {{-- //// extrato normal --}}
 
                                             @if ($Conferido == 'EntradasGeral')
-                                                {{ number_format($lancamento->Valor, 2, ',', '.') }}
+                                                <span style="color: blue;">
+                                                    {{ number_format($lancamento->Valor, 2, ',', '.') }}
+                                                </span>
                                                 @if (!in_array($lancamento->ID, $listaSoma))
                                                     @php($totalDebito += $lancamento->Valor)
                                                     @php($saldo += $lancamento->Valor)
@@ -304,7 +309,10 @@
                                         <td>
 
                                             @if ($Conferido == 'SaidasGeral')
+                                            <span style="color: blue;">
                                                 {{ number_format($lancamento->Valor, 2, ',', '.') }}
+                                            </span>
+
 
                                                 @if (!in_array($lancamento->ID, $listaSoma))
                                                     @php($totalCredito += $lancamento->Valor)
@@ -317,7 +325,10 @@
 
                                             {{-- //// extrato normal --}}
                                             @if ($Conta->ID == $lancamento->ContaCreditoID and $Conferido !== 'SaidasGeral' and $Conferido !== 'EntradasGeral')
+                                            <span style="color: red;">
                                                 {{ number_format($lancamento->Valor, 2, ',', '.') }}
+                                            </span>
+
                                                 @if (!in_array($lancamento->ID, $listaSoma))
                                                     @php($totalCredito += $lancamento->Valor)
                                                     @php($saldo -= $lancamento->Valor)
@@ -337,7 +348,10 @@
                                         </td>
 
                                         <td>
-                                            {{ number_format($saldo, 2, ',', '.') }}
+                                            <span style="color: {{ $saldo < 0 ? 'red' : 'blue' }}">
+                                                {{ number_format($saldo, 2, ',', '.') }}
+                                            </span>
+
                                         </td>
                                     </tr>
                                     <tr class="tr-{{ $lancamento->ID }}">
@@ -349,10 +363,15 @@
                                         <td colspan="3">
                                             <strong>Conta Partida: </strong>
                                             @if ($lancamento->ContaCreditoID != $Conta->ID)
-                                                {{ $lancamento->ContaCredito->PlanoConta->Descricao ?? null }}
-                                            @else
-                                                {{ $lancamento->ContaDebito->PlanoConta->Descricao ?? null }}
-                                            @endif
+                                                    <span style="color: red;">
+                                                        {{ $lancamento->ContaCredito->PlanoConta->Descricao ?? null }}
+                                                    </span>
+                                                @else
+                                                    <span style="color: blue;">
+                                                        {{ $lancamento->ContaDebito->PlanoConta->Descricao ?? null }}
+                                                    </span>
+                                                @endif
+
                                         </td>
                                         <td colspan="2" align="right">
 
@@ -367,26 +386,34 @@
                                             </button>
 
                                             @can('LANCAMENTOS - CAIXAS GERAL')
-                                                <button title="Botão de Saidas em geral" type="button"
-                                                    class="btn-sm btn btn-outline-danger"
-                                                    wire:click='confirmarLancamentoSaidasGeral({{ $lancamento->ID }})'>
-                                                    @if ($lancamento->SaidasGeral)
-                                                        <i class="cl-{{ $lancamento->ID }} fa fa-check-square-o"></i>
-                                                    @else
-                                                        <i class="cl-{{ $lancamento->ID }} fa fa-square-o"></i>
-                                                    @endif
-                                                </button>
+                                            <div class="card text-center" style="background-color: #007bff; color: white;">
 
-                                                <button title="Botão de Entradas em geral" type="button"
-                                                    class="btn-sm btn btn-outline-primary"
-                                                    wire:click='confirmarLancamentoEntradasGeral({{ $lancamento->ID }})'>
-                                                    @if ($lancamento->EntradasGeral)
-                                                        <i class="cl2-{{ $lancamento->ID }} fa fa-check-square-o"></i>
-                                                    @else
-                                                        <i class="cl2-{{ $lancamento->ID }} fa fa-square-o"></i>
-                                                    @endif
-                                                </button>
-                                            @endcan
+                                                {{-- <div class="card-body"> --}}
+                                                    <h5 class="card-title">Saídas</h5>
+                                                    <button title="Botão de Saídas em geral" type="button"
+                                                        class="btn-sm btn btn-outline-danger"
+                                                        wire:click='confirmarLancamentoSaidasGeral({{ $lancamento->ID }})'>
+                                                        @if ($lancamento->SaidasGeral)
+                                                            <i class="cl-{{ $lancamento->ID }} fa fa-check-square-o"></i>
+                                                        @else
+                                                            <i class="cl-{{ $lancamento->ID }} fa fa-square-o"></i>
+                                                        @endif
+                                                    </button>
+
+                                                    <h5 class="card-title">Entradas</h5>
+                                                    <button title="Botão de Entradas em geral" type="button"
+                                                        class="btn-sm btn btn-outline-primary"
+                                                        wire:click='confirmarLancamentoEntradasGeral({{ $lancamento->ID }})'>
+                                                        @if ($lancamento->EntradasGeral)
+                                                            <i class="cl2-{{ $lancamento->ID }} fa fa-check-square-o"></i>
+                                                        @else
+                                                            <i class="cl2-{{ $lancamento->ID }} fa fa-square-o"></i>
+                                                        @endif
+                                                    </button>
+                                                {{-- </div> --}}
+                                            </div>
+                                        @endcan
+
 
                                             {{-- <button title="Sem notificação" data-id="84264" data-dias="" type="button"
                                         class="btn-sm btn btn-outline-info ligar-notificacao">
@@ -461,9 +488,21 @@
                                         <th></th>
                                         <th>Total</th>
 
-                                        <th id="totaldebito">R$ {{ number_format($totalDebito, 2, ',', '.') }}</th>
-                                        <th id="totalcredito">R$ {{ number_format($totalCredito, 2, ',', '.') }}</th>
-                                        <th id="total">R$ {{ number_format($somatoria, 2, ',', '.') }}
+
+                                        <th id="totaldebito" style="color: blue;">
+                                            R$ {{ number_format($totalDebito, 2, ',', '.') }}
+                                        </th>
+
+                                        <th id="totalcredito" style="color: red;">
+                                            R$ {{ number_format($totalCredito, 2, ',', '.') }}
+                                        </th>
+
+
+                                        <span style="color: {{ $somatoria < 0 ? 'red' : 'blue' }}">
+                                            <th id="total">R$ {{ number_format($somatoria, 2, ',', '.') }}
+                                        </span>
+
+
                                         </th>
                                     </tr>
                                 </thead>
@@ -522,73 +561,73 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 
-    <script>
+    {{-- <script>
         window.addEventListener('alert', event => {
             alert(event.detail.message);
         });
-    </script>
+    </script> --}}
 
-<script>
+{{-- <script>
     document.addEventListener('DOMContentLoaded', function () {
         window.addEventListener('alert', event => {
             alert(event.detail.message);
         });
     });
-</script>
+</script> --}}
 
 
     <script>
         4.500, 00
         var modal = false;
-        $(document).ready(function() {
-            $('#selEmpresa').on('change', function(e) {
-                // @this.set('selEmpresa', e.target.value);
-                Livewire.emit('selectedSelEmpresaItem', e.target.value);
-            });
-            $('#selConta').on('change', function(e) {
-                Livewire.emit('selectedSelContaItem', e.target.value);
-                // @this.set('selConta', e.target.value);
-            });
+        // $(document).ready(function() {
+        //     $('#selEmpresa').on('change', function(e) {
+        //         // @this.set('selEmpresa', e.target.value);
+        //         Livewire.emit('selectedSelEmpresaItem', e.target.value);
+        //     });
+        //     $('#selConta').on('change', function(e) {
+        //         Livewire.emit('selectedSelContaItem', e.target.value);
+        //         // @this.set('selConta', e.target.value);
+        //     });
 
-            //scripts para troca de empresa
-            $(document).on('change', '#novacontadebito', function(e) {
-                Livewire.emitTo('lancamento.troca-empresa', 'setContaDebito', $(this).val());
-            });
-            $(document).on('change', '#novacontacredito', function(e) {
-                Livewire.emitTo('lancamento.troca-empresa', 'setContaCredito', $(this).val());
-            });
-            ///troca de emprsa
-            $(document).on('change', '#novaEmpresaID', function(e) {
-                Livewire.emitTo('lancamento.editar-lancamento', 'changeEmpresaID', $(this).val());
-            });
-            //troca de historico
-            $(document).on('change', '#historicoID', function(e) {
-                Livewire.emitTo('lancamento.editar-lancamento', 'selectHistorico', e.target.value);
-            });
+        //     //scripts para troca de empresa
+        //     $(document).on('change', '#novacontadebito', function(e) {
+        //         Livewire.emitTo('lancamento.troca-empresa', 'setContaDebito', $(this).val());
+        //     });
+        //     $(document).on('change', '#novacontacredito', function(e) {
+        //         Livewire.emitTo('lancamento.troca-empresa', 'setContaCredito', $(this).val());
+        //     });
+        //     ///troca de emprsa
+        //     $(document).on('change', '#novaEmpresaID', function(e) {
+        //         Livewire.emitTo('lancamento.editar-lancamento', 'changeEmpresaID', $(this).val());
+        //     });
+        //     //troca de historico
+        //     $(document).on('change', '#historicoID', function(e) {
+        //         Livewire.emitTo('lancamento.editar-lancamento', 'selectHistorico', e.target.value);
+        //     });
 
-            $(document).on('change', '#contadebito', function(e) {
-                Livewire.emitTo('lancamento.editar-lancamento', 'changeContaDebitoID', e.target.value);
-            });
-            $(document).on('change', '#contacredito', function(e) {
-                Livewire.emitTo('lancamento.editar-lancamento', 'changeContaCreditoID', e.target.value);
-            });
-        });
+        //     $(document).on('change', '#contadebito', function(e) {
+        //         Livewire.emitTo('lancamento.editar-lancamento', 'changeContaDebitoID', e.target.value);
+        //     });
+        //     $(document).on('change', '#contacredito', function(e) {
+        //         Livewire.emitTo('lancamento.editar-lancamento', 'changeContaCreditoID', e.target.value);
+        //     });
+        // });
 
-        window.addEventListener('remove-line-exclusao', event => {
-            $('.tr-' + event.detail.lancamento_id).remove();
-            console.log(event.detail.lancamento_id);
-        });
-        window.addEventListener('abrir-modal', event => {
-            var myModal = new bootstrap.Modal(document.getElementById('editarLancamentoModal'));
-            modal = true;
-            myModal.show();
-            var myModalEl = document.getElementById('editarLancamentoModal');
+        // window.addEventListener('remove-line-exclusao', event => {
+        //     $('.tr-' + event.detail.lancamento_id).remove();
+        //     console.log(event.detail.lancamento_id);
+        // });
+        // window.addEventListener('abrir-modal', event => {
+        //     var myModal = new bootstrap.Modal(document.getElementById('editarLancamentoModal'));
+        //     modal = true;
+        //     myModal.show();
+        //     var myModalEl = document.getElementById('editarLancamentoModal');
 
-            myModalEl.addEventListener('hidden.bs.modal', function(event) {
-                modal = false;
-                Livewire.emit('search');
-            })
-        });
+        //     myModalEl.addEventListener('hidden.bs.modal', function(event) {
+        //         modal = false;
+        //         Livewire.emit('search');
+        //     })
+        // });
 
         document.addEventListener("DOMContentLoaded", () => {
             Livewire.hook('message.processed', (message, component) => {
@@ -615,7 +654,7 @@
 
         });
 
-        
+
 
         function alterarData() {
             $.confirm({
@@ -669,35 +708,35 @@
             });
         }
 
-        window.addEventListener('confirmarLancamento', event => {
-            if (event.detail.status) {
-                $('.cl-' + event.detail.lancamento_id).removeClass('fa-square-o');
-                $('.cl-' + event.detail.lancamento_id).addClass('fa-check-square-o');
-            } else {
-                $('.cl-' + event.detail.lancamento_id).removeClass('fa-check-square-o');
-                $('.cl-' + event.detail.lancamento_id).addClass('fa-square-o');
-            }
-        });
+        // window.addEventListener('confirmarLancamento', event => {
+        //     if (event.detail.status) {
+        //         $('.cl-' + event.detail.lancamento_id).removeClass('fa-square-o');
+        //         $('.cl-' + event.detail.lancamento_id).addClass('fa-check-square-o');
+        //     } else {
+        //         $('.cl-' + event.detail.lancamento_id).removeClass('fa-check-square-o');
+        //         $('.cl-' + event.detail.lancamento_id).addClass('fa-square-o');
+        //     }
+        // });
 
-        window.addEventListener('confirmarLancamentoSaidasGeral', event => {
-            if (event.detail.statusSaidasGeral) {
-                $('.cl-' + event.detail.lancamento_id).removeClass('fa-square-o');
-                $('.cl-' + event.detail.lancamento_id).addClass('fa-check-square-o');
-            } else {
-                $('.cl-' + event.detail.lancamento_id).removeClass('fa-check-square-o');
-                $('.cl-' + event.detail.lancamento_id).addClass('fa-square-o');
-            }
-        });
+        // window.addEventListener('confirmarLancamentoSaidasGeral', event => {
+        //     if (event.detail.statusSaidasGeral) {
+        //         $('.cl-' + event.detail.lancamento_id).removeClass('fa-square-o');
+        //         $('.cl-' + event.detail.lancamento_id).addClass('fa-check-square-o');
+        //     } else {
+        //         $('.cl-' + event.detail.lancamento_id).removeClass('fa-check-square-o');
+        //         $('.cl-' + event.detail.lancamento_id).addClass('fa-square-o');
+        //     }
+        // });
 
-        window.addEventListener('confirmarLancamentoEntradasGeral', event => {
-            if (event.detail.statusEntradasGeral) {
-                $('.cl-' + event.detail.lancamento_id).removeClass('fa-square-o');
-                $('.cl-' + event.detail.lancamento_id).addClass('fa-check-square-o');
-            } else {
-                $('.cl-' + event.detail.lancamento_id).removeClass('fa-check-square-o');
-                $('.cl-' + event.detail.lancamento_id).addClass('fa-square-o');
-            }
-        });
+        // window.addEventListener('confirmarLancamentoEntradasGeral', event => {
+        //     if (event.detail.statusEntradasGeral) {
+        //         $('.cl-' + event.detail.lancamento_id).removeClass('fa-square-o');
+        //         $('.cl-' + event.detail.lancamento_id).addClass('fa-check-square-o');
+        //     } else {
+        //         $('.cl-' + event.detail.lancamento_id).removeClass('fa-check-square-o');
+        //         $('.cl-' + event.detail.lancamento_id).addClass('fa-square-o');
+        //     }
+        // });
 
         // In your Javascript (external .js resource or <script> tag)
         $('.select2').select2({
