@@ -386,10 +386,11 @@
                                             </button>
 
                                             @can('LANCAMENTOS - CAIXAS GERAL')
-                                            <div class="card text-center" style="background-color: #007bff; color: white;">
+                                            <div class="card text-center" style="background-color: #00ff2a; color: white;">
 
                                                 {{-- <div class="card-body"> --}}
-                                                    <h5 class="card-title">Saídas</h5>
+                                                    <h5 class="card-title" style="color: red;">Saídas</h5>
+
                                                     <button title="Botão de Saídas em geral" type="button"
                                                         class="btn-sm btn btn-outline-danger"
                                                         wire:click='confirmarLancamentoSaidasGeral({{ $lancamento->ID }})'>
@@ -400,7 +401,9 @@
                                                         @endif
                                                     </button>
 
-                                                    <h5 class="card-title">Entradas</h5>
+
+                                                    <h5 class="card-title" style="color: rgb(39, 3, 196);">Entradas</h5>
+
                                                     <button title="Botão de Entradas em geral" type="button"
                                                         class="btn-sm btn btn-outline-primary"
                                                         wire:click='confirmarLancamentoEntradasGeral({{ $lancamento->ID }})'>
@@ -561,73 +564,74 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 
-    {{-- <script>
+    <script>
         window.addEventListener('alert', event => {
             alert(event.detail.message);
         });
-    </script> --}}
+    </script>
 
-{{-- <script>
+<script>
     document.addEventListener('DOMContentLoaded', function () {
         window.addEventListener('alert', event => {
             alert(event.detail.message);
         });
     });
-</script> --}}
+</script>
 
 
     <script>
         4.500, 00
         var modal = false;
-        // $(document).ready(function() {
-        //     $('#selEmpresa').on('change', function(e) {
-        //         // @this.set('selEmpresa', e.target.value);
-        //         Livewire.emit('selectedSelEmpresaItem', e.target.value);
-        //     });
-        //     $('#selConta').on('change', function(e) {
-        //         Livewire.emit('selectedSelContaItem', e.target.value);
-        //         // @this.set('selConta', e.target.value);
-        //     });
+        $(document).ready(function() {
+            $('#selEmpresa').on('change', function(e) {
+                // @this.set('selEmpresa', e.target.value);
+                Livewire.emit('selectedSelEmpresaItem', e.target.value);
+            });
+            $('#selConta').on('change', function(e) {
+                Livewire.emit('selectedSelContaItem', e.target.value);
+                // @this.set('selConta', e.target.value);
+            });
 
-        //     //scripts para troca de empresa
-        //     $(document).on('change', '#novacontadebito', function(e) {
-        //         Livewire.emitTo('lancamento.troca-empresa', 'setContaDebito', $(this).val());
-        //     });
-        //     $(document).on('change', '#novacontacredito', function(e) {
-        //         Livewire.emitTo('lancamento.troca-empresa', 'setContaCredito', $(this).val());
-        //     });
-        //     ///troca de emprsa
-        //     $(document).on('change', '#novaEmpresaID', function(e) {
-        //         Livewire.emitTo('lancamento.editar-lancamento', 'changeEmpresaID', $(this).val());
-        //     });
-        //     //troca de historico
-        //     $(document).on('change', '#historicoID', function(e) {
-        //         Livewire.emitTo('lancamento.editar-lancamento', 'selectHistorico', e.target.value);
-        //     });
+            //scripts para troca de empresa
+            $(document).on('change', '#novacontadebito', function(e) {
+                Livewire.emitTo('lancamento.troca-empresa', 'setContaDebito', $(this).val());
+            });
+            $(document).on('change', '#novacontacredito', function(e) {
+                Livewire.emitTo('lancamento.troca-empresa', 'setContaCredito', $(this).val());
+            });
+            ///troca de emprsa
+            $(document).on('change', '#novaEmpresaID', function(e) {
+                Livewire.emitTo('lancamento.editar-lancamento', 'changeEmpresaID', $(this).val());
+            });
+            //troca de historico
+            $(document).on('change', '#historicoID', function(e) {
+                Livewire.emitTo('lancamento.editar-lancamento', 'selectHistorico', e.target.value);
+            });
 
-        //     $(document).on('change', '#contadebito', function(e) {
-        //         Livewire.emitTo('lancamento.editar-lancamento', 'changeContaDebitoID', e.target.value);
-        //     });
-        //     $(document).on('change', '#contacredito', function(e) {
-        //         Livewire.emitTo('lancamento.editar-lancamento', 'changeContaCreditoID', e.target.value);
-        //     });
-        // });
+            $(document).on('change', '#contadebito', function(e) {
+                Livewire.emitTo('lancamento.editar-lancamento', 'changeContaDebitoID', e.target.value);
+            });
+            $(document).on('change', '#contacredito', function(e) {
+                Livewire.emitTo('lancamento.editar-lancamento', 'changeContaCreditoID', e.target.value);
+            });
+        });
 
-        // window.addEventListener('remove-line-exclusao', event => {
-        //     $('.tr-' + event.detail.lancamento_id).remove();
-        //     console.log(event.detail.lancamento_id);
-        // });
-        // window.addEventListener('abrir-modal', event => {
-        //     var myModal = new bootstrap.Modal(document.getElementById('editarLancamentoModal'));
-        //     modal = true;
-        //     myModal.show();
-        //     var myModalEl = document.getElementById('editarLancamentoModal');
+        window.addEventListener('remove-line-exclusao', event => {
+            $('.tr-' + event.detail.lancamento_id).remove();
+            console.log(event.detail.lancamento_id);
+        });
 
-        //     myModalEl.addEventListener('hidden.bs.modal', function(event) {
-        //         modal = false;
-        //         Livewire.emit('search');
-        //     })
-        // });
+        window.addEventListener('abrir-modal', event => {
+            var myModal = new bootstrap.Modal(document.getElementById('editarLancamentoModal'));
+            modal = true;
+            myModal.show();
+            var myModalEl = document.getElementById('editarLancamentoModal');
+
+            myModalEl.addEventListener('hidden.bs.modal', function(event) {
+                modal = false;
+                Livewire.emit('search');
+            })
+        });
 
         document.addEventListener("DOMContentLoaded", () => {
             Livewire.hook('message.processed', (message, component) => {
@@ -708,35 +712,35 @@
             });
         }
 
-        // window.addEventListener('confirmarLancamento', event => {
-        //     if (event.detail.status) {
-        //         $('.cl-' + event.detail.lancamento_id).removeClass('fa-square-o');
-        //         $('.cl-' + event.detail.lancamento_id).addClass('fa-check-square-o');
-        //     } else {
-        //         $('.cl-' + event.detail.lancamento_id).removeClass('fa-check-square-o');
-        //         $('.cl-' + event.detail.lancamento_id).addClass('fa-square-o');
-        //     }
-        // });
+        window.addEventListener('confirmarLancamento', event => {
+            if (event.detail.status) {
+                $('.cl-' + event.detail.lancamento_id).removeClass('fa-square-o');
+                $('.cl-' + event.detail.lancamento_id).addClass('fa-check-square-o');
+            } else {
+                $('.cl-' + event.detail.lancamento_id).removeClass('fa-check-square-o');
+                $('.cl-' + event.detail.lancamento_id).addClass('fa-square-o');
+            }
+        });
 
-        // window.addEventListener('confirmarLancamentoSaidasGeral', event => {
-        //     if (event.detail.statusSaidasGeral) {
-        //         $('.cl-' + event.detail.lancamento_id).removeClass('fa-square-o');
-        //         $('.cl-' + event.detail.lancamento_id).addClass('fa-check-square-o');
-        //     } else {
-        //         $('.cl-' + event.detail.lancamento_id).removeClass('fa-check-square-o');
-        //         $('.cl-' + event.detail.lancamento_id).addClass('fa-square-o');
-        //     }
-        // });
+        window.addEventListener('confirmarLancamentoSaidasGeral', event => {
+            if (event.detail.statusSaidasGeral) {
+                $('.cl-' + event.detail.lancamento_id).removeClass('fa-square-o');
+                $('.cl-' + event.detail.lancamento_id).addClass('fa-check-square-o');
+            } else {
+                $('.cl-' + event.detail.lancamento_id).removeClass('fa-check-square-o');
+                $('.cl-' + event.detail.lancamento_id).addClass('fa-square-o');
+            }
+        });
 
-        // window.addEventListener('confirmarLancamentoEntradasGeral', event => {
-        //     if (event.detail.statusEntradasGeral) {
-        //         $('.cl-' + event.detail.lancamento_id).removeClass('fa-square-o');
-        //         $('.cl-' + event.detail.lancamento_id).addClass('fa-check-square-o');
-        //     } else {
-        //         $('.cl-' + event.detail.lancamento_id).removeClass('fa-check-square-o');
-        //         $('.cl-' + event.detail.lancamento_id).addClass('fa-square-o');
-        //     }
-        // });
+        window.addEventListener('confirmarLancamentoEntradasGeral', event => {
+            if (event.detail.statusEntradasGeral) {
+                $('.cl-' + event.detail.lancamento_id).removeClass('fa-square-o');
+                $('.cl-' + event.detail.lancamento_id).addClass('fa-check-square-o');
+            } else {
+                $('.cl-' + event.detail.lancamento_id).removeClass('fa-check-square-o');
+                $('.cl-' + event.detail.lancamento_id).addClass('fa-square-o');
+            }
+        });
 
         // In your Javascript (external .js resource or <script> tag)
         $('.select2').select2({

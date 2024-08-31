@@ -61,6 +61,7 @@ class Extrato extends Component
         $this->emitTo('lancamento.arquivo-lancamento', 'resetData', $lancamento_id);
         $this->dispatchBrowserEvent('abrir-modal');
         $this->modal = true;
+       
     }
 
     public function alterarData($date)
