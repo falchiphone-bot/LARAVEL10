@@ -374,16 +374,20 @@
 
                                         </td>
                                         <td colspan="2" align="right">
+                                            <div class="card text-center" style="background-color: rgb(185, 237, 14); color: white;">
+                                                <h5 class="card-title" style="color: rgb(123, 0, 255);">CONFERIDO</h5>
+                                                <button title="Botão de Conferência" type="button"
+                                                    class="btn-sm btn btn-outline-info"
+                                                    wire:click='confirmarLancamento({{ $lancamento->ID }})'>
+                                                    @if ($lancamento->Conferido)
+                                                        <i class="cl-{{ $lancamento->ID }} fa fa-check-square-o"></i>
+                                                    @else
+                                                        <i class="cl-{{ $lancamento->ID }} fa fa-square-o"></i>
+                                                    @endif
+                                                </button>
+                                             </div>
 
-                                            <button title="Botão de Conferência" type="button"
-                                                class="btn-sm btn btn-outline-info"
-                                                wire:click='confirmarLancamento({{ $lancamento->ID }})'>
-                                                @if ($lancamento->Conferido)
-                                                    <i class="cl-{{ $lancamento->ID }} fa fa-check-square-o"></i>
-                                                @else
-                                                    <i class="cl-{{ $lancamento->ID }} fa fa-square-o"></i>
-                                                @endif
-                                            </button>
+
 
                                             @can('LANCAMENTOS - CAIXAS GERAL')
                                             <div class="card text-center" style="background-color: #00ff2a; color: white;">
