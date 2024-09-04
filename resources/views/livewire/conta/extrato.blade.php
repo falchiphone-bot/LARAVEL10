@@ -380,9 +380,13 @@
                                                     class="btn-sm btn btn-outline-info"
                                                     wire:click='confirmarLancamento({{ $lancamento->ID }})'>
                                                     @if ($lancamento->Conferido)
-                                                        <i class="cl-{{ $lancamento->ID }} fa fa-check-square-o"></i>
+                                                        <div class="card text-center" style="background-color: rgb(118, 14, 237); color: white;">
+                                                            <i class="cl-{{ $lancamento->ID }} fa fa-check-square-o"></i>
+                                                        </div>
                                                     @else
-                                                        <i class="cl-{{ $lancamento->ID }} fa fa-square-o"></i>
+                                                        <div class="card text-center" style="background-color: rgb(237, 14, 14); color: white;">
+                                                            <i class="cl-{{ $lancamento->ID }} fa fa-square-o"></i>
+                                                        </div>
                                                     @endif
                                                 </button>
                                              </div>
