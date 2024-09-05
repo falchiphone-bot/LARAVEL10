@@ -14,7 +14,8 @@
             <div class="form-group">
                 <div class="badge bg-info text-wrap" style="width: 100%; height: 50%; font-size: 24px;">
                     TIPO DE ARQUIVO
-                </div>
+            </div>
+
                 <select required class="form-control select2" id="TipoArquivo" name="TipoArquivo">
                     <option value="">Selecionar tipo de arquivo</option>
                     @foreach ($tipoarquivo as $Tipoarquivo)
@@ -24,6 +25,16 @@
                     </option>
                     @endforeach
                 </select>
+        </div>
+               <div class="form-group">
+                    <label for="ArquivoFisico">ARQUIVO FISICO ONDE SE ENCONTRA O DOCUMENTO</label>
+                    <input required  class="form-control @error('nome') is-invalid @else is-valid @enderror" name="ArquivoFisico"
+                        type="text" id="ArquivoFisico" value="{{$documento->ArquivoFisico??null}}">
+                    @error('nome')
+                        <div class="alert alert-danger">{{ $message }}</div>
+                    @enderror
+                </div>
+
 
 
             {{-- <label for="nome">Observação</label>
@@ -35,7 +46,7 @@
 
 
 
-        </div>
+
         </div>
 
         <div class="row mt-2">

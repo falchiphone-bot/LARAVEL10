@@ -21,6 +21,7 @@ class LancamentoDocumento extends Model
         'Ext',
         'Documento',
         'TipoArquivo',
+        'ArquivoFisico',
     ];
 
     protected $casts = [

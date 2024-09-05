@@ -166,6 +166,12 @@
                                     <td class="overflow-hidden" style="max-width: 200px;">
                                         {{ \Illuminate\Support\Str::limit($documento->Rotulo, 100) }}
                                         <!-- Truncate label and limit to 50 characters -->
+                                        @if (isset($documento->ArquivoFisico))
+                                            <p>
+                                                <strong>Arquivo físico:</strong>
+                                                {{ $documento->ArquivoFisico }}
+                                            </p>
+                                        @endif
                                         @if ($documento->TipoArquivoNome)
                                             <p>
                                                 Tipo do arquivo:
@@ -206,6 +212,14 @@
                                             </form>
                                         </td>
                                     @endcan
+                                </tr>
+
+                                <tr>
+                                    <td colspan="5">
+                                        <p>
+                                            <strong>____________________________________________________________________________________</strong>
+                                        </p>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
