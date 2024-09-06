@@ -61,7 +61,7 @@ class Extrato extends Component
         $this->emitTo('lancamento.arquivo-lancamento', 'resetData', $lancamento_id);
         $this->dispatchBrowserEvent('abrir-modal');
         $this->modal = true;
-       
+
     }
 
     public function alterarData($date)
@@ -534,7 +534,7 @@ class Extrato extends Component
 
 
         $lancamento->save();
-        $this->dispatchBrowserEvent('confirmarLancamento', ['lancamento_id' => $lancamento_id, 'status' => $lancamento->Conferido]);
+        // $this->dispatchBrowserEvent('confirmarLancamento', ['lancamento_id' => $lancamento_id, 'status' => $lancamento->Conferido]);
         $this->search();
     }
 
