@@ -610,41 +610,105 @@ class Extrato extends Component
 
     public function contasGabrielMagossiFalchi()
     {
- 
-            $contaID = 11146;
+            $dados = [];
             $lancamentos = Lancamento::limit(0);
+        // ================================================================================================================
 
+            $contaID = 11146;   // PRF
 
 
             $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
             $de = $this->selecionarLancamento($contaID)['de'];
             $ate = $this->selecionarLancamento($contaID)['ate'];
 
-            // Calculando o débito e crédito
+
             $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
             $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
             $saldo = $debito - $credito;
 
-            // Variável para armazenar o nome da empresa (última do loop)
             $NomeEmpresa = null;
 
-            // Iterando sobre os lançamentos para capturar o nome da empresa
             foreach ($lancamentos as $lancamento) {
                 $NomeEmpresa = $lancamento->NomeEmpresa;
             }
 
-            // Debug final mostrando informações detalhadas
-            dd(
-                'Gabriel Magossi Falchi',
-                'Selecionados: ' . $lancamentos->count(),
-                'Débito: ' . $debito,
-                'Crédito: ' . $credito,
-                'De: ' . ($de ?? 'Não informado'),
-                'Até: ' . ($ate ?? 'Não informado'),
-                'Saldo: ' . $saldo,
-                'Última Empresa: ' . ($NomeEmpresa ?? 'Nenhuma empresa encontrada')
-            );
+            $dados[] = [
+                'Nome' => 'Gabriel Magossi Falchi',
+                'Selecionados' => $lancamentos->count(),
+                'Débito' => $debito,
+                'Crédito' => $credito,
+                'De' => $de ?? 'Não informado',
+                'Até' => $ate ?? 'Não informado',
+                'Saldo' => $saldo,
+                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
+            ];
 
+// ================================================================================================================
+            $contaID = 19538;  // STTARMAAKE
+
+            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+            $de = $this->selecionarLancamento($contaID)['de'];
+            $ate = $this->selecionarLancamento($contaID)['ate'];
+
+
+            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+            $saldo = $debito - $credito;
+
+            $NomeEmpresa = null;
+
+            foreach ($lancamentos as $lancamento) {
+                $NomeEmpresa = $lancamento->NomeEmpresa;
+            }
+
+            $dados[]= [
+                'Nome' => 'Gabriel Magossi Falchi',
+                'Selecionados' => $lancamentos->count(),
+                'Débito' => $debito,
+                'Crédito' => $credito,
+                'De' => $de ?? 'Não informado',
+                'Até' => $ate ?? 'Não informado',
+                'Saldo' => $saldo,
+                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
+            ];
+
+// ================================================================================================================
+            $contaID = 15394;  //PEDRO
+
+            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+            $de = $this->selecionarLancamento($contaID)['de'];
+            $ate = $this->selecionarLancamento($contaID)['ate'];
+
+
+            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+            $saldo = $debito - $credito;
+
+            $NomeEmpresa = null;
+
+            foreach ($lancamentos as $lancamento) {
+                $NomeEmpresa = $lancamento->NomeEmpresa;
+            }
+
+            $dados[]= [
+                'Nome' => 'Gabriel Magossi Falchi',
+                'Selecionados' => $lancamentos->count(),
+                'Débito' => $debito,
+                'Crédito' => $credito,
+                'De' => $de ?? 'Não informado',
+                'Até' => $ate ?? 'Não informado',
+                'Saldo' => $saldo,
+                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
+            ];
+//  ================================================================================================================
+
+
+
+
+
+
+
+            dd($dados);
 
 
 
