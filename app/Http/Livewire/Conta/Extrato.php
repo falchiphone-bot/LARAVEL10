@@ -541,70 +541,111 @@ class Extrato extends Component
         $this->search();
     }
 
-    public function contasGabrielMagossiFalchi()
+
+    public function selecionarLancamento($contaID)
     {
 
-        // 11146, 19532
-        $contaID = 11146;
-        $lancamentos = Lancamento::where(function ($query) use ($contaID) {
-            return $query->where('Lancamentos.ContaDebitoID', $contaID)->orWhere('Lancamentos.ContaCreditoID', $contaID);
-        });
+            $lancamentos = Lancamento::where(function ($query) use ($contaID) {
+                $query->where('Lancamentos.ContaDebitoID', $contaID)
+                    ->orWhere('Lancamentos.ContaCreditoID', $contaID);
+            });
 
-        if ($this->De) {
+
+
+            if ($this->De) {
+                // Verifica a descrição e formata a data para o campo 'De'
                 if ($this->Descricao && $this->DescricaoApartirDe) {
-                    $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
+                    $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('Y-m-d 00:00:00');
                 } else {
-                    $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
+                    $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('Y-m-d 00:00:00');
                 }
 
                 $lancamentos->where('DataContabilidade', '>=', $de);
                 cache(['Extrato_De' => $this->De]);
-        }
+            }
 
-        if ($this->Ate) {
-            $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
-            $lancamentos->where('DataContabilidade', '<=', $ate);
-            session(['Extrato_Ate' => $this->Ate]);
-        }
+            if ($this->Ate) {
+                // Formata a data para o campo 'Até'
+                $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('Y-m-d 23:59:59');
+                $lancamentos->where('DataContabilidade', '<=', $ate);
+                session(['Extrato_Ate' => $this->Ate]);
+            }
 
-        $lancamentos = $lancamentos->orderBy('DataContabilidade')
-            ->whereDoesntHave('SolicitacaoExclusao')
-            ->leftJoin('Contabilidade.Historicos', 'Historicos.ID', '=', 'Lancamentos.HistoricoID')
-            ->leftJoin('Contabilidade.Empresas', 'Empresas.ID', '=', 'Lancamentos.EmpresaID')
-            ->get([
-                'Lancamentos.ID',
-                'Lancamentos.Valor',
-                'Empresas.Descricao as NomeEmpresa',
-                'DataContabilidade',
-                'Lancamentos.ContaCreditoID',
-                'Lancamentos.ContaDebitoID',
-                'Lancamentos.Descricao',
-                'Historicos.Descricao as HistoricoDescricao',
-                'Conferido',
-                'SaidasGeral',
-                'EntradasGeral'
-            ]);
+            // Executa a query e obtém os dados
+            $lancamentos = $lancamentos->orderBy('DataContabilidade')
+                ->whereDoesntHave('SolicitacaoExclusao')
+                ->leftJoin('Contabilidade.Historicos', 'Historicos.ID', '=', 'Lancamentos.HistoricoID')
+                ->leftJoin('Contabilidade.Empresas', 'Empresas.ID', '=', 'Lancamentos.EmpresaID')
+                ->get([
+                    'Lancamentos.ID',
+                    'Lancamentos.Valor',
+                    'Empresas.Descricao as NomeEmpresa',
+                    'DataContabilidade',
+                    'Lancamentos.ContaCreditoID',
+                    'Lancamentos.ContaDebitoID',
+                    'Lancamentos.Descricao',
+                    'Historicos.Descricao as HistoricoDescricao',
+                    'Conferido',
+                    'SaidasGeral',
+                    'EntradasGeral'
+                ]);
 
-       $debito = $lancamentos->where('ContaDebitoID',11146)->sum('Valor');
 
-       $credito = $lancamentos->where('ContaCreditoID',11146)->sum('Valor');
 
-       $saldo = $debito - $credito;
+            // dd(
 
-        foreach ($lancamentos as $lancamento){
-              $NomeEmpresa = $lancamento->NomeEmpresa;
-        }
+            //     'Gabriel Magossi Falchi',
+            //     'Selecionados: '.$lancamentos->count(),
 
-        dd(
-            'Empresa: '. $lancamentos->first()->NomeEmpresa, // Exibe o nome da primeira empresa do resultado, caso exista
-            'Gabriel Magossi Falchi',
-            'Selecionados: '.$lancamentos->count(),
-            'Débito: '.$debito,
-            'Crédito: '.$credito,
-            'De: '.$de,
-            'Até: '.$ate,
-            'Saldo: '.$saldo
-        );
+            //     'De: '.$de,
+            //     'Até: '.$ate,
+            //     `contaID` . $contaID,
+
+            // );
+
+            return compact('lancamentos', 'de', 'ate');
+
+    }
+
+
+    public function contasGabrielMagossiFalchi()
+    {
+ 
+            $contaID = 11146;
+            $lancamentos = Lancamento::limit(0);
+
+
+
+            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+            $de = $this->selecionarLancamento($contaID)['de'];
+            $ate = $this->selecionarLancamento($contaID)['ate'];
+
+            // Calculando o débito e crédito
+            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+            $saldo = $debito - $credito;
+
+            // Variável para armazenar o nome da empresa (última do loop)
+            $NomeEmpresa = null;
+
+            // Iterando sobre os lançamentos para capturar o nome da empresa
+            foreach ($lancamentos as $lancamento) {
+                $NomeEmpresa = $lancamento->NomeEmpresa;
+            }
+
+            // Debug final mostrando informações detalhadas
+            dd(
+                'Gabriel Magossi Falchi',
+                'Selecionados: ' . $lancamentos->count(),
+                'Débito: ' . $debito,
+                'Crédito: ' . $credito,
+                'De: ' . ($de ?? 'Não informado'),
+                'Até: ' . ($ate ?? 'Não informado'),
+                'Saldo: ' . $saldo,
+                'Última Empresa: ' . ($NomeEmpresa ?? 'Nenhuma empresa encontrada')
+            );
+
+
 
 
     }
