@@ -172,6 +172,17 @@
                     </button>
 
                     @can('LANCAMENTOS - CAIXAS GERAL')
+
+                        <button title="Saldos Gabriel Magossi Falchi" type="button" class="btn-sm btn btn-outline-danger"
+                            wire:click='contasGabrielMagossiFalchi()'>
+
+                                <div class="card text-center" style="background-color: rgb(118, 14, 237); color: white;">
+                                    <i class="cl-fa fa-check-square-o">Contas Gabriel Magossi Falchi</i>
+                                </div>
+
+                        </button>
+
+
                         <button id="buscar" wire:click='searchSaidasGeral()' type="button"
                             class="btn btn-danger btn-sm">
                             <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de saidas em geral
@@ -309,9 +320,9 @@
                                         <td>
 
                                             @if ($Conferido == 'SaidasGeral')
-                                            <span style="color: blue;">
-                                                {{ number_format($lancamento->Valor, 2, ',', '.') }}
-                                            </span>
+                                                <span style="color: blue;">
+                                                    {{ number_format($lancamento->Valor, 2, ',', '.') }}
+                                                </span>
 
 
                                                 @if (!in_array($lancamento->ID, $listaSoma))
@@ -325,9 +336,9 @@
 
                                             {{-- //// extrato normal --}}
                                             @if ($Conta->ID == $lancamento->ContaCreditoID and $Conferido !== 'SaidasGeral' and $Conferido !== 'EntradasGeral')
-                                            <span style="color: red;">
-                                                {{ number_format($lancamento->Valor, 2, ',', '.') }}
-                                            </span>
+                                                <span style="color: red;">
+                                                    {{ number_format($lancamento->Valor, 2, ',', '.') }}
+                                                </span>
 
                                                 @if (!in_array($lancamento->ID, $listaSoma))
                                                     @php($totalCredito += $lancamento->Valor)
@@ -363,49 +374,56 @@
                                         <td colspan="3">
                                             <strong>Conta Partida: </strong>
                                             @if ($lancamento->ContaCreditoID != $Conta->ID)
-                                                    <span style="color: red;">
-                                                        {{ $lancamento->ContaCredito->PlanoConta->Descricao ?? null }}
-                                                    </span>
-                                                @else
-                                                    <span style="color: blue;">
-                                                        {{ $lancamento->ContaDebito->PlanoConta->Descricao ?? null }}
-                                                    </span>
-                                                @endif
+                                                <span style="color: red;">
+                                                    {{ $lancamento->ContaCredito->PlanoConta->Descricao ?? null }}
+                                                </span>
+                                            @else
+                                                <span style="color: blue;">
+                                                    {{ $lancamento->ContaDebito->PlanoConta->Descricao ?? null }}
+                                                </span>
+                                            @endif
 
                                         </td>
                                         <td colspan="2" align="right">
-                                            <div class="card text-center" style="background-color: rgb(185, 237, 14); color: white;">
+                                            <div class="card text-center"
+                                                style="background-color: rgb(185, 237, 14); color: white;">
                                                 <h5 class="card-title" style="color: rgb(123, 0, 255);">CONFERIDO</h5>
                                                 <button title="Botão de Conferência" type="button"
                                                     class="btn-sm btn btn-outline-info"
                                                     wire:click='confirmarLancamento({{ $lancamento->ID }})'>
                                                     @if ($lancamento->Conferido)
-                                                        <div class="card text-center" style="background-color: rgb(118, 14, 237); color: white;">
-                                                            <i class="cl-{{ $lancamento->ID }} fa fa-check-square-o"></i>
+                                                        <div class="card text-center"
+                                                            style="background-color: rgb(118, 14, 237); color: white;">
+                                                            <i
+                                                                class="cl-{{ $lancamento->ID }} fa fa-check-square-o"></i>
                                                         </div>
                                                     @else
-                                                        <div class="card text-center" style="background-color: rgb(237, 14, 14); color: white;">
+                                                        <div class="card text-center"
+                                                            style="background-color: rgb(237, 14, 14); color: white;">
                                                             <i class="cl-{{ $lancamento->ID }} fa fa-square-o"></i>
                                                         </div>
                                                     @endif
                                                 </button>
-                                             </div>
+                                            </div>
 
 
 
                                             @can('LANCAMENTOS - CAIXAS GERAL')
-                                            <div class="card text-center" style="background-color: #00ff2a; color: white;">
+                                                <div class="card text-center"
+                                                    style="background-color: #00ff2a; color: white;">
 
-                                                {{-- <div class="card-body"> --}}
+                                                    {{-- <div class="card-body"> --}}
                                                     <h5 class="card-title" style="color: red;">Saídas</h5>
 
                                                     <button title="Botão de Saídas em geral" type="button"
                                                         class="btn-sm btn btn-outline-danger"
                                                         wire:click='confirmarLancamentoSaidasGeral({{ $lancamento->ID }})'>
                                                         @if ($lancamento->SaidasGeral)
-                                                        <div class="card text-center" style="background-color: rgb(118, 14, 237); color: white;">
-                                                            <i class="cl-{{ $lancamento->ID }} fa fa-check-square-o"></i>
-                                                        </div>
+                                                            <div class="card text-center"
+                                                                style="background-color: rgb(118, 14, 237); color: white;">
+                                                                <i
+                                                                    class="cl-{{ $lancamento->ID }} fa fa-check-square-o"></i>
+                                                            </div>
                                                         @else
                                                             <i class="cl-{{ $lancamento->ID }} fa fa-square-o"></i>
                                                         @endif
@@ -418,16 +436,18 @@
                                                         class="btn-sm btn btn-outline-primary"
                                                         wire:click='confirmarLancamentoEntradasGeral({{ $lancamento->ID }})'>
                                                         @if ($lancamento->EntradasGeral)
-                                                        <div class="card text-center" style="background-color: rgb(118, 14, 237); color: white;">
-                                                            <i class="cl2-{{ $lancamento->ID }} fa fa-check-square-o"></i>
-                                                        </div>
+                                                            <div class="card text-center"
+                                                                style="background-color: rgb(118, 14, 237); color: white;">
+                                                                <i
+                                                                    class="cl2-{{ $lancamento->ID }} fa fa-check-square-o"></i>
+                                                            </div>
                                                         @else
                                                             <i class="cl2-{{ $lancamento->ID }} fa fa-square-o"></i>
                                                         @endif
                                                     </button>
-                                                {{-- </div> --}}
-                                            </div>
-                                        @endcan
+                                                    {{-- </div> --}}
+                                                </div>
+                                            @endcan
 
 
                                             {{-- <button title="Sem notificação" data-id="84264" data-dias="" type="button"
@@ -582,13 +602,13 @@
         });
     </script>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        window.addEventListener('alert', event => {
-            alert(event.detail.message);
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            window.addEventListener('alert', event => {
+                alert(event.detail.message);
+            });
         });
-    });
-</script>
+    </script>
 
 
     <script>
