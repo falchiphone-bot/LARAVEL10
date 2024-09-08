@@ -592,17 +592,6 @@ class Extrato extends Component
 
 
 
-            // dd(
-
-            //     'Gabriel Magossi Falchi',
-            //     'Selecionados: '.$lancamentos->count(),
-
-            //     'De: '.$de,
-            //     'Até: '.$ate,
-            //     `contaID` . $contaID,
-
-            // );
-
             return compact('lancamentos', 'de', 'ate');
 
     }
@@ -703,16 +692,14 @@ class Extrato extends Component
 //  ================================================================================================================
 
 
+           
+            return redirect()->route('lancamentos.exibirDadosGabrielMagossiFalchi')->with('dados', $dados);
+
+            // return  view('Lancamentos.DadosGabrielMagossiFalchi')->with($dados);
+
+        }
 
 
-
-
-
-            dd($dados);
-
-
-
-    }
 
 
     public function confirmarLancamentoEntradasGeral($lancamento_id)

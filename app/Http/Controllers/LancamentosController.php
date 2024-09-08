@@ -45,7 +45,23 @@ class LancamentosController extends Controller
      }
 
 
+     public function exibirDadosGabrielMagossiFalchi()
+     {
+        $dados = session('dados');
+        // dd( $dados);
+        $Débito = 0;
+        $Crédito = 0;
+        $Saldo = 0;
+        foreach ($dados as $item) {
+            $Débito += $item['Débito'];
+            $Crédito += $item['Crédito'];
+            $Saldo += $item['Saldo'];
+        }
 
+
+
+         return view('Lancamentos.DadosGabrielMagossiFalchi', compact('dados', 'Débito', 'Crédito', 'Saldo'));
+     }
 
      public function ExportarSkala()
      {
