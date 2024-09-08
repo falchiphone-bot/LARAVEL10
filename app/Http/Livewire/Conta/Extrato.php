@@ -690,16 +690,160 @@ class Extrato extends Component
                 'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
             ];
 //  ================================================================================================================
-
-
-           
             return redirect()->route('lancamentos.exibirDadosGabrielMagossiFalchi')->with('dados', $dados);
+    }
 
-            // return  view('Lancamentos.DadosGabrielMagossiFalchi')->with($dados);
+    public function contasCaioCesarMagossiFalchi()
+    {
+            $dados = [];
+            $lancamentos = Lancamento::limit(0);
+        // ================================================================================================================
 
-        }
+            $contaID = 11141;   // INFRANET
 
 
+            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+            $de = $this->selecionarLancamento($contaID)['de'];
+            $ate = $this->selecionarLancamento($contaID)['ate'];
+
+
+            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+            $saldo = $debito - $credito;
+
+            $NomeEmpresa = null;
+
+            foreach ($lancamentos as $lancamento) {
+                $NomeEmpresa = $lancamento->NomeEmpresa;
+            }
+
+            $dados[] = [
+                'Nome' => 'Caio Cesar Magossi Falchi',
+                'Selecionados' => $lancamentos->count(),
+                'Débito' => $debito,
+                'Crédito' => $credito,
+                'De' => $de ?? 'Não informado',
+                'Até' => $ate ?? 'Não informado',
+                'Saldo' => $saldo,
+                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
+            ];
+
+// ================================================================================================================
+            $contaID = 19347;  // NET RUBI SERVICOS
+
+            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+            $de = $this->selecionarLancamento($contaID)['de'];
+            $ate = $this->selecionarLancamento($contaID)['ate'];
+
+
+            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+            $saldo = $debito - $credito;
+
+            $NomeEmpresa = null;
+
+            foreach ($lancamentos as $lancamento) {
+                $NomeEmpresa = $lancamento->NomeEmpresa;
+            }
+
+            $dados[]= [
+                'Nome' => 'Caio Cesar Magossi Falchi',
+                'Selecionados' => $lancamentos->count(),
+                'Débito' => $debito,
+                'Crédito' => $credito,
+                'De' => $de ?? 'Não informado',
+                'Até' => $ate ?? 'Não informado',
+                'Saldo' => $saldo,
+                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
+            ];
+
+// ================================================================================================================
+            $contaID = 15393;  //PEDRO
+
+            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+            $de = $this->selecionarLancamento($contaID)['de'];
+            $ate = $this->selecionarLancamento($contaID)['ate'];
+
+
+            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+            $saldo = $debito - $credito;
+
+            $NomeEmpresa = null;
+
+            foreach ($lancamentos as $lancamento) {
+                $NomeEmpresa = $lancamento->NomeEmpresa;
+            }
+
+            $dados[]= [
+                'Nome' => 'Caio Cesar Magossi Falchi',
+                'Selecionados' => $lancamentos->count(),
+                'Débito' => $debito,
+                'Crédito' => $credito,
+                'De' => $de ?? 'Não informado',
+                'Até' => $ate ?? 'Não informado',
+                'Saldo' => $saldo,
+                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
+            ];
+//  ================================================================================================================
+            $contaID = 11145;  //PRF
+            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+            $de = $this->selecionarLancamento($contaID)['de'];
+            $ate = $this->selecionarLancamento($contaID)['ate'];
+
+
+            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+            $saldo = $debito - $credito;
+
+            $NomeEmpresa = null;
+
+            foreach ($lancamentos as $lancamento) {
+                $NomeEmpresa = $lancamento->NomeEmpresa;
+            }
+
+            $dados[]= [
+                'Nome' => 'Caio Cesar Magossi Falchi',
+                'Selecionados' => $lancamentos->count(),
+                'Débito' => $debito,
+                'Crédito' => $credito,
+                'De' => $de ?? 'Não informado',
+                'Até' => $ate ?? 'Não informado',
+                'Saldo' => $saldo,
+                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
+            ];
+//  ================================================================================================================
+
+            $contaID = 19567;  //STTARMAAKE
+            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+            $de = $this->selecionarLancamento($contaID)['de'];
+            $ate = $this->selecionarLancamento($contaID)['ate'];
+
+
+            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+            $saldo = $debito - $credito;
+
+            $NomeEmpresa = null;
+
+            foreach ($lancamentos as $lancamento) {
+                $NomeEmpresa = $lancamento->NomeEmpresa;
+            }
+
+            $dados[]= [
+                'Nome' => 'Caio Cesar Magossi Falchi',
+                'Selecionados' => $lancamentos->count(),
+                'Débito' => $debito,
+                'Crédito' => $credito,
+                'De' => $de ?? 'Não informado',
+                'Até' => $ate ?? 'Não informado',
+                'Saldo' => $saldo,
+                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
+            ];
+//  ================================================================================================================
+
+            return redirect()->route('lancamentos.exibirDadosGabrielMagossiFalchi')->with('dados', $dados);
+    }
 
 
     public function confirmarLancamentoEntradasGeral($lancamento_id)

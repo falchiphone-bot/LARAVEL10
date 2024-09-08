@@ -9,7 +9,7 @@
 <body>
 
 <div class="container mt-5">
-    <h1 class="mb-4">Dados de Gabriel Magossi Falchi</h1>
+    <h1 class="mb-4">RETIRADAS</h1>
 
     <table class="table table-bordered table-hover">
         <thead class="table-dark">
