@@ -421,7 +421,7 @@ Route::resource('RedeSocialUsuarios', App\Http\Controllers\RedeSocialUsuarioCont
 // Route::get('Moedas/dashboard', [App\Http\Controllers\MoedaController::class, 'dashboard'])->name('moedas.dashboard');
 
 Route::get('Lancamentos.DadosGabrielMagossiFalchi', [LancamentosController::class, 'exibirDadosGabrielMagossiFalchi'])->name('lancamentos.exibirDadosGabrielMagossiFalchi');
-
+Route::get('Lancamentos.DadosMes', [LancamentosController::class, 'DadosMes'])->name('lancamentos.DadosMes');
 // Route::get('Lancamentos.DadosGabrielMagossiFalchi', function () { return view('Lancamentos.DadosGabrielMagossiFalchi');})->name('Lancamentos.DadosGabrielMagossiFalchi');
 Route::post('LancamentosDocumentos/pesquisaavancada', [App\Http\Controllers\LancamentosDocumentosController::class, 'pesquisaavancada'])->name('lancamentosdocumentos.pesquisaavancada');
 Route::get('/lancamentosdocumentos/{id}',[App\Http\Controllers\LancamentosDocumentosController::class,'indexpost'])->name('LancamentosDocumentosID.index');

@@ -1730,10 +1730,13 @@ $htmlTable .= '<tr>
 
 
 //  ================================================================================================================
-dd($agrupadosPorMesAno, $data,$lancamento['DataContabilidade'], $anoMes, $dados, 'final');
+// dd($agrupadosPorMesAno, $data,$lancamento['DataContabilidade'], $anoMes, $dados, 'final');
+$DadosMes = $agrupadosPorMesAno;
 // DD($dados,'final');
 // dd('Sem códigos a analisar');
-return redirect()->route('lancamentos.exibirDadosGabrielMagossiFalchi')->with('dados', $dados);
+
+// dd($DadosMes);
+return redirect()->route('lancamentos.DadosMes')->with('DadosMes', $DadosMes);
     }
 
 

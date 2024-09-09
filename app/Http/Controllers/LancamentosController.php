@@ -45,6 +45,25 @@ class LancamentosController extends Controller
      }
 
 
+     public function DadosMes()
+     {
+        $DadosMes = session('DadosMes');
+        // // dd( $dados);
+        // $Débito = 0;
+        // $Crédito = 0;
+        // $Saldo = 0;
+        // foreach ($DadosMes as $item) {
+        //     $Débito += $item['Débito'];
+        //     $Crédito += $item['Crédito'];
+        //     $Saldo += $item['Saldo'];
+        // }
+
+
+        return view('Lancamentos.DadosMes', compact('DadosMes'));
+        //  return view('Lancamentos.DadosMes', compact('DadosMes', 'Débito', 'Crédito', 'Saldo'));
+     }
+
+
      public function exibirDadosGabrielMagossiFalchi()
      {
         $dados = session('dados');
