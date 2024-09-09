@@ -12,7 +12,9 @@
     <h1 class="mb-4">RETIRADAS AGRUPADAS POR MES</h1>
 
 
-
+                @php
+                           $totalgeral = 0;
+                @endphp
             @foreach ($DadosMes as $mes => $lancamentos)
         <h2>Mês: {{ $mes }}</h2>
         <table border="1">
@@ -21,12 +23,13 @@
                     <th>Data</th>
 
                     <th>Valor</th>
-                    
+
                 </tr>
             </thead>
             <tbody>
                 @php
                     $total = 0;
+
                 @endphp
                 @foreach ($lancamentos as $lancamento)
                     <tr>
@@ -39,12 +42,20 @@
                             $total += $lancamento->Valor;
                         @endphp
                  @endforeach
+                 @php
+                            $totalgeral += $total;
+                        @endphp
             <tr>
                 <td><strong>Total</strong></td>
                 <td><strong>{{ number_format($total, 2, ',', '.') }}</strong></td>
             </tr>
             </tbody>
+
         </table>
+        <tr>
+            <td><strong>Total geral</strong></td>
+            <td><strong>{{ number_format($totalgeral, 2, ',', '.') }}</strong></td>
+        </tr>
     @endforeach
 
 
