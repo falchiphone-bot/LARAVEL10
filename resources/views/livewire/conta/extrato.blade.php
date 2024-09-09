@@ -180,6 +180,14 @@
                                     <i class="cl-fa fa-check-square-o">Contas Gabriel Magossi Falchi</i>
                                 </div>
                         </button>
+                        <button title="Saldos Gabriel Magossi Falchi por mês" type="button" class="btn-sm btn btn-outline-danger"
+                            wire:click='contasGabrielMagossiFalchiMes()'>
+
+                                <div class="card text-center" style="background-color: rgb(14, 237, 33); color: white;">
+                                    <i class="cl-fa fa-check-square-o">Contas Gabriel Magossi Falchi - agrupar por mes</i>
+                                </div>
+                        </button>
+
                         <button title="Saldos Caio Cesar Magossi Falchi" type="button" class="btn-sm btn btn-outline-danger"
                         wire:click='contasCaioCesarMagossiFalchi()'>
 

@@ -7,6 +7,7 @@ use App\Models\Empresa;
 use App\Models\Lancamento;
 use App\Models\SolicitacaoExclusao;
 use Carbon\Carbon;
+use DateTime;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Dompdf\Dompdf;
@@ -663,6 +664,62 @@ class Extrato extends Component
 
 // ================================================================================================================
             $contaID = 15394;  //PEDRO
+
+            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+            $de = $this->selecionarLancamento($contaID)['de'];
+            $ate = $this->selecionarLancamento($contaID)['ate'];
+
+
+            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+            $saldo = $debito - $credito;
+
+            $NomeEmpresa = null;
+
+            foreach ($lancamentos as $lancamento) {
+                $NomeEmpresa = $lancamento->NomeEmpresa;
+            }
+
+            $dados[]= [
+                'Nome' => 'Gabriel Magossi Falchi',
+                'Selecionados' => $lancamentos->count(),
+                'Débito' => $debito,
+                'Crédito' => $credito,
+                'De' => $de ?? 'Não informado',
+                'Até' => $ate ?? 'Não informado',
+                'Saldo' => $saldo,
+                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
+            ];
+//  ================================================================================================================
+            $contaID = 19532;  //NET RUBI SERVICOS
+
+            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+            $de = $this->selecionarLancamento($contaID)['de'];
+            $ate = $this->selecionarLancamento($contaID)['ate'];
+
+
+            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+            $saldo = $debito - $credito;
+
+            $NomeEmpresa = null;
+
+            foreach ($lancamentos as $lancamento) {
+                $NomeEmpresa = $lancamento->NomeEmpresa;
+            }
+
+            $dados[]= [
+                'Nome' => 'Gabriel Magossi Falchi',
+                'Selecionados' => $lancamentos->count(),
+                'Débito' => $debito,
+                'Crédito' => $credito,
+                'De' => $de ?? 'Não informado',
+                'Até' => $ate ?? 'Não informado',
+                'Saldo' => $saldo,
+                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
+            ];
+//  ================================================================================================================
+            $contaID = 11142;  //INFRANET
 
             $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
             $de = $this->selecionarLancamento($contaID)['de'];
@@ -1583,6 +1640,100 @@ $htmlTable .= '<tr>
         // return response($output)
         //     ->header('Content-Type', 'application/pdf')
         //     ->header('Content-Disposition', 'inline; filename="lancamentos.pdf"');
+    }
+
+
+    public function contasGabrielMagossiFalchiMes()
+    {
+
+        $dados = [];
+        $lancamentos = Lancamento::limit(0);
+        $contaID = 11146;  // PRF
+
+        $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+        $de = $this->selecionarLancamento($contaID)['de'];
+        $ate = $this->selecionarLancamento($contaID)['ate'];
+
+
+        $agrupadosPorMesAno = [];
+
+        foreach ($lancamentos as $lancamento) {
+            // Tenta criar o objeto DateTime a partir do formato 'Y-m-d'
+            $data =  $lancamento['DataContabilidade'];
+
+            // Verifica se a data foi criada corretamente
+            if ($data) {
+                // Extrair ano e mês da DataContabilidade
+                $anoMes = $data->format('Y-m'); // Formato YYYY-MM
+
+                // Agrupar os lançamentos por ano e mês
+                if (!isset($agrupadosPorMesAno[$anoMes])) {
+                    $agrupadosPorMesAno[$anoMes] = [];
+                }
+
+                $agrupadosPorMesAno[$anoMes][] = $lancamento;
+
+
+            } else {
+
+
+                // Lida com o caso em que a data não é válida
+                // Exemplo: registre ou faça um log do erro ou pule o lançamento
+                // echo "Data inválida encontrada: " . $lancamento['DataContabilidade'];
+            }
+        }
+
+
+
+
+
+
+
+        // dd($agrupadosPorMesAno, $data,$lancamento['DataContabilidade'], $anoMes);
+
+
+        $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+        $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+        $saldo = $debito - $credito;
+
+        $NomeEmpresa = null;
+
+        foreach ($lancamentos as $lancamento) {
+            $NomeEmpresa = $lancamento->NomeEmpresa;
+        }
+
+        $dados[]= [
+            'Nome' => 'GABRIEL MAGOSSI FALCHI',
+            'Selecionados' => $lancamentos->count(),
+            'Débito' => $debito,
+            'Crédito' => $credito,
+            'De' => $de ?? 'Não informado',
+            'Até' => $ate ?? 'Não informado',
+            'Saldo' => $saldo,
+            'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
+        ];
+// ================================================================================================================
+            $contaID = 19538;  // STTARMAAKE
+
+
+
+// ================================================================================================================
+            $contaID = 15394;  //PEDRO
+
+
+//  ================================================================================================================
+            $contaID = 19532;  //NET RUBI SERVICOS
+
+
+//  ================================================================================================================
+            $contaID = 11142;  //INFRANET
+
+
+//  ================================================================================================================
+dd($agrupadosPorMesAno, $data,$lancamento['DataContabilidade'], $anoMes, $dados, 'final');
+// DD($dados,'final');
+// dd('Sem códigos a analisar');
+return redirect()->route('lancamentos.exibirDadosGabrielMagossiFalchi')->with('dados', $dados);
     }
 
 
