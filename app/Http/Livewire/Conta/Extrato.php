@@ -551,7 +551,8 @@ class Extrato extends Component
                     ->orWhere('Lancamentos.ContaCreditoID', $contaID);
             });
 
-
+            session(['Extrato_Ate' => $this->Ate]);
+            session(['Extrato_De' => $this->De]);
 
             if ($this->De) {
                 // Verifica a descrição e formata a data para o campo 'De'
@@ -569,7 +570,7 @@ class Extrato extends Component
                 // Formata a data para o campo 'Até'
                 $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('Y-m-d 23:59:59');
                 $lancamentos->where('DataContabilidade', '<=', $ate);
-                session(['Extrato_Ate' => $this->Ate]);
+                cache(['Extrato_Ate' => $this->Ate]);
             }
 
             // Executa a query e obtém os dados
@@ -606,6 +607,8 @@ class Extrato extends Component
 
             $contaID = 11146;   // PRF
 
+            session(['Extrato_Ate' => $this->Ate]);
+            session(['Extrato_De' => $this->De]);
 
             $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
             $de = $this->selecionarLancamento($contaID)['de'];
@@ -758,7 +761,8 @@ class Extrato extends Component
 
             $contaID = 11141;   // INFRANET
 
-
+            session(['Extrato_Ate' => $this->Ate]);
+            session(['Extrato_De' => $this->De]);
             $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
             $de = $this->selecionarLancamento($contaID)['de'];
             $ate = $this->selecionarLancamento($contaID)['ate'];
@@ -905,6 +909,10 @@ class Extrato extends Component
 
     public function confirmarLancamentoEntradasGeral($lancamento_id)
     {
+
+        session(['Extrato_Ate' => $this->Ate]);
+        session(['Extrato_De' => $this->De]);
+
         $lancamento = Lancamento::find($lancamento_id);
 
         if ($lancamento->SaidasGeral) {
@@ -931,7 +939,8 @@ class Extrato extends Component
     public function confirmarLancamentoSaidasGeral($lancamento_id)
     {
         $lancamento = Lancamento::find($lancamento_id);
-
+        session(['Extrato_Ate' => $this->Ate]);
+        session(['Extrato_De' => $this->De]);
 
         // $this->dispatchBrowserEvent('alert', ['message' => 'REGISTRO JÁ MARCADO COMO ENTRADA GERAL']);
         // return;
@@ -1650,6 +1659,8 @@ $htmlTable .= '<tr>
         $lancamentos = Lancamento::limit(0);
         $contaID = 11146;  // PRF
 
+        session(['Extrato_Ate' => $this->Ate]);
+        session(['Extrato_De' => $this->De]);
         $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
         $de = $this->selecionarLancamento($contaID)['de'];
         $ate = $this->selecionarLancamento($contaID)['ate'];
@@ -1674,23 +1685,8 @@ $htmlTable .= '<tr>
                 $agrupadosPorMesAno[$anoMes][] = $lancamento;
 
 
-            } else {
-
-
-                // Lida com o caso em que a data não é válida
-                // Exemplo: registre ou faça um log do erro ou pule o lançamento
-                // echo "Data inválida encontrada: " . $lancamento['DataContabilidade'];
             }
         }
-
-
-
-
-
-
-
-        // dd($agrupadosPorMesAno, $data,$lancamento['DataContabilidade'], $anoMes);
-
 
         $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
         $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
@@ -1712,9 +1708,63 @@ $htmlTable .= '<tr>
             'Saldo' => $saldo,
             'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
         ];
+
+        $DadosMes11146 = $agrupadosPorMesAno;
 // ================================================================================================================
+
+            $dados = [];
+            $lancamentos = Lancamento::limit(0);
             $contaID = 19538;  // STTARMAAKE
 
+            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+            $de = $this->selecionarLancamento($contaID)['de'];
+            $ate = $this->selecionarLancamento($contaID)['ate'];
+
+
+            $agrupadosPorMesAno = [];
+
+            foreach ($lancamentos as $lancamento) {
+                // Tenta criar o objeto DateTime a partir do formato 'Y-m-d'
+                $data =  $lancamento['DataContabilidade'];
+
+                // Verifica se a data foi criada corretamente
+                if ($data) {
+                    // Extrair ano e mês da DataContabilidade
+                    $anoMes = $data->format('Y-m'); // Formato YYYY-MM
+
+                    // Agrupar os lançamentos por ano e mês
+                    if (!isset($agrupadosPorMesAno[$anoMes])) {
+                        $agrupadosPorMesAno[$anoMes] = [];
+                    }
+
+                    $agrupadosPorMesAno[$anoMes][] = $lancamento;
+
+
+                }
+            }
+
+            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+            $saldo = $debito - $credito;
+
+            $NomeEmpresa = null;
+
+            foreach ($lancamentos as $lancamento) {
+                $NomeEmpresa = $lancamento->NomeEmpresa;
+            }
+
+            $dados[]= [
+                'Nome' => 'GABRIEL MAGOSSI FALCHI',
+                'Selecionados' => $lancamentos->count(),
+                'Débito' => $debito,
+                'Crédito' => $credito,
+                'De' => $de ?? 'Não informado',
+                'Até' => $ate ?? 'Não informado',
+                'Saldo' => $saldo,
+                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
+            ];
+
+            $DadosMes19538 = $agrupadosPorMesAno;
 
 
 // ================================================================================================================
@@ -1731,9 +1781,12 @@ $htmlTable .= '<tr>
 
 //  ================================================================================================================
 // dd($agrupadosPorMesAno, $data,$lancamento['DataContabilidade'], $anoMes, $dados, 'final');
-$DadosMes = $agrupadosPorMesAno;
+
+// $DadosMes =  $DadosMes11146;
+// $DadosMes =  $DadosMes19538;
 // DD($dados,'final');
 // dd('Sem códigos a analisar');
+$DadosMes = array_replace_recursive($DadosMes19538, $DadosMes11146);
 
 // dd($DadosMes);
 return redirect()->route('lancamentos.DadosMes')->with('DadosMes', $DadosMes);

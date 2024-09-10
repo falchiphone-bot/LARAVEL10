@@ -23,6 +23,8 @@
                     <th>Data</th>
 
                     <th>Valor</th>
+                    <th>NomeEmpresa</th>
+
 
                 </tr>
             </thead>
@@ -37,6 +39,8 @@
 
                         <td>{{ $lancamento->Valor }}</td>
 
+                        <td>{{ $lancamento->NomeEmpresa }}</td>
+                         
                     </tr>
                          @php
                             $total += $lancamento->Valor;
