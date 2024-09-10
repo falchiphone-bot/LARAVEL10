@@ -1654,7 +1654,7 @@ $htmlTable .= '<tr>
 
     public function contasGabrielMagossiFalchiMes()
     {
-
+        $nome = 'GABRIEL MAGOSSI FALCHI';
         $dados = [];
         $lancamentos = Lancamento::limit(0);
         $contaID = 11146;  // PRF
@@ -1699,7 +1699,7 @@ $htmlTable .= '<tr>
         }
 
         $dados[]= [
-            'Nome' => 'GABRIEL MAGOSSI FALCHI',
+            'Nome' => $nome,
             'Selecionados' => $lancamentos->count(),
             'Débito' => $debito,
             'Crédito' => $credito,
@@ -1711,7 +1711,6 @@ $htmlTable .= '<tr>
 
         $DadosMes11146 = $agrupadosPorMesAno;
 // ================================================================================================================
-
             $dados = [];
             $lancamentos = Lancamento::limit(0);
             $contaID = 19538;  // STTARMAAKE
@@ -1720,41 +1719,27 @@ $htmlTable .= '<tr>
             $de = $this->selecionarLancamento($contaID)['de'];
             $ate = $this->selecionarLancamento($contaID)['ate'];
 
-
             $agrupadosPorMesAno = [];
-
             foreach ($lancamentos as $lancamento) {
-                // Tenta criar o objeto DateTime a partir do formato 'Y-m-d'
-                $data =  $lancamento['DataContabilidade'];
-
-                // Verifica se a data foi criada corretamente
+                 $data =  $lancamento['DataContabilidade'];
                 if ($data) {
-                    // Extrair ano e mês da DataContabilidade
-                    $anoMes = $data->format('Y-m'); // Formato YYYY-MM
-
-                    // Agrupar os lançamentos por ano e mês
+                    $anoMes = $data->format('Y-m');
                     if (!isset($agrupadosPorMesAno[$anoMes])) {
                         $agrupadosPorMesAno[$anoMes] = [];
                     }
-
                     $agrupadosPorMesAno[$anoMes][] = $lancamento;
-
-
                 }
             }
-
             $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
             $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
             $saldo = $debito - $credito;
-
             $NomeEmpresa = null;
 
             foreach ($lancamentos as $lancamento) {
                 $NomeEmpresa = $lancamento->NomeEmpresa;
             }
-
             $dados[]= [
-                'Nome' => 'GABRIEL MAGOSSI FALCHI',
+                'Nome' => $nome,
                 'Selecionados' => $lancamentos->count(),
                 'Débito' => $debito,
                 'Crédito' => $credito,
@@ -1763,33 +1748,142 @@ $htmlTable .= '<tr>
                 'Saldo' => $saldo,
                 'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
             ];
-
             $DadosMes19538 = $agrupadosPorMesAno;
-
-
 // ================================================================================================================
+            $dados = [];
+            $lancamentos = Lancamento::limit(0);
             $contaID = 15394;  //PEDRO
 
+            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+            $de = $this->selecionarLancamento($contaID)['de'];
+            $ate = $this->selecionarLancamento($contaID)['ate'];
+
+            $agrupadosPorMesAno = [];
+            foreach ($lancamentos as $lancamento) {
+                 $data =  $lancamento['DataContabilidade'];
+                if ($data) {
+                    $anoMes = $data->format('Y-m');
+                    if (!isset($agrupadosPorMesAno[$anoMes])) {
+                        $agrupadosPorMesAno[$anoMes] = [];
+                    }
+                    $agrupadosPorMesAno[$anoMes][] = $lancamento;
+                }
+            }
+            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+            $saldo = $debito - $credito;
+            $NomeEmpresa = null;
+
+            foreach ($lancamentos as $lancamento) {
+                $NomeEmpresa = $lancamento->NomeEmpresa;
+            }
+            $dados[]= [
+                'Nome' => $nome,
+                'Selecionados' => $lancamentos->count(),
+                'Débito' => $debito,
+                'Crédito' => $credito,
+                'De' => $de ?? 'Não informado',
+                'Até' => $ate ?? 'Não informado',
+                'Saldo' => $saldo,
+                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
+            ];
+            $DadosMes15394 = $agrupadosPorMesAno;
 
 //  ================================================================================================================
-            $contaID = 19532;  //NET RUBI SERVICOS
 
-
-//  ================================================================================================================
+            $dados = [];
+            $lancamentos = Lancamento::limit(0);
             $contaID = 11142;  //INFRANET
 
+            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+            $de = $this->selecionarLancamento($contaID)['de'];
+            $ate = $this->selecionarLancamento($contaID)['ate'];
+
+            $agrupadosPorMesAno = [];
+            foreach ($lancamentos as $lancamento) {
+                 $data =  $lancamento['DataContabilidade'];
+                if ($data) {
+                    $anoMes = $data->format('Y-m');
+                    if (!isset($agrupadosPorMesAno[$anoMes])) {
+                        $agrupadosPorMesAno[$anoMes] = [];
+                    }
+                    $agrupadosPorMesAno[$anoMes][] = $lancamento;
+                }
+            }
+            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+            $saldo = $debito - $credito;
+            $NomeEmpresa = null;
+
+            foreach ($lancamentos as $lancamento) {
+                $NomeEmpresa = $lancamento->NomeEmpresa;
+            }
+            $dados[]= [
+                'Nome' => $nome,
+                'Selecionados' => $lancamentos->count(),
+                'Débito' => $debito,
+                'Crédito' => $credito,
+                'De' => $de ?? 'Não informado',
+                'Até' => $ate ?? 'Não informado',
+                'Saldo' => $saldo,
+                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
+            ];
+            $DadosMes11142 = $agrupadosPorMesAno;
 
 //  ================================================================================================================
-// dd($agrupadosPorMesAno, $data,$lancamento['DataContabilidade'], $anoMes, $dados, 'final');
 
-// $DadosMes =  $DadosMes11146;
-// $DadosMes =  $DadosMes19538;
-// DD($dados,'final');
-// dd('Sem códigos a analisar');
-$DadosMes = array_replace_recursive($DadosMes19538, $DadosMes11146);
+            $contaID = 19532;  //NET RUBI SERVICOS
 
-// dd($DadosMes);
-return redirect()->route('lancamentos.DadosMes')->with('DadosMes', $DadosMes);
+//  ================================================================================================================
+// Primeiro array
+$dados1 = $DadosMes11146;
+// Segundo array
+$dados2 = $DadosMes19538;
+
+// Função para unir os arrays com mesclagem de meses repetidos
+foreach ($dados2 as $mes => $lancamentos) {
+    if (isset($dados1[$mes])) {
+        // Se o mês já existe em $dados1, mescla os valores
+        $dados1[$mes] = array_merge($dados1[$mes], $lancamentos);
+    } else {
+        // Se o mês não existe, simplesmente adiciona o novo mês
+        $dados1[$mes] = $lancamentos;
+    }
+}
+//  ================================================================================================================
+
+$dados2 = $DadosMes15394;
+
+// Função para unir os arrays com mesclagem de meses repetidos
+foreach ($dados2 as $mes => $lancamentos) {
+    if (isset($dados1[$mes])) {
+        // Se o mês já existe em $dados1, mescla os valores
+        $dados1[$mes] = array_merge($dados1[$mes], $lancamentos);
+    } else {
+        // Se o mês não existe, simplesmente adiciona o novo mês
+        $dados1[$mes] = $lancamentos;
+    }
+}
+//  ================================================================================================================
+$dados2 = $DadosMes11142;
+
+// Função para unir os arrays com mesclagem de meses repetidos
+foreach ($dados2 as $mes => $lancamentos) {
+    if (isset($dados1[$mes])) {
+        // Se o mês já existe em $dados1, mescla os valores
+        $dados1[$mes] = array_merge($dados1[$mes], $lancamentos);
+    } else {
+        // Se o mês não existe, simplesmente adiciona o novo mês
+        $dados1[$mes] = $lancamentos;
+    }
+}
+//  ================================================================================================================
+
+
+
+$DadosMes = $dados1;
+
+return redirect()->route('lancamentos.DadosMes')->with('DadosMes', $DadosMes)->with('nome',$nome);
     }
 
 

@@ -46,9 +46,13 @@ class LancamentosController extends Controller
 
 
      public function DadosMes()
+
+
      {
         $DadosMes = session('DadosMes');
-        // // dd( $dados);
+        $nome = session('nome');
+
+       // // dd( $dados);
         // $Débito = 0;
         // $Crédito = 0;
         // $Saldo = 0;
@@ -59,7 +63,7 @@ class LancamentosController extends Controller
         // }
 
 
-        return view('Lancamentos.DadosMes', compact('DadosMes'));
+        return view('Lancamentos.DadosMes', compact('DadosMes','nome'));
         //  return view('Lancamentos.DadosMes', compact('DadosMes', 'Débito', 'Crédito', 'Saldo'));
      }
 
