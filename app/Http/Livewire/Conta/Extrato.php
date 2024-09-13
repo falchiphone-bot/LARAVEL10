@@ -358,8 +358,10 @@ class Extrato extends Component
         $lancamentosEntrada = Lancamento::where('Lancamentos.EntradasGeral', 1);
 
 
-
-
+        // $this->De = session('Extrato_De') ?? date('Y-m-d');
+        // $this->Ate = session('Extrato_Ate') ?? date('Y-m-d');
+session(['Extrato_De' => $this->De]);
+session(['Extrato_Ate' => $this->Ate]);
               if ($this->De) {
                 if ($this->Descricao && $this->DescricaoApartirDe) {
                     $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
@@ -368,13 +370,13 @@ class Extrato extends Component
                 }
                 $lancamentosSaida->where('DataContabilidade', '>=', $de);
                 $lancamentosEntrada->where('DataContabilidade', '>=', $de);
-                session(['Extrato_De' => $this->De]);
+
             }
             if ($this->Ate) {
                 $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
                 $lancamentosSaida->where('DataContabilidade', '<=', $ate);
                 $lancamentosEntrada->where('DataContabilidade', '<=', $ate);
-                session(['Extrato_Ate' => $this->Ate]);
+
             }
 
 
