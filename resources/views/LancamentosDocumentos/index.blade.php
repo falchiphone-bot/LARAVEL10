@@ -185,6 +185,11 @@
                                                 @endcan
                                             @endif
                                         @endif
+                                        <div class="form-group">
+                                            {{-- Visualizar o documento: <a href="https://drive.google.com/file/d/{{ $documento->MostraLancamentoDocumento->Nome ?? null }}/view??usp=sharing" target="_blank">{{ $documento->MostraLancamentoDocumento->Rotulo ?? null }}</a> --}}
+                                            <strong>Visualizar o documento:</strong> <a href="https://drive.google.com/file/d/{{ $documento->Nome ?? null }}/view??usp=sharing" target="_blank">{{ $documento->Rotulo ?? null }}</a>
+
+                                        </div>
                                     </td>
 
                                     <td class="">{{ $documento->LancamentoID }}</td>
@@ -215,6 +220,7 @@
                                 </tr>
 
                                 <tr>
+
                                     <td colspan="5">
                                         <p>
                                             <strong>____________________________________________________________________________________</strong>
