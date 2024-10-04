@@ -32,6 +32,9 @@ class Lancamento extends Model
         'EntradasGeral',
         'Notificacao',
         'DiasNotificacaoAntesVencimento',
+        'Investimentos',
+        'Transferencias',
+
     ];
 
     protected $casts = [
@@ -39,6 +42,9 @@ class Lancamento extends Model
         'Conferido' => 'boolean',
         'SaidasGeral' => 'boolean',
         'EntradasGeral' => 'boolean',
+        'Notificacao' => 'boolean',
+        'Investimentos' => 'boolean',
+        'Transferencias' => 'boolean',
     ];
 
     public function Empresa(): HasOne
