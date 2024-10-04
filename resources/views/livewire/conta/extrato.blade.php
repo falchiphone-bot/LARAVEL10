@@ -210,6 +210,14 @@
                             class="btn btn-primary btn-sm">
                             <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de entradas em geral
                         </button>
+                        <button id="buscar" wire:click='searchInvestimentos()' type="button"
+                            class="btn btn-primary btn-sm">
+                            <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de investimentos
+                        </button>
+                        <button id="buscar" wire:click='searchTransferencias()' type="button"
+                            class="btn btn-primary btn-sm">
+                            <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de transferências
+                        </button>
                     @endcan
 
                     <button id="buscar" wire:click='searchPDF()' type="button" class="btn btn-danger btn-sm"
@@ -458,6 +466,39 @@
                                                             <i class="cl2-{{ $lancamento->ID }} fa fa-square-o"></i>
                                                         @endif
                                                     </button>
+
+                                                    <h5 class="card-title" style="color: rgb(39, 3, 196);">Investimentos</h5>
+                                                    <button title="Botão de Investimentos" type="button"
+                                                        class="btn-sm btn btn-outline-primary"
+                                                        wire:click='confirmarInvestimentos({{ $lancamento->ID }})'>
+                                                        @if ($lancamento->Investimentos)
+                                                            <div class="card text-center"
+                                                                style="background-color: rgb(118, 14, 237); color: white;">
+                                                                <i
+                                                                    class="cl2-{{ $lancamento->ID }} fa fa-check-square-o"></i>
+                                                            </div>
+                                                        @else
+                                                            <i class="cl2-{{ $lancamento->ID }} fa fa-square-o"></i>
+                                                        @endif
+                                                    </button>
+
+                                                    <h5 class="card-title" style="color: rgb(39, 3, 196);">Transferências</h5>
+                                                    <button title="Botão de Transferências" type="button"
+                                                        class="btn-sm btn btn-outline-primary"
+                                                        wire:click='confirmarTransferencias({{ $lancamento->ID }})'>
+                                                        @if ($lancamento->Transferencias)
+                                                            <div class="card text-center"
+                                                                style="background-color: rgb(118, 14, 237); color: white;">
+                                                                <i
+                                                                    class="cl2-{{ $lancamento->ID }} fa fa-check-square-o"></i>
+                                                            </div>
+                                                        @else
+                                                            <i class="cl2-{{ $lancamento->ID }} fa fa-square-o"></i>
+                                                        @endif
+                                                    </button>
+
+
+
                                                     {{-- </div> --}}
                                                 </div>
                                             @endcan
