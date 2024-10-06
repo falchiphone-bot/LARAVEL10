@@ -956,6 +956,11 @@ session(['Extrato_Ate' => $this->Ate]);
 
        }
 
+       if ($lancamento->Transferencias) {
+        dd("REGISTRO JÁ MARCADO COMO TRANSFERENCIAS");
+
+   }
+
         if ($lancamento->Investimentos) {
 
             $lancamento->Investimentos = 0;
@@ -970,6 +975,43 @@ session(['Extrato_Ate' => $this->Ate]);
         $this->search();
     }
 
+
+    public function confirmarTransferencias($lancamento_id)
+    {
+
+        session(['Extrato_Ate' => $this->Ate]);
+        session(['Extrato_De' => $this->De]);
+
+        $lancamento = Lancamento::find($lancamento_id);
+
+        if ($lancamento->SaidasGeral) {
+             dd("REGISTRO JÁ MARCADO COMO SAIDA GERAL");
+
+        }
+
+        if ($lancamento->EntradasGeral) {
+            dd("REGISTRO JÁ MARCADO COMO ENTRADA GERAL");
+
+       }
+
+       if ($lancamento->Investimentos) {
+        dd("REGISTRO JÁ MARCADO COMO INVESTIMENTOS");
+
+   }
+
+        if ($lancamento->Transferencias) {
+
+            $lancamento->Transferencias = 0;
+        } else {
+            $lancamento->Transferencias = 1;
+        }
+
+        $lancamento->save();
+
+        // $this->dispatchBrowserEvent('confirmarLancamentoEntradasGeral', ['lancamento_id' => $lancamento_id, 'statusEntradasGeral' => $lancamento->EntradasGeral]);
+        // dd( $lancamento);
+        $this->search();
+    }
 
 
     public function confirmarLancamentoSaidasGeral($lancamento_id)
