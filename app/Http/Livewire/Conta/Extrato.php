@@ -279,7 +279,7 @@ class Extrato extends Component
                     ->whereDoesntHave('SolicitacaoExclusao')
                     ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
                     ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID',
-                    'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral', 'EntradasGeral']);
+                    'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral', 'EntradasGeral', 'Investimentos', 'Transferencias']);
 
          } else {
             $this->Lancamentos = null;
@@ -927,6 +927,40 @@ session(['Extrato_Ate' => $this->Ate]);
             $lancamento->EntradasGeral = 0;
         } else {
             $lancamento->EntradasGeral = 1;
+        }
+
+        $lancamento->save();
+
+        // $this->dispatchBrowserEvent('confirmarLancamentoEntradasGeral', ['lancamento_id' => $lancamento_id, 'statusEntradasGeral' => $lancamento->EntradasGeral]);
+        // dd( $lancamento);
+        $this->search();
+    }
+
+
+
+    public function confirmarInvestimentos($lancamento_id)
+    {
+
+        session(['Extrato_Ate' => $this->Ate]);
+        session(['Extrato_De' => $this->De]);
+
+        $lancamento = Lancamento::find($lancamento_id);
+
+        if ($lancamento->SaidasGeral) {
+             dd("REGISTRO JÁ MARCADO COMO SAIDA GERAL");
+
+        }
+
+        if ($lancamento->EntradasGeral) {
+            dd("REGISTRO JÁ MARCADO COMO ENTRADA GERAL");
+
+       }
+
+        if ($lancamento->Investimentos) {
+
+            $lancamento->Investimentos = 0;
+        } else {
+            $lancamento->Investimentos = 1;
         }
 
         $lancamento->save();
