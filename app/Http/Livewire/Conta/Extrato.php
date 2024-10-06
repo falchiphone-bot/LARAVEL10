@@ -919,8 +919,16 @@ session(['Extrato_Ate' => $this->Ate]);
 
         if ($lancamento->SaidasGeral) {
              dd("REGISTRO JÁ MARCADO COMO ENTRADA GERAL");
-
         }
+
+        if ($lancamento->Transferencias) {
+            dd("REGISTRO JÁ MARCADO COMO TRANSFERENCIAS");
+
+       }
+       if ($lancamento->Investimentos) {
+        dd("REGISTRO JÁ MARCADO COMO INVESTIMENTOS");
+
+       }
 
         if ($lancamento->EntradasGeral) {
 
@@ -1027,6 +1035,15 @@ session(['Extrato_Ate' => $this->Ate]);
             dd("REGISTRO JÁ MARCADO COMO SAIDA GERAL");
 
        }
+
+       if ($lancamento->Transferencias) {
+        dd("REGISTRO JÁ MARCADO COMO TRANSFERENCIAS");
+
+   }
+   if ($lancamento->Investimentos) {
+    dd("REGISTRO JÁ MARCADO COMO INVESTIMENTOS");
+
+   }
 
         if ($lancamento->SaidasGeral) {
             $lancamento->SaidasGeral = 0;

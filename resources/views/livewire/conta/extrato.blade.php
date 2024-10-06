@@ -469,7 +469,7 @@
 
                                                     <h5 class="card-title" style="color: rgb(39, 3, 196);">Investimentos</h5>
                                                     <button title="Botão de Investimentos" type="button"
-                                                        class="btn-sm btn btn-outline-primary"
+                                                        class="btn-sm btn btn-outline-warning"
                                                         wire:click='confirmarInvestimentos({{ $lancamento->ID }})'>
                                                         @if ($lancamento->Investimentos)
                                                             <div class="card text-center"
@@ -484,7 +484,7 @@
 
                                                     <h5 class="card-title" style="color: rgb(39, 3, 196);">Transferências</h5>
                                                     <button title="Botão de Transferências" type="button"
-                                                        class="btn-sm btn btn-outline-primary"
+                                                        class="btn-sm btn btn-outline-secondary"
                                                         wire:click='confirmarTransferencias({{ $lancamento->ID }})'>
                                                         @if ($lancamento->Transferencias)
                                                             <div class="card text-center"
