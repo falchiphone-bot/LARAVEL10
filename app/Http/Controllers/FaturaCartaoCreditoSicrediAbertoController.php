@@ -203,7 +203,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
             $Data = $item[1];
 
             if ($Data == null) {
-                session(['Lancamento' => 'Linha 206 - Data vazia ou nula!']);
+                session(['Lancamento' => 'Última linha executada, ou seja, terminado na linha: ' . $PegaLinha + 13]);
                 break;
             }
 
@@ -522,7 +522,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
 
             $rowData = $registrosNaoLocalizados;
             if($request->verarray){
-                  dd($rowData);
+                  dd($rowData, 'Linha 525');
             }
 
             return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);
