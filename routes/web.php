@@ -9,7 +9,7 @@ use App\Http\Controllers\OAuthController;
 use App\Http\Services;
 use App\Http\Controllers\PacpieController;
 use App\Http\Controllers\OrigemPacpieController;
-
+use App\Http\Controllers\PDFController;
 
 /*
 |--------------------------------------------------------------------------
@@ -430,6 +430,7 @@ Route::resource('LancamentosDocumentos', App\Http\Controllers\LancamentosDocumen
     #ARQUIVOS
 
     Route::get('LeituraArquivo/GerarPDF', [App\Http\Controllers\LeituraArquivoController::class, 'GerarPDF'])->name('LeituraArquivo.gerarpdf');
+    Route::get('read-pdf', [PDFController::class, 'readPDF']);
     Route::post('LeituraArquivo/SelecionaDatas', [App\Http\Controllers\LeituraArquivoController::class, 'SelecionaDatas'])->name('LeituraArquivo.SelecionaDatas');
     Route::post('LeituraArquivo/SelecionaLinha', [App\Http\Controllers\LeituraArquivoController::class, 'SelecionaLinha'])->name('LeituraArquivo.SelecionaLinha');
     Route::post('LeituraArquivo/SelecionaDatasExtratoSicrediPJ', [App\Http\Controllers\LeituraArquivoController::class, 'SelecionaDatasExtratoSicrediPJ'])->name('LeituraArquivo.SelecionaDatasExtratoSicrediPJ');
