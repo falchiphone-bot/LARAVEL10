@@ -147,7 +147,7 @@
                         <div class="badge bg-secondary text-wrap" style="width: 100%; font-size: 24px; color: black; text-align: center;">
                             {{-- <input type="file" required class="btn btn-success" name="arquivo" accept=".csv, text/csv"> --}}
 
-                            <input type="file" required class="btn btn-success" name="arquivo" accept=".csv" onchange="validateFile(this)">
+                            <input type="file" required class="btn btn-success" name="arquivo" accept=".xls" onchange="validateFile(this)">
                             @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA CONCILIACA0 BANCARIA E AUTORIZAR CRIAR
                             LANCAMENTO')
 
@@ -174,7 +174,7 @@
                             <br>
                             @endcan
 
-                            <label for="fim">Arquivo *.csv para selecionar exportado do aplicativo mobile do
+                            <label for="fim">Arquivo *.xls para selecionar exportado do aplicativo mobile do
                                 Sicredi - CARTÕES.
                                 Dever ser enviado por AirDrop para o dispositivo de execução. Extrato em situação:
                                 'Fatura em aberto, sujeita a alterações'
@@ -356,9 +356,9 @@
 <script>
     function validateFile(fileInput) {
         var filePath = fileInput.value;
-        var allowedExtensions = /(\.csv)$/i;
+        var allowedExtensions = /(\.xls)$/i;
         if (!allowedExtensions.exec(filePath)) {
-            alert('Selecione apenas arquivos com extensão .csv.');
+            alert('Selecione apenas arquivos com extensão .xls.');
             fileInput.value = '';
             return false;
         }

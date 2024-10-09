@@ -48,8 +48,8 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
         //     return redirect(route('LeituraArquivo.index'));
         // }
 
-        if ($extension != 'csv') {
-            session(['Lancamento' => 'Arquivo considerado não compatível para este procedimento! Autorizados arquivos com extensões csv. Apresentado o último enviado. ATENÇÃO!']);
+        if ($extension != 'xls' && $extension != 'xlsx') {
+            session(['Lancamento' => 'Arquivo considerado não compatível para este procedimento! Autorizados arquivos com extensões xls. Apresentado o último enviado. ATENÇÃO!']);
             return redirect(route('LeituraArquivo.index'));
         }
 
@@ -78,21 +78,27 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
         // Obter a planilha ativa (por exemplo, a primeira planilha)
         $planilha_ativa = $spreadsheet->getActiveSheet();
         ///////////////////////////// DADOS DA LINHA 1 PARA DEFINIR CONTAS
-        $linha_1 = $planilha_ativa->getCell('B' . 1)->getValue();
+        $linha_2 = $planilha_ativa->getCell('B' . 2)->getValue();
         ///////////////////////////// DADOS DA LINHA 4 COLUNA 2 PARA DEFINIR CONTAS
         $linha_4_coluna_2 = $planilha_ativa->getCell('B' . 4)->getValue();
         ///////////////////////////// DADOS DA LINHA 7 PARA DEFINIR CONTAS
-        $linha_7 = trim($planilha_ativa->getCell('A' . 7)->getValue());
+        $linha_8 = trim($planilha_ativa->getCell('A' . 8)->getValue());
 
-        if ($linha_7 == null) {
+
+
+
+        if ($linha_8 == null) {
             session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
             return redirect(route('LeituraArquivo.index'));
         }
 
         ///////////////////////////// DADOS DA LINHA 12 PARA DEFINIR SITUAÇÃO
-        $linha_8 = trim($planilha_ativa->getCell('B' . 8)->getValue());
 
-        if ($linha_8 != 'Fatura em aberto, sujeita a alterações') {
+        $linha_9 = trim($planilha_ativa->getCell('C' . 9)->getValue());
+
+
+
+        if ($linha_9 != 'Fatura em aberto, sujeita a alterações') {
             session([
                 'Lancamento' =>
                     'Arquivo e ou ficheiro não identificado!
@@ -107,44 +113,48 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
         $DespesaContaDebitoID = null;
         $CashBackContaCreditoID = '19271';
 
-        $string = $linha_7;
+        $string = $linha_8;
         $parts = explode('-', $string);
-        $result_linha7 = trim($parts[0]);
-        $linhas1_7 = $linha_1 . '-' . $result_linha7;
+        $result_linha8 = trim($parts[0]);
+        $linhas1_8 = $linha_2 . '-' . $result_linha8;
 
-        if ($linhas1_7 === 'SANDRA ELISA MAGOSSI FALCHI-4891.67XX.XXXX.9125') {
+
+
+
+        if ($linhas1_8 === 'SANDRA ELISA MAGOSSI FALCHI-4891.67XX.XXXX.9125') {
             $ContaCartao = '17457';
             $Empresa = 11;
             $DespesaContaDebitoID = '19426';
             $CashBackContaCreditoID = '19271';
             // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
-        } elseif ($linhas1_7 === 'SANDRA ELISA MAGOSSI FALCHI-4891.67XX.XXXX.9919') {
+        } elseif ($linhas1_8 === 'SANDRA ELISA MAGOSSI FALCHI-4891.67XX.XXXX.9919') {
             $ContaCartao = '17457';
             $Empresa = 11;
             $DespesaContaDebitoID = '19426';
             $CashBackContaCreditoID = '19271';
             // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
-        } elseif ($linhas1_7 === 'SANDRA ELISA MAGOSSI FALCHI-5122.67XX.XXXX.0910') {
+        } elseif ($linhas1_8 === 'SANDRA ELISA MAGOSSI FALCHI-5122.67XX.XXXX.0910') {
             $ContaCartao = '19468';
             $Empresa = 11;
             $DespesaContaDebitoID = '15372';   //// ALTERADO EM 31.07.2023
             $CashBackContaCreditoID = '19271';
             // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
         }
-        elseif ($linhas1_7 === 'SANDRA ELISA MAGOSSI FALCHI-5122.67XX.XXXX.0126') {
+        elseif ($linhas1_8 === 'SANDRA ELISA MAGOSSI FALCHI-5122.67XX.XXXX.0126') {
             $ContaCartao = '19468';
             $Empresa = 11;
             $DespesaContaDebitoID = '15372';
             $CashBackContaCreditoID = '19271';
             // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
         }
-        elseif ($linhas1_7 === 'PEDRO ROBERTO FALCHI-4891.67XX.XXXX.2113') {
+        elseif ($linhas1_8 === 'PEDRO ROBERTO FALCHI-4891.67XX.XXXX.2113') {
             $ContaCartao = '17458';
             $Empresa = 11;
             $DespesaContaDebitoID = '19426';
             $CashBackContaCreditoID = '19271';
             // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
-        } elseif ($linhas1_7 === 'PEDRO ROBERTO FALCHI-4891.67XX.XXXX.2915') {
+
+        } elseif ($linhas1_8 === 'PEDRO ROBERTO FALCHI-4891.67XX.XXXX.2915') {
             $ContaCartao = '17458';
             $Empresa = 11;
             $DespesaContaDebitoID = '19426';
@@ -157,7 +167,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
             $CashBackContaCreditoID = '19271';
             // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
         } else {
-            session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
+            session(['Lancamento' => 'Linha 170 - Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
             return redirect(route('LeituraArquivo.index'));
         }
 
@@ -178,7 +188,8 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
             }
         }
 
-        $novadata = array_slice($cellData, 10);
+        $novadata = array_slice($cellData, 13);
+        $despesasnobrasil = array_slice($cellData, 11);
         // $novadata = array_slice($cellData, 152);
 
         ///// CONFERE SE EMPRESA BLOQUEADA
@@ -186,18 +197,26 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
         $EmpresaBloqueada = Empresa::find($Empresa);
         $Data_bloqueada = $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y');
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        /////////   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         foreach ($novadata as $PegaLinha => $item) {
             $Data = $item[1];
 
+            if ($Data == null) {
+                session(['Lancamento' => 'Linha 206 - Data vazia ou nula!']);
+                break;
+            }
+
             if ($Data == 'Histórico de Despesas') {
-                session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
+                session(['Lancamento' => 'Linha 211 - Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
                 return redirect(route('LeituraArquivo.index'));
             }
             $Descricao = $item[2];
 
-            $linha = $PegaLinha + 10; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
+            $linha = $PegaLinha + 13; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
+
+
+
 
             if (strpos($Descricao, 'CREDITO CASH BACK') !== false) {
                 //// se contiver, conter o texto na variável
@@ -212,6 +231,8 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
 
                 continue;
             }
+
+
 
             $carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $Data);
             $linha_data_comparar = $carbon_data->format('Y-m-d');
@@ -266,13 +287,13 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
 
                 continue;
             }
-
+            // dd($Data, $Descricao, $linha, $Valor, $valor_formatado, $valor_numerico, $Parcela, $NumeroParcela, $QuantidadeParcela);
             $arraydatanova = compact('Data', 'Descricao', 'valor_formatado');
             // dd($Valor,$Valor_sem_virgula,$Valor_sem_pontos_virgulas,$valor_sem_simbolo ,$valor_numerico,$arraydatanova);
             $Extrato[] = null;
 
             $rowData = $cellData;
-            //   dd($cellData);
+
 
             $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
                 ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
@@ -475,6 +496,8 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
             }
             $Extrato[] = $arraydatanova;
             // }///////////////retirar - liga com linha 658
+
+            // dd($Extrato);
         }
         if ($Mensagem) {
             $xMensagem = session('Lancamento') . ' Mensagem auxiliar: ' . $Mensagem;
