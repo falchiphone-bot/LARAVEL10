@@ -28,12 +28,32 @@
         </div>
                <div class="form-group">
                     <label for="ArquivoFisico">ARQUIVO FISICO ONDE SE ENCONTRA O DOCUMENTO</label>
-                    <input required  class="form-control @error('nome') is-invalid @else is-valid @enderror" name="ArquivoFisico"
+                    <input required  class="form-control @error('ArquivoFisico') is-invalid @else is-valid @enderror" name="ArquivoFisico"
                         type="text" id="ArquivoFisico" value="{{$documento->ArquivoFisico??null}}">
-                    @error('nome')
+                    @error('ArquivoFisico')
                         <div class="alert alert-danger">{{ $message }}</div>
                     @enderror
                 </div>
+
+                <div class="form-group">
+                    <label for="Email1Vinculado">LINK DO EMAIL VINCULADO AO DOCUMENTO</label>
+                    <input required  class="form-control @error('Email1Vinculado') is-invalid @else is-valid @enderror" name="Email1Vinculado"
+                        type="text" id="Email1Vinculado" value="{{$documento->Email1Vinculado??null}}">
+                    @error('Email1Vinculado')
+                        <div class="alert alert-danger">{{ $message }}</div>
+                    @enderror
+                </div>
+
+
+                <div class="form-group">
+                    <label for="AnotacoesGerais">ANOTAÇÕES GERAIS</label>
+                    <textarea class="form-control @error('AnotacoesGerais') is-invalid @else is-valid @enderror" name="AnotacoesGerais" id="AnotacoesGerais" rows="5">{{ $documento->AnotacoesGerais ?? '' }}</textarea>
+                    @error('AnotacoesGerais')
+                        <div class="alert alert-danger">{{ $message }}</div>
+                    @enderror
+                </div>
+
+
 
 
 
@@ -44,7 +64,7 @@
                 <div class="alert alert-danger">{{ $message }}</div>
             @enderror --}}
 
-            
+
 
 
         </div>

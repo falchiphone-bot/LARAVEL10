@@ -22,6 +22,8 @@ class LancamentoDocumento extends Model
         'Documento',
         'TipoArquivo',
         'ArquivoFisico',
+        'Email1Vinculado',
+        'AnotacoesGerais',
     ];
 
     protected $casts = [
