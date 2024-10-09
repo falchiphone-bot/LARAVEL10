@@ -37,7 +37,7 @@
 
                 <div class="form-group">
                     <label for="Email1Vinculado">LINK DO EMAIL VINCULADO AO DOCUMENTO</label>
-                    <input required  class="form-control @error('Email1Vinculado') is-invalid @else is-valid @enderror" name="Email1Vinculado"
+                    <input  class="form-control @error('Email1Vinculado') is-invalid @else is-valid @enderror" name="Email1Vinculado"
                         type="text" id="Email1Vinculado" value="{{$documento->Email1Vinculado??null}}">
                     @error('Email1Vinculado')
                         <div class="alert alert-danger">{{ $message }}</div>
