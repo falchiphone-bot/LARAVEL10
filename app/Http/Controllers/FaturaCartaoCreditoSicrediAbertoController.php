@@ -206,12 +206,13 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
             }
         }
 
-        $novadata = array_slice($cellData, 13);
+        $novadata = null;
 
         if($SITUACAO_EXTRATO_ABERTO == true)
         {
             $AcrescentaLinha = 13;
             $novadata = array_slice($cellData, $AcrescentaLinha);
+            // dd($novadata);
         }
         else
         if($SITUACAO_EXTRATO_FECHADA == true)
@@ -220,6 +221,16 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
             $novadata = array_slice($cellData, $AcrescentaLinha);
 
         }
+
+        if($novadata == null)
+        {
+            session(['Lancamento' =>
+            'Linha 226 - Arquivo e ou ficheiro não identificado!
+             Verifique se o mesmo está correto para este procedimento ou selecionou errado a opção de aberto ou fechado!
+             A situação deste extrato é: ' . $linha_8 . ' ou ' . $linha_9]);
+            return redirect(route('LeituraArquivo.index'));
+        }
+
 
 
         $despesasnobrasil = array_slice($cellData, 11);
@@ -302,10 +313,11 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
             if ($Parcela == '  ') {
                 // continue;
             } else {
-                $NumeroParcela = substr($Parcela, 1, 2);
-                $QuantidadeParcela = substr($Parcela, 6, 2);
+                $NumeroParcela = substr($Parcela, 0, 2);
+                $QuantidadeParcela = substr($Parcela, 4, 2);
+                // dd("318","Parcela: ".$Parcela, "Número de parcela: ".$NumeroParcela, 'Quantidade de parcela: '.$QuantidadeParcela, $Descricao );
             }
-            //  dd($Parcela,$NumeroParcela, $QuantidadeParcela, $Descricao );
+
 
             $Valor = $item[4];
 
@@ -327,7 +339,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
 
                 continue;
             }
-            // dd($Data, $Descricao, $linha, $Valor, $valor_formatado, $valor_numerico, $Parcela, $NumeroParcela, $QuantidadeParcela);
+            // dd('342',$Data, $Descricao, $linha, $Valor, $valor_formatado, $valor_numerico, $Parcela, $NumeroParcela, $QuantidadeParcela);
             $arraydatanova = compact('Data', 'Descricao', 'valor_formatado',  'valor_sem_simbolo', 'valor_numerico', 'Parcela', 'NumeroParcela', 'QuantidadeParcela');
             // dd($Valor,$Valor_sem_virgula,$Valor_sem_pontos_virgulas,$valor_sem_simbolo ,$valor_numerico,$arraydatanova);
             $Extrato[] = null;
@@ -423,10 +435,12 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                 $arraydatanova['Localizou'] = 'NAO';
                 // dd($arraydatanova);
 
+
                 $historico = Historicos::where('EmpresaID', $Empresa)
                     ->where('Descricao', 'like', '%' . trim($Descricao) . '%')
                     ->where('ContaCreditoID', $ContaCartao)
                     ->first();
+
 
                 if ($historico) {
                     $DespesaContaDebitoID = $historico->ContaDebitoID;
@@ -446,7 +460,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                     // dd('Criando lançamento com histórico', $historico,session('Lancamento'));
                     $arraydatanova['Criou com historico'] = 'SIM';
 
-                    // DD($arraydatanova, 'inserico pelo histrórico');
+                    // DD($arraydatanova, 'inserico pelo histórico');
 
 
 
@@ -465,8 +479,11 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                 }
 
                 if ($NumeroParcela !== null && $QuantidadeParcela !== null) {
+
+
+
                     if ($NumeroParcela > 1) {
-                        // dd($NumeroParcela, $QuantidadeParcela, $linha );
+                        dd(486,$NumeroParcela, $QuantidadeParcela, $linha );
                         continue;
                     }
 
