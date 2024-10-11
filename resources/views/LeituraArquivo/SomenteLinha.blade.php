@@ -151,6 +151,14 @@
                             @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA CONCILIACA0 BANCARIA E AUTORIZAR CRIAR
                             LANCAMENTO')
 
+                            <input type="checkbox" name="SITUACAO_EXTRATO_FECHADA" value='true'>
+                            <label for="checkbox_enviar">SITUAÇÃO DO EXTRATO COMO - << Extrato Atual - Situação: fechada >></label>
+                            <br>
+
+                            <input type="checkbox" name="SITUACAO_EXTRATO_ABERTO" value='true'>
+                            <label for="checkbox_enviar">SITUAÇÃO DO EXTRATO COMO - << Extrato Atual - Situação: Fatura em aberto, sujeita a alterações >></label>
+                            <br>
+
                             <input type="checkbox" name="DESCONSIDERAR_BLOQUEIOS" value='true'>
                             <label for="checkbox_enviar">DESCONSIDERAR BLOQUEIOS DA EMPRESA E CONTAS</label>
                             <br>
@@ -290,6 +298,8 @@
 
                             <br>
                             <input type="file" required class="btn btn-success" name="arquivo">
+                            <br>
+
                             <br>
                             <input type="checkbox" name="DESCONSIDERAR_BLOQUEIOS" value='true'>
                             <label for="checkbox_enviar">DESCONSIDERAR BLOQUEIOS DA EMPRESA E CONTAS</label>

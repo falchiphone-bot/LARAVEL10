@@ -43,6 +43,9 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
         $Complemento = $request->complemento;
         $name = $file->getClientOriginalName();
         $caminho = $path;
+        $SITUACAO_EXTRATO_FECHADA = $request->SITUACAO_EXTRATO_FECHADA;
+        $SITUACAO_EXTRATO_ABERTO = $request->SITUACAO_EXTRATO_ABERTO;
+
         // if ($extension != 'txt' && $extension != 'csv' && $extension != 'xlsx' && $extension != 'xls') {
         //     session(['Lancamento' => 'Arquivo considerado não compatível para este procedimento! Autorizados arquivos com extensões csv, txt, xls e xlsx. Apresentado o último enviado. ATENÇÃO!']);
         //     return redirect(route('LeituraArquivo.index'));
@@ -82,30 +85,47 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
         ///////////////////////////// DADOS DA LINHA 4 COLUNA 2 PARA DEFINIR CONTAS
         $linha_4_coluna_2 = $planilha_ativa->getCell('B' . 4)->getValue();
         ///////////////////////////// DADOS DA LINHA 7 PARA DEFINIR CONTAS
-        $linha_8 = trim($planilha_ativa->getCell('A' . 8)->getValue());
+        $linha_8 = null;
+
+        $linha_9 = null;
+        $linha_12 = trim($planilha_ativa->getCell('C' . 12)->getValue());
+
+        if($SITUACAO_EXTRATO_FECHADA == true)
+        {
+            $linha_8 = trim($planilha_ativa->getCell('A' . 8)->getValue());
+
+            // dd('SITUAÇÃO DO EXTRATO: ' . $linha_8 . ' - ' . $linha_12, 'TEM QUE SER FECHADA');
+        }
+        else
+        if($SITUACAO_EXTRATO_ABERTO == true)
+        {
+
+             ///////////////////////////// DADOS DA LINHA 12 PARA DEFINIR SITUAÇÃO
+             $linha_8 = trim($planilha_ativa->getCell('A' . 8)->getValue());
+             $linha_9 = trim($planilha_ativa->getCell('C' . 9)->getValue());
+
+            //  dd('SITUAÇÃO DO EXTRATO: ' . $linha_8 . ' - ' . $linha_12, "TEM QUE SER ABERTO");
+                if ($linha_9 != 'Fatura em aberto, sujeita a alterações') {
+                    session([
+                        'Lancamento' =>
+                                        'Arquivo e ou ficheiro não identificado!
+                        Verifique se o mesmo está correto para este procedimento!
+                        A situação do extrato tem que ser: Fatura em aberto, sujeita a alterações. Neste arquivo está como situação: ' . $linha_8,
+                                ]);
+                    return redirect(route('LeituraArquivo.index'));
+                }
 
 
-
-
-        if ($linha_8 == null) {
-            session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
+        }
+        else
+        if ($linha_8 == null || $linha_9 == null)
+         {
+            session(['Lancamento' => 'Linha 122. Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
             return redirect(route('LeituraArquivo.index'));
         }
 
-        ///////////////////////////// DADOS DA LINHA 12 PARA DEFINIR SITUAÇÃO
-
-        $linha_9 = trim($planilha_ativa->getCell('C' . 9)->getValue());
 
 
-        if ($linha_9 != 'Fatura em aberto, sujeita a alterações') {
-            session([
-                'Lancamento' =>
-                    'Arquivo e ou ficheiro não identificado!
-     Verifique se o mesmo está correto para este procedimento!
-      A situação do extrato tem que ser: Fatura em aberto, sujeita a alterações. Neste arquivo está como situação: ' . $linha_8,
-            ]);
-            return redirect(route('LeituraArquivo.index'));
-        }
         // dd('Pesquisar se já lançada!');
 
         $ContaCartao = null;
@@ -165,7 +185,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
             $CashBackContaCreditoID = '19271';
             // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
         } else {
-            session(['Lancamento' => 'Linha 168 - Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento! '.$linhas1_8]);
+            session(['Lancamento' => 'Linha 187 - Arquivo e ou ficheiro não identificado! Não localizei nenhuma conta para associar. Verifique se o mesmo está correto para este procedimento! '.$linhas1_8]);
             return redirect(route('LeituraArquivo.index'));
         }
 
@@ -187,6 +207,21 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
         }
 
         $novadata = array_slice($cellData, 13);
+
+        if($SITUACAO_EXTRATO_ABERTO == true)
+        {
+            $AcrescentaLinha = 13;
+            $novadata = array_slice($cellData, $AcrescentaLinha);
+        }
+        else
+        if($SITUACAO_EXTRATO_FECHADA == true)
+        {
+            $AcrescentaLinha = 23;
+            $novadata = array_slice($cellData, $AcrescentaLinha);
+
+        }
+
+
         $despesasnobrasil = array_slice($cellData, 11);
         // $novadata = array_slice($cellData, 152);
 
@@ -198,16 +233,18 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
         /////////   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         foreach ($novadata as $PegaLinha => $item) {
+
             $Data = $item[1];
 
-            $linha = $PegaLinha + 14; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
+
+            $linha = $PegaLinha + $AcrescentaLinha;
 
 
-            //  if($linha == 75) {
+            //  if($linha == 24) {
             //     dd($linha, $item);
             // }
 
-            if ($Data === null) {
+            if ($Data === null || $Data === 'Valor Total R$:') {
                 session(['Lancamento' => 'Última linha executada, ou seja, terminado na linha: ' . $linha]);
                 break;
             }
