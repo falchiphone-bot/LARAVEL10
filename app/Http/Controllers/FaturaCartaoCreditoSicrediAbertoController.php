@@ -97,7 +97,6 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
         $linha_9 = trim($planilha_ativa->getCell('C' . 9)->getValue());
 
 
-
         if ($linha_9 != 'Fatura em aberto, sujeita a alterações') {
             session([
                 'Lancamento' =>
@@ -117,7 +116,6 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
         $parts = explode('-', $string);
         $result_linha8 = trim($parts[0]);
         $linhas1_8 = $linha_2 . '-' . $result_linha8;
-
 
 
 
@@ -167,7 +165,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
             $CashBackContaCreditoID = '19271';
             // dd($Empresa,' - ',$ContaCartao, ' - ',$DespesaContaDebitoID, $CashBackContaCreditoID);
         } else {
-            session(['Lancamento' => 'Linha 170 - Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento!']);
+            session(['Lancamento' => 'Linha 168 - Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento! '.$linhas1_8]);
             return redirect(route('LeituraArquivo.index'));
         }
 
@@ -202,8 +200,15 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
         foreach ($novadata as $PegaLinha => $item) {
             $Data = $item[1];
 
-            if ($Data == null) {
-                session(['Lancamento' => 'Última linha executada, ou seja, terminado na linha: ' . $PegaLinha + 13]);
+            $linha = $PegaLinha + 14; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
+
+
+            //  if($linha == 75) {
+            //     dd($linha, $item);
+            // }
+
+            if ($Data === null) {
+                session(['Lancamento' => 'Última linha executada, ou seja, terminado na linha: ' . $linha]);
                 break;
             }
 
@@ -212,10 +217,6 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                 return redirect(route('LeituraArquivo.index'));
             }
             $Descricao = $item[2];
-
-            $linha = $PegaLinha + 13; ///// pega a linha atual da lista. Deve fazer a seguir:$PegaLinha => $item, conforme linha anterior
-
-
 
 
             if (strpos($Descricao, 'CREDITO CASH BACK') !== false) {
@@ -277,29 +278,36 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
             $valor_sem_simbolo = substr($Valor_sem_pontos_virgulas, 3); // Extrai a string sem o símbolo "R$"
 
             $valor_numerico = floatval($valor_sem_simbolo) / 100;
-            $valor_formatado = number_format($valor_numerico, 2, '.', '');
+            // $valor_formatado = number_format($valor_numerico, 2, '.', ''); retirado em colocado a linha debaixo
+            $valor_formatado = $Valor_sem_pontos_virgulas / 100;
+
             if ($valor_formatado == 0.0) {
                 session([
-                    'Lancamento' => 'ALGO ERRADO! VALOR 0.00. Linha:  ' . $linha + 1,
+                    'Lancamento' => 'ALGO ERRADO! VALOR 0.00. Linha:  ' . $linha + 2,
                 ]);
-                $Mensagem = 'ALGO ERRADO! VALOR 0.00. Linha:  ' . $linha + 1;
+                $Mensagem = 'ALGO ERRADO! VALOR 0.00. Linha:  ' . $linha + 2;
                 // return redirect(route('LeituraArquivo.index'));
 
                 continue;
             }
             // dd($Data, $Descricao, $linha, $Valor, $valor_formatado, $valor_numerico, $Parcela, $NumeroParcela, $QuantidadeParcela);
-            $arraydatanova = compact('Data', 'Descricao', 'valor_formatado');
+            $arraydatanova = compact('Data', 'Descricao', 'valor_formatado',  'valor_sem_simbolo', 'valor_numerico', 'Parcela', 'NumeroParcela', 'QuantidadeParcela');
             // dd($Valor,$Valor_sem_virgula,$Valor_sem_pontos_virgulas,$valor_sem_simbolo ,$valor_numerico,$arraydatanova);
             $Extrato[] = null;
 
             $rowData = $cellData;
 
-
+// dd( $arraydatanova, $Valor_sem_pontos_virgulas, $valor_formatado);
             $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
                 ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
                 ->where('EmpresaID', $Empresa)
                 ->where('ContaCreditoID', $ContaCartao)
                 ->First();
+
+
+            // if($lancamento == null){
+            //     dd($lancamento,$linha, $item);
+            // }
 
             if ($DESCONSIDERAR_BLOQUEIOS == null) {
                 if ($lancamento) {
@@ -364,9 +372,12 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                 //         1 .
                 //         '!',
                 // ]);
+                // dd($lancamento,$linha, $item);
             } else {
                 // if ($request->criarlancamentosemhistorico == true) {
 
+
+                // dd($lancamento,$linha, $item, $ContaCartao,'SEM LANÇAR');
                 if ($Parcela) {
                     $DescricaoCompleta = $arraydatanova['Descricao'] . ' Parcela ' . $Parcela;
                 } else {
@@ -382,6 +393,26 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
 
                 if ($historico) {
                     $DespesaContaDebitoID = $historico->ContaDebitoID;
+                    // dd($lancamento,$linha, $item, $ContaCartao,'SEM LANÇAR', $DespesaContaDebitoID);
+                    ////// LINHAS ABAIXO INSERIDAS AQUI APOS 01.10.2024
+                    Lancamento::create([
+                        'Valor' => ($valorString = $valor_formatado),
+                        'EmpresaID' => $Empresa,
+                        'ContaDebitoID' => $DespesaContaDebitoID,
+                        'ContaCreditoID' => $ContaCartao,
+                        'Descricao' => $DescricaoCompleta,
+                        'Usuarios_id' => auth()->user()->id,
+                        'DataContabilidade' => $Data,
+                        'HistoricoID' => '',
+                    ]);
+                    session(['Lancamento' => 'Lancamentos criados com históricos!']);
+                    // dd('Criando lançamento com histórico', $historico,session('Lancamento'));
+                    $arraydatanova['Criou com historico'] = 'SIM';
+
+                    // DD($arraydatanova, 'inserico pelo histrórico');
+
+
+
                 } else {
                     if ($request->vercriarlancamento == true) {
                         dd('Sem histórico!', $historico, $arraydatanova, $Descricao, $ContaCartao, $DespesaContaDebitoID);
@@ -425,6 +456,9 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                         $registros[] = $novoRegistroParcelas;
                     }
 
+
+
+
                     foreach ($registros as $incluirregistros) {
                         $lancamentoregistros = Lancamento::where('DataContabilidade', $incluirregistros['Data'])
                             ->where('Valor', $valorString = $incluirregistros['Valor'])
@@ -441,6 +475,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                             //     continue;
                             // }
                             // dd($linha, $Descricao,'400',$lancamentoregistros );
+
                             Lancamento::create([
                                 'Valor' => $incluirregistros['Valor'],
                                 'EmpresaID' => $incluirregistros['EmpresaID'],
@@ -455,21 +490,29 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                         }
                     }
                 } else {
-                    if ($historico == true) {
-                        Lancamento::create([
-                            'Valor' => ($valorString = $valor_formatado),
-                            'EmpresaID' => $Empresa,
-                            'ContaDebitoID' => $DespesaContaDebitoID,
-                            'ContaCreditoID' => $ContaCartao,
-                            'Descricao' => $DescricaoCompleta,
-                            'Usuarios_id' => auth()->user()->id,
-                            'DataContabilidade' => $Data,
-                            'HistoricoID' => '',
-                        ]);
-                        session(['Lancamento' => 'Lancamentos criados com históricos!']);
-                        // dd('Criando lançamento com histórico', $historico,session('Lancamento'));
-                        $arraydatanova['Criou com historico'] = 'SIM';
-                    }
+
+
+                    ///// RETIRADO APOS 01.10.2024
+                    // if ($historico) {
+
+                    //     Lancamento::create([
+                    //         'Valor' => ($valorString = $valor_formatado),
+                    //         'EmpresaID' => $Empresa,
+                    //         'ContaDebitoID' => $DespesaContaDebitoID,
+                    //         'ContaCreditoID' => $ContaCartao,
+                    //         'Descricao' => $DescricaoCompleta,
+                    //         'Usuarios_id' => auth()->user()->id,
+                    //         'DataContabilidade' => $Data,
+                    //         'HistoricoID' => '',
+                    //     ]);
+                    //     session(['Lancamento' => 'Lancamentos criados com históricos!']);
+                    //     // dd('Criando lançamento com histórico', $historico,session('Lancamento'));
+                    //     $arraydatanova['Criou com historico'] = 'SIM';
+
+                    //     DD($arraydatanova, 'inserico pelo histrórico');
+                    // }
+
+                    ////// O ACIMA FOI RETIRADO APOS 01.10.2024
 
                     if ($request->criarlancamentosemhistorico == true) {
                         //  dd("Criando lançamento sem histórico!");
@@ -522,7 +565,10 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
 
             $rowData = $registrosNaoLocalizados;
             if($request->verarray){
-                  dd($rowData, 'Linha 525');
+                //   dd($rowData, 'Linha 538');
+
+             dd($rowData, $lancamento,'ÚLTIMA LINHA: ' . $linha, "ÚLTIMO REGISTRO: " , $item, $ContaCartao,'SEM LANÇAR', $DespesaContaDebitoID);
+
             }
 
             return view('LeituraArquivo.SelecionaDatas', ['array' => $rowData]);

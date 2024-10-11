@@ -192,7 +192,7 @@
                                                 @if(!empty($documento->Email1Vinculado))
                                                     <p class="card-text">
                                                         <strong>Email 1 vinculado:</strong>
-                                                        <a href="mailto:{{ $documento->Email1Vinculado }}" target="_blank">{{ $documento->Email1Vinculado }}</a>
+                                                        <a href="{{ $documento->Email1Vinculado }}" target="_blank">{{ $documento->Email1Vinculado }}</a>
                                                     </p>
                                                 @endif
 
