@@ -126,7 +126,7 @@
                <a href="#" onclick="window.history.forward(); return false;"> =>Avançar para página posterior</a>
 
             <p class="float-end mb-1">
-                <a href="#">Ir para o top da página.</a>
+                <a href="#">Ir para o topo da página.</a>
             </p>
             {{-- <p class="mb-1">Texto para editar</p>
         <p class="mb-0">New to Bootstrap? <a href="/">Visit the homepage</a> or read our <a href="/docs/5.3/getting-started/introduction/">getting started guide</a>.</p> --}}
