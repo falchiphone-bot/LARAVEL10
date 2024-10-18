@@ -405,6 +405,28 @@
                                             @endif
 
                                         </td>
+
+
+                                        <td colspan="2" align="right">
+                                            <div class="card text-center"
+                                                style="background-color: rgb(111, 14, 237); color: white;">
+
+                                                <button title="Botão para atualizar" type="button"
+                                                    class="btn-sm btn btn-outline-info"
+                                                    wire:click='confirmarAtualizar({{ $lancamento->ID }})'>
+
+                                                        <div class="card text-center"
+
+                                                            <h5 class="card-title" style="color: rgb(123, 0, 255);">ATUALIZAR PÁGINA</h5>
+
+                                                        </div>
+
+
+                                                </button>
+                                            </div>
+                                        </td>
+
+
                                         <td colspan="2" align="right">
                                             <div class="card text-center"
                                                 style="background-color: rgb(185, 237, 14); color: white;">

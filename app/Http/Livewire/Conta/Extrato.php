@@ -544,6 +544,10 @@ session(['Extrato_Ate' => $this->Ate]);
         $this->search();
     }
 
+    public function confirmarAtualizar($lancamento_id)
+    {
+       $this->search();
+    }
 
     public function selecionarLancamento($contaID)
     {
