@@ -97,7 +97,8 @@ class PlanoContaController extends Controller
         }
 
         if ($Request->Valor) {
-            $pesquisa->where('Lancamentos.Valor', '==', $Request->Valor);
+            $pesquisa->where('Lancamentos.Valor', '=', $Request->Valor);
+            // dd('Valor: ' . $Request->Valor);
         }
 
         if ($Request->DataInicial) {
@@ -117,6 +118,8 @@ class PlanoContaController extends Controller
             ->get();
 
         $retorno = $Request->all();
+        // dd('Valor: ' . $Request->Valor, ' Retorno: '.$retorno);
+        // dd('Valor: ' . $Request->Valor, $pesquisa->get());
 
         if ($pesquisa->count() > 0) {
             session(['success' => 'A pesquisa abaixo mostra os lançamentos de todas as empresas autorizadas conforme a pesquisa proposta!']);

@@ -411,6 +411,12 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                 }
             }
 
+            $sequencia = "POSTO CIDADE JARDIM";
+            $sequenciaExistePOSTOCIDADEJARDIM = false;
+            if (strpos($Descricao, $sequencia) !== false) {
+                $sequenciaExistePOSTOCIDADEJARDIM = true;
+            }
+
             if ($lancamento) {
                 // dd($lancamento);
                 // session([
@@ -425,16 +431,15 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
             } else {
                 // if ($request->criarlancamentosemhistorico == true) {
 
-
                 // dd($lancamento,$linha, $item, $ContaCartao,'SEM LANÇAR');
                 if ($Parcela) {
                     $DescricaoCompleta = $arraydatanova['Descricao'] . ' Parcela ' . $Parcela;
                 } else {
                     $DescricaoCompleta = $arraydatanova['Descricao'];
                 }
+
                 $arraydatanova['Localizou'] = 'NAO';
                 // dd($arraydatanova);
-
 
                 $historico = Historicos::where('EmpresaID', $Empresa)
                     ->where('Descricao', 'like', '%' . trim($Descricao) . '%')
@@ -444,6 +449,15 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
 
                 if ($historico) {
                     $DespesaContaDebitoID = $historico->ContaDebitoID;
+                    if($sequenciaExistePOSTOCIDADEJARDIM)
+                    {
+                        if($historico->Valor <= 100)
+                        {
+                            $DespesaContaDebitoID = '15366';
+                        }
+                        //  dd($DespesaContaDebitoID, $historico->Valor);
+                        //  continue;
+                    }
                     // dd($lancamento,$linha, $item, $ContaCartao,'SEM LANÇAR', $DespesaContaDebitoID);
                     ////// LINHAS ABAIXO INSERIDAS AQUI APOS 01.10.2024
                     Lancamento::create([
