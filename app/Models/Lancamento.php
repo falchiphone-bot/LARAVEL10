@@ -33,8 +33,7 @@ class Lancamento extends Model
         'Notificacao',
         'DiasNotificacaoAntesVencimento',
         'Investimentos',
-        'Transferencias',
-
+        'Transferencias'
     ];
 
     protected $casts = [

@@ -502,7 +502,18 @@ class ContasPagarController extends Controller
 
         $LancamentoID = $contasPagar->LancamentoID;
 
-        $Lancamento = Lancamento::find($LancamentoID);
+        if($LancamentoID>0)
+        {
+           $Lancamento = Lancamento::find($LancamentoID);
+        }
+       else
+       {
+           $LancamentoID = $request->LancamentoID;
+           $Lancamento = Lancamento::find($LancamentoID);
+        }
+
+
+        // dd($LancamentoID);
         if ($Lancamento) {
             $DataContabilidade = $request->input('DataProgramacao');
             if ($DataContabilidade) {
@@ -591,10 +602,13 @@ class ContasPagarController extends Controller
                 'ContaDebitoID' => $request->input('ContaFornecedorID') ?? null,
                 'ContaCreditoID' => $request->input('ContaPagamentoID') ?? null,
                 'Usuarios_id' => $auth = Auth::user()->id,
-                'LancamentoID' => $contasPagar->LancamentoID,
+                'LancamentoID' => $contasPagar->IDDocumentoEmpresa,
                 'Created' => $now = Carbon::now()->format('Y-m-d'),
             ]);
             $Lancamento->save();
+
+
+            // dd($Lancamento);
         } else {;
             session(['contabilidade' => 'Lançamento não encontrado na contabilidade!']);
         };
@@ -612,7 +626,7 @@ class ContasPagarController extends Controller
             'DataDocumento' =>  $request->input('DataDocumento') ?? null,
             'NumTitulo' => $request->input('NumTitulo') ?? null,
             'ContaFornecedorID' => $request->input('ContaFornecedorID') ?? null,
-            'LancamentoID' => $contasPagar->LancamentoID,
+            'LancamentoID' => $LancamentoID,
             'ContaPagamentoID' => $request->input('ContaPagamentoID') ?? null,
         ]);
 
