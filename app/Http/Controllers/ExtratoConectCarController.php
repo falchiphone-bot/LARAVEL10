@@ -104,7 +104,7 @@ class ExtratoConectCarController extends Controller
         //                 return redirect(route('LeituraArquivo.index'));
         // }
         ///////////////////////////// DADOS DA LINHA 10 PARA DEFINIR TITULAR POR CPF
-        $linha_10 = trim($planilha_ativa->getCell('C' . 10)->getValue());
+        $linha_16 = trim($planilha_ativa->getCell('C' . 16)->getValue());
 
         $ContaCartao = null;
         $DespesaContaDebitoID = null;
@@ -115,7 +115,7 @@ class ExtratoConectCarController extends Controller
         // $result_linha7 = trim($parts[0]);
         // $linhas1_7 = $linha_1 . '-' . $result_linha7;
 
-        if ($linha_10 === '5832745876') {
+        if ($linha_16 === '5832745876') {
             $ContaCartao = '18949';
             $Empresa = 11;
             $DespesaContaDebitoID = '19460';
@@ -143,7 +143,7 @@ class ExtratoConectCarController extends Controller
             }
         }
 
-        $novadata = array_slice($cellData, 28);
+        $novadata = array_slice($cellData, 35);
         // $novadata = array_slice($cellData, 152);
 
         ///// CONFERE SE EMPRESA BLOQUEADA

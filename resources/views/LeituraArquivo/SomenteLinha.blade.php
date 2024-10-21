@@ -109,6 +109,70 @@
                 @endcan
 
 
+                @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA CONCILIACA0 BANCARIA')
+                <div class="row">
+                    <form method="POST" action="/LeituraArquivo/SelecionaDatasExtratoBradescoPJ" enctype="multipart/form-data">
+                        @csrf
+                        <label for="fim"></label>
+                        <div class="badge bg-danger text-wrap" style="width: 100%; font-size: 24px; color: white; text-align: center;">
+
+                            <label for="fim">Arquivo de extrato BRADESCO pessoa jurídica - PJ e pessoa física -
+                                PF</label>
+                            <br>
+                            <input type="checkbox" name="DESCONSIDERAR_BLOQUEIOS_EMPRESAS" value='true' checked>
+                            <label for="checkbox_enviar">DESCONSIDERAR BLOQUEIOS DA EMPRESA</label>
+                            <br>
+
+                            <input type="checkbox" name="DESCONSIDERAR_BLOQUEIOS_CONTAS" value='true' checked>
+                            <label for="checkbox_enviar">DESCONSIDERAR BLOQUEIOS DAS CONTAS</label>
+                            <br>
+                            <input type="checkbox" name="filtrarnaolocalizou" value='true'>
+                            <label for="checkbox_Filtrar_nao_localizou">FILTRAR SOMENTE OS QUE NÃO LOCALIZOU</label>
+                            <input type="checkbox" name="verarray" value='true'>
+                            <label for="checkbox_verarray">MOSTRAR TABELA - ARRAY</label>
+                            <br>
+                            <input type="checkbox" name="veralteradoliqcobrancasimples" value='true'>
+                            <label for="checkbox_veralteradoliqcobrancasimples">VER SE ALTEROU VALOR PARA LIQ.COBRANCA SIMPLES</label>
+                            <br>
+
+
+                            <input type="checkbox" name="Conciliar_Data_Descricao_Valor" value='true'>
+                            <label for="checkbox_enviar">Conciliar por Data, Descrição e Valor</label>
+                            <br>
+
+
+                            <input type="file" required class="btn btn-secondary" name="arquivo">
+                            <br>
+                            <input type="checkbox" name="vercriarlancamentocomhistorico" value="1">
+                            <label for="checkbox_enviar">Ver se vai criar lançamento com histórico ou não</label>
+                            <br>
+                            <input type="checkbox" name="vercriarlancamento" value="1">
+                            <label for="checkbox_enviar">Ver se vai criar lançamento sem histórico
+                                pré-programado</label>
+                            <br>
+
+                            @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA CONCILIACA0 BANCARIA E AUTORIZAR CRIAR
+                            LANCAMENTO')
+                            <input type="checkbox" name="criarlancamentosemhistorico" value="1">
+                            <label for="checkbox_enviar">Autorizar criar lançamento sem histórico
+                                pré-programado</label>
+                            <br>
+                            @endcan
+
+                            <input type="checkbox" name="bloquearconta" value='true' checked>
+                            <label for="checkbox_verarray">Bloquear conta</label>
+                            <br>
+
+                            <p class="my-2">
+                                <button type="submit" class="btn btn-secondary">Enviar o arquivo extrato PJ para a pasta
+                                    do sistema e
+                                    consulta o arquivo total.</button>
+                            </p>
+                    </form>
+                </div>
+                @endcan
+
+
                 @can('LEITURA DE ARQUIVO - ENVIAR ARQUIVO E SELECIONAR LINHA')
                 <div class="row">
 
