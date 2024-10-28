@@ -216,6 +216,12 @@
                             class="btn btn-primary btn-sm">
                             <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de entradas em geral
                         </button>
+
+                        <button id="buscar" wire:click='searchEntradasGeralExcel()' type="button"
+                            class="btn btn-secondary btn-sm">
+                            <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de entradas em geral e gerar arquivo EXCEL
+                        </button>
+
                         <button id="buscar" wire:click='searchInvestimentos()' type="button"
                             class="btn btn-primary btn-sm">
                             <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de investimentos

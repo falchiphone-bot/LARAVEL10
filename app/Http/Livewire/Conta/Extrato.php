@@ -556,6 +556,99 @@ session(['Extrato_Ate' => $this->Ate]);
          $EntradasGeral = 0;
     }
 
+    public function searchEntradasGeralExcel()
+    {
+        if($this->Conferido !== 'EntradasGeral'){
+            dd('VERIFICAR A SELEÇÃO');
+        }
+
+        $contaID = session('extrato_ContaID') ?? $this->selConta;
+        $EntradasGeral = 1;
+
+            $lancamentos = Lancamento::where(function ($query) use ($EntradasGeral) {
+                return $query->where('Lancamentos.EntradasGeral', 1);
+            });
+
+
+              if ($this->De) {
+                if ($this->Descricao && $this->DescricaoApartirDe) {
+                    $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
+                } else {
+                    $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
+                }
+                $lancamentos->where('DataContabilidade', '>=', $de);
+                session(['Extrato_De' => $this->De]);
+            }
+            if ($this->Ate) {
+                $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
+                $lancamentos->where('DataContabilidade', '<=', $ate);
+                session(['Extrato_Ate' => $this->Ate]);
+            }
+
+
+            if ($this->Conferido != '') {
+                if ($this->Conferido == 'false') {
+                    $lancamentos->where(function ($q) {
+                        return $q->whereNull('Conferido')->orWhere('Conferido', 0);
+                    });
+                }
+                if ($this->Conferido == 'EntradasGeral') {
+                    $lancamentos->where(function ($q) {
+                        return $q->whereNull('EntradasGeral')->orWhere('EntradasGeral', 1);
+                    });
+                }else {
+                    $lancamentos->where('Conferido', $this->Conferido);
+                }
+            }
+            if($this->Conferido == 'EntradasGeral'){
+               $this->Lancamentos = $lancamentos
+                ->orderBy('DataContabilidade')
+                ->whereDoesntHave('SolicitacaoExclusao')
+                ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
+                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaDebitoID','Lancamentos.ContaCreditoID',
+                 'Lancamentos.Descricao',
+                 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral','EntradasGeral']);
+            }
+
+         $EntradasGeral = 0;
+
+
+         $ExportarLinha = [];
+         $ExportarUnir = [];
+
+         foreach ($this->Lancamentos as $item) {
+             $exportarItem = [
+                 'DataContabilidade' => $item->DataContabilidade->format('d/m/Y'),
+                 'ContaDebitoID' => $item->ContaDebito->PlanoConta->Descricao ?? null,
+                 'ContaCreditoID' => $item->ContaCredito->PlanoConta->Descricao ?? null,
+                 'Valor' => $item->Valor,
+                 'Historico' => $item->Historico->Descricao??null,
+                 'Descricao' => $item->Descricao,
+             ];
+
+
+
+
+             $ExportarLinha[] = $exportarItem;
+         }
+
+         $exportarUnir = collect($ExportarLinha);
+
+
+         // dd($ExportarUnir);
+
+         // Caminho do arquivo .csv que você deseja criar na pasta "storage"
+         $Arquivo = 'Entradas para PEDRO ROBERTO FALCHI E SANDRA ELISA MAGOSSI FALCHI' . '-' .str_replace('/', '', $de). '-a-'.str_replace('/', '', $ate).'.xlsx';
+
+
+
+         return Excel::download(new LancamentoExport($exportarUnir), "$Arquivo");
+
+    }
+
+
+
+
     public function searchPDF()
     {
         $contaID = cache('extrato_ContaID') ?? $this->selConta;
