@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire\Conta;
 
+use App\Exports\LancamentoExport;
 use App\Models\Conta;
 use App\Models\Empresa;
 use App\Models\Lancamento;
@@ -14,6 +15,8 @@ use Dompdf\Dompdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Route;
+use LancamentoExport as GlobalLancamentoExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 use function JmesPath\search;
 
@@ -345,6 +348,104 @@ class Extrato extends Component
 
          $SaidasGeral = 0;
     }
+
+    public function searchSaidasGeralExcel()
+    {
+
+
+        if($this->Conferido !== 'SaidasGeral'){
+            dd('VERIFICAR A SELEÇÃO PARA EXCEL');
+        }
+
+        $contaID = session('extrato_ContaID') ?? $this->selConta;
+        $SaidasGeral = 1;
+
+            $lancamentos = Lancamento::where(function ($query) use ($SaidasGeral) {
+                return $query->where('Lancamentos.SaidasGeral', 1);
+            });
+
+
+              if ($this->De) {
+                if ($this->Descricao && $this->DescricaoApartirDe) {
+                    $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
+                } else {
+                    $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
+                }
+                $lancamentos->where('DataContabilidade', '>=', $de);
+                session(['Extrato_De' => $this->De]);
+            }
+            if ($this->Ate) {
+                $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
+                $lancamentos->where('DataContabilidade', '<=', $ate);
+                session(['Extrato_Ate' => $this->Ate]);
+            }
+
+
+            if ($this->Conferido != '') {
+                if ($this->Conferido == 'false') {
+                    $lancamentos->where(function ($q) {
+                        return $q->whereNull('Conferido')->orWhere('Conferido', 0);
+                    });
+                }
+                if ($this->Conferido == 'SaidasGeral') {
+                    $lancamentos->where(function ($q) {
+                        return $q->whereNull('SaidasGeral')->orWhere('SaidasGeral', 1);
+                    });
+                }else {
+                    $lancamentos->where('Conferido', $this->Conferido);
+                }
+            }
+
+            if($this->Conferido == 'SaidasGeral'){
+                $this->Lancamentos = $lancamentos
+                    ->orderBy('DataContabilidade')
+                    ->whereDoesntHave('SolicitacaoExclusao')
+                    ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
+                    ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaDebitoID','Lancamentos.ContaCreditoID',
+                    'Lancamentos.Descricao',
+                    'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral']);
+            }
+
+
+        //  DD($this->Lancamentos);
+
+         $SaidasGeral = 0;
+
+         $ExportarLinha = [];
+         $ExportarUnir = [];
+
+         foreach ($this->Lancamentos as $item) {
+             $exportarItem = [
+                 'DataContabilidade' => $item->DataContabilidade->format('d/m/Y'),
+                 'ContaDebitoID' => $item->ContaDebito->PlanoConta->Descricao ?? null,
+                 'ContaCreditoID' => $item->ContaCredito->PlanoConta->Descricao ?? null,
+                 'Valor' => $item->Valor,
+                 'Historico' => $item->Historico->Descricao??null,
+                 'Descricao' => $item->Descricao,
+             ];
+
+
+
+
+             $ExportarLinha[] = $exportarItem;
+         }
+
+         $exportarUnir = collect($ExportarLinha);
+
+
+         // dd($ExportarUnir);
+
+         // Caminho do arquivo .csv que você deseja criar na pasta "storage"
+         $Arquivo = 'Pagamentos por PEDRO ROBERTO FALCHI E SANDRA ELISA MAGOSSI FALCHI' . '-' .str_replace('/', '', $de). '-a-'.str_replace('/', '', $ate).'.xlsx';
+
+
+
+         return Excel::download(new LancamentoExport($exportarUnir), "$Arquivo");
+
+    }
+
+
+
     public function searchSaidasGeralSoma()
     {
         $contaID = session('extrato_ContaID') ?? $this->selConta;

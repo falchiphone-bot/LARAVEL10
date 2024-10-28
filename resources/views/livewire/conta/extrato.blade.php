@@ -201,6 +201,12 @@
                             <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de saidas em geral
                         </button>
 
+                        <button id="buscar" wire:click='searchSaidasGeralExcel()' type="button"
+                                class="btn btn-secondaryr btn-sm">
+                                <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de saidas em geral e gerar arquivo EXCEL
+                          </button>
+
+
                         <button id="buscar" wire:click='searchSaidasGeralSoma()' type="button"
                             class="btn btn-secondary btn-sm">
                             <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de entradas e saidas em geral - CÁLCULOS
