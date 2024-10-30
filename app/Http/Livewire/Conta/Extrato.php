@@ -65,7 +65,6 @@ class Extrato extends Component
         $this->emitTo('lancamento.arquivo-lancamento', 'resetData', $lancamento_id);
         $this->dispatchBrowserEvent('abrir-modal');
         $this->modal = true;
-
     }
 
     public function alterarData($date)
@@ -138,7 +137,7 @@ class Extrato extends Component
         })
             ->whereDoesntHave('SolicitacaoExclusao')
             ->where(function ($where) use ($de, $ate) {
-                return $where->where('DataContabilidade', '>=', $de)->where('DataContabilidade', '<=',  $ate);
+                return $where->where('DataContabilidade', '>=', $de)->where('DataContabilidade', '<=', $ate);
             });
 
         $this->Lancamentos = $lancamentos->orderBy('DataContabilidade')->get();
@@ -241,10 +240,8 @@ class Extrato extends Component
                 //     $lancamentos->where(function ($q) {
                 //         return $q->whereNull('EntradasGeral')->orWhere('EntradasGeral', 1);
                 //     });
-
                 // }
-                else
-                {
+                else {
                     $lancamentos->where('Conferido', $this->Conferido);
                 }
             }
@@ -272,179 +269,155 @@ class Extrato extends Component
                 $lancamentos->where('notificacao', $this->Notificacao);
             }
 
+            if ($this->Conferido === 'SaidasGeral' || $this->Conferido === 'EntradasGeral') {
+                dd('VERIFICAR A SELEÇÃO');
+            }
 
-                if($this->Conferido === 'SaidasGeral' || $this->Conferido === 'EntradasGeral'){
-                    dd('VERIFICAR A SELEÇÃO');
-                }
-
-                   $this->Lancamentos = $lancamentos
-                    ->orderBy('DataContabilidade')
-                    ->whereDoesntHave('SolicitacaoExclusao')
-                    ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
-                    ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID',
-                    'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral', 'EntradasGeral', 'Investimentos', 'Transferencias']);
-
-         } else {
+            $this->Lancamentos = $lancamentos
+                ->orderBy('DataContabilidade')
+                ->whereDoesntHave('SolicitacaoExclusao')
+                ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
+                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID',
+                 'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao',
+                 'Conferido', 'SaidasGeral', 'EntradasGeral', 'Investimentos', 'Transferencias', 'SemDefinir']);
+        } else {
             $this->Lancamentos = null;
-
         }
     }
     public function searchSaidasGeral()
     {
-
-
-        if($this->Conferido !== 'SaidasGeral'){
+        if ($this->Conferido !== 'SaidasGeral') {
             dd('VERIFICAR A SELEÇÃO');
         }
 
         $contaID = session('extrato_ContaID') ?? $this->selConta;
         $SaidasGeral = 1;
 
-            $lancamentos = Lancamento::where(function ($query) use ($SaidasGeral) {
-                return $query->where('Lancamentos.SaidasGeral', 1);
-            });
+        $lancamentos = Lancamento::where(function ($query) use ($SaidasGeral) {
+            return $query->where('Lancamentos.SaidasGeral', 1);
+        });
 
-
-              if ($this->De) {
-                if ($this->Descricao && $this->DescricaoApartirDe) {
-                    $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
-                } else {
-                    $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
-                }
-                $lancamentos->where('DataContabilidade', '>=', $de);
-                session(['Extrato_De' => $this->De]);
+        if ($this->De) {
+            if ($this->Descricao && $this->DescricaoApartirDe) {
+                $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
+            } else {
+                $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
             }
-            if ($this->Ate) {
-                $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
-                $lancamentos->where('DataContabilidade', '<=', $ate);
-                session(['Extrato_Ate' => $this->Ate]);
+            $lancamentos->where('DataContabilidade', '>=', $de);
+            session(['Extrato_De' => $this->De]);
+        }
+        if ($this->Ate) {
+            $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
+            $lancamentos->where('DataContabilidade', '<=', $ate);
+            session(['Extrato_Ate' => $this->Ate]);
+        }
+
+        if ($this->Conferido != '') {
+            if ($this->Conferido == 'false') {
+                $lancamentos->where(function ($q) {
+                    return $q->whereNull('Conferido')->orWhere('Conferido', 0);
+                });
             }
-
-
-            if ($this->Conferido != '') {
-                if ($this->Conferido == 'false') {
-                    $lancamentos->where(function ($q) {
-                        return $q->whereNull('Conferido')->orWhere('Conferido', 0);
-                    });
-                }
-                if ($this->Conferido == 'SaidasGeral') {
-                    $lancamentos->where(function ($q) {
-                        return $q->whereNull('SaidasGeral')->orWhere('SaidasGeral', 1);
-                    });
-                }else {
-                    $lancamentos->where('Conferido', $this->Conferido);
-                }
+            if ($this->Conferido == 'SaidasGeral') {
+                $lancamentos->where(function ($q) {
+                    return $q->whereNull('SaidasGeral')->orWhere('SaidasGeral', 1);
+                });
+            } else {
+                $lancamentos->where('Conferido', $this->Conferido);
             }
+        }
 
-            if($this->Conferido == 'SaidasGeral'){
-                $this->Lancamentos = $lancamentos
-                    ->orderBy('DataContabilidade')
-                    ->whereDoesntHave('SolicitacaoExclusao')
-                    ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
-                    ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID',
-                    'Lancamentos.Descricao',
-                    'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral']);
-            }
+        if ($this->Conferido == 'SaidasGeral') {
+            $this->Lancamentos = $lancamentos
+                ->orderBy('DataContabilidade')
+                ->whereDoesntHave('SolicitacaoExclusao')
+                ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
+                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral']);
+        }
 
-         $SaidasGeral = 0;
+        $SaidasGeral = 0;
     }
 
     public function searchSaidasGeralExcel()
     {
-
-
-        if($this->Conferido !== 'SaidasGeral'){
+        if ($this->Conferido !== 'SaidasGeral') {
             dd('VERIFICAR A SELEÇÃO PARA EXCEL');
         }
 
         $contaID = session('extrato_ContaID') ?? $this->selConta;
         $SaidasGeral = 1;
 
-            $lancamentos = Lancamento::where(function ($query) use ($SaidasGeral) {
-                return $query->where('Lancamentos.SaidasGeral', 1);
-            });
+        $lancamentos = Lancamento::where(function ($query) use ($SaidasGeral) {
+            return $query->where('Lancamentos.SaidasGeral', 1);
+        });
 
-
-              if ($this->De) {
-                if ($this->Descricao && $this->DescricaoApartirDe) {
-                    $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
-                } else {
-                    $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
-                }
-                $lancamentos->where('DataContabilidade', '>=', $de);
-                session(['Extrato_De' => $this->De]);
+        if ($this->De) {
+            if ($this->Descricao && $this->DescricaoApartirDe) {
+                $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
+            } else {
+                $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
             }
-            if ($this->Ate) {
-                $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
-                $lancamentos->where('DataContabilidade', '<=', $ate);
-                session(['Extrato_Ate' => $this->Ate]);
+            $lancamentos->where('DataContabilidade', '>=', $de);
+            session(['Extrato_De' => $this->De]);
+        }
+        if ($this->Ate) {
+            $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
+            $lancamentos->where('DataContabilidade', '<=', $ate);
+            session(['Extrato_Ate' => $this->Ate]);
+        }
+
+        if ($this->Conferido != '') {
+            if ($this->Conferido == 'false') {
+                $lancamentos->where(function ($q) {
+                    return $q->whereNull('Conferido')->orWhere('Conferido', 0);
+                });
             }
-
-
-            if ($this->Conferido != '') {
-                if ($this->Conferido == 'false') {
-                    $lancamentos->where(function ($q) {
-                        return $q->whereNull('Conferido')->orWhere('Conferido', 0);
-                    });
-                }
-                if ($this->Conferido == 'SaidasGeral') {
-                    $lancamentos->where(function ($q) {
-                        return $q->whereNull('SaidasGeral')->orWhere('SaidasGeral', 1);
-                    });
-                }else {
-                    $lancamentos->where('Conferido', $this->Conferido);
-                }
+            if ($this->Conferido == 'SaidasGeral') {
+                $lancamentos->where(function ($q) {
+                    return $q->whereNull('SaidasGeral')->orWhere('SaidasGeral', 1);
+                });
+            } else {
+                $lancamentos->where('Conferido', $this->Conferido);
             }
+        }
 
-            if($this->Conferido == 'SaidasGeral'){
-                $this->Lancamentos = $lancamentos
-                    ->orderBy('DataContabilidade')
-                    ->whereDoesntHave('SolicitacaoExclusao')
-                    ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
-                    ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaDebitoID','Lancamentos.ContaCreditoID',
-                    'Lancamentos.Descricao',
-                    'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral']);
-            }
-
+        if ($this->Conferido == 'SaidasGeral') {
+            $this->Lancamentos = $lancamentos
+                ->orderBy('DataContabilidade')
+                ->whereDoesntHave('SolicitacaoExclusao')
+                ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
+                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaDebitoID', 'Lancamentos.ContaCreditoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral']);
+        }
 
         //  DD($this->Lancamentos);
 
-         $SaidasGeral = 0;
+        $SaidasGeral = 0;
 
-         $ExportarLinha = [];
-         $ExportarUnir = [];
+        $ExportarLinha = [];
+        $ExportarUnir = [];
 
-         foreach ($this->Lancamentos as $item) {
-             $exportarItem = [
-                 'DataContabilidade' => $item->DataContabilidade->format('d/m/Y'),
-                 'ContaDebitoID' => $item->ContaDebito->PlanoConta->Descricao ?? null,
-                 'ContaCreditoID' => $item->ContaCredito->PlanoConta->Descricao ?? null,
-                 'Valor' => $item->Valor,
-                 'Historico' => $item->Historico->Descricao??null,
-                 'Descricao' => $item->Descricao,
-             ];
+        foreach ($this->Lancamentos as $item) {
+            $exportarItem = [
+                'DataContabilidade' => $item->DataContabilidade->format('d/m/Y'),
+                'ContaDebitoID' => $item->ContaDebito->PlanoConta->Descricao ?? null,
+                'ContaCreditoID' => $item->ContaCredito->PlanoConta->Descricao ?? null,
+                'Valor' => $item->Valor,
+                'Historico' => $item->Historico->Descricao ?? null,
+                'Descricao' => $item->Descricao,
+            ];
 
+            $ExportarLinha[] = $exportarItem;
+        }
 
+        $exportarUnir = collect($ExportarLinha);
 
+        // dd($ExportarUnir);
 
-             $ExportarLinha[] = $exportarItem;
-         }
+        // Caminho do arquivo .csv que você deseja criar na pasta "storage"
+        $Arquivo = 'Pagamentos por PEDRO ROBERTO FALCHI E SANDRA ELISA MAGOSSI FALCHI' . '-' . str_replace('/', '', $de) . '-a-' . str_replace('/', '', $ate) . '.xlsx';
 
-         $exportarUnir = collect($ExportarLinha);
-
-
-         // dd($ExportarUnir);
-
-         // Caminho do arquivo .csv que você deseja criar na pasta "storage"
-         $Arquivo = 'Pagamentos por PEDRO ROBERTO FALCHI E SANDRA ELISA MAGOSSI FALCHI' . '-' .str_replace('/', '', $de). '-a-'.str_replace('/', '', $ate).'.xlsx';
-
-
-
-         return Excel::download(new LancamentoExport($exportarUnir), "$Arquivo");
-
+        return Excel::download(new LancamentoExport($exportarUnir), "$Arquivo");
     }
-
-
 
     public function searchSaidasGeralSoma()
     {
@@ -458,196 +431,164 @@ class Extrato extends Component
 
         $lancamentosEntrada = Lancamento::where('Lancamentos.EntradasGeral', 1);
 
-
         // $this->De = session('Extrato_De') ?? date('Y-m-d');
         // $this->Ate = session('Extrato_Ate') ?? date('Y-m-d');
-session(['Extrato_De' => $this->De]);
-session(['Extrato_Ate' => $this->Ate]);
-              if ($this->De) {
-                if ($this->Descricao && $this->DescricaoApartirDe) {
-                    $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
-                } else {
-                    $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
-                }
-                $lancamentosSaida->where('DataContabilidade', '>=', $de);
-                $lancamentosEntrada->where('DataContabilidade', '>=', $de);
-
+        session(['Extrato_De' => $this->De]);
+        session(['Extrato_Ate' => $this->Ate]);
+        if ($this->De) {
+            if ($this->Descricao && $this->DescricaoApartirDe) {
+                $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
+            } else {
+                $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
             }
-            if ($this->Ate) {
-                $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
-                $lancamentosSaida->where('DataContabilidade', '<=', $ate);
-                $lancamentosEntrada->where('DataContabilidade', '<=', $ate);
+            $lancamentosSaida->where('DataContabilidade', '>=', $de);
+            $lancamentosEntrada->where('DataContabilidade', '>=', $de);
+        }
+        if ($this->Ate) {
+            $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
+            $lancamentosSaida->where('DataContabilidade', '<=', $ate);
+            $lancamentosEntrada->where('DataContabilidade', '<=', $ate);
+        }
 
-            }
+        $totalsomadoSAIDAS = $lancamentosSaida->sum('Valor');
 
+        $totalsomadoEntradas = $lancamentosEntrada->sum('Valor');
 
-                    $totalsomadoSAIDAS = $lancamentosSaida->sum('Valor');
+        dd(' TOTAL SOMADO DE TODAS ENTRADAS EM GERAL: ', $totalsomadoEntradas, ' TOTAL SOMADO DE TODAS SAIDAS EM GERAL: ', $totalsomadoSAIDAS, ' RESULTADO ENTRE ENTRADAS E SAIDAS: ', $totalsomadoEntradas - $totalsomadoSAIDAS, ' PERÍODO DE: ' . $de, ' A ' . $ate);
 
-                    $totalsomadoEntradas = $lancamentosEntrada->sum('Valor');
-
-                    dd(' TOTAL SOMADO DE TODAS ENTRADAS EM GERAL: ', $totalsomadoEntradas,
-                       ' TOTAL SOMADO DE TODAS SAIDAS EM GERAL: ', $totalsomadoSAIDAS,
-                       ' RESULTADO ENTRE ENTRADAS E SAIDAS: ', $totalsomadoEntradas - $totalsomadoSAIDAS,
-                       ' PERÍODO DE: ' .  $de,
-                       ' A ' . $ate
-                    );
-
-
-
-
-            $SaidasGeral = 0;
+        $SaidasGeral = 0;
     }
-
 
     public function searchEntradasGeral()
     {
-        if($this->Conferido !== 'EntradasGeral'){
+        if ($this->Conferido !== 'EntradasGeral') {
             dd('VERIFICAR A SELEÇÃO');
         }
 
         $contaID = session('extrato_ContaID') ?? $this->selConta;
         $EntradasGeral = 1;
 
-            $lancamentos = Lancamento::where(function ($query) use ($EntradasGeral) {
-                return $query->where('Lancamentos.EntradasGeral', 1);
-            });
+        $lancamentos = Lancamento::where(function ($query) use ($EntradasGeral) {
+            return $query->where('Lancamentos.EntradasGeral', 1);
+        });
 
-
-              if ($this->De) {
-                if ($this->Descricao && $this->DescricaoApartirDe) {
-                    $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
-                } else {
-                    $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
-                }
-                $lancamentos->where('DataContabilidade', '>=', $de);
-                session(['Extrato_De' => $this->De]);
+        if ($this->De) {
+            if ($this->Descricao && $this->DescricaoApartirDe) {
+                $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
+            } else {
+                $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
             }
-            if ($this->Ate) {
-                $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
-                $lancamentos->where('DataContabilidade', '<=', $ate);
-                session(['Extrato_Ate' => $this->Ate]);
-            }
+            $lancamentos->where('DataContabilidade', '>=', $de);
+            session(['Extrato_De' => $this->De]);
+        }
+        if ($this->Ate) {
+            $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
+            $lancamentos->where('DataContabilidade', '<=', $ate);
+            session(['Extrato_Ate' => $this->Ate]);
+        }
 
-
-            if ($this->Conferido != '') {
-                if ($this->Conferido == 'false') {
-                    $lancamentos->where(function ($q) {
-                        return $q->whereNull('Conferido')->orWhere('Conferido', 0);
-                    });
-                }
-                if ($this->Conferido == 'EntradasGeral') {
-                    $lancamentos->where(function ($q) {
-                        return $q->whereNull('EntradasGeral')->orWhere('EntradasGeral', 1);
-                    });
-                }else {
-                    $lancamentos->where('Conferido', $this->Conferido);
-                }
+        if ($this->Conferido != '') {
+            if ($this->Conferido == 'false') {
+                $lancamentos->where(function ($q) {
+                    return $q->whereNull('Conferido')->orWhere('Conferido', 0);
+                });
             }
-            if($this->Conferido == 'EntradasGeral'){
-               $this->Lancamentos = $lancamentos
+            if ($this->Conferido == 'EntradasGeral') {
+                $lancamentos->where(function ($q) {
+                    return $q->whereNull('EntradasGeral')->orWhere('EntradasGeral', 1);
+                });
+            } else {
+                $lancamentos->where('Conferido', $this->Conferido);
+            }
+        }
+        if ($this->Conferido == 'EntradasGeral') {
+            $this->Lancamentos = $lancamentos
                 ->orderBy('DataContabilidade')
                 ->whereDoesntHave('SolicitacaoExclusao')
                 ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
-                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID',
-                 'Lancamentos.Descricao',
-                 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral','EntradasGeral']);
-            }
+                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral', 'EntradasGeral']);
+        }
 
-         $EntradasGeral = 0;
+        $EntradasGeral = 0;
     }
 
     public function searchEntradasGeralExcel()
     {
-        if($this->Conferido !== 'EntradasGeral'){
+        if ($this->Conferido !== 'EntradasGeral') {
             dd('VERIFICAR A SELEÇÃO');
         }
 
         $contaID = session('extrato_ContaID') ?? $this->selConta;
         $EntradasGeral = 1;
 
-            $lancamentos = Lancamento::where(function ($query) use ($EntradasGeral) {
-                return $query->where('Lancamentos.EntradasGeral', 1);
-            });
+        $lancamentos = Lancamento::where(function ($query) use ($EntradasGeral) {
+            return $query->where('Lancamentos.EntradasGeral', 1);
+        });
 
-
-              if ($this->De) {
-                if ($this->Descricao && $this->DescricaoApartirDe) {
-                    $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
-                } else {
-                    $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
-                }
-                $lancamentos->where('DataContabilidade', '>=', $de);
-                session(['Extrato_De' => $this->De]);
+        if ($this->De) {
+            if ($this->Descricao && $this->DescricaoApartirDe) {
+                $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
+            } else {
+                $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
             }
-            if ($this->Ate) {
-                $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
-                $lancamentos->where('DataContabilidade', '<=', $ate);
-                session(['Extrato_Ate' => $this->Ate]);
-            }
+            $lancamentos->where('DataContabilidade', '>=', $de);
+            session(['Extrato_De' => $this->De]);
+        }
+        if ($this->Ate) {
+            $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
+            $lancamentos->where('DataContabilidade', '<=', $ate);
+            session(['Extrato_Ate' => $this->Ate]);
+        }
 
-
-            if ($this->Conferido != '') {
-                if ($this->Conferido == 'false') {
-                    $lancamentos->where(function ($q) {
-                        return $q->whereNull('Conferido')->orWhere('Conferido', 0);
-                    });
-                }
-                if ($this->Conferido == 'EntradasGeral') {
-                    $lancamentos->where(function ($q) {
-                        return $q->whereNull('EntradasGeral')->orWhere('EntradasGeral', 1);
-                    });
-                }else {
-                    $lancamentos->where('Conferido', $this->Conferido);
-                }
+        if ($this->Conferido != '') {
+            if ($this->Conferido == 'false') {
+                $lancamentos->where(function ($q) {
+                    return $q->whereNull('Conferido')->orWhere('Conferido', 0);
+                });
             }
-            if($this->Conferido == 'EntradasGeral'){
-               $this->Lancamentos = $lancamentos
+            if ($this->Conferido == 'EntradasGeral') {
+                $lancamentos->where(function ($q) {
+                    return $q->whereNull('EntradasGeral')->orWhere('EntradasGeral', 1);
+                });
+            } else {
+                $lancamentos->where('Conferido', $this->Conferido);
+            }
+        }
+        if ($this->Conferido == 'EntradasGeral') {
+            $this->Lancamentos = $lancamentos
                 ->orderBy('DataContabilidade')
                 ->whereDoesntHave('SolicitacaoExclusao')
                 ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
-                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaDebitoID','Lancamentos.ContaCreditoID',
-                 'Lancamentos.Descricao',
-                 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral','EntradasGeral']);
-            }
+                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaDebitoID', 'Lancamentos.ContaCreditoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral', 'EntradasGeral']);
+        }
 
-         $EntradasGeral = 0;
+        $EntradasGeral = 0;
 
+        $ExportarLinha = [];
+        $ExportarUnir = [];
 
-         $ExportarLinha = [];
-         $ExportarUnir = [];
+        foreach ($this->Lancamentos as $item) {
+            $exportarItem = [
+                'DataContabilidade' => $item->DataContabilidade->format('d/m/Y'),
+                'ContaDebitoID' => $item->ContaDebito->PlanoConta->Descricao ?? null,
+                'ContaCreditoID' => $item->ContaCredito->PlanoConta->Descricao ?? null,
+                'Valor' => $item->Valor,
+                'Historico' => $item->Historico->Descricao ?? null,
+                'Descricao' => $item->Descricao,
+            ];
 
-         foreach ($this->Lancamentos as $item) {
-             $exportarItem = [
-                 'DataContabilidade' => $item->DataContabilidade->format('d/m/Y'),
-                 'ContaDebitoID' => $item->ContaDebito->PlanoConta->Descricao ?? null,
-                 'ContaCreditoID' => $item->ContaCredito->PlanoConta->Descricao ?? null,
-                 'Valor' => $item->Valor,
-                 'Historico' => $item->Historico->Descricao??null,
-                 'Descricao' => $item->Descricao,
-             ];
+            $ExportarLinha[] = $exportarItem;
+        }
 
+        $exportarUnir = collect($ExportarLinha);
 
+        // dd($ExportarUnir);
 
+        // Caminho do arquivo .csv que você deseja criar na pasta "storage"
+        $Arquivo = 'Entradas para PEDRO ROBERTO FALCHI E SANDRA ELISA MAGOSSI FALCHI' . '-' . str_replace('/', '', $de) . '-a-' . str_replace('/', '', $ate) . '.xlsx';
 
-             $ExportarLinha[] = $exportarItem;
-         }
-
-         $exportarUnir = collect($ExportarLinha);
-
-
-         // dd($ExportarUnir);
-
-         // Caminho do arquivo .csv que você deseja criar na pasta "storage"
-         $Arquivo = 'Entradas para PEDRO ROBERTO FALCHI E SANDRA ELISA MAGOSSI FALCHI' . '-' .str_replace('/', '', $de). '-a-'.str_replace('/', '', $ate).'.xlsx';
-
-
-
-         return Excel::download(new LancamentoExport($exportarUnir), "$Arquivo");
-
+        return Excel::download(new LancamentoExport($exportarUnir), "$Arquivo");
     }
-
-
-
 
     public function searchPDF()
     {
@@ -704,9 +645,7 @@ session(['Extrato_Ate' => $this->Ate]);
                 ->orderBy('DataContabilidade')
                 ->whereDoesntHave('SolicitacaoExclusao')
                 ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
-                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID',
-                'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral', 'EntradasGeral']);
-
+                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID', 'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral', 'EntradasGeral']);
 
             return redirect()
                 ->route('Extrato.gerarpdf')
@@ -724,14 +663,12 @@ session(['Extrato_Ate' => $this->Ate]);
     }
     public function confirmarLancamento($lancamento_id)
     {
-
         $lancamento = Lancamento::find($lancamento_id);
         if ($lancamento->Conferido) {
             $lancamento->Conferido = 0;
         } else {
             $lancamento->Conferido = 1;
         }
-
 
         $lancamento->save();
         // $this->dispatchBrowserEvent('confirmarLancamento', ['lancamento_id' => $lancamento_id, 'status' => $lancamento->Conferido]);
@@ -740,396 +677,356 @@ session(['Extrato_Ate' => $this->Ate]);
 
     public function confirmarAtualizar($lancamento_id)
     {
-       $this->search();
+        $this->search();
     }
 
     public function selecionarLancamento($contaID)
     {
+        $lancamentos = Lancamento::where(function ($query) use ($contaID) {
+            $query->where('Lancamentos.ContaDebitoID', $contaID)->orWhere('Lancamentos.ContaCreditoID', $contaID);
+        });
 
-            $lancamentos = Lancamento::where(function ($query) use ($contaID) {
-                $query->where('Lancamentos.ContaDebitoID', $contaID)
-                    ->orWhere('Lancamentos.ContaCreditoID', $contaID);
-            });
+        session(['Extrato_Ate' => $this->Ate]);
+        session(['Extrato_De' => $this->De]);
 
-            session(['Extrato_Ate' => $this->Ate]);
-            session(['Extrato_De' => $this->De]);
-
-            if ($this->De) {
-                // Verifica a descrição e formata a data para o campo 'De'
-                if ($this->Descricao && $this->DescricaoApartirDe) {
-                    $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('Y-m-d 00:00:00');
-                } else {
-                    $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('Y-m-d 00:00:00');
-                }
-
-                $lancamentos->where('DataContabilidade', '>=', $de);
-                cache(['Extrato_De' => $this->De]);
+        if ($this->De) {
+            // Verifica a descrição e formata a data para o campo 'De'
+            if ($this->Descricao && $this->DescricaoApartirDe) {
+                $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('Y-m-d 00:00:00');
+            } else {
+                $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('Y-m-d 00:00:00');
             }
 
-            if ($this->Ate) {
-                // Formata a data para o campo 'Até'
-                $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('Y-m-d 23:59:59');
-                $lancamentos->where('DataContabilidade', '<=', $ate);
-                cache(['Extrato_Ate' => $this->Ate]);
-            }
+            $lancamentos->where('DataContabilidade', '>=', $de);
+            cache(['Extrato_De' => $this->De]);
+        }
 
-            // Executa a query e obtém os dados
-            $lancamentos = $lancamentos->orderBy('DataContabilidade')
-                ->whereDoesntHave('SolicitacaoExclusao')
-                ->leftJoin('Contabilidade.Historicos', 'Historicos.ID', '=', 'Lancamentos.HistoricoID')
-                ->leftJoin('Contabilidade.Empresas', 'Empresas.ID', '=', 'Lancamentos.EmpresaID')
-                ->get([
-                    'Lancamentos.ID',
-                    'Lancamentos.Valor',
-                    'Empresas.Descricao as NomeEmpresa',
-                    'DataContabilidade',
-                    'Lancamentos.ContaCreditoID',
-                    'Lancamentos.ContaDebitoID',
-                    'Lancamentos.Descricao',
-                    'Historicos.Descricao as HistoricoDescricao',
-                    'Conferido',
-                    'SaidasGeral',
-                    'EntradasGeral'
-                ]);
+        if ($this->Ate) {
+            // Formata a data para o campo 'Até'
+            $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('Y-m-d 23:59:59');
+            $lancamentos->where('DataContabilidade', '<=', $ate);
+            cache(['Extrato_Ate' => $this->Ate]);
+        }
 
+        // Executa a query e obtém os dados
+        $lancamentos = $lancamentos
+            ->orderBy('DataContabilidade')
+            ->whereDoesntHave('SolicitacaoExclusao')
+            ->leftJoin('Contabilidade.Historicos', 'Historicos.ID', '=', 'Lancamentos.HistoricoID')
+            ->leftJoin('Contabilidade.Empresas', 'Empresas.ID', '=', 'Lancamentos.EmpresaID')
+            ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'Empresas.Descricao as NomeEmpresa', 'DataContabilidade', 'Lancamentos.ContaCreditoID', 'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral', 'EntradasGeral']);
 
-
-            return compact('lancamentos', 'de', 'ate');
-
+        return compact('lancamentos', 'de', 'ate');
     }
-
 
     public function contasGabrielMagossiFalchi()
     {
-            $dados = [];
-            $lancamentos = Lancamento::limit(0);
+        $dados = [];
+        $lancamentos = Lancamento::limit(0);
         // ================================================================================================================
 
-            $contaID = 11146;   // PRF
+        $contaID = 11146; // PRF
 
-            session(['Extrato_Ate' => $this->Ate]);
-            session(['Extrato_De' => $this->De]);
+        session(['Extrato_Ate' => $this->Ate]);
+        session(['Extrato_De' => $this->De]);
 
-            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
-            $de = $this->selecionarLancamento($contaID)['de'];
-            $ate = $this->selecionarLancamento($contaID)['ate'];
+        $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+        $de = $this->selecionarLancamento($contaID)['de'];
+        $ate = $this->selecionarLancamento($contaID)['ate'];
 
+        $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+        $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+        $saldo = $debito - $credito;
 
-            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
-            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
-            $saldo = $debito - $credito;
+        $NomeEmpresa = null;
 
-            $NomeEmpresa = null;
+        foreach ($lancamentos as $lancamento) {
+            $NomeEmpresa = $lancamento->NomeEmpresa;
+        }
 
-            foreach ($lancamentos as $lancamento) {
-                $NomeEmpresa = $lancamento->NomeEmpresa;
-            }
+        $dados[] = [
+            'Nome' => 'Gabriel Magossi Falchi',
+            'Selecionados' => $lancamentos->count(),
+            'Débito' => $debito,
+            'Crédito' => $credito,
+            'De' => $de ?? 'Não informado',
+            'Até' => $ate ?? 'Não informado',
+            'Saldo' => $saldo,
+            'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada',
+        ];
 
-            $dados[] = [
-                'Nome' => 'Gabriel Magossi Falchi',
-                'Selecionados' => $lancamentos->count(),
-                'Débito' => $debito,
-                'Crédito' => $credito,
-                'De' => $de ?? 'Não informado',
-                'Até' => $ate ?? 'Não informado',
-                'Saldo' => $saldo,
-                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
-            ];
+        // ================================================================================================================
+        $contaID = 19538; // STTARMAAKE
 
-// ================================================================================================================
-            $contaID = 19538;  // STTARMAAKE
+        $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+        $de = $this->selecionarLancamento($contaID)['de'];
+        $ate = $this->selecionarLancamento($contaID)['ate'];
 
-            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
-            $de = $this->selecionarLancamento($contaID)['de'];
-            $ate = $this->selecionarLancamento($contaID)['ate'];
+        $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+        $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+        $saldo = $debito - $credito;
 
+        $NomeEmpresa = null;
 
-            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
-            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
-            $saldo = $debito - $credito;
+        foreach ($lancamentos as $lancamento) {
+            $NomeEmpresa = $lancamento->NomeEmpresa;
+        }
 
-            $NomeEmpresa = null;
+        $dados[] = [
+            'Nome' => 'Gabriel Magossi Falchi',
+            'Selecionados' => $lancamentos->count(),
+            'Débito' => $debito,
+            'Crédito' => $credito,
+            'De' => $de ?? 'Não informado',
+            'Até' => $ate ?? 'Não informado',
+            'Saldo' => $saldo,
+            'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada',
+        ];
 
-            foreach ($lancamentos as $lancamento) {
-                $NomeEmpresa = $lancamento->NomeEmpresa;
-            }
+        // ================================================================================================================
+        $contaID = 15394; //PEDRO
 
-            $dados[]= [
-                'Nome' => 'Gabriel Magossi Falchi',
-                'Selecionados' => $lancamentos->count(),
-                'Débito' => $debito,
-                'Crédito' => $credito,
-                'De' => $de ?? 'Não informado',
-                'Até' => $ate ?? 'Não informado',
-                'Saldo' => $saldo,
-                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
-            ];
+        $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+        $de = $this->selecionarLancamento($contaID)['de'];
+        $ate = $this->selecionarLancamento($contaID)['ate'];
 
-// ================================================================================================================
-            $contaID = 15394;  //PEDRO
+        $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+        $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+        $saldo = $debito - $credito;
 
-            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
-            $de = $this->selecionarLancamento($contaID)['de'];
-            $ate = $this->selecionarLancamento($contaID)['ate'];
+        $NomeEmpresa = null;
 
+        foreach ($lancamentos as $lancamento) {
+            $NomeEmpresa = $lancamento->NomeEmpresa;
+        }
 
-            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
-            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
-            $saldo = $debito - $credito;
+        $dados[] = [
+            'Nome' => 'Gabriel Magossi Falchi',
+            'Selecionados' => $lancamentos->count(),
+            'Débito' => $debito,
+            'Crédito' => $credito,
+            'De' => $de ?? 'Não informado',
+            'Até' => $ate ?? 'Não informado',
+            'Saldo' => $saldo,
+            'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada',
+        ];
+        //  ================================================================================================================
+        $contaID = 19532; //NET RUBI SERVICOS
 
-            $NomeEmpresa = null;
+        $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+        $de = $this->selecionarLancamento($contaID)['de'];
+        $ate = $this->selecionarLancamento($contaID)['ate'];
 
-            foreach ($lancamentos as $lancamento) {
-                $NomeEmpresa = $lancamento->NomeEmpresa;
-            }
+        $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+        $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+        $saldo = $debito - $credito;
 
-            $dados[]= [
-                'Nome' => 'Gabriel Magossi Falchi',
-                'Selecionados' => $lancamentos->count(),
-                'Débito' => $debito,
-                'Crédito' => $credito,
-                'De' => $de ?? 'Não informado',
-                'Até' => $ate ?? 'Não informado',
-                'Saldo' => $saldo,
-                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
-            ];
-//  ================================================================================================================
-            $contaID = 19532;  //NET RUBI SERVICOS
+        $NomeEmpresa = null;
 
-            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
-            $de = $this->selecionarLancamento($contaID)['de'];
-            $ate = $this->selecionarLancamento($contaID)['ate'];
+        foreach ($lancamentos as $lancamento) {
+            $NomeEmpresa = $lancamento->NomeEmpresa;
+        }
 
+        $dados[] = [
+            'Nome' => 'Gabriel Magossi Falchi',
+            'Selecionados' => $lancamentos->count(),
+            'Débito' => $debito,
+            'Crédito' => $credito,
+            'De' => $de ?? 'Não informado',
+            'Até' => $ate ?? 'Não informado',
+            'Saldo' => $saldo,
+            'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada',
+        ];
+        //  ================================================================================================================
+        $contaID = 11142; //INFRANET
 
-            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
-            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
-            $saldo = $debito - $credito;
+        $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+        $de = $this->selecionarLancamento($contaID)['de'];
+        $ate = $this->selecionarLancamento($contaID)['ate'];
 
-            $NomeEmpresa = null;
+        $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+        $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+        $saldo = $debito - $credito;
 
-            foreach ($lancamentos as $lancamento) {
-                $NomeEmpresa = $lancamento->NomeEmpresa;
-            }
+        $NomeEmpresa = null;
 
-            $dados[]= [
-                'Nome' => 'Gabriel Magossi Falchi',
-                'Selecionados' => $lancamentos->count(),
-                'Débito' => $debito,
-                'Crédito' => $credito,
-                'De' => $de ?? 'Não informado',
-                'Até' => $ate ?? 'Não informado',
-                'Saldo' => $saldo,
-                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
-            ];
-//  ================================================================================================================
-            $contaID = 11142;  //INFRANET
+        foreach ($lancamentos as $lancamento) {
+            $NomeEmpresa = $lancamento->NomeEmpresa;
+        }
 
-            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
-            $de = $this->selecionarLancamento($contaID)['de'];
-            $ate = $this->selecionarLancamento($contaID)['ate'];
-
-
-            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
-            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
-            $saldo = $debito - $credito;
-
-            $NomeEmpresa = null;
-
-            foreach ($lancamentos as $lancamento) {
-                $NomeEmpresa = $lancamento->NomeEmpresa;
-            }
-
-            $dados[]= [
-                'Nome' => 'Gabriel Magossi Falchi',
-                'Selecionados' => $lancamentos->count(),
-                'Débito' => $debito,
-                'Crédito' => $credito,
-                'De' => $de ?? 'Não informado',
-                'Até' => $ate ?? 'Não informado',
-                'Saldo' => $saldo,
-                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
-            ];
-//  ================================================================================================================
-            return redirect()->route('lancamentos.exibirDadosGabrielMagossiFalchi')->with('dados', $dados);
+        $dados[] = [
+            'Nome' => 'Gabriel Magossi Falchi',
+            'Selecionados' => $lancamentos->count(),
+            'Débito' => $debito,
+            'Crédito' => $credito,
+            'De' => $de ?? 'Não informado',
+            'Até' => $ate ?? 'Não informado',
+            'Saldo' => $saldo,
+            'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada',
+        ];
+        //  ================================================================================================================
+        return redirect()->route('lancamentos.exibirDadosGabrielMagossiFalchi')->with('dados', $dados);
     }
 
     public function contasCaioCesarMagossiFalchi()
     {
-            $dados = [];
-            $lancamentos = Lancamento::limit(0);
+        $dados = [];
+        $lancamentos = Lancamento::limit(0);
         // ================================================================================================================
 
-            $contaID = 11141;   // INFRANET
+        $contaID = 11141; // INFRANET
 
-            session(['Extrato_Ate' => $this->Ate]);
-            session(['Extrato_De' => $this->De]);
-            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
-            $de = $this->selecionarLancamento($contaID)['de'];
-            $ate = $this->selecionarLancamento($contaID)['ate'];
+        session(['Extrato_Ate' => $this->Ate]);
+        session(['Extrato_De' => $this->De]);
+        $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+        $de = $this->selecionarLancamento($contaID)['de'];
+        $ate = $this->selecionarLancamento($contaID)['ate'];
 
+        $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+        $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+        $saldo = $debito - $credito;
 
-            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
-            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
-            $saldo = $debito - $credito;
+        $NomeEmpresa = null;
 
-            $NomeEmpresa = null;
+        foreach ($lancamentos as $lancamento) {
+            $NomeEmpresa = $lancamento->NomeEmpresa;
+        }
 
-            foreach ($lancamentos as $lancamento) {
-                $NomeEmpresa = $lancamento->NomeEmpresa;
-            }
+        $dados[] = [
+            'Nome' => 'Caio Cesar Magossi Falchi',
+            'Selecionados' => $lancamentos->count(),
+            'Débito' => $debito,
+            'Crédito' => $credito,
+            'De' => $de ?? 'Não informado',
+            'Até' => $ate ?? 'Não informado',
+            'Saldo' => $saldo,
+            'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada',
+        ];
 
-            $dados[] = [
-                'Nome' => 'Caio Cesar Magossi Falchi',
-                'Selecionados' => $lancamentos->count(),
-                'Débito' => $debito,
-                'Crédito' => $credito,
-                'De' => $de ?? 'Não informado',
-                'Até' => $ate ?? 'Não informado',
-                'Saldo' => $saldo,
-                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
-            ];
+        // ================================================================================================================
+        $contaID = 19347; // NET RUBI SERVICOS
 
-// ================================================================================================================
-            $contaID = 19347;  // NET RUBI SERVICOS
+        $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+        $de = $this->selecionarLancamento($contaID)['de'];
+        $ate = $this->selecionarLancamento($contaID)['ate'];
 
-            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
-            $de = $this->selecionarLancamento($contaID)['de'];
-            $ate = $this->selecionarLancamento($contaID)['ate'];
+        $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+        $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+        $saldo = $debito - $credito;
 
+        $NomeEmpresa = null;
 
-            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
-            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
-            $saldo = $debito - $credito;
+        foreach ($lancamentos as $lancamento) {
+            $NomeEmpresa = $lancamento->NomeEmpresa;
+        }
 
-            $NomeEmpresa = null;
+        $dados[] = [
+            'Nome' => 'Caio Cesar Magossi Falchi',
+            'Selecionados' => $lancamentos->count(),
+            'Débito' => $debito,
+            'Crédito' => $credito,
+            'De' => $de ?? 'Não informado',
+            'Até' => $ate ?? 'Não informado',
+            'Saldo' => $saldo,
+            'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada',
+        ];
 
-            foreach ($lancamentos as $lancamento) {
-                $NomeEmpresa = $lancamento->NomeEmpresa;
-            }
+        // ================================================================================================================
+        $contaID = 15393; //PEDRO
 
-            $dados[]= [
-                'Nome' => 'Caio Cesar Magossi Falchi',
-                'Selecionados' => $lancamentos->count(),
-                'Débito' => $debito,
-                'Crédito' => $credito,
-                'De' => $de ?? 'Não informado',
-                'Até' => $ate ?? 'Não informado',
-                'Saldo' => $saldo,
-                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
-            ];
+        $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+        $de = $this->selecionarLancamento($contaID)['de'];
+        $ate = $this->selecionarLancamento($contaID)['ate'];
 
-// ================================================================================================================
-            $contaID = 15393;  //PEDRO
+        $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+        $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+        $saldo = $debito - $credito;
 
-            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
-            $de = $this->selecionarLancamento($contaID)['de'];
-            $ate = $this->selecionarLancamento($contaID)['ate'];
+        $NomeEmpresa = null;
 
+        foreach ($lancamentos as $lancamento) {
+            $NomeEmpresa = $lancamento->NomeEmpresa;
+        }
 
-            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
-            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
-            $saldo = $debito - $credito;
+        $dados[] = [
+            'Nome' => 'Caio Cesar Magossi Falchi',
+            'Selecionados' => $lancamentos->count(),
+            'Débito' => $debito,
+            'Crédito' => $credito,
+            'De' => $de ?? 'Não informado',
+            'Até' => $ate ?? 'Não informado',
+            'Saldo' => $saldo,
+            'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada',
+        ];
+        //  ================================================================================================================
+        $contaID = 11145; //PRF
+        $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+        $de = $this->selecionarLancamento($contaID)['de'];
+        $ate = $this->selecionarLancamento($contaID)['ate'];
 
-            $NomeEmpresa = null;
+        $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+        $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+        $saldo = $debito - $credito;
 
-            foreach ($lancamentos as $lancamento) {
-                $NomeEmpresa = $lancamento->NomeEmpresa;
-            }
+        $NomeEmpresa = null;
 
-            $dados[]= [
-                'Nome' => 'Caio Cesar Magossi Falchi',
-                'Selecionados' => $lancamentos->count(),
-                'Débito' => $debito,
-                'Crédito' => $credito,
-                'De' => $de ?? 'Não informado',
-                'Até' => $ate ?? 'Não informado',
-                'Saldo' => $saldo,
-                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
-            ];
-//  ================================================================================================================
-            $contaID = 11145;  //PRF
-            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
-            $de = $this->selecionarLancamento($contaID)['de'];
-            $ate = $this->selecionarLancamento($contaID)['ate'];
+        foreach ($lancamentos as $lancamento) {
+            $NomeEmpresa = $lancamento->NomeEmpresa;
+        }
 
+        $dados[] = [
+            'Nome' => 'Caio Cesar Magossi Falchi',
+            'Selecionados' => $lancamentos->count(),
+            'Débito' => $debito,
+            'Crédito' => $credito,
+            'De' => $de ?? 'Não informado',
+            'Até' => $ate ?? 'Não informado',
+            'Saldo' => $saldo,
+            'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada',
+        ];
+        //  ================================================================================================================
 
-            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
-            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
-            $saldo = $debito - $credito;
+        $contaID = 19567; //STTARMAAKE
+        $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+        $de = $this->selecionarLancamento($contaID)['de'];
+        $ate = $this->selecionarLancamento($contaID)['ate'];
 
-            $NomeEmpresa = null;
+        $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+        $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+        $saldo = $debito - $credito;
 
-            foreach ($lancamentos as $lancamento) {
-                $NomeEmpresa = $lancamento->NomeEmpresa;
-            }
+        $NomeEmpresa = null;
 
-            $dados[]= [
-                'Nome' => 'Caio Cesar Magossi Falchi',
-                'Selecionados' => $lancamentos->count(),
-                'Débito' => $debito,
-                'Crédito' => $credito,
-                'De' => $de ?? 'Não informado',
-                'Até' => $ate ?? 'Não informado',
-                'Saldo' => $saldo,
-                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
-            ];
-//  ================================================================================================================
+        foreach ($lancamentos as $lancamento) {
+            $NomeEmpresa = $lancamento->NomeEmpresa;
+        }
 
-            $contaID = 19567;  //STTARMAAKE
-            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
-            $de = $this->selecionarLancamento($contaID)['de'];
-            $ate = $this->selecionarLancamento($contaID)['ate'];
+        $dados[] = [
+            'Nome' => 'Caio Cesar Magossi Falchi',
+            'Selecionados' => $lancamentos->count(),
+            'Débito' => $debito,
+            'Crédito' => $credito,
+            'De' => $de ?? 'Não informado',
+            'Até' => $ate ?? 'Não informado',
+            'Saldo' => $saldo,
+            'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada',
+        ];
+        //  ================================================================================================================
 
-
-            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
-            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
-            $saldo = $debito - $credito;
-
-            $NomeEmpresa = null;
-
-            foreach ($lancamentos as $lancamento) {
-                $NomeEmpresa = $lancamento->NomeEmpresa;
-            }
-
-            $dados[]= [
-                'Nome' => 'Caio Cesar Magossi Falchi',
-                'Selecionados' => $lancamentos->count(),
-                'Débito' => $debito,
-                'Crédito' => $credito,
-                'De' => $de ?? 'Não informado',
-                'Até' => $ate ?? 'Não informado',
-                'Saldo' => $saldo,
-                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
-            ];
-//  ================================================================================================================
-
-            return redirect()->route('lancamentos.exibirDadosGabrielMagossiFalchi')->with('dados', $dados);
+        return redirect()->route('lancamentos.exibirDadosGabrielMagossiFalchi')->with('dados', $dados);
     }
-
 
     public function confirmarLancamentoEntradasGeral($lancamento_id)
     {
-
         session(['Extrato_Ate' => $this->Ate]);
         session(['Extrato_De' => $this->De]);
 
         $lancamento = Lancamento::find($lancamento_id);
 
-        if ($lancamento->SaidasGeral) {
-             dd("REGISTRO JÁ MARCADO COMO ENTRADA GERAL");
-        }
-
-        if ($lancamento->Transferencias) {
-            dd("REGISTRO JÁ MARCADO COMO TRANSFERENCIAS");
-
-       }
-       if ($lancamento->Investimentos) {
-        dd("REGISTRO JÁ MARCADO COMO INVESTIMENTOS");
-
-       }
+        $funcao = __FUNCTION__;
+        include __DIR__ . '/ConfereFuncao.php';
 
         if ($lancamento->EntradasGeral) {
-
             $lancamento->EntradasGeral = 0;
         } else {
             $lancamento->EntradasGeral = 1;
@@ -1142,33 +1039,17 @@ session(['Extrato_Ate' => $this->Ate]);
         $this->search();
     }
 
-
-
     public function confirmarInvestimentos($lancamento_id)
     {
-
         session(['Extrato_Ate' => $this->Ate]);
         session(['Extrato_De' => $this->De]);
 
         $lancamento = Lancamento::find($lancamento_id);
 
-        if ($lancamento->SaidasGeral) {
-             dd("REGISTRO JÁ MARCADO COMO SAIDA GERAL");
-
-        }
-
-        if ($lancamento->EntradasGeral) {
-            dd("REGISTRO JÁ MARCADO COMO ENTRADA GERAL");
-
-       }
-
-       if ($lancamento->Transferencias) {
-        dd("REGISTRO JÁ MARCADO COMO TRANSFERENCIAS");
-
-   }
+        $funcao = __FUNCTION__;
+        include __DIR__ . '/ConfereFuncao.php';
 
         if ($lancamento->Investimentos) {
-
             $lancamento->Investimentos = 0;
         } else {
             $lancamento->Investimentos = 1;
@@ -1181,32 +1062,17 @@ session(['Extrato_Ate' => $this->Ate]);
         $this->search();
     }
 
-
     public function confirmarTransferencias($lancamento_id)
     {
-
         session(['Extrato_Ate' => $this->Ate]);
         session(['Extrato_De' => $this->De]);
 
         $lancamento = Lancamento::find($lancamento_id);
 
-        if ($lancamento->SaidasGeral) {
-             dd("REGISTRO JÁ MARCADO COMO SAIDA GERAL");
-
-        }
-
-        if ($lancamento->EntradasGeral) {
-            dd("REGISTRO JÁ MARCADO COMO ENTRADA GERAL");
-
-       }
-
-       if ($lancamento->Investimentos) {
-        dd("REGISTRO JÁ MARCADO COMO INVESTIMENTOS");
-
-   }
+        $funcao = __FUNCTION__;
+        include __DIR__ . '/ConfereFuncao.php';
 
         if ($lancamento->Transferencias) {
-
             $lancamento->Transferencias = 0;
         } else {
             $lancamento->Transferencias = 1;
@@ -1219,6 +1085,28 @@ session(['Extrato_Ate' => $this->Ate]);
         $this->search();
     }
 
+    public function confirmarSemDefinir($lancamento_id)
+    {
+        session(['Extrato_Ate' => $this->Ate]);
+        session(['Extrato_De' => $this->De]);
+
+        $lancamento = Lancamento::find($lancamento_id);
+
+        $funcao = __FUNCTION__;
+        include __DIR__ . '/ConfereFuncao.php';
+
+        if ($lancamento->SemDefinir) {
+            $lancamento->SemDefinir = 0;
+        } else {
+            $lancamento->SemDefinir = 1;
+        }
+
+        $lancamento->save();
+
+        // $this->dispatchBrowserEvent('confirmarLancamentoEntradasGeral', ['lancamento_id' => $lancamento_id, 'statusEntradasGeral' => $lancamento->EntradasGeral]);
+        // dd( $lancamento);
+        $this->search();
+    }
 
     public function confirmarLancamentoSaidasGeral($lancamento_id)
     {
@@ -1230,18 +1118,11 @@ session(['Extrato_Ate' => $this->Ate]);
         // return;
 
         if ($lancamento->EntradasGeral) {
-            dd("REGISTRO JÁ MARCADO COMO SAIDA GERAL");
+            dd('REGISTRO JÁ MARCADO COMO SAIDA GERAL');
+        }
 
-       }
-
-       if ($lancamento->Transferencias) {
-        dd("REGISTRO JÁ MARCADO COMO TRANSFERENCIAS");
-
-   }
-   if ($lancamento->Investimentos) {
-    dd("REGISTRO JÁ MARCADO COMO INVESTIMENTOS");
-
-   }
+        $funcao = __FUNCTION__;
+        include __DIR__ . '/ConfereFuncao.php';
 
         if ($lancamento->SaidasGeral) {
             $lancamento->SaidasGeral = 0;
@@ -1252,7 +1133,7 @@ session(['Extrato_Ate' => $this->Ate]);
         $lancamento->save();
 
         $this->dispatchBrowserEvent('confirmarLancamentoSaidasGeral', ['lancamento_id' => $lancamento_id, 'statusSaidasGeral' => $lancamento->SaidasGeral]);
-      $this->search();
+        $this->search();
     }
 
     public function alterarDataVencidoRapido($lancamento_id, $acao)
@@ -1359,7 +1240,7 @@ session(['Extrato_Ate' => $this->Ate]);
         $empresas = Empresa::whereHas('EmpresaUsuario', function ($query) {
             return $query->where('UsuarioID', Auth::user()->id);
         })
-            ->select(DB::raw("CONCAT(Descricao,' - ',Cnpj) as Descricao"),'ID')
+            ->select(DB::raw("CONCAT(Descricao,' - ',Cnpj) as Descricao"), 'ID')
             ->orderBy('Descricao')
             ->pluck('Descricao', 'ID');
         $contas = Conta::where('EmpresaID', $this->selEmpresa)
@@ -1373,30 +1254,27 @@ session(['Extrato_Ate' => $this->Ate]);
 
     public function gerarExtratoPdf_sempaginacao()
     {
-
-        if(session('LancamentosPDF') == null)
-        {
+        if (session('LancamentosPDF') == null) {
             return Redirect::back();
         }
 
         $lancamentosPDF = session('LancamentosPDF');
 
-// 1
+        // 1
         $lancamentos = $lancamentosPDF['DadosExtrato'];
 
         $de = $lancamentosPDF['de'];
-        $dataDivididade = explode(" ", $de);
+        $dataDivididade = explode(' ', $de);
         $deformatada = $dataDivididade[0];
         $descricaoconta = $lancamentosPDF['descricaoconta'];
         $conta = $lancamentosPDF['conta'];
 
         $ate = $lancamentosPDF['ate'];
-        $dataDivididaate = explode(" ", $ate);
+        $dataDivididaate = explode(' ', $ate);
         $ateformatada = $dataDivididaate[0];
 
-
         $desa = $de;
-        $contaID =  $conta ;
+        $contaID = $conta;
         $this->selEmpresa = $lancamentosPDF['empresa'];
 
         $totalCredito = Lancamento::where(function ($q) use ($desa, $contaID) {
@@ -1419,129 +1297,139 @@ session(['Extrato_Ate' => $this->Ate]);
 
         $saldoAnterior = $totalDebito - $totalCredito;
 
-
-
-
         // Construir a tabela HTML
-        $htmlTable = '<h1><center><font color="black"><b>RELATÓRIO DE LANÇAMENTOS '  . '</b></font></center></h1>';
+        $htmlTable = '<h1><center><font color="black"><b>RELATÓRIO DE LANÇAMENTOS ' . '</b></font></center></h1>';
         $htmlTable .= '<h5><center><font color="blue"><b>Conta: ' . $descricaoconta . '</b></font></center></h5>';
-        $htmlTable .= '<h1><center><font color="red"><b>Período de: ' . $deformatada . ' à ' . $ateformatada .  '</b></font></center></h1>';
-        $htmlTable .= '
+        $htmlTable .= '<h1><center><font color="red"><b>Período de: ' . $deformatada . ' à ' . $ateformatada . '</b></font></center></h1>';
+        $htmlTable .=
+            '
 
 
-    <table>
-        <thead>
-            <tr>
-                <th>Data</th>
-                <th>Descrição</th>
-                <th>Débito</th>
-                <th>Crédito</th>
-                </tr>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Descrição</th>
+                        <th>Débito</th>
+                        <th>Crédito</th>
+                        </tr>
 
-                <tr>
-                     <td colspan="4"><hr></td>
-                </tr>;
-                <tr>
-                     <td colspan="3">SALDO ANTERIOR </td>
-                     <td style="text-align: right;">' . ( number_format($saldoAnterior, 2, ',', '.') ) . '</td>
-                </tr>;
-
-
-        </thead>
-        <tbody>
-';
-$debitoTotal = 0;
-$creditoTotal = 0;
-
-foreach ($lancamentosPDF['DadosExtrato'] as $lancamento) {
-    $id = $lancamento->ID;
-    $valor = number_format($lancamento->Valor, 2, ',', '.');
-    $data = $lancamento->DataContabilidade->format('d/m/Y');
-    $descricao = $lancamento['HistoricoDescricao'] . ' ' .$lancamento->Descricao;
-$descricaoQuebrada = wordwrap($descricao, 50, "<br>", true);
-
-if (strlen($descricao) < 50) {
-    $descricaoPreenchida = str_pad($descricao, 50, ' ');
-    $descricaocompleta = $descricaoPreenchida;
-} else {
-    $descricaocompleta = $descricaoQuebrada;
-}
-
-    if ($conta == $lancamento->ContaDebitoID) {
-        $debitoTotal += $lancamento->Valor;
-    }
-
-    if ($conta == $lancamento->ContaCreditoID) {
-        $creditoTotal += $lancamento->Valor;
-    }
+                        <tr>
+                            <td colspan="4"><hr></td>
+                        </tr>;
+                        <tr>
+                            <td colspan="3">SALDO ANTERIOR </td>
+                            <td style="text-align: right;">' .
+                    number_format($saldoAnterior, 2, ',', '.') .
+                    '</td>
+                        </tr>;
 
 
-    $htmlTable .= '<tr>
-        <td>' . $data . '</td>
-        <td>' . $descricaocompleta . '</td>
-        <td style="text-align: right;">' . (($conta == $lancamento->ContaDebitoID) ? $valor : '') . '</td>
-        <td style="text-align: right;">' . (($conta == $lancamento->ContaCreditoID) ? $valor : '') . '</td>
+                </thead>
+                <tbody>
+        ';
+                $debitoTotal = 0;
+                $creditoTotal = 0;
 
-    </tr>';
-}
-$debitoTotalFormatado = number_format($debitoTotal, 2, ',', '.');
-$creditoTotalFormatado = number_format($creditoTotal, 2, ',', '.');
-$saldoAnteriorFormatado = number_format($saldoAnterior, 2, ',', '.');
-$htmlTable .= '<tr>
-    <td colspan="4"><hr></td>
-</tr>';
+                foreach ($lancamentosPDF['DadosExtrato'] as $lancamento) {
+                    $id = $lancamento->ID;
+                    $valor = number_format($lancamento->Valor, 2, ',', '.');
+                    $data = $lancamento->DataContabilidade->format('d/m/Y');
+                    $descricao = $lancamento['HistoricoDescricao'] . ' ' . $lancamento->Descricao;
+                    $descricaoQuebrada = wordwrap($descricao, 50, '<br>', true);
+
+                    if (strlen($descricao) < 50) {
+                        $descricaoPreenchida = str_pad($descricao, 50, ' ');
+                        $descricaocompleta = $descricaoPreenchida;
+                    } else {
+                        $descricaocompleta = $descricaoQuebrada;
+                    }
+
+                    if ($conta == $lancamento->ContaDebitoID) {
+                        $debitoTotal += $lancamento->Valor;
+                    }
+
+                    if ($conta == $lancamento->ContaCreditoID) {
+                        $creditoTotal += $lancamento->Valor;
+                    }
+
+                    $htmlTable .=
+                        '<tr>
+                <td>' .
+                        $data .
+                        '</td>
+                <td>' .
+                        $descricaocompleta .
+                        '</td>
+                <td style="text-align: right;">' .
+                        ($conta == $lancamento->ContaDebitoID ? $valor : '') .
+                        '</td>
+                <td style="text-align: right;">' .
+                        ($conta == $lancamento->ContaCreditoID ? $valor : '') .
+                        '</td>
+
+            </tr>';
+                }
+                $debitoTotalFormatado = number_format($debitoTotal, 2, ',', '.');
+                $creditoTotalFormatado = number_format($creditoTotal, 2, ',', '.');
+                $saldoAnteriorFormatado = number_format($saldoAnterior, 2, ',', '.');
+                $htmlTable .= '<tr>
+            <td colspan="4"><hr></td>
+        </tr>';
+
+                $htmlTable .=
+                    '<tr>
+
+                <td> TOTAL' .
+                    '</td>
+                <td>' .
+                    '</td>
+                <td style="text-align: right;">' .
+                    ($debitoTotalFormatado ? $debitoTotalFormatado : '') .
+                    '</td>
+                <td style="text-align: right;">' .
+                    ($creditoTotalFormatado ? $creditoTotalFormatado : '') .
+                    '</td>
+            </tr>';
+
+                $saldo = $debitoTotal - $creditoTotal;
+                $saldoFormatado = number_format($saldo, 2, ',', '.');
+
+                $saldo = $saldoAnterior + $debitoTotal - $creditoTotal;
+                $saldoFormatado = number_format($saldo, 2, ',', '.');
+
+                $htmlTable .=
+                    '<tr>
+            <td> SALDO </td>
+            <td></td>
+            <td style="text-align: right;">' .
+                    ($saldoFormatado != 0 ? $saldoFormatado : '') .
+                    '</td>
+        </tr>';
+
+                $htmlTable .= '
+                </tbody>
+            </table>
 
 
-$htmlTable .= '<tr>
+        ';
 
-        <td> TOTAL' . '</td>
-        <td>' .  '</td>
-        <td style="text-align: right;">' . (($debitoTotalFormatado) ? $debitoTotalFormatado : '') . '</td>
-        <td style="text-align: right;">' . (($creditoTotalFormatado) ? $creditoTotalFormatado : '') . '</td>
-    </tr>';
+                $html = $htmlTable;
+                // Configurar e gerar o PDF com o Dompdf
+                $dompdf = new Dompdf();
+                $dompdf->loadHtml($html);
+                $dompdf->render();
 
-    $saldo = $debitoTotal - $creditoTotal;
-    $saldoFormatado = number_format($saldo, 2, ',', '.');
+                // Salvar ou exibir o PDF
+                $dompdf->stream('lancamentos.pdf', ['Attachment' => false]);
 
-    $saldo = $saldoAnterior + $debitoTotal - $creditoTotal;
-$saldoFormatado = number_format($saldo, 2, ',', '.');
+                // Obter o conteúdo do PDF
+                // $output = $dompdf->output();
 
-$htmlTable .= '<tr>
-    <td> SALDO </td>
-    <td></td>
-    <td style="text-align: right;">' . ($saldoFormatado != 0 ? $saldoFormatado : '') . '</td>
-</tr>';
-
-
-
-
-        $htmlTable .= '
-        </tbody>
-    </table>
-
-
-';
-
-
-        $html =   $htmlTable;
-        // Configurar e gerar o PDF com o Dompdf
-        $dompdf = new Dompdf();
-        $dompdf->loadHtml($html);
-        $dompdf->render();
-
-        // Salvar ou exibir o PDF
-        $dompdf->stream('lancamentos.pdf', ['Attachment' => false]);
-
-        // Obter o conteúdo do PDF
-    // $output = $dompdf->output();
-
-    // // Exibir o PDF em uma nova página
-    // return response($output)
-    //     ->header('Content-Type', 'application/pdf')
-    //     ->header('Content-Disposition', 'inline; filename="lancamentos.pdf"');
-
-
-
+                // // Exibir o PDF em uma nova página
+                // return response($output)
+                //     ->header('Content-Type', 'application/pdf')
+                //     ->header('Content-Disposition', 'inline; filename="lancamentos.pdf"');
     }
 
     public function gerarExtratoPdf_Bordas_Tabelas()
@@ -1554,17 +1442,17 @@ $htmlTable .= '<tr>
 
         $lancamentos = $lancamentosPDF['DadosExtrato'];
         $de = $lancamentosPDF['de'];
-        $dataDivididade = explode(" ", $de);
+        $dataDivididade = explode(' ', $de);
         $deformatada = $dataDivididade[0];
         $descricaoconta = $lancamentosPDF['descricaoconta'];
         $conta = $lancamentosPDF['conta'];
 
         $ate = $lancamentosPDF['ate'];
-        $dataDivididaate = explode(" ", $ate);
+        $dataDivididaate = explode(' ', $ate);
         $ateformatada = $dataDivididaate[0];
 
         $desa = $de;
-        $contaID =  $conta;
+        $contaID = $conta;
         $this->selEmpresa = $lancamentosPDF['empresa'];
 
         $totalCredito = Lancamento::where(function ($q) use ($desa, $contaID) {
@@ -1621,7 +1509,8 @@ $htmlTable .= '<tr>
         $htmlTable .= '<h1>RELATÓRIO DE LANÇAMENTOS</h1>';
         $htmlTable .= '<h5>Conta: ' . $descricaoconta . '</h5>';
         $htmlTable .= '<h1>Período de: ' . $deformatada . ' à ' . $ateformatada . '</h1>';
-        $htmlTable .= '
+        $htmlTable .=
+            '
             <table>
                 <thead>
                     <tr>
@@ -1635,7 +1524,9 @@ $htmlTable .= '<tr>
                     </tr>
                     <tr class="saldo-anterior">
                         <td colspan="3">SALDO ANTERIOR</td>
-                        <td>' . number_format($saldoAnterior, 2, ',', '.') . '</td>
+                        <td>' .
+            number_format($saldoAnterior, 2, ',', '.') .
+            '</td>
                     </tr>
                 </thead>
                 <tbody>';
@@ -1648,7 +1539,7 @@ $htmlTable .= '<tr>
             $valor = number_format($lancamento->Valor, 2, ',', '.');
             $data = $lancamento->DataContabilidade->format('d/m/Y');
             $descricao = $lancamento['HistoricoDescricao'] . ' ' . $lancamento->Descricao;
-            $descricaoQuebrada = wordwrap($descricao, 50, "<br>", true);
+            $descricaoQuebrada = wordwrap($descricao, 50, '<br>', true);
 
             if (strlen($descricao) < 50) {
                 $descricaoPreenchida = str_pad($descricao, 50, ' ');
@@ -1665,11 +1556,20 @@ $htmlTable .= '<tr>
                 $creditoTotal += $lancamento->Valor;
             }
 
-            $htmlTable .= '<tr>
-                <td>' . $data . '</td>
-                <td>' . $descricaocompleta . '</td>
-                <td>' . (($conta == $lancamento->ContaDebitoID) ? $valor : '') . '</td>
-                <td>' . (($conta == $lancamento->ContaCreditoID) ? $valor : '') . '</td>
+            $htmlTable .=
+                '<tr>
+                <td>' .
+                $data .
+                '</td>
+                <td>' .
+                $descricaocompleta .
+                '</td>
+                <td>' .
+                ($conta == $lancamento->ContaDebitoID ? $valor : '') .
+                '</td>
+                <td>' .
+                ($conta == $lancamento->ContaCreditoID ? $valor : '') .
+                '</td>
             </tr>';
         }
 
@@ -1681,20 +1581,28 @@ $htmlTable .= '<tr>
             <td colspan="4"><hr></td>
         </tr>';
 
-        $htmlTable .= '<tr class="total">
+        $htmlTable .=
+            '<tr class="total">
             <td> TOTAL</td>
             <td></td>
-            <td>' . (($debitoTotalFormatado) ? $debitoTotalFormatado : '') . '</td>
-            <td>' . (($creditoTotalFormatado) ? $creditoTotalFormatado : '') . '</td>
+            <td>' .
+            ($debitoTotalFormatado ? $debitoTotalFormatado : '') .
+            '</td>
+            <td>' .
+            ($creditoTotalFormatado ? $creditoTotalFormatado : '') .
+            '</td>
         </tr>';
 
         $saldo = $saldoAnterior + $debitoTotal - $creditoTotal;
         $saldoFormatado = number_format($saldo, 2, ',', '.');
 
-        $htmlTable .= '<tr>
+        $htmlTable .=
+            '<tr>
             <td> SALDO </td>
             <td></td>
-            <td>' . ($saldoFormatado != 0 ? $saldoFormatado : '') . '</td>
+            <td>' .
+            ($saldoFormatado != 0 ? $saldoFormatado : '') .
+            '</td>
         </tr>';
 
         $htmlTable .= '
@@ -1722,19 +1630,18 @@ $htmlTable .= '<tr>
 
         $lancamentos = $lancamentosPDF['DadosExtrato'];
 
-
         $de = $lancamentosPDF['de'];
-        $dataDivididade = explode(" ", $de);
+        $dataDivididade = explode(' ', $de);
         $deformatada = $dataDivididade[0];
         $descricaoconta = $lancamentosPDF['descricaoconta'];
         $conta = $lancamentosPDF['conta'];
 
         $ate = $lancamentosPDF['ate'];
-        $dataDivididaate = explode(" ", $ate);
+        $dataDivididaate = explode(' ', $ate);
         $ateformatada = $dataDivididaate[0];
 
         $desa = $de;
-        $contaID =  $conta;
+        $contaID = $conta;
         $this->selEmpresa = $lancamentosPDF['empresa'];
 
         $totalCredito = Lancamento::where(function ($q) use ($desa, $contaID) {
@@ -1803,9 +1710,6 @@ $htmlTable .= '<tr>
             }
         </style>';
 
-
-
-
         // $htmlTable .= '<div class="header">
         // <h5>Período de: ' . $deformatada . ' à ' . $ateformatada .  '</h5>
         // <h5>Conta: ' . $descricaoconta . '</h5>
@@ -1815,15 +1719,20 @@ $htmlTable .= '<tr>
         // $htmlTable .= '<h5>Conta: ' . $descricaoconta . '</h5>';
         // $htmlTable .= '<h1>Período de: ' . $deformatada . ' à ' . $ateformatada .  '</h1>';
 
-
-
-        $htmlTable .= '
+        $htmlTable .=
+            '
 
             <table>
                 <thead>
                     <tr style="background-color: #eaf2ff;">
-                            <th colspan="2" class="saldo-anterior"><h4>Período de: ' . $deformatada . ' à ' . $ateformatada . '</h4></td>
-                            <th colspan="2" class="saldo-anterior"><h4>Conta: ' . $descricaoconta . '</h4></td>
+                            <th colspan="2" class="saldo-anterior"><h4>Período de: ' .
+            $deformatada .
+            ' à ' .
+            $ateformatada .
+            '</h4></td>
+                            <th colspan="2" class="saldo-anterior"><h4>Conta: ' .
+            $descricaoconta .
+            '</h4></td>
                     </tr>
                     <tr>
                         <th>Data</th>
@@ -1836,7 +1745,9 @@ $htmlTable .= '<tr>
                     </tr>
                     <tr>
                         <td colspan="3" class="saldo-anterior">SALDO ANTERIOR</td>
-                        <td style="text-align: right;">' . number_format($saldoAnterior, 2, ',', '.') . '</td>
+                        <td style="text-align: right;">' .
+            number_format($saldoAnterior, 2, ',', '.') .
+            '</td>
                     </tr>
                 </thead>
                 <tbody>';
@@ -1849,7 +1760,7 @@ $htmlTable .= '<tr>
             $valor = number_format($lancamento->Valor, 2, ',', '.');
             $data = $lancamento->DataContabilidade->format('d/m/Y');
             $descricao = $lancamento['HistoricoDescricao'] . ' ' . $lancamento->Descricao;
-            $descricaoQuebrada = wordwrap($descricao, 50, "<br>", true);
+            $descricaoQuebrada = wordwrap($descricao, 50, '<br>', true);
 
             if (strlen($descricao) < 50) {
                 $descricaoPreenchida = str_pad($descricao, 50, ' ');
@@ -1866,11 +1777,20 @@ $htmlTable .= '<tr>
                 $creditoTotal += $lancamento->Valor;
             }
 
-            $htmlTable .= '<tr>
-                <td>' . $data . '</td>
-                <td>' . $descricaocompleta . '</td>
-                <td style="text-align: right;">' . (($conta == $lancamento->ContaDebitoID) ? $valor : '') . '</td>
-                <td style="text-align: right;">' . (($conta == $lancamento->ContaCreditoID) ? $valor : '') . '</td>
+            $htmlTable .=
+                '<tr>
+                <td>' .
+                $data .
+                '</td>
+                <td>' .
+                $descricaocompleta .
+                '</td>
+                <td style="text-align: right;">' .
+                ($conta == $lancamento->ContaDebitoID ? $valor : '') .
+                '</td>
+                <td style="text-align: right;">' .
+                ($conta == $lancamento->ContaCreditoID ? $valor : '') .
+                '</td>
             </tr>';
         }
 
@@ -1882,32 +1802,36 @@ $htmlTable .= '<tr>
             <td colspan="4"><hr></td>
         </tr>';
 
-        $htmlTable .= '<tr class="total">
+        $htmlTable .=
+            '<tr class="total">
             <td> TOTAL</td>
             <td></td>
-            <td style="text-align: right;">' . (($debitoTotalFormatado) ? $debitoTotalFormatado : '') . '</td>
-            <td style="text-align: right;">' . (($creditoTotalFormatado) ? $creditoTotalFormatado : '') . '</td>
+            <td style="text-align: right;">' .
+            ($debitoTotalFormatado ? $debitoTotalFormatado : '') .
+            '</td>
+            <td style="text-align: right;">' .
+            ($creditoTotalFormatado ? $creditoTotalFormatado : '') .
+            '</td>
         </tr>';
 
         $saldo = $saldoAnterior + $debitoTotal - $creditoTotal;
         $saldoFormatado = number_format($saldo, 2, ',', '.');
 
-        $htmlTable .= '<tr class="total">
+        $htmlTable .=
+            '<tr class="total">
             <td> SALDO </td>
             <td></td>
-            <td style="text-align: right;">' . ($saldoFormatado != 0 ? $saldoFormatado : '') . '</td>
+            <td style="text-align: right;">' .
+            ($saldoFormatado != 0 ? $saldoFormatado : '') .
+            '</td>
         </tr>';
 
         $htmlTable .= '
             </tbody>
         </table>';
 
-
-
-
         // Configurar e gerar o PDF com o Dompdf
         $dompdf = new Dompdf();
-
 
         // Habilitar opção de cabeçalho
         $options = $dompdf->getOptions();
@@ -1926,10 +1850,9 @@ $htmlTable .= '<tr>
         $dompdf->setBasePath(base_path());
         // $dompdf->setHttpContext(new Dompdf\FrameDecorator($header));
 
+        $html = $header . $htmlTable;
 
- $html = $header . $htmlTable;
-
- $dompdf->loadHtml($html);
+        $dompdf->loadHtml($html);
         $dompdf->render();
 
         // Salvar ou exibir o PDF
@@ -1944,13 +1867,12 @@ $htmlTable .= '<tr>
         //     ->header('Content-Disposition', 'inline; filename="lancamentos.pdf"');
     }
 
-
     public function contasGabrielMagossiFalchiMes()
     {
         $nome = 'GABRIEL MAGOSSI FALCHI';
         $dados = [];
         $lancamentos = Lancamento::limit(0);
-        $contaID = 11146;  // PRF
+        $contaID = 11146; // PRF
 
         session(['Extrato_Ate' => $this->Ate]);
         session(['Extrato_De' => $this->De]);
@@ -1958,12 +1880,11 @@ $htmlTable .= '<tr>
         $de = $this->selecionarLancamento($contaID)['de'];
         $ate = $this->selecionarLancamento($contaID)['ate'];
 
-
         $agrupadosPorMesAno = [];
 
         foreach ($lancamentos as $lancamento) {
             // Tenta criar o objeto DateTime a partir do formato 'Y-m-d'
-            $data =  $lancamento['DataContabilidade'];
+            $data = $lancamento['DataContabilidade'];
 
             // Verifica se a data foi criada corretamente
             if ($data) {
@@ -1976,8 +1897,6 @@ $htmlTable .= '<tr>
                 }
 
                 $agrupadosPorMesAno[$anoMes][] = $lancamento;
-
-
             }
         }
 
@@ -1991,7 +1910,7 @@ $htmlTable .= '<tr>
             $NomeEmpresa = $lancamento->NomeEmpresa;
         }
 
-        $dados[]= [
+        $dados[] = [
             'Nome' => $nome,
             'Selecionados' => $lancamentos->count(),
             'Débito' => $debito,
@@ -1999,186 +1918,181 @@ $htmlTable .= '<tr>
             'De' => $de ?? 'Não informado',
             'Até' => $ate ?? 'Não informado',
             'Saldo' => $saldo,
-            'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
+            'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada',
         ];
 
         $DadosMes11146 = $agrupadosPorMesAno;
-// ================================================================================================================
-            $dados = [];
-            $lancamentos = Lancamento::limit(0);
-            $contaID = 19538;  // STTARMAAKE
+        // ================================================================================================================
+        $dados = [];
+        $lancamentos = Lancamento::limit(0);
+        $contaID = 19538; // STTARMAAKE
 
-            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
-            $de = $this->selecionarLancamento($contaID)['de'];
-            $ate = $this->selecionarLancamento($contaID)['ate'];
+        $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+        $de = $this->selecionarLancamento($contaID)['de'];
+        $ate = $this->selecionarLancamento($contaID)['ate'];
 
-            $agrupadosPorMesAno = [];
-            foreach ($lancamentos as $lancamento) {
-                 $data =  $lancamento['DataContabilidade'];
-                if ($data) {
-                    $anoMes = $data->format('Y-m');
-                    if (!isset($agrupadosPorMesAno[$anoMes])) {
-                        $agrupadosPorMesAno[$anoMes] = [];
-                    }
-                    $agrupadosPorMesAno[$anoMes][] = $lancamento;
+        $agrupadosPorMesAno = [];
+        foreach ($lancamentos as $lancamento) {
+            $data = $lancamento['DataContabilidade'];
+            if ($data) {
+                $anoMes = $data->format('Y-m');
+                if (!isset($agrupadosPorMesAno[$anoMes])) {
+                    $agrupadosPorMesAno[$anoMes] = [];
                 }
+                $agrupadosPorMesAno[$anoMes][] = $lancamento;
             }
-            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
-            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
-            $saldo = $debito - $credito;
-            $NomeEmpresa = null;
+        }
+        $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+        $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+        $saldo = $debito - $credito;
+        $NomeEmpresa = null;
 
-            foreach ($lancamentos as $lancamento) {
-                $NomeEmpresa = $lancamento->NomeEmpresa;
-            }
-            $dados[]= [
-                'Nome' => $nome,
-                'Selecionados' => $lancamentos->count(),
-                'Débito' => $debito,
-                'Crédito' => $credito,
-                'De' => $de ?? 'Não informado',
-                'Até' => $ate ?? 'Não informado',
-                'Saldo' => $saldo,
-                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
-            ];
-            $DadosMes19538 = $agrupadosPorMesAno;
-// ================================================================================================================
-            $dados = [];
-            $lancamentos = Lancamento::limit(0);
-            $contaID = 15394;  //PEDRO
+        foreach ($lancamentos as $lancamento) {
+            $NomeEmpresa = $lancamento->NomeEmpresa;
+        }
+        $dados[] = [
+            'Nome' => $nome,
+            'Selecionados' => $lancamentos->count(),
+            'Débito' => $debito,
+            'Crédito' => $credito,
+            'De' => $de ?? 'Não informado',
+            'Até' => $ate ?? 'Não informado',
+            'Saldo' => $saldo,
+            'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada',
+        ];
+        $DadosMes19538 = $agrupadosPorMesAno;
+        // ================================================================================================================
+        $dados = [];
+        $lancamentos = Lancamento::limit(0);
+        $contaID = 15394; //PEDRO
 
-            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
-            $de = $this->selecionarLancamento($contaID)['de'];
-            $ate = $this->selecionarLancamento($contaID)['ate'];
+        $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+        $de = $this->selecionarLancamento($contaID)['de'];
+        $ate = $this->selecionarLancamento($contaID)['ate'];
 
-            $agrupadosPorMesAno = [];
-            foreach ($lancamentos as $lancamento) {
-                 $data =  $lancamento['DataContabilidade'];
-                if ($data) {
-                    $anoMes = $data->format('Y-m');
-                    if (!isset($agrupadosPorMesAno[$anoMes])) {
-                        $agrupadosPorMesAno[$anoMes] = [];
-                    }
-                    $agrupadosPorMesAno[$anoMes][] = $lancamento;
+        $agrupadosPorMesAno = [];
+        foreach ($lancamentos as $lancamento) {
+            $data = $lancamento['DataContabilidade'];
+            if ($data) {
+                $anoMes = $data->format('Y-m');
+                if (!isset($agrupadosPorMesAno[$anoMes])) {
+                    $agrupadosPorMesAno[$anoMes] = [];
                 }
+                $agrupadosPorMesAno[$anoMes][] = $lancamento;
             }
-            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
-            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
-            $saldo = $debito - $credito;
-            $NomeEmpresa = null;
+        }
+        $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+        $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+        $saldo = $debito - $credito;
+        $NomeEmpresa = null;
 
-            foreach ($lancamentos as $lancamento) {
-                $NomeEmpresa = $lancamento->NomeEmpresa;
-            }
-            $dados[]= [
-                'Nome' => $nome,
-                'Selecionados' => $lancamentos->count(),
-                'Débito' => $debito,
-                'Crédito' => $credito,
-                'De' => $de ?? 'Não informado',
-                'Até' => $ate ?? 'Não informado',
-                'Saldo' => $saldo,
-                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
-            ];
-            $DadosMes15394 = $agrupadosPorMesAno;
+        foreach ($lancamentos as $lancamento) {
+            $NomeEmpresa = $lancamento->NomeEmpresa;
+        }
+        $dados[] = [
+            'Nome' => $nome,
+            'Selecionados' => $lancamentos->count(),
+            'Débito' => $debito,
+            'Crédito' => $credito,
+            'De' => $de ?? 'Não informado',
+            'Até' => $ate ?? 'Não informado',
+            'Saldo' => $saldo,
+            'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada',
+        ];
+        $DadosMes15394 = $agrupadosPorMesAno;
 
-//  ================================================================================================================
+        //  ================================================================================================================
 
-            $dados = [];
-            $lancamentos = Lancamento::limit(0);
-            $contaID = 11142;  //INFRANET
+        $dados = [];
+        $lancamentos = Lancamento::limit(0);
+        $contaID = 11142; //INFRANET
 
-            $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
-            $de = $this->selecionarLancamento($contaID)['de'];
-            $ate = $this->selecionarLancamento($contaID)['ate'];
+        $lancamentos = $this->selecionarLancamento($contaID)['lancamentos'];
+        $de = $this->selecionarLancamento($contaID)['de'];
+        $ate = $this->selecionarLancamento($contaID)['ate'];
 
-            $agrupadosPorMesAno = [];
-            foreach ($lancamentos as $lancamento) {
-                 $data =  $lancamento['DataContabilidade'];
-                if ($data) {
-                    $anoMes = $data->format('Y-m');
-                    if (!isset($agrupadosPorMesAno[$anoMes])) {
-                        $agrupadosPorMesAno[$anoMes] = [];
-                    }
-                    $agrupadosPorMesAno[$anoMes][] = $lancamento;
+        $agrupadosPorMesAno = [];
+        foreach ($lancamentos as $lancamento) {
+            $data = $lancamento['DataContabilidade'];
+            if ($data) {
+                $anoMes = $data->format('Y-m');
+                if (!isset($agrupadosPorMesAno[$anoMes])) {
+                    $agrupadosPorMesAno[$anoMes] = [];
                 }
+                $agrupadosPorMesAno[$anoMes][] = $lancamento;
             }
-            $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
-            $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
-            $saldo = $debito - $credito;
-            $NomeEmpresa = null;
+        }
+        $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+        $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+        $saldo = $debito - $credito;
+        $NomeEmpresa = null;
 
-            foreach ($lancamentos as $lancamento) {
-                $NomeEmpresa = $lancamento->NomeEmpresa;
+        foreach ($lancamentos as $lancamento) {
+            $NomeEmpresa = $lancamento->NomeEmpresa;
+        }
+        $dados[] = [
+            'Nome' => $nome,
+            'Selecionados' => $lancamentos->count(),
+            'Débito' => $debito,
+            'Crédito' => $credito,
+            'De' => $de ?? 'Não informado',
+            'Até' => $ate ?? 'Não informado',
+            'Saldo' => $saldo,
+            'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada',
+        ];
+        $DadosMes11142 = $agrupadosPorMesAno;
+
+        //  ================================================================================================================
+
+        $contaID = 19532; //NET RUBI SERVICOS
+
+        //  ================================================================================================================
+        // Primeiro array
+        $dados1 = $DadosMes11146;
+        // Segundo array
+        $dados2 = $DadosMes19538;
+
+        // Função para unir os arrays com mesclagem de meses repetidos
+        foreach ($dados2 as $mes => $lancamentos) {
+            if (isset($dados1[$mes])) {
+                // Se o mês já existe em $dados1, mescla os valores
+                $dados1[$mes] = array_merge($dados1[$mes], $lancamentos);
+            } else {
+                // Se o mês não existe, simplesmente adiciona o novo mês
+                $dados1[$mes] = $lancamentos;
             }
-            $dados[]= [
-                'Nome' => $nome,
-                'Selecionados' => $lancamentos->count(),
-                'Débito' => $debito,
-                'Crédito' => $credito,
-                'De' => $de ?? 'Não informado',
-                'Até' => $ate ?? 'Não informado',
-                'Saldo' => $saldo,
-                'Empresa' => $NomeEmpresa ?? 'Nenhuma empresa encontrada'
-            ];
-            $DadosMes11142 = $agrupadosPorMesAno;
+        }
+        //  ================================================================================================================
 
-//  ================================================================================================================
+        $dados2 = $DadosMes15394;
 
-            $contaID = 19532;  //NET RUBI SERVICOS
+        // Função para unir os arrays com mesclagem de meses repetidos
+        foreach ($dados2 as $mes => $lancamentos) {
+            if (isset($dados1[$mes])) {
+                // Se o mês já existe em $dados1, mescla os valores
+                $dados1[$mes] = array_merge($dados1[$mes], $lancamentos);
+            } else {
+                // Se o mês não existe, simplesmente adiciona o novo mês
+                $dados1[$mes] = $lancamentos;
+            }
+        }
+        //  ================================================================================================================
+        $dados2 = $DadosMes11142;
 
-//  ================================================================================================================
-// Primeiro array
-$dados1 = $DadosMes11146;
-// Segundo array
-$dados2 = $DadosMes19538;
+        // Função para unir os arrays com mesclagem de meses repetidos
+        foreach ($dados2 as $mes => $lancamentos) {
+            if (isset($dados1[$mes])) {
+                // Se o mês já existe em $dados1, mescla os valores
+                $dados1[$mes] = array_merge($dados1[$mes], $lancamentos);
+            } else {
+                // Se o mês não existe, simplesmente adiciona o novo mês
+                $dados1[$mes] = $lancamentos;
+            }
+        }
+        //  ================================================================================================================
 
-// Função para unir os arrays com mesclagem de meses repetidos
-foreach ($dados2 as $mes => $lancamentos) {
-    if (isset($dados1[$mes])) {
-        // Se o mês já existe em $dados1, mescla os valores
-        $dados1[$mes] = array_merge($dados1[$mes], $lancamentos);
-    } else {
-        // Se o mês não existe, simplesmente adiciona o novo mês
-        $dados1[$mes] = $lancamentos;
+        $DadosMes = $dados1;
+
+        return redirect()->route('lancamentos.DadosMes')->with('DadosMes', $DadosMes)->with('nome', $nome);
     }
-}
-//  ================================================================================================================
-
-$dados2 = $DadosMes15394;
-
-// Função para unir os arrays com mesclagem de meses repetidos
-foreach ($dados2 as $mes => $lancamentos) {
-    if (isset($dados1[$mes])) {
-        // Se o mês já existe em $dados1, mescla os valores
-        $dados1[$mes] = array_merge($dados1[$mes], $lancamentos);
-    } else {
-        // Se o mês não existe, simplesmente adiciona o novo mês
-        $dados1[$mes] = $lancamentos;
-    }
-}
-//  ================================================================================================================
-$dados2 = $DadosMes11142;
-
-// Função para unir os arrays com mesclagem de meses repetidos
-foreach ($dados2 as $mes => $lancamentos) {
-    if (isset($dados1[$mes])) {
-        // Se o mês já existe em $dados1, mescla os valores
-        $dados1[$mes] = array_merge($dados1[$mes], $lancamentos);
-    } else {
-        // Se o mês não existe, simplesmente adiciona o novo mês
-        $dados1[$mes] = $lancamentos;
-    }
-}
-//  ================================================================================================================
-
-
-
-$DadosMes = $dados1;
-
-return redirect()->route('lancamentos.DadosMes')->with('DadosMes', $DadosMes)->with('nome',$nome);
-    }
-
-
-
 }

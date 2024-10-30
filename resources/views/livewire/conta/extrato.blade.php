@@ -230,6 +230,11 @@
                             class="btn btn-primary btn-sm">
                             <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de transferências
                         </button>
+                        <button id="buscar" wire:click='searchSemDefinir()' type="button"
+                        class="btn btn-primary btn-sm">
+                        <i class="fa fa-dot-circle-o"></i>Buscar lançamentos sem definição
+                    </button>
+
                     @endcan
 
                     <button id="buscar" wire:click='searchPDF()' type="button" class="btn btn-danger btn-sm"
@@ -531,6 +536,20 @@
                                                         @endif
                                                     </button>
 
+                                                    <h5 class="card-title" style="color: rgb(39, 3, 196);">Sem definir</h5>
+                                                    <button title="Botão sem definição" type="button"
+                                                        class="btn-sm btn btn-outline-secondary"
+                                                        wire:click='confirmarSemDefinir({{ $lancamento->ID }})'>
+                                                        @if ($lancamento->SemDefinir)
+                                                            <div class="card text-center"
+                                                                style="background-color: rgb(118, 14, 237); color: white;">
+                                                                <i
+                                                                    class="cl2-{{ $lancamento->ID }} fa fa-check-square-o"></i>
+                                                            </div>
+                                                        @else
+                                                            <i class="cl2-{{ $lancamento->ID }} fa fa-square-o"></i>
+                                                        @endif
+                                                    </button>
 
 
                                                     {{-- </div> --}}
