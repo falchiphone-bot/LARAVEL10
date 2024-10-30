@@ -512,6 +512,111 @@ class Extrato extends Component
         $EntradasGeral = 0;
     }
 
+
+    public function searchSemDefinicao()
+    {
+
+        $contaID = session('extrato_ContaID') ?? $this->selConta;
+        $SemDefinir = 1;
+
+        $lancamentos = Lancamento::where(function ($query) use ($SemDefinir) {
+            return $query->where('Lancamentos.SemDefinir', 1);
+        });
+
+        if ($this->De) {
+            if ($this->Descricao && $this->DescricaoApartirDe) {
+                $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
+            } else {
+                $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
+            }
+            $lancamentos->where('DataContabilidade', '>=', $de);
+            session(['Extrato_De' => $this->De]);
+        }
+        if ($this->Ate) {
+            $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
+            $lancamentos->where('DataContabilidade', '<=', $ate);
+            session(['Extrato_Ate' => $this->Ate]);
+        }
+
+        if ($this->Conferido != '') {
+            if ($this->Conferido == 'false') {
+                $lancamentos->where(function ($q) {
+                    return $q->whereNull('Conferido')->orWhere('Conferido', 0);
+                });
+            }
+            if ($this->Conferido == 'SemDefinir') {
+                $lancamentos->where(function ($q) {
+                    return $q->whereNull('SemDefinir')->orWhere('SemDefinir', 1);
+                });
+            } else {
+                $lancamentos->where('Conferido', $this->Conferido);
+            }
+        }
+        if ($this->Conferido == 'SemDefinir') {
+            $this->Lancamentos = $lancamentos
+                ->orderBy('DataContabilidade')
+                ->whereDoesntHave('SolicitacaoExclusao')
+                ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
+                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID', 'Lancamentos.Descricao',
+                 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral', 'EntradasGeral', 'SemDefinir']);
+        }
+
+        $SemDefinir = 0;
+    }
+
+    public function searchTransferencias()
+    {
+
+        $contaID = session('extrato_ContaID') ?? $this->selConta;
+        $Transferencias = 1;
+
+        $lancamentos = Lancamento::where(function ($query) use ($Transferencias) {
+            return $query->where('Lancamentos.Transferencias', 1);
+        });
+
+        if ($this->De) {
+            if ($this->Descricao && $this->DescricaoApartirDe) {
+                $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
+            } else {
+                $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
+            }
+            $lancamentos->where('DataContabilidade', '>=', $de);
+            session(['Extrato_De' => $this->De]);
+        }
+        if ($this->Ate) {
+            $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
+            $lancamentos->where('DataContabilidade', '<=', $ate);
+            session(['Extrato_Ate' => $this->Ate]);
+        }
+
+        if ($this->Conferido != '') {
+            if ($this->Conferido == 'false') {
+                $lancamentos->where(function ($q) {
+                    return $q->whereNull('Conferido')->orWhere('Conferido', 0);
+                });
+            }
+            if ($this->Conferido == 'Transferencias') {
+                $lancamentos->where(function ($q) {
+                    return $q->whereNull('SemDefinir')->orWhere('Transferencias', 1);
+                });
+            } else {
+                $lancamentos->where('Conferido', $this->Conferido);
+            }
+        }
+        if ($this->Conferido == 'Transferencias') {
+            $this->Lancamentos = $lancamentos
+                ->orderBy('DataContabilidade')
+                ->whereDoesntHave('SolicitacaoExclusao')
+                ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
+                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID', 'Lancamentos.Descricao',
+                 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral', 'EntradasGeral', 'Transferencias']);
+        }
+
+        $Transferencias = 0;
+    }
+
+
+
     public function searchEntradasGeralExcel()
     {
         if ($this->Conferido !== 'EntradasGeral') {

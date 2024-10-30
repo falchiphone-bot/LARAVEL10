@@ -117,6 +117,8 @@
                                 <option value="false">Não conferido</option>
                                 <option value="SaidasGeral">Saidas em geral</option>
                                 <option value="EntradasGeral">Entradas em geral</option>
+                                <option value="Transferencias">Transferencias</option>
+                                <option value="SemDefinir">Sem definir</option>
                             </select>
                         </div>
 
@@ -215,6 +217,11 @@
                         <button id="buscar" wire:click='searchEntradasGeral()' type="button"
                             class="btn btn-primary btn-sm">
                             <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de entradas em geral
+                        </button>
+
+                        <button id="buscar" wire:click='searchSemDefinicao()' type="button"
+                            class="btn btn-secondary btn-sm">
+                            <i class="fa fa-dot-circle-o"></i>Buscar lançamentos de SEM DEFINIÇÃO
                         </button>
 
                         <button id="buscar" wire:click='searchEntradasGeralExcel()' type="button"
@@ -344,7 +351,7 @@
                                             @endif
                                             {{-- //// extrato normal --}}
 
-                                            @if ($Conferido == 'EntradasGeral')
+                                            @if ($Conferido == 'EntradasGeral' or $Conferido == 'SemDefinir' or $Conferido == 'Transferencias')
                                                 <span style="color: blue;">
                                                     {{ number_format($lancamento->Valor, 2, ',', '.') }}
                                                 </span>
@@ -357,11 +364,10 @@
                                         </td>
                                         <td>
 
-                                            @if ($Conferido == 'SaidasGeral')
+                                            @if ($Conferido == 'SaidasGeral' or $Conferido == 'SemDefinir' or $Conferido == 'Transferencias')
                                                 <span style="color: blue;">
                                                     {{ number_format($lancamento->Valor, 2, ',', '.') }}
                                                 </span>
-
 
                                                 @if (!in_array($lancamento->ID, $listaSoma))
                                                     @php($totalCredito += $lancamento->Valor)
@@ -373,7 +379,7 @@
 
 
                                             {{-- //// extrato normal --}}
-                                            @if ($Conta->ID == $lancamento->ContaCreditoID and $Conferido !== 'SaidasGeral' and $Conferido !== 'EntradasGeral')
+                                            @if ($Conta->ID == $lancamento->ContaCreditoID and $Conferido !== 'SaidasGeral' and $Conferido !== 'EntradasGeral' and $Conferido !== 'SemDefinir' and $Conferido !== 'Transferencias')
                                                 <span style="color: red;">
                                                     {{ number_format($lancamento->Valor, 2, ',', '.') }}
                                                 </span>
