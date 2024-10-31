@@ -91,7 +91,7 @@
                         <div class="row">
                             <div class="col-2">
 
-                                <label for="Valor" style="color: black;">Valor a pesquisar</label>
+                                <label for="Valor" style="color: black;">Valor a pesquisar(>=)</label>
                                 <input class="form-control @error('Valor') is-invalid @else is-valid @enderror" name="Valor" size="30" type="number" step="0.01" id="Valor" value="{{ $retorno['Valor'] ?? null }}">
                             </div>
 

@@ -136,9 +136,19 @@ class ContasPagarController extends Controller
             $contasPagar->where('ContasPagar.EmpresaID', $Request->EmpresaSelecionada);
         }
 
-        $contasPagar = $contasPagar
-        ->orderBy('Created', 'desc')
-        ->get();
+
+       if($Request->Valor)
+        {
+            $contasPagar = $contasPagar
+            ->orderBy('Valor', 'asc')
+            ->get();
+        }
+        else
+        {
+            $contasPagar = $contasPagar
+            ->orderBy('Created', 'desc')
+            ->get();
+        }
 
 
 
