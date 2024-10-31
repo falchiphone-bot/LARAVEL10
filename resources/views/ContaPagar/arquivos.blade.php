@@ -10,9 +10,7 @@
 
     {{-- ////////////////////////////////////  ARQUIVOS--}}
     <form method="POST" action="/ContasPagar/CreateArquivoContasPagar" accept-charset="UTF-8">
-    <!-- <form method="POST" action="{{route('contaspagar.ArquivoContasPagar', $contasPagar->ID), $contasPagar->LancamentoID}}" accept-charset="UTF-8"> -->
-
-        @csrf
+     @csrf
 
         @can('LANCAMENTOS DOCUMENTOS - LISTAR')
                             <tr>

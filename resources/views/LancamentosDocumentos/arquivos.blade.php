@@ -3,12 +3,12 @@
 
 
     {{-- ////////////////////////////////////  ARQUIVOS--}}
-    <form method="POST" action="Lancamentos/CreateArquivoDocumentos" accept-charset="UTF-8">
+    {{-- <form method="POST" action="/Lancamentos/createArquivoDocumentos" accept-charset="UTF-8"> --}}
+    <form method="POST" action="{{ route('lancamentos.ArquivoLancamentoDocumentos') }}" accept-charset="UTF-8">
 
+           @csrf
 
-        @csrf
-
-        @can('LANCAMENTOS DOCUMENTOS - LISTAR')
+            @can('LANCAMENTOS DOCUMENTOS - LISTAR')
                             <tr>
                                 <th>
 
@@ -20,52 +20,36 @@
                             </tr>
              @endcan
 
-        <input required
-            class="form-control @error('documentoid') is-invalid @else is-valid @enderror d-none"
-            name="documento_id" type="text" id="documento_id" value="{{ $LancamentosDocumentos->ID ?? null }}">
+             <input required
+             class="form-control @error('documento_id') is-invalid @else is-valid @enderror d-none"
+             name="documento_id" type="text" id="documento_id" value="{{ $documento->ID }}">
 
 
         <div class="col-6">
-            <label for="arquivo_id" style="color: black;">Incluir arquivos</label>
+            {{-- <label for="arquivo_id" style="color: black;">Incluir arquivos</label>
             <input type="text" id="buscaArquivo" placeholder="Buscar arquivo..." class="form-control mb-2">
-            <button type="button" onclick="document.getElementById('buscaArquivo').value=''; document.getElementById('arquivo_id').options.style.display='';">Limpar busca</button>
+            <button type="button" onclick="document.getElementById('buscaArquivo').value=''; document.getElementById('arquivo_id').options.style.display='';">Limpar busca</button> --}}
 
 
-<select required class="form-control select2" id="arquivo_id" name="arquivo_id">
-    <option value="">Selecionar arquivo</option>
-    @foreach ($documentoListado as $documentoListados)
-        <option value="{{ $documentoListados->ID }}">
-            @if ($documentoListados->TipoArquivoNome)
-                {{ $documentoListados->Rotulo . " ->> " . $documentoListados->TipoArquivoNome->nome }}
-            @else
-                {{ $documentoListados->Rotulo }}
-            @endif
-        </option>
-    @endforeach
-</select>
-
+            <select required class="form-control select2" id="arquivo_id_vinculo" name="arquivo_id_vinculo">
+                <option value="">Selecionar arquivo</option>
+                @foreach ($documentoListado as $documentoListados)
+                    <option value="{{ $documentoListados->ID }}">
+                        @if ($documentoListados->TipoArquivoNome)
+                            {{ $documentoListados->Rotulo . " ->> " . $documentoListados->TipoArquivoNome->nome }}
+                        @else
+                            {{ $documentoListados->Rotulo }}
+                        @endif
+                    </option>
+                @endforeach
+            </select>
         </div>
 
-        <script>
-            document.getElementById('buscaArquivo').addEventListener('keyup', function() {
-                var filter = this.value.toLowerCase();
-                var select = document.getElementById('arquivo_id');
-                var options = select.options;
 
-                for (var i = 0; i < options.length; i++) {
-                    var optionText = options[i].text.toLowerCase();
-                    options[i].style.display = optionText.includes(filter) ? '' : 'none';
-                }
-            });
-        </script>
-
-
-
-        <div class="row mt-2">
             <div class="col-2">
-                <button class="btn btn-success">Salvar arquivo associando a este registro.</button>
+                <button class="btn btn-success">Salvar arquivo associando a este registro de ID =   {{ $documento->ID }} .</button>
             </div>
-        </div>
+
     </form>
 
     <hr>
@@ -142,4 +126,15 @@
     {{-- //////////////////////////////////// FIM ARQUIVOS DE LANCAMENTOS DOCUMENTOS --}}
 </div>
 
+{{-- <script>
+    document.getElementById('buscaArquivo').addEventListener('keyup', function() {
+        var filter = this.value.toLowerCase();
+        var select = document.getElementById('arquivo_id');
+        var options = select.options;
 
+        for (var i = 0; i < options.length; i++) {
+            var optionText = options[i].text.toLowerCase();
+            options[i].style.display = optionText.includes(filter) ? '' : 'none';
+        }
+    });
+</script> --}}

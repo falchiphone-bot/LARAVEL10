@@ -804,6 +804,8 @@ class ContasPagarController extends Controller
 
     public function CreateArquivoContasPagar(ArquivoContasPagarCreateRequest $request)
     {
+
+       
         $id = $request->contaspagar_id;
 
         $arquivo_id = $request->arquivo_id;

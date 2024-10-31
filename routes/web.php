@@ -420,11 +420,12 @@ Route::resource('RedeSocialUsuarios', App\Http\Controllers\RedeSocialUsuarioCont
 #LANCAMENTO - DOCUMENTO
 // Route::get('Moedas/dashboard', [App\Http\Controllers\MoedaController::class, 'dashboard'])->name('moedas.dashboard');
 
-// Route::post('ContasPagar/CreateArquivoContasPagar', [App\Http\Controllers\ContasPagarController::class, 'CreateArquivoContasPagar'])->name('contaspagar.ArquivoContasPagar');
-Route::post('Lancamentos/CreateArquivoDocumentos', [App\Http\Controllers\ContasPagarController::class, 'CreateArquivoDocumentos'])->name('lancamentos.ArquivoLancamentoDocumentos');
+
+
 Route::get('Lancamentos.DadosGabrielMagossiFalchi', [LancamentosController::class, 'exibirDadosGabrielMagossiFalchi'])->name('lancamentos.exibirDadosGabrielMagossiFalchi');
 Route::get('Lancamentos.DadosMes', [LancamentosController::class, 'DadosMes'])->name('lancamentos.DadosMes');
 // Route::get('Lancamentos.DadosGabrielMagossiFalchi', function () { return view('Lancamentos.DadosGabrielMagossiFalchi');})->name('Lancamentos.DadosGabrielMagossiFalchi');
+Route::post('Lancamentos/createArquivoDocumentos', [App\Http\Controllers\LancamentosDocumentosController::class, 'createArquivoDocumentos'])->name('lancamentos.ArquivoLancamentoDocumentos');
 Route::post('LancamentosDocumentos/pesquisaavancada', [App\Http\Controllers\LancamentosDocumentosController::class, 'pesquisaavancada'])->name('lancamentosdocumentos.pesquisaavancada');
 Route::get('/lancamentosdocumentos/{id}',[App\Http\Controllers\LancamentosDocumentosController::class,'indexpost'])->name('LancamentosDocumentosID.index');
 Route::resource('LancamentosDocumentos', App\Http\Controllers\LancamentosDocumentosController::class);
@@ -440,7 +441,7 @@ Route::resource('LancamentosDocumentos', App\Http\Controllers\LancamentosDocumen
 
     // Route::post('LeituraArquivo/SelecionaDatasFaturaEmAberto', [App\Http\Controllers\LeituraArquivoController::class, 'SelecionaDatasFaturaEmAberto'])->name('LeituraArquivo.SelecionaDatasFaturaEmAberto');
     Route::post('FaturaSicrediAberto/SelecionaDatasFaturaEmAberto', [App\Http\Controllers\FaturaCartaoCreditoSicrediAbertoController::class, 'SelecionaDatasFaturaEmAberto'])->name('FaturaSicrediAberto.SelecionaDatasFaturaEmAberto');
- Route::get('LeituraArquivo/SomenteLinha', function () { return view('LeituraArquivo.SomenteLinha');})->name('LeituraArquivo.SomenteLinha');
+    Route::get('LeituraArquivo/SomenteLinha', function () { return view('LeituraArquivo.SomenteLinha');})->name('LeituraArquivo.SomenteLinha');
     Route::resource('LeituraArquivo', App\Http\Controllers\LeituraArquivoController::class);
 
 

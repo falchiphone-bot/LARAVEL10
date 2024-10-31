@@ -179,6 +179,7 @@ class LancamentosDocumentosController extends Controller
 
         $documentoListado = LancamentoDocumento::with('TipoArquivoNome')
         ->where('TipoArquivo', '>', 0)
+        ->where('ID', '!=', $id)
         ->orderBy('ID', 'desc')
         ->get();
 
@@ -238,15 +239,17 @@ class LancamentosDocumentosController extends Controller
 
     }
 
-    public function CreateArquivoDocumentos(ArquivoDocumentosCreateRequest $request)
+    public function createArquivoDocumentos(ArquivoDocumentosCreateRequest $request)
     {
-        $id = $request->contaspagar_id;
-
-        $arquivo_id = $request->arquivo_id;
 
 
-        $Existe = DocumentosArquivoVinculo::where('arquivo_id_vinculo',$arquivo_id)
-        ->where('Documento_id',$id)
+        $id = $request->documento_id;
+
+        $arquivo_id_vinculo = $request->arquivo_id_vinculo;
+
+        
+        $Existe = DocumentosArquivoVinculo::where('arquivo_id_vinculo',$arquivo_id_vinculo)
+        ->where('documento_id',$id)
         ->first();
 
         if($Existe){

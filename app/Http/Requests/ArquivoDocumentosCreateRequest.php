@@ -22,7 +22,7 @@ class ArquivoDocumentosCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'Arquivo_id_vinculo' =>'required',
+            'documento_id' =>'required',
         ];
     }
 }
