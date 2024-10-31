@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ArquivoDocumentosCreateRequest;
 use App\Http\Requests\MoedaCreateRequest;
 use App\Http\Requests\MoedaValoresCreateRequest;
+use App\Models\DocumentosArquivoVinculo;
 use App\Models\LancamentoDocumento;
 use App\Models\TipoArquivo;
 use Illuminate\Http\Request;
@@ -174,9 +176,31 @@ class LancamentosDocumentosController extends Controller
         $documento = LancamentoDocumento::find($id);
 
 
-        $retorno['TipoArquivo'] = $documento->TipoArquivo;
+
+        $documentoListado = LancamentoDocumento::with('TipoArquivoNome')
+        ->where('TipoArquivo', '>', 0)
+        ->orderBy('ID', 'desc')
+        ->get();
+
+
+        $retorno['TipoArquivo'] = $documento->TipoArquivo ?? null;
         $tipoarquivo = TipoArquivo::OrderBy('nome')->get();
-        return view('LancamentosDocumentos.edit',compact('documento','tipoarquivo','retorno','tipoarquivo'));
+
+
+        $arquivoExiste = null;
+        $DocumentoArquivo = DocumentosArquivoVinculo::where('documento_id','=', $id)
+             ->orderBy('id')
+             ->get();
+
+             foreach ($DocumentoArquivo as $DocumentoArquivos) {
+                 $arquivoExiste = $DocumentoArquivos->id;
+
+             }
+
+
+
+
+        return view('LancamentosDocumentos.edit',compact('documento','tipoarquivo','retorno','tipoarquivo','arquivoExiste','DocumentoArquivo','documentoListado'));
     }
 
     /**
@@ -213,4 +237,34 @@ class LancamentosDocumentosController extends Controller
         return redirect(route('LancamentosDocumentos.index'));
 
     }
+
+    public function CreateArquivoDocumentos(ArquivoDocumentosCreateRequest $request)
+    {
+        $id = $request->contaspagar_id;
+
+        $arquivo_id = $request->arquivo_id;
+
+
+        $Existe = DocumentosArquivoVinculo::where('arquivo_id_vinculo',$arquivo_id)
+        ->where('Documento_id',$id)
+        ->first();
+
+        if($Existe){
+            session(['error' => "ARQUIVO EXISTE:  "
+            . $Existe->MostraLancamentoDocumento->Rotulo.  ' do tipo de arquivo: '
+            . $Existe->MostraLancamentoDocumento->TipoArquivoNome->nome
+            .",  já existe para este registro!"]);
+            return redirect(route('LancamentosDocumentos.edit', $id));
+        }
+
+        $request['user_created'] = Auth ::user()->email;
+
+        // dd($request->all());
+        $model = $request->all();
+        DocumentosArquivoVinculo::create($model);
+        return redirect(route('LancamentosDocumentos.edit', $id));
+    }
+
+
+
 }

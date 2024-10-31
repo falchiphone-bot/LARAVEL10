@@ -420,6 +420,8 @@ Route::resource('RedeSocialUsuarios', App\Http\Controllers\RedeSocialUsuarioCont
 #LANCAMENTO - DOCUMENTO
 // Route::get('Moedas/dashboard', [App\Http\Controllers\MoedaController::class, 'dashboard'])->name('moedas.dashboard');
 
+// Route::post('ContasPagar/CreateArquivoContasPagar', [App\Http\Controllers\ContasPagarController::class, 'CreateArquivoContasPagar'])->name('contaspagar.ArquivoContasPagar');
+Route::post('Lancamentos/CreateArquivoDocumentos', [App\Http\Controllers\ContasPagarController::class, 'CreateArquivoDocumentos'])->name('lancamentos.ArquivoLancamentoDocumentos');
 Route::get('Lancamentos.DadosGabrielMagossiFalchi', [LancamentosController::class, 'exibirDadosGabrielMagossiFalchi'])->name('lancamentos.exibirDadosGabrielMagossiFalchi');
 Route::get('Lancamentos.DadosMes', [LancamentosController::class, 'DadosMes'])->name('lancamentos.DadosMes');
 // Route::get('Lancamentos.DadosGabrielMagossiFalchi', function () { return view('Lancamentos.DadosGabrielMagossiFalchi');})->name('Lancamentos.DadosGabrielMagossiFalchi');
