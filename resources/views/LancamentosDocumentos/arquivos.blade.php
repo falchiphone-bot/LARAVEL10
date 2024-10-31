@@ -58,9 +58,10 @@
         @if ($arquivoExiste)
             <tr>
                 <th>Arquivo(s)</th>
-                <th></th>
                 <th>Tipo de arquivo</th>
                 <th></th>
+                <th></th>
+
             </tr>
 
 
@@ -104,6 +105,11 @@
 
                     {{-- <img src="https://lh3.googleusercontent.com/drive-viewer/AFGJ81pZa4Oj2S1PHjJSwO3uKmakwnnwzqpyipCoW9fQ_HdiN5fFkamKBl_FMUEJBV4scPgVVhLmEFtYRdJXtO8QXyWf5PtETw=w1292-h636" alt="{{ $item->MostraLancamentoDocumento->Rotulo }}"> --}}
                     <td>{{ $item->MostraLancamentoDocumento->TipoArquivoNome->nome ?? null  }}</td>
+
+                    @can('LANCAMENTOS DOCUMENTOS - EDITAR')
+                        <td><a href="{{ route('LancamentosDocumentos.edit', $item->arquivo_id_vinculo) }}" class="btn btn-success"
+                                tabindex="-1" role="button" aria-disabled="true">Editar</a></td>
+                     @endcan
 
                     @can('CONTASPAGAR - EXCLUIR')
                         <td>
