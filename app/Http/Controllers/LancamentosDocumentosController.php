@@ -190,6 +190,7 @@ class LancamentosDocumentosController extends Controller
 
         $arquivoExiste = null;
         $DocumentoArquivo = DocumentosArquivoVinculo::where('documento_id','=', $id)
+             ->Orwhere('arquivo_id_vinculo','=', $id)
              ->orderBy('id')
              ->get();
 
@@ -247,7 +248,7 @@ class LancamentosDocumentosController extends Controller
 
         $arquivo_id_vinculo = $request->arquivo_id_vinculo;
 
-        
+
         $Existe = DocumentosArquivoVinculo::where('arquivo_id_vinculo',$arquivo_id_vinculo)
         ->where('documento_id',$id)
         ->first();
