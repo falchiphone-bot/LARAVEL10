@@ -16,6 +16,7 @@ class LancamentoDocumento extends Model
         'Rotulo',
         'LancamentoID',
         'Nome',
+        'NomeLocalTimeStamps',
         'Created',
         'UsuarioID',
         'Ext',

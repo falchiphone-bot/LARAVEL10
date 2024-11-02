@@ -213,7 +213,15 @@ class LancamentosDocumentosController extends Controller
 
         $idEdit = $id;
 
+
         $cadastro = LancamentoDocumento::find($id);
+
+        if($cadastro->NomeLocalTimeStamps == null){
+            $currentTimestamp = time();
+            // dd($currentTimestamp);
+            $cadastro->NomeLocalTimestamps = $currentTimestamp;
+        }
+
 
         $cadastro->fill($request->all()) ;
 
