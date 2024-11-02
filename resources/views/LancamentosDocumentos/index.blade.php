@@ -39,7 +39,14 @@
                                 <a class="btn btn-success" href="/drive/google/login/">Autenticar no Google
                                     Drive</a>
                             </nav>
+
                         @endif
+
+                        <nav class="navbar navbar-red" style="background-color: hsla(147, 92%, 47%, 0.411);">
+                            <a class="btn btn-primary" href="/drivelocal/UploadArquivoLocal">Upload de arquivo para servidor local</a>
+
+                        </nav>
+
                     @endcan
                     @can('LANCAMENTOS DOCUMENTOS - LISTAR')
                         <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
@@ -201,9 +208,17 @@
 
                                                 <div class="form-group">
                                                     {{-- Visualizar o documento: <a href="https://drive.google.com/file/d/{{ $documento->MostraLancamentoDocumento->Nome ?? null }}/view??usp=sharing" target="_blank">{{ $documento->MostraLancamentoDocumento->Rotulo ?? null }}</a> --}}
-                                                    <strong>Visualizar o documento:</strong> <a href="https://drive.google.com/file/d/{{ $documento->Nome ?? null }}/view??usp=sharing" target="_blank">{{ $documento->Rotulo ?? null }}</a>
+                                                    <strong>Visualizar o documento:</strong> <a href="https://drive.google.com/file/d/{{ $documento->Nome ?? null }}/view??usp=sharing"
+                                                        target="_blank">{{ $documento->Rotulo ?? null }}</a>
 
                                                 </div>
+
+                                                @if(!empty($documento->NomeLocalTimeStamps))
+                                                    <div class="form-group">
+                                                        {{-- Visualizar o documento: <a href="https://drive.google.com/file/d/{{ $documento->MostraLancamentoDocumento->Nome ?? null }}/view??usp=sharing" target="_blank">{{ $documento->MostraLancamentoDocumento->Rotulo ?? null }}</a> --}}
+                                                        <strong>Visualizar o documento no servidor local:</strong> <a href="/storage/arquivos/{{ $documento->NomeLocalTimeStamps . '.'.$documento->Ext ?? null }}" target="_blank">{{ $documento->Rotulo ?? null }}</a>
+                                                    </div>
+                                                @endif
 
                                        </div>
 

@@ -277,6 +277,140 @@ class LancamentosDocumentosController extends Controller
         return redirect(route('LancamentosDocumentos.edit', $id));
     }
 
+    public function DriveLocalFileUpload(Request $request)
+    {
+        $complemento = $request->complemento;
+
+        if ($complemento == 'RETIRAR PONTOABCDEFG.') {
+            $complemento_sem_pontos = str_replace('.', '', $complemento);
+
+            session([
+                'InformacaoArquivo' => 'O complemento possui  caracteres  com pontos. RETIRADO! QUALQUER DÚVIDA CONSULTE O ADMINISTRADOR DO SISTEMA. TEXTO:' . $complemento_sem_pontos,
+            ]);
+            return redirect(route('informacao.arquivos'));
+        }
+
+        $complemento_sem_pontos = str_replace('.', '', $complemento);
+        $complemento = $complemento_sem_pontos;
+
+        $quantidadeCaracteres = trim(strlen($complemento));
+        if ($quantidadeCaracteres > 150) {
+            session([
+                'InformacaoArquivo' => 'O complemento possui ' . $quantidadeCaracteres . ' caracteres. Quantidade de caracteres maior que o permitido que é 150.',
+            ]);
+            return redirect(route('informacao.arquivos'));
+        }
+
+
+        dd($complemento);
+
+        // https://laravel.com/docs/10.x/filesystem#the-local-driver
+
+        $service = new \Google_Service_Drive($this->gClient);
+
+        // $user= User::find(1);
+        // Cache::put('token_google', session('googleUser')->token , $seconds = 1800);
+        $this->gClient->setAccessToken(session('googleUserDrive'));
+
+        if ($this->gClient->isAccessTokenExpired()) {
+            $request->session()->put('token', false);
+            return redirect('/drive/google/login');
+
+            // SAVE REFRESH TOKEN TO SOME VARIABLE
+            $refreshTokenSaved = $this->gClient->getRefreshToken();
+
+            // UPDATE ACCESS TOKEN
+            $this->gClient->fetchAccessTokenWithRefreshToken($refreshTokenSaved);
+
+            // PASS ACCESS TOKEN TO SOME VARIABLE
+            $updatedAccessToken = $this->gClient->getAccessToken();
+
+            // APPEND REFRESH TOKEN
+            $updatedAccessToken['refresh_token'] = $refreshTokenSaved;
+
+            // SET THE NEW ACCES TOKEN
+            $this->gClient->setAccessToken($updatedAccessToken);
+
+            $user->access_token = $updatedAccessToken;
+
+            $user->save();
+        }
+
+        $fileMetadata = new \Google_Service_Drive_DriveFile([
+            'name' => 'Prfcontabilidade', // ADD YOUR GOOGLE DRIVE FOLDER NAME
+            'mimeType' => 'application/vnd.google-apps.folder',
+        ]);
+
+        // $folder = $service->files->create($fileMetadata, array('fields' => 'id'));
+
+        // printf("Folder ID: %s\n", $folder->id);
+        // $arquivo = $request->file('arquivo');
+
+        /// usar na pasta do servidor - não apaga
+        // $path = $request->file('arquivo')->store('contabilidade');
+
+        /////// aqui fica na pasta temporário /temp/    - apaga
+        $path = $request->file('arquivo')->getRealPath();
+
+        $file = $request->file('arquivo');
+        $Complemento = $request->complemento;
+        $name = $file->getClientOriginalName();
+        $extension = $file->getClientOriginalExtension();
+
+        // $folder = '1Jzih3qPaWpf7HISQEsDpUpH0ab7eS-yJ';   //FIXADO NO ARQUIVO .env
+        $folder = config('services.google_drive.folder');
+        // $folder = null;
+        if ($folder == null) {
+            session([
+                'InformacaoArquivo' => 'Pasta não informada! Verifique o arquivo de configuração env( FOLDER_DRIVE_GOOGLE ). Execute: # php artisan config:clear no SERVIDOR DOCKER LARAVEL',
+            ]);
+            return redirect(route('informacao.arquivos'));
+        }
+        $folderTemp = config('services.google_drive.folder');
+        // $folderTemp = null;
+        if ($folderTemp == null) {
+            session([
+                'InformacaoArquivo' => 'Pasta não informada! Verifique o arquivo de configuração env( FOLDER_DRIVE_GOOGLE_TEMPORARIA ).',
+            ]);
+            return redirect(route('informacao.arquivos'));
+        }
+        // $nome_arquivo = $request->file('arquivo')->getClientOriginalName();
+
+        // // $nome_arquivo = Carbon::now().'-(100)-'.$request->file('arquivo')->getClientOriginalName();
+
+        $nome_arquivo = Carbon::now() . '-' . $request->file('arquivo')->getClientOriginalName();
+
+        // $nome_arquivo_sem_pontos = str_replace('.', '', $nome_arquivo);
+
+
+        // $file = new \Google_Service_Drive_DriveFile(array('name' => 'piso1.jpg','parents' => array($folder->id)));
+        $file = new \Google_Service_Drive_DriveFile(['name' => $nome_arquivo, 'parents' => [$folder]]);
+
+        $result = $service->files->create($file, [
+            // dd(Storage::path('contabilidade/sample.pdf')),
+            // 'data' => file_get_contents(Storage::path($path)), // ADD YOUR FILE PATH WHICH YOU WANT TO UPLOAD ON GOOGLE DRIVE
+            'data' => file_get_contents($path), // ADD YOUR FILE PATH WHICH YOU WANT TO UPLOAD ON GOOGLE DRIVE
+            'mimeType' => 'application/octet-stream',
+            'uploadType' => 'media',
+        ]);
+
+        $client = $this->gClient;
+
+        // dd($result, explode('.', $result->getId()), explode('.', $result->getName())[1]);
+        $Documentos = LancamentoDocumento::create([
+            'Rotulo' => $Complemento,
+            'LancamentoID' => null,
+            'Nome' => $result->getId(),
+            'Created' => date('d-m-Y H:i:s'),
+            'UsuarioID' => Auth::user()->id,
+            'Ext' => explode('.', $result->getName())[1],
+        ]);
+
+        session([
+            'InformacaoArquivo' => 'Arquivo enviado com sucesso. O ID do mesmo é ' . $result->id,
+        ]);
+               return redirect(route('informacao.arquivos'));
+    }
 
 
 }

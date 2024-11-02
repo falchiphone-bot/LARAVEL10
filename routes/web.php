@@ -425,6 +425,10 @@ Route::resource('RedeSocialUsuarios', App\Http\Controllers\RedeSocialUsuarioCont
 // Route::get('Moedas/dashboard', [App\Http\Controllers\MoedaController::class, 'dashboard'])->name('moedas.dashboard');
 
 
+Route::get('drivelocal/UploadArquivoLocal', function () { return view('LancamentosDocumentos.UploadArquivoServidorLocal');})->name('upload.arquivosLocal');
+// Route::post('drive/google-drive/file-upload', [App\Http\Controllers\GoogleDriveController::class, 'googleDriveFileUpload'])->name('google.drive.file.upload');
+Route::post('drivelocal/file-upload', [App\Http\Controllers\LancamentosDocumentosController::class, 'DriveLocalFileUpload'])->name('drivelocal.file.upload');
+
 
 Route::get('Lancamentos.DadosGabrielMagossiFalchi', [LancamentosController::class, 'exibirDadosGabrielMagossiFalchi'])->name('lancamentos.exibirDadosGabrielMagossiFalchi');
 Route::get('Lancamentos.DadosMes', [LancamentosController::class, 'DadosMes'])->name('lancamentos.DadosMes');
