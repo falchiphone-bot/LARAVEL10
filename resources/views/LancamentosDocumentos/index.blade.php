@@ -205,13 +205,14 @@
 
 
                                             </div>
-
+                                            @if(!empty($documento->Nome))
                                                 <div class="form-group">
                                                     {{-- Visualizar o documento: <a href="https://drive.google.com/file/d/{{ $documento->MostraLancamentoDocumento->Nome ?? null }}/view??usp=sharing" target="_blank">{{ $documento->MostraLancamentoDocumento->Rotulo ?? null }}</a> --}}
                                                     <strong>Visualizar o documento:</strong> <a href="https://drive.google.com/file/d/{{ $documento->Nome ?? null }}/view??usp=sharing"
                                                         target="_blank">{{ $documento->Rotulo ?? null }}</a>
-
                                                 </div>
+                                            @endif
+
 
                                                 @if(!empty($documento->NomeLocalTimeStamps))
                                                     <div class="form-group">

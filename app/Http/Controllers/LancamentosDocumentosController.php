@@ -15,6 +15,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Nette\Utils\Strings;
 use PHPUnit\Framework\Constraint\Count;
+use Illuminate\Support\Facades\Storage;
 
 
 class LancamentosDocumentosController extends Controller
@@ -279,6 +280,7 @@ class LancamentosDocumentosController extends Controller
 
     public function DriveLocalFileUpload(Request $request)
     {
+        $timestamps = time();
         $complemento = $request->complemento;
 
         if ($complemento == 'RETIRAR PONTOABCDEFG.') {
@@ -311,50 +313,55 @@ class LancamentosDocumentosController extends Controller
         $name = $file->getClientOriginalName();
         $extension = $file->getClientOriginalExtension();
 
-DD($file, $Complemento, $name, $extension);
+// DD($file, $Complemento, $name, $extension);
 
 
-        // $folder = '1Jzih3qPaWpf7HISQEsDpUpH0ab7eS-yJ';   //FIXADO NO ARQUIVO .env
-        $folder = config('services.google_drive.folder');
-        // $folder = null;
-        if ($folder == null) {
-            session([
-                'InformacaoArquivo' => 'Pasta não informada! Verifique o arquivo de configuração env( FOLDER_DRIVE_GOOGLE ). Execute: # php artisan config:clear no SERVIDOR DOCKER LARAVEL',
-            ]);
-            return redirect(route('informacao.arquivos'));
-        }
-        $folderTemp = config('services.google_drive.folder');
-        // $folderTemp = null;
-        if ($folderTemp == null) {
-            session([
-                'InformacaoArquivo' => 'Pasta não informada! Verifique o arquivo de configuração env( FOLDER_DRIVE_GOOGLE_TEMPORARIA ).',
-            ]);
-            return redirect(route('informacao.arquivos'));
-        }
-        // $nome_arquivo = $request->file('arquivo')->getClientOriginalName();
 
-        // // $nome_arquivo = Carbon::now().'-(100)-'.$request->file('arquivo')->getClientOriginalName();
-
-        $nome_arquivo = Carbon::now() . '-' . $request->file('arquivo')->getClientOriginalName();
-
-        // $nome_arquivo_sem_pontos = str_replace('.', '', $nome_arquivo);
+        // $nome_arquivo = Carbon::now() . '-' . $request->file('arquivo')->getClientOriginalName();
 
 
-        // $file = new \Google_Service_Drive_DriveFile(array('name' => 'piso1.jpg','parents' => array($folder->id)));
+        // $Documentos = LancamentoDocumento::create([
+        //     'Rotulo' => $Complemento,
+        //     'LancamentoID' => null,
+        //     'Nome' => time(),
+        //     'Created' => date('d-m-Y H:i:s'),
+        //     'UsuarioID' => Auth::user()->id,
+        //     'Ext' => explode('.',  $extension)[1],
+        // ]);
 
-
-        // dd($result, explode('.', $result->getId()), explode('.', $result->getName())[1]);
-        $Documentos = LancamentoDocumento::create([
+        $Documentos = new LancamentoDocumento([
             'Rotulo' => $Complemento,
             'LancamentoID' => null,
-            'Nome' => $result->getId(),
-            'Created' => date('d-m-Y H:i:s'),
+            'NomeLocalTimeStamps' => $timestamps,
+            'Created' => date('Y-m-d H:i:s'), // Alterado para o formato de data mais comum
             'UsuarioID' => Auth::user()->id,
-            'Ext' => explode('.', $result->getName())[1],
+            'Ext' => $extension,
         ]);
 
+        $Documentos->save();
+
+
+
+            // Validar a existência do arquivo na requisição
+            $request->validate([
+                'arquivo' => 'required|file', // ajuste as validações conforme necessário
+            ]);
+
+            // Gerar o nome do arquivo com o timestamp e o nome original
+            $nomeArquivo = $timestamps.'.'.$extension;
+
+            // Salvar o arquivo na pasta storage/arquivos
+            $caminhoArquivo = $request->file('arquivo')->storeAs('arquivos', $nomeArquivo);
+
+            // Retornar o caminho completo ou qualquer resposta necessária
+            // return response()->json(['caminho' => Storage::url($caminhoArquivo)]);
+
+
+
+
+
         session([
-            'InformacaoArquivo' => 'Arquivo enviado com sucesso. O ID do mesmo é ' . $result->id,
+            'InformacaoArquivo' => 'Arquivo enviado com sucesso. O ID do mesmo é ' .  $timestamps,
         ]);
                return redirect(route('informacao.arquivos'));
     }
