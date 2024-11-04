@@ -497,7 +497,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
 
 
                     if ($NumeroParcela > 1) {
-                        dd(486,$NumeroParcela, $QuantidadeParcela, $linha );
+                        dd(500,$NumeroParcela, $QuantidadeParcela, $linha );
                         continue;
                     }
 
