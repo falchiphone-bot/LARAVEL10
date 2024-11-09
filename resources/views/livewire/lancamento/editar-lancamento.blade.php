@@ -139,6 +139,14 @@
                                     <span class="oculto badge badge-danger">Informação obrigatória</span>
                                 </div>
 
+
+                                <div class="form-group col-sm-2">
+                                    <label for="valorquantidadedolar" class=" form-control-label">Valor em quantidade de dolares</label>
+                                    <input type="text" id="valorquantidadedolar" name="valorquantidadedolar" placeholder="US$"
+                                        class="form-control money" wire:model.lazy="lancamento.ValorQuantidadeDolar">
+                                    <span class="oculto badge badge-danger">Informação não obrigatória</span>
+                                </div>
+
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary"
                                         data-bs-dismiss="modal">Fechar</button>

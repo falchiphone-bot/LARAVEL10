@@ -65,6 +65,8 @@ class Extrato extends Component
         $this->emitTo('lancamento.arquivo-lancamento', 'resetData', $lancamento_id);
         $this->dispatchBrowserEvent('abrir-modal');
         $this->modal = true;
+
+        // dd('Editanto Lancamento');
     }
 
     public function alterarData($date)
@@ -277,7 +279,7 @@ class Extrato extends Component
                 ->orderBy('DataContabilidade')
                 ->whereDoesntHave('SolicitacaoExclusao')
                 ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
-                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID',
+                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'Lancamentos.ValorQuantidadeDolar','DataContabilidade', 'Lancamentos.ContaCreditoID',
                  'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao',
                  'Conferido', 'SaidasGeral', 'EntradasGeral', 'Investimentos', 'Transferencias', 'SemDefinir']);
         } else {

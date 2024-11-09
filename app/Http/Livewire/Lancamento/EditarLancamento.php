@@ -46,10 +46,12 @@ class EditarLancamento extends Component
     protected function prepareForValidation($attributes)
     {
         $attributes['lancamento']->Valor = str_replace(',', '.', str_replace('.', '', $attributes['lancamento']->Valor));
+        $attributes['lancamento']->ValorQuantidadeDolar = str_replace(',', '.', str_replace('.', '', $attributes['lancamento']->ValorQuantidadeDolar));
         return $attributes;
     }
     protected $rules = [
         'lancamento.Valor' => 'required|decimal:2|gt:0',
+        'lancamento.ValorQuantidadeDolar' => 'decimal:2|gt:0',
         'lancamento.EmpresaID' => 'required|integer',
         'lancamento.ContaCreditoID' => 'required|integer',
         'lancamento.ContaDebitoID' => 'required|integer',
@@ -92,6 +94,7 @@ class EditarLancamento extends Component
 
             if ($this->lancamento->save()) {
                 $this->lancamento->Valor = number_format($this->lancamento->Valor, 2, ',', '.');
+                $this->lancamento->ValorQuantidadeDolar = number_format($this->lancamento->ValorQuantidadeDolar, 2, ',', '.');
                 session()->flash('message', 'Lançamento atualizado.');
                 // $this->lancamento['DataContabilidade'] = $this->lancamento->DataContabilidade->format('Y-m-d');
             } else {

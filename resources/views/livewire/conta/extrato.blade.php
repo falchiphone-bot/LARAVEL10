@@ -351,6 +351,17 @@
                                             @endif
                                             {{-- //// extrato normal --}}
 
+                                            @if ($lancamento->ValorQuantidadeDolar)
+                                                <span style="color: rgb(255, 0, 0);">
+                                                    Quantidade de dolares: {{ number_format($lancamento->ValorQuantidadeDolar, 2, ',', '.') }}
+                                                </span>
+                                                {{-- @if (!in_array($lancamento->ID, $listaSoma))
+                                                    @php($totalDebito += $lancamento->Valor)
+                                                    @php($saldo += $lancamento->Valor)
+                                                    @php($somatoria += $lancamento->Valor)
+                                                @endif --}}
+                                            @endif
+
                                             @if ($Conferido == 'EntradasGeral' or $Conferido == 'SemDefinir' or $Conferido == 'Transferencias')
                                                 <span style="color: blue;">
                                                     {{ number_format($lancamento->Valor, 2, ',', '.') }}

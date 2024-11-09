@@ -16,6 +16,7 @@ class Lancamento extends Model
     protected $fillable = [
         'ID',
         'Valor',
+        'ValorQuantidadeDolar',
         'EmpresaID',
         'ContaDebitoID',
         'ContaCreditoID',
