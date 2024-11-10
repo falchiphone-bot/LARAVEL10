@@ -313,6 +313,12 @@
                                 <th>R$ {{ number_format($saldoAnterior, 2, ',', '.') }}</th>
                             </tr>
                             <tr>
+                                <th></th>
+                                <th></th>
+                                <th colspan="2">Saldo Anterior em quantidade de dolares</th>
+                                <th>US$ {{ number_format($saldoAnteriorDolar, 2, ',', '.') }}</th>
+                            </tr>
+                            <tr>
                                 <th>Data</th>
                                 <th></th>
                                 <th style="width: 10%">Débito</th>
@@ -326,6 +332,10 @@
                                 $somatoria = $saldoAnterior;
                                 $totalDebito = 0;
                                 $totalCredito = 0;
+                                $saldoDolar = $saldoAnteriorDolar;
+                                $somatoriaDolar = $saldoAnteriorDolar;
+                                $totalDebitoDolar = 0;
+                                $totalCreditoDolar = 0;
                             @endphp
                             @if ($Lancamentos)
                                 @foreach ($Lancamentos as $lancamento)
@@ -355,11 +365,11 @@
                                                 <span style="color: rgb(255, 0, 0);">
                                                     Quantidade de dolares: {{ number_format($lancamento->ValorQuantidadeDolar, 2, ',', '.') }}
                                                 </span>
-                                                {{-- @if (!in_array($lancamento->ID, $listaSoma))
-                                                    @php($totalDebito += $lancamento->Valor)
-                                                    @php($saldo += $lancamento->Valor)
-                                                    @php($somatoria += $lancamento->Valor)
-                                                @endif --}}
+                                                @if (!in_array($lancamento->ID, $listaSoma))
+                                                    @php($totalDebitoDolar += $lancamento->ValorQuantidadeDolar)
+                                                    @php($saldoDolar += $lancamento->ValorQuantidadeDolar)
+                                                    @php($somatoriaDolar += $lancamento->ValorQuantidadeDolar)
+                                                @endif
                                             @endif
 
                                             @if ($Conferido == 'EntradasGeral' or $Conferido == 'SemDefinir' or $Conferido == 'Transferencias')
@@ -645,7 +655,7 @@
                                 <thead class="thead">
                                     <tr>
                                         <th></th>
-                                        <th>Total</th>
+                                        <th>Total em real</th>
 
 
                                         <th id="totaldebito" style="color: blue;">
@@ -661,8 +671,29 @@
                                             <th id="total">R$ {{ number_format($somatoria, 2, ',', '.') }}
                                         </span>
 
+                                        <th></th>
+                                    </tr>
 
+                                    <tr>
+                                        <th></th>
+                                        <th>Total em quantidade de dolares</th>
+
+
+                                        <th id="totaldebitoDolar" style="color: blue;">
+                                            US$ {{ number_format($totalDebitoDolar, 2, ',', '.') }}
                                         </th>
+
+                                        <th id="totalcredito" style="color: red;">
+                                            US$ {{ number_format($totalCreditoDolar, 2, ',', '.') }}
+                                        </th>
+
+
+                                        <span style="color: {{ $somatoriaDolar < 0 ? 'red' : 'blue' }}">
+                                            <th id="total">US$ {{ number_format($somatoriaDolar, 2, ',', '.') }}
+                                        </span>
+
+
+                                        <th></th>
                                     </tr>
                                 </thead>
                             </div>

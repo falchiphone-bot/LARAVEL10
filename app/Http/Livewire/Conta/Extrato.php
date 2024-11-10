@@ -1344,6 +1344,33 @@ class Extrato extends Component
 
         $saldoAnterior = $totalDebito - $totalCredito;
 
+
+        $totalCreditoDolar = Lancamento::where(function ($q) use ($de, $contaID) {
+            return $q
+                ->where('ContaCreditoID', $contaID)
+                ->where('EmpresaID', $this->selEmpresa)
+                ->where('DataContabilidade', '<', $de);
+        })
+            ->whereDoesntHave('SolicitacaoExclusao')
+            ->sum('Lancamentos.ValorQuantidadeDolar');
+
+        $totalDebitoDolar = Lancamento::where(function ($q) use ($de, $contaID) {
+            return $q
+                ->where('ContaDebitoID', $contaID)
+                ->where('EmpresaID', $this->selEmpresa)
+                ->where('DataContabilidade', '<', $de);
+        })
+            ->whereDoesntHave('SolicitacaoExclusao')
+            ->sum('Lancamentos.ValorQuantidadeDolar');
+
+        $saldoAnteriorDolar = $totalDebitoDolar - $totalCreditoDolar;
+
+
+
+
+
+
+
         $empresas = Empresa::whereHas('EmpresaUsuario', function ($query) {
             return $query->where('UsuarioID', Auth::user()->id);
         })
@@ -1356,7 +1383,7 @@ class Extrato extends Component
             ->orderBy('PlanoContas.Descricao')
             ->get(['PlanoContas.Descricao', 'Contas.ID']);
 
-        return view('livewire.conta.extrato', compact('empresas', 'contas', 'saldoAnterior'));
+        return view('livewire.conta.extrato', compact('empresas', 'contas', 'saldoAnterior', 'saldoAnteriorDolar'));
     }
 
     public function gerarExtratoPdf_sempaginacao()
