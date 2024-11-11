@@ -361,7 +361,7 @@
                                             @endif
                                             {{-- //// extrato normal --}}
 
-                                            @if ($lancamento->ValorQuantidadeDolar)
+                                            @if ($lancamento->ValorQuantidadeDolar > 0)
                                                 <span style="color: rgb(255, 0, 0);">
                                                     Quantidade de dolares: {{ number_format($lancamento->ValorQuantidadeDolar, 2, ',', '.') }}
                                                 </span>

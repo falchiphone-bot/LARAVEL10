@@ -79,7 +79,19 @@ class EditarLancamento extends Component
 
     public function salvarLancamento($novo = null)
     {
+
+        // if($this->lancamento->ValorQuantidadeDolar == null || $this->lancamento->ValorQuantidadeDolar =="" || $this->lancamento->ValorQuantidadeDolar == '0,00'){
+        //     $this->lancamento->ValorQuantidadeDolar =  '0,01';
+        // }
+
+
         $this->validate();
+
+        // if($this->lancamento->ValorQuantidadeDolar == '0.01'){
+        //     $this->lancamento->ValorQuantidadeDolar =  'null';
+        // }
+
+
         if ($novo) {
             $novoLancamento = $this->lancamento->replicate();
             if (!$this->temBloqueio()) {
@@ -92,9 +104,31 @@ class EditarLancamento extends Component
             $this->lancamento['EmpresaID'] = $this->lancamento['EmpresaID'] ?? session('conta.extrato.empresa.id');
             $this->lancamento['Usuarios_id'] = $this->lancamento['Usuarios_id'] ?? Auth::user()->id;
 
+
+            // $this->lancamento->Valor = number_format($this->lancamento->Valor, 2, ',', '.');
+
+            $valor = $this->lancamento->Valor;
+$valor = str_replace(['.', ','], ['', '.'], $valor);
+$valor = (float) $valor / 100;
+
+$valor = number_format($valor, 2, ',', '.');
+
+
+
+
+
+
+             $this->lancamento->Valor = $this->lancamento->Valor;
+            // $this->lancamento->ValorQuantidadeDolar = number_format($this->lancamento->ValorQuantidadeDolar, 2, ',', '.');
+
+            if($this->lancamento->ValorQuantidadeDolar == null || $this->lancamento->ValorQuantidadeDolar =="" || $this->lancamento->ValorQuantidadeDolar == 0){
+                $this->lancamento->ValorQuantidadeDolar =  '0.00';
+            }
+
+
             if ($this->lancamento->save()) {
-                $this->lancamento->Valor = number_format($this->lancamento->Valor, 2, ',', '.');
-                $this->lancamento->ValorQuantidadeDolar = number_format($this->lancamento->ValorQuantidadeDolar, 2, ',', '.');
+
+
                 session()->flash('message', 'Lançamento atualizado.');
                 // $this->lancamento['DataContabilidade'] = $this->lancamento->DataContabilidade->format('Y-m-d');
             } else {
