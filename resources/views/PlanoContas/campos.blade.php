@@ -48,6 +48,24 @@
            </div>
 
 
+
+           <div class="row">
+            <div class="col-6">
+                <label for="UsarDolar">Usar dólar</label>
+                <input class="form-check-input @error('UsarDolar') is-invalid @else is-valid @enderror"
+                       name="UsarDolar"
+                       type="checkbox"
+                       id="UsarDolar"
+                       value="1"
+                       {{ !empty($cadastro->UsarDolar) && $cadastro->UsarDolar ? 'checked' : '' }}>
+                @error('UsarDolar')
+                <div class="alert alert-danger">{{ $message }}</div>
+                @enderror
+            </div>
+        </div>
+
+        </div>
+
            @if ($cadastro->Grau == 5)
                 <div class="form-group">
                     <div class="badge bg-info text-wrap" style="width: 100%; height: 50%; font-size: 24px;">

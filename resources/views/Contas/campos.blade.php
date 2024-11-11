@@ -12,6 +12,19 @@
                 </div>
 
             </div>
+
+
+            <div class="row">
+                <div class="col-6">
+                    <label for="nome">Usar dolar</label>
+                    <input class="form-control @error('UsarDolar') is-invalid @else is-valid @enderror" name="UsarDolar"
+                        type="text" id="UsarDolar" value="{{$cadastro->UsarDolar??null}}">
+                    @error('UsarDolar')
+                        <div class="alert alert-danger">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
+
             <div class="row">
                 <div class="col-6">
                     <label for="email">CNPJ</label>

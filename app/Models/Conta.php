@@ -26,6 +26,7 @@ class Conta extends Model
         'BalancoEncerrado',
         'ContaPublica',
         'Nota',
+        'UsarDolar',
 
     ];
 
@@ -45,6 +46,7 @@ class Conta extends Model
         'BalancoEncerrado' => 'integer',
         'ContaPublica' => 'integer',
         'Nota' => 'integer',
+        'UsarDolar' => 'integer',
     ];
 
     /**
@@ -61,5 +63,5 @@ class Conta extends Model
     {
         return $this->hasOne(Empresa::class,'ID','EmpresaID');
     }
-     
+
 }

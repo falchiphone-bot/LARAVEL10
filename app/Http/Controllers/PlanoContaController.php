@@ -1280,6 +1280,9 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
     public function update(Request $request, string $id)
     {
         $EmpresaID = $request->EmpresaSelecionada;
+        $UsarDolar = $request->UsarDolar;
+
+        // dd($request->all());
 
         if ($EmpresaID) {
             $Descricao = Empresa::find($EmpresaID)->Descricao;
@@ -1306,6 +1309,7 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
             'Modified' => $Modified,
             'Usuarios_id' => $UsuarioID,
             'Contapagamento' => 1,
+            'UsarDolar' => $UsarDolar,
             'Nota' => $InseridoPor]);
 
             $Contanova->save();

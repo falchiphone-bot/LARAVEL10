@@ -25,6 +25,13 @@ class PlanoConta extends Model
         'CalculoHabilitado',
         'CodigoSkala',
         'Agrupamento',
+        'UsarDolar',
+    ];
+
+
+    protected $casts = [
+        'UsarDolar' => 'boolean',
+
     ];
 
     // protected $casts = [
