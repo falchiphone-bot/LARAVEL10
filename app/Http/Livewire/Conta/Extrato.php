@@ -1367,21 +1367,30 @@ class Extrato extends Component
 
 
 
-
-
-
-
         $empresas = Empresa::whereHas('EmpresaUsuario', function ($query) {
             return $query->where('UsuarioID', Auth::user()->id);
         })
             ->select(DB::raw("CONCAT(Descricao,' - ',Cnpj) as Descricao"), 'ID')
             ->orderBy('Descricao')
             ->pluck('Descricao', 'ID');
+
         $contas = Conta::where('EmpresaID', $this->selEmpresa)
             ->where('Grau', 5)
-            ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', 'Planocontas_id')
+            ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', 'Planocontas_id',)
             ->orderBy('PlanoContas.Descricao')
-            ->get(['PlanoContas.Descricao', 'Contas.ID']);
+            ->get(['PlanoContas.Descricao', 'Contas.ID','PlanoContas.UsarDolar']);
+
+
+
+        //     $contaDolar = Conta::where('EmpresaID', $this->selEmpresa)
+        //     ->where('Grau', 5)
+        //     ->where('PlanoContas.UsarDolar', 1)
+        //     ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', 'Planocontas_id',)
+        //     ->orderBy('PlanoContas.Descricao')
+        //     ->get(['PlanoContas.Descricao', 'Contas.ID', 'PlanoContas.UsarDolar']);
+
+        //    dd($contaDolar);
+ 
 
         return view('livewire.conta.extrato', compact('empresas', 'contas', 'saldoAnterior', 'saldoAnteriorDolar'));
     }

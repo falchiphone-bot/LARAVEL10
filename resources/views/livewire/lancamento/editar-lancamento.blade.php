@@ -105,9 +105,12 @@
                                                 class="form-control select2">
                                                 @foreach ($contas as $contaID => $contaDescricao)
                                                     <option value="{{ $contaID }}">
-                                                        {{ $contaDescricao }}</option>
+                                                        {{-- {{ $contaDescricao . ' <=>'. $contas->UsarDolar }}</option> --}}
+                                                        {{ $contaDescricao  }}</option>
+
                                                 @endforeach
                                             </select>
+                                            Usar dolar {{ $UsarDolarDebito = $this->lancamento->ContaDebito->PlanoConta->UsarDolar ?? "NÃO USAR" }}
                                         </div>
                                         <div class="form-group col-sm-12">
                                             <label for="contacredito" class=" form-control-label">
@@ -117,9 +120,11 @@
                                                 class="form-control select2">
                                                 @foreach ($contas as $contaID => $contaDescricao)
                                                     <option value="{{ $contaID }}">
-                                                        {{ $contaDescricao }}</option>
+                                                        {{-- {{ $contaDescricao . ' <=>'. $contas->UsarDolar }}</option> --}}
+                                                          {{ $contaDescricao  }}</option>
                                                 @endforeach
                                             </select>
+                                            Usar dolar {{ $UsarDolarCredito = $this->lancamento->ContaCredito->PlanoConta->UsarDolar ?? 'NÃO USAR' }}
                                         </div>
                                     </div>
                                 </div>
@@ -139,13 +144,17 @@
                                     <span class="oculto badge badge-danger">Informação obrigatória</span>
                                 </div>
 
+                                    @if($UsarDolarDebito == 1 || $UsarDolarCredito == 1)
+                                        <div class="form-group col-sm-2">
+                                            <label for="valorquantidadedolar" class="form-control-label">Valor em quantidade de dólares</label>
+                                            <input type="text" id="valorquantidadedolar" name="valorquantidadedolar" placeholder="US$"
+                                                class="form-control money" wire:model.lazy="lancamento.ValorQuantidadeDolar">
+                                            <span class="oculto badge badge-danger">Informação não obrigatória</span>
+                                        </div>
+                                    @endif
 
-                                <div class="form-group col-sm-2">
-                                    <label for="valorquantidadedolar" class=" form-control-label">Valor em quantidade de dolares</label>
-                                    <input type="text" id="valorquantidadedolar" name="valorquantidadedolar" placeholder="US$"
-                                        class="form-control money" wire:model.lazy="lancamento.ValorQuantidadeDolar">
-                                    <span class="oculto badge badge-danger">Informação não obrigatória</span>
-                                </div>
+
+
 
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary"
