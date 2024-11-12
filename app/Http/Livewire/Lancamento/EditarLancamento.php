@@ -80,10 +80,12 @@ class EditarLancamento extends Component
     public function salvarLancamento($novo = null)
     {
 
-        // if($this->lancamento->ValorQuantidadeDolar == null || $this->lancamento->ValorQuantidadeDolar =="" || $this->lancamento->ValorQuantidadeDolar == '0,00'){
-        //     $this->lancamento->ValorQuantidadeDolar =  '0,01';
-        // }
 
+        if ($novo) {
+        // if($this->lancamento->ValorQuantidadeDolar == null || $this->lancamento->ValorQuantidadeDolar =="" || $this->lancamento->ValorQuantidadeDolar == '0,00'){
+            $this->lancamento->ValorQuantidadeDolar =  '0,01';
+        // }
+        }
 
         $this->validate();
 
@@ -96,6 +98,7 @@ class EditarLancamento extends Component
             $novoLancamento = $this->lancamento->replicate();
             if (!$this->temBloqueio()) {
                 $novoLancamento->DataContabilidade = $this->lancamento->DataContabilidade->format('d/m/Y');
+                $novoLancamento->ValorQuantidadeDolar = null;
                 $novoLancamento->save();
                 session()->flash('message', 'Lançamento Criado.');
             }
@@ -108,27 +111,21 @@ class EditarLancamento extends Component
             // $this->lancamento->Valor = number_format($this->lancamento->Valor, 2, ',', '.');
 
             $valor = $this->lancamento->Valor;
-$valor = str_replace(['.', ','], ['', '.'], $valor);
-$valor = (float) $valor / 100;
+            $valor = str_replace(['.', ','], ['', '.'], $valor);
+            $valor = (float) $valor / 100;
 
-$valor = number_format($valor, 2, ',', '.');
+            $valor = number_format($valor, 2, ',', '.');
 
-
-
-
-
-
-             $this->lancamento->Valor = $this->lancamento->Valor;
+            $this->lancamento->Valor = $this->lancamento->Valor;
             // $this->lancamento->ValorQuantidadeDolar = number_format($this->lancamento->ValorQuantidadeDolar, 2, ',', '.');
 
-            if($this->lancamento->ValorQuantidadeDolar == null || $this->lancamento->ValorQuantidadeDolar =="" || $this->lancamento->ValorQuantidadeDolar == 0){
+            if($this->lancamento->ValorQuantidadeDolar == null || $this->lancamento->ValorQuantidadeDolar == "" || $this->lancamento->ValorQuantidadeDolar == 0){
                 $this->lancamento->ValorQuantidadeDolar =  '0.00';
+                // dd($this->lancamento->ValorQuantidadeDolar);
             }
 
 
             if ($this->lancamento->save()) {
-
-
                 session()->flash('message', 'Lançamento atualizado.');
                 // $this->lancamento['DataContabilidade'] = $this->lancamento->DataContabilidade->format('Y-m-d');
             } else {
