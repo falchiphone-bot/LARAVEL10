@@ -52,16 +52,21 @@
            <div class="row">
             <div class="col-6">
                 <label for="UsarDolar">Usar dólar</label>
+                <!-- Campo oculto para garantir que sempre seja enviado um valor -->
+                <input type="hidden" name="UsarDolar" value="0">
+
                 <input class="form-check-input @error('UsarDolar') is-invalid @else is-valid @enderror"
                        name="UsarDolar"
                        type="checkbox"
                        id="UsarDolar"
                        value="1"
                        {{ !empty($cadastro->UsarDolar) && $cadastro->UsarDolar ? 'checked' : '' }}>
+
                 @error('UsarDolar')
                 <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
             </div>
+
         </div>
 
         </div>

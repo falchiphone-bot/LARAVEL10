@@ -1281,6 +1281,7 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
     {
         $EmpresaID = $request->EmpresaSelecionada;
         $UsarDolar = $request->UsarDolar;
+         
 
         // dd($request->all());
 
