@@ -80,10 +80,12 @@ class EditarLancamento extends Component
     public function salvarLancamento($novo = null)
     {
 
-
+        $this->lancamento->ValorQuantidadeDolar =  '0,01';
+        $Dolar = $this->lancamento->ValorQuantidadeDolar;
         if ($novo) {
         // if($this->lancamento->ValorQuantidadeDolar == null || $this->lancamento->ValorQuantidadeDolar =="" || $this->lancamento->ValorQuantidadeDolar == '0,00'){
             $this->lancamento->ValorQuantidadeDolar =  '0,01';
+
         // }
         }
 
@@ -119,7 +121,7 @@ class EditarLancamento extends Component
             $this->lancamento->Valor = $this->lancamento->Valor;
             // $this->lancamento->ValorQuantidadeDolar = number_format($this->lancamento->ValorQuantidadeDolar, 2, ',', '.');
 
-            if($this->lancamento->ValorQuantidadeDolar == null || $this->lancamento->ValorQuantidadeDolar == "" || $this->lancamento->ValorQuantidadeDolar == 0){
+            if($this->lancamento->ValorQuantidadeDolar == null || $this->lancamento->ValorQuantidadeDolar == "" || $this->lancamento->ValorQuantidadeDolar == 0 || $Dolar == '0,01'){
                 $this->lancamento->ValorQuantidadeDolar =  '0.00';
                 // dd($this->lancamento->ValorQuantidadeDolar);
             }
