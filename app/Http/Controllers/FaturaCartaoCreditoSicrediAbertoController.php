@@ -460,16 +460,19 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                     }
                     // dd($lancamento,$linha, $item, $ContaCartao,'SEM LANÇAR', $DespesaContaDebitoID);
                     ////// LINHAS ABAIXO INSERIDAS AQUI APOS 01.10.2024
-                    Lancamento::create([
-                        'Valor' => ($valorString = $valor_formatado),
-                        'EmpresaID' => $Empresa,
-                        'ContaDebitoID' => $DespesaContaDebitoID,
-                        'ContaCreditoID' => $ContaCartao,
-                        'Descricao' => $DescricaoCompleta,
-                        'Usuarios_id' => auth()->user()->id,
-                        'DataContabilidade' => $Data,
-                        'HistoricoID' => '',
-                    ]);
+                    if(empty($Parcela) || $Parcela == null) {
+                        DD('466 - criar lançamento sem parcelas',$Parcela, $DescricaoCompleta);
+                        Lancamento::create([
+                            'Valor' => ($valorString = $valor_formatado),
+                            'EmpresaID' => $Empresa,
+                            'ContaDebitoID' => $DespesaContaDebitoID,
+                            'ContaCreditoID' => $ContaCartao,
+                            'Descricao' => $DescricaoCompleta,
+                            'Usuarios_id' => auth()->user()->id,
+                            'DataContabilidade' => $Data,
+                            'HistoricoID' => '',
+                        ]);
+                    }
                     session(['Lancamento' => 'Lancamentos criados com históricos!']);
                     // dd('Criando lançamento com histórico', $historico,session('Lancamento'));
                     $arraydatanova['Criou com historico'] = 'SIM';
