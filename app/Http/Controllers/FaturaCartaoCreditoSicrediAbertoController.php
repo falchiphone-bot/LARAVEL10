@@ -428,6 +428,11 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                 //         '!',
                 // ]);
                 // dd($lancamento,$linha, $item);
+
+                // if(empty($Parcela) || $Parcela == null) {
+                //     DD('433 - TEM HISTORICO',$Parcela, $Descricao);
+                // }
+
             } else {
                 // if ($request->criarlancamentosemhistorico == true) {
 
@@ -446,8 +451,10 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                     ->where('ContaCreditoID', $ContaCartao)
                     ->first();
 
-
+                    // DD('449 - TEM HISTORICO',$Parcela, $DescricaoCompleta);
                 if ($historico) {
+
+                    // DD('452 - TEM HISTORICO',$Parcela, $DescricaoCompleta);
                     $DespesaContaDebitoID = $historico->ContaDebitoID;
                     if($sequenciaExistePOSTOCIDADEJARDIM)
                     {
@@ -461,7 +468,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                     // dd($lancamento,$linha, $item, $ContaCartao,'SEM LANÇAR', $DespesaContaDebitoID);
                     ////// LINHAS ABAIXO INSERIDAS AQUI APOS 01.10.2024
                     if(empty($Parcela) || $Parcela == null) {
-                        DD('466 - criar lançamento sem parcelas',$Parcela, $DescricaoCompleta);
+                        DD('464 - criar lançamento sem parcelas',$Parcela, $DescricaoCompleta);
                         Lancamento::create([
                             'Valor' => ($valorString = $valor_formatado),
                             'EmpresaID' => $Empresa,
