@@ -89,7 +89,15 @@
 
                 <tr>
                     <td>
-                        <a href="https://drive.google.com/file/d/{{ $item->MostraLancamentoDocumento->Nome ?? null }}/view??usp=sharing" target="_blank">{{ $item->MostraLancamentoDocumento->Rotulo ?? null }}</a>
+                        @if($item->MostraLancamentoDocumento->NomeLocalTimeStamps)
+
+
+                            <a href="/../storage/arquivos/{{ $item->MostraLancamentoDocumento->NomeLocalTimeStamps.'.'.$item->MostraLancamentoDocumento->Ext ?? null }}" target="_blank">{{ $item->MostraLancamentoDocumento->Rotulo ?? null }}</a>
+
+                        @else
+                             <a href="https://drive.google.com/file/d/{{ $item->MostraLancamentoDocumento->Nome ?? null }}/view??usp=sharing" target="_blank">{{ $item->MostraLancamentoDocumento->Rotulo ?? null }}</a>
+
+                        @endif
 
                     </td>
                     {{-- <td>

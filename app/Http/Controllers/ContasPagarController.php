@@ -447,8 +447,11 @@ class ContasPagarController extends Controller
                  ->orderBy('id')
                  ->get();
 
+
+
                  foreach ($ContasPagarArquivo as $ContasPagarArquivos) {
                      $arquivoExiste = $ContasPagarArquivos->id;
+                    //  DD($ContasPagarArquivos->MostraLancamentoDocumento);
 
                  }
 
@@ -805,7 +808,7 @@ class ContasPagarController extends Controller
     public function CreateArquivoContasPagar(ArquivoContasPagarCreateRequest $request)
     {
 
-       
+
         $id = $request->contaspagar_id;
 
         $arquivo_id = $request->arquivo_id;
