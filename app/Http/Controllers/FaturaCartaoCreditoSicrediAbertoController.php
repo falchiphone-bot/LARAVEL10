@@ -314,7 +314,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                 // continue;
             } else {
                 $NumeroParcela = substr($Parcela, 0, 2);
-                $QuantidadeParcela = substr($Parcela, 4, 2);
+                $QuantidadeParcela = substr($Parcela, 3, 2);
                 // dd("318","Parcela: ".$Parcela, "Número de parcela: ".$NumeroParcela, 'Quantidade de parcela: '.$QuantidadeParcela, $Descricao );
             }
 
@@ -454,7 +454,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                     // DD('449 - TEM HISTORICO',$Parcela, $DescricaoCompleta);
                 if ($historico) {
 
-                    // DD('452 - TEM HISTORICO',$Parcela, $DescricaoCompleta);
+                    // DD('457 - TEM HISTORICO',$Parcela, $DescricaoCompleta);
                     $DespesaContaDebitoID = $historico->ContaDebitoID;
                     if($sequenciaExistePOSTOCIDADEJARDIM)
                     {
@@ -468,7 +468,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                     // dd($lancamento,$linha, $item, $ContaCartao,'SEM LANÇAR', $DespesaContaDebitoID);
                     ////// LINHAS ABAIXO INSERIDAS AQUI APOS 01.10.2024
                     if(empty($Parcela) || $Parcela == null) {
-                        DD('464 - criar lançamento sem parcelas',$Parcela, $DescricaoCompleta);
+                        // DD('471 - criar lançamento sem parcelas',$Parcela, $DescricaoCompleta);
                         Lancamento::create([
                             'Valor' => ($valorString = $valor_formatado),
                             'EmpresaID' => $Empresa,
@@ -505,11 +505,13 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                 if ($NumeroParcela !== null && $QuantidadeParcela !== null) {
 
 
-
+                    // DD("508 - EM PARCELAS SEM DEFINIR SE COM HISTÓRICO");
                     if ($NumeroParcela > 1) {
-                        dd(500,$NumeroParcela, $QuantidadeParcela, $linha );
+                        dd(510,$NumeroParcela, $QuantidadeParcela, $linha );
                         continue;
                     }
+
+                    // dd(514,$NumeroParcela, $QuantidadeParcela, $linha, $Descricao );
 
                     $registros = [];
                     for ($i = 1; $i <= $QuantidadeParcela; $i++) {
@@ -532,10 +534,10 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                         // echo $i, ' ';
                         // Você também pode adicionar o registro a uma lista, array, ou qualquer outra estrutura de dados necessária
                         $registros[] = $novoRegistroParcelas;
+                        // dd(537,$NumeroParcela, $QuantidadeParcela, $linha, $novoRegistroParcelas );
                     }
 
-
-
+//  dd(540,$NumeroParcela, $QuantidadeParcela, $linha, $novoRegistroParcelas );
 
                     foreach ($registros as $incluirregistros) {
                         $lancamentoregistros = Lancamento::where('DataContabilidade', $incluirregistros['Data'])
