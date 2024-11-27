@@ -975,6 +975,69 @@ class Extrato extends Component
         return redirect()->route('lancamentos.exibirDadosGabrielMagossiFalchi')->with('dados', $dados);
     }
 
+    private function processarDados($contaID, $nomeBase)
+    {
+        session(['Extrato_Ate' => $this->Ate]);
+        session(['Extrato_De' => $this->De]);
+
+        $dadosLancamento = $this->selecionarLancamento($contaID);
+        $lancamentos = $dadosLancamento['lancamentos'];
+        $de = $dadosLancamento['de'] ?? 'Não informado';
+        $ate = $dadosLancamento['ate'] ?? 'Não informado';
+
+        $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
+        $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+        $saldo = $debito - $credito;
+
+        $NomeEmpresa = $lancamentos->last()->NomeEmpresa ?? 'Nenhuma empresa encontrada';
+
+        return [
+            'Nome' => $nomeBase,
+            'Selecionados' => $lancamentos->count(),
+            'Débito' => $debito,
+            'Crédito' => $credito,
+            'De' => $de,
+            'Até' => $ate,
+            'Saldo' => $saldo,
+            'Empresa' => $NomeEmpresa,
+        ];
+
+    }
+
+    public function contasPoupancaAvenue()
+    {
+
+        $dados = [];
+        $dados[] = $this->processarDados(19784, 'AVENUE/POUPANÇA- BASE 01');
+        $dados[] = $this->processarDados(19782, 'AVENUE/POUPANÇA- BASE 03');
+        $dados[] = $this->processarDados(19783, 'AVENUE/POUPANÇA- BASE 04');
+        $dados[] = $this->processarDados(19778, 'AVENUE/POUPANÇA- BASE 05');
+        $dados[] = $this->processarDados(19766, 'AVENUE/POUPANÇA- BASE 06');
+        $dados[] = $this->processarDados(19774, 'AVENUE/POUPANÇA- BASE 09');
+        $dados[] = $this->processarDados(19770, 'AVENUE/POUPANÇA- BASE 10');
+        $dados[] = $this->processarDados(19771, 'AVENUE/POUPANÇA- BASE 11');
+        $dados[] = $this->processarDados(19780, 'AVENUE/POUPANÇA- BASE 12');
+        $dados[] = $this->processarDados(19772, 'AVENUE/POUPANÇA- BASE 13');
+        $dados[] = $this->processarDados(19762, 'AVENUE/POUPANÇA- BASE 14');
+        $dados[] = $this->processarDados(19779, 'AVENUE/POUPANÇA- BASE 17');
+        $dados[] = $this->processarDados(19781, 'AVENUE/POUPANÇA- BASE 18');
+        $dados[] = $this->processarDados(19768, 'AVENUE/POUPANÇA- BASE 21');
+        $dados[] = $this->processarDados(19774, 'AVENUE/POUPANÇA- BASE 24');
+        $dados[] = $this->processarDados(19775, 'AVENUE/POUPANÇA- BASE 25');
+        $dados[] = $this->processarDados(19776, 'AVENUE/POUPANÇA- BASE 26');
+        $dados[] = $this->processarDados(19765, 'AVENUE/POUPANÇA - BASE 30');
+
+
+
+        // return $dados;
+
+
+        // dd($dados);
+        //  ================================================================================================================
+        return redirect()->route('lancamentos.exibirDadosGabrielMagossiFalchi')->with('dados', $dados);
+    }
+
+
     public function contasCaioCesarMagossiFalchi()
     {
         $dados = [];
@@ -1390,7 +1453,7 @@ class Extrato extends Component
         //     ->get(['PlanoContas.Descricao', 'Contas.ID', 'PlanoContas.UsarDolar']);
 
         //    dd($contaDolar);
- 
+
 
         return view('livewire.conta.extrato', compact('empresas', 'contas', 'saldoAnterior', 'saldoAnteriorDolar'));
     }

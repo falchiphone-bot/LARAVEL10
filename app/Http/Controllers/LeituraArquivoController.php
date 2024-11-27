@@ -603,7 +603,7 @@ else {
     session(['Lancamento' => 'Arquivo e ou ficheiro não identificado! Verifique se o mesmo está correto para este procedimento! L603']);
     return redirect(route('LeituraArquivo.index'));
 }
-   
+
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // Array que irá armazenar os dados das células
@@ -1708,6 +1708,8 @@ else {
                         ->where('ContaCreditoID', $Conta)
                         ->first();
                     if ($historico == null) {
+
+                        // dd($Empresa, $Conta, $Descricao, $historico);
                         $historico = Historicos::where('EmpresaID', $Empresa)
                             ->where('Descricao', 'like', '%' . substr(trim($Descricao), 0, 30) . '%')
                             ->where('ContaCreditoID', $Conta)
