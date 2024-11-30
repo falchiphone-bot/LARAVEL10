@@ -82,6 +82,19 @@ class EditarLancamento extends Component
 
         // $this->lancamento->ValorQuantidadeDolar =  '0,10';
         $Dolar = $this->lancamento->ValorQuantidadeDolar;
+
+        if($Dolar == 0)
+        {
+            $this->lancamento->ValorQuantidadeDolar =  '0,01';
+        }
+        else
+        if($Dolar == 01)
+        {
+            $this->lancamento->ValorQuantidadeDolar = '0,01';
+            // dd(94,$this->lancamento->ValorQuantidadeDolar);
+        }
+
+
         if ($novo) {
         // if($this->lancamento->ValorQuantidadeDolar == null || $this->lancamento->ValorQuantidadeDolar =="" || $this->lancamento->ValorQuantidadeDolar == '0,00'){
             $this->lancamento->ValorQuantidadeDolar =  '0,01';
@@ -94,6 +107,11 @@ class EditarLancamento extends Component
         // if($this->lancamento->ValorQuantidadeDolar == '0.01'){
         //     $this->lancamento->ValorQuantidadeDolar =  'null';
         // }
+        if($Dolar == 01)
+        {
+            $this->lancamento->ValorQuantidadeDolar =  '';
+            // dd(113,$this->lancamento->ValorQuantidadeDolar);
+        }
 
 
         if ($novo) {
@@ -120,6 +138,9 @@ class EditarLancamento extends Component
 
             $this->lancamento->Valor = $this->lancamento->Valor;
             // $this->lancamento->ValorQuantidadeDolar = number_format($this->lancamento->ValorQuantidadeDolar, 2, ',', '.');
+
+
+
 
             if($this->lancamento->ValorQuantidadeDolar == null || $this->lancamento->ValorQuantidadeDolar == "" || $this->lancamento->ValorQuantidadeDolar == 0 || $Dolar == '0,01'){
                 //  dd($this->lancamento->ValorQuantidadeDolar);

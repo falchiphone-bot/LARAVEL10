@@ -987,7 +987,12 @@ class Extrato extends Component
 
         $debito = $lancamentos->where('ContaDebitoID', $contaID)->sum('Valor');
         $credito = $lancamentos->where('ContaCreditoID', $contaID)->sum('Valor');
+        $dolard = $lancamentos->where('ContaDebitoID', $contaID)->sum('ValorQuantidadeDolar');
+        $dolarc = $lancamentos->where('ContaCreditoID', $contaID)->sum('ValorQuantidadeDolar');
         $saldo = $debito - $credito;
+        $dolar = $dolard - $dolarc;
+
+        dd($dolard, $dolarc, $dolar);
 
         $NomeEmpresa = $lancamentos->last()->NomeEmpresa ?? 'Nenhuma empresa encontrada';
 
@@ -996,11 +1001,14 @@ class Extrato extends Component
             'Selecionados' => $lancamentos->count(),
             'Débito' => $debito,
             'Crédito' => $credito,
+            'Dolar' => $dolar,
             'De' => $de,
             'Até' => $ate,
             'Saldo' => $saldo,
             'Empresa' => $NomeEmpresa,
         ];
+
+
 
     }
 
@@ -1034,7 +1042,7 @@ class Extrato extends Component
 
         // dd($dados);
         //  ================================================================================================================
-        return redirect()->route('lancamentos.exibirDadosGabrielMagossiFalchi')->with('dados', $dados);
+        return redirect()->route('lancamentos.avenuepoupanca')->with('dados', $dados);
     }
 
 

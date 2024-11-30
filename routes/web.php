@@ -424,13 +424,14 @@ Route::resource('RedeSocialUsuarios', App\Http\Controllers\RedeSocialUsuarioCont
 #LANCAMENTO - DOCUMENTO
 // Route::get('Moedas/dashboard', [App\Http\Controllers\MoedaController::class, 'dashboard'])->name('moedas.dashboard');
 
-
+DadosAvenuePoupanca
 Route::get('drivelocal/UploadArquivoLocal', function () { return view('LancamentosDocumentos.UploadArquivoServidorLocal');})->name('upload.arquivosLocal');
 // Route::post('drive/google-drive/file-upload', [App\Http\Controllers\GoogleDriveController::class, 'googleDriveFileUpload'])->name('google.drive.file.upload');
 Route::post('drivelocal/file-upload', [App\Http\Controllers\LancamentosDocumentosController::class, 'DriveLocalFileUpload'])->name('drivelocal.file.upload');
 
 
 Route::get('Lancamentos.DadosGabrielMagossiFalchi', [LancamentosController::class, 'exibirDadosGabrielMagossiFalchi'])->name('lancamentos.exibirDadosGabrielMagossiFalchi');
+Route::get('Lancamentos.AvenuePoupanca', [LancamentosController::class, 'exibirDadosAvenuePoupanca'])->name('lancamentos.avenuepoupanca');
 Route::get('Lancamentos.DadosMes', [LancamentosController::class, 'DadosMes'])->name('lancamentos.DadosMes');
 // Route::get('Lancamentos.DadosGabrielMagossiFalchi', function () { return view('Lancamentos.DadosGabrielMagossiFalchi');})->name('Lancamentos.DadosGabrielMagossiFalchi');
 Route::post('Lancamentos/createArquivoDocumentos', [App\Http\Controllers\LancamentosDocumentosController::class, 'createArquivoDocumentos'])->name('lancamentos.ArquivoLancamentoDocumentos');

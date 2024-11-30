@@ -86,6 +86,25 @@ class LancamentosController extends Controller
          return view('Lancamentos.DadosGabrielMagossiFalchi', compact('dados', 'Débito', 'Crédito', 'Saldo'));
      }
 
+     public function exibirDadosAvenuePoupanca()
+     {
+        $dados = session('dados');
+        // dd( $dados);
+        $Débito = 0;
+        $Crédito = 0;
+        $Saldo = 0;
+        foreach ($dados as $item) {
+            $Débito += $item['Débito'];
+            $Crédito += $item['Crédito'];
+            $Saldo += $item['Saldo'];
+        }
+
+
+
+         return view('Lancamentos.DadosAvenuePoupanca', compact('dados', 'Débito', 'Crédito', 'Saldo'));
+     }
+
+
      public function ExportarSkala()
      {
         $retorno['DataInicial'] = date('Y-m-d');
