@@ -21,6 +21,7 @@ use App\Exports\LancamentoExport;
 use App\Models\ContasPagar;
 use App\Models\MoedasValores;
 use App\Models\SolicitacaoExclusao;
+use Exception;
 use Illuminate\Support\Facades\Lang;
 use LancamentoExport as GlobalLancamentoExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -85,7 +86,8 @@ class LancamentosController extends Controller
      }
 
      public function exibirDadosAvenuePoupanca()
-     {
+       {
+        $EmpresaID = 11;
         $dados = session('dados');
         // dd( $dados);
         $Débito = 0;
@@ -97,9 +99,17 @@ class LancamentosController extends Controller
             $Saldo += $item['Saldo'];
         }
 
-        $somaDolar = Lancamento::somaValorQuantidadeDolar();
+        //$somaDolar = Lancamento::somaValorQuantidadeDolar();
+        $somaDolar = Lancamento::somaValorQuantidadeDolar(['EmpresaID' => $EmpresaID]);
+
+
+
 
         $valordolarhoje = MoedasValores::where('idmoeda', 1)->orderBy('Data', 'desc')->first()->valor;
+        if (!$valordolarhoje) {
+            throw new Exception('Não foi possível recuperar o valor do dólar hoje. VERIFIQUE!');
+        }
+
 
         // dd($valordolarhoje);
         $somaDolarReal = $somaDolar *  $valordolarhoje ;
