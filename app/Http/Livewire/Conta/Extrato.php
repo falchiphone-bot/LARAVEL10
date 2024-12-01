@@ -821,7 +821,11 @@ class Extrato extends Component
             ->whereDoesntHave('SolicitacaoExclusao')
             ->leftJoin('Contabilidade.Historicos', 'Historicos.ID', '=', 'Lancamentos.HistoricoID')
             ->leftJoin('Contabilidade.Empresas', 'Empresas.ID', '=', 'Lancamentos.EmpresaID')
-            ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'Empresas.Descricao as NomeEmpresa', 'DataContabilidade', 'Lancamentos.ContaCreditoID', 'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral', 'EntradasGeral']);
+            ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'Lancamentos.ValorQuantidadeDolar', 'Empresas.Descricao as NomeEmpresa',
+            'DataContabilidade', 'Lancamentos.ContaCreditoID',
+             'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao',
+             'Historicos.Descricao as HistoricoDescricao', 'Conferido',
+              'SaidasGeral', 'EntradasGeral']);
 
         return compact('lancamentos', 'de', 'ate');
     }
@@ -992,7 +996,7 @@ class Extrato extends Component
         $saldo = $debito - $credito;
         $dolar = $dolard - $dolarc;
 
-        dd($dolard, $dolarc, $dolar);
+        // dd($lancamentos, $dolard, $dolarc, $dolar);
 
         $NomeEmpresa = $lancamentos->last()->NomeEmpresa ?? 'Nenhuma empresa encontrada';
 
@@ -1007,10 +1011,9 @@ class Extrato extends Component
             'Saldo' => $saldo,
             'Empresa' => $NomeEmpresa,
         ];
-
-
-
     }
+
+    
 
     public function contasPoupancaAvenue()
     {

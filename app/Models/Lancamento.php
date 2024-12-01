@@ -46,7 +46,8 @@ class Lancamento extends Model
         'Notificacao' => 'boolean',
         'Investimentos' => 'boolean',
         'Transferencias' => 'boolean',
-        'SemDefinir' => 'boolean'
+        'SemDefinir' => 'boolean',
+        'ValorQuantidadeDolar' => 'float',
     ];
 
     public function Empresa(): HasOne
@@ -97,4 +98,23 @@ class Lancamento extends Model
     // {
     //     return Carbon::createFromDate($value)->format('d/m/Y');
     // }
+
+/**
+     * Calcula a soma de 'ValorQuantidadeDolar' para todos os registros ou um subconjunto
+     *
+     * @param array $conditions (opcional) Condições para filtrar os registros
+     * @return float
+     */
+    public static function somaValorQuantidadeDolar(array $conditions = []): float
+    {
+        $query = self::query();
+
+        if (!empty($conditions)) {
+            $query->where($conditions);
+        }
+
+        return (float) $query->sum('ValorQuantidadeDolar');
+    }
+
+
 }

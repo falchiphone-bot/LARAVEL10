@@ -45,7 +45,13 @@
                 <td>{{ number_format($Débito, 2, ',', '.') }}</td>
                 <td>{{ number_format($Crédito, 2, ',', '.') }}</td>
                 <td>{{ number_format($Saldo, 2, ',', '.') }}</td>
-                <td></td>
+                <td>
+                    Dolares : {{ number_format($somaDolar, 2, ',', '.') }}
+                    Real : {{ number_format($somaDolarReal, 2, ',', '.') }}
+                    <div>
+                         Valor dolar hoje: US$ {{ number_format($valordolarhoje, 4, ',', '.') }}
+                    </div>
+                </td>
                 <td></td>
                 <td></td>
                 <td></td>

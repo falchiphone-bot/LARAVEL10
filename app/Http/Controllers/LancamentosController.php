@@ -19,6 +19,7 @@ use PhpOffice\PhpSpreadsheet\Calculation\DateTimeExcel\Days;
 use Carbon\Carbon;
 use App\Exports\LancamentoExport;
 use App\Models\ContasPagar;
+use App\Models\MoedasValores;
 use App\Models\SolicitacaoExclusao;
 use Illuminate\Support\Facades\Lang;
 use LancamentoExport as GlobalLancamentoExport;
@@ -80,9 +81,6 @@ class LancamentosController extends Controller
             $Crédito += $item['Crédito'];
             $Saldo += $item['Saldo'];
         }
-
-
-
          return view('Lancamentos.DadosGabrielMagossiFalchi', compact('dados', 'Débito', 'Crédito', 'Saldo'));
      }
 
@@ -99,9 +97,15 @@ class LancamentosController extends Controller
             $Saldo += $item['Saldo'];
         }
 
+        $somaDolar = Lancamento::somaValorQuantidadeDolar();
+
+        $valordolarhoje = MoedasValores::where('idmoeda', 1)->orderBy('Data', 'desc')->first()->valor;
+
+        // dd($valordolarhoje);
+        $somaDolarReal = $somaDolar *  $valordolarhoje ;
 
 
-         return view('Lancamentos.DadosAvenuePoupanca', compact('dados', 'Débito', 'Crédito', 'Saldo'));
+         return view('Lancamentos.DadosAvenuePoupanca', compact('dados', 'Débito', 'Crédito', 'Saldo', 'somaDolar', 'somaDolarReal', 'valordolarhoje'));
      }
 
 
