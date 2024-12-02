@@ -1013,7 +1013,7 @@ class Extrato extends Component
         ];
     }
 
-    
+
 
     public function contasPoupancaAvenue()
     {
@@ -1024,6 +1024,7 @@ class Extrato extends Component
         $dados[] = $this->processarDados(19783, 'AVENUE/POUPANÇA- BASE 04');
         $dados[] = $this->processarDados(19778, 'AVENUE/POUPANÇA- BASE 05');
         $dados[] = $this->processarDados(19766, 'AVENUE/POUPANÇA- BASE 06');
+        $dados[] = $this->processarDados(19787, 'AVENUE/POUPANÇA- BASE 07');
         $dados[] = $this->processarDados(19774, 'AVENUE/POUPANÇA- BASE 09');
         $dados[] = $this->processarDados(19770, 'AVENUE/POUPANÇA- BASE 10');
         $dados[] = $this->processarDados(19771, 'AVENUE/POUPANÇA- BASE 11');
