@@ -97,8 +97,8 @@ class EditarLancamento extends Component
 
         if ($novo) {
         // if($this->lancamento->ValorQuantidadeDolar == null || $this->lancamento->ValorQuantidadeDolar =="" || $this->lancamento->ValorQuantidadeDolar == '0,00'){
-            $this->lancamento->ValorQuantidadeDolar =  '0,01';
-
+            $this->lancamento->ValorQuantidadeDolar =  '0.01';
+// DD( $this->lancamento->ValorQuantidadeDolar);
         // }
         }
 
