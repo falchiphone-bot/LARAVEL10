@@ -51,8 +51,7 @@ class ContasPagarController extends Controller
         $Texto =  session('Texto');
 
 
-        $contasPagar = ContasPagar::Limit(100)
-        ->join('Contabilidade.EmpresasUsuarios', 'ContasPagar.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
+        $contasPagar = ContasPagar::Limit('1')        ->join('Contabilidade.EmpresasUsuarios', 'ContasPagar.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
         ->Where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
          ->select(['ContasPagar.ID', 'DataProgramacao', 'ContasPagar.Descricao', 'ContasPagar.LancamentoID', 'ContasPagar.Created',
           'ContasPagar.EmpresaID', 'ContasPagar.Valor', 'ContasPagar.DataVencimento',
