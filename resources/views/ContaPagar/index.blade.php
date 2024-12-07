@@ -75,6 +75,33 @@
 
             </div>
 
+
+            @can('CONTASPAGAR - ALTERARVALORMULTIPLOS')
+            <form method="POST" action="{{ route('contaspagar.alterarvalormultiplos') }}" accept-charset="UTF-8">
+                @csrf
+
+
+                <div class="row">
+                    <div class="col-6">
+                        <label for="Valor">Alterar todos os valores para o abaixo</label>
+
+                        <input class="form-control money @error('Valor') is-invalid @else is-valid @enderror" name="Valor" type="text" id="Valor"  }}">
+                        @error('Valor')
+                        <div class="alert alert-danger">{{ $message }}</div>
+                        @enderror
+                        <button class="btn btn-danger">Alterar todos valores:</button>
+                    </div>
+                </div>
+                                    <!-- Iterar sobre o array e incluir cada valor como um campo hidden -->
+                        @foreach($contasPagar as $index => $conta)
+                              <input type="hidden" name="contasPagar[{{ $index }}]" value="{{ $conta }}">
+
+
+                        @endforeach
+
+            </form>
+            @endcan
+
             <form method="POST" action="{{ route('contaspagar.index.post') }}" accept-charset="UTF-8">
                 @csrf
 
@@ -141,10 +168,9 @@
                     </div>
 
                 </div>
-
-
-
             </form>
+
+
 
 
 
@@ -267,4 +293,14 @@
         });
     });
 </script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.js"></script>
+<script>
+    $(document).ready(function() {
+        $('.money').mask('000.000.000.000.000,00', {
+            reverse: true
+        });
+    });
+</script>
+
 @endpush

@@ -507,7 +507,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
 
                     // DD("508 - EM PARCELAS SEM DEFINIR SE COM HISTÓRICO");
                     if ($NumeroParcela > 1) {
-                        dd(510,$NumeroParcela, $QuantidadeParcela, $linha );
+                        // dd(510,$NumeroParcela, $QuantidadeParcela, $linha );
                         continue;
                     }
 

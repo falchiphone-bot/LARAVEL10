@@ -125,9 +125,11 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
 
 
  # Contas a pagar
+ Route::match(['get', 'post'], 'contaspagar/index', [App\Http\Controllers\ContasPagarController::class, 'index'])->name('contaspagar.index');
  Route::post('ContasPagar/CreateArquivoContasPagar', [App\Http\Controllers\ContasPagarController::class, 'CreateArquivoContasPagar'])->name('contaspagar.ArquivoContasPagar');
  Route::resource('ContasPagar', App\Http\Controllers\ContasPagarController::class);
  Route::post('ContasPagar/indexpost', [App\Http\Controllers\ContasPagarController::class, 'indexpost'])->name('contaspagar.index.post');
+ Route::post('ContasPagar/alterarvalormultiplos', [App\Http\Controllers\ContasPagarController::class, 'alterarvalormultiplos'])->name('contaspagar.alterarvalormultiplos');
  Route::get('ContasPagar/IncluirLancamentoContasPagar/{id}',[App\Http\Controllers\ContasPagarController::class,'IncluirLancamentoContasPagar'])->name('contaspagar.IncluirLancamentoContasPagar');
 
 
@@ -424,7 +426,7 @@ Route::resource('RedeSocialUsuarios', App\Http\Controllers\RedeSocialUsuarioCont
 #LANCAMENTO - DOCUMENTO
 // Route::get('Moedas/dashboard', [App\Http\Controllers\MoedaController::class, 'dashboard'])->name('moedas.dashboard');
 
-DadosAvenuePoupanca
+
 Route::get('drivelocal/UploadArquivoLocal', function () { return view('LancamentosDocumentos.UploadArquivoServidorLocal');})->name('upload.arquivosLocal');
 // Route::post('drive/google-drive/file-upload', [App\Http\Controllers\GoogleDriveController::class, 'googleDriveFileUpload'])->name('google.drive.file.upload');
 Route::post('drivelocal/file-upload', [App\Http\Controllers\LancamentosDocumentosController::class, 'DriveLocalFileUpload'])->name('drivelocal.file.upload');

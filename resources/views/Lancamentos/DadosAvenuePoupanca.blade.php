@@ -48,7 +48,13 @@
                 <td>
                     Dolares : {{ number_format($somaDolar, 2, ',', '.') }}
                     Real : {{ number_format($somaDolarReal, 2, ',', '.') }}
+
                     <div>
+                        Data dolar hoje:  {{ $datadolarhoje->format('d/m/Y') }}
+                    </div>
+
+                    <div>
+
                          Valor dolar hoje: US$ {{ number_format($valordolarhoje, 4, ',', '.') }}
                     </div>
                 </td>

@@ -27,6 +27,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Dompdf\Dompdf;
+use PhpOffice\PhpSpreadsheet\Calculation\Engineering\ConvertDecimal;
+use Ramsey\Uuid\Type\Decimal;
 
 class ContasPagarController extends Controller
 {
@@ -43,8 +45,12 @@ class ContasPagarController extends Controller
     }
 
 
-    public function index()
+    public function index(Request $request)
     {
+
+        $Texto =  session('Texto');
+
+
         $contasPagar = ContasPagar::Limit(100)
         ->join('Contabilidade.EmpresasUsuarios', 'ContasPagar.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
         ->Where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
@@ -69,6 +75,8 @@ class ContasPagarController extends Controller
         $retorno['DataFinal'] = date('Y-m-d');
         $retorno['EmpresaSelecionada'] = null;
 
+        $retorno['Texto'] = $Texto;
+
         $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
             ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
             ->OrderBy('Descricao')
@@ -76,6 +84,14 @@ class ContasPagarController extends Controller
             ->get();
 
         return view('ContaPagar.index', compact('contasPagar', 'retorno', 'Empresas'));
+        // return redirect()->route('contaspagar.index', ['Texto' => $Texto])
+        // ->with([
+        //     'contasPagar' => $contasPagar,
+        //     'retorno' => $retorno,
+        //     'Empresas' => $Empresas,
+        // ]);
+
+
     }
 
     public function indexpost(Request $Request)
@@ -153,6 +169,55 @@ class ContasPagarController extends Controller
 
 
         return view('ContaPagar.index', compact('contasPagar', 'retorno', 'Empresas'));
+    }
+
+
+    public function alterarvalormultiplos(Request $request)
+    {
+
+
+                // Receber os dados do formulário
+            $contasPagar = $request->input('contasPagar'); // Array com IDs das contas a serem alteradas
+            $valor = floatval($request->input('Valor'));
+            $Texto = $request->input('Texto');
+
+
+
+            foreach ($contasPagar as $conta) {
+
+                $jsonString = $conta;
+
+                // Decodifica o JSON em um array associativo
+                $data = json_decode($jsonString, true);
+
+                // Acessa o campo 'ID'
+                $id = $data['ID'];
+
+                session(['Texto' => $data['Descricao']]);
+
+
+
+
+                // Buscar o registro pelo ID
+                $contaPagar = ContasPagar::find($id);
+
+                if ($contaPagar) {
+                    // Atualizar o valor
+                    $contaPagar->update(['Valor' => $valor]);
+                    $contaPagar->save();
+
+                }
+
+            }
+
+
+
+
+            // Adicionar mensagem de sucesso à sessão
+            session(['success' => 'Valor alterado com sucesso!']);
+
+            // Redirecionar para a página de listagem
+            return redirect()->route('ContasPagar.index');
     }
 
 

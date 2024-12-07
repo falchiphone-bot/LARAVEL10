@@ -45,7 +45,7 @@ class ContasPagar extends Model
     protected $casts = [
         'EmpresaID' => 'integer',
         'Created' => 'integer',
-
+        'Valor' => 'decimal:2',
     ];
 
 

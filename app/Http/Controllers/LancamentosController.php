@@ -105,7 +105,11 @@ class LancamentosController extends Controller
 
 
 
-        $valordolarhoje = MoedasValores::where('idmoeda', 1)->orderBy('Data', 'desc')->first()->valor;
+        $valordolar = MoedasValores::where('idmoeda', 1)->orderBy('Data', 'desc')->first();
+
+        $valordolarhoje = $valordolar->valor;
+        $datadolarhoje = $valordolar->data;
+
         if (!$valordolarhoje) {
             throw new Exception('Não foi possível recuperar o valor do dólar hoje. VERIFIQUE!');
         }
@@ -115,7 +119,7 @@ class LancamentosController extends Controller
         $somaDolarReal = $somaDolar *  $valordolarhoje ;
 
 
-         return view('Lancamentos.DadosAvenuePoupanca', compact('dados', 'Débito', 'Crédito', 'Saldo', 'somaDolar', 'somaDolarReal', 'valordolarhoje'));
+         return view('Lancamentos.DadosAvenuePoupanca', compact('dados', 'Débito', 'Crédito', 'Saldo', 'somaDolar', 'somaDolarReal', 'valordolarhoje', 'datadolarhoje'));
      }
 
 
