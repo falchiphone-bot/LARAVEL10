@@ -178,10 +178,11 @@ class ContasPagarController extends Controller
                 // Receber os dados do formulário
             $contasPagar = $request->input('contasPagar'); // Array com IDs das contas a serem alteradas
             $valor = floatval($request->input('Valor'));
+            $valorAlterar = floatval($request->input('ValorAlterar'));
             $Texto = $request->input('Texto');
 
 
-
+            session(['success' => 'Nenhum valor alterado!']);
             foreach ($contasPagar as $conta) {
 
                 $jsonString = $conta;
@@ -201,21 +202,20 @@ class ContasPagarController extends Controller
                 $contaPagar = ContasPagar::find($id);
 
                 if ($contaPagar) {
-                    // Atualizar o valor
+
+                    $Valor = $data['Valor'];
+
+                   if($valorAlterar == $Valor)
+                   {
                     $contaPagar->update(['Valor' => $valor]);
                     $contaPagar->save();
+                     session(['success' => 'Valor alterado com sucesso!']);
+                   }
 
                 }
 
             }
 
-
-
-
-            // Adicionar mensagem de sucesso à sessão
-            session(['success' => 'Valor alterado com sucesso!']);
-
-            // Redirecionar para a página de listagem
             return redirect()->route('ContasPagar.index');
     }
 

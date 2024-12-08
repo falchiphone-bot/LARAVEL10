@@ -80,16 +80,29 @@
             <form method="POST" action="{{ route('contaspagar.alterarvalormultiplos') }}" accept-charset="UTF-8">
                 @csrf
 
+                <div class="card-body" style="background-color: rgb(15, 187, 240)">
+                    <div class="row">
+                        <div class="col-6">
+                            <label for="ValorAlterar">Alterar todos estes valores para o abaixo:</label>
 
-                <div class="row">
-                    <div class="col-6">
-                        <label for="Valor">Alterar todos os valores para o abaixo</label>
+                            <input class="form-control money @error('ValorAlterar') is-invalid @else is-valid @enderror" name="ValorAlterar" type="text" id="ValorAlterar"  }}">
+                            @error('ValorAlterar')
+                            <div class="alert alert-danger">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
 
-                        <input class="form-control money @error('Valor') is-invalid @else is-valid @enderror" name="Valor" type="text" id="Valor"  }}">
-                        @error('Valor')
-                        <div class="alert alert-danger">{{ $message }}</div>
-                        @enderror
-                        <button class="btn btn-danger">Alterar todos valores:</button>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <label for="Valor">Alterar todos os valores acima para este abaixo:</label>
+
+                            <input class="form-control money @error('Valor') is-invalid @else is-valid @enderror" name="Valor" type="text" id="Valor"  }}">
+                            @error('Valor')
+                            <div class="alert alert-danger">{{ $message }}</div>
+                            @enderror
+                            <button class="btn btn-danger">Alterar todos valores conforme acima:</button>
+                        </div>
                     </div>
                 </div>
                                     <!-- Iterar sobre o array e incluir cada valor como um campo hidden -->
