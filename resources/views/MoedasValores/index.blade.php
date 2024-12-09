@@ -35,10 +35,21 @@
                             {{ $moedasvalores->count() ?? 0 }}</p>
                         </div>
                     </div>
-
-
-
                 </div>
+
+
+                <h1>Selecione uma Moeda</h1>
+                <form action="{{ route('moedas.selecionar') }}" method="POST">
+                    @csrf
+                    <label for="moeda">Moeda:</label>
+                    <select name="moeda_id" id="moeda">
+                        @foreach ($moedas as $moeda)
+                            <option value="{{ $moeda->id }}">{{ $moeda->nome }}</option>
+                        @endforeach
+                    </select>
+                    <button type="submit">Selecionar</button>
+                </form>
+
 
                 <tbody>
                     <table class="table" style="background-color: rgb(247, 247, 213);">

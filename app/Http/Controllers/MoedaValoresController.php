@@ -32,10 +32,27 @@ class MoedaValoresController extends Controller
 
     public function index()
     {
-       $moedasvalores= MoedasValores::OrderBy('data','desc')->get();
+       $moedasvalores= MoedasValores::limit(100)
+       ->OrderBy('data','desc')->get();
 
-        return view('MoedasValores.index',compact('moedasvalores'));
+       $moedas = Moeda::get();
+
+        return view('MoedasValores.index',compact('moedasvalores','moedas'));
     }
+
+    public function selecionarMoeda(Request $request)
+    {
+
+        $moedasvalores = MoedasValores::where('idmoeda', $request->moeda_id)
+        ->OrderBy('data','desc')
+        ->get();
+
+
+        $moedas = Moeda::get();
+
+        return view('MoedasValores.index',compact('moedasvalores','moedas'));
+    }
+
 
     /**
      * Show the form for creating a new resource.
