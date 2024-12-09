@@ -44,11 +44,30 @@
                     <label for="moeda">Moeda:</label>
                     <select name="moeda_id" id="moeda">
                         @foreach ($moedas as $moeda)
-                            <option value="{{ $moeda->id }}">{{ $moeda->nome }}</option>
+                            {{-- <option value="{{ $moeda->id }}">{{ $moeda->nome }}</option> --}}
+                            <option value="{{ $moeda->id }}"
+                                {{ old('moeda_id', request('moeda_id')) == $moeda->id ? 'selected' : '' }}>
+                                {{ $moeda->nome }}
+                            </option>
                         @endforeach
                     </select>
+
+
+
+
+
+                    <label for="ordem">Ordenar por Data:</label>
+                    <select name="ordem" id="ordem" onchange="this.form.submit()">
+                        <option value="asc" {{ $ordem == 'asc' ? 'selected' : '' }}>Crescente</option>
+                        <option value="desc" {{ $ordem == 'desc' ? 'selected' : '' }}>Decrescente</option>
+                    </select>
+
+                    
+
                     <button type="submit">Selecionar</button>
                 </form>
+
+
 
 
                 <tbody>
