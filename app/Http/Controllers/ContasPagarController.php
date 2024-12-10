@@ -174,39 +174,48 @@ class ContasPagarController extends Controller
     public function alterarvalormultiplos(Request $request)
     {
 
-
-                // Receber os dados do formulário
+               // Receber os dados do formulário
             $contasPagar = $request->input('contasPagar'); // Array com IDs das contas a serem alteradas
-            $valor = floatval($request->input('Valor'));
-            $valorAlterar = floatval($request->input('ValorAlterar'));
+            $valor = $request->input('Valor');
+
+            // Converte do formato brasileiro para o formato padrão (3333.32)
+            $valor = str_replace('.', '', $valor); // Remove os pontos
+            $valor = str_replace(',', '.', $valor); // Substitui vírgula por ponto
+            $valor = floatval($valor); // Converte a string em um número de ponto flutuante
+            // Formata o valor com ponto como separador decimal
+            $valor = number_format($valor, 2, ',', '');
+
+            $valorAlterar = $request->input('ValorAlterar');
+            $valorAlterar = str_replace('.', '', $valorAlterar);
+            $valorAlterar = str_replace(',', '.', $valorAlterar);
+
             $Texto = $request->input('Texto');
-
-
             session(['success' => 'Nenhum valor alterado!']);
             foreach ($contasPagar as $conta) {
-
                 $jsonString = $conta;
-
                 // Decodifica o JSON em um array associativo
                 $data = json_decode($jsonString, true);
-
                 // Acessa o campo 'ID'
                 $id = $data['ID'];
-
                 session(['Texto' => $data['Descricao']]);
-
-
-
-
-                // Buscar o registro pelo ID
                 $contaPagar = ContasPagar::find($id);
+
+                // dd('Antes de ser alterado...', $valorAlterar, $data['Valor'], $valor);
 
                 if ($contaPagar) {
 
-                    $Valor = $data['Valor'];
+                    $ValorRegistrado = $data['Valor'];
 
-                   if($valorAlterar == $Valor)
+                   if($valorAlterar == $ValorRegistrado)
                    {
+
+
+                    $valor = str_replace(',', '.', $valor); // Troca vírgula por ponto
+                    $valor = floatval($valor); // Converte para float
+                    $valorFormatado = number_format($valor, 2, '.', '');
+
+
+                    //  dd('Sendo alterado...',$valorAlterar, $data['Valor'], $valor);
                     $contaPagar->update(['Valor' => $valor]);
                     $contaPagar->save();
                      session(['success' => 'Valor alterado com sucesso!']);
