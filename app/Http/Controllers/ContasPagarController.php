@@ -173,8 +173,7 @@ class ContasPagarController extends Controller
 
     public function alterarvalormultiplos(Request $request)
     {
-
-               // Receber os dados do formulário
+            // Receber os dados do formulário
             $contasPagar = $request->input('contasPagar'); // Array com IDs das contas a serem alteradas
             $valor = $request->input('Valor');
 
@@ -203,22 +202,18 @@ class ContasPagarController extends Controller
                 // dd('Antes de ser alterado...', $valorAlterar, $data['Valor'], $valor);
 
                 if ($contaPagar) {
-
                     $ValorRegistrado = $data['Valor'];
 
                    if($valorAlterar == $ValorRegistrado)
                    {
+                        $valor = str_replace(',', '.', $valor); // Troca vírgula por ponto
+                        $valor = floatval($valor); // Converte para float
+                        $valorFormatado = number_format($valor, 2, '.', '');
 
-
-                    $valor = str_replace(',', '.', $valor); // Troca vírgula por ponto
-                    $valor = floatval($valor); // Converte para float
-                    $valorFormatado = number_format($valor, 2, '.', '');
-
-
-                    //  dd('Sendo alterado...',$valorAlterar, $data['Valor'], $valor);
-                    $contaPagar->update(['Valor' => $valor]);
-                    $contaPagar->save();
-                     session(['success' => 'Valor alterado com sucesso!']);
+                        //  dd('Sendo alterado...',$valorAlterar, $data['Valor'], $valor);
+                        $contaPagar->update(['Valor' => $valor]);
+                        $contaPagar->save();
+                        session(['success' => 'Valor alterado com sucesso!']);
                    }
 
                 }
