@@ -213,6 +213,17 @@ class ContasPagarController extends Controller
                         //  dd('Sendo alterado...',$valorAlterar, $data['Valor'], $valor);
                         $contaPagar->update(['Valor' => $valor]);
                         $contaPagar->save();
+
+                        $lancamento = lancamento::where('ID', $contaPagar->LancamentoID)->first();
+
+
+
+                        if($lancamento)
+                        {
+                            $lancamento->update(['Valor' => $valor]);
+                            $lancamento->save();
+                        }
+                        // dd($lancamento, $contaPagar->LancamentoID);
                         session(['success' => 'Valor alterado com sucesso!']);
                    }
 
