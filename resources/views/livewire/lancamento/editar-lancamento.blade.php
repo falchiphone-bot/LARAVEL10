@@ -145,12 +145,14 @@
                                 </div>
 
                                     @if($UsarDolarDebito == 1 || $UsarDolarCredito == 1)
-                                        <div class="form-group col-sm-2">
-                                            <label for="valorquantidadedolar" class="form-control-label">Valor em quantidade de dólares</label>
-                                            <input type="text" id="valorquantidadedolar" name="valorquantidadedolar" placeholder="US$"
-                                                class="form-control money" wire:model.lazy="lancamento.ValorQuantidadeDolar">
-                                            <span class="oculto badge badge-danger">Informação não obrigatória</span>
-                                        </div>
+                                    <div class="form-group col-sm-2">
+                                        <label for="valorquantidadedolar" class=" form-control-label">Valorq uantidade dolar</label>
+                                        <input type="text" id="valorquantidadedolar" name="valorquantidadedolar" placeholder="US$"
+                                            class="form-control  money" wire:model.lazy="lancamento.ValorQuantidadeDolar">
+                                        <span class="oculto badge badge-danger">Informação não obrigatória</span>
+                                    </div>
+
+
                                     @endif
 
 

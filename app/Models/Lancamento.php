@@ -47,7 +47,7 @@ class Lancamento extends Model
         'Investimentos' => 'boolean',
         'Transferencias' => 'boolean',
         'SemDefinir' => 'boolean',
-        'ValorQuantidadeDolar' => 'float',
+ 
     ];
 
     public function Empresa(): HasOne

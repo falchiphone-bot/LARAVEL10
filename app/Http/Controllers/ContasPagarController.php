@@ -226,9 +226,7 @@ class ContasPagarController extends Controller
                         // dd($lancamento, $contaPagar->LancamentoID);
                         session(['success' => 'Valor alterado com sucesso!']);
                    }
-
                 }
-
             }
 
             return redirect()->route('ContasPagar.index');
