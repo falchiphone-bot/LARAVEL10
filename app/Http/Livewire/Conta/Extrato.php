@@ -6,6 +6,7 @@ use App\Exports\LancamentoExport;
 use App\Models\Conta;
 use App\Models\Empresa;
 use App\Models\Lancamento;
+use App\Models\MoedasValores;
 use App\Models\SolicitacaoExclusao;
 use Carbon\Carbon;
 use DateTime;
@@ -785,6 +786,43 @@ class Extrato extends Component
     public function confirmarAtualizar($lancamento_id)
     {
         $this->search();
+    }
+
+    public function confirmarAtualizarSaldoPoupanca($id, $saldo, $descricao, $data, $contaDebito, $contaCredito)
+    {
+
+        $id = $id;
+        $Saldo = $saldo;
+
+        $Descricao = $descricao;
+
+        $Debito = $contaDebito;
+        $Credito =  $contaCredito;
+
+
+        $Data = $data;
+
+
+        $ProximaData = Carbon::parse($Data);
+
+            // Adicionar 1 mês
+        $ProximaData = $ProximaData->addMonth();
+
+
+        $dataCalcular = MoedasValores::where('Data', $ProximaData)
+        ->where('idmoeda', 1)
+        ->first();
+
+
+        if ($dataCalcular == null) {
+
+            dd('Não existe valor para a data informada');
+        }
+
+
+        dd($Saldo, $dataCalcular, $Descricao, $Data,  $ProximaData,  $Debito, $Credito);
+        // Mensagem de sucesso ou outra lógica
+        session()->flash('success', 'Atualização realizada com sucesso!');
     }
 
     public function selecionarLancamento($contaID)

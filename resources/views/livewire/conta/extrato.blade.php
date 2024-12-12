@@ -467,14 +467,29 @@
                                                 <button title="Botão para atualizar" type="button"
                                                     class="btn-sm btn btn-outline-info"
                                                     wire:click='confirmarAtualizar({{ $lancamento->ID }})'>
-
                                                         <div class="card text-center"
-
                                                             <h5 class="card-title" style="color: rgb(123, 0, 255);">ATUALIZAR PÁGINA</h5>
-
                                                         </div>
+                                                </button>
+                                            </div>
+                                        </td>
 
+                                        <td colspan="2" align="right">
+                                            <div class="card text-center"
+                                                style="background-color: rgb(14, 212, 93); color: white;">
 
+                                                <button title="Botão para atualizar" type="button"
+                                                    class="btn-sm btn btn-outline-info"
+                                                    wire:click="confirmarAtualizarSaldoPoupanca({{ $lancamento->ID }},
+                                                     '{{ $saldo }}',
+                                                      '{{ $lancamento->Descricao }}',
+                                                       '{{ $lancamento->DataContabilidade}}',
+                                                       '{{ $lancamento->ContaDebitoID}}',
+                                                        '{{ $lancamento->ContaCreditoID}}'
+                                                       )">
+                                                        <div class="card text-center"
+                                                            <h5 class="card-title" style="color: rgb(123, 0, 255);">ATUALIZAR/POUPANÇA</h5>
+                                                        </div>
                                                 </button>
                                             </div>
                                         </td>
