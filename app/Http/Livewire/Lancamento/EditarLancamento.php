@@ -83,21 +83,21 @@ class EditarLancamento extends Component
         // $this->lancamento->ValorQuantidadeDolar =  '0,10';
         $Dolar = $this->lancamento->ValorQuantidadeDolar;
 
-        if($Dolar == 0)
+        if($Dolar == 0 || $Dolar == null || $Dolar == "" || $Dolar == '0,00')
         {
-            $this->lancamento->ValorQuantidadeDolar =  '0,01';
+            // $this->lancamento->ValorQuantidadeDolar =  '0,01';
+            // dd($this->lancamento->ValorQuantidadeDolar);
         }
         else
         if($Dolar == 01)
         {
-            $this->lancamento->ValorQuantidadeDolar = '0,01';
-            // dd(94,$this->lancamento->ValorQuantidadeDolar);
+			//   $this->lancamento->ValorQuantidadeDolar = '0,01';            // dd(94,$this->lancamento->ValorQuantidadeDolar);
         }
 
 
         if ($novo) {
         // if($this->lancamento->ValorQuantidadeDolar == null || $this->lancamento->ValorQuantidadeDolar =="" || $this->lancamento->ValorQuantidadeDolar == '0,00'){
-            $this->lancamento->ValorQuantidadeDolar =  '0.01';
+            // $this->lancamento->ValorQuantidadeDolar =  '0.01';
 // DD( $this->lancamento->ValorQuantidadeDolar);
         // }
         }

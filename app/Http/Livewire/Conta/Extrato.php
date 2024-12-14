@@ -286,7 +286,12 @@ class Extrato extends Component
         } else {
             $this->Lancamentos = null;
         }
+
+
+        
     }
+
+
     public function searchSaidasGeral()
     {
         if ($this->Conferido !== 'SaidasGeral') {

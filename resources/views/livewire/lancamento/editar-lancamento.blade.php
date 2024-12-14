@@ -111,6 +111,8 @@
                                                 @endforeach
                                             </select>
                                             Usar dolar {{ $UsarDolarDebito = $this->lancamento->ContaDebito->PlanoConta->UsarDolar ?? "NÃO USAR" }}
+                                            <input type="hidden" wire:model="UsarDolarDebito">
+
                                         </div>
                                         <div class="form-group col-sm-12">
                                             <label for="contacredito" class=" form-control-label">
@@ -125,6 +127,7 @@
                                                 @endforeach
                                             </select>
                                             Usar dolar {{ $UsarDolarCredito = $this->lancamento->ContaCredito->PlanoConta->UsarDolar ?? 'NÃO USAR' }}
+                                            <input type="hidden" wire:model="UsarDolarCredito">
                                         </div>
                                     </div>
                                 </div>
@@ -144,16 +147,16 @@
                                     <span class="oculto badge badge-danger">Informação obrigatória</span>
                                 </div>
 
-                                    @if($UsarDolarDebito == 1 || $UsarDolarCredito == 1)
+                                    {{-- @if($UsarDolarDebito == 1 || $UsarDolarCredito == 1) --}}
                                     <div class="form-group col-sm-2">
-                                        <label for="valorquantidadedolar" class=" form-control-label">Valorq uantidade dolar</label>
+                                        <label for="valorquantidadedolar" class=" form-control-label">Valor quantidade dolar</label>
                                         <input type="text" id="valorquantidadedolar" name="valorquantidadedolar" placeholder="US$"
                                             class="form-control  money" wire:model.lazy="lancamento.ValorQuantidadeDolar">
                                         <span class="oculto badge badge-danger">Informação não obrigatória</span>
                                     </div>
 
 
-                                    @endif
+                                    {{-- @endif --}}
 
 
 

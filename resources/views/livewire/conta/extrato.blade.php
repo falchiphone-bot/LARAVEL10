@@ -183,13 +183,16 @@
                                 </div>
                         </button>
 
-                        <button title="Saldos POUPANÇA/AVENUE" type="button" class="btn-sm btn btn-outline-success"
+                        @can('LANCAMENTOS - ATUALIZAR POUPANCA/AVENUE')
+                            <button title="Saldos POUPANÇA/AVENUE" type="button" class="btn-sm btn btn-outline-success"
                             wire:click='contasPoupancaAvenue'>
 
                                 <div class="card text-center" style="background-color: rgb(118, 14, 237); color: white;">
                                     <i class="cl-fa fa-check-square-o">Saldos POUPANÇA/AVENUE</i>
                                 </div>
-                        </button>
+                             </button>
+                        @endcan
+
 
                         <button title="Saldos Gabriel Magossi Falchi por mês" type="button" class="btn-sm btn btn-outline-danger"
                             wire:click='contasGabrielMagossiFalchiMes()'>
