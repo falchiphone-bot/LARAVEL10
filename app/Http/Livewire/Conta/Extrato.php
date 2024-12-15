@@ -144,6 +144,8 @@ class Extrato extends Component
             });
 
         $this->Lancamentos = $lancamentos->orderBy('DataContabilidade')->get();
+
+
     }
 
     public function updateDataBloqueioConta()
@@ -287,8 +289,8 @@ class Extrato extends Component
             $this->Lancamentos = null;
         }
 
+        // dd($this->Lancamentos);
 
-        
     }
 
 
