@@ -47,6 +47,26 @@ class LancamentosController extends Controller
      }
 
 
+
+    public function AtualizarSaldoPoupanca(Request $request)
+    {
+
+        $saldo = session('Saldo');
+        $dataCalcular = session('dataCalcular');
+        $descricao = session('Descricao');
+        $proximaData = session('ProximaData');
+        $debito = session('Debito');
+        $credito = session('Credito');
+        $novaDescricao = session('NovaDescricao');
+        $jurosArredondado = session('jurosArredondado');
+
+
+
+        return view('Lancamentos.AtualizarPoupanca', compact('saldo','dataCalcular', 'descricao', 'proximaData', 'debito', 'credito', 'novaDescricao', 'jurosArredondado'));
+    }
+
+
+
      public function DadosMes()
 
 

@@ -435,6 +435,10 @@ Route::post('drivelocal/file-upload', [App\Http\Controllers\LancamentosDocumento
 
 Route::get('Lancamentos.DadosGabrielMagossiFalchi', [LancamentosController::class, 'exibirDadosGabrielMagossiFalchi'])->name('lancamentos.exibirDadosGabrielMagossiFalchi');
 Route::get('Lancamentos.AvenuePoupanca', [LancamentosController::class, 'exibirDadosAvenuePoupanca'])->name('lancamentos.avenuepoupanca');
+
+Route::get('Lancamentos.AtualizarPoupanca', [LancamentosController::class, 'AtualizarSaldoPoupanca'])->name('lancamentos.atualizarpoupanca');
+
+
 Route::get('Lancamentos.DadosMes', [LancamentosController::class, 'DadosMes'])->name('lancamentos.DadosMes');
 // Route::get('Lancamentos.DadosGabrielMagossiFalchi', function () { return view('Lancamentos.DadosGabrielMagossiFalchi');})->name('Lancamentos.DadosGabrielMagossiFalchi');
 Route::post('Lancamentos/createArquivoDocumentos', [App\Http\Controllers\LancamentosDocumentosController::class, 'createArquivoDocumentos'])->name('lancamentos.ArquivoLancamentoDocumentos');

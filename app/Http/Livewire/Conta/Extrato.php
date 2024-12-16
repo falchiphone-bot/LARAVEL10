@@ -832,9 +832,26 @@ class Extrato extends Component
 
         $jurosArredondado = round($juros, 2);
 
-        dd($Saldo, $dataCalcular, $Descricao,  $ProximaData,  $Debito, $Credito, $NovaDescricao, $jurosArredondado);
+        // dd($Saldo, $dataCalcular, $Descricao,  $ProximaData,  $Debito, $Credito, $NovaDescricao, $jurosArredondado);
         // Mensagem de sucesso ou outra lógica
         session()->flash('success', 'Atualização realizada com sucesso!');
+
+
+
+
+        return redirect()->route('lancamentos.atualizarpoupanca')
+        ->with([
+            'Saldo' => $Saldo,
+            'dataCalcular' => $dataCalcular,
+            'Descricao' => $Descricao,
+            'ProximaData' => $ProximaData,
+            'Debito' => $Debito,
+            'Credito' => $Credito,
+            'NovaDescricao' => $NovaDescricao,
+            'jurosArredondado' => $jurosArredondado,
+        ]);
+
+
     }
 
     public function selecionarLancamento($contaID)
