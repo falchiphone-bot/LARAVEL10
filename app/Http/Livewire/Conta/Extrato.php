@@ -807,27 +807,32 @@ class Extrato extends Component
         $Credito =  $contaCredito;
 
 
-        $Data = $data;
+        $Data = Carbon::parse($data);
 
 
-        $ProximaData = Carbon::parse($Data);
+        $ProximaData = $Data;
 
             // Adicionar 1 mês
-        $ProximaData = $ProximaData->addMonth();
+        $ProximaData = $ProximaData->addMonth()->format('Y-m-d');
 
 
-        $dataCalcular = MoedasValores::where('Data', $ProximaData)
-        ->where('idmoeda', 1)
+        $dataCalcular = MoedasValores::where('Data',$ProximaData)
+        ->where('idmoeda', 3)
         ->first();
 
 
         if ($dataCalcular == null) {
-
-            dd('Não existe valor para a data informada');
+          dd('Não existe valor para a data informada', $ProximaData, $Data);
         }
 
 
-        dd($Saldo, $dataCalcular, $Descricao, $Data,  $ProximaData,  $Debito, $Credito);
+        $NovaDescricao = $dataCalcular->valor . '% sobre saldo de '. $Saldo   . '. ';
+
+        $juros = $Saldo * $dataCalcular->valor / 100;
+
+        $jurosArredondado = round($juros, 2);
+
+        dd($Saldo, $dataCalcular, $Descricao,  $ProximaData,  $Debito, $Credito, $NovaDescricao, $jurosArredondado);
         // Mensagem de sucesso ou outra lógica
         session()->flash('success', 'Atualização realizada com sucesso!');
     }
