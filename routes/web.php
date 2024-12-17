@@ -433,6 +433,10 @@ Route::get('drivelocal/UploadArquivoLocal', function () { return view('Lancament
 Route::post('drivelocal/file-upload', [App\Http\Controllers\LancamentosDocumentosController::class, 'DriveLocalFileUpload'])->name('drivelocal.file.upload');
 
 
+
+Route::post('AtualizarDadosPoupanca', [App\Http\Controllers\LancamentosController::class, 'AtualizarDadosPoupanca'])->name('lancamentos.atualizardadospoupanca');
+
+
 Route::get('Lancamentos.DadosGabrielMagossiFalchi', [LancamentosController::class, 'exibirDadosGabrielMagossiFalchi'])->name('lancamentos.exibirDadosGabrielMagossiFalchi');
 Route::get('Lancamentos.AvenuePoupanca', [LancamentosController::class, 'exibirDadosAvenuePoupanca'])->name('lancamentos.avenuepoupanca');
 
