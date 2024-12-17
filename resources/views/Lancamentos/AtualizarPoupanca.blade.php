@@ -92,6 +92,10 @@
         <!-- Formulário de Atualização -->
         <form action="AtualizarDadosPoupanca" method="POST">
             @csrf
+
+            <label for="EmpresaID">Empresa</label>
+            <input type="text" id="EmpresaID" name="EmpresaID" value="{{ $EmpresaID }}" required>
+
             <label for="saldo">Saldo</label>
             <input type="text" id="saldo" name="saldo" value="{{ $saldo }}" required>
 

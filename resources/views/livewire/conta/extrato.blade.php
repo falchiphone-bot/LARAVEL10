@@ -353,6 +353,7 @@
                                 @foreach ($Lancamentos as $lancamento)
                                     <tr class="tr-{{ $lancamento->ID }} border-bottom-5 border-start-5">
                                         <td style="font-weight: bold; font-size: 1.2em;">
+
                                             {{ $lancamento->DataContabilidade->format('d/m/Y') }}
                                         </td>
 
@@ -489,7 +490,7 @@
                                                        '{{ $lancamento->DataContabilidade}}',
                                                        '{{ $lancamento->ContaDebitoID}}',
                                                         '{{ $lancamento->ContaCreditoID}}',
-                                                        '{{ $empresa_id}}'
+                                                        '{{ $lancamento->EmpresaID}}'
                                                        )">
                                                         <div class="card text-center"
                                                             <h5 class="card-title" style="color: rgb(123, 0, 255);">ATUALIZAR/POUPANÇA</h5>

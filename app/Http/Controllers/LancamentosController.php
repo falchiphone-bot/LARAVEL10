@@ -61,15 +61,19 @@ class LancamentosController extends Controller
         $novaDescricao = session('NovaDescricao');
         $jurosArredondado = session('jurosArredondado');
 
-        return view('Lancamentos.AtualizarPoupanca', compact('saldo', 'ÉmpresaID' ,'dataCalcular', 'descricao', 'proximaData', 'debito', 'credito', 'novaDescricao', 'jurosArredondado'));
+        // dd( $EmpresaID);
+
+        return view('Lancamentos.AtualizarPoupanca', compact('saldo', 'EmpresaID' ,'dataCalcular', 'descricao', 'proximaData', 'debito', 'credito', 'novaDescricao', 'jurosArredondado'));
     }
 
 
     public function AtualizarDadosPoupanca(Request $request)
     {
+
+        // dd($request->all());
         $data = $request->proximaData;
         $descricao = (string) $request->novaDescricao;
-
+        $empresaID = $request->EmpresaID;
 
         $debito = $request->debito;
         $credito = $request->credito;
@@ -81,11 +85,28 @@ class LancamentosController extends Controller
         $lancamento->ContaDebitoID = $debito;
         $lancamento->ContaCreditoID = $credito;
         $lancamento->Valor = $valor;
-        $lancamento->EmpresID = 11;
+        $lancamento->EmpresaID = $empresaID;
+        $lancamento->Usuarios_id = 70;
 
-        $lancamento->save();
+        // $lancamento->save();
 
+        $ConsultaLancamento = lancamento::where('DataContabilidade', $data)->
+        where('Descricao', $descricao)->
+        where('ContaDebitoID', $debito)->
+        where('ContaCreditoID', $credito)->
+        where('Valor', $valor)->
+        where('EmpresaID', $empresaID)->first();
 
+        if ($ConsultaLancamento) {
+            session(['error' => 'Lançamento já existente!']);
+            return redirect()->route('planocontas.pesquisaavancada');
+        }
+        else {
+            $lancamento->save();
+            session(['success' => 'Lançamento efetuado com sucesso!']);
+            // return redirect()->back();
+            return redirect()->route('planocontas.pesquisaavancada');
+        }
 
 // dd($request->all(), $data, $descricao, $debito, $credito, $valor, $lancamento);
 

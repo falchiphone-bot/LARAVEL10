@@ -282,7 +282,7 @@ class Extrato extends Component
                 ->orderBy('DataContabilidade')
                 ->whereDoesntHave('SolicitacaoExclusao')
                 ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
-                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'Lancamentos.ValorQuantidadeDolar','DataContabilidade', 'Lancamentos.ContaCreditoID',
+                ->get(['Lancamentos.EmpresaID','Lancamentos.ID', 'Lancamentos.Valor', 'Lancamentos.ValorQuantidadeDolar','DataContabilidade', 'Lancamentos.ContaCreditoID',
                  'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao',
                  'Conferido', 'SaidasGeral', 'EntradasGeral', 'Investimentos', 'Transferencias', 'SemDefinir']);
         } else {
@@ -618,7 +618,7 @@ class Extrato extends Component
                 ->orderBy('DataContabilidade')
                 ->whereDoesntHave('SolicitacaoExclusao')
                 ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
-                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID', 'Lancamentos.Descricao',
+                ->get(['Lancamentos.EmpresaID','Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID', 'Lancamentos.Descricao',
                  'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral', 'EntradasGeral', 'Transferencias']);
         }
 
@@ -760,7 +760,9 @@ class Extrato extends Component
                 ->orderBy('DataContabilidade')
                 ->whereDoesntHave('SolicitacaoExclusao')
                 ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
-                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID', 'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral', 'EntradasGeral']);
+                ->get(['Lancamentos.EmpresaID','Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade',
+                'Lancamentos.ContaCreditoID', 'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao',
+                'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral', 'EntradasGeral']);
 
             return redirect()
                 ->route('Extrato.gerarpdf')
@@ -799,7 +801,7 @@ class Extrato extends Component
     {
 
 
-    dd($id, $saldo, $descricao, $data, $contaDebito, $contaCredito, $EmpresaID);
+    // dd($id, $saldo, $descricao, $data, $contaDebito, $contaCredito, $EmpresaID );
         $id = $id;
         $EmpresaID = $EmpresaID;
         $Saldo = $saldo;
@@ -845,7 +847,7 @@ class Extrato extends Component
         return redirect()->route('lancamentos.atualizarpoupanca')
         ->with([
             'Saldo' => $Saldo,
-            '$EmpresaID' => $EmpresaID,
+            'EmpresaID' => $EmpresaID,
             'dataCalcular' => $dataCalcular,
             'Descricao' => $Descricao,
             'ProximaData' => $ProximaData,
