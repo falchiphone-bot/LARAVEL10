@@ -147,16 +147,14 @@
                                     <span class="oculto badge badge-danger">Informação obrigatória</span>
                                 </div>
 
-                                    {{-- @if($UsarDolarDebito == 1 || $UsarDolarCredito == 1) --}}
-                                    <div class="form-group col-sm-2">
-                                        <label for="valorquantidadedolar" class=" form-control-label">Valor quantidade dolar</label>
-                                        <input type="text" id="valorquantidadedolar" name="valorquantidadedolar" placeholder="US$"
-                                            class="form-control  money" wire:model.lazy="lancamento.ValorQuantidadeDolar">
-                                        <span class="oculto badge badge-danger">Informação não obrigatória</span>
-                                    </div>
-
-
-                                    {{-- @endif --}}
+                                    @if($UsarDolarDebito == 1 || $UsarDolarCredito == 1)
+                                        <div class="form-group col-sm-2">
+                                            <label for="valorquantidadedolar" class=" form-control-label">Valor quantidade dolar</label>
+                                            <input type="text" id="valorquantidadedolar" name="valorquantidadedolar" placeholder="US$"
+                                                class="form-control  money" wire:model.lazy="lancamento.ValorQuantidadeDolar">
+                                            <span class="oculto badge badge-danger">Informação não obrigatória</span>
+                                        </div>
+                                    @endif
 
 
 
