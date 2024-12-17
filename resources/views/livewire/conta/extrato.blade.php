@@ -488,7 +488,8 @@
                                                       '{{ $lancamento->Descricao }}',
                                                        '{{ $lancamento->DataContabilidade}}',
                                                        '{{ $lancamento->ContaDebitoID}}',
-                                                        '{{ $lancamento->ContaCreditoID}}'
+                                                        '{{ $lancamento->ContaCreditoID}}',
+                                                        '{{ $empresa_id}}'
                                                        )">
                                                         <div class="card text-center"
                                                             <h5 class="card-title" style="color: rgb(123, 0, 255);">ATUALIZAR/POUPANÇA</h5>

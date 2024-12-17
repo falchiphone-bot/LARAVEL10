@@ -795,10 +795,13 @@ class Extrato extends Component
         $this->search();
     }
 
-    public function confirmarAtualizarSaldoPoupanca($id, $saldo, $descricao, $data, $contaDebito, $contaCredito)
+    public function confirmarAtualizarSaldoPoupanca($id, $saldo, $descricao, $data, $contaDebito, $contaCredito, $EmpresaID)
     {
 
+
+    dd($id, $saldo, $descricao, $data, $contaDebito, $contaCredito, $EmpresaID);
         $id = $id;
+        $EmpresaID = $EmpresaID;
         $Saldo = $saldo;
 
         $Descricao = $descricao;
@@ -842,6 +845,7 @@ class Extrato extends Component
         return redirect()->route('lancamentos.atualizarpoupanca')
         ->with([
             'Saldo' => $Saldo,
+            '$EmpresaID' => $EmpresaID,
             'dataCalcular' => $dataCalcular,
             'Descricao' => $Descricao,
             'ProximaData' => $ProximaData,

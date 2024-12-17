@@ -50,6 +50,13 @@
     <div class="container">
         <h1>Dados Exibidos</h1>
 
+
+
+
+        <div class="variavel">
+            <span>Empresa:</span> {{ $EmpresaID }}
+        </div>
+
         <div class="variavel">
             <span>Saldo:</span> {{ $saldo }}
         </div>
