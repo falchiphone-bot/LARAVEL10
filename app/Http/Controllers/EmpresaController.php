@@ -82,14 +82,18 @@ class EmpresaController extends Controller
     public function store(EmpresaCreateRequest $request)
     {
         $dados = $request->all();
-        //dd($dados);
 
-        $Empresas = Empresa::create($dados);
-        $Empresas()->save();
+        // Adiciona o campo 'Created' com o valor datetime atual no formato correto
+        $dados['Created'] = now();
 
+        // Cria e salva a nova empresa diretamente
+        $empresa = Empresa::create($dados);
 
+        // Redireciona para a lista de empresas
         return redirect(route('Empresas.index'));
     }
+
+
 
     /**
      * Display the specified resource.

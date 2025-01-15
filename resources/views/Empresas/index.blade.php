@@ -31,6 +31,11 @@
 
                         <thead>
 
+                            @can('EMPRESAS - INCLUIR')
+                            <a href="{{ route('Empresas.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
+                                aria-disabled="true">Incluir empresa e depois ir em Usuários e dar permissão para aparecer na lista de empresas</a>
+                        @endcan
+
                             <tr>
                                 @can('EMPRESAS - DESBLOQUEAR TODAS')
                                     <th>
