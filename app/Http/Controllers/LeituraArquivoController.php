@@ -1281,8 +1281,8 @@ else {
             $DespesaContaDebitoID = '19423';
             $CashBackContaCreditoID = '19423';
         } elseif ($linha_4_coluna_2 === '02069-4') {
-            $Conta = '15314';
-            $Empresa = 1025;
+            $Conta = '19796';
+            $Empresa = 1030;
             $DespesaContaDebitoID = '19424';
             $CashBackContaCreditoID = '19424';
         } elseif ($linha_4_coluna_2 === '01409-3') {

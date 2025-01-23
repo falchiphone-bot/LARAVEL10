@@ -1061,6 +1061,10 @@ return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
         }
         $lancamento->fill($request->all());
         $lancamento->save();
+
+      
+
+
         return redirect(route('Lancamentos.index'))->with('success', 'Lançamento atualizado.');
     }
 

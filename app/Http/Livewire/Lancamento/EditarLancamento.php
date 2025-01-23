@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Lancamento;
 
 use App\Models\Conta;
+use App\Models\ContasPagar;
 use App\Models\Empresa;
 use App\Models\Historicos;
 use App\Models\Lancamento;
@@ -155,7 +156,23 @@ class EditarLancamento extends Component
             } else {
                 $this->addError('save', 'Erro ao atualizar lançamento');
             }
+
+            $contasPagar = ContasPagar::where('LancamentoID', $this->lancamento->ID)->first();
+
+            if ($contasPagar) {
+                $contasPagar->Valor = $this->lancamento->Valor;
+                $contasPagar->EmpresaID = $this->lancamento->EmpresaID;
+                $contasPagar->DataDocumento = $this->lancamento->DataContabilidade;
+
+                $contasPagar->ContaFornecedorID = $this->lancamento->ContaDebitoID;
+                $contasPagar->ContaPagamentoID = $this->lancamento->ContaCreditoID;
+                // $contasPagar->Descricao = $this->lancamento->Descricao;
+                $contasPagar->save();
+
+                // dd($contasPagar, $this->lancamento);
+            }
         }
+
     }
 
     public function acao($value)
