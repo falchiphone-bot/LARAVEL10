@@ -525,6 +525,7 @@
 
 
                                             @can('LANCAMENTOS - CAIXAS GERAL')
+                                            @php($Marcacao = false)
                                                 <div class="card text-center"
                                                     style="background-color: #00ff2a; color: white;">
 
@@ -535,6 +536,7 @@
                                                         class="btn-sm btn btn-outline-danger"
                                                         wire:click='confirmarLancamentoSaidasGeral({{ $lancamento->ID }})'>
                                                         @if ($lancamento->SaidasGeral)
+                                                                @php($Marcacao = true)
                                                             <div class="card text-center"
                                                                 style="background-color: rgb(118, 14, 237); color: white;">
                                                                 <i
@@ -552,6 +554,8 @@
                                                         class="btn-sm btn btn-outline-primary"
                                                         wire:click='confirmarLancamentoEntradasGeral({{ $lancamento->ID }})'>
                                                         @if ($lancamento->EntradasGeral)
+
+                                                                @php($Marcacao = true)
                                                             <div class="card text-center"
                                                                 style="background-color: rgb(118, 14, 237); color: white;">
                                                                 <i
@@ -567,6 +571,8 @@
                                                         class="btn-sm btn btn-outline-warning"
                                                         wire:click='confirmarInvestimentos({{ $lancamento->ID }})'>
                                                         @if ($lancamento->Investimentos)
+
+                                                                @php($Marcacao = true)
                                                             <div class="card text-center"
                                                                 style="background-color: rgb(118, 14, 237); color: white;">
                                                                 <i
@@ -597,6 +603,8 @@
                                                         class="btn-sm btn btn-outline-secondary"
                                                         wire:click='confirmarSemDefinir({{ $lancamento->ID }})'>
                                                         @if ($lancamento->SemDefinir)
+                                                          @php($Marcacao = true)
+
                                                             <div class="card text-center"
                                                                 style="background-color: rgb(118, 14, 237); color: white;">
                                                                 <i
@@ -610,7 +618,16 @@
 
                                                     {{-- </div> --}}
                                                 </div>
-                                            @endcan
+
+
+                                                @if (!$Marcacao == true)
+                                                    <div class="bg-danger text-black p-4 rounded-lg shadow-md">
+                                                        <h1 class="text-xl font-bold">SEM MARCAÇÕES INFORMADAS</h1>
+                                                    </div>
+                                                 @endif
+
+
+                                                @endcan
 
 
                                             {{-- <button title="Sem notificação" data-id="84264" data-dias="" type="button"
