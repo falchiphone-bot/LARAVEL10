@@ -251,7 +251,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
             $linha = $PegaLinha + $AcrescentaLinha;
 
 
-            //  if($linha == 24) {
+            //  if($linha == 13) {
             //     dd($linha, $item);
             // }
 
@@ -346,7 +346,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
 
             $rowData = $cellData;
 
-// dd( $arraydatanova, $Valor_sem_pontos_virgulas, $valor_formatado);
+dd( $arraydatanova, $Valor_sem_pontos_virgulas, $valor_formatado);
             $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
                 ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
                 ->where('EmpresaID', $Empresa)
@@ -355,7 +355,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
 
 
             // if($lancamento == null){
-            //     dd($lancamento,$linha, $item);
+                // dd($lancamento,$linha, $item);
             // }
 
             if ($DESCONSIDERAR_BLOQUEIOS == null) {
@@ -537,7 +537,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                         // dd(537,$NumeroParcela, $QuantidadeParcela, $linha, $novoRegistroParcelas );
                     }
 
-//  dd(540,$NumeroParcela, $QuantidadeParcela, $linha, $novoRegistroParcelas );
+//  dd(540,$NumeroParcela, $QuantidadeParcela, $linha, $registros );
 
                     foreach ($registros as $incluirregistros) {
                         $lancamentoregistros = Lancamento::where('DataContabilidade', $incluirregistros['Data'])
@@ -546,7 +546,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                             ->where('ContaCreditoID', $incluirregistros['ContaCreditoID'])
                             ->where('Descricao', trim($incluirregistros['Descricao']))
                             ->First();
-
+//    dd($linha, $Descricao,'549',$lancamentoregistros );
                         if ($lancamentoregistros) {
                             // dd('JÁ LANÇADO', $Descricao, $incluirregistros);
                             continue;
@@ -570,48 +570,46 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                         }
                     }
                 } else {
-
-
-                    ///// RETIRADO APOS 01.10.2024
-                    // if ($historico) {
-
-                    //     Lancamento::create([
-                    //         'Valor' => ($valorString = $valor_formatado),
-                    //         'EmpresaID' => $Empresa,
-                    //         'ContaDebitoID' => $DespesaContaDebitoID,
-                    //         'ContaCreditoID' => $ContaCartao,
-                    //         'Descricao' => $DescricaoCompleta,
-                    //         'Usuarios_id' => auth()->user()->id,
-                    //         'DataContabilidade' => $Data,
-                    //         'HistoricoID' => '',
-                    //     ]);
-                    //     session(['Lancamento' => 'Lancamentos criados com históricos!']);
-                    //     // dd('Criando lançamento com histórico', $historico,session('Lancamento'));
-                    //     $arraydatanova['Criou com historico'] = 'SIM';
-
-                    //     DD($arraydatanova, 'inserico pelo histrórico');
+                    ////   retirado em 03.02.2025 as 12:37
+                    // if ($request->criarlancamentosemhistorico == true) {
+                    //     //  dd("Criando lançamento sem histórico!");
+                    //     if ($historico === null) {
+                    //         Lancamento::create([
+                    //             'Valor' => ($valorString = $valor_formatado),
+                    //             'EmpresaID' => $Empresa,
+                    //             'ContaDebitoID' => $DespesaContaDebitoID,
+                    //             'ContaCreditoID' => $ContaCartao,
+                    //             'Descricao' => $DescricaoCompleta,
+                    //             'Usuarios_id' => auth()->user()->id,
+                    //             'DataContabilidade' => $Data,
+                    //             'HistoricoID' => '',
+                    //         ]);
+                    //     }
+                    //     $arraydatanova['CRIOU SEM HISTORICO'] = 'SIM';
+                    //     session(['Lancamento' => 'Lancamentos criados sem históricos!']);
                     // }
-
-                    ////// O ACIMA FOI RETIRADO APOS 01.10.2024
-
-                    if ($request->criarlancamentosemhistorico == true) {
-                        //  dd("Criando lançamento sem histórico!");
-                        if ($historico === null) {
-                            Lancamento::create([
-                                'Valor' => ($valorString = $valor_formatado),
-                                'EmpresaID' => $Empresa,
-                                'ContaDebitoID' => $DespesaContaDebitoID,
-                                'ContaCreditoID' => $ContaCartao,
-                                'Descricao' => $DescricaoCompleta,
-                                'Usuarios_id' => auth()->user()->id,
-                                'DataContabilidade' => $Data,
-                                'HistoricoID' => '',
-                            ]);
-                        }
-                        $arraydatanova['CRIOU SEM HISTORICO'] = 'SIM';
-                        session(['Lancamento' => 'Lancamentos criados sem históricos!']);
-                    }
                 }
+
+
+                if ($request->criarlancamentosemhistorico == true) {
+                    //  dd("Criando lançamento sem histórico!");
+                    if ($historico === null) {
+                        Lancamento::create([
+                            'Valor' => ($valorString = $valor_formatado),
+                            'EmpresaID' => $Empresa,
+                            'ContaDebitoID' => $DespesaContaDebitoID,
+                            'ContaCreditoID' => $ContaCartao,
+                            'Descricao' => $DescricaoCompleta,
+                            'Usuarios_id' => auth()->user()->id,
+                            'DataContabilidade' => $Data,
+                            'HistoricoID' => '',
+                        ]);
+                    }
+                    $arraydatanova['CRIOU SEM HISTORICO'] = 'SIM';
+                    session(['Lancamento' => 'Lancamentos criados sem históricos!']);
+                }
+
+
 
                 // dd('fim');
                 // session(['Lancamento' => 'Lancamentos criados!']);
