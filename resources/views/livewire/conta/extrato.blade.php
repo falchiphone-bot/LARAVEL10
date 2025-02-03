@@ -588,6 +588,7 @@
                                                         class="btn-sm btn btn-outline-secondary"
                                                         wire:click='confirmarTransferencias({{ $lancamento->ID }})'>
                                                         @if ($lancamento->Transferencias)
+                                                              @php($Marcacao = true)
                                                             <div class="card text-center"
                                                                 style="background-color: rgb(118, 14, 237); color: white;">
                                                                 <i
