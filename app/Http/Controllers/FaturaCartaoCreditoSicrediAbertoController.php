@@ -346,7 +346,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
 
             $rowData = $cellData;
 
-dd( $arraydatanova, $Valor_sem_pontos_virgulas, $valor_formatado);
+// dd( $arraydatanova, $Valor_sem_pontos_virgulas, $valor_formatado);
             $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
                 ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
                 ->where('EmpresaID', $Empresa)
