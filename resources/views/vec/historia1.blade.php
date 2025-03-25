@@ -41,5 +41,40 @@
             <li><strong class="text-red-500">NO DESEMPENHO ESCOLAR:</strong> Promover o interesse das crianças, adolescentes e jovens em período escolar, diminuindo a evasão.</li>
         </ul>
     </section>
+
+    <section class="bg-gray-800 py-12 px-6">
+        <div class="max-w-4xl mx-auto">
+            <h3 class="text-3xl font-bold text-center text-red-500">Nossa Missão</h3>
+            <p class="text-gray-300 text-lg text-center mt-4">
+
+                Promover o desenvolvimento esportivo e social através do futsal, proporcionando oportunidades para jovens talentos e contribuindo para a disseminação dos valores do esporte.
+
+            </p>
+        </div>
+    </section>
+    <section class="bg-gray-900 py-12 px-6">
+        <div class="max-w-4xl mx-auto">
+            <h3 class="text-3xl font-bold text-center text-red-500">Nossa Visão</h3>
+            <p class="text-gray-300 text-lg text-center mt-4">
+
+                Ser referência na formação de atletas de futsal, reconhecido pela excelência técnica e impacto positivo na comunidade.
+
+            </p>
+        </div>
+    </section>
+
+    <section class="bg-gray-800 py-12 px-6">
+        <div class="max-w-4xl mx-auto">
+            <h3 class="text-3xl font-bold text-center text-red-500">Nossos Valores</h3>
+            <p class="text-gray-300 text-lg text-center mt-4">
+
+                •	Compromisso com o desenvolvimento dos atletas
+                •	Disciplina e respeito
+                •	Trabalho em equipe
+                •	Transparência e ética
+
+            </p>
+        </div>
+    </section>
 </body>
 </html>
