@@ -27,9 +27,28 @@ use App\Http\Controllers\PDFController;
 Route::get('php', function () { return phpinfo();})->name('php');
 Route::resource('teste', App\Http\Controllers\TesteController::class);
 
+
+
+// aqui é a rota que vai chamar o método que vai fazer a autenticação ou página solicitada na chamada via url
+// Route::get('/', function () {
+//     return redirect('/dashboard');
+// });
+
 Route::get('/', function () {
-    return redirect('/dashboard');
+    $dominio = request()->getHost(); // Obtém o domínio atual
+
+    // dd($dominio);
+
+    if ($dominio === 'tanabisaf.com.br') {
+        return redirect('/dashboard1');
+    } elseif ($dominio === 'vec.org.br') {
+        return view('vec.index');
+    }
+
+    return redirect('/dashboard'); // Caso não seja nenhum dos domínios específicos
 });
+
+
 
 Route::get('/dashboard', function () {
     return view('dashboard');
