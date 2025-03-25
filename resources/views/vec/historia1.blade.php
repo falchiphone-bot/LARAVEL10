@@ -69,8 +69,14 @@
             <p class="text-gray-300 text-lg text-center mt-4">
 
                 •	Compromisso com o desenvolvimento dos atletas
+            </p>
+                <p class="text-gray-300 text-lg text-center mt-4">
                 •	Disciplina e respeito
+            </p>
+                <p class="text-gray-300 text-lg text-center mt-4">
                 •	Trabalho em equipe
+            </p>
+                <p class="text-gray-300 text-lg text-center mt-4">
                 •	Transparência e ética
 
             </p>

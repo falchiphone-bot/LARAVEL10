@@ -11,6 +11,24 @@
 
     @include('vec.header')
 
+
+    <section class="max-w-4xl mx-auto py-12 px-6">
+        <h2 class="text-4xl font-bold text-center mb-6">Como Participar</h2>
+        <p class="text-gray-300 text-lg leading-relaxed text-center">
+            Se você deseja fazer parte do VEC, entre em contato e venha conhecer nossa estrutura.
+        </p>
+        <p class="text-gray-300 text-lg leading-relaxed mt-4">
+            Oferecemos avaliações para novos atletas periodicamente, via edital e encaminhamentos do CRAS e SAS de Votuporanga.
+
+            <p class="text-gray-300 text-lg leading-relaxed mt-4">
+                  Fique por dentro das novidades e acompanhe nossas atividades.
+             </p>
+                <p class="text-gray-300 text-lg leading-relaxed mt-4">
+                Acompanhe o VEC e faça parte da nossa história no futsal
+             </p>
+        </p>
+    </section>
+
     <section class="max-w-4xl mx-auto py-12 px-6">
         <h2 class="text-4xl font-bold text-center mb-6">Sobre o VEC</h2>
         <p class="text-gray-300 text-lg leading-relaxed text-center">

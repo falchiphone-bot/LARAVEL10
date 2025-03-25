@@ -9,7 +9,8 @@
         <ul class="flex space-x-6">
             <li><a href="{{ url('/') }}" class="hover:text-red-500">Início</a></li>
             <li><a href="{{ url('/vec.historia1') }}" class="hover:text-red-500">Sobre</a></li>
-            <li><a href="{{ url('/') }}" class="hover:text-red-500">Serviços</a></li>
+            <li><a href="{{ url('/vec.categoria') }}" class="hover:text-red-500">Categorias</a></li>
+            <li><a href="{{ url('/vec.localtreino') }}" class="hover:text-red-500">Local treinos</a></li>
             <li><a href="{{ url('/vec.contato') }}" class="hover:text-red-500">Contato</a></li>
         </ul>
     </nav>

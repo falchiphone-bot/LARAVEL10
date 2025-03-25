@@ -61,9 +61,10 @@ Route::get('/dashboard', function () {
     { return view('vec.historia1');})->name('vec.historia1');
     Route::get('vec.contato', function ()
     { return view('vec.contato');})->name('vec.contato');
-
-
-
+    Route::get('vec.categoria', function ()
+    { return view('vec.categoria');})->name('vec.categoria');
+    Route::get('vec.localtreino', function ()
+    { return view('vec.localtreino');})->name('vec.localtreino');
 
 //política de privacidade e termos de serviços
 Route::get('webhook/politicaprivacidade', function ()
