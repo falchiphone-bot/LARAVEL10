@@ -56,6 +56,15 @@ Route::get('/dashboard', function () {
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+    ///// vec.org.çbr
+    Route::get('vec.historia1', function ()
+    { return view('vec.historia1');})->name('vec.historia1');
+    Route::get('vec.contato', function ()
+    { return view('vec.contato');})->name('vec.contato');
+
+
+
+
 //política de privacidade e termos de serviços
 Route::get('webhook/politicaprivacidade', function ()
  { return view('webhook.politicaprivacidade');})->name('webhook.politicaprivacidade');

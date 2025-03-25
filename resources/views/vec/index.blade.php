@@ -8,31 +8,18 @@
 </head>
 <body class="bg-gray-900 text-white">
 
-    <header class="flex justify-between items-center p-6 bg-gray-800">
-        <h1 class="text-xl font-bold">
-            <img src="{{ asset('vec/logo/logovec1.jpeg') }}" alt="Logo" class="h-50">
-        </h1>
-
-        <nav>
-            <ul class="flex space-x-6">
-                <li><a href="#" class="hover:text-red-500">Home</a></li>
-                <li><a href="#" class="hover:text-red-500">Sobre</a></li>
-                <li><a href="#" class="hover:text-red-500">Serviços</a></li>
-                <li><a href="#" class="hover:text-red-500">Contato</a></li>
-            </ul>
-        </nav>
-    </header>
+    @include('vec.header')
 
     <section class="flex justify-between items-center px-12 py-20 bg-gray-900">
         <div class="w-1/2">
             <h2 class="text-4xl font-bold mb-4">Nossa história</h2>
             <p class="text-gray-300 mb-6">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris convallis, lacus ac tincidunt viverra.
+                Em 2007, nasceu o VOTUPORANGA ESPORTE CLUBE – VEC. Desde seu nascimento, o foco está no desenvolvimento integral de crianças, adolescentes e jovens, através de atividades esportivas e na formação para o exercício da cidadania.
             </p>
-            <a href="#" class="bg-red-500 px-6 py-2 rounded-lg text-white font-bold hover:bg-red-600">LEIA MAIS</a>
+            <a href="vec.historia1" class="bg-red-500 px-6 py-2 rounded-lg text-white font-bold hover:bg-red-600">LEIA MAIS</a>
         </div>
         <div class="w-1/2 flex justify-center">
-            <img src="{{ asset('images/football-image.png') }}" alt="Futebol" class="w-96">
+            <img src="{{ asset('vec/imagem/bola1.png') }}" alt="Logo" class="h-50">
         </div>
     </section>
 
