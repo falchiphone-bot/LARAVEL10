@@ -41,7 +41,7 @@ Route::get('/', function () {
     // dd($dominio);
 
     if ($dominio === 'tanabisaf.com.br') {
-        return redirect('/dashboard1');
+        return view('tanabisaf.index');
     } elseif ($dominio === 'vec.org.br') {
         return view('vec.index');
     }
@@ -76,7 +76,11 @@ Route::get('/dashboard', function () {
     //rota para baixar arquivo controlados usando uma controller
     Route::get('download/{id_arquivo}', ArquivosPublicos::class)->name('download');
 
+   ///// tanabisaf.com.br
+   Route::get('tanabisaf.transparencias', function ()
+   { return view('tanabisaf.transparencias');})->name('tanabisaf.transparencias');
 
+   
 
 //política de privacidade e termos de serviços
 Route::get('webhook/politicaprivacidade', function ()

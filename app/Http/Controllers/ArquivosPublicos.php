@@ -10,7 +10,23 @@ class ArquivosPublicos extends Controller
 {
     /**
      * Handle the incoming request.
+     *
+     *
+     *
      */
+
+    //  public function site()
+    //  {
+    //     $dominio = request()->getHost(); // Obtém o domínio atual
+
+    //     if ($dominio === 'tanabisaf.com.br') {
+    //         return view('tanabisaf/mensagem', compact('mensagem'));
+    //     } elseif ($dominio === 'vec.org.br') {
+    //         return view('vec/mensagem', compact('mensagem'));
+    //     }
+    //  }
+
+
     public function __invoke($id_arquivo)
     {
         //aqui a função vai verificar se o arquivo existe e pode ser baixado
@@ -25,12 +41,29 @@ class ArquivosPublicos extends Controller
                 }
           else {
             $mensagem = (object) ['mensagem' => 'Não autorizado a visualizar em público!'];
-            return view('vec/mensagem', compact('mensagem'));
+
+            $dominio = request()->getHost(); // Obtém o domínio atual
+
+            if ($dominio === 'tanabisaf.com.br') {
+                return view('tanabisaf/mensagem', compact('mensagem'));
+            } elseif ($dominio === 'vec.org.br') {
+                return view('vec/mensagem', compact('mensagem'));
+            }
+
+
+
+
             }
         } else {
             $mensagem = (object) ['mensagem' => 'Registro não localizado!'];
 
-           return view('vec/mensagem', compact('mensagem'));
+            $dominio = request()->getHost(); // Obtém o domínio atual
+
+        if ($dominio === 'tanabisaf.com.br') {
+            return view('tanabisaf/mensagem', compact('mensagem'));
+        } elseif ($dominio === 'vec.org.br') {
+            return view('vec/mensagem', compact('mensagem'));
+        }
         }
     }
 }
