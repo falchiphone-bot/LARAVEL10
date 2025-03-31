@@ -73,6 +73,7 @@ Route::get('/dashboard', function () {
 
     //rota para baixar arquivo controlados usando uma controller
     Route::get('download/{id_arquivo}', ArquivosPublicos::class)->name('download');
+ 
 
 
 //política de privacidade e termos de serviços

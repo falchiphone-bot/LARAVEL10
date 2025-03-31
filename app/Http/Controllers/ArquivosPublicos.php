@@ -24,11 +24,13 @@ class ArquivosPublicos extends Controller
                     return response()->file('../storage/app/arquivos/' . $documento->NomeLocalTimeStamps . '.'.$documento->Ext);
                 }
           else {
-                return response()->json(['error' => 'Documento não disponível para download.'], 403);
+            $mensagem = (object) ['mensagem' => 'Não autorizado a visualizar em público!'];
+            return view('vec/mensagem', compact('mensagem'));
             }
         } else {
-            return response()->json(['error' => 'Documento não encontrado.'], 404);
-        }
+            $mensagem = (object) ['mensagem' => 'Registro não localizado!'];
 
+           return view('vec/mensagem', compact('mensagem'));
+        }
     }
 }
