@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ArquivosPublicos;
 use App\Http\Controllers\GoogleCalendarController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -69,6 +70,9 @@ Route::get('/dashboard', function () {
     { return view('vec.dadosbancarios');})->name('vec.dadosbancarios');
     Route::get('vec.comoparticipar', function ()
     { return view('vec.comoparticipar');})->name('vec.comoparticipar');
+
+    //rota para baixar arquivo controlados usando uma controller
+    Route::get('download/{id_arquivo}', ArquivosPublicos::class)->name('download');
 
 
 //política de privacidade e termos de serviços
