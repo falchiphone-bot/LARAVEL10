@@ -1,18 +1,29 @@
 <header class="flex justify-between items-center p-6 bg-gray-800">
     <h1 class="text-xl font-bold">
         <a href="{{ url('/') }}">
-            <img src="{{ asset('vec/logo/logovec1.jpeg') }}" alt="Logo" class="h-50">
+            <img src="{{ asset('vec/logo/logovec1.jpeg') }}" alt="Logo" class="h-36">
         </a>
     </h1>
 
-    <nav>
-        <ul class="flex space-x-6">
-            <li><a href="{{ url('/') }}" class="hover:text-red-500">Início</a></li>
-            <li><a href="{{ url('/vec.historia1') }}" class="hover:text-red-500">Sobre</a></li>
-            <li><a href="{{ url('/vec.categoria') }}" class="hover:text-red-500">Categorias</a></li>
-            <li><a href="{{ url('/vec.localtreino') }}" class="hover:text-red-500">Local treinos</a></li>
-            <li><a href="{{ url('/vec.comoparticipar') }}" class="hover:text-red-500">Participar</a></li>
-            <li><a href="{{ url('/vec.contato') }}" class="hover:text-red-500">Contato</a></li>
+    <button id="menu-toggle" class="md:hidden text-white focus:outline-none">
+        &#9776;
+    </button>
+
+    <nav id="menu" class="hidden md:flex space-x-6">
+        <ul class="flex flex-col md:flex-row md:space-x-6 bg-gray-800 md:bg-transparent absolute md:static top-16 left-0 w-full md:w-auto p-4 md:p-0">
+            <li><a href="{{ url('/') }}" class="block p-2 hover:text-red-500">Início</a></li>
+            <li><a href="{{ url('/vec.historia1') }}" class="block p-2 hover:text-red-500">Sobre</a></li>
+            <li><a href="{{ url('/vec.transparencias') }}" class="block p-2 hover:text-red-500">Transparências</a></li>
+            <li><a href="{{ url('/vec.categoria') }}" class="block p-2 hover:text-red-500">Categorias</a></li>
+            <li><a href="{{ url('/vec.localtreino') }}" class="block p-2 hover:text-red-500">Local treinos</a></li>
+            <li><a href="{{ url('/vec.comoparticipar') }}" class="block p-2 hover:text-red-500">Participar</a></li>
+            <li><a href="{{ url('/vec.contato') }}" class="block p-2 hover:text-red-500">Contato</a></li>
         </ul>
     </nav>
 </header>
+
+<script>
+    document.getElementById('menu-toggle').addEventListener('click', function () {
+        document.getElementById('menu').classList.toggle('hidden');
+    });
+</script>

@@ -70,10 +70,12 @@ Route::get('/dashboard', function () {
     { return view('vec.dadosbancarios');})->name('vec.dadosbancarios');
     Route::get('vec.comoparticipar', function ()
     { return view('vec.comoparticipar');})->name('vec.comoparticipar');
+    Route::get('vec.transparencias', function ()
+    { return view('vec.transparencias');})->name('vec.transparencias');
 
     //rota para baixar arquivo controlados usando uma controller
     Route::get('download/{id_arquivo}', ArquivosPublicos::class)->name('download');
- 
+
 
 
 //política de privacidade e termos de serviços
