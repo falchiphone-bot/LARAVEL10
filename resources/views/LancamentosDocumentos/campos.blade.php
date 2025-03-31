@@ -53,6 +53,24 @@
                     @enderror
                 </div>
 
+                <div class="badge bg-info text-wrap" style="width: 100%; height: 50%; font-size: 24px;">
+                    TORANAR PÚBLICO OU NÃO
+                </div>
+                <div class="form-group">
+                    <label for="Publico">
+                        <input type="checkbox" name="Publico" id="Publico" value="1" {{ old('Publico', $documento->Publico ?? false) ? 'checked' : '' }}>
+                        Público
+                    </label>
+                    @error('Publico')
+                        <div class="alert alert-danger">{{ $message }}</div>
+                    @enderror
+                </div>
+
+
+
+
+
+
 
 
 

@@ -226,6 +226,10 @@ class LancamentosDocumentosController extends Controller
 
         $cadastro->fill($request->all()) ;
 
+        $cadastro->Publico = $request->Publico ?? 0;
+
+        // DD($cadastro);
+
 
         $cadastro->save();
 
