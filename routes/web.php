@@ -79,8 +79,13 @@ Route::get('/dashboard', function () {
    ///// tanabisaf.com.br
    Route::get('tanabisaf.transparencias', function ()
    { return view('tanabisaf.transparencias');})->name('tanabisaf.transparencias');
+   Route::get('tanabisaf.contato', function ()
+   { return view('tanabisaf.contato');})->name('tanabisaf.contato');
+   Route::get('tanabisaf.categoria', function ()
+    { return view('tanabisaf.categoria');})->name('tanabisaf.categoria');
 
-   
+
+
 
 //política de privacidade e termos de serviços
 Route::get('webhook/politicaprivacidade', function ()
