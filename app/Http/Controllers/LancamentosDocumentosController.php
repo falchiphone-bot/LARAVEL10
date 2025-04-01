@@ -58,10 +58,14 @@ class LancamentosDocumentosController extends Controller
 
 
         // dd(request()->route()->gatherMiddleware());
+
+
+        $dominio = request()->getHost(); // Obtém o domínio atual
+
         $documentos = LancamentoDocumento::limit(100)
         ->where('Publico', 1)
         ->whereNotNull('AnotacoesGerais')
-        ->where('AnotacoesGerais', 'LIKE', '%vec.org.br%')
+        ->where('AnotacoesGerais', 'LIKE', '%'.$dominio. '%')
         ->orderBy('ID', 'DESC')
         ->get();
 
@@ -69,15 +73,10 @@ class LancamentosDocumentosController extends Controller
         $tipoarquivo = TipoArquivo::get();
         $retorno['TipoArquivo'] = null;
 
-
-
-         
-        $dominio = request()->getHost(); // Obtém o domínio atual
-
-
         if ($dominio === 'tanabisaf.com.br') {
-            return view('tanabisaf.documentos',compact('documentos','tipoarquivo','retorno'));
+                 return view('tanabisaf.documentos',compact('documentos','tipoarquivo','retorno'));
         } elseif ($dominio === 'vec.org.br') {
+
             return view('vec.documentos',compact('documentos','tipoarquivo','retorno'));
         }
 

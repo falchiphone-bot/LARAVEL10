@@ -94,10 +94,11 @@
                                             @endif
 
 
+
                                                 @if(!empty($documento->NomeLocalTimeStamps))
                                                     <div class="form-group">
                                                         {{-- Visualizar o documento: <a href="https://drive.google.com/file/d/{{ $documento->MostraLancamentoDocumento->Nome ?? null }}/view??usp=sharing" target="_blank">{{ $documento->MostraLancamentoDocumento->Rotulo ?? null }}</a> --}}
-                                                        <strong>Visualizar o documento:</strong> <a href="/storage/arquivos/{{ $documento->NomeLocalTimeStamps . '.'.$documento->Ext ?? null }}" target="_blank">{{ $documento->Rotulo ?? null }}</a>
+                                                        <strong>Visualizar o documento:</strong> <a href="/storage/arquivospublicos/{{ $documento->NomeLocalTimeStamps . '.'.$documento->Ext ?? null }}" target="_blank">{{ $documento->Rotulo ?? null }}</a>
                                                     </div>
                                                 @endif
 

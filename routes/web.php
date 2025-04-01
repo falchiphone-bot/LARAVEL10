@@ -51,7 +51,11 @@ Route::get('/', function () {
 
 
 Route::get('sites', [App\Http\Controllers\LancamentosDocumentosController::class, 'sites'])->name('lancamentosdocumentos.sites');
-
+Route::get('/storage/arquivospublicos/{filename}', function ($filename) {
+    // Coloque aqui a lógica para lidar com a requisição, como o envio do arquivo ou redirecionamento para ele.
+    // Você pode usar a função `response()->file()` para enviar o arquivo.
+    return response()->file('../storage/app/arquivos/' . $filename);
+})->where('filename', '.*');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
