@@ -83,7 +83,8 @@ Route::get('/dashboard', function () {
    { return view('tanabisaf.contato');})->name('tanabisaf.contato');
    Route::get('tanabisaf.categoria', function ()
     { return view('tanabisaf.categoria');})->name('tanabisaf.categoria');
-
+    Route::get('tanabisaf.localtreino', function ()
+    { return view('tanabisaf.localtreino');})->name('tanabisaf.localtreino');
 
 
 
