@@ -50,6 +50,8 @@ Route::get('/', function () {
 });
 
 
+Route::get('sites', [App\Http\Controllers\LancamentosDocumentosController::class, 'sites'])->name('lancamentosdocumentos.sites');
+
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -482,6 +484,7 @@ Route::resource('RedeSocialUsuarios', App\Http\Controllers\RedeSocialUsuarioCont
 Route::get('drivelocal/UploadArquivoLocal', function () { return view('LancamentosDocumentos.UploadArquivoServidorLocal');})->name('upload.arquivosLocal');
 // Route::post('drive/google-drive/file-upload', [App\Http\Controllers\GoogleDriveController::class, 'googleDriveFileUpload'])->name('google.drive.file.upload');
 Route::post('drivelocal/file-upload', [App\Http\Controllers\LancamentosDocumentosController::class, 'DriveLocalFileUpload'])->name('drivelocal.file.upload');
+
 
 
 

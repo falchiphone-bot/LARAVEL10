@@ -12,6 +12,7 @@
     <nav id="menu" class="hidden md:flex space-x-6">
         <ul class="flex flex-col md:flex-row md:space-x-6 bg-gray-800 md:bg-transparent absolute md:static top-16 left-0 w-full md:w-auto p-4 md:p-0">
             <li><a href="{{ url('/') }}" class="block p-2 hover:text-red-500">Início</a></li>
+            <li><a href="{{ url('/sites') }}" class="block p-2 hover:text-red-500">Documentos/Videos</a></li>
             <li><a href="{{ url('/vec.historia1') }}" class="block p-2 hover:text-red-500">Sobre</a></li>
             <li><a href="{{ url('/vec.transparencias') }}" class="block p-2 hover:text-red-500">Transparências</a></li>
             <li><a href="{{ url('/vec.categoria') }}" class="block p-2 hover:text-red-500">Categorias</a></li>

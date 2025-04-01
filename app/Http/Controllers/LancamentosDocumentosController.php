@@ -22,7 +22,8 @@ class LancamentosDocumentosController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware('auth')->except(['sites']);
+        // $this->middleware('auth');
         $this->middleware(['permission:LANCAMENTOS DOCUMENTOS - LISTAR'])->only('index');
         $this->middleware(['permission:LANCAMENTOS DOCUMENTOS - INCLUIR'])->only(['create', 'store']);
         $this->middleware(['permission:LANCAMENTOS DOCUMENTOS - EDITAR'])->only(['edit', 'update']);
@@ -47,6 +48,39 @@ class LancamentosDocumentosController extends Controller
 
 
         return view('LancamentosDocumentos.index',compact('documentos','tipoarquivo','retorno'));
+    }
+
+    public function sites()
+    {
+
+    //     \Illuminate\Support\Facades\Auth::logout(); // Garante que não está logado
+    // return "Acesso liberado sem login!"; // Teste simples
+
+
+        // dd(request()->route()->gatherMiddleware());
+        $documentos = LancamentoDocumento::limit(100)
+        ->where('Publico', 1)
+        ->whereNotNull('AnotacoesGerais')
+        ->where('AnotacoesGerais', 'LIKE', '%vec.org.br%')
+        ->orderBy('ID', 'DESC')
+        ->get();
+
+
+        $tipoarquivo = TipoArquivo::get();
+        $retorno['TipoArquivo'] = null;
+
+
+
+         
+        $dominio = request()->getHost(); // Obtém o domínio atual
+
+
+        if ($dominio === 'tanabisaf.com.br') {
+            return view('tanabisaf.documentos',compact('documentos','tipoarquivo','retorno'));
+        } elseif ($dominio === 'vec.org.br') {
+            return view('vec.documentos',compact('documentos','tipoarquivo','retorno'));
+        }
+
     }
 
     public function indexpost(string $id)
