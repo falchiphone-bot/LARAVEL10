@@ -56,10 +56,32 @@
 
     <section class="bg-gray-900 py-12 px-6">
         <div class="max-w-4xl mx-auto">
-            <h3 class="text-3xl font-bold text-center text-red-500"> </h3>
+            <h3 class="text-3xl font-bold text-center text-red-500">DRE DE 2024 </h3>
             <p class="text-gray-300 text-lg text-center mt-4">
 
+                <a href="{{ route('download', ['id_arquivo' => 40674]) }}">Baixar Arquivo PDF</a>
+            </p>
+        </div>
+    </section>
 
+
+
+    <section class="bg-gray-900 py-12 px-6">
+        <div class="max-w-4xl mx-auto">
+            <h3 class="text-3xl font-bold text-center text-red-500">BALANÇO PATRIMONIAL – 2024 </h3>
+            <p class="text-gray-300 text-lg text-center mt-4">
+                <a href="{{ route('download', ['id_arquivo' => 40673]) }}">Baixar Arquivo PDF</a>
+            </p>
+        </div>
+    </section>
+
+
+
+    <section class="bg-gray-900 py-12 px-6">
+        <div class="max-w-4xl mx-auto">
+            <h3 class="text-3xl font-bold text-center text-red-500">NOTAS EXPLICATIVAS – 2024</h3>
+            <p class="text-gray-300 text-lg text-center mt-4">
+                <a href="{{ route('download', ['id_arquivo' => 40672]) }}">Baixar Arquivo PDF</a>
             </p>
         </div>
     </section>
