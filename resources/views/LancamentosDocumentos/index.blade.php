@@ -160,7 +160,7 @@
                             <tr>
                                 <th scope="col" class="px-22 py-2">Rótulo do documento</th>
                                 <th scope="col" class="px-6 py-2">Identificação</th>
-                                <th scope="col" class="px-2 py-2"></th>
+                                <th scope="col" class="px-2 py-2">Público ou não</th>
                                 <th scope="col" class="px-2 py-2"></th>
                                 <th scope="col" class="px-2 py-2"></th>
 
@@ -227,6 +227,8 @@
                                     </td>
 
                                     <td class="">{{ $documento->LancamentoID }}</td>
+                                    <td class="">{{ $documento->Publico ? 'SIM' : 'NÃO' }}</td>
+
 
                                     @can('LANCAMENTOS DOCUMENTOS - EDITAR')
                                         <td><a href="{{ route('LancamentosDocumentos.edit', $documento->ID) }}" class="btn btn-success"

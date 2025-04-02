@@ -78,6 +78,8 @@ Route::get('/dashboard', function () {
     { return view('vec.comoparticipar');})->name('vec.comoparticipar');
     Route::get('vec.transparencias', function ()
     { return view('vec.transparencias');})->name('vec.transparencias');
+    Route::get('vec.certidoes', function ()
+    { return view('vec.certidoes');})->name('vec.certidoes');
 
     //rota para baixar arquivo controlados usando uma controller
     Route::get('download/{id_arquivo}', ArquivosPublicos::class)->name('download');
@@ -91,7 +93,8 @@ Route::get('/dashboard', function () {
     { return view('tanabisaf.categoria');})->name('tanabisaf.categoria');
     Route::get('tanabisaf.localtreino', function ()
     { return view('tanabisaf.localtreino');})->name('tanabisaf.localtreino');
-
+    Route::get('tanabisaf.certidoes', function ()
+    { return view('tanabisaf.certidoes');})->name('tanabisaf.certidoes');
 
 
 //política de privacidade e termos de serviços
