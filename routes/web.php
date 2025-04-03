@@ -85,6 +85,8 @@ Route::get('/dashboard', function () {
     Route::get('download/{id_arquivo}', ArquivosPublicos::class)->name('download');
 
    ///// tanabisaf.com.br
+   Route::get('tanabisaf.historia1', function ()
+    { return view('tanabisaf.historia1');})->name('tanabisaf.historia1');
    Route::get('tanabisaf.transparencias', function ()
    { return view('tanabisaf.transparencias');})->name('tanabisaf.transparencias');
    Route::get('tanabisaf.contato', function ()
