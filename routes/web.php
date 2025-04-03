@@ -95,7 +95,8 @@ Route::get('/dashboard', function () {
     { return view('tanabisaf.localtreino');})->name('tanabisaf.localtreino');
     Route::get('tanabisaf.certidoes', function ()
     { return view('tanabisaf.certidoes');})->name('tanabisaf.certidoes');
-
+    Route::get('tanabisaf.pde', function ()
+    { return view('tanabisaf.pde');})->name('tanabisaf.pde');
 
 //política de privacidade e termos de serviços
 Route::get('webhook/politicaprivacidade', function ()

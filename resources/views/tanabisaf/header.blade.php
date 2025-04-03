@@ -13,6 +13,7 @@
     <nav id="menu" class="hidden md:flex space-x-6">
         <ul class="flex flex-col md:flex-row md:space-x-6 bg-green-800 md:bg-transparent absolute md:static top-16 left-0 w-full md:w-auto p-4 md:p-0">
             <li><a href="{{ url('/') }}" class="block p-2 hover:text-red-500">Início</a></li>
+            <li><a href="{{ url('/tanabisaf.pde') }}" class="block p-2 hover:text-red-500">Programa de Desenvolvimento Educacional e Social (PDE)</a></li>
             <li><a href="{{ url('/tanabisaf.certidoes') }}" class="block p-2 hover:text-red-500">Certidões oficiais</a></li>
             <li><a href="{{ url('/sites') }}" class="block p-2 hover:text-red-500">Documentos/Videos</a></li>
             {{-- <li><a href="{{ url('/vec.historia1') }}" class="block p-2 hover:text-red-500">Sobre</a></li> --}}
