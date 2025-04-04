@@ -57,13 +57,25 @@
                        </label>
                        <input type="hidden" name="Bloqueio" value="0">
                        <input class="form-check-input" name="Bloqueio" type="checkbox"
-       @if (isset($cadastro->Bloqueio) && $cadastro->Bloqueio) checked @endif
-       value="1" id="flexCheckDefault">
+                        @if (isset($cadastro->Bloqueio) && $cadastro->Bloqueio) checked @endif
+                        value="1" id="flexCheckDefault">
 
                    </div>
                </div>
            </div>
-
+           <div class="row">
+            <div class="col-6">
+                <div class="form-check">
+                    <label class="form-check-label" style="color: white" for="flexCheckDefault">
+                        Classifica Caixa Geral
+                    </label>
+                    <input type="hidden" name="ClassificaCaixaGeral" value="0">
+                    <input class="form-check-input" name="ClassificaCaixaGeral" type="checkbox"
+                     @if (isset($cadastro->ClassificaCaixaGeral) && $cadastro->ClassificaCaixaGeral) checked @endif
+                     value="1" id="flexCheckDefault">
+                </div>
+            </div>
+        </div>
 
 
            <div class="row mt-2">

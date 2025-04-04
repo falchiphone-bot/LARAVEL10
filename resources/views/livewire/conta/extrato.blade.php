@@ -526,6 +526,9 @@
 
                                             @can('LANCAMENTOS - CAIXAS GERAL')
                                             @php($Marcacao = false)
+
+
+                                            @if($lancamento->ClassificaCaixaGeral)
                                                 <div class="card text-center"
                                                     style="background-color: #00ff2a; color: white;">
 
@@ -629,7 +632,7 @@
 
 
                                                 @endcan
-
+                                            @endif
 
                                             {{-- <button title="Sem notificação" data-id="84264" data-dias="" type="button"
                                         class="btn-sm btn btn-outline-info ligar-notificacao">

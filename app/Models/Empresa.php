@@ -19,6 +19,7 @@ class Empresa extends Model
         'Bloqueiodataanterior',
         'X',
         'Bloqueio',
+        'ClassificaCaixaGeral',
     ];
 
     protected $casts = [
@@ -43,5 +44,5 @@ class Empresa extends Model
         return $this->belongsToMany(User::class, 'Contabilidade.EmpresasUsuarios', 'EmpresaID', 'UsuarioID');
     }
 
-   
+
 }

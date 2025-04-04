@@ -278,13 +278,36 @@ class Extrato extends Component
                 dd('VERIFICAR A SELEÇÃO');
             }
 
+            // $this->Lancamentos = $lancamentos
+            //     ->orderBy('DataContabilidade')
+            //     ->whereDoesntHave('SolicitacaoExclusao')
+            //     ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
+            //     ->get(['Lancamentos.EmpresaID','Lancamentos.ID', 'Lancamentos.Valor', 'Lancamentos.ValorQuantidadeDolar','DataContabilidade', 'Lancamentos.ContaCreditoID',
+            //      'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao',
+            //      'Conferido', 'SaidasGeral', 'EntradasGeral', 'Investimentos', 'Transferencias', 'SemDefinir']);
+
             $this->Lancamentos = $lancamentos
-                ->orderBy('DataContabilidade')
-                ->whereDoesntHave('SolicitacaoExclusao')
-                ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
-                ->get(['Lancamentos.EmpresaID','Lancamentos.ID', 'Lancamentos.Valor', 'Lancamentos.ValorQuantidadeDolar','DataContabilidade', 'Lancamentos.ContaCreditoID',
-                 'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao',
-                 'Conferido', 'SaidasGeral', 'EntradasGeral', 'Investimentos', 'Transferencias', 'SemDefinir']);
+    ->leftJoin('Contabilidade.Empresas as Emp', 'Emp.ID', '=', 'Lancamentos.EmpresaID')
+    ->leftJoin('Contabilidade.Historicos', 'Historicos.ID', '=', 'Lancamentos.HistoricoID')
+    ->get([
+        'Lancamentos.EmpresaID',
+        'Emp.ClassificaCaixaGeral',
+        'Lancamentos.ID',
+        'Lancamentos.Valor',
+        'Lancamentos.ValorQuantidadeDolar',
+        'DataContabilidade',
+        'Lancamentos.ContaCreditoID',
+        'Lancamentos.ContaDebitoID',
+        'Lancamentos.Descricao',
+        'Historicos.Descricao as HistoricoDescricao',
+        'Conferido',
+        'SaidasGeral',
+        'EntradasGeral',
+        'Investimentos',
+        'Transferencias',
+        'SemDefinir'
+    ]);
+
         } else {
             $this->Lancamentos = null;
         }
