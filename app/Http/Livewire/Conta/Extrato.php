@@ -289,6 +289,7 @@ class Extrato extends Component
             $this->Lancamentos = $lancamentos
     ->leftJoin('Contabilidade.Empresas as Emp', 'Emp.ID', '=', 'Lancamentos.EmpresaID')
     ->leftJoin('Contabilidade.Historicos', 'Historicos.ID', '=', 'Lancamentos.HistoricoID')
+    ->orderBy('DataContabilidade')
     ->get([
         'Lancamentos.EmpresaID',
         'Emp.ClassificaCaixaGeral',
