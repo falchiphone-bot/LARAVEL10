@@ -158,10 +158,10 @@
                     <table class="table table-bordered" style="background-color: rgb(247, 247, 213);">
                         <thead>
                             <tr>
+                                <th scope="col" class="px-2 py-2">Criado</th>
                                 <th scope="col" class="px-22 py-2">Rótulo do documento</th>
                                 <th scope="col" class="px-6 py-2">Identificação</th>
                                 <th scope="col" class="px-2 py-2">Público ou não</th>
-                                <th scope="col" class="px-2 py-2"></th>
                                 <th scope="col" class="px-2 py-2"></th>
 
                             </tr>
@@ -170,6 +170,8 @@
                         <tbody>
                             @foreach ($documentos as $documento)
                                 <tr>
+                                    <td class="">{{ $documento->Created->format('d/m/Y') }}</td>
+
                                     <td class="overflow-hidden" style="max-width: 200px;">
                                         {{ \Illuminate\Support\Str::limit($documento->Rotulo, 100) }}
                                         <!-- Truncate label and limit to 50 characters -->
