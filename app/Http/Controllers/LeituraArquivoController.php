@@ -1707,14 +1707,15 @@ else {
                         ->where('Descricao', 'like', '%' . trim($Descricao) . '%')
                         ->where('ContaCreditoID', $Conta)
                         ->first();
-                    if ($historico == null) {
 
-                        // dd($Empresa, $Conta, $Descricao, $historico);
-                        $historico = Historicos::where('EmpresaID', $Empresa)
-                            ->where('Descricao', 'like', '%' . substr(trim($Descricao), 0, 30) . '%')
-                            ->where('ContaCreditoID', $Conta)
-                            ->first();
-                    }
+                    //ABAIXO RETIRADO EM 10.04.2025 AS 11:45
+                    // if ($historico == null) {
+                    //     dd($Empresa, $Conta, $Descricao, $historico);
+                    //     $historico = Historicos::where('EmpresaID', $Empresa)
+                    //         ->where('Descricao', 'like', '%' . substr(trim($Descricao), 0, 30) . '%')
+                    //         ->where('ContaCreditoID', $Conta)
+                    //         ->first();
+                    // }
                 }
 
                 if ($vercriarlancamentocomhistorico) {
