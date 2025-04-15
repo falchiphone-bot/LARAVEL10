@@ -35,7 +35,7 @@
 
             <div class="card">
                 <div class="table-responsive">
-                    <table class="table table-bordered" style="background-color: rgb(220, 11, 11);">
+                    <table class="table table-bordered" style="background-color: rgb(5, 183, 53);">
                         <thead>
                             <tr>
                                 <th scope="col" class="px-22 py-2">Identificação</th>
@@ -98,8 +98,13 @@
                                                 @if(!empty($documento->NomeLocalTimeStamps))
                                                     <div class="form-group">
                                                         {{-- Visualizar o documento: <a href="https://drive.google.com/file/d/{{ $documento->MostraLancamentoDocumento->Nome ?? null }}/view??usp=sharing" target="_blank">{{ $documento->MostraLancamentoDocumento->Rotulo ?? null }}</a> --}}
-                                                        <strong>Visualizar o documento:</strong> <a href="/storage/arquivospublicos/{{ $documento->NomeLocalTimeStamps . '.'.$documento->Ext ?? null }}" target="_blank">{{ $documento->Rotulo ?? null }}</a>
-                                                    </div>
+                                                        <strong>Visualizar o documento:</strong>
+                                                        <a href="/storage/arquivospublicos/{{ $documento->NomeLocalTimeStamps . '.' . $documento->Ext ?? '' }}"
+                                                           target="_blank"
+                                                           style="color: #007bff; text-decoration: underline; font-weight: bold;">
+                                                           {{ $documento->Rotulo ?? 'Documento' }}
+                                                        </a>
+                                                                                                            </div>
                                                 @endif
 
                                        </div>
