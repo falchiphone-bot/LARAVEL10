@@ -22,10 +22,17 @@
             <p class="text-green-300 text-lg text-center mt-4">
                 Atendemos diversas categorias do futebol, desde a iniciação até a equipe adulta, proporcionando uma formação completa para os atletas.
             </p>
+            <p class="text-green-300 text-lg text-center mt-4">
+                Participação nos campeonatos paulistas, com o objetivo de desenvolver habilidades técnicas, táticas e sociais.
+            </p>
+            <p class="text-green-300 text-lg text-center mt-4">
+                Clique no nome da categoria para mais informações as competições.
+            </p>
 
 
 
             <p class="text-gray-300 text-lg text-center mt-4">
+
 
                 •	Sub-11
             </p>
@@ -40,9 +47,15 @@
 
             </p>
 
-             <p class="text-gray-300 text-lg text-center mt-4">
-                    •	Sub-15
-            </p>
+            <ul class="text-gray-300 text-lg text-center mt-4">
+                <li>
+                    <a href="{{ url('/tanabisaf.categoriasub15') }}"
+                       class="block p-2 text-blue-400 underline hover:text-red-500">
+                        Sub-15
+                    </a>
+                </li>
+            </ul>
+
 
             <p class="text-gray-300 text-lg text-center mt-4">
                 •	Sub-17

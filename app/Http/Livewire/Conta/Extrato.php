@@ -287,27 +287,33 @@ class Extrato extends Component
             //      'Conferido', 'SaidasGeral', 'EntradasGeral', 'Investimentos', 'Transferencias', 'SemDefinir']);
 
             $this->Lancamentos = $lancamentos
-    ->leftJoin('Contabilidade.Empresas as Emp', 'Emp.ID', '=', 'Lancamentos.EmpresaID')
-    ->leftJoin('Contabilidade.Historicos', 'Historicos.ID', '=', 'Lancamentos.HistoricoID')
-    ->orderBy('DataContabilidade')
-    ->get([
-        'Lancamentos.EmpresaID',
-        'Emp.ClassificaCaixaGeral',
-        'Lancamentos.ID',
-        'Lancamentos.Valor',
-        'Lancamentos.ValorQuantidadeDolar',
-        'DataContabilidade',
-        'Lancamentos.ContaCreditoID',
-        'Lancamentos.ContaDebitoID',
-        'Lancamentos.Descricao',
-        'Historicos.Descricao as HistoricoDescricao',
-        'Conferido',
-        'SaidasGeral',
-        'EntradasGeral',
-        'Investimentos',
-        'Transferencias',
-        'SemDefinir'
-    ]);
+            ->leftJoin('Contabilidade.Empresas as Emp', 'Emp.ID', '=', 'Lancamentos.EmpresaID')
+            ->leftJoin('Contabilidade.Historicos', 'Historicos.ID', '=', 'Lancamentos.HistoricoID')
+            ->leftJoin('Contabilidade.Solicitacoes', 'Solicitacoes.TableID', '=', 'Lancamentos.ID')
+            ->whereNull('Solicitacoes.ID')
+            ->orderBy('DataContabilidade')
+            ->get([
+                'Lancamentos.EmpresaID',
+                'Emp.ClassificaCaixaGeral',
+                'Lancamentos.ID',
+                'Lancamentos.Valor',
+                'Lancamentos.ValorQuantidadeDolar',
+                'DataContabilidade',
+                'Lancamentos.ContaCreditoID',
+                'Lancamentos.ContaDebitoID',
+                'Lancamentos.Descricao',
+                'Historicos.Descricao as HistoricoDescricao',
+                'Conferido',
+                'SaidasGeral',
+                'EntradasGeral',
+                'Investimentos',
+                'Transferencias',
+                'SemDefinir',
+                // Campos adicionais da tabela Solicitacoes (adicione conforme necessário)
+                'Solicitacoes.ID as SolicitacaoID',
+                'Solicitacoes.Tipo as SolicitacaoTipo'
+            ]);
+
 
         } else {
             $this->Lancamentos = null;

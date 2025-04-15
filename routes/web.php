@@ -93,6 +93,10 @@ Route::get('/dashboard', function () {
    { return view('tanabisaf.contato');})->name('tanabisaf.contato');
    Route::get('tanabisaf.categoria', function ()
     { return view('tanabisaf.categoria');})->name('tanabisaf.categoria');
+    Route::get('tanabisaf.categoriasub15', function ()
+    { return view('tanabisaf.categoriasub15');})->name('tanabisaf.categoriasub15');
+
+
     Route::get('tanabisaf.localtreino', function ()
     { return view('tanabisaf.localtreino');})->name('tanabisaf.localtreino');
     Route::get('tanabisaf.certidoes', function ()

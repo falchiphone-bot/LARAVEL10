@@ -19,7 +19,7 @@
             <li><a href="{{ url('/sites') }}" class="block p-2 hover:text-red-500">Documentos/Videos</a></li>
             {{-- <li><a href="{{ url('/vec.historia1') }}" class="block p-2 hover:text-red-500">Sobre</a></li> --}}
             <li><a href="{{ url('/tanabisaf.transparencias') }}" class="block p-2 hover:text-red-500">Transparências</a></li>
-            <li><a href="{{ url('/tanabisaf.categoria') }}" class="block p-2 hover:text-red-500">Categorias</a></li>
+            <li><a href="{{ url('/tanabisaf.categoria') }}" class="block p-2 hover:text-red-500">Categorias/Jogos</a></li>
             <li><a href="{{ url('/tanabisaf.localtreino') }}" class="block p-2 hover:text-red-500">Local treinos</a></li>
             {{-- <li><a href="{{ url('/vec.comoparticipar') }}" class="block p-2 hover:text-red-500">Participar</a></li> --}}
 
