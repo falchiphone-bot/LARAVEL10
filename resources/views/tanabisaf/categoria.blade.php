@@ -57,9 +57,14 @@
             </ul>
 
 
-            <p class="text-gray-300 text-lg text-center mt-4">
-                •	Sub-17
-            </p>
+            <ul class="text-gray-300 text-lg text-center mt-4">
+                <li>
+                    <a href="{{ url('/tanabisaf.categoriasub17') }}"
+                       class="block p-2 text-blue-400 underline hover:text-red-500">
+                        Sub-17
+                    </a>
+                </li>
+            </ul>
 
             <p class="text-gray-300 text-lg text-center mt-4">
                 •	Sub-20
