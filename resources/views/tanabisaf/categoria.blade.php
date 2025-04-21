@@ -69,9 +69,14 @@
             <p class="text-gray-300 text-lg text-center mt-4">
                 •	Sub-20
             </p>
-            <p class="text-gray-300 text-lg text-center mt-4">
-                •	Sub-23
-            </p>
+            <ul class="text-gray-300 text-lg text-center mt-4">
+                <li>
+                    <a href="{{ url('/tanabisaf.categoriasub23') }}"
+                       class="block p-2 text-blue-400 underline hover:text-red-500">
+                        Sub-23
+                    </a>
+                </li>
+            </ul>
 
         </div>
     </section>
