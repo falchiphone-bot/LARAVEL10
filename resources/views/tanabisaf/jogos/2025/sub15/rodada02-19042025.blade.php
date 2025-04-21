@@ -47,3 +47,22 @@
             <a href="{{ route('download', ['id_arquivo' => 40739]) }}"target="_blank" rel="noopener noreferrer" >Baixar Arquivo PDF do jogo</a>
         </p>
 
+        <tr>
+            <th class="bg-gray-600 text-left px-6 py-4">Jogo completo</th>
+            <td class="px-6 py-4 text-center">
+
+              <div class="mt-4">
+                <iframe width="742" height="417"
+          src="https://www.youtube.com/embed/SF8Aa1BRo2M"
+         title="AO VIVO COM IMAGENS - TANABI X VOTUPORANGUENSE - PAULISTÃO SUB-15"
+         frameborder="0"
+         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+         referrerpolicy="strict-origin-when-cross-origin"
+         allowfullscreen>
+        </iframe>
+              </div>
+            </td>
+          </tr>
+
+
+

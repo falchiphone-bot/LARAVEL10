@@ -52,6 +52,21 @@
             </a>
           </td>
         </tr>
+
+        <tr>
+            <th class="bg-gray-600 text-left px-6 py-4">Jogo completo</th>
+            <td class="px-6 py-4 text-center">
+              <iframe width="742" height="417"
+              src="https://www.youtube.com/embed/ULumYfkE1W4"
+              title="Santa Fé x Tanabi sub 15 - Paulistão 2025"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerpolicy="strict-origin-when-cross-origin"
+              allowfullscreen>
+              </iframe>
+            </td>
+          </tr>
+
       </tbody>
     </table>
 
@@ -59,3 +74,6 @@
 
 </body>
 </html>
+
+
+

@@ -26,7 +26,7 @@
 
     <table class="w-full text-sm md:text-base">
       <tbody>
-        <tr class="border-b border-gray-700">
+        <tr class="border-b border-gray-800">
           <th class="bg-gray-600 text-left px-6 py-4 w-1/3">Jogo</th>
           <td class="px-6 py-4">Tanabi SAF 2 X 1 Santacruzense</td>
         </tr>
@@ -64,6 +64,51 @@
             </td>
           </tr>
 
+
+          <tr>
+            <th class="bg-gray-600 text-left px-6 py-4">Jogo completo</th>
+            <td class="px-6 py-4 text-center">
+
+              <div class="mt-4">
+                <iframe width="560" height="315"
+                        src="https://www.youtube.com/embed/Zvw3O1jfJpg?start=10"
+                        title="YouTube video player"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <th class="bg-gray-600 text-left px-6 py-4">Primeiro gol de Maicon Henrique Silva de Carvalho</th>
+            <td class="px-6 py-4 text-center">
+
+              <div class="mt-4">
+                <iframe width="560" height="315"
+                        src="https://www.youtube.com/embed/Zvw3O1jfJpg?start=5825"
+                        title="YouTube video player"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <th class="bg-gray-600 text-left px-6 py-4">Segundo de Marcelo Henrique Maçola Filho</th>
+            <td class="px-6 py-4 text-center">
+
+              <div class="mt-4">
+                <iframe width="560" height="315"
+                        src="https://www.youtube.com/embed/Zvw3O1jfJpg?start=6508"
+                        title="YouTube video player"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+              </div>
+            </td>
+          </tr>
 
       </tbody>
     </table>
