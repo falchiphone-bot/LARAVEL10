@@ -107,6 +107,14 @@ Route::get('/dashboard', function () {
     { return view('tanabisaf.jogos.2025.sub15.rodada02-19042025');})->name('tanabisaf.jogos.2025.sub15.rodada02');
 
 
+    Route::get('tanabisaf.jogos.2025.sub17.categoriasub17', function ()
+    { return view('tanabisaf.jogos.2025.sub17.categoriasub17');})->name('tanabisaf.jogos.2025.sub17.categoriasub17');
+    Route::get('tanabisaf.jogos.2025.sub17.rodada01', function ()
+    { return view('tanabisaf.jogos.2025.sub17.rodada01-12042025');})->name('tanabisaf.jogos.2025.sub17.rodada01');
+    Route::get('tanabisaf.jogos.2025.sub17.rodada02', function ()
+    { return view('tanabisaf.jogos.2025.sub17.rodada02-19042025');})->name('tanabisaf.jogos.2025.sub17.rodada02');
+
+
 
 
     Route::get('tanabisaf.localtreino', function ()

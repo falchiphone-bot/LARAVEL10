@@ -19,6 +19,13 @@
         </a>
       </caption>
 
-
-      @include('tanabisaf.jogos.2025.sub17.rodada01-12042025')
-
+  </table>
+  
+      <ul class="text-gray-300 text-lg text-center mt-4">
+        <li>
+            <a href="{{ url('/tanabisaf.jogos.2025.sub17.categoriasub17') }}"
+               class="block p-2 text-blue-400 underline hover:text-red-500">
+                2025
+            </a>
+        </li>
+    </ul>

@@ -18,20 +18,21 @@
         </a>
       </caption>
 
-  </table>
 
+  </table>
 
   <ul class="text-gray-300 text-lg text-center mt-4">
     <li>
-        <a href="{{ url('tanabisaf.categoriasub15') }}"
+        <a href="{{ url('tanabisaf.categoriasub17') }}"
            class="block p-2 text-blue-400 underline hover:text-red-500">
-           ANO 2025 - SUB 15
+           ANO 2025 - SUB 17
         </a>
     </li>
 </ul>
+
   <ul class="text-gray-300 text-lg text-center mt-4">
     <li>
-        <a href="{{ url('tanabisaf.jogos.2025.sub15.rodada01') }}"
+        <a href="{{ url('tanabisaf.jogos.2025.sub17.rodada01') }}"
            class="block p-2 text-blue-400 underline hover:text-red-500">
             Rodada 1
         </a>
@@ -39,7 +40,7 @@
 </ul>
 <ul class="text-gray-300 text-lg text-center mt-4">
     <li>
-        <a href="{{ url('tanabisaf.jogos.2025.sub15.rodada02') }}"
+        <a href="{{ url('tanabisaf.jogos.2025.sub17.rodada02') }}"
            class="block p-2 text-blue-400 underline hover:text-red-500">
             Rodada 2
         </a>
