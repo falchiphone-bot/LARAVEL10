@@ -25,6 +25,19 @@
     </section>
 
 
+    <section class="bg-green-800 py-12 px-6">
+        <div class="max-w-4xl mx-auto">
+            <h3 class="text-3xl font-bold text-center text-red-500">LEI CESSÃO DE USO DO ESTÁDIO PREFEITO ALBERTO VICTOLO EM 2019 LEI MUNICIPAL N°. 2.987/2019.</h3>
+
+                <div class="text-3xl font-bold text-center text-white-500">
+                   <a href="https://dosp.com.br/exibe_do.php?i=Njc4MTk=" target="_blank">VEJA NO DIÁRIO OFICIAL DO MUNICÍPIO DE TANABI</a>
+              </div>
+
+            <p class="text-green-300 text-lg text-center mt-4">
+                <a href="{{ route('download', ['id_arquivo' => 40745]) }}">Baixar Arquivo PDF</a>
+            </p>
+        </div>
+    </section>
 
 
     <section class="bg-green-800 py-12 px-6">
