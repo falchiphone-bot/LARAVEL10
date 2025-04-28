@@ -15,6 +15,7 @@
             <li><a href="{{ url('/') }}" class="block p-2 hover:text-red-500">Início</a></li>
             <li><a href="{{ url('/tanabisaf.historia1') }}" class="block p-2 hover:text-red-500">Nossa história</a></li>
             <li><a href="{{ url('/tanabisaf.pde') }}" class="block p-2 hover:text-red-500">Programa de Desenvolvimento Educacional e Social (PDE)</a></li>
+            <li><a href="{{ url('/tanabisaf.tanabiformando') }}" class="block p-2 hover:text-red-500">Bases de formações</a></li>
             <li><a href="{{ url('/tanabisaf.certidoes') }}" class="block p-2 hover:text-red-500">Certidões oficiais</a></li>
             <li><a href="{{ url('/sites') }}" class="block p-2 hover:text-red-500">Documentos/Videos</a></li>
             {{-- <li><a href="{{ url('/vec.historia1') }}" class="block p-2 hover:text-red-500">Sobre</a></li> --}}

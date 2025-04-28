@@ -38,13 +38,11 @@
         Desde seu nascimento, o foco está no desenvolvimento integral de crianças, adolescentes e jovens,
         através de atividades esportivas e na formação para o exercício da cidadania.
       </p>
-      <!-- Botão reativado (opcional) -->
-      <!--
-      <a href="vec.historia1"
+
+      <a href="tanabisaf.historia1"
          class="inline-block bg-red-600 px-6 py-3 rounded-lg text-white font-semibold hover:bg-red-700 transition">
         LEIA MAIS
       </a>
-      -->
     </div>
   </section>
 
