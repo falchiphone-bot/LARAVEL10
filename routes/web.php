@@ -51,6 +51,8 @@ Route::get('/', function () {
 
 
 Route::get('sites', [App\Http\Controllers\LancamentosDocumentosController::class, 'sites'])->name('lancamentosdocumentos.sites');
+Route::get('documentosvideos', [App\Http\Controllers\LancamentosDocumentosController::class, 'documentosvideos'])->name('lancamentosdocumentos.documentosvideos');
+Route::get('alvaresflorence', [App\Http\Controllers\LancamentosDocumentosController::class, 'alvaresflorence'])->name('lancamentosdocumentos.alvaresflorence');
 Route::get('/storage/arquivospublicos/{filename}', function ($filename) {
     // Coloque aqui a lógica para lidar com a requisição, como o envio do arquivo ou redirecionamento para ele.
     // Você pode usar a função `response()->file()` para enviar o arquivo.

@@ -54,7 +54,12 @@
                 </li>
             </ul>
 
+            <ul class="text-gray-300 text-lg text-center mt-4">
+                <li><a href="{{ url('/alvaresflorence') }}" class="block p-2 hover:text-red-500">Documentos/Videos</a></li>
+            </ul>
 
+
+             
 
             <ul class="text-gray-300 text-lg text-center mt-4">
                 <li>

@@ -22,7 +22,7 @@ class LancamentosDocumentosController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth')->except(['sites']);
+        $this->middleware('auth')->except(['sites', 'documentosvideos' ,'alvaresflorence']);
         // $this->middleware('auth');
         $this->middleware(['permission:LANCAMENTOS DOCUMENTOS - LISTAR'])->only('index');
         $this->middleware(['permission:LANCAMENTOS DOCUMENTOS - INCLUIR'])->only(['create', 'store']);
@@ -62,6 +62,8 @@ class LancamentosDocumentosController extends Controller
 
         $dominio = request()->getHost(); // Obtém o domínio atual
 
+        $url = request()->url();
+
         $documentos = LancamentoDocumento::limit(100)
         ->where('Publico', 1)
         ->whereNotNull('AnotacoesGerais')
@@ -73,6 +75,8 @@ class LancamentosDocumentosController extends Controller
         $tipoarquivo = TipoArquivo::get();
         $retorno['TipoArquivo'] = null;
 
+        // dd($url);
+
         if ($dominio === 'tanabisaf.com.br') {
                  return view('tanabisaf.documentos',compact('documentos','tipoarquivo','retorno'));
         } elseif ($dominio === 'vec.org.br') {
@@ -81,6 +85,65 @@ class LancamentosDocumentosController extends Controller
         }
 
     }
+
+
+    public function documentosvideos()
+    {
+
+        $dominio = request()->getHost(); // Obtém o domínio atual
+        $url = request()->url();
+
+        $documentos = LancamentoDocumento::limit(100)
+        ->where('Publico', 1)
+        ->whereNotNull('AnotacoesGerais')
+        ->where('AnotacoesGerais', 'LIKE', '%'.$url. '%')
+        ->orderBy('ID', 'DESC')
+        ->get();
+
+
+        $tipoarquivo = TipoArquivo::get();
+        $retorno['TipoArquivo'] = null;
+
+        // dd($url);
+
+        if ($url === 'http://tanabisaf.com.br/documentosvideos') {
+                 return view('tanabisaf.documentos',compact('documentos','tipoarquivo','retorno'));
+        } elseif ($url === 'http://vec.org.br/documentosvideos') {
+
+            return view('vec.documentos',compact('documentos','tipoarquivo','retorno'));
+        }
+
+    }
+
+    public function alvaresflorence()
+    {
+        // $dominio = request()->getHost(); // Obtém o domínio atual
+
+        $url = request()->url();
+
+        $documentos = LancamentoDocumento::limit(100)
+        ->where('Publico', 1)
+        ->whereNotNull('AnotacoesGerais')
+        ->where('AnotacoesGerais', 'LIKE', '%'.$url. '%')
+        ->orderBy('ID', 'DESC')
+        ->get();
+
+
+        $tipoarquivo = TipoArquivo::get();
+        $retorno['TipoArquivo'] = null;
+
+        // dd($url);
+
+        if ($url === 'http://tanabisaf.com.br/alvaresflorence') {
+                 return view('tanabisaf.documentos',compact('documentos','tipoarquivo','retorno'));
+        } elseif ($url === 'http://vec.org.br/alvaresflorence') {
+
+            return view('vec.documentos',compact('documentos','tipoarquivo','retorno'));
+        }
+
+    }
+
+
 
     public function indexpost(string $id)
     {
