@@ -86,7 +86,7 @@ Route::get('/dashboard', function () {
     //rota para baixar arquivo controlados usando uma controller
     Route::get('download/{id_arquivo}', ArquivosPublicos::class)->name('download');
 
-   ///// tanabisaf.com.br
+   ///// tanabisaf.com.br CATEGORIAS
    Route::get('tanabisaf.historia1', function ()
     { return view('tanabisaf.historia1');})->name('tanabisaf.historia1');
    Route::get('tanabisaf.transparencias', function ()
@@ -97,14 +97,7 @@ Route::get('/dashboard', function () {
     { return view('tanabisaf.categoria');})->name('tanabisaf.categoria');
 
 
-
-
-
-
-
-
-
-
+// SUB-15
 Route::get('tanabisaf.categoriasub15', function ()
     { return view('tanabisaf.jogos.categoriasub15');})->name('tanabisaf.categoriasub15');
     Route::get('tanabisaf.jogos.2025.sub15.categoriasub15', function ()
@@ -113,7 +106,11 @@ Route::get('tanabisaf.categoriasub15', function ()
     { return view('tanabisaf.jogos.2025.sub15.rodada01-12042025');})->name('tanabisaf.jogos.2025.sub15.rodada01');
     Route::get('tanabisaf.jogos.2025.sub15.rodada02', function ()
     { return view('tanabisaf.jogos.2025.sub15.rodada02-19042025');})->name('tanabisaf.jogos.2025.sub15.rodada02');
+    Route::get('tanabisaf.jogos.2025.sub15.rodada03', function ()
+    { return view('tanabisaf.jogos.2025.sub15.rodada03-26042025');})->name('tanabisaf.jogos.2025.sub15.rodada03');
 
+
+// SUB-15
 Route::get('tanabisaf.categoriasub17', function ()
     { return view('tanabisaf.jogos.categoriasub17');})->name('tanabisaf.categoriasub17');
     Route::get('tanabisaf.jogos.2025.sub17.categoriasub17', function ()
@@ -122,6 +119,8 @@ Route::get('tanabisaf.categoriasub17', function ()
     { return view('tanabisaf.jogos.2025.sub17.rodada01-12042025');})->name('tanabisaf.jogos.2025.sub17.rodada01');
     Route::get('tanabisaf.jogos.2025.sub17.rodada02', function ()
     { return view('tanabisaf.jogos.2025.sub17.rodada02-19042025');})->name('tanabisaf.jogos.2025.sub17.rodada02');
+    Route::get('tanabisaf.jogos.2025.sub17.rodada03', function ()
+    { return view('tanabisaf.jogos.2025.sub17.rodada03-26042025');})->name('tanabisaf.jogos.2025.sub17.rodada03');
 
 
     Route::get('tanabisaf.tanabiformando', function ()

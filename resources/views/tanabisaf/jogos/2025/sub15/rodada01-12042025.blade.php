@@ -67,6 +67,25 @@
             </td>
           </tr>
 
+
+
+          <tr>
+            <th class="bg-gray-600 text-left px-6 py-4">Ùnico gol do Tanabi por Pedro Henrique Gasques Dias - Pedro</th>
+            <td class="px-6 py-4 text-center">
+
+              <div class="mt-4">
+                <iframe width="560" height="315"
+                        src=" https://www.youtube.com/embed/ULumYfkE1W4?start=3015"
+                         title="YouTube video player"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+              </div>
+            </td>
+          </tr>
+
+   
+
       </tbody>
     </table>
 
