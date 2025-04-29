@@ -24,11 +24,25 @@
         </p>
     </section>
 
+
+    <section class="bg-gray-800 py-12 px-6">
+        <div class="max-w-4xl mx-auto">
+            <h3 class="text-3xl font-bold text-center text-red-500">ESTATUTO E DIRETORIA EM 07 DE ABRIL DE 2025</h3>
+            <p class="text-gray-300 text-lg text-center mt-4">
+                <a href="{{ route('download', ['id_arquivo' => 40757]) }}" target="_blank" rel="noopener noreferrer">
+                    Baixar Arquivo PDF
+                </a>
+            </p>
+        </div>
+    </section>
+
     <section class="bg-gray-800 py-12 px-6">
         <div class="max-w-4xl mx-auto">
             <h3 class="text-3xl font-bold text-center text-red-500">ESTATUTO E DIRETORIA EM 16 DE DEZEMBRO DE 2024</h3>
             <p class="text-gray-300 text-lg text-center mt-4">
-                <a href="{{ route('download', ['id_arquivo' => 40649]) }}">Baixar Arquivo PDF</a>
+                <a href="{{ route('download', ['id_arquivo' => 40649]) }}" target="_blank" rel="noopener noreferrer">
+                    Baixar Arquivo PDF
+                </a>
             </p>
         </div>
     </section>
@@ -36,7 +50,7 @@
     <section class="max-w-4xl mx-auto py-12 px-6">
         <h3 class="text-3xl font-bold text-center mb-6"> </h3>
         <ul class="text-gray-300 text-lg space-y-4">
-            <li><strong class="text-red-500">CARTÃO CNPJ</strong>  </li>
+            <li><strong class="text-red-500" >CARTÃO CNPJ</strong>  </li>
             {{-- <a href="{{ asset('vec/imagem/cnpj-vec-31032025.png') }}" target="_blank">
                 <img src="{{ asset('vec/imagem/cnpj-vec-31032025.png') }}" alt="CNPJ" class="h-36"> --}}
             </a>
@@ -48,7 +62,7 @@
         <div class="max-w-4xl mx-auto">
             <h3 class="text-3xl font-bold text-center text-red-500">PLANO DE TRABALHO DO VEC PARA 2025</h3>
             <p class="text-gray-300 text-lg text-center mt-4">
-                <a href="{{ route('download', ['id_arquivo' => 40662]) }}">Baixar Arquivo PDF</a>
+                <a href="{{ route('download', ['id_arquivo' => 40662]) }}" target="_blank" rel="noopener noreferrer">Baixar Arquivo PDF</a>
             </p>
         </div>
     </section>
@@ -59,7 +73,7 @@
             <h3 class="text-3xl font-bold text-center text-red-500">DRE DE 2024 </h3>
             <p class="text-gray-300 text-lg text-center mt-4">
 
-                <a href="{{ route('download', ['id_arquivo' => 40674]) }}">Baixar Arquivo PDF</a>
+                <a href="{{ route('download', ['id_arquivo' => 40674]) }}" target="_blank" rel="noopener noreferrer">Baixar Arquivo PDF</a>
             </p>
         </div>
     </section>
@@ -70,7 +84,7 @@
         <div class="max-w-4xl mx-auto">
             <h3 class="text-3xl font-bold text-center text-red-500">BALANÇO PATRIMONIAL – 2024 </h3>
             <p class="text-gray-300 text-lg text-center mt-4">
-                <a href="{{ route('download', ['id_arquivo' => 40673]) }}">Baixar Arquivo PDF</a>
+                <a href="{{ route('download', ['id_arquivo' => 40673]) }}" target="_blank" rel="noopener noreferrer">Baixar Arquivo PDF</a>
             </p>
         </div>
     </section>
@@ -81,7 +95,7 @@
         <div class="max-w-4xl mx-auto">
             <h3 class="text-3xl font-bold text-center text-red-500">NOTAS EXPLICATIVAS – 2024</h3>
             <p class="text-gray-300 text-lg text-center mt-4">
-                <a href="{{ route('download', ['id_arquivo' => 40672]) }}">Baixar Arquivo PDF</a>
+                <a href="{{ route('download', ['id_arquivo' => 40672]) }}" target="_blank" rel="noopener noreferrer">Baixar Arquivo PDF</a>
             </p>
         </div>
     </section>
