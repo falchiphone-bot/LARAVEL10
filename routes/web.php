@@ -11,7 +11,7 @@ use App\Http\Services;
 use App\Http\Controllers\PacpieController;
 use App\Http\Controllers\OrigemPacpieController;
 use App\Http\Controllers\PDFController;
-
+use Illuminate\Support\Facades\File;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -22,6 +22,18 @@ use App\Http\Controllers\PDFController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+
+
+Route::get('/vec-galeria', function () {
+    $files = File::files(public_path('images/vec-galeria'));
+
+    $imagens = collect($files)->map(function ($file) {
+        return asset('images/vec-galeria/' . $file->getFilename());
+    });
+
+    return view('vec.vec-galeria', compact('imagens'));
+});
+
 
 
 
