@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Galeria VEC por Subpastas</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    @include('vec.header')
 </head>
 <body class="bg-gray-900 text-white px-6 py-8">
     <h1 class="text-3xl font-bold mb-6">Galeria de Imagens VEC</h1>
