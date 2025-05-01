@@ -7,7 +7,7 @@
     @include('vec.header')
 </head>
 <body class="bg-gray-900 text-white px-6 py-8">
-    <h1 class="text-3xl font-bold mb-6">Galeria de Imagens VEC</h1>
+    <h1 class="text-3xl font-bold mb-6">Galeria de Imagens VEC referente mês:{{ $mes }}</h1>
 
     @foreach ($galerias as $pasta => $imagens)
         <div class="mb-10">

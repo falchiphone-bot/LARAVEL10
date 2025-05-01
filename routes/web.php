@@ -44,7 +44,24 @@ Route::get('/vec-galeria', function () {
     return view('vec.vec-galeria', compact('galerias'));
 });
 
+Route::get('/vec-galeria-04-2025', function () {
+    $mes = '04/2025';
+    $arquivos = Storage::allFiles('public/arquivos/vec-galeria/2025/04-2025');
 
+    // Agrupa arquivos pela subpasta (relativa ao path base)
+    $grupos = collect($arquivos)->groupBy(function ($caminho) {
+        return Str::after(dirname($caminho), 'public/arquivos/vec-galeria/2025/04-2025');
+    });
+
+    // Transforma os caminhos em URLs públicas
+    $galerias = $grupos->map(function ($arquivos) {
+        return collect($arquivos)->map(function ($file) {
+            return asset('storage/' . Str::after($file, 'public/'));
+        });
+    });
+
+    return view('vec.vec-galeria', compact('galerias', 'mes'));
+});
 
 
 Route::get('php', function () { return phpinfo();})->name('php');
