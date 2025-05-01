@@ -12,6 +12,8 @@ use App\Http\Controllers\PacpieController;
 use App\Http\Controllers\OrigemPacpieController;
 use App\Http\Controllers\PDFController;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -25,13 +27,21 @@ use Illuminate\Support\Facades\File;
 
 
 Route::get('/vec-galeria', function () {
-    $files = File::files(public_path('images/vec-galeria'));
+    $arquivos = Storage::allFiles('public/arquivos/vec-galeria');
 
-    $imagens = collect($files)->map(function ($file) {
-        return asset('images/vec-galeria/' . $file->getFilename());
+    // Agrupa arquivos pela subpasta (relativa ao path base)
+    $grupos = collect($arquivos)->groupBy(function ($caminho) {
+        return Str::after(dirname($caminho), 'public/arquivos/vec-galeria');
     });
 
-    return view('vec.vec-galeria', compact('imagens'));
+    // Transforma os caminhos em URLs públicas
+    $galerias = $grupos->map(function ($arquivos) {
+        return collect($arquivos)->map(function ($file) {
+            return asset('storage/' . Str::after($file, 'public/'));
+        });
+    });
+
+    return view('vec.vec-galeria', compact('galerias'));
 });
 
 
