@@ -168,6 +168,20 @@ Route::get('tanabisaf.categoriasub17', function ()
     { return view('tanabisaf.tanabiformando.alvaresflorence.index');})->name('tanabisaf.tanabiformando.alvaresflorence');
 
 
+
+    Route::get('tanabisaf.categoriasub20', function ()
+    { return view('tanabisaf.jogos.categoriasub20');})->name('tanabisaf.categoriasub20');
+    Route::get('tanabisaf.jogos.2025.sub20.categoriasub20', function ()
+    { return view('tanabisaf.jogos.2025.sub20.categoriasub20');})->name('tanabisaf.jogos.2025.sub20.categoriasub20');
+    Route::get('tanabisaf.jogos.2025.sub20.rodada01', function ()
+    { return view('tanabisaf.jogos.2025.sub20.rodada01-25042025');})->name('tanabisaf.jogos.2025.sub20.rodada01');
+    Route::get('tanabisaf.jogos.2025.sub20.rodada02', function ()
+    { return view('tanabisaf.jogos.2025.sub20.rodada02-02052025');})->name('tanabisaf.jogos.2025.sub20.rodada02');
+
+
+
+
+
     Route::get('tanabisaf.categoriasub23', function ()
     { return view('tanabisaf.jogos.categoriasub23');})->name('tanabisaf.categoriasub23');
     Route::get('tanabisaf.jogos.2025.sub23.categoriasub23', function ()
