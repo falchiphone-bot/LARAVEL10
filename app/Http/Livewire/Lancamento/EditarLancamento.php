@@ -81,6 +81,11 @@ class EditarLancamento extends Component
     public function salvarLancamento($novo = null)
     {
 
+       if($this->lancamento->ContaDebitoID =$this->lancamento->ContaCreditoID)  {
+            $this->addError('ContaDebitoID', 'Conta Debito e Conta Credito não podem ser iguais. Feche esta guia e abra novamente.');
+            return;
+        }
+
         // $this->lancamento->ValorQuantidadeDolar =  '0,10';
         $Dolar = $this->lancamento->ValorQuantidadeDolar;
 
