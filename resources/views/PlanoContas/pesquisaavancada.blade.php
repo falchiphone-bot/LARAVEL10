@@ -25,7 +25,19 @@
                     @can('LANCAMENTOS DOCUMENTOS - LISTAR')
                       <a class="btn btn-secondary" href="/LancamentosDocumentos">Documentos</a>
                    @endcan
-                    <a class="btn btn-danger" href="/Lancamentos/create">Incluir lançamento</a>
+                    {{-- <a class="btn btn-danger" href="/Lancamentos/create">Incluir lançamento</a> --}}
+
+                    {{-- <div class="col-2">
+                        <button wire:click="editarLancamento('novo',{{ $selEmpresa }})"
+                            class="btn btn-danger">Iniciar um novo
+                            lançamento</button>
+                    </div> --}}
+
+                    <a style="padding-left: 10px; Color:rgb(255, 0, 13); font-size: 18px;"
+                    href="/Contas/Extrato/19879 ?? NULL}}">INCLUIR LANÇAMENTO</a>
+
+                </a>
+
                 </nav>
 
 

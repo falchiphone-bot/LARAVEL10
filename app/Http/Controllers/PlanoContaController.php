@@ -55,7 +55,9 @@ class PlanoContaController extends Controller
             ->orderBy('Lancamentos.ID', 'desc')
             ->select(['Lancamentos.ID', 'DataContabilidade', 'Lancamentos.Descricao', 'Lancamentos.EmpresaID', 'Lancamentos.Valor', 'Historicos.Descricao as DescricaoHistorico', 'Lancamentos.ContaDebitoID', 'Lancamentos.ContaCreditoID'])
             ->get();
-        // dd($pesquisa->first());?
+        // dd($pesquisa->first());
+
+        $selEmpresa = 28;
 
         if ($pesquisa->count() > 0) {
             session(['entrada' => 'A pesquisa abaixo mostra os 100 últimos lançamentos de todas as empresas autorizadas!']);
@@ -75,7 +77,7 @@ class PlanoContaController extends Controller
             ->select(['Empresas.ID', 'Empresas.Descricao'])
             ->get();
 
-        return view('PlanoContas.pesquisaavancada', compact('pesquisa', 'retorno', 'Empresas'));
+        return view('PlanoContas.pesquisaavancada', compact('pesquisa', 'retorno', 'Empresas', 'selEmpresa'));
     }
 
     public function pesquisaavancadapost(Request $Request)
@@ -89,6 +91,7 @@ class PlanoContaController extends Controller
             ->select(['Lancamentos.ID', 'DataContabilidade', 'Lancamentos.Descricao', 'Lancamentos.EmpresaID', 'Contabilidade.Lancamentos.Valor', 'Historicos.Descricao as DescricaoHistorico', 'Lancamentos.ContaDebitoID', 'Lancamentos.ContaCreditoID'])
             ->orderBy('Lancamentos.ID', 'desc');
 
+           
         if ($Request->Texto) {
             $texto = $Request->Texto;
             $pesquisa->where(function ($query) use ($texto) {
@@ -117,6 +120,8 @@ class PlanoContaController extends Controller
             ->select(['Empresas.ID', 'Empresas.Descricao'])
             ->get();
 
+            $selEmpresa = $Request->EmpresaSelecionada;
+
         $retorno = $Request->all();
         // dd('Valor: ' . $Request->Valor, ' Retorno: '.$retorno);
         // dd('Valor: ' . $Request->Valor, $pesquisa->get());
@@ -141,7 +146,7 @@ class PlanoContaController extends Controller
         $pesquisa = $pesquisa->get();
 
         // dd($pesquisa->first()->ContaDebito->PlanoConta);
-        return view('PlanoContas.pesquisaavancada', compact('pesquisa', 'retorno', 'Empresas'));
+        return view('PlanoContas.pesquisaavancada', compact('pesquisa', 'retorno', 'Empresas', 'selEmpresa'));
     }
 
     public function Balancetes()
@@ -1281,7 +1286,7 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
     {
         $EmpresaID = $request->EmpresaSelecionada;
         $UsarDolar = $request->UsarDolar;
-         
+
 
         // dd($request->all());
 
