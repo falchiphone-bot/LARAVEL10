@@ -478,27 +478,28 @@
                                             </div>
                                         </td>
 
-                                        <td colspan="2" align="right">
-                                            <div class="card text-center"
-                                                style="background-color: rgb(14, 212, 93); color: white;">
+                                        @can('LANCAMENTOS - ATUALIZAR POUPANCA/AVENUE')
+                                            <td colspan="2" align="right">
+                                                <div class="card text-center"
+                                                    style="background-color: rgb(14, 212, 93); color: white;">
 
-                                                <button title="Botão para atualizar" type="button"
-                                                    class="btn-sm btn btn-outline-info"
-                                                    wire:click="confirmarAtualizarSaldoPoupanca({{ $lancamento->ID }},
-                                                     '{{ $saldo }}',
-                                                      '{{ $lancamento->Descricao }}',
-                                                       '{{ $lancamento->DataContabilidade}}',
-                                                       '{{ $lancamento->ContaDebitoID}}',
-                                                        '{{ $lancamento->ContaCreditoID}}',
-                                                        '{{ $lancamento->EmpresaID}}'
-                                                       )">
-                                                        <div class="card text-center"
-                                                            <h5 class="card-title" style="color: rgb(123, 0, 255);">ATUALIZAR/POUPANÇA</h5>
-                                                        </div>
-                                                </button>
-                                            </div>
-                                        </td>
-
+                                                    <button title="Botão para atualizar" type="button"
+                                                        class="btn-sm btn btn-outline-info"
+                                                        wire:click="confirmarAtualizarSaldoPoupanca({{ $lancamento->ID }},
+                                                        '{{ $saldo }}',
+                                                        '{{ $lancamento->Descricao }}',
+                                                        '{{ $lancamento->DataContabilidade}}',
+                                                        '{{ $lancamento->ContaDebitoID}}',
+                                                            '{{ $lancamento->ContaCreditoID}}',
+                                                            '{{ $lancamento->EmpresaID}}'
+                                                        )">
+                                                            <div class="card text-center"
+                                                                <h5 class="card-title" style="color: rgb(123, 0, 255);">ATUALIZAR/POUPANÇA</h5>
+                                                            </div>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        @endcan
 
                                         <td colspan="2" align="right">
                                             <div class="card text-center"

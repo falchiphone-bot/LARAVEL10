@@ -237,13 +237,13 @@ class EditarLancamento extends Component
                     return true;
                 }
             }
-            if ($this->lancamento->ContaDebito->Bloqueiodataanterior) {
+            if ($this->lancamento->ContaDebito->Bloqueiodataanterior ?? null) {
                 if ($this->lancamento->ContaDebito->Bloqueiodataanterior->greaterThanOrEqualTo($this->lancamento->DataContabilidade)) {
                     $this->addError('data_bloqueio', 'Bloqueio de Data na Conta Debito');
                     return true;
                 }
             }
-            if ($this->lancamento->ContaCredito->Bloqueiodataanterior) {
+            if ($this->lancamento->ContaCredito->Bloqueiodataanterior ?? null) {
                 if ($this->lancamento->ContaCredito->Bloqueiodataanterior->greaterThanOrEqualTo($this->lancamento->DataContabilidade)) {
                     $this->addError('data_bloqueio', 'Bloqueio de Data na Conta Credito');
                     return true;
