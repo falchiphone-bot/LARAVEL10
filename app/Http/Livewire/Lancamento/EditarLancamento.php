@@ -81,10 +81,15 @@ class EditarLancamento extends Component
     public function salvarLancamento($novo = null)
     {
 
-       if($this->lancamento->ContaDebitoID =$this->lancamento->ContaCreditoID)  {
-            $this->addError('ContaDebitoID', 'Conta Debito e Conta Credito não podem ser iguais. Feche esta guia e abra novamente.');
+
+        if ($this->lancamento->ContaDebitoID === $this->lancamento->ContaCreditoID) {
+            $this->resetErrorBag();
+            $this->resetValidation();
+            $this->addError('ContaDebitoID', 'Conta Débito e Conta Crédito não podem ser iguais. Feche esta guia e abra novamente.');
             return;
         }
+
+
 
         // $this->lancamento->ValorQuantidadeDolar =  '0,10';
         $Dolar = $this->lancamento->ValorQuantidadeDolar;
@@ -288,6 +293,10 @@ class EditarLancamento extends Component
 
     public function mount($lancamento_id = null)
     {
+
+        $this->resetErrorBag();
+        $this->resetValidation();
+
         $this->emitTo('lancamento.troca-empresa', 'setLancamentoID', $lancamento_id);
         $this->currentTab = 'lancamento';
 

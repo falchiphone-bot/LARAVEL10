@@ -163,14 +163,23 @@
                                     <button type="button" class="btn btn-secondary"
                                         data-bs-dismiss="modal">Fechar</button>
                                     {{-- <button type="submit" wire:click="acao('limpar')" class="btn btn-seconday">Limpar</button> --}}
-                                    <button type="button" class="btn btn-primary" onclick="confirmar()">
-                                        Salvar Lancamento
-                                    </button>
-                                    @if ($lancamento->ID)
-                                        <button type="button" onclick="confirmar(true)" class="btn btn-warning">
-                                            Salvar Como Novo
-                                        </button>
-                                    @endif
+
+
+                                    <button type="button" class="btn btn-primary"
+                                    onclick="confirmar()"
+                                    @if($errors->has('ContaDebitoID')) disabled @endif>
+                                Salvar Lancamento
+                            </button>
+
+                            @if ($lancamento->ID)
+                                <button type="button"
+                                        onclick="confirmar(true)"
+                                        class="btn btn-warning"
+                                        @if($errors->has('ContaDebitoID')) disabled @endif>
+                                    Salvar Como Novo
+                                </button>
+                            @endif
+
                                 </div>
                             </div>
                         </form>
