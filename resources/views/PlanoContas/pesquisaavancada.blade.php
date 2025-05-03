@@ -33,9 +33,11 @@
                             lançamento</button>
                     </div> --}}
 
-                    <a style="padding-left: 10px; Color:rgb(255, 0, 13); font-size: 18px;"
-                    href="/Contas/Extrato/19879 ?? NULL}}">INCLUIR LANÇAMENTO</a>
+                    @can('CONTABILIDADE - INCLUIR')
+                        {{-- <a style="padding-left: 10px; Color:rgb(255, 0, 13); font-size: 18px;" --}}
+                        <a class="btn btn-secondary" href="/Contas/Extrato/19879 ?? NULL">Incluir lançamentos</a>
 
+                    @endcan
                 </a>
 
                 </nav>
