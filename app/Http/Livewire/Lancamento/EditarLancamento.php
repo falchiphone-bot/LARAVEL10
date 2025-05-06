@@ -83,8 +83,9 @@ class EditarLancamento extends Component
 
 
         if ($this->lancamento->ContaDebitoID === $this->lancamento->ContaCreditoID) {
-            $this->resetErrorBag();
-            $this->resetValidation();
+            // $this->resetErrorBag();
+            // $this->resetValidation();
+            $this->hidrate();
             $this->addError('ContaDebitoID', 'Conta Débito e Conta Crédito não podem ser iguais. Feche esta guia e abra novamente.');
             return;
         }
