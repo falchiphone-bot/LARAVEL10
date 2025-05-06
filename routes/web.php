@@ -181,7 +181,6 @@ Route::get('tanabisaf.categoriasub17', function ()
 
 
 
-
     Route::get('tanabisaf.categoriasub23', function ()
     { return view('tanabisaf.jogos.categoriasub23');})->name('tanabisaf.categoriasub23');
     Route::get('tanabisaf.jogos.2025.sub23.categoriasub23', function ()
@@ -190,6 +189,11 @@ Route::get('tanabisaf.categoriasub17', function ()
     { return view('tanabisaf.jogos.2025.sub23.rodada01-19042025');})->name('tanabisaf.jogos.2025.sub23.rodada01');
     Route::get('tanabisaf.jogos.2025.sub23.rodada02', function ()
     { return view('tanabisaf.jogos.2025.sub23.rodada02-25042025');})->name('tanabisaf.jogos.2025.sub23.rodada02');
+    Route::get('tanabisaf.jogos.2025.sub23.rodada04', function ()
+    { return view('tanabisaf.jogos.2025.sub23.rodada04-12052025');})->name('tanabisaf.jogos.2025.sub23.rodada04');
+
+
+
 
 
     Route::get('tanabisaf.localtreino', function ()
