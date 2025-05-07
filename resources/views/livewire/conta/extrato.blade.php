@@ -55,6 +55,7 @@
                             @foreach ($empresas as $empresa_id => $empresa_descricao)
                                 <option @selected($selEmpresa == $empresa_id) value="{{ $empresa_id }}">
                                     {{ $empresa_descricao }}</option>
+
                             @endforeach
                         </select>
                     </div>
@@ -184,13 +185,19 @@
                         </button>
 
                         @can('LANCAMENTOS - ATUALIZAR POUPANCA/AVENUE')
-                            <button title="Saldos POUPANÇA/AVENUE" type="button" class="btn-sm btn btn-outline-success"
-                            wire:click='contasPoupancaAvenue'>
-
-                                <div class="card text-center" style="background-color: rgb(118, 14, 237); color: white;">
-                                    <i class="cl-fa fa-check-square-o">Saldos POUPANÇA/AVENUE</i>
-                                </div>
-                             </button>
+                            @if ($Lancamentos && count($Lancamentos))
+                                @foreach ($Lancamentos as $lancamento)
+                                    @if ($lancamento->AtualizarPoupancaAvenue)
+                                        <button title="Saldos POUPANÇA/AVENUE" type="button" class="btn-sm btn btn-outline-success"
+                                                wire:click='contasPoupancaAvenue'>
+                                            <div class="card text-center" style="background-color: rgb(118, 14, 237); color: white;">
+                                                <i class="cl-fa fa-check-square-o">Saldos POUPANÇA/AVENUE</i>
+                                            </div>
+                                        </button>
+                                        @break {{-- Mostra o botão só uma vez, se houver pelo menos um true --}}
+                                    @endif
+                                @endforeach
+                            @endif
                         @endcan
 
 
@@ -479,6 +486,7 @@
                                         </td>
 
                                         @can('LANCAMENTOS - ATUALIZAR POUPANCA/AVENUE')
+                                          @if($lancamento->AtualizarPoupancaAvenue)
                                             <td colspan="2" align="right">
                                                 <div class="card text-center"
                                                     style="background-color: rgb(14, 212, 93); color: white;">
@@ -499,6 +507,7 @@
                                                     </button>
                                                 </div>
                                             </td>
+                                            @endif
                                         @endcan
 
                                         <td colspan="2" align="right">

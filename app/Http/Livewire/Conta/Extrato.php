@@ -29,6 +29,8 @@ class Extrato extends Component
 
     //models carregadas
     public $Conta;
+
+    public $AtualizarPoupancaAvenue;
     public $Lancamentos;
 
     public $LancamentosPDF;
@@ -131,6 +133,7 @@ class Extrato extends Component
         $this->data_bloqueio_conta = $this->Conta->Bloqueiodataanterior?->format('Y-m-d');
         $this->data_bloqueio_empresa = $this->Empresa->Bloqueiodataanterior?->format('Y-m-d');
         $this->selConta = $this->Conta->ID;
+        $this->AtualizarPoupancaAvenue = $this->Conta->AtualizarPoupancaAvenue;
 
         $de = Carbon::createFromDate($this->De)->format('d-m-Y 00:00:00');
         $ate = Carbon::createFromDate($this->Ate)->format('d-m-Y 23:59:59');
@@ -295,6 +298,7 @@ class Extrato extends Component
             ->get([
                 'Lancamentos.EmpresaID',
                 'Emp.ClassificaCaixaGeral',
+                'Emp.AtualizarPoupancaAvenue',
                 'Lancamentos.ID',
                 'Lancamentos.Valor',
                 'Lancamentos.ValorQuantidadeDolar',

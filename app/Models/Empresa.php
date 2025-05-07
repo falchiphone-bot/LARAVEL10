@@ -20,6 +20,7 @@ class Empresa extends Model
         'X',
         'Bloqueio',
         'ClassificaCaixaGeral',
+        'AtualizarPoupancaAvenue',
     ];
 
     protected $casts = [

@@ -77,6 +77,22 @@
             </div>
         </div>
 
+        <div class="row">
+            <div class="col-6">
+                <div class="form-check">
+                    <label class="form-check-label" style="color: white" for="flexCheckDefault">
+                        Atualizar Poupanca Avenue
+                    </label>
+                    <input type="hidden" name="AtualizarPoupancaAvenue" value="0">
+                    <input class="form-check-input" name="AtualizarPoupancaAvenue" type="checkbox"
+                     @if (isset($cadastro->AtualizarPoupancaAvenue) && $cadastro->AtualizarPoupancaAvenue) checked @endif
+                     value="1" id="flexCheckDefault">
+                </div>
+            </div>
+        </div>
+
+
+
 
            <div class="row mt-2">
                <div class="col-6">
