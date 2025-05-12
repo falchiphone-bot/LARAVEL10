@@ -91,7 +91,7 @@
 
 
           <tr>
-            <th class="bg-gray-600 text-left px-6 py-4">Segundo gol de Giovanni da Cruz Pereira </th>
+            <th class="bg-gray-600 text-left px-6 py-4">Segundo gol de Giovanni da Cruz Pereira - Giovanni </th>
             <td class="px-6 py-4 text-center">
 
               <div class="mt-4">
@@ -104,6 +104,18 @@
               </div>
             </td>
           </tr>
+
+          <tr>
+            <th class="bg-gray-600 text-left px-6 py-4">MELHORES MOMENTOS </th>
+            <td class="px-6 py-4 text-center">
+
+              <div class="mt-4">
+                <iframe width="480" height="320" src="https://www.youtube.com/embed/l39Bk4xojz4" title="São Paulo x Tanabi | Gols e Melhores Momentos | Paulistão Sub-20" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+              </div>
+            </td>
+          </tr>
+
 
 
       </tbody>

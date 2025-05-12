@@ -21,18 +21,18 @@
     </div>
 
     <div class="bg-blue-200 text-blue-900 text-center text-xl font-semibold py-4 px-6">
-      Paulista SUB17 - 2025 | Rodada 03
+      Paulista SUB17 - 2025 | Rodada 04
     </div>
 
     <table class="w-full text-sm md:text-base">
       <tbody>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4 w-1/3">Jogo</th>
-          <td class="px-6 py-4">Tanabi SAF 0 x 2 AMÉRICA - RIO PRETO</td>
+          <td class="px-6 py-4">Rio Preto 1 x 1 Tanabi SAF</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Data</th>
-          <td class="px-6 py-4">26/04/2025</td>
+          <td class="px-6 py-4">10/05/2025</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Horário</th>
@@ -40,12 +40,12 @@
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Estádio</th>
-          <td class="px-6 py-4">Municipal Prefeito Alberto Victolo / Tanabi</td>
+          <td class="px-6 py-4">Estádio Anísio Haddad / São José do Rio Preto</td>
         </tr>
         <tr>
           <th class="bg-gray-600 text-left px-6 py-4">Súmula</th>
           <td class="px-6 py-4 text-center">
-            <a href="{{ route('download', ['id_arquivo' => 40752]) }}"
+            <a href="{{ route('download', ['id_arquivo' => 40772]) }}"
                class="text-blue-300 font-semibold hover:text-blue-400 hover:underline transition duration-200"
                target="_blank" rel="noopener noreferrer">
               Baixar Arquivo PDF do jogo
@@ -54,7 +54,7 @@
         </tr>
 
 
-             <tr>
+             {{-- <tr>
                 <th class="bg-gray-600 text-left px-6 py-4">Jogo completo</th>
                     <td class="px-6 py-4 text-center">
 
@@ -69,10 +69,10 @@
                             </iframe>
                     </div>
                     </td>
-             </tr>
+             </tr> --}}
 
 
-             <tr>
+             {{-- <tr>
                 <th class="bg-gray-600 text-left px-6 py-4">BASTIDORES DO AMÉRICA - RIO PRETO</th>
                     <td class="px-6 py-4 text-center">
 
@@ -87,7 +87,7 @@
                             </iframe>
                     </div>
                     </td>
-             </tr>
+             </tr> --}}
 
 
       </tbody>
