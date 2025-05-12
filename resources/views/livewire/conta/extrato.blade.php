@@ -186,8 +186,8 @@
 
                         @can('LANCAMENTOS - ATUALIZAR POUPANCA/AVENUE')
                             @if ($Lancamentos && count($Lancamentos))
-                                @foreach ($Lancamentos as $lancamento)
-                                    @if ($lancamento->AtualizarPoupancaAvenue)
+                                @foreach ($Lancamentos as $lancament)
+                                    @if ($lancament->AtualizarPoupancaAvenue)
                                         <button title="Saldos POUPANÇA/AVENUE" type="button" class="btn-sm btn btn-outline-success"
                                                 wire:click='contasPoupancaAvenue'>
                                             <div class="card text-center" style="background-color: rgb(118, 14, 237); color: white;">

@@ -28,11 +28,11 @@
       <tbody>
         <tr class="border-b border-gray-800">
           <th class="bg-gray-600 text-left px-6 py-4 w-1/3">Jogo</th>
-          <td class="px-6 py-4">Tanabi SAF X Assisense</td>
+          <td class="px-6 py-4">Tanabi SAF 2 X  0 Assisense</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Data</th>
-          <td class="px-6 py-4">12/05/2025</td>
+          <td class="px-6 py-4">10/05/2025</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Horário</th>
@@ -42,109 +42,79 @@
           <th class="bg-gray-600 text-left px-6 py-4">Estádio</th>
           <td class="px-6 py-4">Estádio Municipal Prefeito Alberto Victolo / Tanabi-SP</td>
         </tr>
-        {{-- <tr>
+        <tr>
           <th class="bg-gray-600 text-left px-6 py-4">Súmula</th>
           <td class="px-6 py-4 text-center">
-            <a href="{{ route('download', ['id_arquivo' => 40750]) }}"
+            <a href="{{ route('download', ['id_arquivo' => 40771]) }}"
                class="text-blue-300 font-semibold hover:text-blue-400 hover:underline transition duration-200"
                target="_blank" rel="noopener noreferrer">
               Baixar Arquivo PDF do jogo
             </a>
           </td>
-        </tr> --}}
+        </tr>
 
-        {{-- <tr>
+        <tr>
             <th class="bg-gray-600 text-left px-6 py-4">Boletim financeiro</th>
             <td class="px-6 py-4 text-center">
-              <a href="{{ route('download', ['id_arquivo' => 40737]) }}"
+              <a href="{{ route('download', ['id_arquivo' => 40774]) }}"
                  class="text-blue-300 font-semibold hover:text-blue-400 hover:underline transition duration-200"
                  target="_blank" rel="noopener noreferrer">
                 Baixar Arquivo PDF do boletim financeiro do jogo
               </a>
             </td>
-          </tr> --}}
+          </tr>
 
 
-          {{-- <tr>
+          <tr>
             <th class="bg-gray-600 text-left px-6 py-4">Jogo completo</th>
             <td class="px-6 py-4 text-center">
 
               <div class="mt-4">
                 <iframe width="560" height="315"
-                        src="https://www.youtube.com/embed/SCCR3I00l6k"
+                        src="https://www.youtube.com/embed/lH8YEK5Wna4"
                         title="YouTube video player"
                         frameborder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowfullscreen></iframe>
               </div>
             </td>
-          </tr> --}}
+          </tr>
 
-          {{-- <tr>
+
+          <tr>
             <th class="bg-gray-600 text-left px-6 py-4">Primeiro gol de Marcelo Enrique Maçola Filho - Marcelo</th>
             <td class="px-6 py-4 text-center">
 
               <div class="mt-4">
                 <iframe width="560" height="315"
-                        src="https://www.youtube.com/embed/SCCR3I00l6k?start=3600"
+                        src="https://www.youtube.com/embed/lH8YEK5Wna4?start=2936"
                         title="YouTube video player"
                         frameborder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowfullscreen></iframe>
               </div>
             </td>
-          </tr> --}}
+          </tr>
 
 
 
-
-          {{-- <tr>
-            <th class="bg-gray-600 text-left px-6 py-4">Segundo de Thales Gabriel Duarte Santiago - Thales</th>
+          <tr>
+            <th class="bg-gray-600 text-left px-6 py-4">Segundo de Vinicius Fernando Macedo Domingos - Vinicius</th>
             <td class="px-6 py-4 text-center">
 
               <div class="mt-4">
                 <iframe width="560" height="315"
-                        src="https://www.youtube.com/embed/SCCR3I00l6k?start=3838"
+                        src="https://www.youtube.com/embed/lH8YEK5Wna4?start=6373"
                         title="YouTube video player"
                         frameborder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowfullscreen></iframe>
               </div>
             </td>
-          </tr> --}}
+          </tr>
+ 
 
-          {{-- <tr>
-            <th class="bg-gray-600 text-left px-6 py-4">Terceiro de Marcelo Enrique Maçola Filho - Marcelo </th>
-            <td class="px-6 py-4 text-center">
-
-              <div class="mt-4">
-                <iframe width="560" height="315"
-                        src="https://www.youtube.com/embed/SCCR3I00l6k?start=6600"
-                         title="YouTube video player"
-                        frameborder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowfullscreen></iframe>
-              </div>
-            </td>
-          </tr> --}}
-
-
-          {{-- <tr>
-            <th class="bg-gray-600 text-left px-6 py-4">Quarto de Maicon Henrique Silva de Carvalho - Maicon </th>
-            <td class="px-6 py-4 text-center">
-
-              <div class="mt-4">
-                <iframe width="560" height="315"
-                        src="https://www.youtube.com/embed/SCCR3I00l6k?start=7640"
-                         title="YouTube video player"
-                        frameborder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowfullscreen></iframe>
-              </div>
-            </td>
-          </tr> --}}
-
-      </tbody>
+        </tbody>
     </table>
 
   </div>
