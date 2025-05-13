@@ -1,10 +1,10 @@
-<div>
-    {{-- Close your eyes. Count to one. That is how long forever feels. --}}
 
     <div class="card">
         <div class="card-body">
             <div class="badge bg-secondary text-wrap" style="width: 100%;
-             ;font-size: 16px; lign=˜Center˜">
+              ;font-size: 16px; lign=˜Center˜">
+
+
                 <div class="row">
                     <div class="row py-2">
                         <div class="col-2">
@@ -17,7 +17,7 @@
                         </div>
 
                         <div class="col-2">
-                            <button wire:click="editarLancamento('novo',{{ $selEmpresa }})"
+                            <button wire:click="editarLancamento('novo', {{ $this->selEmpresa }})"
                                 class="btn btn-danger">Iniciar um novo
                                 lançamento</button>
                         </div>
@@ -49,6 +49,8 @@
                         </div>
                     </div>
                 </div>
+
+
                 <div class="row">
                     <div class="col-6">
                         <select class="form-control select2" id="selEmpresa" wire:model="selEmpresa">
@@ -72,8 +74,11 @@
 
             </div>
         </div>
+
+
+
         <div class="badge bg-success text-wrap" style="width: 100%;
-     ;font-size: 16px; lign=˜Center˜">
+            font-size: 16px; lign=˜Center˜">
 
             @if ($errors->any())
                 <div class="alert alert-danger mt-3">
@@ -97,6 +102,8 @@
                 </div>
 
             </div>
+
+
             <div class="card-body card-block">
                 <form id="idform" method="post" wire:submit.prevent="search">
                     <div class="row">
@@ -169,9 +176,10 @@
             </div>
 
             <div class="card-footer">
-                <div class="badge bg-warning text-wrap" style="width: 100%; ;font-size: 16px; lign=˜Center˜">
+                <div class="badge bg-warning text-wrap" style="width: 100%; ;font-size: 16px; lign=Center">
                     <button id="buscar" wire:click='search()' type="button" class="btn btn-primary btn-sm">
-                        <i class="fa fa-dot-circle-o"></i>Buscar informações e atualizar visualização
+                        <i class="fa fa-dot-circle-o"></i>
+                        Buscar informações e atualizar visualização
                     </button>
 
                     @can('LANCAMENTOS - CAIXAS GERAL')
@@ -477,10 +485,7 @@
 
                                                 <button title="Botão para atualizar" type="button"
                                                     class="btn-sm btn btn-outline-info"
-                                                    wire:click='confirmarAtualizar({{ $lancamento->ID }})'>
-                                                        <div class="card text-center"
-                                                            <h5 class="card-title" style="color: rgb(123, 0, 255);">ATUALIZAR PÁGINA</h5>
-                                                        </div>
+                                                    wire:click='confirmarAtualizar({{ $lancamento->ID }})'>ATUALIZAR PÁGINA </div>
                                                 </button>
                                             </div>
                                         </td>
@@ -501,9 +506,7 @@
                                                             '{{ $lancamento->ContaCreditoID}}',
                                                             '{{ $lancamento->EmpresaID}}'
                                                         )">
-                                                            <div class="card text-center"
                                                                 <h5 class="card-title" style="color: rgb(123, 0, 255);">ATUALIZAR/POUPANÇA</h5>
-                                                            </div>
                                                     </button>
                                                 </div>
                                             </td>
@@ -791,7 +794,9 @@
             </div>
         </div>
     </div>
-</div>
+
+
+
 
 @push('styles')
     <!-- Styles -->
@@ -827,11 +832,13 @@
 
 
     <script>
-        4.500, 00
+
         var modal = false;
         $(document).ready(function() {
             $('#selEmpresa').on('change', function(e) {
                 // @this.set('selEmpresa', e.target.value);
+                console.log(e.target.value);
+
                 Livewire.emit('selectedSelEmpresaItem', e.target.value);
             });
             $('#selConta').on('change', function(e) {
