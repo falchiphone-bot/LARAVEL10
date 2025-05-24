@@ -149,10 +149,12 @@ Route::get('tanabisaf.categoriasub15', function ()
     { return view('tanabisaf.jogos.2025.sub15.rodada03-26042025');})->name('tanabisaf.jogos.2025.sub15.rodada03');
     Route::get('tanabisaf.jogos.2025.sub15.rodada04', function ()
     { return view('tanabisaf.jogos.2025.sub15.rodada04-10052025');})->name('tanabisaf.jogos.2025.sub15.rodada04');
+  Route::get('tanabisaf.jogos.2025.sub15.rodada05', function ()
+    { return view('tanabisaf.jogos.2025.sub15.rodada05-17052025');})->name('tanabisaf.jogos.2025.sub15.rodada05');
 
 
 
-// SUB-15
+// SUB-17
 Route::get('tanabisaf.categoriasub17', function ()
     { return view('tanabisaf.jogos.categoriasub17');})->name('tanabisaf.categoriasub17');
     Route::get('tanabisaf.jogos.2025.sub17.categoriasub17', function ()
@@ -165,7 +167,8 @@ Route::get('tanabisaf.categoriasub17', function ()
     { return view('tanabisaf.jogos.2025.sub17.rodada03-26042025');})->name('tanabisaf.jogos.2025.sub17.rodada03');
     Route::get('tanabisaf.jogos.2025.sub17.rodada04', function ()
     { return view('tanabisaf.jogos.2025.sub17.rodada04-10052025');})->name('tanabisaf.jogos.2025.sub17.rodada04');
-
+  Route::get('tanabisaf.jogos.2025.sub17.rodada05', function ()
+    { return view('tanabisaf.jogos.2025.sub17.rodada05-17052025');})->name('tanabisaf.jogos.2025.sub17.rodada05');
 
 
 
@@ -186,6 +189,8 @@ Route::get('tanabisaf.categoriasub17', function ()
     { return view('tanabisaf.jogos.2025.sub20.rodada02-02052025');})->name('tanabisaf.jogos.2025.sub20.rodada02');
     Route::get('tanabisaf.jogos.2025.sub20.rodada03', function ()
     { return view('tanabisaf.jogos.2025.sub20.rodada03-10052025');})->name('tanabisaf.jogos.2025.sub20.rodada03');
+ Route::get('tanabisaf.jogos.2025.sub20.rodada04', function ()
+    { return view('tanabisaf.jogos.2025.sub20.rodada04-18052025');})->name('tanabisaf.jogos.2025.sub20.rodada04');
 
 
 
