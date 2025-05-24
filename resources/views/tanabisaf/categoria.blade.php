@@ -39,13 +39,22 @@
             <p class="text-gray-300 text-lg text-center mt-4">
                     •	Sub-12
             </p>
-            <p class="text-gray-300 text-lg text-center mt-4">
-                    •	Sub-13
-            </p>
-            <p class="text-gray-300 text-lg text-center mt-4">
-                    •	Sub-14
-
-            </p>
+            <ul class="text-gray-300 text-lg text-center mt-4">
+                <li>
+                    <a href="{{ url('/tanabisaf.categoriasub13') }}"
+                       class="block p-2 text-blue-400 underline hover:text-red-500">
+                        Sub-13
+                    </a>
+                </li>
+            </ul>
+            <ul class="text-gray-300 text-lg text-center mt-4">
+                <li>
+                    <a href="{{ url('/tanabisaf.categoriasub14') }}"
+                       class="block p-2 text-blue-400 underline hover:text-red-500">
+                        Sub-14
+                    </a>
+                </li>
+            </ul>
 
             <ul class="text-gray-300 text-lg text-center mt-4">
                 <li>
