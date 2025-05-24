@@ -45,7 +45,7 @@
         <tr>
           <th class="bg-gray-600 text-left px-6 py-4">Súmula</th>
           <td class="px-6 py-4 text-center">
-            <a href="{{ route('download', ['id_arquivo' => 40800]) }}"
+            <a href="{{ route('download', ['id_arquivo' => 4]) }}"
                class="text-blue-300 font-semibold hover:text-blue-400 hover:underline transition duration-200"
                target="_blank" rel="noopener noreferrer">
               Baixar Arquivo PDF do jogo
@@ -65,22 +65,39 @@
              </tr>
 
 
-             {{-- <tr>
-                <th class="bg-gray-600 text-left px-6 py-4">BASTIDORES DO AMÉRICA - RIO PRETO</th>
+             <tr>
+                <th class="bg-gray-600 text-left px-6 py-4">Primeiro gol do Tanabi por João Carvalho - João</th>
                     <td class="px-6 py-4 text-center">
 
                     <div class="mt-4">
-                        <iframe width="742" height="417"
-                            src="https://www.youtube.com/embed/N7bceU5lCLM"
-                             title="BASTIDORES DO AMÉRICA - RIO PRETO"
-                            frameborder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            referrerpolicy="strict-origin-when-cross-origin"
-                            allowfullscreen>
-                            </iframe>
+                        <iframe width="480" height="320" src="https://www.youtube.com/embed/OxC5Oj7SgQ8?start=1048" title="Primeiro gol do Tanabi por João Carvalho - João - TANABI X SANTA FÉ - PAULISTA SUB-17"
+                         frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                     </div>
                     </td>
-             </tr> --}}
+             </tr>
+
+             <tr>
+                <th class="bg-gray-600 text-left px-6 py-4">Segundo gol do Tanabi por João Carvalho - João</th>
+                    <td class="px-6 py-4 text-center">
+
+                    <div class="mt-4">
+                        <iframe width="480" height="320" src="https://www.youtube.com/embed/OxC5Oj7SgQ8?start=2195" title="Primeiro gol do Tanabi por João Carvalho - João - TANABI X SANTA FÉ - PAULISTA SUB-17"
+                         frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                    </div>
+                    </td>
+             </tr>
+
+             <tr>
+                <th class="bg-gray-600 text-left px-6 py-4">Terceiro gol do Tanabi por Wendel</th>
+                    <td class="px-6 py-4 text-center">
+
+                    <div class="mt-4">
+                        <iframe width="480" height="320" src="https://www.youtube.com/embed/OxC5Oj7SgQ8?start=3325" title="Primeiro gol do Tanabi por João Carvalho - João - TANABI X SANTA FÉ - PAULISTA SUB-17"
+                         frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                    </div>
+                    </td>
+             </tr>
+
 
 
       </tbody>
