@@ -53,36 +53,46 @@
           </td>
         </tr>
 
-        {{--<tr>
+        <tr>
             <th class="bg-gray-600 text-left px-6 py-4">Jogo completo</th>
             <td class="px-6 py-4 text-center">
-              <iframe width="742" height="417"
-              src="https://www.youtube.com/embed/ULumYfkE1W4"
-              title="Santa Fé x Tanabi sub 15 - Paulistão 2025"
-              frameborder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              referrerpolicy="strict-origin-when-cross-origin"
-              allowfullscreen>
-              </iframe>
+                <iframe width="480" height="320" src="https://www.youtube.com/embed/Lc2Zs2-Xaq8" title="MAC X TANABI - SUB 13 - AO VIVO E COM IMAGEM" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
             </td>
           </tr>
 
 
 
+
           <tr>
-            <th class="bg-gray-600 text-left px-6 py-4">Ùnico gol do Tanabi por Pedro Henrique Gasques Dias - Pedro</th>
+            <th class="bg-gray-600 text-left px-6 py-4">Primeiro gol do Tanabi por Lucas Carrega Raduam - Lucas </th>
             <td class="px-6 py-4 text-center">
 
               <div class="mt-4">
                 <iframe width="560" height="315"
-                        src=" https://www.youtube.com/embed/ULumYfkE1W4?start=3015"
+                        src=" https://www.youtube.com/embed/Lc2Zs2-Xaq8?start=2170"
                          title="YouTube video player"
                         frameborder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowfullscreen></iframe>
               </div>
             </td>
-          </tr>--}}
+          </tr>
+
+
+          <tr>
+            <th class="bg-gray-600 text-left px-6 py-4">Segundo gol do Tanabi por Lucas Carrega Raduam - Lucas  </th>
+            <td class="px-6 py-4 text-center">
+
+              <div class="mt-4">
+                <iframe width="560" height="315"
+                        src=" https://www.youtube.com/embed/Lc2Zs2-Xaq8?start=3500"
+                         title="YouTube video player"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+              </div>
+            </td>
+          </tr>
 
 
 

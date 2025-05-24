@@ -28,7 +28,7 @@
       <tbody>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4 w-1/3">Jogo</th>
-          <td class="px-6 py-4">Tanabi SAF 0 X 0 Santa Fé</td>
+          <td class="px-6 py-4">Tanabi SAF 3 X 0 Santa Fé</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Data</th>
