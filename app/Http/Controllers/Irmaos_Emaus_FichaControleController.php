@@ -71,7 +71,10 @@ class Irmaos_Emaus_FichaControleController extends Controller
     public function show(string $id)
     {
         $cadastro = Irmaos_Emaus_FichaControle::find($id);
-        return view('Irmaos_Emaus_FichaControle.show',compact('cadastro'));
+
+       $Irmaos_EmausServicos = Irmaos_EmausServicos::pluck('nomeServico', 'id');
+
+        return view('Irmaos_Emaus_FichaControle.show',compact('cadastro', 'Irmaos_EmausServicos'));
     }
 
     /**
