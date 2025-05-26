@@ -241,7 +241,8 @@ Route::get('tanabisaf.categoriasub17', function ()
 
 # Irmaos_EmausServicos
     Route::resource('Irmaos_EmausServicos', App\Http\Controllers\Irmaos_EmausServicosController::class);
-
+# Irmaos_EmausServicos
+    Route::resource('Irmaos_Emaus_FichaControle', App\Http\Controllers\Irmaos_Emaus_FichaControleController::class);
 
 //política de privacidade e termos de serviços
 Route::get('webhook/politicaprivacidade', function ()

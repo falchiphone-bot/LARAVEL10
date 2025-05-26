@@ -72,6 +72,17 @@
                             </tr>
                          @endcan
 
+                        @can('IRMAOS_EMAUS_FICHA_CONTROLE - LISTAR')
+                            <tr>
+                                <th>
+                                     <nav class="navbar navbar-red" style="background-color: hsla(234, 98%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="/Irmaos_Emaus_FichaControle">Ficha de controle do Irmãos de Emaús</a>
+                                    </nav>
+                                </th>
+                            </tr>
+                         @endcan
+
+
                         @can('CONTABILIDADE - LISTAR-AQUI-TAMBEM')
                             <tr>
                                 <th>

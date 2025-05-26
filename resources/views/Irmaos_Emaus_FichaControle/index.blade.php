@@ -5,7 +5,7 @@
 
             <div class="card">
                 <div class="badge bg-primary text-wrap" style="width: 100%;font-size: 24px;lign=˜Center˜">
-                    NOME DO SERVIÇO PARA SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
+                    FICHA DE CONTROLE PARA SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
                 </div>
             </div>
 
@@ -30,14 +30,14 @@
 
 
                 @can('IRMAOS_EMAUS_NOME_SERVICO - INCLUIR')
-                    <a href="{{ route('Irmaos_EmausServicos.create') }}" class="btn btn-danger btn-lg enabled"
+                    <a href="{{ route('Irmaos_Emaus_FichaControle.create') }}" class="btn btn-danger btn-lg enabled"
                      tabindex="-1" role="button"
-                        aria-disabled="true">Incluir NOME DO SERVIÇO</a>
+                        aria-disabled="true">Incluir FICHA DE CONTROLE</a>
                 @endcan
 
                 <div class="card-header">
                     <div class="badge bg-info text-wrap" style="width: 100%;font-size: 24px">
-                        <p>Total de NOME DO SERVIÇO no sistema de gerenciamento administrativo e contábil:
+                        <p>Total de FICHAS DE CONTROLE no sistema de gerenciamento administrativo e contábil:
                             {{ $model->count() ?? 0 }}</p>
                     </div>
                 </div>
@@ -50,7 +50,8 @@
                 <table class="table" style="background-color: rgb(147, 247, 113);">
                     <thead>
                         <tr>
-                            <th scope="col" class="px-6 py-4">NOME DO SERVIÇO</th>
+                            <th scope="col" class="px-6 py-4">SERVIÇO</th>
+                            <th scope="col" class="px-6 py-4">NOME</th>
                             <th scope="col" class="px-6 py-4">CADASTRADO POR:</th>
                             <th scope="col" class="px-6 py-4">CADASTRADO EM:</th>
                             <th scope="col" class="px-6 py-4">ALTERADO POR:</th>
@@ -63,8 +64,13 @@
                         @foreach ($model as $Model)
                             <tr>
 
+
                                 <td class="">
-                                    {{ $Model->nomeServico }}
+                                    {{ $Model->idServicos ? $Model->Irmaos_EmausServicos->nomeServico : 'Sem serviço' }}
+                                </td>
+
+                                <td class="">
+                                    {{ $Model->Nome }}
                                 </td>
 
                                 <td class="">
@@ -84,23 +90,23 @@
 
                                 </td>
 
-                                @can('IRMAOS_EMAUS_NOME_SERVICO - EDITAR')
+                                @can('IRMAOS_EMAUS_FICHA_CONTROLE - EDITAR')
                                     <td>
-                                        <a href="{{ route('Irmaos_EmausServicos.edit', $Model->id) }}" class="btn btn-success" tabindex="-1"
+                                        <a href="{{ route('Irmaos_Emaus_FichaControle.edit', $Model->id) }}" class="btn btn-success" tabindex="-1"
                                             role="button" aria-disabled="true">Editar</a>
                                     </td>
                                 @endcan
 
-                                @can('IRMAOS_EMAUS_NOME_SERVICO - VER')
+                                @can('IRMAOS_EMAUS_FICHA_CONTROLE - VER')
                                     <td>
-                                        <a href="{{ route('Irmaos_EmausServicos.show', $Model->id) }}" class="btn btn-info" tabindex="-1"
+                                        <a href="{{ route('Irmaos_Emaus_FichaControle.show', $Model->id) }}" class="btn btn-info" tabindex="-1"
                                             role="button" aria-disabled="true">Ver</a>
                                     </td>
                                 @endcan
 
-                                @can('IRMAOS_EMAUS_NOME_SERVICO - EXCLUIR')
+                                @can('IRMAOS_EMAUS_FICHA_CONTROLE - EXCLUIR')
                                     <td>
-                                        <form method="POST" action="{{ route('Irmaos_EmausServicos.destroy', $Model->id)  }}">
+                                        <form method="POST" action="{{ route('Irmaos_Emaus_FichaControle.destroy', $Model->id)  }}">
                                             @csrf
                                             <input type="hidden" name="_method" value="DELETE">
                                             <button type="submit" class="btn btn-danger">

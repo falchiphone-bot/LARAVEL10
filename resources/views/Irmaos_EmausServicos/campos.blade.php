@@ -16,14 +16,14 @@
 
         {{-- @dd($model ?? null) --}}
         <div class="form-group">
-            <label for="nomeServico">Nome do serviço</label>
+            <label for="nome">Nome do serviço</label>
             <input required
                 class="form-control @error('nomeServico') is-invalid @else is-valid @enderror"
-                name="nomeServico"
+                name="nome"
                 type="text"
-                id="nomeServico"
+                id="nome"
                 maxlength="250"
-                value="{{ old('nomeServico', $model->nomeServico ?? '') }}"
+                value="{{ old('nome', $model->Nome ?? '') }}"
                 oninput="atualizarContador()"
             >
 
@@ -37,7 +37,6 @@
         </div>
 
 
-        </div>
         <div class="row mt-2">
             <div class="col-6">
                 <button class="btn btn-primary">Salvar</button>
@@ -49,7 +48,7 @@
 
 <script>
 function atualizarContador() {
-    const input = document.getElementById('nomeServico');
+    const input = document.getElementById('nome');
     const contador = document.getElementById('contadorNomeServico');
     contador.textContent = `${input.value.length}/250 caracteres`;
 }
