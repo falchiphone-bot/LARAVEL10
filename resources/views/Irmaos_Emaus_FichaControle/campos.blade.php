@@ -331,7 +331,7 @@
 
 <script>
 function atualizarContador() {
-    const input = document.getElementById('nomeServico');
+    const input = document.getElementById('Nome');
     const contador = document.getElementById('contadorNomeServico');
     contador.textContent = `${input.value.length}/250 caracteres`;
 }
