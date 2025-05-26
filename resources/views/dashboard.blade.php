@@ -62,7 +62,15 @@
                             </div>
                         </div>
 
-
+                        @can('IRMAOS_EMAUS_NOME_SERVICO - LISTAR')
+                            <tr>
+                                <th>
+                                     <nav class="navbar navbar-red" style="background-color: hsla(234, 98%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="/Irmaos_EmausServicos">Serviços Irmãos de Emaús</a>
+                                    </nav>
+                                </th>
+                            </tr>
+                         @endcan
 
                         @can('CONTABILIDADE - LISTAR-AQUI-TAMBEM')
                             <tr>
