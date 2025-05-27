@@ -47,7 +47,7 @@
             </div>
 
             <tbody>
-                <table class="table" style="background-color: rgb(147, 247, 113);">
+                <table class="table" style="background-color: rgb(169, 236, 145);">
                     <thead>
                         <tr>
                             <th scope="col" class="px-6 py-4">NOME</th>
@@ -108,6 +108,14 @@
                                     </td>
                                 @endcan --}}
                             </tr>
+                            <tr>
+                                <td style="background-color: #fff9c4;">
+                                    Anotações: {{ $Model->Anotacoes ? $Model->Anotacoes : '' }}
+                                </td>
+                            </tr>
+
+
+
                         @endforeach
                     </tbody>
                 </table>
