@@ -238,7 +238,8 @@ Route::get('tanabisaf.categoriasub17', function ()
     Route::get('tanabisaf.pde', function ()
     { return view('tanabisaf.pde');})->name('tanabisaf.pde');
 
-
+# Irmaos_EmausPia
+    Route::resource('Irmaos_EmausPia', App\Http\Controllers\Irmaos_EmausPiaController::class);
 # Irmaos_EmausServicos
     Route::resource('Irmaos_EmausServicos', App\Http\Controllers\Irmaos_EmausServicosController::class);
 # Irmaos_EmausServicos

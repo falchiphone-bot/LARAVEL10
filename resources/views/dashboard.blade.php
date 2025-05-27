@@ -72,6 +72,17 @@
                             </tr>
                          @endcan
 
+
+                         @can('IRMAOS_EMAUS_NOME_PIA - LISTAR')
+                            <tr>
+                                <th>
+                                     <nav class="navbar navbar-red" style="background-color: hsla(234, 98%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="/Irmaos_EmausPia">Tópicos para o PIA de Irmãos de Emaús</a>
+                                    </nav>
+                                </th>
+                            </tr>
+                         @endcan
+
                         @can('IRMAOS_EMAUS_FICHA_CONTROLE - LISTAR')
                             <tr>
                                 <th>
