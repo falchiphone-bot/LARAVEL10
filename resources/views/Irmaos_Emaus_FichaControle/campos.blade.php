@@ -288,35 +288,7 @@
             @enderror
         </div>
 
-        {{-- Campo Entrada --}}
-        <div class="form-group mb-3">
-            <label for="Entrada" class="form-label">Entrada</label>
-            <input
-                class="form-control @error('Entrada') is-invalid @enderror"
-                name="Entrada"
-                type="date"
-                id="Entrada"
-                value="{{ old('Entrada', isset($model->Entrada) ? $model->Entrada->format('Y-m-d') : '') }}"
-            >
-            @error('Entrada')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-        </div>
 
-        {{-- Campo Saida --}}
-        <div class="form-group mb-3">
-            <label for="Saida" class="form-label">Saída</label>
-            <input
-                class="form-control @error('Saida') is-invalid @enderror"
-                name="Saida"
-                type="date"
-                id="Saida"
-                value="{{ old('Saida', isset($model->Saida) ? $model->Saida->format('Y-m-d') : '') }}"
-            >
-            @error('Saida')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-        </div>
 
         {{-- Botões --}}
         <div class="row mt-2">
