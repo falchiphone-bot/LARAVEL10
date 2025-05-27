@@ -6,9 +6,10 @@ class Irmaos_EmausServicos extends Model
 {
     protected $table = 'Irmaos_EmausServicos';
     public $timestamps = true;
-    protected $fillable = ['nomeServico', 'user_created', 'user_updated'];
+    protected $fillable = ['empresa','nomeServico', 'user_created', 'user_updated'];
 
     protected $casts = [
+        'empresa' => 'string',
         'nomeServico' => 'string',
         'user_created' => 'string',
         'user_updated' => 'string',

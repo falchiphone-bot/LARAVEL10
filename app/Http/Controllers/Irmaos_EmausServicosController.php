@@ -52,6 +52,7 @@ class Irmaos_EmausServicosController extends Controller
 
         $Servicos['user_created'] = auth()->user()->email;
         $Servicos['nomeServicos'] = trim($Servicos['nomeServico']);
+        $Servicos['empresa'] = trim($Servicos['nomeServico']);
 
         Irmaos_EmausServicos::create($Servicos);
 

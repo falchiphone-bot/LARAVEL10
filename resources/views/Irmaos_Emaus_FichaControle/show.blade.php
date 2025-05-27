@@ -7,14 +7,25 @@
                 <div class="badge bg-primary text-wrap" style="width: 100%;">
                     SERVIÇOS DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
                 </div>
-                <a href="{{ route('Irmaos_Emaus_FichaControle.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
+                <a href="{{ route('Irmaos_Emaus_FichaControle.create') }}" class="btn btn-danger btn-lg enabled" tabindex="-1" role="button"
                     aria-disabled="true">Incluir Ficha de controle</a>
+
+
+
+
+                    @can('IRMAOS_EMAUS_NOME_SERVICO - EntradaSaida')
+                                    <td>
+                                        <a href="{{ route('Irmaos_EmausServicos.EntradaSaida', $cadastro->id) }}" class="btn btn-success" tabindex="-1"
+                                            role="button" aria-disabled="true">Anotações / Retornos</a>
+                                    </td>
+                    @endcan
 
                 <div class="row">
                     <div class="card">
-                        <div class="card-header">
-                            EXIBIÇÃO DO REGISTRO DE FICHA DE CONTROLE
-                        </div>
+                                                    <div class="card-header bg-warning fw-bold">
+                                                        EXIBIÇÃO DO REGISTRO DE FICHA DE CONTROLE
+                                                    </div>
+
 
 
                         <div class="card-body" style="background-color: #cfe699;">
@@ -28,7 +39,7 @@
                     <div class="card-body" style="background-color: #e9ecef;">
                         <label for="Serviço" class="form-label" style="color: #ef0808; font-weight: bold;">Nome</label>
                         <p>
-                            {{ $cadastro->Nome }}
+                            {{ $cadastro->id . ' - ' . $cadastro->Nome }}
                         </p>
                     </div>
 

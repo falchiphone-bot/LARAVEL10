@@ -8,6 +8,7 @@ class Irmaos_Emaus_FichaControle extends Model
     public $timestamps = true;
     protected $fillable =
     [
+    'Empresa',
     'Nome',
     'Nascimento',
     'CidadeNaturalidade',
