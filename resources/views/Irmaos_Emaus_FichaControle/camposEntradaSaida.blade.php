@@ -17,35 +17,19 @@
             </div>
         @endif
 
-{{-- Campo Emmpresa --}}
-        <div class="form-group mb-3">
-            <label for="Empresa" class="form-label">Empresa</label>
-            <input
-                class="form-control @error('Empresa') is-invalid @enderror"
-                name="Empresa"
-                type="integer"
-                id="Empresa"
-                value="{{ old('Empresa', isset($FichaControle->Empresa) ? $FichaControle->Empresa : '') }}"
-            >
-            @error('DataEntradaSaida')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-        </div>
+{{-- Campo Empresa --}}
+<input
+    type="hidden"
+    name="Empresa"
+    value="{{ old('Empresa', isset($FichaControle->Empresa) ? $FichaControle->Empresa : '') }}"
+>
 
-        {{-- Campo id da ficha de controle --}}
-        <div class="form-group mb-3">
-            <label for="idFichaControle" class="form-label">Identificação</label>
-            <input
-                class="form-control @error('idFichaControle') is-invalid @enderror"
-                name="idFichaControle"
-                type="integer"
-                id="idFichaControle"
-                value="{{ old('idFichaControle', isset($FichaControle->id) ? $FichaControle->id : '') }}"
-            >
-            @error('DataEntradaSaida')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-        </div>
+{{-- Campo id da ficha de controle --}}
+<input
+    type="hidden"
+    name="idFichaControle"
+    value="{{ old('idFichaControle', isset($FichaControle->id) ? $FichaControle->id : '') }}"
+>
 
 
 
@@ -57,7 +41,7 @@
 
 
         {{-- Botões para marcar ENTRADA ou SAÍDA --}}
-<div class="card mb-3 shadow-sm" style="background-color: #e0f0ff;"> {{-- Fundo azul claro --}}
+<div class="card mb-3 shadow-sm" style="background-color: #0a6fcd;"> {{-- Fundo azul claro --}}
     <div class="card-body">
         <div class="form-group">
             <label class="form-label">Tipo de Registro:</label>

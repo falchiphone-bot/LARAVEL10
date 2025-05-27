@@ -322,7 +322,7 @@
         <div class="row mt-2">
             <div class="col-6">
                 <button type="submit" class="btn btn-primary">Salvar</button>
-                <a href="{{ route('Irmaos_EmausServicos.index') }}" class="btn btn-warning">Retornar para lista</a>
+                <a href="{{ route('Irmaos_Emaus_FichaControle.index') }}" class="btn btn-warning">Retornar para lista</a>
             </div>
         </div>
 

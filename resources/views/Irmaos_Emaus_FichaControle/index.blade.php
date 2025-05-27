@@ -29,7 +29,7 @@
                     <a class="btn btn-warning" href="Cadastros">Retornar a lista de opções</a> </nav> --}}
 
 
-                @can('IRMAOS_EMAUS_NOME_SERVICO - INCLUIR')
+                @can('IRMAOS_EMAUS_FICHA_CONTROLE - INCLUIR')
                     <a href="{{ route('Irmaos_Emaus_FichaControle.create') }}" class="btn btn-danger btn-lg enabled"
                      tabindex="-1" role="button"
                         aria-disabled="true">Incluir FICHA DE CONTROLE</a>
