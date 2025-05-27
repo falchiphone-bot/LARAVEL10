@@ -8,7 +8,7 @@
                 </div>
                 <h1 class="text-center">ENTRADA E SAIDA - Inclusão</h1>
                 <hr>
-                <form method="POST" action="/Irmaos_Emaus_FichaControle" accept-charset="UTF-8">
+                <form method="POST" action="/GravaEntradaSaida" accept-charset="UTF-8">
                     @include('Irmaos_Emaus_FichaControle.camposEntradaSaida')
                 </form>
             </div>

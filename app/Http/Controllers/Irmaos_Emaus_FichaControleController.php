@@ -56,15 +56,24 @@ class Irmaos_Emaus_FichaControleController extends Controller
 
 
         $EntradaSaida['user_created'] = auth()->user()->email;
-        $EntradaSaida['Empresa'] = 1039;
+        // $EntradaSaida['Empresa'] = 1039;
 
-
+// dd($EntradaSaida);
         Irmaos_Emaus_EntradaSaida::create($EntradaSaida);
 
-        return redirect(route('Irmaos_Emaus_FichaControle.index'));
+        return redirect(route('Irmaos_Emaus_FichaControle.ListaEntradaSaida', $id = $EntradaSaida['idFichaControle']));
 
     }
+    public function ListaEntradaSaida(string $id)
+    {
+       $model= Irmaos_Emaus_EntradaSaida::Where('idFichaControle', $id)
+            ->select('id', 'idFichaControle', 'TipoEntradaSaida', 'DataEntradaSaida', 'Anotacoes', 'user_created', 'created_at')
+       ->OrderBy('id')->get();
 
+        $FichaControle = Irmaos_Emaus_FichaControle::find($id);
+        return view('Irmaos_Emaus_FichaControle.ListaEntradaSaida',compact('model', 'FichaControle'));
+
+    }
 
 
     public function create()

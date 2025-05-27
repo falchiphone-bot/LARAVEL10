@@ -17,38 +17,93 @@
             </div>
         @endif
 
+{{-- Campo Emmpresa --}}
+        <div class="form-group mb-3">
+            <label for="Empresa" class="form-label">Empresa</label>
+            <input
+                class="form-control @error('Empresa') is-invalid @enderror"
+                name="Empresa"
+                type="integer"
+                id="Empresa"
+                value="{{ old('Empresa', isset($FichaControle->Empresa) ? $FichaControle->Empresa : '') }}"
+            >
+            @error('DataEntradaSaida')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+
+        {{-- Campo id da ficha de controle --}}
+        <div class="form-group mb-3">
+            <label for="idFichaControle" class="form-label">Identificação</label>
+            <input
+                class="form-control @error('idFichaControle') is-invalid @enderror"
+                name="idFichaControle"
+                type="integer"
+                id="idFichaControle"
+                value="{{ old('idFichaControle', isset($FichaControle->id) ? $FichaControle->id : '') }}"
+            >
+            @error('DataEntradaSaida')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+
+
+
         {{-- Campo Nome na ficha de controle --}}
         <div class="form-group mb-3">
             <label for="Nome" class="form-label">Nome na ficha de controle: </label>
             <strong style="color: blue;">{{ old('Nome', isset($FichaControle->Nome) ? $FichaControle->Nome : '') }}</strong>
         </div>
 
-        {{-- Campo Entrada --}}
-        <div class="form-group mb-3">
-            <label for="Entrada" class="form-label">Entrada</label>
-            <input
-                class="form-control @error('Entrada') is-invalid @enderror"
-                name="Entrada"
-                type="date"
-                id="Entrada"
-                value="{{ old('Entrada', isset($model->Entrada) ? $model->Entrada->format('Y-m-d') : '') }}"
-            >
-            @error('Entrada')
-                <div class="invalid-feedback">{{ $message }}</div>
+
+        {{-- Botões para marcar ENTRADA ou SAÍDA --}}
+<div class="card mb-3 shadow-sm" style="background-color: #e0f0ff;"> {{-- Fundo azul claro --}}
+    <div class="card-body">
+        <div class="form-group">
+            <label class="form-label">Tipo de Registro:</label>
+            <div>
+                <div class="form-check form-check-inline">
+                    <input
+                        class="form-check-input"
+                        type="radio"
+                        name="TipoEntradaSaida"
+                        id="tipoEntrada"
+                        value="entrada"
+                        {{ old('TipoEntradaSaida') == 'entrada' ? 'checked' : '' }}
+                    >
+                    <label class="form-check-label" for="tipoEntrada">Entrada</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input
+                        class="form-check-input"
+                        type="radio"
+                        name="TipoEntradaSaida"
+                        id="tipoSaida"
+                        value="saida"
+                        {{ old('TipoEntradaSaida') == 'saida' ? 'checked' : '' }}
+                    >
+                    <label class="form-check-label" for="tipoSaida">Saída</label>
+                </div>
+            </div>
+            @error('TipoEntradaSaida')
+                <div class="invalid-feedback d-block">{{ $message }}</div>
             @enderror
         </div>
+    </div>
+</div>
 
-        {{-- Campo Saida --}}
+
+        {{-- Campo EntradaSaida --}}
         <div class="form-group mb-3">
-            <label for="Saida" class="form-label">Saída</label>
+            <label for="Entrada" class="form-label">Data de Entrada ou Saida</label>
             <input
-                class="form-control @error('Saida') is-invalid @enderror"
-                name="Saida"
+                class="form-control @error('Entrada') is-invalid @enderror"
+                name="DataEntradaSaida"
                 type="date"
-                id="Saida"
-                value="{{ old('Saida', isset($model->Saida) ? $model->Saida->format('Y-m-d') : '') }}"
+                id="DataEntradaSaida"
+                value="{{ old('DataEntradaSaida', isset($model->DataEntradaSaida) ? $model->Entrada->format('Y-m-d') : '') }}"
             >
-            @error('Saida')
+            @error('DataEntradaSaida')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
         </div>

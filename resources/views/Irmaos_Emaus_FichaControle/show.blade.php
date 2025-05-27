@@ -13,10 +13,16 @@
 
 
 
-                    @can('IRMAOS_EMAUS_NOME_SERVICO - EntradaSaida')
+                    @can('IRMAOS_EMAUS_FICHA_CONTROLE - EntradaSaida')
                                     <td>
                                         <a href="{{ route('Irmaos_EmausServicos.EntradaSaida', $cadastro->id) }}" class="btn btn-success" tabindex="-1"
                                             role="button" aria-disabled="true">Anotações / Retornos</a>
+                                    </td>
+                    @endcan
+                    @can('IRMAOS_EMAUS_FICHA_CONTROLE - RelatorioEntradaSaida')
+                                    <td>
+                                        <a href="{{ route('Irmaos_Emaus_FichaControle.ListaEntradaSaida', $cadastro->id) }}" class="btn btn-success" tabindex="-1"
+                                            role="button" aria-disabled="true">Relatório de ENTRADAS e SAÍDAS</a>
                                     </td>
                     @endcan
 

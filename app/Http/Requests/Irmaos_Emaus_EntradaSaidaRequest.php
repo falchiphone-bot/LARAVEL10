@@ -25,8 +25,8 @@ class Irmaos_Emaus_EntradaSaidaRequest extends FormRequest
             // 'data' =>'required|unique:feriados',
             'Empresa' =>'required',
             'idFichaControle' =>'required|numeric',
-            'Entrada' =>'required|date',
-            'Saida' =>'nullable|date|after_or_equal:Entrada',
+            'TipoEntradaSaida' =>'required',
+            'DataEntradaSaida' =>'required|date',
             'Anotacoes' =>'nullable|string|max:5000',
         ];
     }
