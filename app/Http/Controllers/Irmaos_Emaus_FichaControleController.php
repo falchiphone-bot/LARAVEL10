@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Irmaos_Emaus_EntradaSaidaRequest;
 use App\Http\Requests\Irmaos_Emaus_FichaControleCreateRequest;
+use App\Http\Requests\Irmaos_Emaus_RelatorioPiaRequest;
 use App\Models\Irmaos_Emaus_EntradaSaida;
 use App\Models\Irmaos_Emaus_FichaControle;
-use App\Models\Irmaos_EmausEntradaSaida;
+use App\Models\Irmaos_Emaus_RelatorioPia;
+use App\Models\Irmaos_EmausPia;
 use App\Models\Irmaos_EmausServicos;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -42,7 +44,34 @@ class Irmaos_Emaus_FichaControleController extends Controller
     /**
      * Show the form for creating a new resource.
      */
+    public function RelatorioPia(int $id)
+    {
+        $FichaControle = Irmaos_Emaus_FichaControle::find($id);
+        $Irmaos_EmausPia = Irmaos_EmausPia::pluck('nomePia', 'id');
+        return view('Irmaos_Emaus_FichaControle.createRelatorioPia',compact('FichaControle','Irmaos_EmausPia'));
+    }
+    public function GravaRelatorioPia(Irmaos_Emaus_RelatorioPiaRequest $request)
+    {
+        $RelatorioPia = $request->all();
 
+        $RelatorioPia['user_created'] = auth()->user()->email;
+
+        Irmaos_Emaus_RelatorioPia::create($RelatorioPia);
+
+        // $rl = Irmaos_Emaus_RelatorioPia::find($RelatorioPia['idFichaControle']);
+        // dd($rl);
+        return redirect(route('Irmaos_Emaus_FichaControle.ListaRelatorioPia', $id = $RelatorioPia['idFichaControle']));
+    }
+    public function ListaRelatorioPia(string $id)
+    {
+       $model= Irmaos_Emaus_RelatorioPia::Where('idFichaControle', $id)
+            ->select('id', 'idIrmaos_EmausPia','idFichaControle', 'Data', 'Anotacoes', 'user_created', 'created_at')
+       ->OrderBy('id')->get();
+
+        $FichaControle = Irmaos_Emaus_FichaControle::find($id);
+        return view('Irmaos_Emaus_FichaControle.ListaRelatorioPia',compact('model', 'FichaControle'));
+
+    }
     public function EntradaSaida(int $id)
     {
         $FichaControle = Irmaos_Emaus_FichaControle::find($id);
@@ -50,20 +79,12 @@ class Irmaos_Emaus_FichaControleController extends Controller
     }
     public function GravaEntradaSaida(Irmaos_Emaus_EntradaSaidaRequest $request)
     {
-
-    //    dd($request);
-
         $EntradaSaida = $request->all();
 
-
         $EntradaSaida['user_created'] = auth()->user()->email;
-        // $EntradaSaida['Empresa'] = 1039;
-
-// dd($EntradaSaida);
         Irmaos_Emaus_EntradaSaida::create($EntradaSaida);
 
         return redirect(route('Irmaos_Emaus_FichaControle.ListaEntradaSaida', $id = $EntradaSaida['idFichaControle']));
-
     }
     public function ListaEntradaSaida(string $id)
     {
@@ -116,6 +137,7 @@ class Irmaos_Emaus_FichaControleController extends Controller
         $cadastro = Irmaos_Emaus_FichaControle::find($id);
 
        $Irmaos_EmausServicos = Irmaos_EmausServicos::pluck('nomeServico', 'id');
+
 
         return view('Irmaos_Emaus_FichaControle.show',compact('cadastro', 'Irmaos_EmausServicos'));
     }

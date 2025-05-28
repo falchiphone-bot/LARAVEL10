@@ -25,6 +25,18 @@
                                             role="button" aria-disabled="true">Relatório de ENTRADAS e SAÍDAS</a>
                                     </td>
                     @endcan
+                    @can('IRMAOS_EMAUS_FICHA_CONTROLE - InserirRelatorioPia')
+                                    <td>
+                                        <a href="{{ route('Irmaos_Emaus_FichaControle.RelatorioPia', $cadastro->id) }}" class="btn btn-success" tabindex="-1"
+                                            role="button" aria-disabled="true">Relatório PIA - Inserir/Preencher tópicos</a>
+                                    </td>
+                    @endcan
+                    @can('IRMAOS_EMAUS_FICHA_CONTROLE - ListarRelatorioPia')
+                                    <td>
+                                        <a href="{{ route('Irmaos_Emaus_FichaControle.ListaRelatorioPia', $cadastro->id) }}" class="btn btn-success" tabindex="-1"
+                                            role="button" aria-disabled="true">Listar Relatório PIA</a>
+                                    </td>
+                    @endcan
 
                 <div class="row">
                     <div class="card">

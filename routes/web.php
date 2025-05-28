@@ -249,6 +249,14 @@ Route::get('tanabisaf.categoriasub17', function ()
     Route::get('Irmaos_Emaus_ListaEntradaSaida/{id}',  [App\Http\Controllers\Irmaos_Emaus_FichaControleController::class, 'ListaEntradaSaida'])
     ->name('Irmaos_Emaus_FichaControle.ListaEntradaSaida');
 
+    Route::get('Irmaos_Emaus_RelatorioPia/{id}',  [App\Http\Controllers\Irmaos_Emaus_FichaControleController::class, 'RelatorioPia'])
+    ->name('Irmaos_Emaus_FichaControle.RelatorioPia');
+    Route::get('Irmaos_Emaus_ListaRelatorioPia/{id}',  [App\Http\Controllers\Irmaos_Emaus_FichaControleController::class,
+        'ListaRelatorioPia'])->name('Irmaos_Emaus_FichaControle.ListaRelatorioPia');
+    Route::post('GravaRelatorioPia', [App\Http\Controllers\Irmaos_Emaus_FichaControleController::class, 'GravaRelatorioPia'])
+   ->name('Irmaos_Emaus_FichaControle.GravaRelatorioPia');
+
+
 
 //política de privacidade e termos de serviços
 Route::get('webhook/politicaprivacidade', function ()
