@@ -45,7 +45,7 @@
 
         <td class="px-6 py-4">
         <p class="text-white-900 text-lg text-center mt-4">
-            <a href="{{ route('download', ['id_arquivo' => 40799]) }}"target="_blank" rel="noopener noreferrer" >Baixar Arquivo PDF do jogo</a>
+            <a href="{{ route('download', ['id_arquivo' => 40815]) }}"target="_blank" rel="noopener noreferrer" >Baixar Arquivo PDF do jogo</a>
         </p>
 
         <tr>
@@ -62,7 +62,7 @@
 
 
 
-        
+
 
 
 

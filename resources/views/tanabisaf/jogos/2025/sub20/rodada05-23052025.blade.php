@@ -21,32 +21,31 @@
     </div>
 
     <div class="bg-blue-200 text-blue-900 text-center text-xl font-semibold py-4 px-6">
-      Paulista SUB23 - 2025 | Rodada 05
+      Paulista SUB20 - 2025 | Rodada 05
     </div>
 
     <table class="w-full text-sm md:text-base">
       <tbody>
         <tr class="border-b border-gray-800">
           <th class="bg-gray-600 text-left px-6 py-4 w-1/3">Jogo</th>
-          <td class="px-6 py-4">Olimpia 0 x 3 Tanabi SAF</td>
+          <td class="px-6 py-4">Tanabi SAF 1 x 2 Guarani</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Data</th>
-          <td class="px-6 py-4">18/05/2025</td>
+          <td class="px-6 py-4">23/05/2025</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Horário</th>
-          <td class="px-6 py-4">10:00</td>
+          <td class="px-6 py-4">15:00</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Estádio</th>
-          <td class="px-6 py-4"> Estádio Municipal Maria Tereza Breda / Olímpia-SP</td>
+          <td class="px-6 py-4">Estádio Municipal Prefeito Alberto Victolo / Tanabi<<td>
         </tr>
-
         <tr>
           <th class="bg-gray-600 text-left px-6 py-4">Súmula</th>
           <td class="px-6 py-4 text-center">
-            <a href="{{ route('download', ['id_arquivo' => 40802]) }}"
+            <a href="{{ route('download', ['id_arquivo' => 40817]) }}"
                class="text-blue-300 font-semibold hover:text-blue-400 hover:underline transition duration-200"
                target="_blank" rel="noopener noreferrer">
               Baixar Arquivo PDF do jogo
@@ -57,7 +56,7 @@
         {{-- <tr>
             <th class="bg-gray-600 text-left px-6 py-4">Boletim financeiro</th>
             <td class="px-6 py-4 text-center">
-              <a href="{{ route('download', ['id_arquivo' => 40774]) }}"
+              <a href="{{ route('download', ['id_arquivo' => 40737]) }}"
                  class="text-blue-300 font-semibold hover:text-blue-400 hover:underline transition duration-200"
                  target="_blank" rel="noopener noreferrer">
                 Baixar Arquivo PDF do boletim financeiro do jogo
@@ -71,51 +70,16 @@
             <td class="px-6 py-4 text-center">
 
               <div class="mt-4">
-
-<iframe width="480" height="320" src="https://www.youtube.com/embed/Oq3trldw5aM" title="JOGO COMPLETO: OLÍMPIA X TANABI | RODADA 5 | PAULISTA SUB-23 2ª DIVISÃO SICREDI 2025" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-
-              </div>
-            </td>
-          </tr>
+<iframe width="480" height="320" src="https://www.youtube.com/embed/1EOLW6l8DoY" title="AO VIVO COM IMAGENS - TANABI X GUARANI - PAULISTA SUB-20" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>            </tr>
 
 
           <tr>
-            <th class="bg-gray-600 text-left px-6 py-4">Primeiro gol de Marcelo Enrique Maçola Filho - Marcelo</th>
+            <th class="bg-gray-600 text-left px-6 py-4">Primeiro gol de Nelson Miguel Rodrigues dos Santos Caetano - Nelson</th>
             <td class="px-6 py-4 text-center">
 
               <div class="mt-4">
-                <iframe width="480" height="315"
-                        src="https://www.youtube.com/embed/Oq3trldw5aM?start=1761"
-                        title="YouTube video player"
-                        frameborder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowfullscreen></iframe>
-              </div>
-            </td>
-          </tr>
-
-
- <tr>
-            <th class="bg-gray-600 text-left px-6 py-4">Segundo gol de Diogo Vieira Santos Fonseca - Diogo</th>
-            <td class="px-6 py-4 text-center">
-
-              <div class="mt-4">
-                <iframe width="480" height="315"
-                        src="https://www.youtube.com/embed/Oq3trldw5aM?start=8088"
-                        title="YouTube video player"
-                        frameborder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowfullscreen></iframe>
-              </div>
-            </td>
-          </tr>
-
-           <th class="bg-gray-600 text-left px-6 py-4">Terceiro gol de Diogo Vieira Santos Fonseca - Diogo</th>
-            <td class="px-6 py-4 text-center">
-
-              <div class="mt-4">
-                <iframe width="480" height="315"
-                        src="https://www.youtube.com/embed/Oq3trldw5aM?start=8323"
+                <iframe width="480" height="320"
+                        src="https://www.youtube.com/embed/1EOLW6l8DoY?start=6901"
                         title="YouTube video player"
                         frameborder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -128,12 +92,12 @@
 
 
           {{-- <tr>
-            <th class="bg-gray-600 text-left px-6 py-4">Segundo de Vinicius Fernando Macedo Domingos - Vinicius</th>
+            <th class="bg-gray-600 text-left px-6 py-4">Segundo gol de Giovanni da Cruz Pereira - Giovanni </th>
             <td class="px-6 py-4 text-center">
 
               <div class="mt-4">
-                <iframe width="560" height="315"
-                        src="https://www.youtube.com/embed/lH8YEK5Wna4?start=6373"
+                <iframe width="480" height="320"
+                        src="https://www.youtube.com/embed/DSaL2U7TVp0?start=7550"
                         title="YouTube video player"
                         frameborder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -142,10 +106,21 @@
             </td>
           </tr> --}}
 
+          {{-- <tr>
+            <th class="bg-gray-600 text-left px-6 py-4">MELHORES MOMENTOS </th>
+            <td class="px-6 py-4 text-center">
 
-        </tbody>
+              <div class="mt-4">
+                <iframe width="480" height="320" src="https://www.youtube.com/embed/l39Bk4xojz4" title="São Paulo x Tanabi | Gols e Melhores Momentos | Paulistão Sub-20" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+              </div>
+            </td>
+          </tr> --}}
+
+
+
+      </tbody>
     </table>
-
   </div>
 
 </body>

@@ -21,18 +21,18 @@
     </div>
 
     <div class="bg-blue-200 text-blue-900 text-center text-xl font-semibold py-4 px-6">
-      Paulista SUB23 - 2025 | Rodada 05
+      Paulista SUB23 - 2025 | Rodada 06
     </div>
 
     <table class="w-full text-sm md:text-base">
       <tbody>
         <tr class="border-b border-gray-800">
           <th class="bg-gray-600 text-left px-6 py-4 w-1/3">Jogo</th>
-          <td class="px-6 py-4">Olimpia 0 x 3 Tanabi SAF</td>
+          <td class="px-6 py-4">Santacruzense 2 x 0 Tanabi SAF</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Data</th>
-          <td class="px-6 py-4">18/05/2025</td>
+          <td class="px-6 py-4">25/05/2025</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Horário</th>
@@ -40,13 +40,13 @@
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Estádio</th>
-          <td class="px-6 py-4"> Estádio Municipal Maria Tereza Breda / Olímpia-SP</td>
+          <td class="px-6 py-4">Estádio Municipal Deputado Leônidas Camarinha / Santa Cruz do Rio Pardo</td>
         </tr>
 
         <tr>
           <th class="bg-gray-600 text-left px-6 py-4">Súmula</th>
           <td class="px-6 py-4 text-center">
-            <a href="{{ route('download', ['id_arquivo' => 40802]) }}"
+            <a href="{{ route('download', ['id_arquivo' => 40818]) }}"
                class="text-blue-300 font-semibold hover:text-blue-400 hover:underline transition duration-200"
                target="_blank" rel="noopener noreferrer">
               Baixar Arquivo PDF do jogo
@@ -72,14 +72,13 @@
 
               <div class="mt-4">
 
-<iframe width="480" height="320" src="https://www.youtube.com/embed/Oq3trldw5aM" title="JOGO COMPLETO: OLÍMPIA X TANABI | RODADA 5 | PAULISTA SUB-23 2ª DIVISÃO SICREDI 2025" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-
+<iframe width="480" height="320" src="https://www.youtube.com/embed/m3ukgE4AiUg" title="JOGO COMPLETO: SANTACRUZENSE X TANABI | RODADA 6 | PAULISTA SUB-23 2ª DIVISÃO SICREDI 2025" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
               </div>
             </td>
           </tr>
 
 
-          <tr>
+          {{-- <tr>
             <th class="bg-gray-600 text-left px-6 py-4">Primeiro gol de Marcelo Enrique Maçola Filho - Marcelo</th>
             <td class="px-6 py-4 text-center">
 
@@ -92,10 +91,10 @@
                         allowfullscreen></iframe>
               </div>
             </td>
-          </tr>
+          </tr> --}}
 
 
- <tr>
+        {{-- <tr>
             <th class="bg-gray-600 text-left px-6 py-4">Segundo gol de Diogo Vieira Santos Fonseca - Diogo</th>
             <td class="px-6 py-4 text-center">
 
@@ -108,9 +107,9 @@
                         allowfullscreen></iframe>
               </div>
             </td>
-          </tr>
+          </tr> --}}
 
-           <th class="bg-gray-600 text-left px-6 py-4">Terceiro gol de Diogo Vieira Santos Fonseca - Diogo</th>
+           {{-- <th class="bg-gray-600 text-left px-6 py-4">Terceiro gol de Diogo Vieira Santos Fonseca - Diogo</th>
             <td class="px-6 py-4 text-center">
 
               <div class="mt-4">
@@ -122,7 +121,7 @@
                         allowfullscreen></iframe>
               </div>
             </td>
-          </tr>
+          </tr> --}}
 
 
 

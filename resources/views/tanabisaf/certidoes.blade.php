@@ -37,9 +37,9 @@
 
     <section class="bg-green-800 py-12 px-6">
         <div class="max-w-4xl mx-auto">
-            <h3 class="text-3xl font-bold text-center text-red-500">CERTIDÃO POSITIVA COM EFEITOS DE NEGATIVA DE DÉBITOS RELATIVOS AOS TRIBUTOS FEDERAIS E À DÍVIDA ATIVA DA UNIÃO - validade 05.10.2025 DO TANABI SAF</h3>
+            <h3 class="text-3xl font-bold text-center text-red-500">CERTIDÃO POSITIVA COM EFEITOS DE NEGATIVA DE DÉBITOS RELATIVOS AOS TRIBUTOS FEDERAIS E À DÍVIDA ATIVA DA UNIÃO - validade 23.11.2025 DO TANABI SAF</h3>
             <p class="text-green-300 text-lg text-center mt-4">
-                <a href="{{ route('download', ['id_arquivo' => 40715]) }}"target="_blank" rel="noopener noreferrer" >Baixar Arquivo PDF</a>
+                <a href="{{ route('download', ['id_arquivo' => 40821]) }}"target="_blank" rel="noopener noreferrer" >Baixar Arquivo PDF</a>
             </p>
         </div>
     </section>
