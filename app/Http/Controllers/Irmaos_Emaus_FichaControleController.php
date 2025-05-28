@@ -47,7 +47,7 @@ class Irmaos_Emaus_FichaControleController extends Controller
     public function RelatorioPia(int $id)
     {
         $FichaControle = Irmaos_Emaus_FichaControle::find($id);
-        $Irmaos_EmausPia = Irmaos_EmausPia::pluck('nomePia', 'id');
+         $Irmaos_EmausPia = Irmaos_EmausPia::orderBy('nomePia')->pluck('nomePia', 'id');
         $idFichaControle = $FichaControle->id;
         return view('Irmaos_Emaus_FichaControle.createRelatorioPia',compact('FichaControle',
         'Irmaos_EmausPia', 'idFichaControle'));
@@ -74,10 +74,46 @@ class Irmaos_Emaus_FichaControleController extends Controller
 
         $nomeFichaControle = $FichaControle->Nome;
         $idFichaControle = $FichaControle->id;
-        return view('Irmaos_Emaus_FichaControle.ListaRelatorioPia',compact('model', 'FichaControle',
-        'nomeFichaControle', 'idFichaControle'));
+
+         $Irmaos_EmausPia = Irmaos_EmausPia::orderBy('nomePia')->pluck('nomePia', 'id');
+
+                 return view('Irmaos_Emaus_FichaControle.ListaRelatorioPia',compact('model', 'FichaControle',
+        'nomeFichaControle', 'idFichaControle', 'Irmaos_EmausPia'));
 
     }
+
+    public function ListaRelatorioPiaTopico(Request $request, $idFichaControle)
+    {
+
+
+        $id = $request->idIrmaos_EmausPia;
+
+        $idFichaControle = $idFichaControle;
+
+
+        $model= Irmaos_Emaus_RelatorioPia::Where('idFichaControle', $idFichaControle)
+         ->Where('idIrmaos_EmausPia', $id)
+            ->select('id', 'idIrmaos_EmausPia','idFichaControle', 'Data', 'Anotacoes', 'user_created', 'created_at')
+       ->OrderBy('id')->get();
+
+        $FichaControle = Irmaos_Emaus_FichaControle::find($idFichaControle);
+
+        $nomeFichaControle = $FichaControle->Nome;
+        $idFichaControle = $FichaControle->id;
+
+         $Irmaos_EmausPia = Irmaos_EmausPia::orderBy('nomePia')->pluck('nomePia', 'id');
+         $Irmaos_EmausPiaNome = Irmaos_EmausPia::find($id);
+         $Irmaos_EmausPiaNome = $Irmaos_EmausPiaNome->nomePia;
+
+
+// dd($request->all(), $idFichaControle, $id);
+                 return view('Irmaos_Emaus_FichaControle.ListaRelatorioPia',compact('model', 'FichaControle',
+        'nomeFichaControle', 'idFichaControle', 'Irmaos_EmausPia',  'Irmaos_EmausPiaNome'));
+    }
+
+
+
+
     public function EntradaSaida(int $id)
     {
         $FichaControle = Irmaos_Emaus_FichaControle::find($id);

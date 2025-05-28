@@ -257,6 +257,8 @@ Route::get('tanabisaf.jogos.2025.sub20.rodada05', function ()
 
     Route::get('Irmaos_Emaus_RelatorioPia/{id}',  [App\Http\Controllers\Irmaos_Emaus_FichaControleController::class, 'RelatorioPia'])
     ->name('Irmaos_Emaus_FichaControle.RelatorioPia');
+    Route::post('Irmaos_Emaus_ListaRelatorioPiaTopico/{id}',  [App\Http\Controllers\Irmaos_Emaus_FichaControleController::class, 'ListaRelatorioPiaTopico'])
+    ->name('Irmaos_Emaus_FichaControle.ListaRelatorioPiaTopico');
     Route::get('Irmaos_Emaus_ListaRelatorioPia/{id}',  [App\Http\Controllers\Irmaos_Emaus_FichaControleController::class,
         'ListaRelatorioPia'])->name('Irmaos_Emaus_FichaControle.ListaRelatorioPia');
     Route::post('GravaRelatorioPia', [App\Http\Controllers\Irmaos_Emaus_FichaControleController::class, 'GravaRelatorioPia'])

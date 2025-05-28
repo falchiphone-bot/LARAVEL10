@@ -58,13 +58,57 @@
 
             </div>
 
+            <div class="card-header">
+                <div class="badge bg-secondary text-wrap" style="width: 100%;font-size: 24px">
+                    <p>Selecione o Tópico PIA para gerar o relatório</p>
+                </div>
+                        <form method="POST" action="{{ route('Irmaos_Emaus_FichaControle.ListaRelatorioPiaTopico',$idFichaControle) }}">
+                                @csrf
+                                <div class="form-group mb-3">
+                                    <label for="idIrmaos_EmausPia" class="form-label">Selecionar o Tópico PIA</label>
+                                    <select
+                                        required
+                                        class="form-control @error('idIrmaos_EmausPia') is-invalid @enderror"
+                                        name="idIrmaos_EmausPia"
+                                        id="idIrmaos_EmausPia"
+                                    >
+                                        <option value="">Selecione um TÓPICO</option>
+                                        @foreach ($Irmaos_EmausPia as $id => $servico)
+                                            <option value="{{ $id }}">
+                                                {{ $servico }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">Enviar</button>
+                       </form>
+
+
+
+                        @error('idServicos')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+        </div>
+
+
+                        <div class="card text-white bg-danger mb-3">
+                            <div class="card-body">
+                                Tópico selecionado e consultado: {{ $Irmaos_EmausPiaNome ?? '' }}
+                            </div>
+                      </div>
+
+
+
+
             <tbody>
                 <table class="table" style="background-color: rgb(243, 236, 145);">
                     <thead>
                         <tr>
                             {{-- <th scope="col" class="px-6 py-4">NOME</th> --}}
-                            <th scope="col" class="px-6 py-4">Tópico PIA</th>
                             <th scope="col" class="px-6 py-4">Data</th>
+                            {{-- <th scope="col" class="px-6 py-4">Tópico PIA</th> --}}
+
                             <th scope="col" class="px-6 py-4">CADASTRADO POR:</th>
                             <th scope="col" class="px-6 py-4">CADASTRADO EM:</th>
                             <th scope="col" class="px-6 py-4"></th>
@@ -79,12 +123,13 @@
                                     {{ $Model->FichaControle->Nome ? $Model->FichaControle->Nome : '' }}
                                 </td> --}}
 
-                                <td class="">
-                                    {{ $Model->Irmaos_EmausPia->nomePia ? $Model->Irmaos_EmausPia->nomePia : 'Sem id' }}
-                                </td>
                                  <td class="">
                                    {{ $Model->Data ? \Carbon\Carbon::parse($Model->Data)->format('d/m/Y') : 'Sem data' }}
                                 </td>
+
+                                {{-- <td class="">
+                                    {{ $Model->Irmaos_EmausPia->nomePia ? $Model->Irmaos_EmausPia->nomePia : 'Sem id' }}
+                                </td> --}}
 
 
                                 <td class="">
