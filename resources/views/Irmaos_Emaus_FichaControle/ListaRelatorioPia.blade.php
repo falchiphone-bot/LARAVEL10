@@ -41,16 +41,28 @@
                             {{ $model->count() ?? 0 }}</p>
                     </div>
                 </div>
-
+                    <div class="card-header">
+                        <div class="badge bg-secondary text-wrap" style="width: 100%;font-size: 24px">
+                            <p>Nome:
+                             {{ $nomeFichaControle }}
+                            </p>
+                            @can('IRMAOS_EMAUS_FICHA_CONTROLE - VER')
+                                    <td>
+                                        <a href="{{ route('Irmaos_Emaus_FichaControle.show', $idFichaControle) }}" class="btn btn-info" tabindex="-1"
+                                            role="button" aria-disabled="true">Retornar para a ficha</a>
+                                    </td>
+                                @endcan
+                        </div>
+                     </div>
 
 
             </div>
 
             <tbody>
-                <table class="table" style="background-color: rgb(169, 236, 145);">
+                <table class="table" style="background-color: rgb(243, 236, 145);">
                     <thead>
                         <tr>
-                            <th scope="col" class="px-6 py-4">NOME</th>
+                            {{-- <th scope="col" class="px-6 py-4">NOME</th> --}}
                             <th scope="col" class="px-6 py-4">Tópico PIA</th>
                             <th scope="col" class="px-6 py-4">Data</th>
                             <th scope="col" class="px-6 py-4">CADASTRADO POR:</th>
@@ -63,9 +75,9 @@
                         @foreach ($model as $Model)
                             <tr>
 
-                                <td class="">
+                                {{-- <td class="">
                                     {{ $Model->FichaControle->Nome ? $Model->FichaControle->Nome : '' }}
-                                </td>
+                                </td> --}}
 
                                 <td class="">
                                     {{ $Model->Irmaos_EmausPia->nomePia ? $Model->Irmaos_EmausPia->nomePia : 'Sem id' }}

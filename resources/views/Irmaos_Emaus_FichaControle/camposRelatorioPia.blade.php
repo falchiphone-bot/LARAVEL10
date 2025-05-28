@@ -37,6 +37,12 @@
         <div class="form-group mb-3">
             <label for="Nome" class="form-label">Nome na ficha de controle: </label>
             <strong style="color: blue;">{{ old('Nome', isset($FichaControle->Nome) ? $FichaControle->Nome : '') }}</strong>
+       @can('IRMAOS_EMAUS_FICHA_CONTROLE - VER')
+                                    <td>
+                                        <a href="{{ route('Irmaos_Emaus_FichaControle.show', $idFichaControle) }}" class="btn btn-info" tabindex="-1"
+                                            role="button" aria-disabled="true">Retornar para a ficha</a>
+                                    </td>
+                                @endcan
         </div>
 
 

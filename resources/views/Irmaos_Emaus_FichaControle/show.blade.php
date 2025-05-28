@@ -7,10 +7,15 @@
                 <div class="badge bg-primary text-wrap" style="width: 100%;">
                     SERVIÇOS DO SISTEMA DE GERENCIAMENTO ADMINISTRATIVO E CONTÁBIL
                 </div>
+
                 <a href="{{ route('Irmaos_Emaus_FichaControle.create') }}" class="btn btn-danger btn-lg enabled" tabindex="-1" role="button"
                     aria-disabled="true">Incluir Ficha de controle</a>
 
-
+ <div class="row mt-2">
+            <div class="col-6">
+                 <a href="{{ route('Irmaos_Emaus_FichaControle.index') }}" class="btn btn-warning">Retornar para lista de fichas de controle</a>
+            </div>
+        </div>
 
 
                     @can('IRMAOS_EMAUS_FICHA_CONTROLE - EntradaSaida')

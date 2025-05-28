@@ -48,7 +48,9 @@ class Irmaos_Emaus_FichaControleController extends Controller
     {
         $FichaControle = Irmaos_Emaus_FichaControle::find($id);
         $Irmaos_EmausPia = Irmaos_EmausPia::pluck('nomePia', 'id');
-        return view('Irmaos_Emaus_FichaControle.createRelatorioPia',compact('FichaControle','Irmaos_EmausPia'));
+        $idFichaControle = $FichaControle->id;
+        return view('Irmaos_Emaus_FichaControle.createRelatorioPia',compact('FichaControle',
+        'Irmaos_EmausPia', 'idFichaControle'));
     }
     public function GravaRelatorioPia(Irmaos_Emaus_RelatorioPiaRequest $request)
     {
@@ -69,13 +71,18 @@ class Irmaos_Emaus_FichaControleController extends Controller
        ->OrderBy('id')->get();
 
         $FichaControle = Irmaos_Emaus_FichaControle::find($id);
-        return view('Irmaos_Emaus_FichaControle.ListaRelatorioPia',compact('model', 'FichaControle'));
+
+        $nomeFichaControle = $FichaControle->Nome;
+        $idFichaControle = $FichaControle->id;
+        return view('Irmaos_Emaus_FichaControle.ListaRelatorioPia',compact('model', 'FichaControle',
+        'nomeFichaControle', 'idFichaControle'));
 
     }
     public function EntradaSaida(int $id)
     {
         $FichaControle = Irmaos_Emaus_FichaControle::find($id);
-        return view('Irmaos_Emaus_FichaControle.createEntradaSaida',compact('FichaControle'));
+        $idFichaControle = $FichaControle->id;
+        return view('Irmaos_Emaus_FichaControle.createEntradaSaida',compact('FichaControle', 'idFichaControle'));
     }
     public function GravaEntradaSaida(Irmaos_Emaus_EntradaSaidaRequest $request)
     {
@@ -93,7 +100,10 @@ class Irmaos_Emaus_FichaControleController extends Controller
        ->OrderBy('id')->get();
 
         $FichaControle = Irmaos_Emaus_FichaControle::find($id);
-        return view('Irmaos_Emaus_FichaControle.ListaEntradaSaida',compact('model', 'FichaControle'));
+        $nomeFichaControle = $FichaControle->Nome;
+        $idFichaControle = $FichaControle->id;
+        return view('Irmaos_Emaus_FichaControle.ListaEntradaSaida',compact('model', 'FichaControle', 'nomeFichaControle',
+         'idFichaControle'));
 
     }
 

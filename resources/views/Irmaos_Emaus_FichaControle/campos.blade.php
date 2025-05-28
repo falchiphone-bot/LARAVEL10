@@ -17,6 +17,11 @@
             </div>
         @endif
 
+        <div class="row mt-2">
+            <div class="col-6">
+                 <a href="{{ route('Irmaos_Emaus_FichaControle.index') }}" class="btn btn-warning">Retornar para lista</a>
+            </div>
+        </div>
         {{-- Campo Tipo de serviço--}}
         <div class="form-group mb-3">
             <label for="idServicos" class="form-label">Serviço</label>
