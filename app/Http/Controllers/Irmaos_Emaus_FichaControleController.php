@@ -34,13 +34,30 @@ class Irmaos_Emaus_FichaControleController extends Controller
 
 
 
-    public function index()
-    {
-       $model= Irmaos_Emaus_FichaControle::OrderBy('Nome')->get();
+    // public function index()
+    // {
+    //    $model= Irmaos_Emaus_FichaControle::OrderBy('Nome')->get();
 
-        return view('Irmaos_Emaus_FichaControle.index',compact('model'));
-    }
+    //     return view('Irmaos_Emaus_FichaControle.index',compact('model'));
+    // }
 
+
+        public function index(Request $request)
+        {
+            $query = Irmaos_Emaus_FichaControle::query();
+
+            if ($request->filled('search')) {
+                $search = $request->input('search');
+                $query->where('Nome', 'like', "%{$search}%")
+                    ->orWhereHas('Irmaos_EmausServicos', function($q) use ($search) {
+                        $q->where('nomeServico', 'like', "%{$search}%");
+                    });
+            }
+
+            $model = $query->get();
+
+            return view('Irmaos_Emaus_FichaControle.index', compact('model'));
+        }
     /**
      * Show the form for creating a new resource.
      */

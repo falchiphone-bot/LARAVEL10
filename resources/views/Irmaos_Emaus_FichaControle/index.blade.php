@@ -46,6 +46,15 @@
 
             </div>
 
+
+                        <form method="GET" action="{{ route('Irmaos_Emaus_FichaControle.index') }}" class="mb-3">
+                            <div class="input-group">
+                                <input type="text" name="search" class="form-control" placeholder="Buscar por nome ou serviço..." value="{{ request('search') }}">
+                                <button class="btn btn-primary" type="submit">Buscar</button>
+                            </div>
+                        </form>
+
+
             <tbody>
                 <table class="table" style="background-color: rgb(147, 247, 113);">
                     <thead>
