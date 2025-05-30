@@ -42,22 +42,54 @@ class Irmaos_Emaus_FichaControleController extends Controller
     // }
 
 
-        public function index(Request $request)
-        {
-            $query = Irmaos_Emaus_FichaControle::query();
+ public function index(Request $request)
+{
+    $perPage = (int) $request->input('per_page', 5); // Valor padrão 5 linhas por página
 
-            if ($request->filled('search')) {
-                $search = $request->input('search');
-                $query->where('Nome', 'like', "%{$search}%")
-                    ->orWhereHas('Irmaos_EmausServicos', function($q) use ($search) {
-                        $q->where('nomeServico', 'like', "%{$search}%");
-                    });
-            }
+    $query = Irmaos_Emaus_FichaControle::with('Irmaos_EmausServicos');
 
-            $model = $query->get();
+    // Filtro de busca
+    if ($request->filled('search')) {
+        $search = $request->input('search');
+        $query->where('Nome', 'like', "%{$search}%")
+              ->orWhereHas('Irmaos_EmausServicos', function($q) use ($search) {
+                  $q->where('nomeServico', 'like', "%{$search}%");
+              });
+    }
 
-            return view('Irmaos_Emaus_FichaControle.index', compact('model'));
-        }
+    // Paginação com perPage dinâmico, mantendo todos os parâmetros da query string
+    $model = $query->paginate($perPage)->appends($request->all());
+
+    // Ordenação na Collection após paginação
+    $sortBy = $request->input('sort_by', 'created_at');
+    $sortDir = $request->input('sort_dir', 'desc');
+
+    if ($sortBy == 'Irmaos_EmausServicos.nomeServico') {
+        $model->getCollection()->transform(function($item) {
+            $item->nomeServico = optional($item->Irmaos_EmausServicos)->nomeServico;
+            return $item;
+        });
+
+        $model->setCollection(
+            $sortDir === 'asc'
+                ? $model->getCollection()->sortBy('nomeServico')
+                : $model->getCollection()->sortByDesc('nomeServico')
+        );
+    } elseif (in_array($sortBy, ['Nome', 'created_at', 'updated_at', 'user_created', 'user_updated'])) {
+        $model->setCollection(
+            $sortDir === 'asc'
+                ? $model->getCollection()->sortBy($sortBy)
+                : $model->getCollection()->sortByDesc($sortBy)
+        );
+    }
+
+    return view('Irmaos_Emaus_FichaControle.index', compact('model', 'perPage', 'sortBy', 'sortDir'));
+}
+
+
+
+
+
     /**
      * Show the form for creating a new resource.
      */
