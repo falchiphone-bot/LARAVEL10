@@ -43,6 +43,17 @@
                                     </td>
                     @endcan
 
+
+                    @can('IRMAOS_EMAUS_FICHA_CONTROLE - VER_ARQUIVOS')
+                                    <td>
+                                        <a href="{{ route('irmaos_emaus.ficha_controle_arquivo.index', $cadastro->id) }}" class="btn btn-success" tabindex="-1"
+                                            role="button" aria-disabled="true">Documentos e ou arquivos</a>
+                                    </td>
+                    @endcan
+
+
+
+
                 <div class="row">
                     <div class="card">
                                                     <div class="card-header bg-warning fw-bold">

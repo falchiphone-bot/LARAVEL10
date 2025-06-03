@@ -26,6 +26,7 @@ class Irmaos_Emaus_FichaControleController extends Controller
         $this->middleware(['permission:IRMAOS_EMAUS_FICHA_CONTROLE - VER'])->only(['edit', 'update']);
         $this->middleware(['permission:IRMAOS_EMAUS_FICHA_CONTROLE - EXCLUIR'])->only('destroy');
         $this->middleware(['permission:IRMAOS_EMAUS_FICHA_CONTROLE - EXCLUIR'])->only('destroy');
+        $this->middleware(['permission:IRMAOS_EMAUS_FICHA_CONTROLE - ENVIAR_ARQUIVOS'])->only('enviarArquivos');
     }
 
     /**
@@ -235,6 +236,16 @@ class Irmaos_Emaus_FichaControleController extends Controller
 
 
         return view('Irmaos_Emaus_FichaControle.show',compact('cadastro', 'Irmaos_EmausServicos'));
+    }
+
+    public function showenviarArquivos(string $id)
+    {
+        $cadastro = Irmaos_Emaus_FichaControle::find($id);
+
+       $Irmaos_EmausServicos = Irmaos_EmausServicos::pluck('nomeServico', 'id');
+
+
+        return view('Irmaos_Emaus_FichaControle.showEnviarArquivos',compact('cadastro', 'Irmaos_EmausServicos'));
     }
 
     /**

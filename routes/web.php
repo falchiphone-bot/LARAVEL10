@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\ArquivosPublicos;
-use App\Http\Controllers\GoogleCalendarController;
+use App\Http\Controllers\Irmaos_Emaus_FichaControleArquivoController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\GoogleController;
@@ -254,6 +254,20 @@ Route::get('tanabisaf.jogos.2025.sub20.rodada05', function ()
     Route::post('GravaEntradaSaida', [App\Http\Controllers\Irmaos_Emaus_FichaControleController::class, 'GravaEntradaSaida'])->name('Irmaos_EmausServicos.GravaEntradaSaida');
     Route::get('Irmaos_Emaus_ListaEntradaSaida/{id}',  [App\Http\Controllers\Irmaos_Emaus_FichaControleController::class, 'ListaEntradaSaida'])
     ->name('Irmaos_Emaus_FichaControle.ListaEntradaSaida');
+
+
+# Irmaos_Emaus_FichaControleArquivo
+Route::post('ficha-controle/{ficha}/arquivos', [Irmaos_Emaus_FichaControleArquivoController::class, 'store'])
+    ->name('irmaos_emaus.ficha_controle_arquivo.store');
+
+Route::get('ficha-controle/{ficha}/arquivos', [Irmaos_Emaus_FichaControleArquivoController::class, 'index'])
+    ->name('irmaos_emaus.ficha_controle_arquivo.index');
+
+Route::delete('ficha-controle/arquivo/{id}', [Irmaos_Emaus_FichaControleArquivoController::class, 'destroy'])->name('irmaos_emaus.ficha_controle_arquivo.destroy');
+
+# Irmaos_Emaus_FichaControle
+    Route::get('Irmaos_Emaus_FichaControle.showEnviarArquivos/{id}',  [App\Http\Controllers\Irmaos_Emaus_FichaControleController::class, 'showenviarArquivos'])
+    ->name('Irmaos_Emaus_FichaControle.showenviarArquivos');
 
     Route::get('Irmaos_Emaus_RelatorioPia/{id}',  [App\Http\Controllers\Irmaos_Emaus_FichaControleController::class, 'RelatorioPia'])
     ->name('Irmaos_Emaus_FichaControle.RelatorioPia');

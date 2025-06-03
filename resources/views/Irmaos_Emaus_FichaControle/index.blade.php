@@ -171,7 +171,16 @@
                                 @can('IRMAOS_EMAUS_FICHA_CONTROLE - VER')
                                     <td>
                                         <a href="{{ route('Irmaos_Emaus_FichaControle.show', $Model->id) }}" class="btn btn-info" tabindex="-1" role="button" aria-disabled="true">
-                                            <i class="bi bi-eye"></i> Ver
+                                            <i class="bi bi-eye"></i> Ver ficha
+                                        </a>
+                                    </td>
+                                @endcan
+
+                                @can('IRMAOS_EMAUS_FICHA_CONTROLE - ENVIAR_ARQUIVOS')
+                                    <td>
+                                        <a href="{{ route('Irmaos_Emaus_FichaControle.showenviarArquivos', $Model->id) }}" class="btn btn-info"
+                                             tabindex="-1" role="button" aria-disabled="true">
+                                            <i class="bi bi-eye"></i> Enviar arquivos
                                         </a>
                                     </td>
                                 @endcan

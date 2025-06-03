@@ -58,7 +58,8 @@ class Irmaos_Emaus_FichaControle extends Model
         return $this->belongsTo(Irmaos_EmausServicos::class, 'idServicos');
     }
 
-
-
-
+    public function arquivos()
+    {
+        return $this->hasMany(Irmaos_Emaus_FichaControleArquivo::class, 'ficha_id');
+    }
 }
