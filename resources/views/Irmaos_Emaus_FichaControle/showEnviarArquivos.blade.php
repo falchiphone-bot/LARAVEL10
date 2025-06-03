@@ -49,9 +49,24 @@
                                 @foreach($cadastro->arquivos as $arquivo)
                                     <li>
                                         <a href="{{ asset('storage/' . $arquivo->caminho) }}" target="_blank">
-                                            {{ basename($arquivo->caminho) }}
+                                                {{ $arquivo->nomeArquivo ?? basename($arquivo->caminho) }}
                                         </a>
-                                    </li>
+                                    
+                                        @can('IRMAOS_EMAUS_FICHA_CONTROLE - EXCLUIR_ARQUIVOS')
+                                            <form method="POST" action="{{ route('irmaos_emaus.ficha_controle_arquivo.destroy', $arquivo->id) }}" style="display:inline-block;">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir este arquivo?')">
+                                                    Excluir
+                                                </button>
+                                            </form>
+                                        @endcan
+
+                                        @can('IRMAOS_EMAUS_FICHA_CONTROLE - EDITAR_ARQUIVOS')
+                                            <a href="{{ route('irmaos_emaus.ficha_controle_arquivo.edit', $arquivo->id) }}" class="btn btn-primary btn-sm">
+                                                Editar
+                                            </a>
+                                        @endcan
                                 @endforeach
                             </ul>
                         </div>
@@ -64,8 +79,15 @@
                             @csrf
                             <div class="mb-3">
                                 <label for="arquivos" class="form-label">Anexar Arquivos/Imagens</label>
-                                <input type="file" name="arquivos[]" multiple class="form-control" accept="image/*,application/pdf">
+                                <input required
+                                type="file" name="arquivos[]" multiple class="form-control" accept="image/*,application/pdf">
                             </div>
+
+                            <div class="mb-3">
+                                <label for="nomeArquivo" class="form-label">Nome do Arquivo</label>
+                                <input required reqtype="text" name="nomeArquivo" class="form-control" placeholder="Informe um nome para o arquivo">
+                            </div>
+
                             <button type="submit" class="btn btn-primary">Salvar Arquivos</button>
                         </form>
                     </div>

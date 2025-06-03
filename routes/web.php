@@ -257,6 +257,14 @@ Route::get('tanabisaf.jogos.2025.sub20.rodada05', function ()
 
 
 # Irmaos_Emaus_FichaControleArquivo
+Route::put('ficha-controle/arquivo/{arquivo}', [Irmaos_Emaus_FichaControleArquivoController::class, 'update'])
+->name('irmaos_emaus.ficha_controle_arquivo.update');
+
+
+Route::get('ficha-controle/arquivo/{arquivo}/edit', [Irmaos_Emaus_FichaControleArquivoController::class, 'edit'])
+->name('irmaos_emaus.irmaos_emaus.ficha_controle_arquivo.edit');
+
+
 Route::post('ficha-controle/{ficha}/arquivos', [Irmaos_Emaus_FichaControleArquivoController::class, 'store'])
     ->name('irmaos_emaus.ficha_controle_arquivo.store');
 

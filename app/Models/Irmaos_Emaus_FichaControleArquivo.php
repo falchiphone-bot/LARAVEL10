@@ -6,13 +6,14 @@ class Irmaos_Emaus_FichaControleArquivo extends Model
 {
     protected $table = 'Irmaos_Emaus_FichaControleArquivo';
     public $timestamps = true;
-    
 
-  protected $fillable = ['caminho', 'ficha_id', 'user_created', 'user_updated'];
+
+  protected $fillable = ['caminho', 'nomeArquivo','ficha_id', 'user_created', 'user_updated'];
 
     protected $casts = [
         'ficha_id' => 'integer',
         'caminho' => 'string',
+        'nomeArquivo' => 'string',
     ];
 
 

@@ -55,12 +55,35 @@ class Irmaos_Emaus_FichaControleArquivoController extends Controller
                     'caminho' => $path,
                     'user_created' => auth()->user()->email,
                     'user_updated' => auth()->user()->email,
+                    'nomeArquivo' => $request->nomeArquivo,
                 ]);
             }
         }
 
         return redirect()->route('irmaos_emaus.ficha_controle_arquivo.index', $ficha->id)
                         ->with('success', 'Arquivos enviados com sucesso!');
+    }
+
+
+    public function edit($id)
+    {
+        $arquivo = Irmaos_Emaus_FichaControleArquivo::findOrFail($id);
+        return view('irmaos_emaus.ficha_controle_arquivo.edit', compact('arquivo'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $arquivo = Irmaos_Emaus_FichaControleArquivo::findOrFail($id);
+
+        $arquivo->update([
+            'nomeArquivo' => $request->nomeArquivo,
+            'user_updated' => auth()->user()->email,
+        ]);
+
+        return redirect()->route('irmaos_emaus.ficha_controle_arquivo.index', $arquivo->ficha_id)
+                        ->with('success', 'Arquivo atualizado com sucesso!');
+
+
     }
 
 

@@ -31,9 +31,9 @@
                             @foreach($ficha->arquivos as $arquivo)
                                 <tr>
                                     <td>
-                                        <a href="{{ asset('storage/' . $arquivo->caminho) }}" target="_blank">
-                                            {{ basename($arquivo->caminho) }}
-                                        </a>
+                                             <a href="{{ asset('storage/' . $arquivo->caminho) }}" target="_blank">
+                                                {{ $arquivo->nomeArquivo ?? basename($arquivo->caminho) }}
+                                            </a>
                                     </td>
 
                                     @can('IRMAOS_EMAUS_FICHA_CONTROLE - EXCLUIR_ARQUIVOS')
@@ -47,6 +47,17 @@
                                             </form>
                                         </td>
                                     @endcan
+
+                                    @can('IRMAOS_EMAUS_FICHA_CONTROLE - EDITAR_ARQUIVOS')
+                                        {{-- Botão de Editar --}}
+                                        <td>
+                                            <a href="{{ route('irmaos_emaus.ficha_controle_arquivo.edit', $arquivo->id) }}" class="btn btn-primary btn-sm">
+                                                Editar
+                                            </a>
+                                        </td>
+                                    @endcan
+
+
                                 </tr>
                             @endforeach
                         </tbody>
