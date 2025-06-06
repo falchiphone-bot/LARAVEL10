@@ -265,7 +265,7 @@ Route::put('ficha-controle/arquivo/{arquivo}', [Irmaos_Emaus_FichaControleArquiv
 
 
 Route::get('ficha-controle/arquivo/{arquivo}/edit', [Irmaos_Emaus_FichaControleArquivoController::class, 'edit'])
-->name('irmaos_emaus.irmaos_emaus.ficha_controle_arquivo.edit');
+->name('irmaos_emaus.ficha_controle_arquivo.edit');
 
 
 Route::post('ficha-controle/{ficha}/arquivos', [Irmaos_Emaus_FichaControleArquivoController::class, 'store'])
