@@ -62,10 +62,112 @@
                                     }
                                 </style>
 
-                                <a href="#" onclick="scrollToBottom('left'); return false;" class="link-esquerda">Ir para a parte inferior</a>
-                            </li>
+                                {{-- <a href="#" onclick="scrollToBottom('left'); return false;" class="link-esquerda">Ir para a parte inferior</a> --}}
+                                <button onclick="scrollToBottom('left');" class="botao-navegacao">⬇️ Ir para o fim. Parte inferior.</button>
 
                             </li>
+<!-- Font Awesome CDN (adicione no <head>) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-papNV2f7SUl+Yw9vFQ3Y2AuykUytJzZJr+gYw4E3aVqwnC5Cq2tv/x2aWg1o2UDNKXPYQj3gVWaV+Pk7uw6K4w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<!-- Botão Toggle -->
+<button id="toggle-menu" class="toggle-button" title="Menu">
+  <i class="fas fa-bars"></i>
+</button>
+
+<!-- Menu Lateral -->
+<div id="menu-lateral" class="menu-lateral fechado">
+  <button onclick="window.history.back();" title="Voltar">
+    <i class="fas fa-arrow-left"></i>
+  </button>
+  <button onclick="window.history.forward();" title="Avançar">
+    <i class="fas fa-arrow-right"></i>
+  </button>
+  <button onclick="window.scrollTo({ top: 0, behavior: 'smooth' });" title="Topo">
+    <i class="fas fa-arrow-up"></i>
+  </button>
+  <button onclick="scrollToBottom();" title="Fim">
+    <i class="fas fa-arrow-down"></i>
+  </button>
+</div>
+
+<!-- Estilo -->
+<style>
+  .toggle-button {
+    position: fixed;
+    top: 20px;
+    left: 10px;
+    z-index: 1100;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 10px;
+    cursor: pointer;
+    font-size: 20px;
+    transition: background-color 0.3s ease;
+  }
+
+  .toggle-button:hover {
+    background-color: #0056b3;
+  }
+
+  .menu-lateral {
+    position: fixed;
+    top: 80px;
+    left: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+  }
+
+  .menu-lateral.fechado {
+    transform: translateX(-100px);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .menu-lateral button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .menu-lateral button:hover {
+    background-color: #0056b3;
+  }
+
+  .menu-lateral button i {
+    pointer-events: none;
+  }
+</style>
+
+<!-- Script -->
+<script>
+  const toggleButton = document.getElementById('toggle-menu');
+  const menu = document.getElementById('menu-lateral');
+
+  toggleButton.addEventListener('click', () => {
+    menu.classList.toggle('fechado');
+  });
+
+  function scrollToBottom() {
+    window.scrollTo({
+      top: document.body.scrollHeight,
+      behavior: 'smooth'
+    });
+  }
+</script>
+
+
+
 
                             <li>
                                 <a href="/dashboard" data-bs-toggle="tooltip" data-bs-placement="top" . . .
@@ -132,15 +234,14 @@
     <footer class="text-muted py-5">
 
         <div class="container">
-               <a href="#" onclick="window.history.back(); return false;"> <= Voltar para página anterior</a>
-               <a href="#" onclick="window.history.forward(); return false;"> =>Avançar para página posterior</a>
+    <button onclick="window.history.back();" style="margin-right: 10px;">⬅️ Voltar</button>
+    <button onclick="window.history.forward();" style="margin-right: 10px;">➡️ Avançar</button>
 
-            <p class="float-end mb-1">
-                <a href="#">Ir para o topo da página.</a>
-            </p>
-            {{-- <p class="mb-1">Texto para editar</p>
-        <p class="mb-0">New to Bootstrap? <a href="/">Visit the homepage</a> or read our <a href="/docs/5.3/getting-started/introduction/">getting started guide</a>.</p> --}}
-        </div>
+    <p class="float-end mb-1">
+        <button onclick="window.scrollTo({ top: 0, behavior: 'smooth' });">🔝 Ir para o topo</button>
+    </p>
+</div>
+
     </footer>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
     <script src="https://getbootstrap.com/docs/5.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
