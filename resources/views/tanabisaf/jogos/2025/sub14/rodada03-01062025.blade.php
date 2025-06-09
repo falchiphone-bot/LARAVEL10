@@ -21,18 +21,18 @@
     </div>
 
     <div class="bg-blue-200 text-blue-900 text-center text-xl font-semibold py-4 px-6">
-      Paulista SUB13 - 2025 | Rodada 01
+      Paulista SUB14 - 2025 | Rodada 03
     </div>
 
     <table class="w-full text-sm md:text-base">
       <tbody>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4 w-1/3">Jogo</th>
-          <td class="px-6 py-4"> x  Tanabi SAF    </td>
+          <td class="px-6 py-4">Tanabi SAF 0 X 1 AEA - Araçatuba - Penalts Tanabi SAF 2 x 4 AEA - Araçatuba</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Data</th>
-          <td class="px-6 py-4">25/05/2025</td>
+          <td class="px-6 py-4">01/06/2025</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Horário</th>
@@ -40,12 +40,12 @@
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Estádio</th>
-          <td class="px-6 py-4">Estádio Municipal Bento de Abreu Sampaio Vidal / Marília-SP</td>
+          <td class="px-6 py-4">Estádio Municipal Prefeito Alberto Victolo / Tanabi</td>
         </tr>
         <tr>
           <th class="bg-gray-600 text-left px-6 py-4">Súmula</th>
           <td class="px-6 py-4 text-center">
-            <a href="{{ route('download', ['id_arquivo' => 40797]) }}"
+            <a href="{{ route('download', ['id_arquivo' => 40828]) }}"
                class="text-blue-300 font-semibold hover:text-blue-400 hover:underline transition duration-200"
                target="_blank" rel="noopener noreferrer">
               Baixar Arquivo PDF do jogo
@@ -53,37 +53,45 @@
           </td>
         </tr>
 
-        {{--<tr>
+         {{-- <tr>
             <th class="bg-gray-600 text-left px-6 py-4">Jogo completo</th>
             <td class="px-6 py-4 text-center">
-              <iframe width="742" height="417"
-              src="https://www.youtube.com/embed/ULumYfkE1W4"
-              title="Santa Fé x Tanabi sub 15 - Paulistão 2025"
-              frameborder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              referrerpolicy="strict-origin-when-cross-origin"
-              allowfullscreen>
-              </iframe>
+                <iframe width="480" height="320" src="https://www.youtube.com/embed/3v5S3Uep9io" title="MAC X TANABI - SUB 14 - AO VIVO E COM IMAGEM" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
             </td>
-          </tr>
+          </tr> --}}
 
 
 
-          <tr>
-            <th class="bg-gray-600 text-left px-6 py-4">Ùnico gol do Tanabi por Pedro Henrique Gasques Dias - Pedro</th>
+          {{-- <tr>
+            <th class="bg-gray-600 text-left px-6 py-4">Primeiro gol do Tanabi por Nicolas Henrique Leonello Lourenço</th>
             <td class="px-6 py-4 text-center">
 
               <div class="mt-4">
-                <iframe width="560" height="315"
-                        src=" https://www.youtube.com/embed/ULumYfkE1W4?start=3015"
-                         title="YouTube video player"
+                <iframe width="480" height="320"
+                         src=" https://www.youtube.com/embed/3v5S3Uep9io?start=1939"
+                          title="YouTube video player"
                         frameborder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowfullscreen></iframe>
               </div>
             </td>
-          </tr>--}}
+          </tr> --}}
 
+
+          {{-- <tr>
+            <th class="bg-gray-600 text-left px-6 py-4">Segundo gol do Tanabi por Lucas Vicente Calzeta - Lucas</th>
+            <td class="px-6 py-4 text-center">
+
+              <div class="mt-4">
+                <iframe width="480" height="320"
+                         src=" https://www.youtube.com/embed/3v5S3Uep9io?start=4755"
+                          title="YouTube video player"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+              </div>
+            </td>
+          </tr> --}}
 
 
       </tbody>

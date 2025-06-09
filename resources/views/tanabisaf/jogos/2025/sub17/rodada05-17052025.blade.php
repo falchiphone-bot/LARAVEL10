@@ -21,7 +21,7 @@
     </div>
 
     <div class="bg-blue-200 text-blue-900 text-center text-xl font-semibold py-4 px-6">
-      Paulista SUB17 - 2025 | Rodada 04
+      Paulista SUB17 - 2025 | Rodada 05
     </div>
 
     <table class="w-full text-sm md:text-base">

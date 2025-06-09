@@ -21,31 +21,31 @@
     </div>
 
     <div class="bg-blue-200 text-blue-900 text-center text-xl font-semibold py-4 px-6">
-      Paulista SUB13 - 2025 | Rodada 02
+      Paulista SUB20 - 2025 | Rodada 06
     </div>
 
     <table class="w-full text-sm md:text-base">
       <tbody>
-        <tr class="border-b border-gray-700">
+        <tr class="border-b border-gray-800">
           <th class="bg-gray-600 text-left px-6 py-4 w-1/3">Jogo</th>
-          <td class="px-6 py-4">Tanabi SAF 0 x 1 Linense - Penalts Tanabi SAF 4 x 5 Linense  </td>
+          <td class="px-6 py-4">Tanabi SAF 0 x 2 Grêmio Prudente</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Data</th>
-          <td class="px-6 py-4">25/05/2025</td>
+          <td class="px-6 py-4">30/05/2025</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Horário</th>
-          <td class="px-6 py-4">9:00</td>
+          <td class="px-6 py-4">15:00</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Estádio</th>
-          <td class="px-6 py-4">EEstádio Municipal Prefeito Alberto Victolo / Tanabi</td>
+          <td class="px-6 py-4">Estádio Municipal Prefeito Alberto Victolo / Tanabi<<td>
         </tr>
         <tr>
           <th class="bg-gray-600 text-left px-6 py-4">Súmula</th>
           <td class="px-6 py-4 text-center">
-            <a href="{{ route('download', ['id_arquivo' => 40819]) }}"
+            <a href="{{ route('download', ['id_arquivo' => 40831]) }}"
                class="text-blue-300 font-semibold hover:text-blue-400 hover:underline transition duration-200"
                target="_blank" rel="noopener noreferrer">
               Baixar Arquivo PDF do jogo
@@ -54,23 +54,33 @@
         </tr>
 
         {{-- <tr>
-            <th class="bg-gray-600 text-left px-6 py-4">Jogo completo</th>
+            <th class="bg-gray-600 text-left px-6 py-4">Boletim financeiro</th>
             <td class="px-6 py-4 text-center">
-                <iframe width="480" height="320" src="https://www.youtube.com/embed/Lc2Zs2-Xaq8" title="MAC X TANABI - SUB 13 - AO VIVO E COM IMAGEM" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+              <a href="{{ route('download', ['id_arquivo' => 40737]) }}"
+                 class="text-blue-300 font-semibold hover:text-blue-400 hover:underline transition duration-200"
+                 target="_blank" rel="noopener noreferrer">
+                Baixar Arquivo PDF do boletim financeiro do jogo
+              </a>
             </td>
           </tr> --}}
 
 
-
-
-          {{-- <tr>
-            <th class="bg-gray-600 text-left px-6 py-4">Primeiro gol do Tanabi por Lucas Carrega Raduam - Lucas </th>
+          <tr>
+            <th class="bg-gray-600 text-left px-6 py-4">Jogo completo</th>
             <td class="px-6 py-4 text-center">
 
               <div class="mt-4">
-                <iframe width="560" height="315"
-                        src=" https://www.youtube.com/embed/Lc2Zs2-Xaq8?start=2170"
-                         title="YouTube video player"
+<iframe width="480" height="315" src="https://www.youtube.com/embed/jB99ihS-9H0" title="AO VIVO COM IMAGENS - TANABI X PRUDENTE - PAULISTA SUB-20" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+
+          {{-- <tr>
+            <th class="bg-gray-600 text-left px-6 py-4">Primeiro gol de Nelson Miguel Rodrigues dos Santos Caetano - Nelson</th>
+            <td class="px-6 py-4 text-center">
+
+              <div class="mt-4">
+                <iframe width="480" height="320"
+                        src="https://www.youtube.com/embed/1EOLW6l8DoY?start=6901"
+                        title="YouTube video player"
                         frameborder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowfullscreen></iframe>
@@ -79,17 +89,30 @@
           </tr> --}}
 
 
+
+
           {{-- <tr>
-            <th class="bg-gray-600 text-left px-6 py-4">Segundo gol do Tanabi por Lucas Carrega Raduam - Lucas  </th>
+            <th class="bg-gray-600 text-left px-6 py-4">Segundo gol de Giovanni da Cruz Pereira - Giovanni </th>
             <td class="px-6 py-4 text-center">
 
               <div class="mt-4">
-                <iframe width="560" height="315"
-                        src=" https://www.youtube.com/embed/Lc2Zs2-Xaq8?start=3500"
-                         title="YouTube video player"
+                <iframe width="480" height="320"
+                        src="https://www.youtube.com/embed/DSaL2U7TVp0?start=7550"
+                        title="YouTube video player"
                         frameborder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowfullscreen></iframe>
+              </div>
+            </td>
+          </tr> --}}
+
+          {{-- <tr>
+            <th class="bg-gray-600 text-left px-6 py-4">MELHORES MOMENTOS </th>
+            <td class="px-6 py-4 text-center">
+
+              <div class="mt-4">
+                <iframe width="480" height="320" src="https://www.youtube.com/embed/l39Bk4xojz4" title="São Paulo x Tanabi | Gols e Melhores Momentos | Paulistão Sub-20" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
               </div>
             </td>
           </tr> --}}
@@ -98,11 +121,8 @@
 
       </tbody>
     </table>
-
   </div>
 
 </body>
 </html>
-
-
 

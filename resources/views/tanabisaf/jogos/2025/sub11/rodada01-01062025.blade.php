@@ -21,31 +21,31 @@
     </div>
 
     <div class="bg-blue-200 text-blue-900 text-center text-xl font-semibold py-4 px-6">
-      Paulista SUB13 - 2025 | Rodada 01
+      Paulista SUB11 - 2025 | Rodada 01
     </div>
 
     <table class="w-full text-sm md:text-base">
       <tbody>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4 w-1/3">Jogo</th>
-          <td class="px-6 py-4"> x  Tanabi SAF    </td>
+          <td class="px-6 py-4">Tanabi SAF 0 x 2 Inter Bebedouro Penalti Tanabi SAF 3 x 4 Inter Bebedouro</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Data</th>
-          <td class="px-6 py-4">25/05/2025</td>
+          <td class="px-6 py-4">01/06/2025</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Horário</th>
-          <td class="px-6 py-4">9:00</td>
+          <td class="px-6 py-4">14:00</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Estádio</th>
-          <td class="px-6 py-4">Estádio Municipal Bento de Abreu Sampaio Vidal / Marília-SP</td>
+          <td class="px-6 py-4">Estádio Municipal Prefeito Alberto Victolo / Tanabi</td>
         </tr>
         <tr>
           <th class="bg-gray-600 text-left px-6 py-4">Súmula</th>
           <td class="px-6 py-4 text-center">
-            <a href="{{ route('download', ['id_arquivo' => 40797]) }}"
+            <a href="{{ route('download', ['id_arquivo' => 40825]) }}"
                class="text-blue-300 font-semibold hover:text-blue-400 hover:underline transition duration-200"
                target="_blank" rel="noopener noreferrer">
               Baixar Arquivo PDF do jogo

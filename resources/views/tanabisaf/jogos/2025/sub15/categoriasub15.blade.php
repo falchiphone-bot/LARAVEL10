@@ -80,3 +80,11 @@
         </a>
     </li>
 </ul>
+<ul class="text-gray-300 text-lg text-center mt-4">
+    <li>
+        <a href="{{ url('tanabisaf.jogos.2025.sub15.rodada07') }}"
+           class="block p-2 text-blue-400 underline hover:text-red-500">
+            Rodada 7
+        </a>
+    </li>
+</ul>

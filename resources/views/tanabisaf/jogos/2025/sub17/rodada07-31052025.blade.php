@@ -21,18 +21,18 @@
     </div>
 
     <div class="bg-blue-200 text-blue-900 text-center text-xl font-semibold py-4 px-6">
-      Paulista SUB17 - 2025 | Rodada 06
+      Paulista SUB17 - 2025 | Rodada 07
     </div>
 
     <table class="w-full text-sm md:text-base">
       <tbody>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4 w-1/3">Jogo</th>
-          <td class="px-6 py-4">Tanabi SAF 3 X 0 Santa Fé</td>
+          <td class="px-6 py-4">Votuporanguense 1 x 4 Tanabi SAF</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Data</th>
-          <td class="px-6 py-4">24/05/2025</td>
+          <td class="px-6 py-4">31/05/2025</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Horário</th>
@@ -40,12 +40,12 @@
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Estádio</th>
-          <td class="px-6 py-4">Estádio Municipal Prefeito Alberto Victolo / Tanabi-SP</td>
+          <td class="px-6 py-4">Arena Dr. Plínio Marin / Votuporanga</td>
         </tr>
         <tr>
           <th class="bg-gray-600 text-left px-6 py-4">Súmula</th>
           <td class="px-6 py-4 text-center">
-            <a href="{{ route('download', ['id_arquivo' => 40816]) }}"
+            <a href="{{ route('download', ['id_arquivo' => 40830]) }}"
                class="text-blue-300 font-semibold hover:text-blue-400 hover:underline transition duration-200"
                target="_blank" rel="noopener noreferrer">
               Baixar Arquivo PDF do jogo
@@ -59,13 +59,13 @@
                     <td class="px-6 py-4 text-center">
 
                     <div class="mt-4">
-                        <iframe width="480" height="320" src="https://www.youtube.com/embed/OxC5Oj7SgQ8" title="AO VIVO COM IMAGENS - TANABI X SANTA FÉ - PAULISTA SUB-17" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+<iframe width="480" height="315" src="https://www.youtube.com/embed/Zp948zf58zY" title="VOTUPORANGUENSE X TANABI -SUB15/17" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                     </div>
                     </td>
              </tr>
 
 
-             <tr>
+             {{-- <tr>
                 <th class="bg-gray-600 text-left px-6 py-4">Primeiro gol do Tanabi por João Pedro Augusto de Carvalho - (João)</th>
                     <td class="px-6 py-4 text-center">
 
@@ -74,9 +74,9 @@
                          frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                     </div>
                     </td>
-             </tr>
+             </tr> --}}
 
-             <tr>
+             {{-- <tr>
                 <th class="bg-gray-600 text-left px-6 py-4">Segundo gol do Tanabi por João Pedro Augusto de Carvalho - (João)</th>
                     <td class="px-6 py-4 text-center">
 
@@ -85,9 +85,9 @@
                          frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                     </div>
                     </td>
-             </tr>
+             </tr> --}}
 
-             <tr>
+             {{-- <tr>
                 <th class="bg-gray-600 text-left px-6 py-4">Terceiro gol do Tanabi por Wendel William Leite da Silva</th>
                     <td class="px-6 py-4 text-center">
 
@@ -96,7 +96,7 @@
                          frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                     </div>
                     </td>
-             </tr>
+             </tr> --}}
 
 
 

@@ -31,14 +31,22 @@
 
 
 
-            <p class="text-gray-300 text-lg text-center mt-4">
-
-
-                •	Sub-11
-            </p>
-            <p class="text-gray-300 text-lg text-center mt-4">
-                    •	Sub-12
-            </p>
+             <ul class="text-gray-300 text-lg text-center mt-4">
+                <li>
+                    <a href="{{ url('/tanabisaf.categoriasub11') }}"
+                       class="block p-2 text-blue-400 underline hover:text-red-500">
+                        Sub-11
+                    </a>
+                </li>
+            </ul>
+            <ul class="text-gray-300 text-lg text-center mt-4">
+                <li>
+                    <a href="{{ url('/tanabisaf.categoriasub12') }}"
+                       class="block p-2 text-blue-400 underline hover:text-red-500">
+                        Sub-12
+                    </a>
+                </li>
+            </ul>
             <ul class="text-gray-300 text-lg text-center mt-4">
                 <li>
                     <a href="{{ url('/tanabisaf.categoriasub13') }}"

@@ -131,7 +131,7 @@
             <td class="px-6 py-4 text-center">
 
               <div class="mt-4">
-                <iframe width="560" height="315"
+                <iframe width="480" height="315"
                         src="https://www.youtube.com/embed/z1ZaPNXEYGo?start=7758"
                         title="YouTube video player"
                         frameborder="0"
