@@ -176,20 +176,39 @@
 </div>
 
 <div class="card-body" style="background-color: #f8f9fa;">
-      <label for="Serviço" class="form-label" style="color: #ef0808; font-weight: bold;">Entrada</label>
+      <label for="Serviço" class="form-label" style="color: #ef0808; font-weight: bold;">Contatos/familiares</label>
     <p>
-        {{ isset($cadastro->Entrada) ? $cadastro->Entrada->format('d-m-Y') : '' }}
+        {{ isset($cadastro->contatos) ? $cadastro->contatos : '' }}
     </p>
 </div>
 
 <div class="card-body" style="background-color: #e9ecef;">
-      <label for="Serviço" class="form-label" style="color: #ef0808; font-weight: bold;">Saída</label>
+      <label for="Serviço" class="form-label" style="color: #ef0808; font-weight: bold;">Endereço</label>
     <p>
-        {{ isset($cadastro->Saida) ? $cadastro->Saida->format('d-m-Y') : '' }}
+        {{ isset($cadastro->endereco) ? $cadastro->endereco : '' }}
     </p>
 </div>
 
+<div class="card-body" style="background-color: #e9ecef;">
+      <label for="Serviço" class="form-label" style="color: #ef0808; font-weight: bold;">Profissão</label>
+    <p>
+        {{ isset($cadastro->profissao) ? $cadastro->profissao : '' }}
+    </p>
+</div>
 
+<div class="card-body" style="background-color: #e9ecef;">
+      <label for="Serviço" class="form-label" style="color: #ef0808; font-weight: bold;">Benefícios</label>
+    <p>
+        {{ isset($cadastro->beneficios) ? $cadastro->beneficios : '' }}
+    </p>
+</div>
+
+<div class="card-body" style="background-color: #e9ecef;">
+      <label for="Serviço" class="form-label" style="color: #ef0808; font-weight: bold;">Observações</label>
+    <p>
+        {{ isset($cadastro->observacoes) ? $cadastro->observacoes : '' }}
+    </p>
+</div>
 
                         <div class="card-footer">
                             <a href="{{ route('Irmaos_Emaus_FichaControle.index') }}">Retornar para a lista</a>
