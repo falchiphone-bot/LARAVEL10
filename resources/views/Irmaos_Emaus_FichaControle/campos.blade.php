@@ -307,9 +307,9 @@
                 id="contatos"
                 maxlength="250"
                 value="{{ old('contatos', $model->contatos ?? '') }}"
-                oninput="atualizarContador()"
+                oninput="atualizarContadorContatos()"
             >
-            <small id="contadorNomeServico" class="form-text text-muted">
+            <small id="contadorContatos" class="form-text text-muted">
                 0/250 caracteres
             </small>
             @error('contatos')
@@ -328,9 +328,9 @@
                 id="endereco"
                 maxlength="500"
                 value="{{ old('endereco', $model->endereco ?? '') }}"
-                oninput="atualizarContador()"
+                oninput="atualizarContadorEndereco()"
             >
-            <small id="contadorNomeServico" class="form-text text-muted">
+            <small id="contadorEndereco" class="form-text text-muted">
                 0/500 caracteres
             </small>
             @error('endereco')
@@ -350,9 +350,9 @@
                 id="profissao"
                 maxlength="500"
                 value="{{ old('profissao', $model->profissao ?? '') }}"
-                oninput="atualizarContador()"
+                oninput="atualizarContadorProfissao()"
             >
-            <small id="contadorNomeServico" class="form-text text-muted">
+            <small id="contadorProfissao" class="form-text text-muted">
                 0/50 caracteres
             </small>
             @error('profissao')
@@ -371,9 +371,9 @@
                 id="beneficios"
                 maxlength="500"
                 value="{{ old('beneficios', $model->beneficios ?? '') }}"
-                oninput="atualizarContador()"
+                oninput="atualizarContadorBeneficios()"
             >
-            <small id="contadorNomeServico" class="form-text text-muted">
+            <small id="contadorBeneficios" class="form-text text-muted">
                 0/250 caracteres
             </small>
             @error('beneficios')
@@ -389,7 +389,14 @@
                 name="observacoes"
                 id="observacoes"
                 rows="10"
+                oninput="atualizarContadorObservacoes()"
             >{{ old('observacoes', isset($model->observacoes) ? $model->observacoes : '') }}</textarea>
+
+            <small id="contadorObservacoes" class="form-text text-muted">
+                0/65535 caracteres
+            </small>
+
+
             @error('observacoes')
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
@@ -414,4 +421,50 @@ function atualizarContador() {
     contador.textContent = `${input.value.length}/250 caracteres`;
 }
 document.addEventListener('DOMContentLoaded', atualizarContador);
+
+
+
+    function atualizarContadorContatos() {
+        const input = document.getElementById('contatos');
+        const contador = document.getElementById('contadorContatos');
+        contador.textContent = `${input.value.length}/250 caracteres`;
+    }
+    document.addEventListener('DOMContentLoaded', atualizarContadorContatos);
+
+
+ function atualizarContadorEndereco() {
+        const input = document.getElementById('endereco');
+        const contador = document.getElementById('contadorEndereco');
+        contador.textContent = `${input.value.length}/250 caracteres`;
+    }
+    document.addEventListener('DOMContentLoaded', atualizarContadorEndereco);
+
+
+    function atualizarContadorProfissao() {
+        const input = document.getElementById('profissao');
+        const contador = document.getElementById('contadorProfissao');
+        contador.textContent = `${input.value.length}/250 caracteres`;
+    }
+    document.addEventListener('DOMContentLoaded', atualizarContadorProfissao);
+
+
+    function atualizarContadorBeneficios() {
+        const input = document.getElementById('beneficios');
+        const contador = document.getElementById('contadorBeneficios');
+        contador.textContent = `${input.value.length}/250 caracteres`;
+    }
+    document.addEventListener('DOMContentLoaded', atualizarContadorBeneficios);
+
+
+    function atualizarContadorObservacoes() {
+        const input = document.getElementById('observacoes');
+        const contador = document.getElementById('contadorObservacoes');
+        contador.textContent = `${input.value.length}/65535 caracteres`;
+    }
+     document.addEventListener('DOMContentLoaded', atualizarContadorObservacoes);
+
+
 </script>
+
+
+
