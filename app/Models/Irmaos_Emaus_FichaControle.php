@@ -29,6 +29,12 @@ class Irmaos_Emaus_FichaControle extends Model
     'user_created',
     'user_updated',
     'idServicos',
+    'contatos',
+    'endereco',
+    'profissao',
+    'beneficios',
+    'observacoes',
+
   ];
 
     protected $casts = [
@@ -51,6 +57,12 @@ class Irmaos_Emaus_FichaControle extends Model
         'Saida' => 'date',
         'user_created' => 'string',
         'user_updated' => 'string',
+        'idServicos' => 'integer',
+        'contatos' => 'string',
+        'endereco' => 'string',
+        'profissao' => 'string',
+        'beneficios' => 'string',
+        'observacoes' => 'string',
     ];
 
     public function Irmaos_EmausServicos()

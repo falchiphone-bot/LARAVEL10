@@ -294,6 +294,107 @@
         </div>
 
 
+        <div class="card-body bg-light">
+
+         {{-- Campo contatos na ficha de controle --}}
+        <div class="form-group mb-3">
+            <label for="contatos" class="form-label">Contatos/familiares na ficha de controle</label>
+            <input
+                required
+                class="form-control @error('contatos') is-invalid @enderror"
+                name="contatos"
+                type="text"
+                id="contatos"
+                maxlength="250"
+                value="{{ old('contatos', $model->contatos ?? '') }}"
+                oninput="atualizarContador()"
+            >
+            <small id="contadorNomeServico" class="form-text text-muted">
+                0/250 caracteres
+            </small>
+            @error('contatos')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+
+        {{-- Campo endereço na ficha de controle --}}
+        <div class="form-group mb-3">
+            <label for="endereco" class="form-label">Endereço - ficha de controle</label>
+            <input
+                required
+                class="form-control @error('endereco') is-invalid @enderror"
+                name="endereco"
+                type="text"
+                id="endereco"
+                maxlength="500"
+                value="{{ old('endereco', $model->endereco ?? '') }}"
+                oninput="atualizarContador()"
+            >
+            <small id="contadorNomeServico" class="form-text text-muted">
+                0/500 caracteres
+            </small>
+            @error('endereco')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+
+
+        {{-- Campo profissao na ficha de controle --}}
+        <div class="form-group mb-3">
+            <label for="profissao" class="form-label">Profissão - ficha de controle</label>
+            <input
+                required
+                class="form-control @error('profissao') is-invalid @enderror"
+                name="profissao"
+                type="text"
+                id="profissao"
+                maxlength="500"
+                value="{{ old('profissao', $model->profissao ?? '') }}"
+                oninput="atualizarContador()"
+            >
+            <small id="contadorNomeServico" class="form-text text-muted">
+                0/50 caracteres
+            </small>
+            @error('profissao')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+
+        {{-- Campo beneficios na ficha de controle --}}
+        <div class="form-group mb-3">
+            <label for="beneficios" class="form-label">Beneficios - ficha de controle</label>
+            <input
+                required
+                class="form-control @error('beneficios') is-invalid @enderror"
+                name="beneficios"
+                type="text"
+                id="beneficios"
+                maxlength="500"
+                value="{{ old('beneficios', $model->beneficios ?? '') }}"
+                oninput="atualizarContador()"
+            >
+            <small id="contadorNomeServico" class="form-text text-muted">
+                0/250 caracteres
+            </small>
+            @error('beneficios')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+
+        {{-- Campo observacoes --}}
+            <div class="form-group mb-3">
+            <label for="observacoes" class="form-label">Observações/anotações</label>
+            <textarea
+                class="form-control @error('observacoes') is-invalid @enderror"
+                name="observacoes"
+                id="observacoes"
+                rows="10"
+            >{{ old('observacoes', isset($model->observacoes) ? $model->observacoes : '') }}</textarea>
+            @error('observacoes')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+    </div>
 
         {{-- Botões --}}
         <div class="row mt-2">
