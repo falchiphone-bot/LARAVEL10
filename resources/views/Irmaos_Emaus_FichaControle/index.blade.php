@@ -44,7 +44,7 @@
         placeholder="Buscar por nome ou serviço..." value="{{ request('search') }}">
 
     <select name="per_page" class="form-select" style="width: auto;">
-        @foreach([5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100] as $size)
+        @foreach([5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100,500,1000,2000,5000,10000,50000,100000] as $size)
             <option value="{{ $size }}" {{ (int) request('per_page', 5) === $size ? 'selected' : '' }}>
                 Mostrar {{ $size }}
             </option>
