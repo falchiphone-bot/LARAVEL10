@@ -89,12 +89,12 @@
     <i class="fas fa-arrow-down"></i>
   </button>
 
-      <button onclick="scrollByLines(-4);" title="Subir 4 linhas">
+      <button onclick="scrollByLines(-6);" title="Subir 6 linhas">
       <i class="fas fa-angle-double-up"></i>
     </button>
 
 
-    <button onclick="scrollByLines(4);" title="Descer 4 linhas">
+    <button onclick="scrollByLines(6);" title="Descer 6 linhas">
       <i class="fas fa-angle-double-down"></i>
     </button>
 
@@ -183,7 +183,7 @@
 
   // Função para rolar a página para cima ou para baixo por um número "lines" de linhas
   function scrollByLines(lines) {
-    const lineHeight = 24; // altura aproximada de uma linha em pixels (ajuste conforme sua fonte/estilo)
+    const lineHeight = 30; // altura aproximada de uma linha em pixels (ajuste conforme sua fonte/estilo)
     window.scrollBy({
       top: lines * lineHeight, // positivo para descer, negativo para subir
       behavior: 'smooth'       // rolagem suave
