@@ -1047,5 +1047,17 @@
                 }
             });
         }
+
+    function scrollUp() {
+      window.scrollBy({ top: -80, behavior: 'smooth' });
+    }
+
+    function scrollDown() {
+      window.scrollBy({ top: 80, behavior: 'smooth' });
+    }
+
+
+
+
     </script>
 @endpush
