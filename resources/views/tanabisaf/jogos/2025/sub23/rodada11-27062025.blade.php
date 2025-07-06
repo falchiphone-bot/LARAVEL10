@@ -22,18 +22,18 @@
 
 
     <div class="bg-blue-200 text-blue-900 text-center text-xl font-semibold py-4 px-6">
-      Paulista SUB23 - 2025 | Rodada 09
+      Paulista SUB23 - 2025 | Rodada 11
     </div>
 
     <table class="w-full text-sm md:text-base">
       <tbody>
         <tr class="border-b border-gray-800">
           <th class="bg-gray-600 text-left px-6 py-4 w-1/3">Jogo</th>
-          <td class="px-6 py-4">Assisense 2 x 3 Tanabi SAF</td>
+          <td class="px-6 py-4">Assisense 0 x 2 Tanabi SAF</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Data</th>
-          <td class="px-6 py-4">13/06/2025</td>
+          <td class="px-6 py-4">27/06/2025</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Horário</th>
@@ -69,7 +69,7 @@
           </tr> --}}
 
 
-          <tr>
+          {{-- <tr>
             <th class="bg-gray-600 text-left px-6 py-4">Jogo completo</th>
             <td class="px-6 py-4 text-center">
 
@@ -83,10 +83,10 @@
                           allowfullscreen></iframe>
                 </div>
             </td>
-          </tr>
+          </tr> --}}
 
 
-        <tr>
+        {{-- <tr>
             <th class="bg-gray-600 text-left px-6 py-4">Primeiro gol de Marcelo Enrique Maçola Filho - Marcelo</th>
             <td class="px-6 py-4 text-center">
 
@@ -99,12 +99,12 @@
                         allowfullscreen></iframe>
               </div>
             </td>
-          </tr>
+          </tr> --}}
 
 
 
 
-             <tr>
+             {{-- <tr>
                 <th class="bg-gray-600 text-left px-6 py-4">Segundo gol de Vinicius Fernando Macedo Domingos - Vinicius</th>
                 <td class="px-6 py-4 text-center">
 
@@ -117,11 +117,11 @@
                             allowfullscreen></iframe>
                 </div>
             </td>
-          </tr>
+          </tr> --}}
 
 
 
-          <th class="bg-gray-600 text-left px-6 py-4">Terceiro gol de Luis</th>
+          {{-- <th class="bg-gray-600 text-left px-6 py-4">Terceiro gol de Luis</th>
             <td class="px-6 py-4 text-center">
 
               <div class="mt-4">
@@ -133,7 +133,7 @@
                         allowfullscreen></iframe>
               </div>
             </td>
-          </tr>
+          </tr> --}}
 
 
 
