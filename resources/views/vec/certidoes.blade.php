@@ -26,12 +26,22 @@
 
 
 
+    <section class="bg-gray-800 py-12 px-6">
+        <div class="max-w-4xl mx-auto">
+            <h3 class="text-3xl font-bold text-center text-red-500">SECRETARIA MUNICIPAL DA FAZENDA Departamento de Receita Tributária DO VOTUPORANGA ESPORTE CLUBE - VALIDADE 07.09.2025</h3>
+            <p class="text-green-300 text-lg text-center mt-4">
+                <a href="{{ route('download', ['id_arquivo' => 40906]) }}" target="_blank" rel="noopener noreferrer">Baixar Arquivo PDF</a>
+            </p>
+        </div>
+    </section>
+
+
 
     <section class="bg-gray-800 py-12 px-6">
         <div class="max-w-4xl mx-auto">
-            <h3 class="text-3xl font-bold text-center text-red-500">CERTIDÃO NEGATIVA DE DÉBITOS RELATIVOS AOS TRIBUTOS FEDERAIS E À DÍVIDA ATIVA DA UNIÃO DO VOTUPORANGA ESPORTE CLUBE - VALIDADE 29.09.2025</h3>
+            <h3 class="text-3xl font-bold text-center text-red-500">CERTIDÃO NEGATIVA DE DÉBITOS RELATIVOS AOS TRIBUTOS FEDERAIS E À DÍVIDA ATIVA DA UNIÃO DO VOTUPORANGA ESPORTE CLUBE - VALIDADE 03.01.2026</h3>
             <p class="text-green-300 text-lg text-center mt-4">
-                <a href="{{ route('download', ['id_arquivo' => 40680]) }}" target="_blank" rel="noopener noreferrer">Baixar Arquivo PDF</a>
+                <a href="{{ route('download', ['id_arquivo' => 40904]) }}" target="_blank" rel="noopener noreferrer">Baixar Arquivo PDF</a>
             </p>
         </div>
     </section>
@@ -50,32 +60,18 @@
 
     <section class="bg-gray-800 py-12 px-6">
         <div class="max-w-4xl mx-auto">
-            <h3 class="text-3xl font-bold text-center text-red-500">CERTIDÃO NEGATIVA DE DÉBITOS TRABALHISTAS DO VOTUPORANGA ESPORTE CLUBE - VALIDADE 29.09.2025</h3>
+            <h3 class="text-3xl font-bold text-center text-red-500">CERTIDÃO NEGATIVA DE DÉBITOS TRABALHISTAS DO VOTUPORANGA ESPORTE CLUBE - VALIDADE 03.01.2026</h3>
             <p class="text-green-300 text-lg text-center mt-4">
-                <a href="{{ route('download', ['id_arquivo' => 40682]) }}" target="_blank" rel="noopener noreferrer">Baixar Arquivo PDF</a>
+                <a href="{{ route('download', ['id_arquivo' => 40906]) }}" target="_blank" rel="noopener noreferrer">Baixar Arquivo PDF</a>
             </p>
         </div>
     </section>
 
     <section class="bg-gray-800 py-12 px-6">
         <div class="max-w-4xl mx-auto">
-            <h3 class="text-3xl font-bold text-center text-red-500">Certidão Negativa de Débitos Inscritos da Dívida Ativa do Estado de São Paulo do VOTUPORANGA ESPORTE CLUBE - VALIDADE 02.05.2025</h3>
+            <h3 class="text-3xl font-bold text-center text-red-500">Certidão Negativa de Débitos Inscritos da Dívida Ativa do Estado de São Paulo do VOTUPORANGA ESPORTE CLUBE - VALIDADE 07.08.2025</h3>
             <p class="text-green-300 text-lg text-center mt-4">
-                <a href="{{ route('download', ['id_arquivo' => 40683]) }}" target="_blank" rel="noopener noreferrer">Baixar Arquivo PDF</a>
-            </p>
-        </div>
-    </section>
-
-
-
-
-
-
-    <section class="bg-gray-800 py-12 px-6">
-        <div class="max-w-4xl mx-auto">
-            <h3 class="text-3xl font-bold text-center text-red-500">Certificado de Regularidade do FGTS - CRF DO VOTUPORANGA ESPORTE CLUBE - VALIDADE 14.04.2025</h3>
-            <p class="text-green-300 text-lg text-center mt-4">
-                <a href="{{ route('download', ['id_arquivo' => 40684]) }}" target="_blank" rel="noopener noreferrer">Baixar Arquivo PDF</a>
+                <a href="{{ route('download', ['id_arquivo' => 40907]) }}" target="_blank" rel="noopener noreferrer">Baixar Arquivo PDF</a>
             </p>
         </div>
     </section>
@@ -83,11 +79,25 @@
 
 
 
+
+
     <section class="bg-gray-800 py-12 px-6">
         <div class="max-w-4xl mx-auto">
-            <h3 class="text-3xl font-bold text-center text-red-500">PODER JUDICIÁRIO JUSTIÇA FEDERAL TRIBUNAL REGIONAL FEDERAL DA 3a REGIÃO CERTIDÃO JUDICIAL CÍVEL DO VOTUPORANGA ESPORTE CLUBE - VALIDADE 02.07.2025</h3>
+            <h3 class="text-3xl font-bold text-center text-red-500">Certificado de Regularidade do FGTS - CRF DO VOTUPORANGA ESPORTE CLUBE - VALIDADE 18.07.2025</h3>
             <p class="text-green-300 text-lg text-center mt-4">
-                <a href="{{ route('download', ['id_arquivo' => 40685]) }}" target="_blank" rel="noopener noreferrer">Baixar Arquivo PDF</a>
+                <a href="{{ route('download', ['id_arquivo' => 40909]) }}" target="_blank" rel="noopener noreferrer">Baixar Arquivo PDF</a>
+            </p>
+        </div>
+    </section>
+
+
+
+
+    <section class="bg-gray-800 py-12 px-6">
+        <div class="max-w-4xl mx-auto">
+            <h3 class="text-3xl font-bold text-center text-red-500">PODER JUDICIÁRIO JUSTIÇA FEDERAL TRIBUNAL REGIONAL FEDERAL DA 3a REGIÃO CERTIDÃO JUDICIAL CÍVEL DO VOTUPORANGA ESPORTE CLUBE - VALIDADE 02.10.2025</h3>
+            <p class="text-green-300 text-lg text-center mt-4">
+                <a href="{{ route('download', ['id_arquivo' => 40910]) }}" target="_blank" rel="noopener noreferrer">Baixar Arquivo PDF</a>
             </p>
         </div>
     </section>
@@ -109,9 +119,9 @@
 
     <section class="bg-gray-800 py-12 px-6">
         <div class="max-w-4xl mx-auto">
-            <h3 class="text-3xl font-bold text-center text-red-500">PODER JUDICIÁRIO JUSTIÇA FEDERAL TRIBUNAL REGIONAL FEDERAL DA 3a REGIÃO CERTIDÃO JUDICIAL CRIMINAL NEGATIVA DO VOTUPORANGA ESPORTE CLUBE - VALIDADE 02.07.2025</h3>
+            <h3 class="text-3xl font-bold text-center text-red-500">PODER JUDICIÁRIO JUSTIÇA FEDERAL TRIBUNAL REGIONAL FEDERAL DA 3a REGIÃO CERTIDÃO JUDICIAL CRIMINAL NEGATIVA DO VOTUPORANGA ESPORTE CLUBE - VALIDADE 02.10.2025</h3>
             <p class="text-green-300 text-lg text-center mt-4">
-                <a href="{{ route('download', ['id_arquivo' => 40687]) }}" target="_blank" rel="noopener noreferrer">Baixar Arquivo PDF</a>
+                <a href="{{ route('download', ['id_arquivo' => 40911]) }}" target="_blank" rel="noopener noreferrer">Baixar Arquivo PDF</a>
             </p>
         </div>
     </section>
