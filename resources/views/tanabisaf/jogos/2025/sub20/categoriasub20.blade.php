@@ -90,3 +90,35 @@
         </a>
     </li>
 </ul>
+<ul class="text-gray-300 text-lg text-center mt-4">
+    <li>
+        <a href="{{ url('tanabisaf.jogos.2025.sub20.rodada08') }}"
+           class="block p-2 text-blue-400 underline hover:text-red-500">
+            Rodada 8
+        </a>
+    </li>
+</ul>
+<ul class="text-gray-300 text-lg text-center mt-4">
+    <li>
+        <a href="{{ url('tanabisaf.jogos.2025.sub20.rodada09') }}"
+           class="block p-2 text-blue-400 underline hover:text-red-500">
+            Rodada 9
+        </a>
+    </li>
+</ul>
+<ul class="text-gray-300 text-lg text-center mt-4">
+    <li>
+        <a href="{{ url('tanabisaf.jogos.2025.sub20.rodada10') }}"
+           class="block p-2 text-blue-400 underline hover:text-red-500">
+            Rodada 10
+        </a>
+    </li>
+</ul>
+<ul class="text-gray-300 text-lg text-center mt-4">
+    <li>
+        <a href="{{ url('tanabisaf.jogos.2025.sub20.rodada11') }}"
+           class="block p-2 text-blue-400 underline hover:text-red-500">
+            Rodada 11
+        </a>
+    </li>
+</ul>
