@@ -312,6 +312,12 @@ Route::get('tanabisaf.jogos.2025.sub23.rodada10', function ()
     Route::get('tanabisaf.jogos.2025.sub23.rodada12', function ()
     { return view('tanabisaf.jogos.2025.sub23.rodada12-05072025');})
     ->name('tanabisaf.jogos.2025.sub23.rodada12');
+    Route::get('tanabisaf.jogos.2025.sub23.rodada13', function ()
+    { return view('tanabisaf.jogos.2025.sub23.rodada13-12072025');})
+    ->name('tanabisaf.jogos.2025.sub23.rodada13');
+
+
+
 
     Route::get('tanabisaf.localtreino', function ()
     { return view('tanabisaf.localtreino');})->name('tanabisaf.localtreino');
@@ -319,6 +325,9 @@ Route::get('tanabisaf.jogos.2025.sub23.rodada10', function ()
     { return view('tanabisaf.certidoes');})->name('tanabisaf.certidoes');
     Route::get('tanabisaf.pde', function ()
     { return view('tanabisaf.pde');})->name('tanabisaf.pde');
+
+
+
 
 # Irmaos_EmausPia
     Route::resource('Irmaos_EmausPia', App\Http\Controllers\Irmaos_EmausPiaController::class);
