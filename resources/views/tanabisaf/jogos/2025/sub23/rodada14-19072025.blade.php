@@ -74,7 +74,7 @@
             <td class="px-6 py-4 text-center">
 
                  <div class="mt-4">
-                    <iframe width="1107" height="623" src="https://www.youtube.com/embed/WeOO6s2zSsc" title="AO VIVO E COM IMAGENS: TANABI X MAUAENSE | RODADA 14 | PAULISTA SUB-23 2ª DIVISÃO SICREDI 2025" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                    <iframe width="480" height="315" src="https://www.youtube.com/embed/WeOO6s2zSsc" title="AO VIVO E COM IMAGENS: TANABI X MAUAENSE | RODADA 14 | PAULISTA SUB-23 2ª DIVISÃO SICREDI 2025" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                 </div>
             </td>
           </tr>
