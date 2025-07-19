@@ -287,7 +287,9 @@ Route::get('tanabisaf.jogos.2025.sub20.rodada07', function ()
     Route::get('tanabisaf.jogos.2025.sub20.rodada11', function ()
     { return view('tanabisaf.jogos.2025.sub20.rodada11-11072025');})
     ->name('tanabisaf.jogos.2025.sub20.rodada11');
-
+    Route::get('tanabisaf.jogos.2025.sub20.rodada12', function ()
+    { return view('tanabisaf.jogos.2025.sub20.rodada12-18072025');})
+    ->name('tanabisaf.jogos.2025.sub20.rodada12');
 
 
 
@@ -325,6 +327,9 @@ Route::get('tanabisaf.jogos.2025.sub23.rodada10', function ()
     Route::get('tanabisaf.jogos.2025.sub23.rodada13', function ()
     { return view('tanabisaf.jogos.2025.sub23.rodada13-12072025');})
     ->name('tanabisaf.jogos.2025.sub23.rodada13');
+    Route::get('tanabisaf.jogos.2025.sub23.rodada14', function ()
+    { return view('tanabisaf.jogos.2025.sub23.rodada14-19072025');})
+    ->name('tanabisaf.jogos.2025.sub23.rodada14');
 
 
 
