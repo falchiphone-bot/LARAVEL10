@@ -147,7 +147,14 @@
         </a>
     </li>
 </ul>
-
+<ul class="text-gray-300 text-lg text-center mt-4">
+    <li>
+        <a href="{{ url('tanabisaf.jogos.2025.sub23.rodada15') }}"
+           class="block p-2 text-blue-400 underline hover:text-red-500">
+            Rodada 15
+        </a>
+    </li>
+</ul>
 
   <footer class="mt-8 text-gray-400 text-sm">
     <p>&copy; 2025 TANABI SAF. Todos os direitos reservados.</p>
