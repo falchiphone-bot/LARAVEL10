@@ -41,7 +41,7 @@
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Estádio</th>
-          <td class="px-6 py-4">/Limeira-SP</td>
+          <td class="px-6 py-4">Estádio Municipal Comendador Agostinho Prada /Limeira-SP</td>
         </tr>
 
 
