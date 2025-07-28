@@ -86,7 +86,7 @@
 
               <div class="mt-4">
                 <iframe width="480" height="315"
-                        src="https://youtu.be/sT0_R5Y5BfI?start=3781"
+                        src="https://www.youtube.com/embed/sT0_R5Y5BfI?start=3781"
                         title="YouTube video player"
                         frameborder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -102,7 +102,7 @@
 
                 <div class="mt-4">
                     <iframe width="480" height="315"
-                             src="https://youtu.be/sT0_R5Y5BfI?start=5839"
+                             src="https://www.youtube.com/embed/sT0_R5Y5BfI?start=5839"
                             title="YouTube video player"
                             frameborder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -117,7 +117,7 @@
 
               <div class="mt-4">
                 <iframe width="480" height="315"
-                        src="https://youtu.be/sT0_R5Y5BfI?start=6354"
+                        src="https://www.youtube.com/embed/sT0_R5Y5BfI?start=6354"
                         title="YouTube video player"
                         frameborder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
