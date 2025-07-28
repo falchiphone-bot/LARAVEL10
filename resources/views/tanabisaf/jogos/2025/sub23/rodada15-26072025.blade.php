@@ -29,7 +29,7 @@
       <tbody>
         <tr class="border-b border-gray-800">
           <th class="bg-gray-600 text-left px-6 py-4 w-1/3">Jogo</th>
-          <td class="px-6 py-4">Independente de Limeira x Tanabi SAF</td>
+          <td class="px-6 py-4">Independente de Limeira 0 x 3 Tanabi SAF</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Data</th>
