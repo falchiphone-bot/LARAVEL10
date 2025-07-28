@@ -21,18 +21,18 @@
     </div>
 
     <div class="bg-blue-200 text-blue-900 text-center text-xl font-semibold py-4 px-6">
-      Paulista SUB20 - 2025 | Rodada 11
+      Paulista SUB20 - 2025 | Rodada 09
     </div>
 
     <table class="w-full text-sm md:text-base">
       <tbody>
         <tr class="border-b border-gray-800">
           <th class="bg-gray-600 text-left px-6 py-4 w-1/3">Jogo</th>
-          <td class="px-6 py-4">  Ibrachina FC 6 X 2 Tanabi SAF</td>
+          <td class="px-6 py-4">CA BANDEIRANTES X  Tanabi SAF</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Data</th>
-          <td class="px-6 py-4">11/07/2025</td>
+          <td class="px-6 py-4">27/06/2025</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Horário</th>
@@ -40,12 +40,12 @@
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Estádio</th>
-          <td class="px-6 py-4">Ibrachina Arena / São Paulo<<td>
+          <td class="px-6 py-4">Estádio Mario Lima Santos/ Brodowski - SP<td>
         </tr>
         <tr>
           <th class="bg-gray-600 text-left px-6 py-4">Súmula</th>
           <td class="px-6 py-4 text-center">
-            <a href="{{ route('download', ['id_arquivo' => 40937]) }}"
+            <a href="{{ route('download', ['id_arquivo' => 40938]) }}"
                class="text-blue-300 font-semibold hover:text-blue-400 hover:underline transition duration-200"
                target="_blank" rel="noopener noreferrer">
               Baixar Arquivo PDF do jogo
