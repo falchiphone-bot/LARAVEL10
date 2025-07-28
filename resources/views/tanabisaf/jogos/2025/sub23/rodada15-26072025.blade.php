@@ -46,27 +46,16 @@
 
 
 
-        {{-- <tr>
-          <th class="bg-gray-600 text-left px-6 py-4">Súmula</th>
-          <td class="px-6 py-4 text-center">
-            <a href="{{ route('download', ['id_arquivo' => 40947]) }}"
-               class="text-blue-300 font-semibold hover:text-blue-400 hover:underline transition duration-200"
-               target="_blank" rel="noopener noreferrer">
-              Baixar Arquivo PDF do jogo
-            </a>
-          </td>
-        </tr> --}}
-
-        {{-- <tr>
+        <tr>
             <th class="bg-gray-600 text-left px-6 py-4">Boletim financeiro</th>
             <td class="px-6 py-4 text-center">
-              <a href="{{ route('download', ['id_arquivo' => 40902]) }}"
+              <a href="{{ route('download', ['id_arquivo' => 40954]) }}"
                  class="text-blue-300 font-semibold hover:text-blue-400 hover:underline transition duration-200"
                  target="_blank" rel="noopener noreferrer">
                 Baixar Arquivo PDF do boletim financeiro do jogo
               </a>
             </td>
-          </tr> --}}
+          </tr>
 
 
           <tr>
@@ -125,8 +114,6 @@
               </div>
             </td>
           </tr>
-
-
 
         </tbody>
     </table>
