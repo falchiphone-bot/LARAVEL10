@@ -80,55 +80,51 @@
           </tr>
 
 
-        {{-- <tr>
-            <th class="bg-gray-600 text-left px-6 py-4">Primeiro gol de Rychard Perucio Miranda - (Rychard)</th>
+        <tr>
+            <th class="bg-gray-600 text-left px-6 py-4">Primeiro gol de Marcelo Enrique Maçola Filho - Marcelo</th>
             <td class="px-6 py-4 text-center">
 
               <div class="mt-4">
                 <iframe width="480" height="315"
-                        src="https://www.youtube.com/embed/8wZQ-olx1C8?start=1863"
+                        src="https://youtu.be/sT0_R5Y5BfI?start=3781"
                         title="YouTube video player"
                         frameborder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowfullscreen></iframe>
               </div>
             </td>
-          </tr> --}}
+          </tr>
 
 
-
-
-             {{-- <tr>
-                <th class="bg-gray-600 text-left px-6 py-4">Segundo gol de Marcelo Enrique Maçola Filho - Marcelo</th>
+             <tr>
+                <th class="bg-gray-600 text-left px-6 py-4">Segundo gol de João Lucas Paim Addor  - ROMARINHO </th>
                 <td class="px-6 py-4 text-center">
 
                 <div class="mt-4">
                     <iframe width="480" height="315"
-                            src="https://www.youtube.com/embed/8wZQ-olx1C8?start=5872"
+                             src="https://youtu.be/sT0_R5Y5BfI?start=5839"
                             title="YouTube video player"
                             frameborder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowfullscreen></iframe>
                 </div>
             </td>
-          </tr> --}}
+          </tr>
 
 
-
-
-          {{-- <th class="bg-gray-600 text-left px-6 py-4">Terceiro gol de Luis</th>
+          <th class="bg-gray-600 text-left px-6 py-4">Terceiro gol de Thales Gabriel Duarte Santiago</th>
             <td class="px-6 py-4 text-center">
 
               <div class="mt-4">
                 <iframe width="480" height="315"
-                        src="https://www.youtube.com/embed/wxYf0QbUWrk?start=7892"
+                        src="https://youtu.be/sT0_R5Y5BfI?start=6354"
                         title="YouTube video player"
                         frameborder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowfullscreen></iframe>
               </div>
             </td>
-          </tr> --}}
+          </tr>
 
 
 
