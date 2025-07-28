@@ -76,7 +76,7 @@
             </tr>
 
           <tr>
-            <th class="bg-gray-600 text-left px-6 py-4">Primeiro gol de DANIEL - Dandan</th>
+            <th class="bg-gray-600 text-left px-6 py-4">Primeiro gol de Daniel dos Santos - (Daniel)</th>
             <td class="px-6 py-4 text-center">
 
               <div class="mt-4">
