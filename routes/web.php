@@ -353,7 +353,9 @@ Route::get('tanabisaf.jogos.2025.sub23.rodada10', function ()
     Route::get('tanabisaf.jogos.2025.sub23.rodada15', function ()
     { return view('tanabisaf.jogos.2025.sub23.rodada15-26072025');})
     ->name('tanabisaf.jogos.2025.sub23.rodada15');
-
+    Route::get('tanabisaf.jogos.2025.sub23.rodada16', function ()
+    { return view('tanabisaf.jogos.2025.sub23.rodada16-02082025');})
+    ->name('tanabisaf.jogos.2025.sub23.rodada16');
 
 
 

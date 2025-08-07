@@ -248,7 +248,13 @@ class ExtratoCaixaController extends Controller
 
 
 
-            $carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $Data);
+                 try {
+                    $carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $Data);
+                } catch (\Exception $e) {
+                    $Data = "31/07/2025";
+                    $carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $Data);
+                    // dd($Data,$linha , $e->getMessage()); // ou apenas dd($Data) se quiser só isso
+                }
             $linha_data_comparar = $carbon_data->format('Y-m-d');
 
             $carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $Data_bloqueada);
@@ -304,7 +310,7 @@ class ExtratoCaixaController extends Controller
 
             if ($criarlancamentos) {
                  if ($linha_1B === 'CAIXA ENTRADA') {
-               
+
                     $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
                         ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
                         ->where('Descricao', $arraydatanova['Descricao'])
