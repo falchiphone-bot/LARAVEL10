@@ -29,21 +29,21 @@
         <div class="max-w-4xl mx-auto">
             <h3 class="text-3xl font-bold text-center text-red-500">LEI CESSÃO DE USO DO ESTÁDIO PREFEITO ALBERTO VICTOLO EM 2019 LEI MUNICIPAL N°. 2.987/2019.</h3>
 
-                <div class="text-3xl font-bold text-center text-white-500">
+                <div class="text-3xl font-bold text-center text-white-500" target="_blank" rel="noopener noreferrer">
                    <a href="https://dosp.com.br/exibe_do.php?i=Njc4MTk=" target="_blank">VEJA NO DIÁRIO OFICIAL DO MUNICÍPIO DE TANABI</a>
               </div>
 
-            <p class="text-green-300 text-lg text-center mt-4">
+            <p class="text-green-300 text-lg text-center mt-4" target="_blank" rel="noopener noreferrer">
                 <a href="{{ route('download', ['id_arquivo' => 40745]) }}">Baixar Arquivo PDF</a>
             </p>
 
-            <p class="text-green-300 text-lg text-center mt-4">
+            <p class="text-green-300 text-lg text-center mt-4" target="_blank" rel="noopener noreferrer">
                 <a href="{{ route('download', ['id_arquivo' => 40768]) }}">COMPROVANTE DE CUMPRIMENTO DA LEI 2987/2019 EM: 06/05/2025 - 16:23:42. Baixar Arquivo PDF</a>
             </p>
-            <p class="text-green-300 text-lg text-center mt-4">
+            <p class="text-green-300 text-lg text-center mt-4"target="_blank" rel="noopener noreferrer">
                 <a href="{{ route('download', ['id_arquivo' => 40989]) }}">COMPROVANTE DE CUMPRIMENTO DA LEI 2987/2019 EM: 14/08/2025 - 17:58:30. Baixar Arquivo PDF</a>
             </p>
-            <p class="text-green-300 text-lg text-center mt-4">
+            <p class="text-green-300 text-lg text-center mt-4" target="_blank" rel="noopener noreferrer">
                 <a href="{{ route('download', ['id_arquivo' => 40990]) }}">RELATÓRIO DO COMPROVANTE DE CUMPRIMENTO DA LEI 2987/2019 EM  14/08/2025 - 17:58:30. Baixar Arquivo PDF</a>
             </p>
         </div>
@@ -53,7 +53,7 @@
     <section class="bg-green-800 py-12 px-6">
         <div class="max-w-4xl mx-auto">
             <h3 class="text-3xl font-bold text-center text-red-500">ESTATUTO E DIRETORIA EM 16 DE DEZEMBRO DE 2024</h3>
-            <p class="text-green-300 text-lg text-center mt-4">
+            <p class="text-green-300 text-lg text-center mt-4" target="_blank" rel="noopener noreferrer">
                 <a href="{{ route('download', ['id_arquivo' => 40491]) }}">Baixar Arquivo PDF</a>
             </p>
         </div>
@@ -62,7 +62,7 @@
     <section class="bg-green-800 py-12 px-6">
         <div class="max-w-4xl mx-auto">
             <h3 class="text-3xl font-bold text-center text-red-500">BOLETIM DE SUBSCRIÇÃO EM 16 DE DEZEMBRO DE 2024</h3>
-            <p class="text-green-300 text-lg text-center mt-4">
+            <p class="text-green-300 text-lg text-center mt-4" target="_blank" rel="noopener noreferrer">
                 <a href="{{ route('download', ['id_arquivo' => 40492]) }}">Baixar Arquivo PDF</a>
             </p>
         </div>
