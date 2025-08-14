@@ -36,6 +36,16 @@
             <p class="text-green-300 text-lg text-center mt-4">
                 <a href="{{ route('download', ['id_arquivo' => 40745]) }}">Baixar Arquivo PDF</a>
             </p>
+
+            <p class="text-green-300 text-lg text-center mt-4">
+                <a href="{{ route('download', ['id_arquivo' => 40768]) }}">COMPROVANTE DE CUMPRIMENTO DA LEI 2987/2019. Baixar Arquivo PDF</a>
+            </p>
+            <p class="text-green-300 text-lg text-center mt-4">
+                <a href="{{ route('download', ['id_arquivo' => 40989]) }}">COMPROVANTE DE CUMPRIMENTO DA LEI 2987/2019. Baixar Arquivo PDF</a>
+            </p>
+            <p class="text-green-300 text-lg text-center mt-4">
+                <a href="{{ route('download', ['id_arquivo' => 40990]) }}">COMPROVANTE DE CUMPRIMENTO DA LEI 2987/2019. Baixar Arquivo PDF</a>
+            </p>
         </div>
     </section>
 
