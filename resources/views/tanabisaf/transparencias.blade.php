@@ -38,13 +38,13 @@
             </p>
 
             <p class="text-green-300 text-lg text-center mt-4">
-                <a href="{{ route('download', ['id_arquivo' => 40768]) }}">COMPROVANTE DE CUMPRIMENTO DA LEI 2987/2019. Baixar Arquivo PDF</a>
+                <a href="{{ route('download', ['id_arquivo' => 40768]) }}">COMPROVANTE DE CUMPRIMENTO DA LEI 2987/2019 EM: 06/05/2025 - 16:23:42. Baixar Arquivo PDF</a>
             </p>
             <p class="text-green-300 text-lg text-center mt-4">
-                <a href="{{ route('download', ['id_arquivo' => 40989]) }}">COMPROVANTE DE CUMPRIMENTO DA LEI 2987/2019. Baixar Arquivo PDF</a>
+                <a href="{{ route('download', ['id_arquivo' => 40989]) }}">COMPROVANTE DE CUMPRIMENTO DA LEI 2987/2019 EM: 14/08/2025 - 17:58:30. Baixar Arquivo PDF</a>
             </p>
             <p class="text-green-300 text-lg text-center mt-4">
-                <a href="{{ route('download', ['id_arquivo' => 40990]) }}">COMPROVANTE DE CUMPRIMENTO DA LEI 2987/2019. Baixar Arquivo PDF</a>
+                <a href="{{ route('download', ['id_arquivo' => 40990]) }}">RELATÓRIO DO COMPROVANTE DE CUMPRIMENTO DA LEI 2987/2019 EM  14/08/2025 - 17:58:30. Baixar Arquivo PDF</a>
             </p>
         </div>
     </section>
