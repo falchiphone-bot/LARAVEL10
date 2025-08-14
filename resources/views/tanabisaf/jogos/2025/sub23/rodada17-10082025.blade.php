@@ -33,7 +33,7 @@
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Data</th>
-          <td class="px-6 py-4">08/08/2025</td>
+          <td class="px-6 py-4">10/08/2025</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Horário</th>
@@ -83,7 +83,7 @@
               </div>
             </td>
         </tr>
- 
+
 
 
 
