@@ -22,22 +22,22 @@
 
 
     <div class="bg-blue-200 text-blue-900 text-center text-xl font-semibold py-4 px-6">
-      Paulista SUB23 - 2025 | Rodada 15
+      Paulista SUB23 - 2025 | Rodada 17
     </div>
 
     <table class="w-full text-sm md:text-base">
       <tbody>
         <tr class="border-b border-gray-800">
           <th class="bg-gray-600 text-left px-6 py-4 w-1/3">Jogo</th>
-          <td class="px-6 py-4">Independente de Limeira 0 x 3 Tanabi SAF</td>
+          <td class="px-6 py-4">Independente de Limeira 1 x 1 Tanabi SAF</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Data</th>
-          <td class="px-6 py-4">26/07/2025</td>
+          <td class="px-6 py-4">08/08/2025</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Horário</th>
-          <td class="px-6 py-4">16:00</td>
+          <td class="px-6 py-4">15:00</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Estádio</th>
@@ -49,7 +49,7 @@
         <tr>
             <th class="bg-gray-600 text-left px-6 py-4">Súmula</th>
             <td class="px-6 py-4 text-center">
-              <a href="{{ route('download', ['id_arquivo' => 40954]) }}"
+              <a href="{{ route('download', ['id_arquivo' => 40980]) }}"
                  class="text-blue-300 font-semibold hover:text-blue-400 hover:underline transition duration-200"
                  target="_blank" rel="noopener noreferrer">
                 Baixar Arquivo PDF da súmula do jogo
@@ -63,57 +63,31 @@
             <td class="px-6 py-4 text-center">
 
                  <div class="mt-4">
-                    <iframe width="480" height="320" src="https://www.youtube.com/embed/sT0_R5Y5BfI" title="AO VIVO E COM IMAGENS: INDEPENDENTE X TANABI | RODADA 15 | PAULISTA SUB-23 2ª DIVISÃO SICREDI 2025" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+<iframe width="480" height="320" src="https://www.youtube.com/embed/rI5-5LajQKg" title="JOGO COMPLETO: INDEPENDENTE X TANABI|SEMIFINAL IDA|PAULISTA SUB-23 2ª DIV SICREDI 2025" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                 </div>
             </td>
           </tr>
 
 
         <tr>
-            <th class="bg-gray-600 text-left px-6 py-4">Primeiro gol de Marcelo Enrique Maçola Filho - Marcelo</th>
+            <th class="bg-gray-600 text-left px-6 py-4">Gol de Fábio José de Souza - (Fábio)</th>
             <td class="px-6 py-4 text-center">
 
               <div class="mt-4">
                 <iframe width="480" height="315"
-                        src="https://www.youtube.com/embed/sT0_R5Y5BfI?start=3781"
+                        src="https://www.youtube.com/embed/rI5-5LajQKg?start=6640"
                         title="YouTube video player"
                         frameborder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowfullscreen></iframe>
               </div>
             </td>
-          </tr>
+        </tr>
+ 
 
 
-             <tr>
-                <th class="bg-gray-600 text-left px-6 py-4">Segundo gol de João Lucas Paim Addor  - ROMARINHO </th>
-                <td class="px-6 py-4 text-center">
-
-                <div class="mt-4">
-                    <iframe width="480" height="315"
-                             src="https://www.youtube.com/embed/sT0_R5Y5BfI?start=5839"
-                            title="YouTube video player"
-                            frameborder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowfullscreen></iframe>
-                </div>
-            </td>
-          </tr>
 
 
-          <th class="bg-gray-600 text-left px-6 py-4">Terceiro gol de Thales Gabriel Duarte Santiago</th>
-            <td class="px-6 py-4 text-center">
-
-              <div class="mt-4">
-                <iframe width="480" height="315"
-                        src="https://www.youtube.com/embed/sT0_R5Y5BfI?start=6354"
-                        title="YouTube video player"
-                        frameborder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowfullscreen></iframe>
-              </div>
-            </td>
-          </tr>
 
         </tbody>
     </table>
