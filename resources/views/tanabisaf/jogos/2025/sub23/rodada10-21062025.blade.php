@@ -69,72 +69,123 @@
           </tr>
 
 
-          {{-- <tr>
+          <tr>
+                <th class="bg-gray-600 text-left px-6 py-4">
+                    LEI 2987/2019 - CESSÃO DE USO DO ESTÁDIO
+                </th>
+                <td class="px-6 py-4 text-center">
+                    <a href="{{ route('download', ['id_arquivo' => 40989]) }}"
+                    class="flex items-center justify-center gap-2 px-4 py-2 bg-gray-800 rounded-lg shadow-md text-blue-300 font-semibold hover:text-blue-400 hover:underline hover:bg-gray-700 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 w-full"
+                    target="_blank" rel="noopener noreferrer">
+                        <!-- Ícone PDF com hover -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"
+                            class="h-5 w-5 text-red-500 transition-colors duration-200 hover:text-red-400"
+                            fill="currentColor">
+                            <path d="M181.9 256.2c-5.4 0-9.7 4.3-9.7 9.7 0 5.4 4.3 9.7 9.7 9.7 5.4 0 9.7-4.3 9.7-9.7 0-5.4-4.3-9.7-9.7-9.7zm-48.5 73.1c-13.4 0-24.2 10.8-24.2 24.2 0 13.4 10.8 24.2 24.2 24.2 13.4 0 24.2-10.8 24.2-24.2 0-13.4-10.8-24.2-24.2zm162.6-170.5c-9.8-9.8-25.6-9.8-35.4 0l-23.4 23.4-23.4-23.4c-9.8-9.8-25.6-9.8-35.4 0-9.8 9.8-9.8 25.6 0 35.4l23.4 23.4-23.4 23.4c-9.8 9.8-9.8 25.6 0 35.4 9.8 9.8 25.6 9.8 35.4 0l23.4-23.4 23.4 23.4c9.8 9.8 25.6 9.8 35.4 0 9.8-9.8 9.8-25.6 0-35.4l-23.4-23.4 23.4-23.4c9.8-9.8 9.8-25.6 0-35.4z"/>
+                        </svg>
+                        Baixar Arquivo PDF do comprovante de transferência de uso do Estádio Municipal Prefeito Alberto Victolo
+                    </a>
+
+                    <a href="{{ route('download', ['id_arquivo' => 40990]) }}"
+                    class="flex items-center justify-center gap-2 px-4 py-2 bg-gray-800 rounded-lg shadow-md text-blue-300 font-semibold hover:text-blue-400 hover:underline hover:bg-gray-700 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 w-full"
+                    target="_blank" rel="noopener noreferrer">
+                        <!-- Ícone PDF com hover -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"
+                            class="h-5 w-5 text-red-500 transition-colors duration-200 hover:text-red-400"
+                            fill="currentColor">
+                            <path d="M181.9 256.2c-5.4 0-9.7 4.3-9.7 9.7 0 5.4 4.3 9.7 9.7 9.7 5.4 0 9.7-4.3 9.7-9.7 0-5.4-4.3-9.7-9.7-9.7zm-48.5 73.1c-13.4 0-24.2 10.8-24.2 24.2 0 13.4 10.8 24.2 24.2 24.2 13.4 0 24.2-10.8 24.2-24.2 0-13.4-10.8-24.2-24.2zm162.6-170.5c-9.8-9.8-25.6-9.8-35.4 0l-23.4 23.4-23.4-23.4c-9.8-9.8-25.6-9.8-35.4 0-9.8 9.8-9.8 25.6 0 35.4l23.4 23.4-23.4 23.4c-9.8 9.8-9.8 25.6 0 35.4 9.8 9.8 25.6 9.8 35.4 0l23.4-23.4 23.4 23.4c9.8 9.8 25.6 9.8 35.4 0 9.8-9.8 9.8-25.6 0-35.4l-23.4-23.4 23.4-23.4c9.8-9.8 9.8-25.6 0-35.4z"/>
+                        </svg>
+                        Baixar Arquivo PDF do RELATÓRIO do comprovante de transferência de uso do Estádio Municipal Prefeito Alberto Victolo
+                    </a>
+                </td>
+            </tr>
+
+          <tr>
             <th class="bg-gray-600 text-left px-6 py-4">Jogo completo</th>
             <td class="px-6 py-4 text-center">
 
                  <div class="mt-4">
-
-                  <iframe width="480" height="315"
-                          src="https://www.youtube.com/embed/wxYf0QbUWrk"
-                          title="YouTube video player"
-                          frameborder="0"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowfullscreen></iframe>
+                    <iframe width="480" height="320" src="https://www.youtube.com/embed/gHXu44la0eA" title="JOGO COMPLETO: TANABI X OLÍMPIA | RODADA 10 | PAULISTA SUB-23 2ª DIVISÃO SICREDI 2025" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                 </div>
             </td>
-          </tr> --}}
+          </tr>
 
 
-        {{-- <tr>
+        <tr>
             <th class="bg-gray-600 text-left px-6 py-4">Primeiro gol de Marcelo Enrique Maçola Filho - Marcelo</th>
             <td class="px-6 py-4 text-center">
 
               <div class="mt-4">
                 <iframe width="480" height="315"
-                        src="https://www.youtube.com/embed/wxYf0QbUWrk?start=5219"
+                        src="https://www.youtube.com/embed/gHXu44la0eA?start=1585"
                         title="YouTube video player"
                         frameborder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowfullscreen></iframe>
               </div>
             </td>
-          </tr> --}}
+        </tr>
 
 
-
-
-             {{-- <tr>
-                <th class="bg-gray-600 text-left px-6 py-4">Segundo gol de Vinicius Fernando Macedo Domingos - Vinicius</th>
+             <tr>
+                <th class="bg-gray-600 text-left px-6 py-4">Segundo gol de Diogo Vieira Santos Fonseca</th>
                 <td class="px-6 py-4 text-center">
 
-                <div class="mt-4">
-                    <iframe width="480" height="315"
-                            src="https://www.youtube.com/embed/wxYf0QbUWrk?start=5957"
-                            title="YouTube video player"
-                            frameborder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowfullscreen></iframe>
-                </div>
-            </td>
-          </tr> --}}
+                    <div class="mt-4">
+                        <iframe width="480" height="315"
+                                src="https://www.youtube.com/embed/gHXu44la0eA?start=5057"
+                                title="YouTube video player"
+                                frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowfullscreen></iframe>
+                    </div>
+                </td>
+             </tr>
 
 
 
-          {{-- <th class="bg-gray-600 text-left px-6 py-4">Terceiro gol de Luis</th>
+          <th class="bg-gray-600 text-left px-6 py-4">Terceiro gol de Maicon Henrique Silva de Carvalho - (Maicon)</th>
             <td class="px-6 py-4 text-center">
 
               <div class="mt-4">
                 <iframe width="480" height="315"
-                        src="https://www.youtube.com/embed/wxYf0QbUWrk?start=7892"
+                        src="https://www.youtube.com/embed/gHXu44la0eA?start=5638"
                         title="YouTube video player"
                         frameborder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowfullscreen></iframe>
               </div>
             </td>
-          </tr> --}}
+          </tr>
 
+          <th class="bg-gray-600 text-left px-6 py-4">Quarto gol de João Lucas Paim Addor - (João) </th>
+            <td class="px-6 py-4 text-center">
+
+              <div class="mt-4">
+                <iframe width="480" height="315"
+                        src="https://www.youtube.com/embed/gHXu44la0eA?start=6634"
+                        title="YouTube video player"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen></iframe>
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+                <th class="bg-gray-600 text-left px-6 py-4">Quinto gol de Diogo Vieira Santos Fonseca</th>
+                <td class="px-6 py-4 text-center">
+
+                    <div class="mt-4">
+                        <iframe width="480" height="315"
+                                src="https://www.youtube.com/embed/gHXu44la0eA?start=6925"
+                                title="YouTube video player"
+                                frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowfullscreen></iframe>
+                    </div>
+                </td>
+             </tr>
 
 
         </tbody>

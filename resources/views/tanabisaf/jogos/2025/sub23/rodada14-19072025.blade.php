@@ -69,6 +69,38 @@
           </tr>
 
 
+<tr>
+                <th class="bg-gray-600 text-left px-6 py-4">
+                    LEI 2987/2019 - CESSÃO DE USO DO ESTÁDIO
+                </th>
+                <td class="px-6 py-4 text-center">
+                    <a href="{{ route('download', ['id_arquivo' => 40989]) }}"
+                    class="flex items-center justify-center gap-2 px-4 py-2 bg-gray-800 rounded-lg shadow-md text-blue-300 font-semibold hover:text-blue-400 hover:underline hover:bg-gray-700 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 w-full"
+                    target="_blank" rel="noopener noreferrer">
+                        <!-- Ícone PDF com hover -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"
+                            class="h-5 w-5 text-red-500 transition-colors duration-200 hover:text-red-400"
+                            fill="currentColor">
+                            <path d="M181.9 256.2c-5.4 0-9.7 4.3-9.7 9.7 0 5.4 4.3 9.7 9.7 9.7 5.4 0 9.7-4.3 9.7-9.7 0-5.4-4.3-9.7-9.7-9.7zm-48.5 73.1c-13.4 0-24.2 10.8-24.2 24.2 0 13.4 10.8 24.2 24.2 24.2 13.4 0 24.2-10.8 24.2-24.2 0-13.4-10.8-24.2-24.2zm162.6-170.5c-9.8-9.8-25.6-9.8-35.4 0l-23.4 23.4-23.4-23.4c-9.8-9.8-25.6-9.8-35.4 0-9.8 9.8-9.8 25.6 0 35.4l23.4 23.4-23.4 23.4c-9.8 9.8-9.8 25.6 0 35.4 9.8 9.8 25.6 9.8 35.4 0l23.4-23.4 23.4 23.4c9.8 9.8 25.6 9.8 35.4 0 9.8-9.8 9.8-25.6 0-35.4l-23.4-23.4 23.4-23.4c9.8-9.8 9.8-25.6 0-35.4z"/>
+                        </svg>
+                        Baixar Arquivo PDF do comprovante de transferência de uso do Estádio Municipal Prefeito Alberto Victolo
+                    </a>
+
+                    <a href="{{ route('download', ['id_arquivo' => 40990]) }}"
+                    class="flex items-center justify-center gap-2 px-4 py-2 bg-gray-800 rounded-lg shadow-md text-blue-300 font-semibold hover:text-blue-400 hover:underline hover:bg-gray-700 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 w-full"
+                    target="_blank" rel="noopener noreferrer">
+                        <!-- Ícone PDF com hover -->
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"
+                            class="h-5 w-5 text-red-500 transition-colors duration-200 hover:text-red-400"
+                            fill="currentColor">
+                            <path d="M181.9 256.2c-5.4 0-9.7 4.3-9.7 9.7 0 5.4 4.3 9.7 9.7 9.7 5.4 0 9.7-4.3 9.7-9.7 0-5.4-4.3-9.7-9.7-9.7zm-48.5 73.1c-13.4 0-24.2 10.8-24.2 24.2 0 13.4 10.8 24.2 24.2 24.2 13.4 0 24.2-10.8 24.2-24.2 0-13.4-10.8-24.2-24.2zm162.6-170.5c-9.8-9.8-25.6-9.8-35.4 0l-23.4 23.4-23.4-23.4c-9.8-9.8-25.6-9.8-35.4 0-9.8 9.8-9.8 25.6 0 35.4l23.4 23.4-23.4 23.4c-9.8 9.8-9.8 25.6 0 35.4 9.8 9.8 25.6 9.8 35.4 0l23.4-23.4 23.4 23.4c9.8 9.8 25.6 9.8 35.4 0 9.8-9.8 9.8-25.6 0-35.4l-23.4-23.4 23.4-23.4c9.8-9.8 9.8-25.6 0-35.4z"/>
+                        </svg>
+                        Baixar Arquivo PDF do RELATÓRIO do comprovante de transferência de uso do Estádio Municipal Prefeito Alberto Victolo
+                    </a>
+                </td>
+            </tr>
+
+
           <tr>
             <th class="bg-gray-600 text-left px-6 py-4">Jogo completo</th>
             <td class="px-6 py-4 text-center">
