@@ -626,11 +626,13 @@ return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
             ->select(['Empresas.ID', 'Empresas.Descricao'])
             ->get();
 
-            $debito = PlanoConta::where('descricao', 'LIKE', '%EMPRESTIMOS BANCARIOS A PAGAR%')
+    //         $debito = PlanoConta::where('descricao', 'LIKE', '%EMPRESTIMOS BANCARIOS A PAGAR%')
+    // ->orderBy('descricao', 'asc')
+    // ->get();
+
+$debito = PlanoConta::where('Grau', 5)
     ->orderBy('descricao', 'asc')
     ->get();
-
-
                 $credito = PlanoConta::
                 where('Grau',5)
                 ->orderBy('descricao', 'asc')
@@ -651,8 +653,16 @@ return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
         $DataInicio = $Request->DataInicio;
         $Empresa = $Request->EmpresaSelecionada;
 
+
+         $valorTotalNumero = str_replace(',', '', $valorTotal);
+$amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
+
+// dd($amortizacaofixa, $valorTotalNumero, $parcelas);
+
+
         $Mesmodia = $Request->Mesmodia;
         $Lancar = $Request->Lancar;
+        $LancarParcela = $Request->LancarParcela;
         $tabelaParcelas  = [];
 
         $Empresas = Empresa::
@@ -726,7 +736,16 @@ return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
 
         for ($i = 1; $i <= $parcelas; $i++) {
             $juros = ($saldoDevedor * $taxaJuros) / 100;
+
             $amortizacao = $valorParcela - $juros;
+
+            if($LancarParcela == true)
+            {
+
+                $amortizacao = number_format($amortizacaofixa, 2, '.', '');
+            }
+
+
             $saldoDevedor -= $amortizacao;
 
             $valorParcelaFormatado = number_format($valorParcela, 2, ',', '.');
@@ -779,6 +798,12 @@ return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
 
             $ValorParcelas = number_format($valorParcela, 2, '.', '');
 
+            if($LancarParcela == true)
+            {
+                $ValorParcelas = $amortizacao;
+                $Juros = 0;
+            }
+
             $tabelaParcelas[] = [
                 'Parcela' => $i,
                 'Amortização' => $amortizacao,
@@ -812,6 +837,8 @@ return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
 
         if($Lancar){
             session(['LancamentoDebito' => "NADA LANÇAMENTO A DÉBITO!"]);
+
+            dd($tabelaParcelas, $debito->ID, $credito->ID, $Empresa, $DataInicialSomada);
             foreach($tabelaParcelas as $EfetuarLancamento){
 
 
@@ -912,6 +939,7 @@ return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
                     // return view('lancamentos.lancamentotabelapriceresultado', ['tabelaParcelas' => $tabelaParcelas]);
                 }
 
+                ////////// JUROS
                 $lancamentoLocalizadoJuros = Lancamento::where('DataContabilidade', $dataString)
                 ->where('Valor', $EfetuarLancamento['Juros'])
                 ->where('EmpresaID', $Empresa)
@@ -956,6 +984,24 @@ return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
                     // dd("Lancando ", $datacontabil,$EfetuarLancamento['Total'], $Empresa, $EfetuarLancamento['debito'] );
 
                     $dataSalvar = Carbon::createFromDate($EfetuarLancamento['datainicial']);
+
+                    if($EfetuarLancamento['Juros'] == 0)
+                    {
+                        session(['LancamentoDebito' => "NADA LANÇAMENTO A DÉBITO OU A CRÉDITO!"]);
+                        continue;
+                    }
+
+                    if($EfetuarLancamento['Juros'] == null)
+                    {
+                        session(['LancamentoDebito' => "NADA LANÇAMENTO A DÉBITO OU A CRÉDITO!"]);
+                        continue;
+                    }
+
+                    if($LancarParcela == null || $LancarParcela == false)
+                    {
+                        session(['LancamentoDebito' => "NADA LANÇAMENTO A DÉBITO OU A CRÉDITO!"]);
+                        continue;
+                    }
 
                     $LancamentoParcela[] = Lancamento::create([
                     'Valor' => ($valorString = $EfetuarLancamento['Juros']),
@@ -1062,7 +1108,7 @@ return view('Lancamentos.ExportarSkala', compact('retorno', 'Empresas'));
         $lancamento->fill($request->all());
         $lancamento->save();
 
-      
+
 
 
         return redirect(route('Lancamentos.index'))->with('success', 'Lançamento atualizado.');
