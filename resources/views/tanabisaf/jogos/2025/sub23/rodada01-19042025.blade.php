@@ -62,7 +62,7 @@
                 Baixar Arquivo PDF do comprovante de transferencia de uso do Estádio Municipal Prefeito Alberto Victolo
               </a>
             </td>
-          </tr>
+        </tr>
 
         <tr>
             <th class="bg-gray-600 text-left px-6 py-4">Boletim financeiro</th>

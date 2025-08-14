@@ -66,6 +66,24 @@
             </td>
           </tr>
 
+<tr>
+            <th class="bg-gray-600 text-left px-6 py-4">LEI 2987/2019 - CESSÃO DE USO DO ESTÁDIO</th>
+            <td class="px-6 py-4 text-center">
+              <a href="{{ route('download', ['id_arquivo' => 40989]) }} target="_blank" rel="noopener noreferrer">
+                 class="text-blue-300 font-semibold hover:text-blue-400 hover:underline transition duration-200"
+                 target="_blank" rel="noopener noreferrer">
+                Baixar Arquivo PDF do comprovante de transferencia de uso do Estádio Municipal Prefeito Alberto Victolo
+              </a>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <a href="{{ route('download', ['id_arquivo' => 40990]) }} target="_blank" rel="noopener noreferrer">
+                 class="text-blue-300 font-semibold hover:text-blue-400 hover:underline transition duration-200"
+                 target="_blank" rel="noopener noreferrer">
+                Baixar Arquivo PDF do RELATÓRIO docomprovante de transferencia de uso do Estádio Municipal Prefeito Alberto Victolo
+              </a>
+            </td>
+        </tr>
+
 
           <tr>
             <th class="bg-gray-600 text-left px-6 py-4">Jogo completo</th>
