@@ -6,6 +6,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\LancamentosController;
+use App\Http\Controllers\OpenAIController;
 use App\Http\Controllers\OAuthController;
 use App\Http\Services;
 use App\Http\Controllers\PacpieController;
@@ -898,6 +899,9 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     Route::get('/Cadastros', function () {
         return view('Cadastros/dashboard');
     });
+
+    #OpenAI
+    Route::get('/openai/test-text', [OpenAIController::class, 'testTextResponse'])->name('openai.test.text');
 });
 
 require __DIR__ . '/auth.php';
