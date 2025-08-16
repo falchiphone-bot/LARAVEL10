@@ -32,18 +32,18 @@ class OpenAIController extends Controller
      */
     public function testTextResponse(Request $request): JsonResponse|View|RedirectResponse
     {
-        $request->validate([
-            'prompt' => 'required|string|min:5',
-        ], [
-            'prompt.required' => 'O campo de prompt é obrigatório.',
-            'prompt.min' => 'O prompt deve ter pelo menos :min caracteres.',
-        ]);
-
         $prompt = $request->input('prompt');
         $response = null;
         $error = null;
 
         if ($prompt) {
+            $request->validate([
+                'prompt' => 'required|string|min:5',
+            ], [
+                'prompt.required' => 'O campo de prompt é obrigatório.',
+                'prompt.min' => 'O prompt deve ter pelo menos :min caracteres.',
+            ]);
+
             try {
                 $response = $this->openAIService->getTextResponse($prompt);
 
