@@ -30,8 +30,7 @@ class OpenAIService
             'base_uri' => $this->baseUrl,
         ]);
 
-        // It's best practice to store API keys in config files, which in turn read from .env
-        $this->apiKey = config('services.openai.api_key', env('OPENAI_API_KEY'));
+        $this->apiKey = config('services.openai.api_key');
     }
 
     /**
@@ -84,6 +83,36 @@ class OpenAIService
             'messages' => [
                 ['role' => 'user', 'content' => $prompt],
             ],
+            'max_tokens' => $maxTokens,
+        ];
+
+        try {
+            $response = $this->client->post('chat/completions', ['headers' => ['Authorization' => 'Bearer ' . $this->apiKey, 'Content-Type' => 'application/json'], 'json' => $payload]);
+            return json_decode($response->getBody()->getContents(), true);
+        } catch (GuzzleException $e) {
+            throw new NetworkException('OpenAI API request failed: ' . $e->getMessage(), 0, $e);
+        }
+    }
+
+    /**
+     * Get a chat response from an OpenAI model, considering conversation history.
+     *
+     * @param array $messages The conversation history.
+     * @param string $model The model to use.
+     * @param int $maxTokens The maximum number of tokens to generate.
+     * @return array The API response.
+     * @throws ApiKeyMissingException
+     * @throws NetworkException
+     */
+    public function getChatResponse(array $messages, string $model = 'gpt-3.5-turbo', int $maxTokens = 1024): array
+    {
+        if (!$this->apiKey) {
+            throw new ApiKeyMissingException('OpenAI API key is not set.');
+        }
+
+        $payload = [
+            'model' => $model,
+            'messages' => $messages,
             'max_tokens' => $maxTokens,
         ];
 

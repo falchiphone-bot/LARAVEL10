@@ -901,7 +901,8 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     });
 
     #OpenAI
-    Route::get('/openai/test-text', [OpenAIController::class, 'testTextResponse'])->name('openai.test.text');
+    Route::match(['get', 'post'], '/openai/chat', [OpenAIController::class, 'chat'])->name('openai.chat');
+    Route::post('/openai/chat/clear', [OpenAIController::class, 'clearChat'])->name('openai.chat.clear');
 });
 
 require __DIR__ . '/auth.php';
