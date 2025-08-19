@@ -10,8 +10,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
-use FFMpeg; // php-ffmpeg
-use FFMpeg\Format\Audio\Mp3;
 use App\Exceptions\OpenAI\NetworkException;
 use App\Exceptions\OpenAI\ApiKeyMissingException;
 
@@ -27,6 +25,16 @@ class OpenAIController extends Controller
         $this->openAIService = $openAIService;
     }
 
+public function convertOpusToMp3($inputPath, $outputPath)
+{
+    $ffmpeg = FFMpeg::create();
+    $audio = $ffmpeg->open($inputPath);
+
+    $format = new Mp3();
+    $format->setAudioKiloBitrate(192);
+
+    $audio->save($format, $outputPath);
+}
 
 
     /**
@@ -132,87 +140,28 @@ class OpenAIController extends Controller
     {
         if ($request->isMethod('post')) {
             $request->validate([
-                'audio_file' => 'required|file|mimes:mp3,mp4,mpeg,mpga,m4a,wav,webm,ogg',
+                'audio_file' => 'required|file|mimes:mp3,mp4,mpeg,mpga,m4a,wav,webm',
             ], [
                 'audio_file.required' => 'Por favor, envie um arquivo de áudio.',
-                'audio_file.mimes' => 'O formato do arquivo de áudio não é suportado. Use: mp3, mp4, mpeg, mpga, m4a, wav, webm, opus.',
+                'audio_file.mimes' => 'O formato do arquivo de áudio não é suportado. Use: mp3, mp4, mpeg, mpga, m4a, wav, webm.',
             ]);
 
             $file = $request->file('audio_file');
-            $originalExtension = strtolower($file->getClientOriginalExtension());
-            $filename = uniqid('audio_') . '.' . $originalExtension;
-            $audioDir = storage_path('app/audio');
-            $audioPath = $audioDir . '/' . $filename;
-            $file->move($audioDir, $filename);
+            $filename = uniqid('audio_') . '.' . $file->getClientOriginalExtension();
+            $audioPath = storage_path('app/audio/' . $filename);
+            $file->move(storage_path('app/audio'), $filename);
 
-            $mp3Path = $audioPath;
-            $converted = false;
-            if ($originalExtension === 'opus') {
-                // Log do caminho e permissões antes da conversão
-                Log::info('Recebido arquivo OPUS', [
-                    'audioPath' => $audioPath,
-                    'is_readable' => is_readable($audioPath),
-                    'is_writable' => is_writable($audioDir),
-                    'owner' => fileowner($audioPath),
-                    'perms' => substr(sprintf('%o', fileperms($audioPath)), -4),
-                ]);
-
-                // Converte para mp3
-                $mp3Filename = uniqid('audio_') . '.mp3';
-                $mp3Path = $audioDir . '/' . $mp3Filename;
-                try {
-                    $ffmpeg = \FFMpeg\FFMpeg::create();
-                    $audio = $ffmpeg->open($audioPath);
-                    $format = new \FFMpeg\Format\Audio\Mp3();
-                    $format->setAudioKiloBitrate(192);
-                    $audio->save($format, $mp3Path);
-                    $converted = true;
-                } catch (\Exception $e) {
-                    $error = 'Erro ao converter arquivo OPUS para MP3: ' . $e->getMessage();
-                    Log::error($error, [
-                        'exception' => $e,
-                        'audioPath' => $audioPath,
-                        'mp3Path' => $mp3Path,
-                        'audioDir' => $audioDir,
-                        'is_readable' => is_readable($audioPath),
-                        'is_writable' => is_writable($audioDir),
-                        'owner' => fileowner($audioPath),
-                        'perms' => substr(sprintf('%o', fileperms($audioPath)), -4),
-                    ]);
-                }
-                // Remove o arquivo .opus após conversão
-                if (file_exists($audioPath)) {
-                    @unlink($audioPath);
-                }
-                // Garante que o arquivo mp3 foi criado
-                if (!file_exists($mp3Path)) {
-                    $error = 'Erro: O arquivo MP3 convertido não foi criado.';
-                    Log::error($error, [
-                        'mp3Path' => $mp3Path,
-                        'audioDir' => $audioDir,
-                        'conteudo_audioDir' => scandir($audioDir),
-                        'is_writable' => is_writable($audioDir),
-                    ]);
-                } else {
-                    Log::info('Arquivo MP3 criado com sucesso', [
-                        'mp3Path' => $mp3Path,
-                        'size' => filesize($mp3Path),
-                        'is_readable' => is_readable($mp3Path),
-                    ]);
-                }
-            }
-
-            $error = $error ?? null;
+            $error = null;
             $transcribedText = '';
             $translatedText = '';
 
             try {
                 // 1. Transcribe Spanish audio to Spanish text
-                $transcriptionResponse = $this->openAIService->getTranscription($mp3Path, 'es');
+                $transcriptionResponse = $this->openAIService->getTranscription($audioPath, 'es');
 
                 // Apaga o arquivo após o envio para a IA
-                if (file_exists($mp3Path)) {
-                    @unlink($mp3Path);
+                if (file_exists($audioPath)) {
+                    @unlink($audioPath);
                 }
 
                 if (isset($transcriptionResponse['error'])) {
