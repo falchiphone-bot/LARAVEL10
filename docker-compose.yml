@@ -1,15 +1,15 @@
 version: '3.6'
 
 services:
-   app:
+  app:
+    platform: "linux/amd64"
     container_name: laravel10
     restart: always
     build: .
     ports:
-      - 82:80
-      - 83:83
-      - 4040:4040
-      #- 443:443
+      - "82:80"
+      - "83:83"
+      - "4040:4040"
     volumes:
       - .:/var/www
 
