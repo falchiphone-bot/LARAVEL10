@@ -28,7 +28,7 @@
                             @csrf
                             <div class="mb-3">
                                 <label for="audio_file" class="form-label">Selecione o arquivo de áudio (opus,mp3, mp4, mpeg, mpga, m4a, wav, webm)</label>
-                                <input class="form-control" type="file" id="audio_file" name="audio_file" accept=".opus,.mp3,.mp4,.mpeg,.mpga,.m4a,.wav,.webm" required>
+                                <input class="form-control" type="file" id="audio_file" name="audio_file" accept=".mp3,.mp4,.mpeg,.mpga,.m4a,.wav,.webm" required>
                             </div>
                             <button type="submit" class="btn btn-primary">Transcrever e Traduzir</button>
                         </form>
@@ -36,7 +36,7 @@
                         @if (isset($transcribedText) && !empty($transcribedText))
                             <div class="mt-4">
                                 <hr>
-                                <h5 class="mt-3">Texto Transcrito (Espanhol):</h5>
+                                <h5 class="mt-3">Texto Transcrito: Espanhol</h5>
                                 <div class="p-3 bg-light border rounded">
                                     <p>{{ $transcribedText }}</p>
                                 </div>
