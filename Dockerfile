@@ -25,11 +25,14 @@ RUN chmod +x /usr/local/bin/install-php-extensions && sync && install-php-extens
 
 # Install Microsoft ODBC driver and build deps, then compile sqlsrv/pdo_sqlsrv via PECL
 RUN set -ex; \
+    # ensure keyring location exists and import key to it
+    mkdir -p /usr/share/keyrings; \
+    curl -sSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /usr/share/keyrings/microsoft-prod.gpg || true; \
     # add MS repo list (produces /etc/apt/sources.list.d/mssql-release.list)
     curl -sSL https://packages.microsoft.com/config/debian/13/prod.list -o /etc/apt/sources.list.d/mssql-release.list || true; \
     apt-get update && apt-get install -y --no-install-recommends unixodbc-dev gnupg ca-certificates build-essential g++ make \
         && rm -rf /var/lib/apt/lists/*; \
-    # import key if missing
+    # import key to trusted store as fallback
     curl -sSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /etc/apt/trusted.gpg.d/microsoft.gpg || true; \
     apt-get update; \
     ACCEPT_EULA=Y apt-get install -y --no-install-recommends msodbcsql18 || true; \
