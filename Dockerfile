@@ -1,83 +1,65 @@
-FROM php:8.1-fpm
+# Use Debian 12 (bookworm) — compatível com msodbcsql18/sqlsrv
+FROM php:8.1-fpm-bookworm
 
-# Set working directory
+# Ambiente não-interativo + aceitar EULA da MS p/ ODBC
+ENV DEBIAN_FRONTEND=noninteractive \
+    ACCEPT_EULA=Y
+
 WORKDIR /var/www
 
-# Add docker php ext repo
+# Baixa o instalador de extensões do mlocati (IPE)
 ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+RUN chmod +x /usr/local/bin/install-php-extensions
 
-# Install php extensions
-RUN chmod +x /usr/local/bin/install-php-extensions && sync && install-php-extensions mbstring pdo_mysql pdo_sqlsrv zip exif pcntl gd memcached
-
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpng-dev \
-    libjpeg62-turbo-dev \
-    libfreetype6-dev \
-    locales \
-    zip \
-    jpegoptim optipng pngquant gifsicle \
-    unzip \
-    git \
-    curl \
-    lua-zlib-dev \
+# Dependências do sistema (nginx, supervisor, etc.)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git curl unzip nano \
+    nginx supervisor \
     libmemcached-dev \
-    nginx \
-    nano
-
-# Install supervisor
-RUN apt-get install -y supervisor
-
-# Install composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
-#solução pra conexão do sqlsrv
-RUN apt-get update -yqq \
-    && apt-get install -y --no-install-recommends openssl \
-    && sed -i -E 's/(CipherString\s*=\s*DEFAULT@SECLEVEL=)2/\11/' /etc/ssl/openssl.cnf \
+    unixodbc unixodbc-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Add user for laravel application
-RUN groupadd -g 1000 www
-RUN useradd -u 1000 -ms /bin/bash -g www www
+# Extensões PHP (o IPE resolve libs e PECL automaticamente)
+# Separei sqlsrv/pdo_sqlsrv para facilitar troubleshooting se algo falhar
+RUN install-php-extensions mbstring pdo_mysql zip exif pcntl gd memcached
+RUN install-php-extensions sqlsrv pdo_sqlsrv
 
-# Copy code to /var/www
-COPY --chown=www:www-data . /var/www
+# Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# add root to www group
-RUN chmod -R ug+w /var/www/storage
+# Usuário de aplicação
+RUN groupadd -g 1000 www && useradd -u 1000 -ms /bin/bash -g www www
 
-# Copy nginx/php/supervisor configs
-RUN cp docker/supervisor.conf /etc/supervisord.conf
-RUN cp docker/php.ini /usr/local/etc/php/conf.d/app.ini
-RUN cp docker/nginx.conf /etc/nginx/sites-enabled/default
+# ...
+COPY --chown=www:www composer.json composer.lock ./
+# (opcional) baixar vendors sem autoloader/scripts – apenas cache
+RUN composer install --no-interaction --prefer-dist --no-autoloader --no-scripts || true
 
-# PHP Error Log Files
-RUN mkdir /var/log/php
-RUN touch /var/log/php/errors.log && chmod 777 /var/log/php/errors.log
+# Agora copie o restante do código (inclui app/helpers.php)
+COPY --chown=www:www . .
 
-# Deployment steps - quando for pra produção, inverter as linhas
-RUN composer install --optimize-autoloader
-# RUN composer install --optimize-autoloader --no-dev
-RUN chmod +x /var/www/docker/run.sh
+# Gere autoloader e rode scripts com o código já presente
+RUN composer dump-autoload -o \
+ && composer install --no-interaction --prefer-dist
+# ...
 
-#correcao do nodejs
-# RUN apt-get update
-# RUN apt-get remove nodejs
-# RUN apt-get update
-# RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-# RUN apt-get install -y nodejs
+# Agora copie o restante do código
+COPY --chown=www:www . .
 
-#link pra re-instalacao do breeze
-#https://laravel.com/docs/10.x/starter-kits#main-content
+# Permissões de storage/logs
+RUN chmod -R ug+w storage bootstrap/cache
+
+# Configs
+RUN cp docker/supervisor.conf /etc/supervisord.conf \
+ && cp docker/php.ini /usr/local/etc/php/conf.d/app.ini \
+ && cp docker/nginx.conf /etc/nginx/sites-enabled/default
+
+# Logs PHP
+RUN mkdir -p /var/log/php && touch /var/log/php/errors.log && chmod 777 /var/log/php/errors.log
+
+# Script de entrada: roda comandos do artisan e sobe o supervisord (que gerencia php-fpm + nginx)
+COPY docker/run.sh /usr/local/bin/run.sh
+RUN chmod +x /usr/local/bin/run.sh
 
 EXPOSE 80
-
-#ENTRYPOINT ["/var/www/docker/run.sh"]
-ENTRYPOINT ["php","artisan","cache:clear"]
-ENTRYPOINT ["php", "artisan", "route:cache"]
-ENTRYPOINT ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+ENTRYPOINT ["/usr/local/bin/run.sh"]
