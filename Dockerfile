@@ -6,11 +6,17 @@ WORKDIR /var/www
 # Add docker php ext repo
 ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
 
+# Ensure tools to import repository keys are available before install-php-extensions
+RUN apt-get update && apt-get install -y --no-install-recommends gnupg curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Add Microsoft GPG key (needed for pdo_sqlsrv installation) to avoid OpenPGP signature errors
+RUN curl -sSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /etc/apt/trusted.gpg.d/microsoft.gpg || true
+
 # Install php extensions
-RUN chmod +x /usr/local/bin/install-php-extensions && sync && install-php-extensions mbstring pdo_mysql pdo_sqlsrv zip exif pcntl gd memcached
+RUN chmod +x /usr/local/bin/install-php-extensions && sync && install-php-extensions mbstring pdo_mysql zip exif pcntl gd memcached
 
-
-# Install dependencies and ffmpeg/ffprobe
+# Install dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpng-dev \
@@ -25,8 +31,7 @@ RUN apt-get update && apt-get install -y \
     lua-zlib-dev \
     libmemcached-dev \
     nginx \
-    nano \
-    ffmpeg
+    nano
 
 # Install supervisor
 RUN apt-get install -y supervisor
