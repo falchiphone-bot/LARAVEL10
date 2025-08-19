@@ -6,34 +6,8 @@ WORKDIR /var/www
 # Add docker php ext repo
 ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
 
-# Ensure tools to import repository keys are available before install-php-extensions
-RUN apt-get update && apt-get install -y --no-install-recommends gnupg gnupg2 dirmngr curl ca-certificates apt-transport-https \
-    && rm -rf /var/lib/apt/lists/*
-
-# Add Microsoft GPG key (needed for pdo_sqlsrv installation) to avoid OpenPGP signature errors
-# Try fetching via HTTPS first, then via keyserver as fallback for key EE4D7792F748182B
-RUN set -ex; \
-    curl -sSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /etc/apt/trusted.gpg.d/microsoft.gpg || true; \
-    if ! gpg --list-packets /etc/apt/trusted.gpg.d/microsoft.gpg >/dev/null 2>&1; then \
-        echo 'Attempting keyserver fetch for EE4D7792F748182B'; \
-        gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys EE4D7792F748182B || true; \
-        gpg --export EE4D7792F748182B | gpg --dearmor > /etc/apt/trusted.gpg.d/microsoft.gpg || true; \
-    fi
-
-# Install php extensions (without pdo_sqlsrv - will be compiled manually)
-RUN chmod +x /usr/local/bin/install-php-extensions && sync && install-php-extensions mbstring pdo_mysql zip exif pcntl gd memcached
-
-# NOTE: Instalação do driver Microsoft ODBC e das extensões sqlsrv/pdo_sqlsrv
-# estava causando falhas de APT por problemas de chave GPG durante o build.
-# Para desbloquear o build e permitir que o ffmpeg esteja disponível (necessário
-# para php-ffmpeg), esse bloco foi removido temporariamente. Se precisar do
-# driver SQL Server, recomendo instalar localmente após o container estar estável
-# ou usar uma imagem base com o driver já disponível. Exemplo de passos manuais:
-#  - importar a chave oficial da Microsoft para /usr/share/keyrings
-#  - adicionar o repositório oficial
-#  - apt-get update && ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev
-#  - pecl install sqlsrv pdo_sqlsrv && docker-php-ext-enable sqlsrv pdo_sqlsrv
-
+# Install php extensions
+RUN chmod +x /usr/local/bin/install-php-extensions && sync && install-php-extensions mbstring pdo_mysql pdo_sqlsrv zip exif pcntl gd memcached
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
@@ -50,7 +24,6 @@ RUN apt-get update && apt-get install -y \
     lua-zlib-dev \
     libmemcached-dev \
     nginx \
-    ffmpeg \
     nano
 
 # Install supervisor
@@ -104,5 +77,7 @@ RUN chmod +x /var/www/docker/run.sh
 
 EXPOSE 80
 
-## Run supervisord as the container entrypoint (other artisan commands can be run via docker exec or in run.sh)
+#ENTRYPOINT ["/var/www/docker/run.sh"]
+ENTRYPOINT ["php","artisan","cache:clear"]
+ENTRYPOINT ["php", "artisan", "route:cache"]
 ENTRYPOINT ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
