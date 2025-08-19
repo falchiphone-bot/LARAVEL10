@@ -9,8 +9,7 @@ ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/do
 # Install php extensions
 RUN chmod +x /usr/local/bin/install-php-extensions && sync && install-php-extensions mbstring pdo_mysql pdo_sqlsrv zip exif pcntl gd memcached
 
-
-# Install dependencies and ffmpeg/ffprobe
+# Install dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpng-dev \
@@ -25,8 +24,7 @@ RUN apt-get update && apt-get install -y \
     lua-zlib-dev \
     libmemcached-dev \
     nginx \
-    nano \
-    ffmpeg
+    nano
 
 # Install supervisor
 RUN apt-get install -y supervisor
