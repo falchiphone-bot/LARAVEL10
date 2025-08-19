@@ -20,8 +20,23 @@ RUN set -ex; \
         gpg --export EE4D7792F748182B | gpg --dearmor > /etc/apt/trusted.gpg.d/microsoft.gpg || true; \
     fi
 
-# Install php extensions
-RUN chmod +x /usr/local/bin/install-php-extensions && sync && install-php-extensions mbstring pdo_mysql pdo_sqlsrv zip exif pcntl gd memcached
+# Install php extensions (without pdo_sqlsrv - will be compiled manually)
+RUN chmod +x /usr/local/bin/install-php-extensions && sync && install-php-extensions mbstring pdo_mysql zip exif pcntl gd memcached
+
+# Install Microsoft ODBC driver and build deps, then compile sqlsrv/pdo_sqlsrv via PECL
+RUN set -ex; \
+    # add MS repo list (produces /etc/apt/sources.list.d/mssql-release.list)
+    curl -sSL https://packages.microsoft.com/config/debian/13/prod.list -o /etc/apt/sources.list.d/mssql-release.list || true; \
+    apt-get update && apt-get install -y --no-install-recommends unixodbc-dev gnupg ca-certificates build-essential g++ make \
+        && rm -rf /var/lib/apt/lists/*; \
+    # import key if missing
+    curl -sSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /etc/apt/trusted.gpg.d/microsoft.gpg || true; \
+    apt-get update; \
+    ACCEPT_EULA=Y apt-get install -y --no-install-recommends msodbcsql18 || true; \
+    pecl channel-update pecl.php.net || true; \
+    pecl install sqlsrv || true; \
+    pecl install pdo_sqlsrv || true; \
+    docker-php-ext-enable sqlsrv pdo_sqlsrv || true;
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
