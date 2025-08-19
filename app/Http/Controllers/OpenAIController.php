@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Exceptions\OpenAI\ApiKeyMissingException;
-use App\Exceptions\OpenAI\NetworkException;
-use App\Services\OpenAIService;
 use Exception;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
+use Illuminate\Http\Request;
+use App\Services\OpenAIService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
+use App\Exceptions\OpenAI\NetworkException;
+use App\Exceptions\OpenAI\ApiKeyMissingException;
 
 class OpenAIController extends Controller
 {
@@ -23,6 +24,18 @@ class OpenAIController extends Controller
     {
         $this->openAIService = $openAIService;
     }
+
+public function convertOpusToMp3($inputPath, $outputPath)
+{
+    $ffmpeg = FFMpeg::create();
+    $audio = $ffmpeg->open($inputPath);
+
+    $format = new Mp3();
+    $format->setAudioKiloBitrate(192);
+
+    $audio->save($format, $outputPath);
+}
+
 
     /**
      * Test the getTextResponse method from OpenAIService.
@@ -117,4 +130,97 @@ class OpenAIController extends Controller
         return redirect()->route('openai.chat');
     }
 
+    /**
+     * Handles audio transcription and translation.
+     *
+     * @param Request $request
+     * @return JsonResponse|View|RedirectResponse
+     */
+    public function transcribe(Request $request): JsonResponse|View|RedirectResponse
+    {
+        if ($request->isMethod('post')) {
+            $request->validate([
+                'audio_file' => 'required|file|mimes:opus,mp3,mp4,mpeg,mpga,m4a,wav,webm',
+            ], [
+                'audio_file.required' => 'Por favor, envie um arquivo de áudio.',
+                'audio_file.mimes' => 'O formato do arquivo de áudio não é suportado. Use: opus, mp3, mp4, mpeg, mpga, m4a, wav, webm.',
+            ]);
+
+            $file = $request->file('audio_file');
+
+            //salvar audio com extensao antes de enviar
+            $extension = $file->getClientOriginalExtension();
+            $path = $file->storeAs('audios', uniqid() . '.' . $extension);
+            //pegar patch completo
+            $fullPath = Storage::path($path);
+
+
+            $error = null;
+            $transcribedText = '';
+            $translatedText = '';
+
+
+            try {
+                // 1. Transcribe Spanish audio to Spanish text
+                $transcriptionResponse = $this->openAIService->getTranscription($fullPath, 'es');
+
+                if (isset($transcriptionResponse['error'])) {
+                    $error = $transcriptionResponse['error']['message'] ?? 'Erro desconhecido ao transcrever o áudio.';
+                    Log::error('OpenAI Transcription API Error: ' . $error, ['response' => $transcriptionResponse]);
+                } else {
+                    $transcribedText = $transcriptionResponse['text'] ?? '';
+
+                    if ($transcribedText) {
+                        // 2. Translate the Spanish text to Portuguese
+                        $messages = [
+                            ['role' => 'system', 'content' => 'Você é um assistente de tradução.'],
+                            ['role' => 'user', 'content' => "Traduza o seguinte texto do espanhol para o português:\n\n" . $transcribedText],
+                        ];
+                        $translationResponse = $this->openAIService->getChatResponse($messages);
+
+                        if (isset($translationResponse['error'])) {
+                            $error = $translationResponse['error']['message'] ?? 'Erro desconhecido ao traduzir o texto.';
+                            Log::error('OpenAI Chat API Error for translation: ' . $error, ['response' => $translationResponse]);
+                        } else {
+                            $translatedText = $translationResponse['choices'][0]['message']['content'] ?? '';
+                        }
+                    } else {
+                        $error = 'Não foi possível extrair o texto do áudio. O áudio pode estar vazio ou em um formato não reconhecido.';
+                        Log::error($error, ['response' => $transcriptionResponse]);
+                    }
+                }
+
+            } catch (ApiKeyMissingException $e) {
+                $error = 'A chave da API OpenAI não foi configurada. Verifique seu arquivo .env.';
+                Log::error($error, ['exception' => $e]);
+            } catch (NetworkException $e) {
+                $error = 'Falha de comunicação com a API da OpenAI. Verifique a conexão e os logs.';
+                Log::error($error, ['exception' => $e]);
+            } catch (\InvalidArgumentException $e) {
+                $error = 'Erro: ' . $e->getMessage();
+                Log::error($error, ['exception' => $e]);
+            } catch (\Exception $e) {
+                $error = 'Ocorreu um erro inesperado: ' . $e->getMessage();
+                Log::error($error, ['exception' => $e]);
+            }
+
+            if ($request->wantsJson()) {
+                return $error
+                    ? response()->json(['error' => $error], 500)
+                    : response()->json(['transcribed_text' => $transcribedText, 'translated_text' => $translatedText]);
+            }
+
+            if ($error) {
+                return back()->with('error', $error)->withInput();
+            }
+
+            return view('openai.transcribe', [
+                'transcribedText' => $transcribedText,
+                'translatedText' => $translatedText,
+            ]);
+        }
+
+        // For GET requests, just show the view
+        return view('openai.transcribe');
+    }
 }

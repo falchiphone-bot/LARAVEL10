@@ -123,4 +123,48 @@ class OpenAIService
             throw new NetworkException('OpenAI API request failed: ' . $e->getMessage(), 0, $e);
         }
     }
+
+    /**
+     * Get a transcription from an audio file.
+     *
+     * @param string $audioFilePath The path to the audio file.
+     * @param string $language The language of the audio file in ISO-639-1 format.
+     * @param string $model The model to use.
+     * @return array The API response.
+     * @throws ApiKeyMissingException
+     * @throws NetworkException
+     * @throws \InvalidArgumentException
+     */
+    public function getTranscription(string $audioFilePath, string $language = 'es', string $model = 'whisper-1'): array
+    {
+        if (!$this->apiKey) {
+            throw new ApiKeyMissingException('OpenAI API key is not set.');
+        }
+
+        if (!file_exists($audioFilePath) || !is_readable($audioFilePath)) {
+            throw new \InvalidArgumentException("Audio file not found or is not readable at path: {$audioFilePath}");
+        }
+
+        try {
+            $response = $this->client->post('audio/transcriptions', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->apiKey,
+                ],
+                'multipart' => [
+                    [
+                        'name'     => 'file',
+                        'contents' => fopen($audioFilePath, 'r'),
+                        'filename' => basename($audioFilePath)
+                    ],
+                    ['name' => 'model', 'contents' => $model],
+                    ['name' => 'language', 'contents' => $language],
+                ],
+            ]);
+
+
+            return json_decode($response->getBody()->getContents(), true);
+        } catch (GuzzleException $e) {
+            throw new NetworkException('OpenAI API request failed: ' . $e->getMessage(), 0, $e);
+        }
+    }
 }
