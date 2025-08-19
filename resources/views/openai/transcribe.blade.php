@@ -27,27 +27,30 @@
                         <form action="{{ route('openai.transcribe') }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             <div class="mb-3">
-                                <label for="audio_file" class="form-label">Selecione o arquivo de áudio (opus,mp3, mp4, mpeg, mpga, m4a, wav, webm)</label>
-                                <input class="form-control" type="file" id="audio_file" name="audio_file" accept=".mp3,.mp4,.mpeg,.mpga,.m4a,.wav,.webm" required>
+                                <label for="audio_file" class="form-label">Selecione o arquivo de áudio (opus, mp3, mp4, mpeg, mpga, m4a, wav, webm)</label>
+                                <input class="form-control" type="file" id="audio_file" name="audio_file" accept=".opus,.mp3,.mp4,.mpeg,.mpga,.m4a,.wav,.webm" required>
                             </div>
-                            <button type="submit" class="btn btn-primary">Transcrever e Traduzir</button>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">Transcrever e Traduzir</button>
+                                <button type="button" class="btn btn-secondary" onclick="document.getElementById('audio_file').value = ''">Limpar</button>
+                            </div>
                         </form>
 
-                        @if (isset($transcribedText) && !empty($transcribedText))
+                        @if (session('transcribedText'))
                             <div class="mt-4">
                                 <hr>
-                                <h5 class="mt-3">Texto Transcrito: Espanhol</h5>
+                                <h5 class="mt-3">Texto Transcrito (Espanhol):</h5>
                                 <div class="p-3 bg-light border rounded">
-                                    <p>{{ $transcribedText }}</p>
+                                    <p>{{ session('transcribedText') }}</p>
                                 </div>
                             </div>
                         @endif
 
-                        @if (isset($translatedText) && !empty($translatedText))
+                        @if (session('translatedText'))
                             <div class="mt-4">
                                 <h5 class="mt-3">Texto Traduzido (Português):</h5>
                                 <div class="p-3 bg-light border rounded">
-                                    <p>{{ $translatedText }}</p>
+                                    <p>{{ session('translatedText') }}</p>
                                 </div>
                             </div>
                         @endif

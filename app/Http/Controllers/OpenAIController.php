@@ -140,29 +140,29 @@ public function convertOpusToMp3($inputPath, $outputPath)
     {
         if ($request->isMethod('post')) {
             $request->validate([
-                'audio_file' => 'required|file|mimes:opus,mp3,mp4,mpeg,mpga,m4a,wav,webm',
+                'audio_file' => 'required|file|mimes:mp3,mp4,mpeg,mpga,m4a,wav,webm',
             ], [
                 'audio_file.required' => 'Por favor, envie um arquivo de áudio.',
-                'audio_file.mimes' => 'O formato do arquivo de áudio não é suportado. Use: opus, mp3, mp4, mpeg, mpga, m4a, wav, webm.',
+                'audio_file.mimes' => 'O formato do arquivo de áudio não é suportado. Use: mp3, mp4, mpeg, mpga, m4a, wav, webm.',
             ]);
 
             $file = $request->file('audio_file');
-
-            //salvar audio com extensao antes de enviar
-            $extension = $file->getClientOriginalExtension();
-            $path = $file->storeAs('audios', uniqid() . '.' . $extension);
-            //pegar patch completo
-            $fullPath = Storage::path($path);
-
+            $filename = uniqid('audio_') . '.' . $file->getClientOriginalExtension();
+            $audioPath = storage_path('app/audio/' . $filename);
+            $file->move(storage_path('app/audio'), $filename);
 
             $error = null;
             $transcribedText = '';
             $translatedText = '';
 
-
             try {
                 // 1. Transcribe Spanish audio to Spanish text
-                $transcriptionResponse = $this->openAIService->getTranscription($fullPath, 'es');
+                $transcriptionResponse = $this->openAIService->getTranscription($audioPath, 'es');
+
+                // Apaga o arquivo após o envio para a IA
+                if (file_exists($audioPath)) {
+                    @unlink($audioPath);
+                }
 
                 if (isset($transcriptionResponse['error'])) {
                     $error = $transcriptionResponse['error']['message'] ?? 'Erro desconhecido ao transcrever o áudio.';
@@ -214,13 +214,12 @@ public function convertOpusToMp3($inputPath, $outputPath)
                 return back()->with('error', $error)->withInput();
             }
 
-            return view('openai.transcribe', [
-                'transcribedText' => $transcribedText,
-                'translatedText' => $translatedText,
-            ]);
+            return redirect()->route('openai.transcribe')
+                ->with('transcribedText', $transcribedText)
+                ->with('translatedText', $translatedText);
         }
 
-        // For GET requests, just show the view
+        // For GET requests, just show the view. Data will be available from the session flash.
         return view('openai.transcribe');
     }
 }
