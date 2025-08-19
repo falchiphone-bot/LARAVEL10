@@ -7,11 +7,18 @@ WORKDIR /var/www
 ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
 
 # Ensure tools to import repository keys are available before install-php-extensions
-RUN apt-get update && apt-get install -y --no-install-recommends gnupg curl ca-certificates \
+RUN apt-get update && apt-get install -y --no-install-recommends gnupg gnupg2 dirmngr curl ca-certificates apt-transport-https \
     && rm -rf /var/lib/apt/lists/*
 
 # Add Microsoft GPG key (needed for pdo_sqlsrv installation) to avoid OpenPGP signature errors
-RUN curl -sSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /etc/apt/trusted.gpg.d/microsoft.gpg || true
+# Try fetching via HTTPS first, then via keyserver as fallback for key EE4D7792F748182B
+RUN set -ex; \
+    curl -sSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /etc/apt/trusted.gpg.d/microsoft.gpg || true; \
+    if ! gpg --list-packets /etc/apt/trusted.gpg.d/microsoft.gpg >/dev/null 2>&1; then \
+        echo 'Attempting keyserver fetch for EE4D7792F748182B'; \
+        gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys EE4D7792F748182B || true; \
+        gpg --export EE4D7792F748182B | gpg --dearmor > /etc/apt/trusted.gpg.d/microsoft.gpg || true; \
+    fi
 
 # Install php extensions
 RUN chmod +x /usr/local/bin/install-php-extensions && sync && install-php-extensions mbstring pdo_mysql pdo_sqlsrv zip exif pcntl gd memcached
