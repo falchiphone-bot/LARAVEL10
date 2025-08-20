@@ -120,7 +120,7 @@
             <th class="bg-gray-600 text-left px-6 py-4">Matéria com Marcelo Enrique Maçola Filho</th>
             <td class="px-6 py-4 text-center">
 
-              <div class="mt-4">
+
                 <td class="px-6 py-4 text-center">
                     <a href="{{ route('download', ['id_arquivo' => 40991]) }}"
                     class="flex items-center justify-center gap-2 px-4 py-2 bg-gray-800 rounded-lg shadow-md text-blue-300 font-semibold hover:text-blue-400 hover:underline hover:bg-gray-700 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 w-full"
@@ -136,7 +136,7 @@
 
 
                 </td>
-              </div>
+             
             </td>
         </tr>
 
