@@ -175,6 +175,33 @@
     </li>
 </ul>
 
+<ul class="text-gray-300 text-lg text-center mt-4">
+    <li>
+        <a href="{{ url('tanabisaf.jogos.2025.sub23.rodada18') }}"
+           class="block p-2 text-blue-400 underline hover:text-red-500">
+            Rodada 18
+        </a>
+    </li>
+</ul>
+
+<ul class="text-gray-300 text-lg text-center mt-4">
+    <li>
+        <a href="{{ url('tanabisaf.jogos.2025.sub23.rodada19') }}"
+           class="block p-2 text-blue-400 underline hover:text-red-500">
+            Rodada 19
+        </a>
+    </li>
+</ul>
+
+<ul class="text-gray-300 text-lg text-center mt-4">
+    <li>
+        <a href="{{ url('tanabisaf.jogos.2025.sub23.rodada20') }}"
+           class="block p-2 text-blue-400 underline hover:text-red-500">
+            Rodada 20
+        </a>
+    </li>
+</ul>
+
   <footer class="mt-8 text-gray-400 text-sm">
     <p>&copy; 2025 TANABI SAF. Todos os direitos reservados.</p>
     <p>Desenvolvido por <a href="
