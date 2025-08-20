@@ -116,6 +116,53 @@
             </td>
         </tr>
 
+
+            <tr>
+                <th class="bg-gray-600 text-left px-6 py-4">Entrevista do presidente PEDRO ROBERTO FALCHI depois do jogo</th>
+                <td class="px-6 py-4 text-center">
+
+                <div class="mt-4">
+                    <iframe width="480" height="315"
+                            src="https://www.youtube.com/embed/I6IG-RIc2pM?start=8882"
+                            title="YouTube video player"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th class="bg-gray-600 text-left px-6 py-4">Entrevista do técnico DAVI ZAQUEO depois do jogo</th>
+                <td class="px-6 py-4 text-center">
+
+                <div class="mt-4">
+                    <iframe width="480" height="315"
+                            src="https://www.youtube.com/embed/I6IG-RIc2pM?start=8425"
+                            title="YouTube video player"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th class="bg-gray-600 text-left px-6 py-4">Entrevista do Marcelo Enrique Maçola Filho depois do jogo</th>
+                <td class="px-6 py-4 text-center">
+
+                <div class="mt-4">
+                    <iframe width="480" height="315"
+                            src="https://www.youtube.com/embed/I6IG-RIc2pM?start=8703"
+                            title="YouTube video player"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                </div>
+                </td>
+            </tr>
+
+
         <tr>
              <th class="bg-gray-600 text-left px-6 py-4">Matéria com Marcelo Enrique Maçola Filho</th>
             <td class="px-6 py-4 text-center">
@@ -126,7 +173,6 @@
               </a>
             </td>
         </tr>
-
 
         </tbody>
     </table>
