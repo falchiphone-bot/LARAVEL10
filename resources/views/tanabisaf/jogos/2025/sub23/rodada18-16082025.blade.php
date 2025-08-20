@@ -100,6 +100,18 @@
             </td>
           </tr>
 
+          <tr>
+            <th class="bg-gray-600 text-left px-6 py-4">TANABI NA A4</th>
+            <td class="px-6 py-4 text-center">
+
+                 <div class="mt-4">
+                    <iframe width="480" height="320" src="https://www.youtube.com/shorts/IWEfTp7XzMQ" title="JOGO COMPLETO: TANABI X INDEPENDENTE |SEMIFINAL | PAULISTA SUB-23 2ª DIV SICREDI 2025" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                </div>
+            </td>
+          </tr>
+
+
+
 
         <tr>
             <th class="bg-gray-600 text-left px-6 py-4">Gol de Marcelo Enrique Maçola Filho - (Marcelo)    </th>
