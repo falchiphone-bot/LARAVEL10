@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nginx supervisor \
     libmemcached-dev \
     unixodbc unixodbc-dev \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # Extensões PHP (o IPE resolve libs e PECL automaticamente)

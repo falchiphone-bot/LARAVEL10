@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\LancamentosController;
 use App\Http\Controllers\OpenAIController;
 use App\Http\Controllers\OAuthController;
+use App\Http\Controllers\MailController;
 use App\Http\Services;
 use App\Http\Controllers\PacpieController;
 use App\Http\Controllers\OrigemPacpieController;
@@ -25,6 +26,10 @@ use Illuminate\Support\Str;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+
+// OpenAI Transcribe (sincrono/assíncrono)
+Route::match(['get','post'], '/openai/transcribe', [OpenAIController::class, 'transcribe'])->name('openai.transcribe');
+Route::get('/openai/transcribe/status/{jobId}', [OpenAIController::class, 'transcribeStatus'])->name('openai.transcribe.status');
 
 
 Route::get('/vec-galeria/escritorio-2025', function () {
@@ -432,7 +437,7 @@ Route::get('webhook/politicaprivacidade', function ()
 Route::get('auth/google/', [GoogleController::class, 'redirectToGoogle']);
 Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
-Route::get('auth/register', [App\Http\Controllers\RegisteredUserController::class, 'create'])->name('auth.register');
+Route::get('auth/register', [App\Http\Controllers\Auth\RegisteredUserController::class, 'create'])->name('auth.register');
 Route::middleware('auth')->group(function () {
 
 
@@ -617,7 +622,7 @@ Route::get('/whatsapp/enviarFlowAvaliacao29012024_01032024/{recipient_id}/{entry
 
 
  Route::get('/whatsapp/atualizaregistro/{id}', [App\Http\Controllers\ApiController::class, 'atualizaregistro'])->name('whatsapp.atualizaregistro');
- Route::get('/whatsapp', [ApiController::class,'indexlista']);
+ Route::get('/whatsapp', [App\Http\Controllers\ApiController::class,'indexlista']);
  Route::get('/whatsapp/indexlista', [App\Http\Controllers\ApiController::class, 'indexlista'])->name('whatsapp.indexlista');
 
  Route::get('/whatsapp/salvararquivoPostWebhook', [App\Http\Controllers\ApiController::class, 'salvararquivoPostWebhook'])->name('whatsapp.salvararquivoPostWebhook');

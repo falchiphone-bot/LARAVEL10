@@ -212,11 +212,11 @@
                             <li>
                                 <a href="/profile" data-bs-toggle="tooltip" data-bs-placement="top"
                                     data-bs-custom-class="custom-tooltip"
-                                    data-bs-title="Email: {{ Auth::user()->email }} Clique para efetuar logout, alterar nome, senha, alterar email(atualizar o cadastro)."
+                                    data-bs-title="Email: {{ optional(Auth::user())->email ?? 'Não autenticado' }} Clique para efetuar logout, alterar nome, senha, alterar email(atualizar o cadastro)."
                                     class="nav-link text-white">
                                     <i class="fa-solid fa-user"></i>
 
-                                    Perfil do usuário: {{ Auth::user()->name }}
+                                    Perfil do usuário: {{ optional(Auth::user())->name ?? 'Visitante' }}
 
                                 </a>
                             </li>
