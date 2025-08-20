@@ -23,10 +23,16 @@ class OpenAIController extends Controller
     /**
      * @param OpenAIService $openAIService
      */
+
+
     public function __construct(OpenAIService $openAIService)
     {
-        $this->openAIService = $openAIService;
+        $this->middleware('auth');
+        $this->middleware(['permission:OPENAI - CHAT'])->only('chat');
+        $this->middleware(['permission:OPENAI - TRANSCRIBE - ESPANHOL'])->only('transcribe');
+         $this->openAIService = $openAIService;
     }
+
 
 public function convertOpusToMp3(string $inputPath, string $outputPath): void
 {
