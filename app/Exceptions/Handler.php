@@ -3,6 +3,9 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Auth\Access\AuthorizationException;
+use Spatie\Permission\Exceptions\UnauthorizedException as SpatieUnauthorizedException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -43,6 +46,31 @@ class Handler extends ExceptionHandler
     {
         $this->reportable(function (Throwable $e) {
             //
+        });
+
+        // Retorna JSON padronizado quando faltar permissão e o client espera JSON
+        $this->renderable(function (SpatieUnauthorizedException $e, $request) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'error' => 'SEM PERMISSÃO PARA ESTE SERVIÇO. CONSULTE O ADMINISTRADOR!'
+                ], 403);
+            }
+        });
+
+        $this->renderable(function (AuthorizationException $e, $request) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'error' => 'SEM PERMISSÃO PARA ESTE SERVIÇO. CONSULTE O ADMINISTRADOR!'
+                ], 403);
+            }
+        });
+
+        $this->renderable(function (HttpExceptionInterface $e, $request) {
+            if ($e->getStatusCode() === 403 && $request->expectsJson()) {
+                return response()->json([
+                    'error' => 'SEM PERMISSÃO PARA ESTE SERVIÇO. CONSULTE O ADMINISTRADOR!'
+                ], 403);
+            }
         });
     }
 }
