@@ -403,7 +403,8 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
      */
     public function loadChat(OpenAIChat $chat, Request $request): RedirectResponse
     {
-        if ($chat->user_id !== Auth::id()) {
+        // Comparação com cast para evitar problemas de tipo (SQL Server pode retornar string)
+        if ((int) $chat->user_id !== (int) Auth::id()) {
             abort(403);
         }
 
