@@ -917,10 +917,13 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     })->name('openai.menu');
     Route::match(['get', 'post'], '/openai/chat', [OpenAIController::class, 'chat'])->name('openai.chat');
     Route::post('/openai/chat/clear', [OpenAIController::class, 'clearChat'])->name('openai.chat.clear');
+    Route::get('/openai/chat/new', [OpenAIController::class, 'newChat'])->name('openai.chat.new');
     // Conversas salvas
     Route::get('/openai/chats', [OpenAIController::class, 'chats'])->name('openai.chats');
     Route::post('/openai/chat/save', [OpenAIController::class, 'saveChat'])->name('openai.chat.save');
     Route::get('/openai/chat/load/{chat}', [OpenAIController::class, 'loadChat'])->name('openai.chat.load');
+    Route::match(['put','patch'], '/openai/chat/{chat}', [OpenAIController::class, 'updateChat'])->name('openai.chat.update');
+    Route::delete('/openai/chat/{chat}', [OpenAIController::class, 'deleteChat'])->name('openai.chat.delete');
     Route::match(['get', 'post'], '/openai/transcribe', [OpenAIController::class, 'transcribe'])->name('openai.transcribe');
 });
 

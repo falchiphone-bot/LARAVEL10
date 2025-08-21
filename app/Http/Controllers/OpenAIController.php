@@ -18,6 +18,7 @@ use App\Jobs\TranscribeAudioJob;
 use App\Models\OpenAIChat;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class OpenAIController extends Controller
 {
@@ -31,7 +32,7 @@ class OpenAIController extends Controller
     public function __construct(OpenAIService $openAIService)
     {
         $this->middleware('auth');
-        $this->middleware(['permission:OPENAI - CHAT'])->only('chat', 'chats', 'saveChat', 'loadChat');
+        $this->middleware(['permission:OPENAI - CHAT'])->only('chat', 'chats', 'saveChat', 'loadChat', 'updateChat', 'deleteChat', 'newChat');
         $this->middleware(['permission:OPENAI - TRANSCRIBE - ESPANHOL'])->only('transcribe');
          $this->openAIService = $openAIService;
     }
@@ -158,6 +159,22 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
 
             // Salva o histórico atualizado na sessão
             $request->session()->put('openai_messages', $messages);
+
+            // Se a conversa atual já estiver salva, atualiza automaticamente no banco
+            $currentId = (int) $request->session()->get('openai_current_chat_id');
+            if ($currentId > 0) {
+                $affected = DB::table('open_a_i_chats')
+                    ->where('id', $currentId)
+                    ->where('user_id', Auth::id())
+                    ->update([
+                        'messages'   => json_encode($messages, JSON_UNESCAPED_UNICODE),
+                        'updated_at' => DB::raw('GETDATE()'),
+                    ]);
+                if ($affected === 0) {
+                    // se não atualizou (não existe ou não pertence), remove o ponteiro
+                    $request->session()->forget('openai_current_chat_id');
+                }
+            }
         }
 
         if ($request->wantsJson()) {
@@ -185,6 +202,7 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
     public function clearChat(Request $request): RedirectResponse
     {
         $request->session()->forget('openai_messages');
+        $request->session()->forget('openai_current_chat_id');
 
         return redirect()->route('openai.chat');
     }
@@ -380,22 +398,101 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
             return back()->with('error', 'Nada para salvar. Envie ao menos uma mensagem e obtenha uma resposta.');
         }
 
-        $validated = $request->validate([
+        $request->validate([
             'title' => 'nullable|string|max:100',
+            'mode'  => 'nullable|in:update,new',
         ]);
 
-        $lastUser = collect($messages)->reverse()->firstWhere('role', 'user');
-        $title = $validated['title'] ?? ($lastUser['content'] ?? 'Conversa');
-        $title = Str::limit(trim(preg_replace('/\s+/', ' ', (string) $title)), 100, '…');
+        $rawTitle = $request->input('title');
+        $titleNormalized = null;
+        if ($rawTitle !== null && trim($rawTitle) !== '') {
+            $titleNormalized = Str::limit(trim(preg_replace('/\s+/', ' ', (string) $rawTitle)), 100, '…');
+        }
 
-        // Deixe o SQL Server preencher created_at/updated_at (defaults da migration)
-        OpenAIChat::insert([
+        $currentId = (int) $request->session()->get('openai_current_chat_id');
+        $mode = $request->input('mode'); // 'update' ou 'new'
+
+        // Atualizar conversa existente quando houver ID e modo != new
+        if ($currentId > 0 && $mode !== 'new') {
+            $data = [
+                'messages'   => json_encode($messages, JSON_UNESCAPED_UNICODE),
+                'updated_at' => DB::raw('GETDATE()'),
+            ];
+            if ($titleNormalized) {
+                $data['title'] = $titleNormalized;
+            }
+
+            $affected = DB::table('open_a_i_chats')
+                ->where('id', $currentId)
+                ->where('user_id', Auth::id())
+                ->update($data);
+
+            if ($affected > 0) {
+                return redirect()->route('openai.chats')->with('success', 'Conversa atualizada com sucesso.');
+            } else {
+                // Se a referência não existir mais, esquecer e seguir para salvar como nova
+                $request->session()->forget('openai_current_chat_id');
+            }
+        }
+
+        // Salvar como nova
+        $lastUser = collect($messages)->reverse()->firstWhere('role', 'user');
+        $title = $titleNormalized ?? Str::limit(trim(preg_replace('/\s+/', ' ', (string)($lastUser['content'] ?? 'Conversa'))), 100, '…');
+
+        $newId = DB::table('open_a_i_chats')->insertGetId([
             'user_id'  => Auth::id(),
             'title'    => $title,
             'messages' => json_encode($messages, JSON_UNESCAPED_UNICODE),
+            // created_at e updated_at usam defaults da tabela (GETDATE())
         ]);
 
+        $request->session()->put('openai_current_chat_id', (int) $newId);
+
         return redirect()->route('openai.chats')->with('success', 'Conversa salva com sucesso.');
+    }
+
+    /**
+     * Renomeia uma conversa salva do usuário.
+     */
+    public function updateChat(OpenAIChat $chat, Request $request): RedirectResponse
+    {
+        if ((int) $chat->user_id !== (int) Auth::id()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:100',
+        ]);
+
+        $title = Str::limit(trim(preg_replace('/\s+/', ' ', (string) $validated['title'])), 100, '…');
+
+        DB::table('open_a_i_chats')
+            ->where('id', $chat->id)
+            ->update([
+                'title' => $title,
+                'updated_at' => DB::raw('GETDATE()'),
+            ]);
+
+        return back()->with('success', 'Conversa renomeada com sucesso.');
+    }
+
+    /**
+     * Exclui uma conversa salva do usuário.
+     */
+    public function deleteChat(OpenAIChat $chat, Request $request): RedirectResponse
+    {
+        if ((int) $chat->user_id !== (int) Auth::id()) {
+            abort(403);
+        }
+
+        DB::table('open_a_i_chats')->where('id', $chat->id)->delete();
+
+        // Se a conversa excluída estiver ativa na sessão, remover ponteiros
+        if ((int) $request->session()->get('openai_current_chat_id') === (int) $chat->id) {
+            $request->session()->forget('openai_current_chat_id');
+        }
+
+        return back()->with('success', 'Conversa excluída.');
     }
 
     /**
@@ -403,13 +500,24 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
      */
     public function loadChat(OpenAIChat $chat, Request $request): RedirectResponse
     {
-        // Comparação com cast para evitar problemas de tipo (SQL Server pode retornar string)
+        // Comparação com cast para evitar problemas de tipo
         if ((int) $chat->user_id !== (int) Auth::id()) {
             abort(403);
         }
 
         $request->session()->put('openai_messages', $chat->messages ?? []);
+        $request->session()->put('openai_current_chat_id', (int) $chat->id);
 
         return redirect()->route('openai.chat')->with('success', 'Conversa carregada.');
+    }
+
+    /**
+     * Inicia um novo chat limpando histórico e ponteiro da conversa ativa.
+     */
+    public function newChat(Request $request): RedirectResponse
+    {
+        $request->session()->forget('openai_messages');
+        $request->session()->forget('openai_current_chat_id');
+        return redirect()->route('openai.chat');
     }
 }

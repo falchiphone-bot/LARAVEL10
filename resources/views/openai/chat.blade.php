@@ -9,8 +9,18 @@
         <form action="{{ route('openai.chat.save') }}" method="POST" class="d-inline-flex align-items-center gap-2">
             @csrf
             <input type="text" name="title" class="form-control form-control-sm" placeholder="Título (opcional)" style="width: 220px;">
+            @if(session('openai_current_chat_id'))
+                <div class="form-check m-0">
+                    <input class="form-check-input" type="checkbox" id="saveAsNew" name="mode" value="new">
+                    <label class="form-check-label small" for="saveAsNew">Salvar como nova</label>
+                </div>
+            @endif
             <button type="submit" class="btn btn-sm btn-success">Salvar conversa</button>
         </form>
+        @if(session('openai_current_chat_id'))
+            <span class="badge bg-success">Conversa salva ativa</span>
+            <small class="text-muted">Novas mensagens serão gravadas automaticamente.</small>
+        @endif
     </div>
 
     <h1 class="h4 mb-3">Consultar API da OpenAI</h1>
