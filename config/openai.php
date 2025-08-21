@@ -4,7 +4,7 @@ return [
     'chat' => [
         'search' => [
             // Habilitado por checkbox no formulário; isto define apenas o padrão se você quiser usar em outro lugar
-            'enabled_default' => env('OPENAI_CHAT_SEARCH_ENABLED_DEFAULT', false),
+            'enabled_default' => env('OPENAI_CHAT_SEARCH_ENABLED_DEFAULT', true),
             // Quantidade máxima de termos extraídos do prompt para busca
             'max_terms' => env('OPENAI_CHAT_SEARCH_MAX_TERMS', 5),
             // Tamanho mínimo do termo (nº de caracteres)
@@ -16,7 +16,7 @@ return [
             // Quantas mensagens recentes extrair de cada conversa encontrada
             'tail_messages_per_conversation' => env('OPENAI_CHAT_SEARCH_TAIL_PER_CONV', 6),
             // Permitir buscar em todas as conversas (não só do usuário atual)
-            'allow_all' => env('OPENAI_CHAT_SEARCH_ALLOW_ALL', false),
+            'allow_all' => env('OPENAI_CHAT_SEARCH_ALLOW_ALL', true),
             // Se definido, exige essa permissão para usar escopo "todas"
             'allow_all_permission' => env('OPENAI_CHAT_SEARCH_ALLOW_ALL_PERMISSION', null),
             // Texto do preâmbulo do contexto injetado

@@ -122,7 +122,7 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
 
         $error = null;
 
-        // Adiciona a nova mensagem do usuário ao histórico (apenas em requisições POST)
+    // Adiciona a nova mensagem do usuário ao histórico (apenas em requisições POST)
         if ($request->isMethod('post')) {
             $prompt = $request->input('prompt');
             $messages[] = ['role' => 'user', 'content' => $prompt];
@@ -130,7 +130,12 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
             // Prepara mensagens para envio à API (com possível contexto de conversas salvas)
             $messagesToSend = $messages;
 
-            if ($request->boolean('search_in_chats')) {
+        // Preferências de busca: lembrar na sessão e usar default do config
+        $searchPrefDefault = (bool) config('openai.chat.search.enabled_default', false);
+        $searchInChats = $request->boolean('search_in_chats', (bool) $request->session()->get('openai_search_in_chats', $searchPrefDefault));
+        $request->session()->put('openai_search_in_chats', $searchInChats);
+
+        if ($searchInChats) {
                 $cfg = config('openai.chat.search');
                 $maxTerms   = (int) ($cfg['max_terms'] ?? 5);
                 $minLen     = (int) ($cfg['min_term_length'] ?? 4);
@@ -145,33 +150,93 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
                     ->unique()
                     ->take($maxTerms)
                     ->values();
+                // Normaliza termos: remove pontuação e aplica lower para comparação case-insensitive em drivers não-sqlsrv
+                $termsNorm = $terms->map(function ($w) {
+                    $w = preg_replace('/[\p{P}]+/u', '', (string) $w) ?? '';
+                    return mb_strtolower($w);
+                })->filter()->values();
 
                 if ($terms->isNotEmpty()) {
                     $allowAll = (bool) ($cfg['allow_all'] ?? false);
                     $perm = $cfg['allow_all_permission'] ?? null;
                     $userCanAll = $allowAll && (!$perm || $request->user()->can($perm));
-                    $scope = $userCanAll ? ($request->input('search_scope', 'mine')) : 'mine';
-
-                    $query = DB::table('open_a_i_chats')
-                        ->select('title', 'messages', 'updated_at');
-
-                    if ($scope !== 'all') {
-                        $query->where('user_id', Auth::id());
-                    }
+            // Lê e persiste o escopo escolhido (quando permitido); caso contrário força 'mine'
+            $scope = $userCanAll ? ($request->input('search_scope', (string) $request->session()->get('openai_search_scope', 'mine'))) : 'mine';
+            $request->session()->put('openai_search_scope', $scope);
 
                     $collation = (string) (config('openai.chat.search.collation') ?? 'Latin1_General_CI_AI');
+                    $driver = DB::connection()->getDriverName(); // sqlsrv, mysql, pgsql, sqlite
 
-                    $query->where(function ($q) use ($terms, $collation) {
-                        foreach ($terms as $t) {
-                            $safe = str_replace(['%', '_'], ['[%]', '[_]'], $t);
-                            $q->orWhereRaw("messages COLLATE $collation LIKE ?", ['%' . $safe . '%'])
-                              ->orWhereRaw("title COLLATE $collation LIKE ?",    ['%' . $safe . '%']);
+                    // Heurística: extrair possível frase (ex.: endereços)
+                    $addressPhrase = null;
+                    if (preg_match('/\b(Rua|Avenida|Av\.|Travessa|Tv\.|Rodovia|Estrada|Praça|Praca)\s+([\p{L}\d\s\.-]+?)(?=[\?\.,;\n]|$)/u', (string) $prompt, $m)) {
+                        $addressPhrase = trim($m[0]);
+                    }
+                    $addressPhraseNorm = $addressPhrase ? mb_strtolower(preg_replace('/[\p{P}]+/u', '', $addressPhrase)) : null;
+
+                    $runSearch = function (string $scopeToUse, bool $usePhraseOnly = false) use ($terms, $termsNorm, $maxQuery, $collation, $driver, $addressPhrase, $addressPhraseNorm) {
+                        $q = DB::table('open_a_i_chats')->select('title', 'messages', 'updated_at');
+                        if ($scopeToUse !== 'all') {
+                            $q->where('user_id', Auth::id());
                         }
-                    })
-                    ->orderBy('updated_at', 'desc')
-                    ->limit($maxQuery);
+                        $q->where(function ($qq) use ($terms, $termsNorm, $collation, $driver, $addressPhrase, $addressPhraseNorm, $usePhraseOnly) {
+                            if (!$usePhraseOnly) {
+                                foreach ($terms as $idx => $t) {
+                                    if ($driver === 'sqlsrv') {
+                                        $safe = str_replace(['%', '_'], ['[%]', '[_]'], $t);
+                                        $qq->orWhereRaw("messages COLLATE $collation LIKE ?", ['%' . $safe . '%'])
+                                           ->orWhereRaw("title COLLATE $collation LIKE ?",    ['%' . $safe . '%']);
+                                    } elseif ($driver === 'pgsql') {
+                                        // ILIKE no Postgres
+                                        $qq->orWhereRaw('messages ILIKE ?', ['%' . $termsNorm[$idx] . '%'])
+                                           ->orWhereRaw('title ILIKE ?',    ['%' . $termsNorm[$idx] . '%']);
+                                    } else {
+                                        // mysql/sqlite: LOWER(col) LIKE lower(term)
+                                        $qq->orWhereRaw('LOWER(messages) LIKE ?', ['%' . $termsNorm[$idx] . '%'])
+                                           ->orWhereRaw('LOWER(title) LIKE ?',    ['%' . $termsNorm[$idx] . '%']);
+                                    }
+                                }
+                            }
+                            if ($addressPhrase) {
+                                if ($driver === 'sqlsrv') {
+                                    $safePhrase = str_replace(['%', '_'], ['[%]', '[_]'], $addressPhrase);
+                                    $qq->orWhereRaw("messages COLLATE $collation LIKE ?", ['%' . $safePhrase . '%'])
+                                       ->orWhereRaw("title COLLATE $collation LIKE ?",    ['%' . $safePhrase . '%']);
+                                } elseif ($driver === 'pgsql') {
+                                    $qq->orWhereRaw('messages ILIKE ?', ['%' . $addressPhraseNorm . '%'])
+                                       ->orWhereRaw('title ILIKE ?',    ['%' . $addressPhraseNorm . '%']);
+                                } else {
+                                    $qq->orWhereRaw('LOWER(messages) LIKE ?', ['%' . $addressPhraseNorm . '%'])
+                                       ->orWhereRaw('LOWER(title) LIKE ?',    ['%' . $addressPhraseNorm . '%']);
+                                }
+                            }
+                        });
+                        return $q->orderBy('updated_at', 'desc')->limit($maxQuery)->get();
+                    };
 
-                    $hits = $query->get();
+                    // 1) Busca por termos (escopo atual)
+                    $hits = $runSearch($scope);
+                    // 2) Se vazio e temos frase de endereço, tenta frase (escopo atual)
+                    if ($hits->count() === 0 && $addressPhrase) {
+                        $hits = $runSearch($scope, true);
+                    }
+                    // 3) Se ainda vazio e usuário pode buscar em todas, tenta escopo "all"
+                    if ($hits->count() === 0 && $userCanAll && $scope !== 'all') {
+                        $hits = $runSearch('all');
+                        if ($hits->count() === 0 && $addressPhrase) {
+                            $hits = $runSearch('all', true);
+                        }
+                    }
+
+                    Log::debug('OpenAI chat search debug', [
+                        'driver' => $driver,
+                        'scope' => $scope,
+                        'terms' => $terms->all(),
+                        'termsNorm' => $termsNorm->all(),
+                        'addressPhrase' => $addressPhrase,
+                        'addressPhraseNorm' => $addressPhraseNorm,
+                        'hits' => $hits->count(),
+                    ]);
 
                     if ($hits->count() > 0) {
                         $snippets = [];
@@ -258,8 +323,13 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
         }
 
         // Passa o histórico completo para a view
+        $searchPrefDefault = (bool) config('openai.chat.search.enabled_default', false);
+        $searchInChatsPref = (bool) $request->session()->get('openai_search_in_chats', $searchPrefDefault);
+        $searchScopePref = (string) $request->session()->get('openai_search_scope', 'mine');
         return view('openai.chat', [ // Sugiro renomear a view para 'chat.blade.php'
             'messages' => $messages,
+            'searchInChats' => $searchInChatsPref,
+            'searchScope' => $searchScopePref,
         ]);
     }
 

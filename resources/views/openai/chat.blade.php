@@ -50,7 +50,12 @@
                 </div>
                 <div class="d-flex align-items-center gap-3 flex-wrap">
                     <div class="form-check m-0">
-                        <input type="checkbox" class="form-check-input" id="search_in_chats" name="search_in_chats" value="1" {{ old('search_in_chats') ? 'checked' : '' }}>
+                        @php
+                            $checkedPref = isset($searchInChats) ? (bool)$searchInChats : false;
+                            $checkedOld = (bool) old('search_in_chats');
+                            $checked = $checkedOld || $checkedPref;
+                        @endphp
+                        <input type="checkbox" class="form-check-input" id="search_in_chats" name="search_in_chats" value="1" {{ $checked ? 'checked' : '' }}>
                         <label class="form-check-label" for="search_in_chats">Buscar em conversas salvas</label>
                     </div>
                     @php
@@ -61,9 +66,13 @@
                     @if($canAll)
                         <div class="d-flex align-items-center gap-2">
                             <label for="search_scope" class="form-label m-0">Escopo:</label>
+                            @php
+                                $scopePref = isset($searchScope) ? (string)$searchScope : 'mine';
+                                $scopeValue = old('search_scope', $scopePref);
+                            @endphp
                             <select id="search_scope" name="search_scope" class="form-select form-select-sm" style="width: 180px;">
-                                <option value="mine" {{ old('search_scope', 'mine') === 'mine' ? 'selected' : '' }}>Minhas conversas</option>
-                                <option value="all" {{ old('search_scope') === 'all' ? 'selected' : '' }}>Todas as conversas</option>
+                                <option value="mine" {{ $scopeValue === 'mine' ? 'selected' : '' }}>Minhas conversas</option>
+                                <option value="all" {{ $scopeValue === 'all' ? 'selected' : '' }}>Todas as conversas</option>
                             </select>
                         </div>
                     @endif
