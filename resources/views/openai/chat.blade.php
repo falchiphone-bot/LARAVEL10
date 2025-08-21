@@ -1,19 +1,16 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uso OpenAI</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body>
 @extends('layouts.bootstrap5')
 @section('content')
 <div class="container py-4">
-    <div class="mb-3">
+    <div class="mb-3 d-flex gap-2 align-items-center">
         @canany(['OPENAI - CHAT', 'OPENAI - TRANSCRIBE - ESPANHOL'])
         <a href="{{ route('openai.menu') }}" class="btn btn-outline-secondary">← Voltar ao Menu</a>
         @endcanany
+        <a href="{{ route('openai.chats') }}" class="btn btn-outline-primary">Minhas Conversas</a>
+        <form action="{{ route('openai.chat.save') }}" method="POST" class="d-inline-flex align-items-center gap-2">
+            @csrf
+            <input type="text" name="title" class="form-control form-control-sm" placeholder="Título (opcional)" style="width: 220px;">
+            <button type="submit" class="btn btn-sm btn-success">Salvar conversa</button>
+        </form>
     </div>
 
     <h1 class="h4 mb-3">Consultar API da OpenAI</h1>
@@ -21,6 +18,11 @@
     @if(session('error'))
         <div class="alert alert-danger" role="alert">
             <strong>Erro!</strong> {{ session('error') }}
+        </div>
+    @endif
+    @if(session('success'))
+        <div class="alert alert-success" role="alert">
+            {{ session('success') }}
         </div>
     @endif
 
@@ -69,5 +71,3 @@
     @endif
 </div>
 @endsection
-</body>
-</html>

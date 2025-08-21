@@ -15,6 +15,9 @@ use App\Exceptions\OpenAI\ApiKeyMissingException;
 use FFMpeg\FFMpeg;
 use FFMpeg\Format\Audio\Mp3;
 use App\Jobs\TranscribeAudioJob;
+use App\Models\OpenAIChat;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class OpenAIController extends Controller
 {
@@ -28,7 +31,7 @@ class OpenAIController extends Controller
     public function __construct(OpenAIService $openAIService)
     {
         $this->middleware('auth');
-        $this->middleware(['permission:OPENAI - CHAT'])->only('chat');
+        $this->middleware(['permission:OPENAI - CHAT'])->only('chat', 'chats', 'saveChat', 'loadChat');
         $this->middleware(['permission:OPENAI - TRANSCRIBE - ESPANHOL'])->only('transcribe');
          $this->openAIService = $openAIService;
     }
@@ -353,5 +356,59 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
             'jobId' => $jobId,
             'data' => $data,
         ]);
+    }
+
+    /**
+     * Lista conversas salvas do usuário autenticado.
+     */
+    public function chats(): View
+    {
+        $chats = OpenAIChat::where('user_id', Auth::id())
+            ->latest('updated_at')
+            ->paginate(12);
+
+        return view('openai.chats', compact('chats'));
+    }
+
+    /**
+     * Salva a conversa atual (da sessão) com um título.
+     */
+    public function saveChat(Request $request): RedirectResponse
+    {
+        $messages = $request->session()->get('openai_messages', []);
+        if (count($messages) <= 1) {
+            return back()->with('error', 'Nada para salvar. Envie ao menos uma mensagem e obtenha uma resposta.');
+        }
+
+        $validated = $request->validate([
+            'title' => 'nullable|string|max:100',
+        ]);
+
+        $lastUser = collect($messages)->reverse()->firstWhere('role', 'user');
+        $title = $validated['title'] ?? ($lastUser['content'] ?? 'Conversa');
+        $title = Str::limit(trim(preg_replace('/\s+/', ' ', (string) $title)), 100, '…');
+
+        // Deixe o SQL Server preencher created_at/updated_at (defaults da migration)
+        OpenAIChat::insert([
+            'user_id'  => Auth::id(),
+            'title'    => $title,
+            'messages' => json_encode($messages, JSON_UNESCAPED_UNICODE),
+        ]);
+
+        return redirect()->route('openai.chats')->with('success', 'Conversa salva com sucesso.');
+    }
+
+    /**
+     * Carrega uma conversa salva para a sessão atual.
+     */
+    public function loadChat(OpenAIChat $chat, Request $request): RedirectResponse
+    {
+        if ($chat->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $request->session()->put('openai_messages', $chat->messages ?? []);
+
+        return redirect()->route('openai.chat')->with('success', 'Conversa carregada.');
     }
 }
