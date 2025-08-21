@@ -5,6 +5,7 @@
         @canany(['OPENAI - CHAT', 'OPENAI - TRANSCRIBE - ESPANHOL'])
         <a href="{{ route('openai.menu') }}" class="btn btn-outline-secondary">← Voltar ao Menu</a>
         @endcanany
+        <a href="{{ route('openai.chat.new') }}" class="btn btn-primary">Novo Chat</a>
         <a href="{{ route('openai.chats') }}" class="btn btn-outline-primary">Minhas Conversas</a>
         <form action="{{ route('openai.chat.save') }}" method="POST" class="d-inline-flex align-items-center gap-2">
             @csrf
