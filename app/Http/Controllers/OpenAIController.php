@@ -127,16 +127,87 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
             $prompt = $request->input('prompt');
             $messages[] = ['role' => 'user', 'content' => $prompt];
 
+            // Prepara mensagens para envio à API (com possível contexto de conversas salvas)
+            $messagesToSend = $messages;
+
+            if ($request->boolean('search_in_chats')) {
+                $cfg = config('openai.chat.search');
+                $maxTerms   = (int) ($cfg['max_terms'] ?? 5);
+                $minLen     = (int) ($cfg['min_term_length'] ?? 4);
+                $maxQuery   = (int) ($cfg['max_conversations_to_query'] ?? 5);
+                $maxInject  = (int) ($cfg['max_conversations_to_inject'] ?? 3);
+                $tailPerConv= (int) ($cfg['tail_messages_per_conversation'] ?? 6);
+                $contextPreamble = (string) ($cfg['context_preamble'] ?? '');
+
+                $terms = collect(preg_split('/\s+/u', (string) $prompt, -1, PREG_SPLIT_NO_EMPTY))
+                    ->map(fn($w) => trim($w))
+                    ->filter(fn($w) => mb_strlen($w) >= $minLen)
+                    ->unique()
+                    ->take($maxTerms)
+                    ->values();
+
+                if ($terms->isNotEmpty()) {
+                    $allowAll = (bool) ($cfg['allow_all'] ?? false);
+                    $perm = $cfg['allow_all_permission'] ?? null;
+                    $userCanAll = $allowAll && (!$perm || $request->user()->can($perm));
+                    $scope = $userCanAll ? ($request->input('search_scope', 'mine')) : 'mine';
+
+                    $query = DB::table('open_a_i_chats')
+                        ->select('title', 'messages', 'updated_at');
+
+                    if ($scope !== 'all') {
+                        $query->where('user_id', Auth::id());
+                    }
+
+                    $collation = (string) (config('openai.chat.search.collation') ?? 'Latin1_General_CI_AI');
+
+                    $query->where(function ($q) use ($terms, $collation) {
+                        foreach ($terms as $t) {
+                            $safe = str_replace(['%', '_'], ['[%]', '[_]'], $t);
+                            $q->orWhereRaw("messages COLLATE $collation LIKE ?", ['%' . $safe . '%'])
+                              ->orWhereRaw("title COLLATE $collation LIKE ?",    ['%' . $safe . '%']);
+                        }
+                    })
+                    ->orderBy('updated_at', 'desc')
+                    ->limit($maxQuery);
+
+                    $hits = $query->get();
+
+                    if ($hits->count() > 0) {
+                        $snippets = [];
+                        foreach ($hits as $hit) {
+                            $arr = json_decode($hit->messages ?? '[]', true);
+                            if (!is_array($arr)) { continue; }
+                            $filtered = array_values(array_filter($arr, fn($m) => ($m['role'] ?? '') !== 'system'));
+                            $tail = array_slice($filtered, -$tailPerConv);
+                            $text = collect($tail)->map(function ($m) {
+                                $who = $m['role'] === 'user' ? 'Você' : 'Assistente';
+                                return $who . ': ' . (string) ($m['content'] ?? '');
+                            })->implode("\n");
+                            if ($text) {
+                                $snippets[] = '- ' . ($hit->title ?? 'Conversa') . " (" . (string) $hit->updated_at . ")\n" . $text;
+                            }
+                            if (count($snippets) >= $maxInject) { break; }
+                        }
+                        if (!empty($snippets)) {
+                            $preamble = $contextPreamble ?: 'Use o contexto abaixo quando ele responder diretamente à pergunta; não invente.';
+                            $context = $preamble . "\n\n" . implode("\n\n", $snippets);
+                            $contextMsg = ['role' => 'system', 'content' => $context];
+                            array_splice($messagesToSend, 1, 0, [$contextMsg]);
+                        }
+                    }
+                }
+            }
+
             try {
-                // Assumindo que o serviço agora tem um método que aceita o histórico completo
-                $response = $this->openAIService->getChatResponse($messages);
+                $response = $this->openAIService->getChatResponse($messagesToSend);
 
                 // Handle API-level errors
                 if (isset($response['error'])) {
                     $error = $response['error']['message'] ?? 'Erro desconhecido da API OpenAI.';
                     Log::error('OpenAI API Error: ' . $error, ['response' => $response]);
                 } else {
-                    // Adiciona a resposta do assistente ao histórico
+                    // Adiciona a resposta do assistente ao histórico (mantém sessão sem poluir com contexto)
                     $assistantMessage = $response['choices'][0]['message']['content'] ?? null;
                     if ($assistantMessage) {
                         $messages[] = ['role' => 'assistant', 'content' => $assistantMessage];
@@ -171,7 +242,6 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
                         'updated_at' => DB::raw('GETDATE()'),
                     ]);
                 if ($affected === 0) {
-                    // se não atualizou (não existe ou não pertence), remove o ponteiro
                     $request->session()->forget('openai_current_chat_id');
                 }
             }

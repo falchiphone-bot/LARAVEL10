@@ -39,16 +39,36 @@
 
     <div class="card shadow-sm mb-4">
         <div class="card-body">
-            <form action="{{ route('openai.chat') }}" method="POST">
+            <form action="{{ route('openai.chat') }}" method="POST" class="vstack gap-2">
                 @csrf
-                <div class="mb-3">
+                <div>
                     <label for="prompt" class="form-label">Digite seu prompt:</label>
                     <textarea id="prompt" name="prompt" rows="4" class="form-control" placeholder="Ex: Qual a capital do Brasil?">{{ old('prompt') }}</textarea>
                     @error('prompt')
                         <div class="form-text text-danger">{{ $message }}</div>
                     @enderror
                 </div>
-                <button type="submit" class="btn btn-dark">Enviar</button>
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <div class="form-check m-0">
+                        <input type="checkbox" class="form-check-input" id="search_in_chats" name="search_in_chats" value="1" {{ old('search_in_chats') ? 'checked' : '' }}>
+                        <label class="form-check-label" for="search_in_chats">Buscar em conversas salvas</label>
+                    </div>
+                    @php
+                        $allowAll = config('openai.chat.search.allow_all');
+                        $perm = config('openai.chat.search.allow_all_permission');
+                        $canAll = $allowAll && (!$perm || auth()->user()->can($perm));
+                    @endphp
+                    @if($canAll)
+                        <div class="d-flex align-items-center gap-2">
+                            <label for="search_scope" class="form-label m-0">Escopo:</label>
+                            <select id="search_scope" name="search_scope" class="form-select form-select-sm" style="width: 180px;">
+                                <option value="mine" {{ old('search_scope', 'mine') === 'mine' ? 'selected' : '' }}>Minhas conversas</option>
+                                <option value="all" {{ old('search_scope') === 'all' ? 'selected' : '' }}>Todas as conversas</option>
+                            </select>
+                        </div>
+                    @endif
+                </div>
+                <button type="submit" class="btn btn-dark mt-1">Enviar</button>
             </form>
         </div>
     </div>
