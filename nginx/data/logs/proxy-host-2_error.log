@@ -1,2 +1,0 @@
-2025/08/18 15:29:04 [warn] 315#315: *101421 using uninitialized "server" variable while logging request, client: 172.19.0.1, server: tanabisaf.com.br, request: "GET / HTTP/1.1", host: "tanabisaf.com.br:443"
-2025/08/19 20:18:58 [error] 200#200: *2245 laravel10 could not be resolved (3: Host not found), client: 172.19.0.1, server: tanabisaf.com.br, request: "GET / HTTP/1.1", host: "tanabisaf.com.br"

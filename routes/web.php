@@ -866,6 +866,9 @@ Route::resource('LancamentosDocumentos', App\Http\Controllers\LancamentosDocumen
     Route::resource('Tradeidea', App\Http\Controllers\TradeideaController::class);
 
 
+
+
+
 #PLANILHA EXCEL CAIXA
 Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::class, 'ExtratoCaixa'])->name('Caixa.ExtratoCaixa');
 
@@ -909,6 +912,9 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     });
 
     #OpenAI
+    Route::get('/openai', function () {
+        return view('openai.index');
+    })->name('openai.menu');
     Route::match(['get', 'post'], '/openai/chat', [OpenAIController::class, 'chat'])->name('openai.chat');
     Route::post('/openai/chat/clear', [OpenAIController::class, 'clearChat'])->name('openai.chat.clear');
     Route::match(['get', 'post'], '/openai/transcribe', [OpenAIController::class, 'transcribe'])->name('openai.transcribe');

@@ -1,25 +1,31 @@
-@extends('layouts.bootstrap5')
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status da Transcrição</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
+<body class="bg-gray-100">
+    <div class="container py-4">
+        <div class="mb-3 d-flex gap-2">
+            @canany(['OPENAI - CHAT', 'OPENAI - TRANSCRIBE - ESPANHOL'])
+            <a href="{{ route('openai.menu') }}" class="btn btn-outline-secondary">← Voltar ao Menu</a>
+            @endcanany
+            <a href="{{ route('openai.transcribe') }}" class="btn btn-secondary">Voltar</a>
+        </div>
 
-@section('content')
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header">Status da Transcrição</div>
-                    <div class="card-body">
-                        <p><strong>Job ID:</strong> {{ $jobId }}</p>
-                        <div id="status">
-                            <em>Carregando...</em>
-                        </div>
-                        <div class="mt-3">
-                            <a href="{{ route('openai.transcribe') }}" class="btn btn-secondary">Voltar</a>
-                        </div>
-                    </div>
-                </div>
+        <h1 class="h4 mb-3">Status da Transcrição</h1>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <p class="mb-3"><strong>Job ID:</strong> {{ $jobId }}</p>
+                <div id="status"><em>Carregando...</em></div>
             </div>
         </div>
     </div>
 
+    @push('scripts')
     <script>
         async function poll() {
             try {
@@ -33,12 +39,12 @@
                 } else if (data.status === 'done') {
                     el.innerHTML = `
                         <div class="mb-3">
-                            <h5 class="mt-3">Texto Transcrito (Espanhol):</h5>
-                            <div class="p-3 bg-light border rounded">${(data.transcribedText || '').replaceAll('\n','<br>')}</div>
+                            <h2 class="h6">Texto Transcrito (Espanhol):</h2>
+                            <div class="bg-light border rounded p-2" style="white-space: pre-wrap;">${(data.transcribedText || '')}</div>
                         </div>
-                        <div class="mt-4">
-                            <h5 class="mt-3">Texto Traduzido (Português):</h5>
-                            <div class="p-3 bg-light border rounded">${(data.translatedText || '').replaceAll('\n','<br>')}</div>
+                        <div>
+                            <h2 class="h6">Texto Traduzido (Português):</h2>
+                            <div class="bg-light border rounded p-2" style="white-space: pre-wrap;">${(data.translatedText || '')}</div>
                         </div>
                     `;
                     return; // para de pollar quando terminar
@@ -50,4 +56,6 @@
         }
         poll();
     </script>
-@endsection
+    @endpush
+</body>
+</html>

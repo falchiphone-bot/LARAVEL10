@@ -209,6 +209,18 @@
                                 </a>
                             </li>
 
+                            @canany(['OPENAI - CHAT', 'OPENAI - TRANSCRIBE - ESPANHOL'])
+                            <li>
+                                <a href="{{ route('openai.menu') }}" data-bs-toggle="tooltip" data-bs-placement="top"
+                                   data-bs-custom-class="custom-tooltip"
+                                   data-bs-title="Acessar as ferramentas OpenAI (Chat e Transcrição)"
+                                   class="nav-link text-white">
+                                    <i class="fa-brands fa-openai"></i>
+                                    OpenAI
+                                </a>
+                            </li>
+                            @endcanany
+
                             <li>
                                 <a href="/profile" data-bs-toggle="tooltip" data-bs-placement="top"
                                     data-bs-custom-class="custom-tooltip"
