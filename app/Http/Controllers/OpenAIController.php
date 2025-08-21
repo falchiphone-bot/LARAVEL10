@@ -175,7 +175,16 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
                     $addressPhraseNorm = $addressPhrase ? mb_strtolower(preg_replace('/[\p{P}]+/u', '', $addressPhrase)) : null;
 
                     $runSearch = function (string $scopeToUse, bool $usePhraseOnly = false) use ($terms, $termsNorm, $maxQuery, $collation, $driver, $addressPhrase, $addressPhraseNorm) {
-                        $q = DB::table('open_a_i_chats')->select('title', 'messages', 'updated_at');
+                        // Inclui o dono da conversa para rotular corretamente o emissor (em vez de "Você")
+                        $q = DB::table('open_a_i_chats')
+                            ->leftJoin('users', 'users.id', '=', 'open_a_i_chats.user_id')
+                            ->select(
+                                'open_a_i_chats.title',
+                                'open_a_i_chats.messages',
+                                'open_a_i_chats.updated_at',
+                                'open_a_i_chats.user_id',
+                                DB::raw("COALESCE(users.name, 'Usuário') AS owner_name")
+                            );
                         if ($scopeToUse !== 'all') {
                             $q->where('user_id', Auth::id());
                         }
@@ -245,12 +254,14 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
                             if (!is_array($arr)) { continue; }
                             $filtered = array_values(array_filter($arr, fn($m) => ($m['role'] ?? '') !== 'system'));
                             $tail = array_slice($filtered, -$tailPerConv);
-                            $text = collect($tail)->map(function ($m) {
-                                $who = $m['role'] === 'user' ? 'Você' : 'Assistente';
+                            $ownerName = (string)($hit->owner_name ?? 'Usuário');
+                            $text = collect($tail)->map(function ($m) use ($ownerName) {
+                                $who = $m['role'] === 'user' ? $ownerName : 'Assistente';
                                 return $who . ': ' . (string) ($m['content'] ?? '');
                             })->implode("\n");
                             if ($text) {
-                                $snippets[] = '- ' . ($hit->title ?? 'Conversa') . " (" . (string) $hit->updated_at . ")\n" . $text;
+                                $header = '- ' . ($hit->title ?? 'Conversa') . ' — Autor: ' . ((string)($hit->owner_name ?? 'Usuário')) . " (" . (string) $hit->updated_at . ")";
+                                $snippets[] = $header . "\n" . $text;
                             }
                             if (count($snippets) >= $maxInject) { break; }
                         }
