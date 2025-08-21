@@ -54,7 +54,7 @@
             <div class="card-body">
                 <h2 class="h5 mb-3">Histórico da Conversa:</h2>
                 <div class="vstack gap-3">
-                    @foreach($messages as $message)
+                    @foreach(array_reverse($messages) as $message)
                         @if($message['role'] === 'system')
                             @continue
                         @endif
