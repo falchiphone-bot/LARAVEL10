@@ -61,6 +61,7 @@ class SicredApiHelper
         if ($access_token) {
             $dados = [];
             for ($pagina = 0; $pagina < 100; $pagina++) {
+                dd(config('services.sicredi.token'));
                 $consulta = Http::asForm()
                     ->withHeaders([
                         'x-api-key' => config('services.sicredi.token'),
@@ -75,6 +76,8 @@ class SicredApiHelper
                         // 'cpfCnpjBeneficiarioFinal' => '36585615000174',
                         'pagina' => $pagina,
                     ]);
+
+                    // dd($consulta->json());
 
                 if ($consulta->successful()) {
                     if ($consulta->json()['hasNext']) {
