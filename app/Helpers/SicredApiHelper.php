@@ -61,7 +61,7 @@ class SicredApiHelper
         if ($access_token) {
             $dados = [];
             for ($pagina = 0; $pagina < 100; $pagina++) {
-                dd(config('services.sicredi.token'));
+                // dd(config('services.sicredi.token'));
                 $consulta = Http::asForm()
                     ->withHeaders([
                         'x-api-key' => config('services.sicredi.token'),
