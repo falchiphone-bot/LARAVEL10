@@ -22,18 +22,18 @@
 
 
     <div class="bg-blue-200 text-blue-900 text-center text-xl font-semibold py-4 px-6">
-      Paulista SUB23 - 2025 | Rodada 18
+      Paulista SUB23 - 2025 | Rodada 20
     </div>
 
     <table class="w-full text-sm md:text-base">
       <tbody>
         <tr class="border-b border-gray-800">
           <th class="bg-gray-600 text-left px-6 py-4 w-1/3">Jogo</th>
-          <td class="px-6 py-4">Tanabi SAF 1 X 0 Independente de Limeira</td>
+          <td class="px-6 py-4">Tanabi SAF 0 X 0 ECUS</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Data</th>
-          <td class="px-6 py-4">16/08/2025</td>
+          <td class="px-6 py-4">30/08/2025</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Horário</th>
@@ -44,7 +44,7 @@
           <td class="px-6 py-4">Estádio Municipal Prefeito Alberto Victolo / Tanabi</td>
         </tr>
 
-        <tr>
+        {{-- <tr>
           <th class="bg-gray-600 text-left px-6 py-4">Súmula</th>
           <td class="px-6 py-4 text-center">
             <a href="{{ route('download', ['id_arquivo' => 40998]) }}"
@@ -53,10 +53,10 @@
               Baixar Arquivo PDF do jogo
             </a>
           </td>
-        </tr>
+        </tr> --}}
 
 
-        <tr>
+        {{-- <tr>
             <th class="bg-gray-600 text-left px-6 py-4">Boletim financeiro</th>
             <td class="px-6 py-4 text-center">
               <a href="{{ route('download', ['id_arquivo' => 40993]) }}"
@@ -65,7 +65,7 @@
                 Baixar Arquivo PDF do boletim financeiro do jogo
               </a>
             </td>
-          </tr>
+          </tr> --}}
 
 
           <tr>
@@ -90,7 +90,7 @@
             </tr>
 
 
-          <tr>
+          {{-- <tr>
             <th class="bg-gray-600 text-left px-6 py-4">Jogo completo</th>
             <td class="px-6 py-4 text-center">
 
@@ -98,7 +98,7 @@
                     <iframe width="480" height="320" src="https://www.youtube.com/embed/I6IG-RIc2pM" title="JOGO COMPLETO: TANABI X INDEPENDENTE |SEMIFINAL | PAULISTA SUB-23 2ª DIV SICREDI 2025" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                 </div>
             </td>
-          </tr>
+          </tr> --}}
 
           {{-- <tr>
             <th class="bg-gray-600 text-left px-6 py-4">TANABI NA A4</th>
@@ -113,7 +113,7 @@
 
 
 
-        <tr>
+        {{-- <tr>
             <th class="bg-gray-600 text-left px-6 py-4">Gol de Marcelo Enrique Maçola Filho - (Marcelo)    </th>
             <td class="px-6 py-4 text-center">
 
@@ -126,10 +126,10 @@
                         allowfullscreen></iframe>
               </div>
             </td>
-        </tr>
+        </tr> --}}
 
 
-            <tr>
+            {{-- <tr>
                 <th class="bg-gray-600 text-left px-6 py-4">Entrevista do presidente PEDRO ROBERTO FALCHI depois do jogo</th>
                 <td class="px-6 py-4 text-center">
 
@@ -142,9 +142,9 @@
                             allowfullscreen></iframe>
                 </div>
                 </td>
-            </tr>
+            </tr> --}}
 
-            <tr>
+            {{-- <tr>
                 <th class="bg-gray-600 text-left px-6 py-4">Entrevista do técnico DAVI ZAQUEO depois do jogo</th>
                 <td class="px-6 py-4 text-center">
 
@@ -157,9 +157,9 @@
                             allowfullscreen></iframe>
                 </div>
                 </td>
-            </tr>
+            </tr> --}}
 
-            <tr>
+            {{-- <tr>
                 <th class="bg-gray-600 text-left px-6 py-4">Entrevista do Marcelo Enrique Maçola Filho depois do jogo</th>
                 <td class="px-6 py-4 text-center">
 
@@ -172,10 +172,10 @@
                             allowfullscreen></iframe>
                 </div>
                 </td>
-            </tr>
+            </tr> --}}
 
 
-        <tr>
+        {{-- <tr>
              <th class="bg-gray-600 text-left px-6 py-4">Matéria com Marcelo Enrique Maçola Filho</th>
             <td class="px-6 py-4 text-center">
               <a href="{{ route('download', ['id_arquivo' => 40991]) }}"
@@ -184,7 +184,7 @@
                      Baixar Arquivo video da matéria com Marcelo Maçola na TV TEM Programa TEM Esportes
               </a>
             </td>
-        </tr>
+        </tr> --}}
 
         </tbody>
     </table>
