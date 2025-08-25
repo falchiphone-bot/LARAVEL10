@@ -55,9 +55,9 @@ class ListarLiquidacao extends Component
         $this->consultaDiaDisplay = $now->format('d/m/Y');
         $this->consultaDia = $now->format('Y-m-d');
 
-        // $consulta = SicredApiHelper::boletoLiquidadoDia($contaCobranca, $now->format('d/m/Y'));
-         $consulta = SicredApiHelper::boletoLiquidadoDia($contaCobranca, $this->consultaDia);
-        $this->consulta = $consulta;
+        $consulta = SicredApiHelper::boletoLiquidadoDia($contaCobranca, $now->format('d/m/Y'));
+
+                $this->consulta = $consulta;
 
         // dd($this->consulta, $this->consultaDia, $this->consultaDiaDisplay, $contaCobranca);
 
