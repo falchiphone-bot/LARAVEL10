@@ -51,7 +51,7 @@ class ListarLiquidacao extends Component
         $this->contaCobranca = $contaCobranca;
         $this->contaCobrancaID = $contaCobranca->id;
 
-        $now = Carbon::now()->subDay(3);
+        $now = Carbon::now()->subDay(1);
         $this->consultaDiaDisplay = $now->format('d/m/Y');
         $this->consultaDia = $now->format('Y-m-d');
 
@@ -59,7 +59,7 @@ class ListarLiquidacao extends Component
          $consulta = SicredApiHelper::boletoLiquidadoDia($contaCobranca, $this->consultaDia);
         $this->consulta = $consulta;
 
-        dd($this->consulta, $this->consultaDia, $this->consultaDiaDisplay, $contaCobranca);
+        // dd($this->consulta, $this->consultaDia, $this->consultaDiaDisplay, $contaCobranca);
 
     }
 
