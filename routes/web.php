@@ -401,6 +401,9 @@ Route::get('tanabisaf.jogos.2025.sub23.rodada10', function ()
  { return view('tanabisaf.jogos.2025.sub23.GolsRomarinho2025');})
     ->name('tanabisaf.jogos.2025.sub23.GolsRomarinho2025');
 
+ Route::get('tanabisaf.jogos.2025.sub23.GolsJoaoGregorio2025', function ()
+ { return view('tanabisaf.jogos.2025.sub23.GolsJoaoGregorio2025');})
+    ->name('tanabisaf.jogos.2025.sub23.GolsJoaoGregorio2025');
 
 
 
