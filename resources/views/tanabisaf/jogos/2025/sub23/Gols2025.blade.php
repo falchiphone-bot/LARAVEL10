@@ -14,27 +14,27 @@
   <div class="w-full max-w-2xl space-y-6">
 
     <a href="{{ route('tanabisaf.jogos.2025.sub23.GolsMacola2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
-      Maçola
+       Marcelo Henrique Maçola Filho
     </a>
 
     <a href="{{ route('tanabisaf.jogos.2025.sub23.GolsMaicon2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
-      Maicon
+      Maicon Henrique Silva de Carvalho
     </a>
 
     <a href="{{ route('tanabisaf.jogos.2025.sub23.GolsThales2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
-      Thales
+      Thales Gabriel Duarte Santiago
     </a>
 
     <a href="{{ route('tanabisaf.jogos.2025.sub23.GolsVinicius2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
-      Vinicius
+      Vinicius Fernando Macedo Domingos
     </a>
 
     <a href="{{ route('tanabisaf.jogos.2025.sub23.GolsRychard2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
-      Rychard
+      Rychard Perucio Miranda
     </a>
 
     <a href="{{ route('tanabisaf.jogos.2025.sub23.GolsRomarinho2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
-      João Lucas Paim
+      João Lucas Paim (Romarinho)
     </a>
 
     <a href="{{ route('tanabisaf.jogos.2025.sub23.GolsJoaoGregorio2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
