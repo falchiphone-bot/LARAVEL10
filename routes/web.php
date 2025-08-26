@@ -389,6 +389,9 @@ Route::get('tanabisaf.jogos.2025.sub23.rodada10', function ()
  { return view('tanabisaf.jogos.2025.sub23.GolsThales2025');})
     ->name('tanabisaf.jogos.2025.sub23.GolsThales2025');
 
+ Route::get('tanabisaf.jogos.2025.sub23.GolsVinicius2025', function ()
+ { return view('tanabisaf.jogos.2025.sub23.GolsVinicius2025');})
+    ->name('tanabisaf.jogos.2025.sub23.GolsVinicius2025');
 
 
 
