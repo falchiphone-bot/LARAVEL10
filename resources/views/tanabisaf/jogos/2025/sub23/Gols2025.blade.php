@@ -13,39 +13,39 @@
 
   <div class="w-full max-w-2xl space-y-6">
 
-    <a href="{{ url('tanabisaf/jogos/2025/sub23/GolsMacola2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
+    <a href="{{ route('tanabisaf.jogos.2025.sub23.GolsMacola2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
       Maçola
     </a>
 
-    <a href="{{ url('tanabisaf/jogos/2025/sub23/GolsMaicon2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
+    <a href="{{ route('tanabisaf.jogos.2025.sub23.GolsMaicon2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
       Maicon
     </a>
 
-    <a href="{{ url('tanabisaf/jogos/2025/sub23/GolsThales2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
+    <a href="{{ route('tanabisaf.jogos.2025.sub23.GolsThales2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
       Thales
     </a>
 
-    <a href="{{ url('tanabisaf/jogos/2025/sub23/GolsVinicius2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
+    <a href="{{ route('tanabisaf.jogos.2025.sub23.GolsVinicius2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
       Vinicius
     </a>
 
-    <a href="{{ url('tanabisaf/jogos/2025/sub23/GolsRychard2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
+    <a href="{{ route('tanabisaf.jogos.2025.sub23.GolsRychard2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
       Rychard
     </a>
 
-    <a href="{{ url('tanabisaf/jogos/2025/sub23/GolsRomarinho2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
+    <a href="{{ route('tanabisaf.jogos.2025.sub23.GolsRomarinho2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
       João Lucas Paim
     </a>
 
-    <a href="{{ url('tanabisaf/jogos/2025/sub23/GolsJoaoGregorio2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
+    <a href="{{ route('tanabisaf.jogos.2025.sub23.GolsJoaoGregorio2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
       João Vitor de Oliveira Gregorio
     </a>
 
-    <a href="{{ url('tanabisaf/jogos/2025/sub23/GolsFabio2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
+    <a href="{{ route('tanabisaf.jogos.2025.sub23.GolsFabio2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
       Fábio José de Souza
     </a>
 
-    <a href="{{ url('tanabisaf/jogos/2025/sub23/GolsDiogo2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
+    <a href="{{ route('tanabisaf.jogos.2025.sub23.GolsDiogo2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
       Diogo Vieira Santos Fonseca
     </a>
 
