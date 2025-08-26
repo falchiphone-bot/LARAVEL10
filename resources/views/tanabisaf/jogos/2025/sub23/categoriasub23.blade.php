@@ -49,6 +49,14 @@
         </li>
     </ul>
 
+    <ul class="text-gray-300 text-lg text-center mt-4">
+        <li>
+            <a href="{{ url('tanabisaf.jogos.2025.sub23.GolsMaicon2025') }}"
+            class="block p-2 text-blue-400 underline hover:text-red-500">
+                Gols de Maicon no Sub-23 (2025) em todas as rodadas
+            </a>
+        </li>
+    </ul>
 
   <ul class="text-gray-300 text-lg text-center mt-4">
     <li>
