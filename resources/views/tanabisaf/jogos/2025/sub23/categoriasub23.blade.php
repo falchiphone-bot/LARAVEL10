@@ -32,88 +32,14 @@
 
     <ul class="text-gray-300 text-lg text-center mt-4">
         <li>
-            <a href="{{ url('tanabisaf.jogos.2025.sub23.GolsMacola2025') }}"
+            <a href="{{ url('tanabisaf.jogos.2025.sub23.Gols2025') }}"
             class="block p-2 text-blue-400 underline hover:text-red-500">
-                Gols de Maçola no Sub-23 (2025) em todas as rodadas
+                Gols no Sub-23 (2025) em todas as rodadas
             </a>
         </li>
     </ul>
 
 
-<ul class="text-gray-300 text-lg text-center mt-4">
-        <li>
-            <a href="{{ url('tanabisaf.jogos.2025.sub23.GolsDiogo2025') }}"
-            class="block p-2 text-blue-400 underline hover:text-red-500">
-                Gols de Diogo no Sub-23 (2025) em todas as rodadas
-            </a>
-        </li>
-    </ul>
-
-    <ul class="text-gray-300 text-lg text-center mt-4">
-        <li>
-            <a href="{{ url('tanabisaf.jogos.2025.sub23.GolsMaicon2025') }}"
-            class="block p-2 text-blue-400 underline hover:text-red-500">
-                Gols de Maicon no Sub-23 (2025) em todas as rodadas
-            </a>
-        </li>
-    </ul>
-
-
-    <ul class="text-gray-300 text-lg text-center mt-4">
-        <li>
-            <a href="{{ url('tanabisaf.jogos.2025.sub23.GolsThales2025') }}"
-            class="block p-2 text-blue-400 underline hover:text-red-500">
-                Gols de Thales no Sub-23 (2025) em todas as rodadas
-            </a>
-        </li>
-    </ul>
-
-<ul class="text-gray-300 text-lg text-center mt-4">
-        <li>
-            <a href="{{ url('tanabisaf.jogos.2025.sub23.GolsVinicius2025') }}"
-            class="block p-2 text-blue-400 underline hover:text-red-500">
-                Gols de Vinicius no Sub-23 (2025) em todas as rodadas
-            </a>
-        </li>
-    </ul>
-
-<ul class="text-gray-300 text-lg text-center mt-4">
-        <li>
-            <a href="{{ url('tanabisaf.jogos.2025.sub23.GolsRychard2025') }}"
-            class="block p-2 text-blue-400 underline hover:text-red-500">
-                Gols de Rychard no Sub-23 (2025) em todas as rodadas
-            </a>
-        </li>
-    </ul>
-
-
-    <ul class="text-gray-300 text-lg text-center mt-4">
-        <li>
-            <a href="{{ url('tanabisaf.jogos.2025.sub23.GolsRomarinho2025') }}"
-            class="block p-2 text-blue-400 underline hover:text-red-500">
-                Gols de Romarinho no Sub-23 (2025) em todas as rodadas
-            </a>
-        </li>
-    </ul>
-
-
-    <ul class="text-gray-300 text-lg text-center mt-4">
-        <li>
-            <a href="{{ url('tanabisaf.jogos.2025.sub23.GolsJoaoGregorio2025') }}"
-            class="block p-2 text-blue-400 underline hover:text-red-500">
-                Gols de João Gregório no Sub-23 (2025) em todas as rodadas
-            </a>
-        </li>
-    </ul>
-
-    <ul class="text-gray-300 text-lg text-center mt-4">
-        <li>
-            <a href="{{ url('tanabisaf.jogos.2025.sub23.GolsFabio2025') }}"
-            class="block p-2 text-blue-400 underline hover:text-red-500">
-                Gols de Fábio no Sub-23 (2025) em todas as rodadas
-            </a>
-        </li>
-    </ul>
 
     <hr>
 

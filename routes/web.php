@@ -404,6 +404,12 @@ Route::get('tanabisaf.jogos.2025.sub23.GolsFabio2025', function ()
  { return view('tanabisaf.jogos.2025.sub23.GolsFabio2025');})
     ->name('tanabisaf.jogos.2025.sub23.GolsFabio2025');
 
+Route::get('tanabisaf.jogos.2025.sub23.Gols2025', function ()
+ { return view('tanabisaf.jogos.2025.sub23.Gols2025');})
+    ->name('tanabisaf.jogos.2025.sub23.Gols2025');
+
+
+
 
 
     Route::get('tanabisaf.localtreino', function ()
