@@ -158,7 +158,7 @@
             </td>
           </tr>
 
-          <th class="bg-gray-600 text-left px-6 py-4">Quarto gol de João Lucas Paim Addor - (João) </th>
+          <th class="bg-gray-600 text-left px-6 py-4">Quarto gol de João Lucas Paim Addor (- ROMARINHO) </th>
             <td class="px-6 py-4 text-center">
 
               <div class="mt-4">

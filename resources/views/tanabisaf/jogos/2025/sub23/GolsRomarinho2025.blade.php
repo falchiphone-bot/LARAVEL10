@@ -14,33 +14,34 @@
   <div class="w-full max-w-2xl space-y-8">
 
     <!-- Rodada 7 -->
-    <div class="bg-green-800 rounded-xl shadow-lg p-4 flex flex-col items-center">
+    {{-- <div class="bg-green-800 rounded-xl shadow-lg p-4 flex flex-col items-center">
       <h2 class="text-xl font-semibold mb-2">Rodada 7</h2>
       <p class="mb-2">Primeiro gol de João Lucas Paim</p>
       <div class="w-full aspect-w-16 aspect-h-9 mb-2">
         <iframe class="w-full h-64 rounded-lg" src="https://www.youtube.com/embed/z1ZaPNXEYGo?start=2071" title="Rodada 7 - Gol de João Lucas Paim" frameborder="0" allowfullscreen></iframe>
       </div>
       <a href="https://www.youtube.com/watch?v=z1ZaPNXEYGo&t=2071s" target="_blank" class="text-blue-400 underline hover:text-red-400">Assistir no YouTube</a>
-    </div>
+    </div> --}}
 
     <!-- Rodada 10 -->
     <div class="bg-green-800 rounded-xl shadow-lg p-4 flex flex-col items-center">
       <h2 class="text-xl font-semibold mb-2">Rodada 10</h2>
-      <p class="mb-2">Segundo gol de João Lucas Paim</p>
+      <p class="mb-2">Segundo gol de João Lucas Paim - Romarinho</p>
       <div class="w-full aspect-w-16 aspect-h-9 mb-2">
-        <iframe class="w-full h-64 rounded-lg" src="https://www.youtube.com/embed/gHXu44la0eA?start=5238" title="Rodada 10 - Gol de João Lucas Paim" frameborder="0" allowfullscreen></iframe>
+        <iframe class="w-full h-64 rounded-lg" src="https://www.youtube.com/embed/gHXu44la0eA?start=6634" title="Rodada 10 - Gol de João Lucas Paim" frameborder="0" allowfullscreen></iframe>
       </div>
-      <a href="https://www.youtube.com/watch?v=gHXu44la0eA&t=5238s" target="_blank" class="text-blue-400 underline hover:text-red-400">Assistir no YouTube</a>
+      <a href="https://www.youtube.com/watch?v=gHXu44la0eA&t=6634s" target="_blank" class="text-blue-400 underline hover:text-red-400">Assistir no YouTube</a>
     </div>
 
-    <!-- Rodada 13 -->
+
+<!-- Rodada 15 -->
     <div class="bg-green-800 rounded-xl shadow-lg p-4 flex flex-col items-center">
-      <h2 class="text-xl font-semibold mb-2">Rodada 13</h2>
-      <p class="mb-2">Terceiro gol de João Lucas Paim</p>
+      <h2 class="text-xl font-semibold mb-2">Rodada 15</h2>
+      <p class="mb-2">Terceiro gol de João Lucas Paim - Romarinho</p>
       <div class="w-full aspect-w-16 aspect-h-9 mb-2">
-        <iframe class="w-full h-64 rounded-lg" src="https://www.youtube.com/embed/8wZQ-olx1C8?start=2826" title="Rodada 13 - Gol de João Lucas Paim" frameborder="0" allowfullscreen></iframe>
+        <iframe class="w-full h-64 rounded-lg" src="https://www.youtube.com/embed/sT0_R5Y5BfI?start=5839" title="Rodada 15 - Gol de João Lucas Paim" frameborder="0" allowfullscreen></iframe>
       </div>
-      <a href="https://www.youtube.com/watch?v=8wZQ-olx1C8&t=2826s" target="_blank" class="text-blue-400 underline hover:text-red-400">Assistir no YouTube</a>
+      <a href="https://www.youtube.com/watch?v=sT0_R5Y5BfI&t=5839s" target="_blank" class="text-blue-400 underline hover:text-red-400">Assistir no YouTube</a>
     </div>
 
   </div>

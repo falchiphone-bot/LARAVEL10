@@ -14,34 +14,37 @@
   <div class="w-full max-w-2xl space-y-8">
 
     <!-- Rodada 12 -->
-    <div class="bg-green-800 rounded-xl shadow-lg p-4 flex flex-col items-center">
+    {{-- <div class="bg-green-800 rounded-xl shadow-lg p-4 flex flex-col items-center">
       <h2 class="text-xl font-semibold mb-2">Rodada 12</h2>
       <p class="mb-2">Primeiro gol de João Vitor de Oliveira Gregorio</p>
       <div class="w-full aspect-w-16 aspect-h-9 mb-2">
         <iframe class="w-full h-64 rounded-lg" src="https://www.youtube.com/embed/8wZQ-olx1C8?start=5572" title="Rodada 12 - Gol de João Vitor de Oliveira Gregorio" frameborder="0" allowfullscreen></iframe>
       </div>
       <a href="https://www.youtube.com/watch?v=8wZQ-olx1C8&t=5572s" target="_blank" class="text-blue-400 underline hover:text-red-400">Assistir no YouTube</a>
-    </div>
+    </div> --}}
 
     <!-- Rodada 14 -->
-    <div class="bg-green-800 rounded-xl shadow-lg p-4 flex flex-col items-center">
+    {{-- <div class="bg-green-800 rounded-xl shadow-lg p-4 flex flex-col items-center">
       <h2 class="text-xl font-semibold mb-2">Rodada 14</h2>
       <p class="mb-2">Primeiro gol de João Vitor de Oliveira Gregorio</p>
       <div class="w-full aspect-w-16 aspect-h-9 mb-2">
         <iframe class="w-full h-64 rounded-lg" src="https://www.youtube.com/embed/8wZQ-olx1C8?start=3126" title="Rodada 14 - Gol de João Vitor de Oliveira Gregorio" frameborder="0" allowfullscreen></iframe>
       </div>
       <a href="https://www.youtube.com/watch?v=8wZQ-olx1C8&t=3126s" target="_blank" class="text-blue-400 underline hover:text-red-400">Assistir no YouTube</a>
-    </div>
+    </div> --}}
 
     <!-- Rodada 15 -->
     <div class="bg-green-800 rounded-xl shadow-lg p-4 flex flex-col items-center">
-      <h2 class="text-xl font-semibold mb-2">Rodada 15</h2>
-      <p class="mb-2">Segundo gol de João Vitor de Oliveira Gregorio</p>
+      <h2 class="text-xl font-semibold mb-2">Rodada 16</h2>
+      <p class="mb-2">Gol de João Vitor de Oliveira Gregorio</p>
       <div class="w-full aspect-w-16 aspect-h-9 mb-2">
-        <iframe class="w-full h-64 rounded-lg" src="https://www.youtube.com/embed/sT0_R5Y5BfI?start=4081" title="Rodada 15 - Gol de João Vitor de Oliveira Gregorio" frameborder="0" allowfullscreen></iframe>
+        <iframe class="w-full h-64 rounded-lg" src="https://www.youtube.com/embed/PJ0jO4D9flw?start=5820" title="Rodada 15 - Gol de João Vitor de Oliveira Gregorio" frameborder="0" allowfullscreen></iframe>
       </div>
-      <a href="https://www.youtube.com/watch?v=sT0_R5Y5BfI&t=4081s" target="_blank" class="text-blue-400 underline hover:text-red-400">Assistir no YouTube</a>
+      <a href="https://www.youtube.com/embed/PJ0jO4D9flw?start=5820" target="_blank" class="text-blue-400 underline hover:text-red-400">Assistir no YouTube</a>
     </div>
+
+
+
 
   </div>
 
