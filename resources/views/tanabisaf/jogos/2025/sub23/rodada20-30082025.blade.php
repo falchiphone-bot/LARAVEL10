@@ -29,7 +29,7 @@
       <tbody>
         <tr class="border-b border-gray-800">
           <th class="bg-gray-600 text-left px-6 py-4 w-1/3">Jogo</th>
-          <td class="px-6 py-4">Tanabi SAF 0 X 0 ECUS</td>
+          <td class="px-6 py-4">Tanabi SAF 1 X 0 ECUS</td>
         </tr>
         <tr class="border-b border-gray-700">
           <th class="bg-gray-600 text-left px-6 py-4">Data</th>
@@ -90,15 +90,15 @@
             </tr>
 
 
-          {{-- <tr>
+          <tr>
             <th class="bg-gray-600 text-left px-6 py-4">Jogo completo</th>
             <td class="px-6 py-4 text-center">
 
                  <div class="mt-4">
-                    <iframe width="480" height="320" src="https://www.youtube.com/embed/I6IG-RIc2pM" title="JOGO COMPLETO: TANABI X INDEPENDENTE |SEMIFINAL | PAULISTA SUB-23 2ª DIV SICREDI 2025" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                     <iframe width="480" height="320" src="https://www.youtube.com/embed/3lpZwgpXDtY" title="JOGO COMPLETO: TANABI X ECUS | FINAL-VOLTA | PAULISTA SUB-23 2ª DIVISÃO SICREDI 2025" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                 </div>
             </td>
-          </tr> --}}
+          </tr>
 
           {{-- <tr>
             <th class="bg-gray-600 text-left px-6 py-4">TANABI NA A4</th>
@@ -113,51 +113,91 @@
 
 
 
-        {{-- <tr>
-            <th class="bg-gray-600 text-left px-6 py-4">Gol de Marcelo Enrique Maçola Filho - (Marcelo)    </th>
+        <tr>
+            <th class="bg-gray-600 text-left px-6 py-4">Gol de Andre Augusto Mendonça Pereira</th>
             <td class="px-6 py-4 text-center">
 
               <div class="mt-4">
-                <iframe width="480" height="315"
-                        src="https://www.youtube.com/embed/I6IG-RIc2pM?start=7631"
+                <iframe width="480" height="320"
+                        src="https://www.youtube.com/embed/3lpZwgpXDtY?start=3025"
                         title="YouTube video player"
                         frameborder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allow="accelerometer; autoplay; clipboard-write;
+                        encrypted-media; gyroscope; picture-in-picture"
                         allowfullscreen></iframe>
               </div>
             </td>
-        </tr> --}}
+        </tr>
 
 
-            {{-- <tr>
+
+            <tr>
+                <th class="bg-gray-600 text-left px-6 py-4">Entrevista com presidente da FPF - Reinaldo Carneiro Bastos</th>
+                <td class="px-6 py-4 text-center">
+
+                <div class="mt-4">
+                    <iframe width="480" height="320"
+                            src="https://www.youtube.com/embed/3lpZwgpXDtY?start=990"
+                            title="YouTube video player"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write;
+                            encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                </div>
+                </td>
+            </tr>
+
+
+            <tr>
                 <th class="bg-gray-600 text-left px-6 py-4">Entrevista do presidente PEDRO ROBERTO FALCHI depois do jogo</th>
                 <td class="px-6 py-4 text-center">
 
                 <div class="mt-4">
-                    <iframe width="480" height="315"
-                            src="https://www.youtube.com/embed/I6IG-RIc2pM?start=8882"
+                    <iframe width="480" height="320"
+                            src="https://www.youtube.com/embed/3lpZwgpXDtY?start=10227"
                             title="YouTube video player"
                             frameborder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allow="accelerometer; autoplay; clipboard-write;
+                            encrypted-media; gyroscope; picture-in-picture"
                             allowfullscreen></iframe>
                 </div>
                 </td>
-            </tr> --}}
+            </tr>
 
-            {{-- <tr>
+
+            <tr>
                 <th class="bg-gray-600 text-left px-6 py-4">Entrevista do técnico DAVI ZAQUEO depois do jogo</th>
                 <td class="px-6 py-4 text-center">
 
                 <div class="mt-4">
-                    <iframe width="480" height="315"
-                            src="https://www.youtube.com/embed/I6IG-RIc2pM?start=8425"
+                    <iframe width="480" height="320"
+                            src="https://www.youtube.com/embed/3lpZwgpXDtY?start=8926"
+                            title="YouTube video player"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write;
+                            encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                </div>
+                </td>
+            </tr>
+
+
+<tr>
+                <th class="bg-gray-600 text-left px-6 py-4">Entrevista do Kayque da Silva Tavares(Maranhão) depois do jogo</th>
+                <td class="px-6 py-4 text-center">
+
+                <div class="mt-4">
+                    <iframe width="480" height="320"
+                            src="https://www.youtube.com/embed/3lpZwgpXDtY?start=9189"
                             title="YouTube video player"
                             frameborder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowfullscreen></iframe>
                 </div>
                 </td>
-            </tr> --}}
+            </tr>
+
+
 
             {{-- <tr>
                 <th class="bg-gray-600 text-left px-6 py-4">Entrevista do Marcelo Enrique Maçola Filho depois do jogo</th>
@@ -165,7 +205,7 @@
 
                 <div class="mt-4">
                     <iframe width="480" height="315"
-                            src="https://www.youtube.com/embed/I6IG-RIc2pM?start=8703"
+                            src="https://www.youtube.com/embed/3lpZwgpXDtY?start=8703"
                             title="YouTube video player"
                             frameborder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -173,6 +213,40 @@
                 </div>
                 </td>
             </tr> --}}
+
+
+
+            <tr>
+                <th class="bg-gray-600 text-left px-6 py-4">Premiação depois do jogo</th>
+                <td class="px-6 py-4 text-center">
+
+                <div class="mt-4">
+                    <iframe width="480" height="320"
+                            src="https://www.youtube.com/embed/3lpZwgpXDtY?start=9373"
+                            title="YouTube video player"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th class="bg-gray-600 text-left px-6 py-4">Entrevista com Mauro Silva</th>
+                <td class="px-6 py-4 text-center">
+
+                <div class="mt-4">
+                    <iframe width="480" height="320"
+                            src="https://www.youtube.com/embed/3lpZwgpXDtY?start=10464"
+                            title="YouTube video player"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write;
+                            encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                </div>
+                </td>
+            </tr>
+
 
 
         {{-- <tr>
@@ -183,8 +257,8 @@
                  target="_blank" rel="noopener noreferrer">
                      Baixar Arquivo video da matéria com Marcelo Maçola na TV TEM Programa TEM Esportes
               </a>
-            </td>
-        </tr> --}}
+            </td> --}}
+        </tr>
 
         </tbody>
     </table>

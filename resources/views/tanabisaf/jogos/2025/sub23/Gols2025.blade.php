@@ -13,6 +13,10 @@
 
   <div class="w-full max-w-2xl space-y-6">
 
+    <a href="{{ route('tanabisaf.jogos.2025.sub23.GolsAndre2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
+       Andre Augusto Mendonça Pereira
+    </a>
+
     <a href="{{ route('tanabisaf.jogos.2025.sub23.GolsMacola2025') }}" target="_blank" class="block bg-green-800 rounded-xl shadow-lg p-6 text-2xl font-bold text-yellow-300 hover:bg-green-700 transition">
        Marcelo Henrique Maçola Filho
     </a>
