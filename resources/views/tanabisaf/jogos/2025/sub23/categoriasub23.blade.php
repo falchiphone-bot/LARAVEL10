@@ -30,6 +30,17 @@
     </li>
 </ul>
 
+
+
+<ul class="text-gray-300 text-lg text-center mt-4">
+        <li>
+            <a href="{{ url('tanabisaf.jogos.2025.sub23.premiacaosub23-01092025') }}"
+            class="block p-2 text-blue-400 underline hover:text-red-500">
+                CERIMÔNIA DEPREMIAÇÃO Sub-23 (2025) NO HOTEL VITORIA CAMPINAS
+            </a>
+        </li>
+    </ul>
+
     <ul class="text-gray-300 text-lg text-center mt-4">
         <li>
             <a href="{{ url('tanabisaf.jogos.2025.sub23.Gols2025') }}"
