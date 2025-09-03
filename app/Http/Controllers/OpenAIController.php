@@ -561,6 +561,33 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
     }
 
     /**
+     * Visualização inline de um anexo (abre no navegador quando suportado).
+     */
+    public function viewAttachment(OpenAIChatAttachment $attachment)
+    {
+        if ((int) $attachment->user_id !== (int) Auth::id()) {
+            abort(403);
+        }
+        $disk = Storage::disk($attachment->disk ?: 'public');
+        $stream = $disk->readStream($attachment->path);
+        if (!$stream) {
+            abort(404);
+        }
+        $filename = $attachment->original_name ?: 'arquivo';
+        $mime = $attachment->mime_type ?: 'application/octet-stream';
+        return response()->stream(function () use ($stream) {
+            while (!feof($stream)) {
+                echo fread($stream, 8192);
+            }
+            if (is_resource($stream)) { fclose($stream); }
+        }, 200, [
+            'Content-Type' => $mime,
+            'Content-Disposition' => 'inline; filename="' . addslashes($filename) . '"',
+            'Cache-Control' => 'private, max-age=0, must-revalidate',
+        ]);
+    }
+
+    /**
      * Remoção de um anexo vinculado ao chat do usuário.
      */
     public function deleteAttachment(OpenAIChatAttachment $attachment): RedirectResponse

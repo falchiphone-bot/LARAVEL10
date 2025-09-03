@@ -104,6 +104,7 @@
                                 <small class="text-muted">({{ $att->mime_type ?? 'arquivo' }}, {{ number_format($att->size/1024, 1) }} KB)</small>
                             </span>
                             <span class="d-flex gap-2">
+                                <a href="{{ route('openai.chat.attachment.view', $att) }}" target="_blank" class="btn btn-sm btn-outline-info">Visualizar</a>
                                 <a href="{{ route('openai.chat.attachment.download', $att) }}" class="btn btn-sm btn-outline-secondary">Baixar</a>
                                 <form action="{{ route('openai.chat.attachment.delete', $att) }}" method="POST" onsubmit="return confirm('Remover este anexo?');">
                                     @csrf
