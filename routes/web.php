@@ -969,6 +969,10 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     Route::get('/openai/chat/load/{chat}', [OpenAIController::class, 'loadChat'])->name('openai.chat.load');
     Route::match(['put','patch'], '/openai/chat/{chat}', [OpenAIController::class, 'updateChat'])->name('openai.chat.update');
     Route::delete('/openai/chat/{chat}', [OpenAIController::class, 'deleteChat'])->name('openai.chat.delete');
+    // Anexos do chat
+    Route::post('/openai/chat/attachment', [OpenAIController::class, 'uploadAttachment'])->name('openai.chat.attachment.upload');
+    Route::get('/openai/chat/attachment/{attachment}/download', [OpenAIController::class, 'downloadAttachment'])->name('openai.chat.attachment.download');
+    Route::delete('/openai/chat/attachment/{attachment}', [OpenAIController::class, 'deleteAttachment'])->name('openai.chat.attachment.delete');
     Route::match(['get', 'post'], '/openai/transcribe', [OpenAIController::class, 'transcribe'])->name('openai.transcribe');
 });
 

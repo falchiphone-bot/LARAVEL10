@@ -82,6 +82,44 @@
         </div>
     </div>
 
+    @php $hasActive = session('openai_current_chat_id'); @endphp
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h2 class="h6 mb-3">Anexos da Conversa</h2>
+            <form action="{{ route('openai.chat.attachment.upload') }}" method="POST" enctype="multipart/form-data" class="d-flex gap-2 align-items-center flex-wrap mb-3">
+                @csrf
+                <input type="file" name="file" class="form-control" style="max-width: 360px;">
+                <button type="submit" class="btn btn-outline-success">Enviar arquivo</button>
+            </form>
+            @error('file')
+                <div class="text-danger small mb-2">{{ $message }}</div>
+            @enderror
+
+            @if(isset($attachments) && $attachments->count())
+                <ul class="list-group list-group-flush">
+                    @foreach($attachments as $att)
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>
+                                {{ $att->original_name }}
+                                <small class="text-muted">({{ $att->mime_type ?? 'arquivo' }}, {{ number_format($att->size/1024, 1) }} KB)</small>
+                            </span>
+                            <span class="d-flex gap-2">
+                                <a href="{{ route('openai.chat.attachment.download', $att) }}" class="btn btn-sm btn-outline-secondary">Baixar</a>
+                                <form action="{{ route('openai.chat.attachment.delete', $att) }}" method="POST" onsubmit="return confirm('Remover este anexo?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="btn btn-sm btn-outline-danger" type="submit">Excluir</button>
+                                </form>
+                            </span>
+                        </li>
+                    @endforeach
+                </ul>
+            @else
+                <div class="text-muted">Nenhum anexo nesta conversa.</div>
+            @endif
+        </div>
+    </div>
+
     <div class="d-flex justify-content-end mb-3">
         <form action="{{ route('openai.chat.clear') }}" method="POST" onsubmit="return confirm('Tem certeza que deseja limpar o histórico?');">
             @csrf

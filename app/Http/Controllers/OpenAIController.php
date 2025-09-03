@@ -12,13 +12,13 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use App\Exceptions\OpenAI\NetworkException;
 use App\Exceptions\OpenAI\ApiKeyMissingException;
-use FFMpeg\FFMpeg;
-use FFMpeg\Format\Audio\Mp3;
 use App\Jobs\TranscribeAudioJob;
 use App\Models\OpenAIChat;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use App\Models\OpenAIChatAttachment;
+// Storage already imported above
 
 class OpenAIController extends Controller
 {
@@ -32,8 +32,8 @@ class OpenAIController extends Controller
     public function __construct(OpenAIService $openAIService)
     {
         $this->middleware('auth');
-        $this->middleware(['permission:OPENAI - CHAT'])->only('chat', 'chats', 'saveChat', 'loadChat', 'updateChat', 'deleteChat', 'newChat');
-        $this->middleware(['permission:OPENAI - TRANSCRIBE - ESPANHOL'])->only('transcribe');
+    $this->middleware(['permission:OPENAI - CHAT'])->only('chat', 'chats', 'saveChat', 'loadChat', 'updateChat', 'deleteChat', 'newChat', 'uploadAttachment', 'downloadAttachment', 'deleteAttachment');
+    $this->middleware(['permission:OPENAI - TRANSCRIBE - ESPANHOL'])->only('transcribe', 'transcribeStatus');
          $this->openAIService = $openAIService;
     }
 
@@ -48,8 +48,9 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
 
     // Primeiro, tenta via php-ffmpeg se a classe existir
     try {
-        if (class_exists(\FFMpeg\FFMpeg::class)) {
-            $ffmpeg = FFMpeg::create([
+        if (class_exists('FFMpeg\\FFMpeg')) {
+            $ffmpegClass = 'FFMpeg\\FFMpeg';
+            $ffmpeg = $ffmpegClass::create([
                 'ffmpeg.binaries'  => env('FFMPEG_PATH', '/usr/bin/ffmpeg'),
                 'ffprobe.binaries' => env('FFPROBE_PATH', '/usr/bin/ffprobe'),
                 'timeout'          => 3600, // segundos
@@ -57,7 +58,8 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
             ]);
             $audio = $ffmpeg->open($inputPath);
 
-            $format = new Mp3();
+            $mp3Class = 'FFMpeg\\Format\\Audio\\Mp3';
+            $format = new $mp3Class();
             // Otimizações para fala: mono (1 canal), 16 kHz e bitrate menor
             $format->setAudioKiloBitrate(64);
             $format->setAudioChannels(1);
@@ -84,7 +86,7 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
         escapeshellarg($outputPath)
     );
     $output = [];
-    $exit = 0;
+    $this->middleware(['permission:OPENAI - CHAT'])->only('chat', 'chats', 'saveChat', 'loadChat', 'updateChat', 'deleteChat', 'newChat', 'uploadAttachment', 'downloadAttachment', 'deleteAttachment');
     @exec($cmd, $output, $exit);
     if ($exit !== 0 || !file_exists($outputPath) || filesize($outputPath) === 0) {
         $stderr = trim(implode("\n", array_slice($output, -30)));
@@ -127,7 +129,7 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
             $prompt = $request->input('prompt');
             $messages[] = ['role' => 'user', 'content' => $prompt];
 
-            // Prepara mensagens para envio à API (com possível contexto de conversas salvas)
+            // Prepara mensagens para envio à API (com possível contexto de conversas salvas e anexos)
             $messagesToSend = $messages;
 
         // Preferências de busca: lembrar na sessão e usar default do config
@@ -135,7 +137,7 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
         $searchInChats = $request->boolean('search_in_chats', (bool) $request->session()->get('openai_search_in_chats', $searchPrefDefault));
         $request->session()->put('openai_search_in_chats', $searchInChats);
 
-        if ($searchInChats) {
+            if ($searchInChats) {
                 $cfg = config('openai.chat.search');
                 $maxTerms   = (int) ($cfg['max_terms'] ?? 5);
                 $minLen     = (int) ($cfg['min_term_length'] ?? 4);
@@ -275,6 +277,51 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
                 }
             }
 
+            // 2) Injetar conteúdo de anexos (PDF/Imagem) do chat ativo (se habilitado)
+            $attCfg = (array) config('openai.chat.attachments', []);
+            $attEnabled = (bool) ($attCfg['enabled'] ?? true);
+            if ($attEnabled) {
+                $currentIdForAtt = (int) $request->session()->get('openai_current_chat_id');
+                if ($currentIdForAtt > 0) {
+                    $maxFiles = (int) ($attCfg['max_files'] ?? 3);
+                    $maxCharsPerFile = (int) ($attCfg['max_chars_per_file'] ?? 20000);
+                    $maxTotalChars = (int) ($attCfg['max_total_chars'] ?? 40000);
+                    $attPreamble = (string) ($attCfg['context_preamble'] ?? '');
+
+                    $attachments = OpenAIChatAttachment::where('chat_id', $currentIdForAtt)
+                        ->where('user_id', Auth::id())
+                        ->latest('created_at')
+                        ->take($maxFiles)
+                        ->get();
+
+                    $total = 0;
+                    $chunks = [];
+                    foreach ($attachments as $att) {
+                        try {
+                            $text = $this->extractAttachmentText($att, $maxCharsPerFile);
+                        } catch (\Throwable $t) {
+                            Log::warning('Falha extraindo texto do anexo: '.$t->getMessage(), ['att' => $att->id]);
+                            $text = '';
+                        }
+                        if (!$text) { continue; }
+                        if ($total >= $maxTotalChars) { break; }
+                        $remain = max(0, $maxTotalChars - $total);
+                        $slice = mb_substr($text, 0, $remain);
+                        $total += mb_strlen($slice);
+                        $chunks[] = "Arquivo: {$att->original_name}\n".$slice;
+                    }
+                    if (!empty($chunks)) {
+                        $prefix = $attPreamble ?: 'Considere o conteúdo dos anexos abaixo:';
+                        $attMsg = [
+                            'role' => 'system',
+                            'content' => $prefix."\n\n".implode("\n\n---\n\n", $chunks),
+                        ];
+                        // Insere após a 1ª mensagem (system original)
+                        array_splice($messagesToSend, 1, 0, [$attMsg]);
+                    }
+                }
+            }
+
             try {
                 $response = $this->openAIService->getChatResponse($messagesToSend);
 
@@ -337,25 +384,193 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
         $searchPrefDefault = (bool) config('openai.chat.search.enabled_default', false);
         $searchInChatsPref = (bool) $request->session()->get('openai_search_in_chats', $searchPrefDefault);
         $searchScopePref = (string) $request->session()->get('openai_search_scope', 'mine');
-        return view('openai.chat', [ // Sugiro renomear a view para 'chat.blade.php'
+
+    // Carrega anexos do chat ativo (se houver)
+    $attachments = collect();
+        $currentId = (int) $request->session()->get('openai_current_chat_id');
+        if ($currentId > 0) {
+            $attachments = OpenAIChatAttachment::where('chat_id', $currentId)
+                ->where('user_id', Auth::id())
+                ->latest('created_at')
+                ->get();
+        }
+
+        return view('openai.chat', [
             'messages' => $messages,
             'searchInChats' => $searchInChatsPref,
             'searchScope' => $searchScopePref,
+            'attachments' => $attachments,
         ]);
     }
 
     /**
-     * Clear the chat history from the session.
-     *
-     * @param Request $request
-     * @return RedirectResponse
+     * Extrai texto de um anexo suportando PDF e imagens comuns.
      */
+    protected function extractAttachmentText(OpenAIChatAttachment $att, int $maxCharsPerFile = 20000): string
+    {
+        $disk = $att->disk ?: 'public';
+        $path = $att->path;
+        if (!$path) { return ''; }
+        $mime = (string) ($att->mime_type ?? '');
+
+    // Recupera conteúdo: sempre copia para arquivo temporário via stream (compatível com qualquer driver)
+    $diskObj = Storage::disk($disk);
+    $stream = $diskObj->readStream($path);
+    if (!$stream) { return ''; }
+    $tmp = tempnam(sys_get_temp_dir(), 'att_');
+    $out = fopen($tmp, 'wb');
+    stream_copy_to_stream($stream, $out);
+    fclose($out);
+    if (is_resource($stream)) { fclose($stream); }
+    $absolute = $tmp;
+
+        $text = '';
+        // PDF
+        if (stripos($mime, 'pdf') !== false || str_ends_with(strtolower($att->original_name), '.pdf')) {
+            $text = $this->extractFromPdf($absolute);
+        }
+        // Imagens: png, jpg, jpeg, webp
+        elseif (preg_match('/\.(png|jpe?g|webp)$/i', $att->original_name)) {
+            $text = $this->extractFromImage($absolute);
+        }
+
+        $text = trim((string) $text);
+        if ($text === '') { return ''; }
+        return mb_substr($text, 0, $maxCharsPerFile);
+    }
+
+    protected function extractFromPdf(string $absolutePath): string
+    {
+        // Tenta bibliotecas comuns. Prioriza Smalot\PdfParser
+        try {
+            if (class_exists('Smalot\\PdfParser\\Parser')) {
+                $parserClass = 'Smalot\\PdfParser\\Parser';
+                $parser = new $parserClass();
+                $pdf = $parser->parseFile($absolutePath);
+                return (string) $pdf->getText();
+            }
+        } catch (\Throwable $t) {
+            Log::warning('PDF parse via Smalot falhou', ['error' => $t->getMessage()]);
+        }
+        // Fallback simples: usa pdftotext se disponível
+        try {
+            $cmd = 'pdftotext -layout '.escapeshellarg($absolutePath).' -';
+            $out = @shell_exec($cmd);
+            if (is_string($out) && $out !== '') { return $out; }
+        } catch (\Throwable $t) {
+            // ignore
+        }
+        return '';
+    }
+
+    protected function extractFromImage(string $absolutePath): string
+    {
+        // Preferência: ocr via tesseract, se instalado
+        try {
+            $cmd = 'tesseract '.escapeshellarg($absolutePath).' stdout -l por+eng 2>/dev/null';
+            $out = @shell_exec($cmd);
+            if (is_string($out) && trim($out) !== '') {
+                return trim($out);
+            }
+        } catch (\Throwable $t) {
+            // ignore
+        }
+
+        // Fallback: sem OCR disponível
+        return '';
+    }
     public function clearChat(Request $request): RedirectResponse
     {
         $request->session()->forget('openai_messages');
         $request->session()->forget('openai_current_chat_id');
 
         return redirect()->route('openai.chat');
+    }
+
+    /**
+     * Upload de anexo para o chat atual (em sessão ou salvo).
+     */
+    public function uploadAttachment(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'file' => 'required|file|max:10240', // 10MB
+        ]);
+
+        $file = $request->file('file');
+        $disk = 'public';
+        $path = $file->store('openai/chat_attachments', $disk);
+
+        // Garante que exista um chat salvo; se não houver, cria um rapidamente com o histórico atual
+        $messages = $request->session()->get('openai_messages', [
+            ['role' => 'system', 'content' => 'You are a helpful assistant.'],
+        ]);
+        $currentId = (int) $request->session()->get('openai_current_chat_id');
+
+        if ($currentId <= 0) {
+            // Cria um chat básico com título padrão
+            $title = 'Conversa com anexos';
+            $currentId = DB::table('open_a_i_chats')->insertGetId([
+                'user_id'  => Auth::id(),
+                'title'    => $title,
+                'messages' => json_encode($messages, JSON_UNESCAPED_UNICODE),
+            ]);
+            $request->session()->put('openai_current_chat_id', (int) $currentId);
+        }
+
+        OpenAIChatAttachment::create([
+            'chat_id'       => $currentId,
+            'user_id'       => Auth::id(),
+            'original_name' => $file->getClientOriginalName(),
+            'path'          => $path,
+            'disk'          => $disk,
+            'mime_type'     => $file->getClientMimeType(),
+            'size'          => $file->getSize(),
+            'message_index' => null,
+        ]);
+
+        // Atualiza updated_at do chat
+        DB::table('open_a_i_chats')
+            ->where('id', $currentId)
+            ->where('user_id', Auth::id())
+            ->update(['updated_at' => DB::raw('GETDATE()')]);
+
+        return back()->with('success', 'Arquivo anexado à conversa.');
+    }
+
+    /**
+     * Download de um anexo vinculado ao chat do usuário.
+     */
+    public function downloadAttachment(OpenAIChatAttachment $attachment)
+    {
+        if ((int) $attachment->user_id !== (int) Auth::id()) {
+            abort(403);
+        }
+        $disk = Storage::disk($attachment->disk ?: 'public');
+        $stream = $disk->readStream($attachment->path);
+        if (!$stream) {
+            abort(404);
+        }
+        $filename = $attachment->original_name ?: 'arquivo';
+        $mime = $attachment->mime_type ?: 'application/octet-stream';
+        return response()->streamDownload(function () use ($stream) {
+            while (!feof($stream)) {
+                echo fread($stream, 8192);
+            }
+            if (is_resource($stream)) { fclose($stream); }
+        }, $filename, ['Content-Type' => $mime]);
+    }
+
+    /**
+     * Remoção de um anexo vinculado ao chat do usuário.
+     */
+    public function deleteAttachment(OpenAIChatAttachment $attachment): RedirectResponse
+    {
+        if ((int) $attachment->user_id !== (int) Auth::id()) {
+            abort(403);
+        }
+        Storage::disk($attachment->disk)->delete($attachment->path);
+        $attachment->delete();
+        return back()->with('success', 'Anexo removido.');
     }
 
     /**

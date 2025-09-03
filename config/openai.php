@@ -24,5 +24,17 @@ return [
             // Collation para busca acento-insensível (SQL Server). Ex.: Latin1_General_CI_AI
             'collation' => env('OPENAI_CHAT_SEARCH_COLLATION', 'Latin1_General_CI_AI'),
         ],
+        'attachments' => [
+            // Habilitar injeção de conteúdo de anexos no contexto do chat
+            'enabled' => env('OPENAI_CHAT_ATTACHMENTS_ENABLED', true),
+            // Máximo de anexos a processar por mensagem
+            'max_files' => env('OPENAI_CHAT_ATTACHMENTS_MAX_FILES', 3),
+            // Tamanho máximo de caracteres por arquivo
+            'max_chars_per_file' => env('OPENAI_CHAT_ATTACHMENTS_MAX_CHARS_PER_FILE', 20000),
+            // Tamanho máximo total de caracteres somando todos os anexos
+            'max_total_chars' => env('OPENAI_CHAT_ATTACHMENTS_MAX_TOTAL_CHARS', 40000),
+            // Preambulo para orientar a IA
+            'context_preamble' => env('OPENAI_CHAT_ATTACHMENTS_CONTEXT_PREAMBLE', 'Use o conteúdo dos anexos abaixo como fonte primária para responder. Se a pergunta estiver coberta pelos anexos, priorize-os. Não invente informações que não estejam neles.'),
+        ],
     ],
 ];
