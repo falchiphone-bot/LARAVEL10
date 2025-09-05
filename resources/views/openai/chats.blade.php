@@ -1,9 +1,20 @@
 @extends('layouts.bootstrap5')
 @section('content')
 <div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="h4 mb-0">Minhas Conversas</h1>
-        <div>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">Minhas Conversas
+      @if(isset($q) && trim($q) !== '')
+        <span class="badge text-bg-info ms-2">Resultados: {{ $chats->total() }}</span>
+      @endif
+    </h1>
+    <div class="d-flex align-items-center gap-2">
+      <form action="{{ route('openai.chats') }}" method="GET" class="d-flex gap-2">
+        <input type="text" name="q" value="{{ $q ?? '' }}" class="form-control form-control-sm" placeholder="Buscar por título..." style="width: 240px;">
+        <button class="btn btn-sm btn-outline-secondary" type="submit">Pesquisar</button>
+        @if(isset($q) && trim($q) !== '')
+          <a href="{{ route('openai.chats') }}" class="btn btn-sm btn-outline-dark">Limpar filtro</a>
+        @endif
+      </form>
             <a href="{{ route('openai.menu') }}" class="btn btn-outline-secondary">← Menu OpenAI</a>
             <a href="{{ route('openai.chat.new') }}" class="btn btn-primary">Novo Chat</a>
         </div>
@@ -19,7 +30,17 @@
                 <div class="col-md-6 col-lg-4">
                     <div class="card h-100 shadow-sm">
                         <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">{{ $chat->title }}</h5>
+              @php
+                $safeTitle = e($chat->title);
+                $highlighted = $safeTitle;
+                if (isset($q) && trim($q) !== '') {
+                  $qTrim = trim($q);
+                  // Faz o replace no título já escapado, evitando XSS
+                  $pattern = '/' . preg_quote(e($qTrim), '/') . '/iu';
+                  $highlighted = preg_replace($pattern, '<mark>$0</mark>', $safeTitle);
+                }
+              @endphp
+              <h5 class="card-title">{!! $highlighted !!}</h5>
                             <p class="text-muted small mb-2">Atualizado em {{ $chat->updated_at->format('d/m/Y H:i') }}</p>
                             <div class="mt-auto d-flex gap-2">
                                 <a href="{{ route('openai.chat.load', $chat) }}" class="btn btn-sm btn-secondary">Carregar</a>

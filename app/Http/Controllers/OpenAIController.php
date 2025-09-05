@@ -772,13 +772,27 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
     /**
      * Lista conversas salvas do usuário autenticado.
      */
-    public function chats(): View
+    public function chats(Request $request): View
     {
-        $chats = OpenAIChat::where('user_id', Auth::id())
-            ->latest('updated_at')
-            ->paginate(12);
+        $q = trim((string) $request->input('q', ''));
+        $query = OpenAIChat::where('user_id', Auth::id());
 
-        return view('openai.chats', compact('chats'));
+        if ($q !== '') {
+            $driver = DB::connection()->getDriverName(); // sqlsrv, mysql, pgsql, sqlite
+            if ($driver === 'sqlsrv') {
+                $collation = (string) (config('openai.chat.search.collation') ?? 'Latin1_General_CI_AI');
+                $safe = str_replace(['%', '_'], ['[%]', '[_]'], $q);
+                $query->whereRaw("title COLLATE $collation LIKE ?", ['%' . $safe . '%']);
+            } elseif ($driver === 'pgsql') {
+                $query->whereRaw('title ILIKE ?', ['%' . $q . '%']);
+            } else {
+                $query->whereRaw('LOWER(title) LIKE ?', ['%' . mb_strtolower($q) . '%']);
+            }
+        }
+
+        $chats = $query->latest('updated_at')->paginate(12)->appends(['q' => $q]);
+
+        return view('openai.chats', compact('chats', 'q'));
     }
 
     /**
