@@ -975,6 +975,12 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     Route::get('/openai/chat/attachment/{attachment}/download', [OpenAIController::class, 'downloadAttachment'])->name('openai.chat.attachment.download');
     Route::delete('/openai/chat/attachment/{attachment}', [OpenAIController::class, 'deleteAttachment'])->name('openai.chat.attachment.delete');
     Route::match(['get', 'post'], '/openai/transcribe', [OpenAIController::class, 'transcribe'])->name('openai.transcribe');
+
+    // Tipos de conversa (CRUD simples)
+    Route::get('/openai/types', [\App\Http\Controllers\OpenAIChatTypeController::class, 'index'])->name('openai.types.index');
+    Route::post('/openai/types', [\App\Http\Controllers\OpenAIChatTypeController::class, 'store'])->name('openai.types.store');
+    Route::patch('/openai/types/{type}', [\App\Http\Controllers\OpenAIChatTypeController::class, 'update'])->name('openai.types.update');
+    Route::delete('/openai/types/{type}', [\App\Http\Controllers\OpenAIChatTypeController::class, 'destroy'])->name('openai.types.destroy');
 });
 
 require __DIR__ . '/auth.php';

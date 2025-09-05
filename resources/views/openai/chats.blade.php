@@ -8,14 +8,21 @@
       @endif
     </h1>
     <div class="d-flex align-items-center gap-2">
-      <form action="{{ route('openai.chats') }}" method="GET" class="d-flex gap-2">
-        <input type="text" name="q" value="{{ $q ?? '' }}" class="form-control form-control-sm" placeholder="Buscar por título..." style="width: 240px;">
+      <form action="{{ route('openai.chats') }}" method="GET" class="d-flex gap-2 align-items-center">
+        <input type="text" name="q" value="{{ $q ?? '' }}" class="form-control form-control-sm" placeholder="Buscar por título..." style="width: 220px;">
+        <select name="type_id" class="form-select form-select-sm" style="width: 180px;">
+          <option value="">Todos os tipos</option>
+          @foreach(($types ?? []) as $type)
+            <option value="{{ $type->id }}" {{ (isset($typeId) && (int)$typeId === (int)$type->id) ? 'selected' : '' }}>{{ $type->name }}</option>
+          @endforeach
+        </select>
         <button class="btn btn-sm btn-outline-secondary" type="submit">Pesquisar</button>
-        @if(isset($q) && trim($q) !== '')
+        @if((isset($q) && trim($q) !== '') || (isset($typeId) && (int)$typeId > 0))
           <a href="{{ route('openai.chats') }}" class="btn btn-sm btn-outline-dark">Limpar filtro</a>
         @endif
       </form>
             <a href="{{ route('openai.menu') }}" class="btn btn-outline-secondary">← Menu OpenAI</a>
+            <a href="{{ route('openai.types.index') }}" class="btn btn-outline-dark">Gerenciar Tipos</a>
             <a href="{{ route('openai.chat.new') }}" class="btn btn-primary">Novo Chat</a>
         </div>
     </div>
@@ -31,16 +38,23 @@
                     <div class="card h-100 shadow-sm">
                         <div class="card-body d-flex flex-column">
               @php
-                $safeTitle = e($chat->title);
-                $highlighted = $safeTitle;
+                $titleHighlighted = e($chat->title);
                 if (isset($q) && trim($q) !== '') {
-                  $qTrim = trim($q);
-                  // Faz o replace no título já escapado, evitando XSS
-                  $pattern = '/' . preg_quote(e($qTrim), '/') . '/iu';
-                  $highlighted = preg_replace($pattern, '<mark>$0</mark>', $safeTitle);
+                  $needle = trim((string) $q);
+                  if ($needle !== '') {
+                    $pattern = '/' . preg_quote($needle, '/') . '/i';
+                    $titleHighlighted = preg_replace_callback($pattern, function ($m) {
+                      return '<mark>' . e($m[0]) . '</mark>';
+                    }, e($chat->title));
+                  }
                 }
               @endphp
-              <h5 class="card-title">{!! $highlighted !!}</h5>
+              <h5 class="card-title d-flex align-items-center gap-2">
+                <span>{!! $titleHighlighted !!}</span>
+                @if($chat->type)
+                  <span class="badge text-bg-secondary">{{ $chat->type->name }}</span>
+                @endif
+              </h5>
                             <p class="text-muted small mb-2">Atualizado em {{ $chat->updated_at->format('d/m/Y H:i') }}</p>
                             <div class="mt-auto d-flex gap-2">
                                 <a href="{{ route('openai.chat.load', $chat) }}" class="btn btn-sm btn-secondary">Carregar</a>
@@ -74,6 +88,15 @@
                           <div class="mb-3">
                             <label for="title{{ $chat->id }}" class="form-label">Novo título</label>
                             <input type="text" name="title" id="title{{ $chat->id }}" class="form-control" maxlength="100" value="{{ $chat->title }}" required>
+                          </div>
+                          <div class="mb-3">
+                            <label for="type{{ $chat->id }}" class="form-label">Tipo</label>
+                            <select name="type_id" id="type{{ $chat->id }}" class="form-select">
+                              <option value="">Sem tipo</option>
+                              @foreach(($types ?? []) as $type)
+                                <option value="{{ $type->id }}" {{ ((int)($chat->type_id) === (int)$type->id) ? 'selected' : '' }}>{{ $type->name }}</option>
+                              @endforeach
+                            </select>
                           </div>
                         </div>
                         <div class="modal-footer">

@@ -32,7 +32,7 @@ class OpenAIController extends Controller
     public function __construct(OpenAIService $openAIService)
     {
         $this->middleware('auth');
-    $this->middleware(['permission:OPENAI - CHAT'])->only('chat', 'chats', 'saveChat', 'loadChat', 'updateChat', 'deleteChat', 'newChat', 'uploadAttachment', 'downloadAttachment', 'deleteAttachment');
+    $this->middleware(['permission:OPENAI - CHAT'])->only('chat', 'chats', 'saveChat', 'loadChat', 'updateChat', 'deleteChat', 'newChat', 'uploadAttachment', 'viewAttachment', 'downloadAttachment', 'deleteAttachment');
     $this->middleware(['permission:OPENAI - TRANSCRIBE - ESPANHOL'])->only('transcribe', 'transcribeStatus');
          $this->openAIService = $openAIService;
     }
@@ -395,11 +395,20 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
                 ->get();
         }
 
+        // Tipos para seleção ao salvar/atualizar e chat atual (para pré-seleção do tipo)
+        $types = \App\Models\OpenAIChatType::orderBy('name')->get();
+        $currentChat = null;
+        if ($currentId > 0) {
+            $currentChat = OpenAIChat::select('id','type_id','title')->where('id', $currentId)->first();
+        }
+
         return view('openai.chat', [
             'messages' => $messages,
             'searchInChats' => $searchInChatsPref,
             'searchScope' => $searchScopePref,
             'attachments' => $attachments,
+            'types' => $types,
+            'currentChat' => $currentChat,
         ]);
     }
 
@@ -775,6 +784,7 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
     public function chats(Request $request): View
     {
         $q = trim((string) $request->input('q', ''));
+        $typeId = (int) $request->input('type_id', 0);
         $query = OpenAIChat::where('user_id', Auth::id());
 
         if ($q !== '') {
@@ -790,9 +800,15 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
             }
         }
 
-        $chats = $query->latest('updated_at')->paginate(12)->appends(['q' => $q]);
+        if ($typeId > 0) {
+            $query->where('type_id', $typeId);
+        }
 
-        return view('openai.chats', compact('chats', 'q'));
+        $chats = $query->with('type')->latest('updated_at')->paginate(12)->appends(['q' => $q, 'type_id' => $typeId]);
+
+        $types = \App\Models\OpenAIChatType::orderBy('name')->get();
+
+        return view('openai.chats', compact('chats', 'q', 'typeId', 'types'));
     }
 
     /**
@@ -808,6 +824,7 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
         $request->validate([
             'title' => 'nullable|string|max:100',
             'mode'  => 'nullable|in:update,new',
+            'type_id' => 'nullable|integer|exists:openai_chat_types,id',
         ]);
 
         $rawTitle = $request->input('title');
@@ -815,6 +832,9 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
         if ($rawTitle !== null && trim($rawTitle) !== '') {
             $titleNormalized = Str::limit(trim(preg_replace('/\s+/', ' ', (string) $rawTitle)), 100, '…');
         }
+
+        $typeIdInput = $request->input('type_id');
+        $typeId = ($typeIdInput === null || $typeIdInput === '' ) ? null : (int) $typeIdInput;
 
         $currentId = (int) $request->session()->get('openai_current_chat_id');
         $mode = $request->input('mode'); // 'update' ou 'new'
@@ -828,6 +848,8 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
             if ($titleNormalized) {
                 $data['title'] = $titleNormalized;
             }
+            // Permite atualizar/limpar o tipo
+            $data['type_id'] = $typeId;
 
             $affected = DB::table('open_a_i_chats')
                 ->where('id', $currentId)
@@ -850,6 +872,7 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
             'user_id'  => Auth::id(),
             'title'    => $title,
             'messages' => json_encode($messages, JSON_UNESCAPED_UNICODE),
+            'type_id'  => $typeId,
             // created_at e updated_at usam defaults da tabela (GETDATE())
         ]);
 
@@ -869,14 +892,18 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
 
         $validated = $request->validate([
             'title' => 'required|string|max:100',
+            'type_id' => 'nullable|integer|exists:openai_chat_types,id',
         ]);
 
         $title = Str::limit(trim(preg_replace('/\s+/', ' ', (string) $validated['title'])), 100, '…');
+        $typeIdInput = $request->input('type_id');
+        $typeId = ($typeIdInput === null || $typeIdInput === '' ) ? null : (int) $typeIdInput;
 
         DB::table('open_a_i_chats')
             ->where('id', $chat->id)
             ->update([
                 'title' => $title,
+                'type_id' => $typeId,
                 'updated_at' => DB::raw('GETDATE()'),
             ]);
 

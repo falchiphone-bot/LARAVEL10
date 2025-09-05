@@ -10,6 +10,15 @@
         <form action="{{ route('openai.chat.save') }}" method="POST" class="d-inline-flex align-items-center gap-2">
             @csrf
             <input type="text" name="title" class="form-control form-control-sm" placeholder="Título (opcional)" style="width: 220px;">
+            <select name="type_id" class="form-select form-select-sm" style="width: 200px;">
+                <option value="">Tipo (opcional)</option>
+                @foreach(($types ?? []) as $type)
+                    @php
+                        $selected = isset($currentChat) && $currentChat && (int)$currentChat->type_id === (int)$type->id;
+                    @endphp
+                    <option value="{{ $type->id }}" {{ $selected ? 'selected' : '' }}>{{ $type->name }}</option>
+                @endforeach
+            </select>
             @if(session('openai_current_chat_id'))
                 <div class="form-check m-0">
                     <input class="form-check-input" type="checkbox" id="saveAsNew" name="mode" value="new">

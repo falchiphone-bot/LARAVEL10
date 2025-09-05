@@ -36,4 +36,9 @@ class OpenAIChat extends Model
     {
         return $this->hasMany(OpenAIChatAttachment::class, 'chat_id');
     }
+
+    public function type(): BelongsTo
+    {
+        return $this->belongsTo(OpenAIChatType::class, 'type_id');
+    }
 }
