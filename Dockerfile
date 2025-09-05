@@ -1,4 +1,4 @@
-# Use Debian 12 (bookworm) — compatível com msodbcsql18/sqlsrv
+# Use Debian 12 (bookworm) — compatível com msodbcsql18/sqlsrv 05-09-2025 - 18:40
 FROM php:8.1-fpm-bookworm
 
 # Ambiente não-interativo + aceitar EULA da MS p/ ODBC
