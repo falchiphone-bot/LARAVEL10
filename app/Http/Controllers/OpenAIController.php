@@ -502,7 +502,11 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
     public function uploadAttachment(Request $request): RedirectResponse
     {
         $request->validate([
-            'file' => 'required|file|max:10240', // 10MB
+            'file' => 'required|file|max:51200', // 50MB
+        ], [
+            'file.required' => 'Selecione um arquivo.',
+            'file.file'     => 'Arquivo inválido.',
+            'file.max'      => 'O arquivo não pode ser superior a 50 MB.',
         ]);
 
         $file = $request->file('file');
