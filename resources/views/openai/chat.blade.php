@@ -21,6 +21,11 @@
             <a href="{{ route('openai.chats', array_merge($baseParams, ['view' => 'cards'])) }}" class="btn {{ $lastView==='cards' ? 'btn-primary' : 'btn-outline-secondary' }}">Conversas (Cartões)</a>
             <a href="{{ route('openai.chats', array_merge($baseParams, ['view' => 'table'])) }}" class="btn {{ $lastView==='table' ? 'btn-primary' : 'btn-outline-secondary' }}">Conversas (Tabela)</a>
         </div>
+        @if($currentChat)
+            <a href="{{ route('openai.records.index', ['chat_id'=>$currentChat->id]) }}#newRecordForm" class="btn btn-outline-danger">Registros</a>
+        @else
+            <a href="{{ route('openai.records.index') }}" class="btn btn-outline-danger">Registros</a>
+        @endif
         <form action="{{ route('openai.chat.save') }}" method="POST" class="d-inline-flex align-items-center gap-2">
             @csrf
             <input type="text" name="title" class="form-control form-control-sm" placeholder="Título (opcional)" style="width: 220px;">
@@ -87,6 +92,35 @@
                     <div class="col-sm-12 col-md-3 d-flex gap-2">
                         <button class="btn btn-sm btn-danger" type="submit">Salvar Meta</button>
                         <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#editMeta">Fechar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    @if($currentChat)
+    <div class="card shadow-sm mb-4">
+        <div class="card-body py-3">
+            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                <h2 class="h6 mb-0">Adicionar Registro Rápido</h2>
+                <a class="small text-decoration-none" data-bs-toggle="collapse" href="#quickRecordForm" role="button" aria-expanded="false">Mostrar / Ocultar</a>
+            </div>
+            <div class="collapse show" id="quickRecordForm">
+                <form action="{{ route('openai.records.store') }}" method="POST" class="row g-2 align-items-end">
+                    @csrf
+                    <input type="hidden" name="chat_id" value="{{ $currentChat->id }}">
+                    <div class="col-sm-4 col-md-3">
+                        <label class="form-label small mb-1">Data/Hora</label>
+                        <input type="text" name="occurred_at" value="{{ old('occurred_at') ?? now()->format('d/m/Y H:i:s') }}" class="form-control form-control-sm mask-datetime-br" placeholder="dd/mm/aaaa HH:MM:SS" required autocomplete="off">
+                    </div>
+                    <div class="col-sm-4 col-md-2">
+                        <label class="form-label small mb-1">Valor</label>
+                        <input type="number" step="0.01" name="amount" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="col-sm-12 col-md-3">
+                        <button class="btn btn-sm btn-danger mt-2 mt-md-0">Salvar Registro</button>
+                        <a href="{{ route('openai.records.index', ['chat_id'=>$currentChat->id]) }}" class="btn btn-sm btn-outline-secondary mt-2 mt-md-0">Ver Todos</a>
                     </div>
                 </form>
             </div>
@@ -218,3 +252,32 @@
     @endif
 </div>
 @endsection
+@push('scripts')
+<script>
+(function(){
+    function formatDateTimeBR(raw){
+        let v = (raw||'').replace(/\D/g,'').slice(0,14);
+        let o='';
+        if(v.length>0) o+=v.slice(0,2);
+        if(v.length>=3) o+='/'+v.slice(2,4);
+        if(v.length>=5) o+='/'+v.slice(4,8);
+        if(v.length>=9) o+=' '+v.slice(8,10);
+        if(v.length>=11) o+=':'+v.slice(10,12);
+        if(v.length>=13) o+=':'+v.slice(12,14);
+        return o;
+    }
+    function applyMask(el){ el.value = formatDateTimeBR(el.value); }
+    const sel = document.querySelectorAll('.mask-datetime-br');
+    sel.forEach(el=>{
+        el.addEventListener('input', ()=>applyMask(el));
+        el.addEventListener('paste', ()=> setTimeout(()=>applyMask(el),0));
+        el.addEventListener('blur', ()=>{ if(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/.test(el.value)) el.value+=':00'; });
+        if(!el.value){
+            const now=new Date();
+            const pad=n=>n.toString().padStart(2,'0');
+            el.value = pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear()+' '+pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
+        }
+    });
+})();
+</script>
+@endpush

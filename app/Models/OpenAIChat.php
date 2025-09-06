@@ -42,4 +42,9 @@ class OpenAIChat extends Model
     {
         return $this->belongsTo(OpenAIChatType::class, 'type_id');
     }
+
+    public function records(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(OpenAIChatRecord::class, 'chat_id');
+    }
 }
