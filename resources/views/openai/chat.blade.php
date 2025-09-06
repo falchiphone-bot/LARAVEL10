@@ -6,7 +6,21 @@
         <a href="{{ route('openai.menu') }}" class="btn btn-outline-secondary">← Voltar ao Menu</a>
         @endcanany
         <a href="{{ route('openai.chat.new') }}" class="btn btn-primary">Novo Chat</a>
-        <a href="{{ route('openai.chats') }}" class="btn btn-outline-primary">Minhas Conversas</a>
+        @php
+            $lastParams = session('openai_chats_last_params', []);
+            $baseParams = array_filter([
+                'q' => $lastParams['q'] ?? null,
+                'type_id' => $lastParams['type_id'] ?? null,
+                'sort' => $lastParams['sort'] ?? null,
+                'dir' => $lastParams['dir'] ?? null,
+                'per_page' => $lastParams['per_page'] ?? null,
+            ], fn($v) => !is_null($v) && $v !== '');
+        @endphp
+        @php $lastView = $lastParams['view'] ?? session('openai_chats_last_view', 'cards'); @endphp
+        <div class="btn-group" role="group" aria-label="Visualização de conversas">
+            <a href="{{ route('openai.chats', array_merge($baseParams, ['view' => 'cards'])) }}" class="btn {{ $lastView==='cards' ? 'btn-primary' : 'btn-outline-secondary' }}">Conversas (Cartões)</a>
+            <a href="{{ route('openai.chats', array_merge($baseParams, ['view' => 'table'])) }}" class="btn {{ $lastView==='table' ? 'btn-primary' : 'btn-outline-secondary' }}">Conversas (Tabela)</a>
+        </div>
         <form action="{{ route('openai.chat.save') }}" method="POST" class="d-inline-flex align-items-center gap-2">
             @csrf
             <input type="text" name="title" class="form-control form-control-sm" placeholder="Título (opcional)" style="width: 220px;">
@@ -33,7 +47,52 @@
         @endif
     </div>
 
-    <h1 class="h4 mb-3">Consultar API da OpenAI</h1>
+    @php
+        $chatTitle = $currentChat?->title ?? 'Nova Conversa';
+        $chatCode  = $currentChat?->code ?? null;
+    @endphp
+    <div class="d-flex align-items-center flex-wrap gap-3 mb-3">
+        <h1 class="h4 mb-0" title="Título da conversa">{{ $chatTitle }}</h1>
+        @if($chatCode)
+            <span class="badge" style="background:#b30000; font-size:.70rem; letter-spacing:1px;">CÓD: {{ $chatCode }}</span>
+        @endif
+        @if($currentChat)
+            <button class="btn btn-sm btn-outline-danger" data-bs-toggle="collapse" data-bs-target="#editMeta">Editar Meta</button>
+        @endif
+    </div>
+    @if($currentChat)
+    <div id="editMeta" class="collapse mb-4">
+        <div class="card border-danger-subtle">
+            <div class="card-body py-3">
+                <form action="{{ route('openai.chat.update', $currentChat->id) }}" method="POST" class="row g-2 align-items-end">
+                    @csrf
+                    @method('PATCH')
+                    <div class="col-sm-5 col-md-4">
+                        <label class="form-label small mb-1">Título</label>
+                        <input type="text" name="title" value="{{ $currentChat->title }}" maxlength="100" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="col-sm-3 col-md-2">
+                        <label class="form-label small mb-1">Código (5)</label>
+                        <input type="text" name="code" value="{{ $currentChat->code }}" maxlength="5" class="form-control form-control-sm" pattern="[A-Za-z0-9]{0,5}" title="Até 5 caracteres alfanuméricos">
+                    </div>
+                    <div class="col-sm-4 col-md-3">
+                        <label class="form-label small mb-1">Tipo</label>
+                        <select name="type_id" class="form-select form-select-sm">
+                            <option value="">Sem tipo</option>
+                            @foreach(($types ?? []) as $type)
+                                <option value="{{ $type->id }}" {{ (int)$currentChat->type_id === (int)$type->id ? 'selected' : '' }}>{{ $type->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-md-3 d-flex gap-2">
+                        <button class="btn btn-sm btn-danger" type="submit">Salvar Meta</button>
+                        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#editMeta">Fechar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
 
     @if(session('error'))
         <div class="alert alert-danger" role="alert">

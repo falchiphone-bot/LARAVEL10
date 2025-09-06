@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 use App\Exceptions\OpenAI\NetworkException;
 use App\Exceptions\OpenAI\ApiKeyMissingException;
 use App\Jobs\TranscribeAudioJob;
@@ -399,7 +400,7 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
         $types = \App\Models\OpenAIChatType::orderBy('name')->get();
         $currentChat = null;
         if ($currentId > 0) {
-            $currentChat = OpenAIChat::select('id','type_id','title')->where('id', $currentId)->first();
+            $currentChat = OpenAIChat::select('id','type_id','title','code')->where('id', $currentId)->first();
         }
 
         return view('openai.chat', [
@@ -789,14 +790,19 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
     {
         $q = trim((string) $request->input('q', ''));
         $typeId = (int) $request->input('type_id', 0);
-    $sort = (string) $request->input('sort', 'updated'); // updated|title|type
+    $sort = (string) $request->input('sort', 'updated'); // updated|title|type|code
     $dir  = strtolower((string) $request->input('dir', $sort === 'updated' ? 'desc' : 'asc'));
-    if (!in_array($sort, ['updated','title','type'], true)) { $sort = 'updated'; }
+    if (!in_array($sort, ['updated','title','type','code'], true)) { $sort = 'updated'; }
     if (!in_array($dir, ['asc','desc'], true)) { $dir = $sort === 'updated' ? 'desc' : 'asc'; }
     $perPage = (int) $request->input('per_page', 12);
     $maxPerPage = 500; // limite de segurança
     if ($perPage < 1) { $perPage = 1; }
     if ($perPage > $maxPerPage) { $perPage = $maxPerPage; }
+        // Modo de visualização: usa o fornecido ou último da sessão
+        $view = $request->input('view');
+        if (!in_array($view, ['cards','table'], true)) {
+            $view = session('openai_chats_last_view', 'cards');
+        }
     $query = OpenAIChat::where('user_id', Auth::id());
     // Total geral antes de filtros (para exibir proporção)
     $totalAll = (clone $query)->count();
@@ -821,6 +827,14 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
         // Ordenação
         if ($sort === 'title') {
             $query->orderBy('title', $dir);
+        } elseif ($sort === 'code') {
+            if (Schema::hasColumn('open_a_i_chats','code')) {
+                $query->orderBy('code', $dir);
+            } else {
+                // Coluna ainda não existe: fallback
+                $sort = 'updated';
+                $query->orderBy('updated_at', $dir);
+            }
         } elseif ($sort === 'type') {
             // Ordena pelo nome do tipo (left join)
             $query->leftJoin('openai_chat_types as t', 't.id', '=', 'open_a_i_chats.type_id')
@@ -840,6 +854,17 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
 
         $types = \App\Models\OpenAIChatType::orderBy('name')->get();
 
+        // Persistir últimos parâmetros para uso em outros lugares (ex: view chat)
+        session()->put('openai_chats_last_params', [
+            'q' => $q ?: null,
+            'type_id' => $typeId ?: null,
+            'sort' => $sort,
+            'dir' => $dir,
+            'per_page' => $perPage,
+            'view' => $view,
+        ]);
+        session()->put('openai_chats_last_view', $view);
+
     return view('openai.chats', compact('chats', 'q', 'typeId', 'types', 'sort', 'dir', 'perPage', 'totalAll', 'maxPerPage'));
     }
 
@@ -857,6 +882,7 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
             'title' => 'nullable|string|max:100',
             'mode'  => 'nullable|in:update,new',
             'type_id' => 'nullable|integer|exists:openai_chat_types,id',
+            'code' => 'nullable|string|min:1|max:5',
         ]);
 
         $rawTitle = $request->input('title');
@@ -882,6 +908,10 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
             }
             // Permite atualizar/limpar o tipo
             $data['type_id'] = $typeId;
+            $codeInput = $request->input('code');
+            if ($codeInput !== null && trim($codeInput) !== '' && Schema::hasColumn('open_a_i_chats','code')) {
+                $data['code'] = Str::upper(substr(trim($codeInput),0,5));
+            }
 
             $affected = DB::table('open_a_i_chats')
                 ->where('id', $currentId)
@@ -900,11 +930,18 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
         $lastUser = collect($messages)->reverse()->firstWhere('role', 'user');
         $title = $titleNormalized ?? Str::limit(trim(preg_replace('/\s+/', ' ', (string)($lastUser['content'] ?? 'Conversa'))), 100, '…');
 
+        $codeInput = $request->input('code');
+        $codeVal = null;
+    if ($codeInput !== null && trim($codeInput) !== '' && Schema::hasColumn('open_a_i_chats','code')) {
+            $codeVal = Str::upper(substr(trim($codeInput),0,5));
+        }
+
         $newId = DB::table('open_a_i_chats')->insertGetId([
             'user_id'  => Auth::id(),
             'title'    => $title,
             'messages' => json_encode($messages, JSON_UNESCAPED_UNICODE),
             'type_id'  => $typeId,
+            'code'     => $codeVal,
             // created_at e updated_at usam defaults da tabela (GETDATE())
         ]);
 
@@ -925,17 +962,22 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
         $validated = $request->validate([
             'title' => 'required|string|max:100',
             'type_id' => 'nullable|integer|exists:openai_chat_types,id',
+            'code' => 'nullable|string|min:1|max:5',
         ]);
 
         $title = Str::limit(trim(preg_replace('/\s+/', ' ', (string) $validated['title'])), 100, '…');
         $typeIdInput = $request->input('type_id');
         $typeId = ($typeIdInput === null || $typeIdInput === '' ) ? null : (int) $typeIdInput;
 
+        $codeInput = $request->input('code');
+    $codeVal = ($codeInput !== null && trim($codeInput) !== '' && Schema::hasColumn('open_a_i_chats','code')) ? Str::upper(substr(trim($codeInput),0,5)) : null;
+
         DB::table('open_a_i_chats')
             ->where('id', $chat->id)
             ->update([
                 'title' => $title,
                 'type_id' => $typeId,
+                'code' => $codeVal,
                 'updated_at' => DB::raw('GETDATE()'),
             ]);
 

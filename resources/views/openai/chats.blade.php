@@ -2,7 +2,10 @@
 @section('content')
 <div class="container py-4">
   @php
-    $viewMode = request('view', 'cards');
+    $viewMode = request('view');
+    if(!in_array($viewMode, ['cards','table'])) {
+        $viewMode = session('openai_chats_last_view', 'cards');
+    }
     $sort = $sort ?? request('sort', 'updated');
     $dir  = $dir ?? request('dir', $sort === 'updated' ? 'desc' : 'asc');
     $toggleDir = fn($c) => ($sort === $c && $dir === 'asc') ? 'desc' : 'asc';
@@ -11,6 +14,18 @@
       return $dir === 'asc' ? '▲' : '▼';
     }
   @endphp
+  <style>
+    /* Badge de código forte reutilizável */
+    .badge-code{background:#b30000!important;color:#fff!important;font-weight:600;letter-spacing:1px;}
+    .badge-code.small{font-size:.60rem;padding:.30em .45em;}
+    /* Links de ordenação mais fortes */
+    .table-zebra th a.sort-link{color:#b30000;font-weight:600;}
+    .table-zebra th a.sort-link:hover,.table-zebra th a.sort-link:focus{color:#660000;text-decoration:underline;}
+    /* Ícone ativo */
+    .table-zebra th.sorted{background:#b30000 !important;color:#fff !important;}
+    .table-zebra th.sorted a.sort-link{color:#fff !important;}
+    .table-zebra th.sorted a.sort-link:hover{color:#ffeaea !important;}
+  </style>
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="h4 mb-0">Minhas Conversas
       @if(isset($q) && trim($q) !== '')
@@ -82,6 +97,9 @@
                     @if($chat->type)
                       <span class="badge text-bg-secondary">{{ $chat->type->name }}</span>
                     @endif
+                    @if($chat->code)
+                      <span class="badge badge-code small">{{ $chat->code }}</span>
+                    @endif
                   </h5>
                                 <p class="text-muted small mb-2">Atualizado em {{ $chat->updated_at->format('d/m/Y H:i') }}</p>
                                 <div class="mt-auto d-flex gap-2">
@@ -116,6 +134,10 @@
                               <div class="mb-3">
                                 <label for="title{{ $chat->id }}" class="form-label">Novo título</label>
                                 <input type="text" name="title" id="title{{ $chat->id }}" class="form-control" maxlength="100" value="{{ $chat->title }}" required>
+                              </div>
+                              <div class="mb-3">
+                                <label for="code{{ $chat->id }}" class="form-label">Código (até 5)</label>
+                                <input type="text" name="code" id="code{{ $chat->id }}" class="form-control" maxlength="5" value="{{ $chat->code }}" pattern="[A-Za-z0-9]{0,5}" title="Até 5 caracteres alfanuméricos">
                               </div>
                               <div class="mb-3">
                                 <label for="type{{ $chat->id }}" class="form-label">Tipo</label>
@@ -156,19 +178,25 @@
               <table class="table table-sm table-bordered table-zebra align-middle">
                 <thead>
                   <tr>
-                    <th style="width:45%">
+                    <th style="width:40%" class="@if($sort==='title') sorted @endif">
                       <a class="sort-link text-decoration-none d-flex align-items-center justify-content-between" href="{{ route('openai.chats', array_merge(request()->except('page'), ['view'=>$viewMode,'sort'=>'title','dir'=>$toggleDir('title')])) }}">
                         <span>Título</span>
                         <span>{!! sortIcon('title', $sort, $dir) !!}</span>
                       </a>
                     </th>
-                    <th style="width:15%">
+                    <th style="width:15%" class="@if($sort==='type') sorted @endif">
                       <a class="sort-link text-decoration-none d-flex align-items-center justify-content-between" href="{{ route('openai.chats', array_merge(request()->except('page'), ['view'=>$viewMode,'sort'=>'type','dir'=>$toggleDir('type')])) }}">
                         <span>Tipo</span>
                         <span>{!! sortIcon('type', $sort, $dir) !!}</span>
                       </a>
                     </th>
-                    <th style="width:20%">
+                    <th style="width:10%" class="text-center @if($sort==='code') sorted @endif">
+                      <a class="sort-link text-decoration-none d-flex align-items-center justify-content-between" href="{{ route('openai.chats', array_merge(request()->except('page'), ['view'=>$viewMode,'sort'=>'code','dir'=>$toggleDir('code')])) }}">
+                        <span>Cód.</span>
+                        <span>{!! sortIcon('code', $sort, $dir) !!}</span>
+                      </a>
+                    </th>
+                    <th style="width:15%" class="@if($sort==='updated') sorted @endif">
                       <a class="sort-link text-decoration-none d-flex align-items-center justify-content-between" href="{{ route('openai.chats', array_merge(request()->except('page'), ['view'=>$viewMode,'sort'=>'updated','dir'=>$toggleDir('updated')])) }}">
                         <span>Atualizado</span>
                         <span>{!! sortIcon('updated', $sort, $dir) !!}</span>
@@ -200,6 +228,7 @@
                           <span class="text-muted small">—</span>
                         @endif
                       </td>
+                      <td class="text-center fw-semibold">@if($chat->code)<span class="badge badge-code">{{ $chat->code }}</span>@else <span class="text-muted">—</span>@endif</td>
                       <td class="small">{{ $chat->updated_at->format('d/m/Y H:i') }}</td>
                       <td class="text-center">
                         <div class="d-flex flex-wrap gap-1 justify-content-center">
@@ -228,6 +257,10 @@
                               <div class="mb-3">
                                 <label for="title{{ $chat->id }}" class="form-label">Novo título</label>
                                 <input type="text" name="title" id="title{{ $chat->id }}" class="form-control" maxlength="100" value="{{ $chat->title }}" required>
+                              </div>
+                              <div class="mb-3">
+                                <label for="code{{ $chat->id }}" class="form-label">Código (até 5)</label>
+                                <input type="text" name="code" id="code{{ $chat->id }}" class="form-control" maxlength="5" value="{{ $chat->code }}" pattern="[A-Za-z0-9]{0,5}" title="Até 5 caracteres alfanuméricos">
                               </div>
                               <div class="mb-3">
                                 <label for="type{{ $chat->id }}" class="form-label">Tipo</label>
