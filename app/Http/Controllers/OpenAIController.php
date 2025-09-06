@@ -789,7 +789,17 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
     {
         $q = trim((string) $request->input('q', ''));
         $typeId = (int) $request->input('type_id', 0);
-        $query = OpenAIChat::where('user_id', Auth::id());
+    $sort = (string) $request->input('sort', 'updated'); // updated|title|type
+    $dir  = strtolower((string) $request->input('dir', $sort === 'updated' ? 'desc' : 'asc'));
+    if (!in_array($sort, ['updated','title','type'], true)) { $sort = 'updated'; }
+    if (!in_array($dir, ['asc','desc'], true)) { $dir = $sort === 'updated' ? 'desc' : 'asc'; }
+    $perPage = (int) $request->input('per_page', 12);
+    $maxPerPage = 500; // limite de segurança
+    if ($perPage < 1) { $perPage = 1; }
+    if ($perPage > $maxPerPage) { $perPage = $maxPerPage; }
+    $query = OpenAIChat::where('user_id', Auth::id());
+    // Total geral antes de filtros (para exibir proporção)
+    $totalAll = (clone $query)->count();
 
         if ($q !== '') {
             $driver = DB::connection()->getDriverName(); // sqlsrv, mysql, pgsql, sqlite
@@ -808,11 +818,29 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
             $query->where('type_id', $typeId);
         }
 
-        $chats = $query->with('type')->latest('updated_at')->paginate(12)->appends(['q' => $q, 'type_id' => $typeId]);
+        // Ordenação
+        if ($sort === 'title') {
+            $query->orderBy('title', $dir);
+        } elseif ($sort === 'type') {
+            // Ordena pelo nome do tipo (left join)
+            $query->leftJoin('openai_chat_types as t', 't.id', '=', 'open_a_i_chats.type_id')
+                  ->select('open_a_i_chats.*')
+                  ->orderByRaw('CASE WHEN t.name IS NULL THEN 1 ELSE 0 END, t.name '.$dir); // nulos ao final
+        } else { // updated
+            $query->orderBy('updated_at', $dir);
+        }
+
+        $chats = $query->with('type')->paginate($perPage)->appends([
+            'q' => $q,
+            'type_id' => $typeId,
+            'sort' => $sort,
+            'dir' => $dir,
+            'per_page' => $perPage,
+        ]);
 
         $types = \App\Models\OpenAIChatType::orderBy('name')->get();
 
-        return view('openai.chats', compact('chats', 'q', 'typeId', 'types'));
+    return view('openai.chats', compact('chats', 'q', 'typeId', 'types', 'sort', 'dir', 'perPage', 'totalAll', 'maxPerPage'));
     }
 
     /**
