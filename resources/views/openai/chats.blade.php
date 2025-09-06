@@ -144,6 +144,10 @@
               .table-zebra tbody tr:nth-child(even){ background:#ffffff; }
               .table-zebra tbody tr:hover{ background:#d1f2d1; }
               .table-zebra td, .table-zebra th { vertical-align: middle; }
+              .table-zebra th a.sort-link { color:#dc3545; }
+              .table-zebra th a.sort-link:hover { color:#a71d2a; }
+              .table-zebra th a.sort-link:focus { color:#a71d2a; }
+              .table-zebra th a.sort-link span.text-muted { color:#dc3545 !important; }
               @media (max-width: 992px){
                 .table-responsive-stack td[data-title]:before{ content: attr(data-title) ": "; font-weight:600; }
               }
@@ -153,19 +157,19 @@
                 <thead>
                   <tr>
                     <th style="width:45%">
-                      <a class="text-decoration-none d-flex align-items-center justify-content-between" href="{{ route('openai.chats', array_merge(request()->except('page'), ['view'=>$viewMode,'sort'=>'title','dir'=>$toggleDir('title')])) }}">
+                      <a class="sort-link text-decoration-none d-flex align-items-center justify-content-between" href="{{ route('openai.chats', array_merge(request()->except('page'), ['view'=>$viewMode,'sort'=>'title','dir'=>$toggleDir('title')])) }}">
                         <span>Título</span>
                         <span>{!! sortIcon('title', $sort, $dir) !!}</span>
                       </a>
                     </th>
                     <th style="width:15%">
-                      <a class="text-decoration-none d-flex align-items-center justify-content-between" href="{{ route('openai.chats', array_merge(request()->except('page'), ['view'=>$viewMode,'sort'=>'type','dir'=>$toggleDir('type')])) }}">
+                      <a class="sort-link text-decoration-none d-flex align-items-center justify-content-between" href="{{ route('openai.chats', array_merge(request()->except('page'), ['view'=>$viewMode,'sort'=>'type','dir'=>$toggleDir('type')])) }}">
                         <span>Tipo</span>
                         <span>{!! sortIcon('type', $sort, $dir) !!}</span>
                       </a>
                     </th>
                     <th style="width:20%">
-                      <a class="text-decoration-none d-flex align-items-center justify-content-between" href="{{ route('openai.chats', array_merge(request()->except('page'), ['view'=>$viewMode,'sort'=>'updated','dir'=>$toggleDir('updated')])) }}">
+                      <a class="sort-link text-decoration-none d-flex align-items-center justify-content-between" href="{{ route('openai.chats', array_merge(request()->except('page'), ['view'=>$viewMode,'sort'=>'updated','dir'=>$toggleDir('updated')])) }}">
                         <span>Atualizado</span>
                         <span>{!! sortIcon('updated', $sort, $dir) !!}</span>
                       </a>
