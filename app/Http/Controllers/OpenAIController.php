@@ -7,7 +7,6 @@ use Illuminate\View\View;
 use Illuminate\Http\Request;
 use App\Services\OpenAIService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
@@ -19,6 +18,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use App\Models\OpenAIChatAttachment;
+use Illuminate\Support\Facades\Log;
 // Storage already imported above
 
 class OpenAIController extends Controller
@@ -400,7 +400,7 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
         $types = \App\Models\OpenAIChatType::orderBy('name')->get();
         $currentChat = null;
         if ($currentId > 0) {
-            $currentChat = OpenAIChat::select('id','type_id','title','code')->where('id', $currentId)->first();
+            $currentChat = OpenAIChat::select('id','type_id','title','code','target_min','target_avg','target_max')->where('id', $currentId)->first();
         }
 
         return view('openai.chat', [
@@ -959,10 +959,55 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
             abort(403);
         }
 
+        // Normalização simples: aceita "5.001,50" / "5001,50" / "5001" / "5.001" / "5001.50"
+        foreach(['target_min','target_avg','target_max'] as $col){
+            $raw = $request->input($col);
+            if($raw===null || $raw==='') continue;
+            Log::debug('updateChat raw target', ['field'=>$col, 'raw'=>$raw]);
+            $norm = str_replace([' ', "\u{00A0}"], '', (string)$raw);
+            if(strpos($norm, ',') !== false){
+                // formato BR
+                $norm = preg_replace('/\.(?=\d{3}(?:\D|$))/', '', $norm); // remove pontos de milhar
+                $norm = str_replace(',', '.', $norm); // vírgula -> ponto decimal
+            } else {
+                // Sem vírgula: pode ter pontos de milhar ou decimal
+                $parts = explode('.', $norm);
+                if(count($parts)>2){
+                    $first = array_shift($parts);
+                    $rest = implode('', $parts); // interpreta pontos intermediários como milhares
+                    $norm = $first.'.'.$rest; // primeiro ponto vira decimal
+                } elseif(count($parts)===2) {
+                    // Se segunda parte tem 3 dígitos, era milhar => remove ponto
+                    if(strlen($parts[1])===3){
+                        $norm = implode('', $parts); // inteiro
+                    }
+                }
+            }
+            if(preg_match('/^\d+(\.\d+)?$/', $norm)){
+                // garante duas casas no valor final usado na validação/format
+                if(strpos($norm,'.')===false){
+                    $norm = $norm.'.00';
+                } else {
+                    [$i,$d] = explode('.',$norm,2); $d = substr($d.'00',0,2); $norm = $i.'.'.$d;
+                }
+                Log::debug('updateChat normalized target', ['field'=>$col, 'normalized'=>$norm]);
+                $request->merge([$col => $norm]);
+            } else {
+                Log::debug('updateChat invalid target', ['field'=>$col, 'after_attempt'=>$norm]);
+                $request->merge([$col => null]);
+            }
+        }
+
+    // Opcional: logging simples (pode comentar depois)
+    // \Log::debug('updateChat payload', $request->only(['target_min','target_avg','target_max']));
+
         $validated = $request->validate([
             'title' => 'required|string|max:100',
             'type_id' => 'nullable|integer|exists:openai_chat_types,id',
             'code' => 'nullable|string|min:1|max:5',
+            'target_min' => 'nullable|numeric|min:0|max:100000000',
+            'target_avg' => 'nullable|numeric|min:0|max:100000000',
+            'target_max' => 'nullable|numeric|min:0|max:100000000',
         ]);
 
         $title = Str::limit(trim(preg_replace('/\s+/', ' ', (string) $validated['title'])), 100, '…');
@@ -972,14 +1017,23 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
         $codeInput = $request->input('code');
     $codeVal = ($codeInput !== null && trim($codeInput) !== '' && Schema::hasColumn('open_a_i_chats','code')) ? Str::upper(substr(trim($codeInput),0,5)) : null;
 
+        $updateData = [
+            'title' => $title,
+            'type_id' => $typeId,
+            'code' => $codeVal,
+            'updated_at' => DB::raw('GETDATE()'),
+        ];
+        // Só adiciona se as colunas existirem (segurança em ambientes desatualizados)
+        foreach (['target_min','target_avg','target_max'] as $col) {
+            if (Schema::hasColumn('open_a_i_chats', $col)) {
+                $val = $validated[$col] ?? null;
+                $updateData[$col] = ($val === null || $val === '') ? null : number_format((float)$val, 2, '.', '');
+            }
+        }
+
         DB::table('open_a_i_chats')
             ->where('id', $chat->id)
-            ->update([
-                'title' => $title,
-                'type_id' => $typeId,
-                'code' => $codeVal,
-                'updated_at' => DB::raw('GETDATE()'),
-            ]);
+            ->update($updateData);
 
         return back()->with('success', 'Conversa renomeada com sucesso.');
     }

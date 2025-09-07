@@ -61,6 +61,18 @@
         @if($chatCode)
             <span class="badge" style="background:#b30000; font-size:.70rem; letter-spacing:1px;">CÓD: {{ $chatCode }}</span>
         @endif
+                @if($currentChat && ($currentChat->target_min !== null || $currentChat->target_avg !== null || $currentChat->target_max !== null))
+                        <span class="badge bg-info text-dark" title="Intervalo de preço alvo">
+                                Alvo:
+                                @php
+                                    $parts=[];
+                                    if($currentChat->target_min !== null) $parts[]='Min '.number_format($currentChat->target_min,2,',','.');
+                                    if($currentChat->target_avg !== null) $parts[]='Méd '.number_format($currentChat->target_avg,2,',','.');
+                                    if($currentChat->target_max !== null) $parts[]='Máx '.number_format($currentChat->target_max,2,',','.');
+                                    echo implode(' | ', $parts);
+                                @endphp
+                        </span>
+                @endif
         @if($currentChat)
             <button class="btn btn-sm btn-outline-danger" data-bs-toggle="collapse" data-bs-target="#editMeta">Editar Meta</button>
         @endif
@@ -69,6 +81,17 @@
     <div id="editMeta" class="collapse mb-4">
         <div class="card border-danger-subtle">
             <div class="card-body py-3">
+                                @php
+                                    $hasColMin = Schema::hasColumn('open_a_i_chats','target_min');
+                                    $hasColAvg = Schema::hasColumn('open_a_i_chats','target_avg');
+                                    $hasColMax = Schema::hasColumn('open_a_i_chats','target_max');
+                                @endphp
+                                @if(!$hasColMin || !$hasColAvg || !$hasColMax)
+                                    <div class="alert alert-warning py-2 mb-3">
+                                        Colunas de preço alvo não existem na tabela. Rode a migration:<br>
+                                        <code>php artisan migrate --path=database/migrations/2025_09_07_000500_add_targets_to_open_a_i_chats_table.php</code>
+                                    </div>
+                                @endif
                 <form action="{{ route('openai.chat.update', $currentChat->id) }}" method="POST" class="row g-2 align-items-end">
                     @csrf
                     @method('PATCH')
@@ -88,6 +111,22 @@
                                 <option value="{{ $type->id }}" {{ (int)$currentChat->type_id === (int)$type->id ? 'selected' : '' }}>{{ $type->name }}</option>
                             @endforeach
                         </select>
+                    </div>
+                    <div class="col-12"></div>
+                    <div class="col-sm-4 col-md-2">
+                        <label class="form-label small mb-1">Preço Alvo Mín (R$)</label>
+                        <input type="text" name="target_min" value="{{ $currentChat->target_min !== null ? number_format($currentChat->target_min,2,',','.') : '' }}" class="form-control form-control-sm" placeholder="Ex: 5001 ou 5.001,50" inputmode="decimal" autocomplete="off">
+                    </div>
+                    <div class="col-sm-4 col-md-2">
+                        <label class="form-label small mb-1">Preço Alvo Méd (R$)</label>
+                        <input type="text" name="target_avg" value="{{ $currentChat->target_avg !== null ? number_format($currentChat->target_avg,2,',','.') : '' }}" class="form-control form-control-sm" placeholder="Ex: 5001 ou 5.001,50" inputmode="decimal" autocomplete="off">
+                    </div>
+                    <div class="col-sm-4 col-md-2">
+                        <label class="form-label small mb-1">Preço Alvo Máx (R$)</label>
+                        <input type="text" name="target_max" value="{{ $currentChat->target_max !== null ? number_format($currentChat->target_max,2,',','.') : '' }}" class="form-control form-control-sm" placeholder="Ex: 5001 ou 5.001,50" inputmode="decimal" autocomplete="off">
+                    </div>
+                    <div class="col-12 small text-muted" style="margin-top:-2px;">
+                        Formatos aceitos: 5001 (→ 5.001,00), 5.001 (→ 5.001,00), 5.001,50 ou 5001,50. Use vírgula para decimais.
                     </div>
                     <div class="col-sm-12 col-md-3 d-flex gap-2">
                         <button class="btn btn-sm btn-danger" type="submit">Salvar Meta</button>
@@ -319,6 +358,7 @@
         el.form?.addEventListener('submit', ()=>{ if(el.value){ el.value = el.value.replace(/\./g,'').replace(',','.'); }});
     });
 })();
+// (Removido JS de normalização de targets: backend fará todo o parsing)
 
 // Calendário BR para registro rápido
 (function(){
@@ -396,6 +436,31 @@
     });
     document.addEventListener('click', e=>{ if(!calBox.contains(e.target) && e.target!==btnCal && e.target!==dateInput){ closeCal(); }});
     syncHidden();
+})();
+// Normalizar valores de preços alvo (máscara BR) ao enviar o formulário de meta
+(function(){
+    const metaForm = document.querySelector('#editMeta form');
+    if(metaForm){
+        metaForm.addEventListener('submit', ()=>{
+            ['target_min','target_avg','target_max'].forEach(name=>{
+                const el = metaForm.querySelector(`[name="${name}"]`);
+                if(el && el.value){
+                    let v = el.value.trim();
+                    // mantém formato BR durante digitação; aqui apenas converte para padrão ponto para backend
+                    // remove pontos de milhares antes da vírgula
+                    if(v.includes(',')){
+                        v = v.replace(/\.(?=\d{3}(?:\D|$))/g,'');
+                    }
+                    v = v.replace(/\./g,''); // remove restantes
+                    v = v.replace(/,/g,'.'); // vírgula decimal -> ponto
+                    // agora garante duas casas
+                        if(/^\d+$/.test(v)) { v = v + '.00'; }
+                        else if(/^\d+\.\d$/.test(v)) { v = v + '0'; }
+                    el.value = v;
+                }
+            });
+        });
+    }
 })();
 </script>
 @endpush

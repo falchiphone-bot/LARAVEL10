@@ -18,12 +18,18 @@ class OpenAIChat extends Model
         'title',
     'code',
         'messages',
+    'target_min',
+    'target_avg',
+    'target_max',
         'created_at',
         'updated_at',
     ];
 
     protected $casts = [
         'messages' => 'array',
+    'target_min' => 'decimal:2',
+    'target_avg' => 'decimal:2',
+    'target_max' => 'decimal:2',
     ];
 
     protected $dateFormat = 'Y-m-d H:i:s';
