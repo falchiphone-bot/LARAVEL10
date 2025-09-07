@@ -24,6 +24,12 @@ class OpenAIChatRecordController extends Controller
         $chatId = (int) $request->input('chat_id');
         $from = $request->input('from');
         $to = $request->input('to');
+        // modo de variação (sequencial ou acumulada)
+        $incomingMode = $request->input('var_mode');
+        if($incomingMode && in_array($incomingMode, ['seq','acum'])){
+            session(['openai_records_var_mode' => $incomingMode]);
+        }
+        $varMode = session('openai_records_var_mode', 'seq');
         $remember = $request->boolean('remember');
         $clearSaved = $request->boolean('clear_saved');
         if($clearSaved){
@@ -128,7 +134,7 @@ class OpenAIChatRecordController extends Controller
             $selectedChat = $chats->firstWhere('id', $chatId);
         }
     $savedFilters = session('openai_records_saved_filters');
-    return view('openai.records.index', compact('records','chats','chatId','selectedChat','from','to','showAll','sort','dir','savedFilters'));
+    return view('openai.records.index', compact('records','chats','chatId','selectedChat','from','to','showAll','sort','dir','savedFilters','varMode'));
     }
 
     public function store(Request $request): RedirectResponse

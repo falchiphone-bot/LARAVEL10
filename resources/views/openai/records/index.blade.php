@@ -60,6 +60,16 @@
   <div class="card shadow-sm mb-4">
     <div class="card-body">
       <h2 class="h6 mb-3">Novo Registro</h2>
+      @if(($chatId ?? 0) > 0 && $selectedChat)
+        <div class="mb-3 d-flex flex-wrap gap-2 align-items-center">
+          <span class="small text-muted">Conversa atual:</span>
+          <strong>{{ $selectedChat->title }}</strong>
+          @if($selectedChat->code)
+            <span class="badge bg-dark">{{ $selectedChat->code }}</span>
+          @endif
+          <a href="{{ route('openai.chat.load', $selectedChat->id) }}" class="btn btn-sm btn-outline-danger" title="Ir para o chat desta conversa">Ir para Chat</a>
+        </div>
+      @endif
   <form id="newRecordForm" method="POST" action="{{ route('openai.records.store') }}" class="row g-2 align-items-end">
         @csrf
         <div class="col-sm-4 col-md-3">
@@ -300,6 +310,28 @@
         'all'=>($showAll??false)?1:null,
       ]);
     @endphp
+    @php
+      $mode = $varMode ?? request('var_mode','seq'); // seq | acum
+      $isSeq = $mode === 'seq';
+    @endphp
+    <div class="d-flex justify-content-end mb-2 gap-2">
+      @if(($chatId ?? 0) > 0)
+        @php
+          $modeParams = array_filter([
+            'chat_id'=>$chatId?:null,
+            'from'=>$from?:null,
+            'to'=>$to?:null,
+            'all'=>($showAll??false)?1:null,
+            'sort'=>$sort!=='occurred_at'?$sort:null,
+            'dir'=>$dir!=='desc'?$dir:null,
+            'var_mode'=>$isSeq?'acum':'seq'
+          ]);
+        @endphp
+        <a href="{{ route('openai.records.index',$modeParams) }}" class="btn btn-sm btn-outline-secondary" title="Alternar modo de variação">
+          Modo: {{ $isSeq ? 'Sequencial' : 'Acumulada' }} (trocar)
+        </a>
+      @endif
+    </div>
     <table class="table table-sm table-bordered align-middle">
       <thead class="table-dark">
         <tr>
@@ -322,7 +354,36 @@
         </tr>
       </thead>
       <tbody>
-        @forelse($records as $r)
+    @php
+      // Pré-processa variações se filtrado por uma conversa específica
+      $variationMap = [];
+      $accumMap = [];
+      if(($chatId ?? 0) > 0){
+        // Extrai coleção plana (pagination ou collection) e ordena por occurred_at asc
+        $allList = collect($records instanceof \Illuminate\Pagination\AbstractPaginator ? $records->items() : $records);
+        $sorted = $allList->sortBy(fn($item)=>$item->occurred_at)->values();
+        $prev = null;
+        $firstVal = null;
+        foreach($sorted as $item){
+          $cur = (float)$item->amount;
+          if($prev !== null && $prev != 0){
+            $variationMap[$item->id] = (($cur - $prev) / $prev) * 100.0;
+          } else {
+            $variationMap[$item->id] = null; // primeira linha ou divisão por zero
+          }
+          if($firstVal === null){
+            $firstVal = $cur;
+            $accumMap[$item->id] = null; // primeira não tem acumulada (ou 0%)
+          } else if($firstVal != 0) {
+            $accumMap[$item->id] = (($cur - $firstVal)/$firstVal)*100.0;
+          } else {
+            $accumMap[$item->id] = null;
+          }
+          $prev = $cur;
+        }
+      }
+    @endphp
+    @forelse($records as $r)
           <tr>
             <td>
               @if($r->chat)
@@ -351,7 +412,26 @@
                  {{ $r->occurred_at->format('d/m/Y H:i:s') }}
 
             </td>
-            <td class="text-end">{{ number_format((float)$r->amount, 2, ',', '.') }}</td>
+            <td class="text-end">
+              {{ number_format((float)$r->amount, 2, ',', '.') }}
+              @if(($chatId ?? 0) > 0)
+                  @php
+                    $val = $isSeq ? ($variationMap[$r->id] ?? null) : ($accumMap[$r->id] ?? null);
+                  @endphp
+                  @if(!is_null($val))
+                      @php
+                        $cls = $val > 0 ? 'text-success' : ($val < 0 ? 'text-danger' : 'text-muted');
+                        $arrow = $val > 0 ? '▲' : ($val < 0 ? '▼' : '▶');
+                        $title = $isSeq ? 'Variação percentual vs registro anterior (ordem crescente de data)' : 'Variação acumulada desde o primeiro registro';
+                      @endphp
+                      <div class="small {{$cls}}" title="{{$title}}">
+                        {{$arrow}} {{ number_format($val,2,',','.') }}%
+                      </div>
+                  @else
+                      <div class="small text-muted" title="Primeiro registro">—</div>
+                  @endif
+              @endif
+            </td>
             <td>{{ $r->user?->name }}</td>
             <td class="text-center">
               <button type="button" class="btn btn-sm btn-success me-1" onclick="prepQuickAdd({{ $r->chat_id }})" title="Adicionar novo registro desta conversa">➕</button>
