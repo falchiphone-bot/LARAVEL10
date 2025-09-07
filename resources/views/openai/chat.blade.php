@@ -110,13 +110,38 @@
                 <form action="{{ route('openai.records.store') }}" method="POST" class="row g-2 align-items-end">
                     @csrf
                     <input type="hidden" name="chat_id" value="{{ $currentChat->id }}">
-                    <div class="col-sm-4 col-md-3">
-                        <label class="form-label small mb-1">Data/Hora</label>
-                        <input type="text" name="occurred_at" value="{{ old('occurred_at') ?? now()->format('d/m/Y H:i:s') }}" class="form-control form-control-sm mask-datetime-br" placeholder="dd/mm/aaaa HH:MM:SS" required autocomplete="off">
+                    <div class="col-sm-5 col-md-4">
+                        <label class="form-label small mb-1">Data/Hora <span class="text-muted">dd/mm/aaaa HH:MM:SS</span></label>
+                        <div class="vstack gap-1 position-relative">
+                            <div class="input-group input-group-sm">
+                                <input type="text" id="qr_date_br" class="form-control" placeholder="dd/mm/aaaa" value="{{ now()->format('d/m/Y') }}" autocomplete="off" required style="max-width:140px;">
+                                <button class="btn btn-outline-secondary" type="button" id="qr_btnCal" title="Calendário">📅</button>
+                                <input type="text" id="qr_time_br" class="form-control" placeholder="HH:MM:SS" value="{{ now()->format('H:i:s') }}" autocomplete="off" required style="max-width:120px;">
+                            </div>
+                            <input type="hidden" name="occurred_at" id="qr_occurred_at_hidden" value="{{ now()->format('d/m/Y H:i:s') }}">
+                            <div id="qr_brCalendar" class="br-calendar shadow-sm border rounded p-2 bg-white" style="display:none; position:absolute; top:100%; left:0; z-index:60; width:220px;">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <button type="button" class="btn btn-sm btn-light" id="qr_prevCal" aria-label="Mês anterior">«</button>
+                                    <strong class="small" id="qr_calMonthLabel"></strong>
+                                    <button type="button" class="btn btn-sm btn-light" id="qr_nextCal" aria-label="Próximo mês">»</button>
+                                </div>
+                                <table class="table table-sm table-bordered mb-0 align-middle text-center" style="font-size:.70rem;">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Do</th><th>Se</th><th>Te</th><th>Qu</th><th>Qu</th><th>Se</th><th>Sa</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="qr_calBody"></tbody>
+                                </table>
+                                <div class="mt-2 text-end">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="qr_closeCal">Fechar</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-sm-4 col-md-2">
-                        <label class="form-label small mb-1">Valor</label>
-                        <input type="number" step="0.01" name="amount" class="form-control form-control-sm" required>
+                        <label class="form-label small mb-1">Valor <span class="text-muted">(R$)</span></label>
+                        <input type="text" name="amount" class="form-control form-control-sm mask-money-br" required placeholder="0,00">
                     </div>
                     <div class="col-sm-12 col-md-3">
                         <button class="btn btn-sm btn-danger mt-2 mt-md-0">Salvar Registro</button>
@@ -278,6 +303,99 @@
             el.value = pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear()+' '+pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
         }
     });
+})();
+// Máscara moeda BR (2 casas) para registro rápido
+(function(){
+    function formatMoneyBR(v){
+        v = (v+"").replace(/[^0-9]/g,'');
+        if(!v) return '';
+        if(v.length===1) return '0,0'+v;
+        if(v.length===2) return '0,'+v;
+        return v.slice(0,-2).replace(/^0+/,'') + ',' + v.slice(-2);
+    }
+    document.querySelectorAll('.mask-money-br').forEach(el=>{
+        el.addEventListener('input', ()=>{ el.value = formatMoneyBR(el.value); });
+        el.addEventListener('blur', ()=>{ if(el.value==='') el.value='0,00'; });
+        el.form?.addEventListener('submit', ()=>{ if(el.value){ el.value = el.value.replace(/\./g,'').replace(',','.'); }});
+    });
+})();
+
+// Calendário BR para registro rápido
+(function(){
+    const dateInput = document.getElementById('qr_date_br');
+    const timeInput = document.getElementById('qr_time_br');
+    const hidden = document.getElementById('qr_occurred_at_hidden');
+    if(!dateInput || !timeInput || !hidden) return; // segurança
+    const calBox = document.getElementById('qr_brCalendar');
+    const calBody = document.getElementById('qr_calBody');
+    const calLabel = document.getElementById('qr_calMonthLabel');
+    const btnPrev = document.getElementById('qr_prevCal');
+    const btnNext = document.getElementById('qr_nextCal');
+    const btnCal = document.getElementById('qr_btnCal');
+    const btnClose = document.getElementById('qr_closeCal');
+
+    function pad(n){return n.toString().padStart(2,'0');}
+    function maskDate(v){
+        v = v.replace(/\D/g,'').slice(0,8);
+        let o='';
+        if(v.length>=2) o+=v.slice(0,2); else return v;
+        if(v.length>=4) o+='/'+v.slice(2,4); else return o;
+        if(v.length>4) o+='/'+v.slice(4,8); return o;
+    }
+    function maskTime(v){
+        v = v.replace(/\D/g,'').slice(0,6);
+        let o='';
+        if(v.length>=2) o+=v.slice(0,2); else return v;
+        if(v.length>=4) o+=':'+v.slice(2,4); else return o;
+        if(v.length>4) o+=':'+v.slice(4,6); return o;
+    }
+    function syncHidden(){ if(dateInput.value && timeInput.value){ hidden.value = dateInput.value+' '+timeInput.value; } }
+    dateInput.addEventListener('input',()=>{ dateInput.value = maskDate(dateInput.value); syncHidden();});
+    timeInput.addEventListener('input',()=>{ timeInput.value = maskTime(timeInput.value); syncHidden();});
+
+    let viewYear, viewMonth;
+    function initView(){
+        const parts = dateInput.value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+        let d = new Date();
+        if(parts){ d = new Date(parseInt(parts[3]), parseInt(parts[2])-1, parseInt(parts[1])); }
+        viewYear = d.getFullYear(); viewMonth = d.getMonth();
+    }
+    function renderCalendar(){
+        const first = new Date(viewYear, viewMonth, 1);
+        const startDay = first.getDay();
+        const daysInMonth = new Date(viewYear, viewMonth+1,0).getDate();
+        calLabel.textContent = first.toLocaleDateString('pt-BR',{month:'long',year:'numeric'}).toUpperCase();
+        let html=''; let dayNum=1;
+        for(let r=0;r<6;r++){
+            html+='<tr>';
+            for(let c=0;c<7;c++){
+                if(r===0 && c<startDay){ html+='<td class="text-muted">&nbsp;</td>'; }
+                else if(dayNum>daysInMonth){ html+='<td>&nbsp;</td>'; }
+                else {
+                    const dd=pad(dayNum); const mm=pad(viewMonth+1); const yyyy=viewYear;
+                    const sel = dateInput.value===dd+'/'+mm+'/'+yyyy;
+                    html+='<td><button type="button" data-day="'+dayNum+'" class="btn btn-sm '+(sel?'btn-primary':'btn-light')+' w-100 p-0" style="font-size:.65rem;">'+dayNum+'</button></td>';
+                    dayNum++;
+                }
+            }
+            html+='</tr>';
+            if(dayNum>daysInMonth) break;
+        }
+        calBody.innerHTML = html;
+    }
+    function openCal(){ initView(); renderCalendar(); calBox.style.display='block'; }
+    function closeCal(){ calBox.style.display='none'; }
+    btnCal.addEventListener('click',()=>{ calBox.style.display==='block'?closeCal():openCal();});
+    btnClose.addEventListener('click',closeCal);
+    btnPrev.addEventListener('click',()=>{ viewMonth--; if(viewMonth<0){viewMonth=11;viewYear--;} renderCalendar(); });
+    btnNext.addEventListener('click',()=>{ viewMonth++; if(viewMonth>11){viewMonth=0;viewYear++;} renderCalendar(); });
+    calBody.addEventListener('click', e=>{
+        const b=e.target.closest('button[data-day]'); if(!b) return;
+        const day=parseInt(b.getAttribute('data-day'));
+        dateInput.value = pad(day)+'/'+pad(viewMonth+1)+'/'+viewYear; syncHidden(); renderCalendar(); closeCal();
+    });
+    document.addEventListener('click', e=>{ if(!calBox.contains(e.target) && e.target!==btnCal && e.target!==dateInput){ closeCal(); }});
+    syncHidden();
 })();
 </script>
 @endpush

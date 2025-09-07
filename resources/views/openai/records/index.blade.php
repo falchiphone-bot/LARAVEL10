@@ -19,7 +19,7 @@
 
   <div class="card shadow-sm mb-4">
     <div class="card-body">
-      <form class="row g-2 align-items-end" method="GET" action="{{ route('openai.records.index') }}">
+  <form class="row g-2 align-items-end" method="GET" action="{{ route('openai.records.index') }}">
         <div class="col-sm-4 col-md-3">
           <label class="form-label small mb-1">Conversa</label>
           <select name="chat_id" class="form-select form-select-sm">
@@ -37,8 +37,16 @@
           <label class="form-label small mb-1">Até</label>
           <input type="date" name="to" value="{{ request('to') }}" class="form-control form-control-sm">
         </div>
-        <div class="col-sm-2 col-md-2">
-          <button class="btn btn-sm btn-outline-primary w-100" type="submit">Filtrar</button>
+        <div class="col-sm-2 col-md-2 d-grid gap-2">
+          <button class="btn btn-sm btn-outline-primary" type="submit">Filtrar</button>
+          @if(!($showAll ?? false))
+            <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'all'=>1])) }}">Todos</a>
+          @else
+            <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null])) }}">Paginar</a>
+          @endif
+          @if(!empty($savedFilters))
+            <a class="btn btn-sm btn-outline-warning" href="{{ route('openai.records.index', array_filter(['clear_saved'=>1,'chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null, 'all'=>($showAll??false)?1:null])) }}" title="Remover filtro salvo">Limpar Salvo</a>
+          @endif
         </div>
         @if(request()->hasAny(['chat_id','from','to']) && (request('chat_id')||request('from')||request('to')))
           <div class="col-sm-2 col-md-2">
@@ -63,13 +71,38 @@
             @endforeach
           </select>
         </div>
-        <div class="col-sm-3 col-md-3">
-          <label class="form-label small mb-1">Data/Hora * (dd/mm/aaaa HH:MM[:SS])</label>
-            <input type="text" name="occurred_at" class="form-control form-control-sm mask-datetime-br" required placeholder="ex: 05/09/2025 19:41:00" value="{{ old('occurred_at') ?? now()->format('d/m/Y H:i:s') }}" autocomplete="off">
+        <div class="col-sm-5 col-md-4">
+          <label class="form-label small mb-1">Data/Hora * <span class="text-muted">dd/mm/aaaa HH:MM:SS</span></label>
+          <div class="vstack gap-1 position-relative">
+            <div class="input-group input-group-sm">
+              <input type="text" id="new_date_br" class="form-control" placeholder="dd/mm/aaaa" value="{{ old('date_br') ? old('date_br') : now()->format('d/m/Y') }}" autocomplete="off" required style="max-width:140px;">
+              <button class="btn btn-outline-secondary" type="button" id="new_btnCal" title="Calendário">📅</button>
+              <input type="text" id="new_time_br" class="form-control" placeholder="HH:MM:SS" value="{{ old('time_br') ? old('time_br') : now()->format('H:i:s') }}" autocomplete="off" required style="max-width:120px;">
+            </div>
+            <input type="hidden" name="occurred_at" id="new_occurred_at_hidden" value="{{ old('occurred_at') ?? now()->format('d/m/Y H:i:s') }}">
+            <div id="new_brCalendar" class="br-calendar shadow-sm border rounded p-2 bg-white" style="display:none; position:absolute; top:100%; left:0; z-index:50; width:220px;">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <button type="button" class="btn btn-sm btn-light" id="new_prevCal" aria-label="Mês anterior">«</button>
+                <strong class="small" id="new_calMonthLabel"></strong>
+                <button type="button" class="btn btn-sm btn-light" id="new_nextCal" aria-label="Próximo mês">»</button>
+              </div>
+              <table class="table table-sm table-bordered mb-0 align-middle text-center" style="font-size:.70rem;">
+                <thead class="table-light">
+                  <tr>
+                    <th>Do</th><th>Se</th><th>Te</th><th>Qu</th><th>Qu</th><th>Se</th><th>Sa</th>
+                  </tr>
+                </thead>
+                <tbody id="new_calBody"></tbody>
+              </table>
+              <div class="mt-2 text-end">
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="new_closeCal">Fechar</button>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="col-sm-3 col-md-2">
-          <label class="form-label small mb-1">Valor *</label>
-          <input type="number" step="0.01" name="amount" class="form-control form-control-sm" required>
+          <label class="form-label small mb-1">Valor * <span class="text-muted">(R$)</span></label>
+          <input type="text" inputmode="decimal" name="amount" class="form-control form-control-sm mask-money-br" required placeholder="0,00">
         </div>
         <div class="col-sm-2 col-md-2">
           <button type="submit" class="btn btn-sm btn-success w-100">Adicionar</button>
@@ -81,24 +114,114 @@
   <div class="table-responsive">
   @push('scripts')
   <script>
-  (()=>{
-   function formatDateTimeBR(raw){
-     let v = raw.replace(/\D/g,'').slice(0,14);
-     let o='';
-     if(v.length>0) o+=v.slice(0,2);
-     if(v.length>=3) o+='/'+v.slice(2,4);
-     if(v.length>=5) o+='/'+v.slice(4,8);
-     if(v.length>=9) o+=' '+v.slice(8,10);
-     if(v.length>=11) o+=':'+v.slice(10,12);
-     if(v.length>=13) o+=':'+v.slice(12,14);
-     return o;
-   }
-   function applyMask(el){ el.value = formatDateTimeBR(el.value); }
-   document.querySelectorAll('.mask-datetime-br').forEach(el=>{
-     el.addEventListener('input', ()=>applyMask(el));
-     el.addEventListener('paste', ()=> setTimeout(()=>applyMask(el),0));
-     el.addEventListener('blur', ()=>{ if(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/.test(el.value)) el.value+=':00'; });
-   });
+  (function(){
+    const dateInput = document.getElementById('new_date_br');
+    const timeInput = document.getElementById('new_time_br');
+    const hidden = document.getElementById('new_occurred_at_hidden');
+    const calBox = document.getElementById('new_brCalendar');
+    const calBody = document.getElementById('new_calBody');
+    const calLabel = document.getElementById('new_calMonthLabel');
+    const btnPrev = document.getElementById('new_prevCal');
+    const btnNext = document.getElementById('new_nextCal');
+    const btnCal = document.getElementById('new_btnCal');
+    const btnClose = document.getElementById('new_closeCal');
+
+    function pad(n){return n.toString().padStart(2,'0');}
+    function maskDate(v){
+      v = v.replace(/\D/g,'').slice(0,8);
+      let o='';
+      if(v.length>=2) o+=v.slice(0,2); else return v;
+      if(v.length>=4) o+='/'+v.slice(2,4); else return o;
+      if(v.length>4) o+='/'+v.slice(4,8);
+      return o;
+    }
+    function maskTime(v){
+      v = v.replace(/\D/g,'').slice(0,6);
+      let o='';
+      if(v.length>=2) o+=v.slice(0,2); else return v;
+      if(v.length>=4) o+=':'+v.slice(2,4); else return o;
+      if(v.length>4) o+=':'+v.slice(4,6);
+      return o;
+    }
+    function syncHidden(){
+      if(dateInput.value && timeInput.value){
+        hidden.value = dateInput.value+' '+timeInput.value;
+      }
+    }
+    dateInput.addEventListener('input',()=>{ dateInput.value = maskDate(dateInput.value); syncHidden();});
+    timeInput.addEventListener('input',()=>{ timeInput.value = maskTime(timeInput.value); syncHidden();});
+
+    let viewYear, viewMonth;
+    function initView(){
+      const parts = dateInput.value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      let d = new Date();
+      if(parts){ d = new Date(parseInt(parts[3]), parseInt(parts[2])-1, parseInt(parts[1])); }
+      viewYear = d.getFullYear();
+      viewMonth = d.getMonth();
+    }
+    function renderCalendar(){
+      const first = new Date(viewYear, viewMonth, 1);
+      const startDay = first.getDay();
+      const daysInMonth = new Date(viewYear, viewMonth+1,0).getDate();
+      calLabel.textContent = first.toLocaleDateString('pt-BR',{month:'long', year:'numeric'}).toUpperCase();
+      let html=''; let dayNum=1;
+      for(let r=0;r<6;r++){
+        html+='<tr>';
+        for(let c=0;c<7;c++){
+          if(r===0 && c<startDay){ html+='<td class="text-muted">&nbsp;</td>'; }
+          else if(dayNum>daysInMonth){ html+='<td>&nbsp;</td>'; }
+          else {
+            const dd = pad(dayNum); const mm = pad(viewMonth+1); const yyyy = viewYear;
+            const sel = dateInput.value===dd+'/'+mm+'/'+yyyy;
+            html+='<td><button type="button" data-day="'+dayNum+'" class="btn btn-sm '+(sel?'btn-primary':'btn-light')+' w-100 p-0" style="font-size:.65rem;">'+dayNum+'</button></td>';
+            dayNum++;
+          }
+        }
+        html+='</tr>';
+        if(dayNum>daysInMonth) break;
+      }
+      calBody.innerHTML = html;
+    }
+    function openCal(){ initView(); renderCalendar(); calBox.style.display='block'; }
+    function closeCal(){ calBox.style.display='none'; }
+    btnCal.addEventListener('click', ()=>{ calBox.style.display==='block'?closeCal():openCal(); });
+    btnClose.addEventListener('click', closeCal);
+    btnPrev.addEventListener('click', ()=>{ viewMonth--; if(viewMonth<0){viewMonth=11;viewYear--;} renderCalendar(); });
+    btnNext.addEventListener('click', ()=>{ viewMonth++; if(viewMonth>11){viewMonth=0;viewYear++;} renderCalendar(); });
+    calBody.addEventListener('click', e=>{
+      const b = e.target.closest('button[data-day]');
+      if(!b) return;
+      const day = parseInt(b.getAttribute('data-day'));
+      dateInput.value = pad(day)+'/'+pad(viewMonth+1)+'/'+viewYear;
+      syncHidden();
+      renderCalendar();
+      closeCal();
+    });
+    document.addEventListener('click', e=>{
+      if(!calBox.contains(e.target) && e.target!==btnCal && e.target!==dateInput){ closeCal(); }
+    });
+    syncHidden();
+  })();
+  // Máscara moeda BR (2 casas)
+  (function(){
+    function formatMoneyBR(v){
+      v = (v+"").replace(/[^0-9]/g,'');
+      if(!v) return '';
+      if(v.length===1) return '0,0'+v;
+      if(v.length===2) return '0,'+v;
+      return v.slice(0,-2).replace(/^0+/,'') + ',' + v.slice(-2);
+    }
+    document.querySelectorAll('.mask-money-br').forEach(el=>{
+      el.addEventListener('input', e=>{
+        const pos = el.selectionStart;
+        el.value = formatMoneyBR(el.value);
+      });
+      el.addEventListener('blur', ()=>{ if(el.value==='') el.value='0,00'; });
+      // converter ao enviar
+      el.form?.addEventListener('submit', ()=>{
+        if(el.value){ el.value = el.value.replace(/\./g,'').replace(',','.'); }
+      });
+    });
   })();
   </script>
   @endpush
@@ -107,21 +230,53 @@
         <strong>Conversa Selecionada:</strong> {{ $selectedChat->title }} @if($selectedChat->code)<span class="badge bg-dark ms-1">{{ $selectedChat->code }}</span>@endif
       </div>
     @endif
+    @php
+      $flipDir = fn($c)=> ($sort === $c && $dir==='asc') ? 'desc' : 'asc';
+      $sortIcon = function($c) use ($sort,$dir){
+        if($sort!==$c) return '↕';
+        return $dir==='asc' ? '↑' : '↓';
+      };
+      $baseParams = array_filter([
+        'chat_id'=>$chatId?:null,
+        'from'=>$from?:null,
+        'to'=>$to?:null,
+        'all'=>($showAll??false)?1:null,
+      ]);
+    @endphp
     <table class="table table-sm table-bordered align-middle">
       <thead class="table-dark">
         <tr>
-          <th style="width:22%">Conversa</th>
-          <th style="width:10%">Código</th>
-          <th style="width:18%">Data/Hora</th>
-          <th style="width:15%" class="text-end">Valor</th>
-          <th style="width:20%">Usuário</th>
+          <th style="width:22%">
+            <a class="text-decoration-none text-light" href="{{ route('openai.records.index', array_merge($baseParams,['sort'=>'chat','dir'=>$flipDir('chat')])) }}">Conversa {{ $sortIcon('chat') }}</a>
+          </th>
+          <th style="width:10%">
+            <a class="text-decoration-none text-light" href="{{ route('openai.records.index', array_merge($baseParams,['sort'=>'code','dir'=>$flipDir('code')])) }}">Código {{ $sortIcon('code') }}</a>
+          </th>
+          <th style="width:18%">
+            <a class="text-decoration-none text-light" href="{{ route('openai.records.index', array_merge($baseParams,['sort'=>'occurred_at','dir'=>$flipDir('occurred_at')])) }}">Data/Hora {{ $sortIcon('occurred_at') }}</a>
+          </th>
+          <th style="width:15%" class="text-end">
+            <a class="text-decoration-none text-light" href="{{ route('openai.records.index', array_merge($baseParams,['sort'=>'amount','dir'=>$flipDir('amount')])) }}">Valor {{ $sortIcon('amount') }}</a>
+          </th>
+          <th style="width:20%">
+            <a class="text-decoration-none text-light" href="{{ route('openai.records.index', array_merge($baseParams,['sort'=>'user','dir'=>$flipDir('user')])) }}">Usuário {{ $sortIcon('user') }}</a>
+          </th>
           <th style="width:15%" class="text-center">Ações</th>
         </tr>
       </thead>
       <tbody>
         @forelse($records as $r)
           <tr>
-            <td>{{ $r->chat?->title }}</td>
+            <td>
+              @if($r->chat)
+                @php $day = $r->occurred_at->format('Y-m-d'); @endphp
+                <a href="{{ route('openai.records.index', array_filter(['chat_id'=>$r->chat_id,'from'=>$day,'to'=>$day,'remember'=>1,'sort'=>$sort!=='occurred_at'?$sort:null,'dir'=>$dir!=='desc'?$dir:null,'all'=>($showAll??false)?1:null])) }}" class="text-decoration-none">
+                  {{ $r->chat->title }}
+                </a>
+              @else
+                —
+              @endif
+            </td>
             <td class="text-center">{{ $r->chat?->code ?? '—' }}</td>
             @php
               $dt = $r->occurred_at;
@@ -130,11 +285,14 @@
               $m = $dt? (int)$dt->format('m') : null;
               $suspect = $d && $m && $d <= 12 && $m <= 12 && $d !== $m; // ambígua
             @endphp
-            <td class="{{ $suspect ? 'table-warning' : '' }}" @if($suspect) title="Data potencialmente invertida (dia/mês). Edite para confirmar." @endif>
-              {{ $formatted }}
+            <td class="{{ $suspect ? 'table-warning' : '' }}"
+            @if($suspect) title="Data potencialmente invertida (dia/mês). Edite para confirmar." @endif>
+              {{-- {{ $formatted }} --}}
               @if($suspect)
                 <span class="badge bg-warning text-dark ms-1">?</span>
               @endif
+                 {{ $r->occurred_at->format('d/m/Y H:i:s') }}
+
             </td>
             <td class="text-end">{{ number_format((float)$r->amount, 2, ',', '.') }}</td>
             <td>{{ $r->user?->name }}</td>
@@ -154,8 +312,25 @@
       </tbody>
     </table>
   </div>
-  <div class="mt-3">
-    {{ $records->links() }}
+  <div class="mt-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+    @if(!($showAll ?? false))
+      <div>{{ $records->links() }}</div>
+    @else
+      <div class="small text-muted">Listando todos (máx 2000) — exibidos: {{ $records->count() }}</div>
+    @endif
+    <div>
+      @if(!empty($savedFilters))
+        <span class="badge bg-info text-dark me-2" title="Filtro salvo em sessão">Filtro salvo</span>
+      @endif
+      @if(!($showAll ?? false))
+        <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'all'=>1])) }}">Ver Todos</a>
+      @else
+        <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null])) }}">Voltar à Paginação</a>
+      @endif
+      @if(!empty($savedFilters))
+        <a class="btn btn-sm btn-outline-warning ms-2" href="{{ route('openai.records.index', array_filter(['clear_saved'=>1,'all'=>($showAll??false)?1:null])) }}" title="Remover filtro salvo da sessão">Limpar Filtro Salvo</a>
+      @endif
+    </div>
   </div>
 </div>
 @endsection
@@ -164,14 +339,20 @@
 function prepQuickAdd(chatId){
   const sel = document.querySelector('#newRecordForm select[name="chat_id"]');
   if(sel){ sel.value = chatId; }
-  const dt = document.querySelector('#newRecordForm input[name="occurred_at"]');
-  if(dt && !dt.value){
-    const now = new Date();
-    const pad = n=> n.toString().padStart(2,'0');
-    dt.value = pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear()+' '+pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
+  const dateEl = document.getElementById('new_date_br');
+  const timeEl = document.getElementById('new_time_br');
+  const hidden = document.getElementById('new_occurred_at_hidden');
+  const now = new Date();
+  const pad = n=> n.toString().padStart(2,'0');
+  if(dateEl && !dateEl.value){
+    dateEl.value = pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear();
   }
+  if(timeEl && !timeEl.value){
+    timeEl.value = pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
+  }
+  if(dateEl && timeEl && hidden){ hidden.value = dateEl.value+' '+timeEl.value; }
   document.getElementById('newRecordForm').scrollIntoView({behavior:'smooth', block:'center'});
-  if(dt) dt.focus();
+  if(timeEl) timeEl.focus();
 }
 </script>
 @endpush

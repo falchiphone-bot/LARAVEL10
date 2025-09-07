@@ -14,14 +14,16 @@ class FixOpenAIChatRecordDates extends Command
         {--limit=0 : Limitar quantidade de registros processados}
         {--force-all : Aplica sem pedir confirmação em registros elegíveis}
         {--after= : Converter somente registros com occurred_at >= data (YYYY-MM-DD)}
-        {--before= : Converter somente registros com occurred_at <= data (YYYY-MM-DD)}';
+        {--before= : Converter somente registros com occurred_at <= data (YYYY-MM-DD)}
+        {--swap-all-ambiguous : Inverter automaticamente todas as datas ambíguas (dia<=12 & mes<=12 & dia!=mes) sem confirmação}';
     protected $description = 'Tenta corrigir datas invertidas (dia/mês trocados) em openai_chat_records.';
 
     public function handle(): int
     {
         $dry = $this->option('dry-run');
         $limit = (int)$this->option('limit');
-        $forceAll = $this->option('force-all');
+    $forceAll = $this->option('force-all');
+    $swapAllAmbiguous = $this->option('swap-all-ambiguous');
         $after = $this->option('after');
         $before = $this->option('before');
 
@@ -52,7 +54,7 @@ class FixOpenAIChatRecordDates extends Command
         $bar->start();
         $changed = 0; $checked = 0;
 
-    $query->chunkById(500, function($chunk) use (&$changed, &$checked, $dry, $bar, $forceAll) {
+    $query->chunkById(500, function($chunk) use (&$changed, &$checked, $dry, $bar, $forceAll, $swapAllAmbiguous) {
             foreach ($chunk as $rec) {
                 $checked++;
                 $dt = $rec->occurred_at; // Carbon
@@ -68,17 +70,29 @@ class FixOpenAIChatRecordDates extends Command
 
                 // Caso típico de inversão original: usuário queria DD/MM mas foi salvo como MM/DD. Só detectável quando day <= 12 e month > 12 no desejado, mas isso não acontece.
                 // Melhor: pedir intervalo alvo do usuário (ex: converter todos registros onde month <=12 e day <=12). Para simplificar, marcar todos onde day <= 12.
-                if ($day <= 12 && $month <= 12 && $day !== $month) { // candidatos ambíguos (evita dd==mm)
+                if ($day <= 12 && $month <= 12 && $day !== $month) { // candidato ambíguo
                     $proposed = Carbon::createFromFormat('d/m/Y H:i:s', sprintf('%02d/%02d/%s %s', $month, $day, $dt->format('Y'), $dt->format('H:i:s')));
-                    if ((int)$proposed->format('m') > 12) { // segurança extra
-                        $bar->advance();
-                        continue;
-                    }
-                    $this->line("\nRegistro #{$rec->id}: atual={$dt->format('d/m/Y H:i:s')} -> proposto={$proposed->format('d/m/Y H:i:s')}");
+                    // Heurística adicional: se a data proposta está mais próxima da data atual que a original (em dias), isso reforça a troca
+                    $now = Carbon::now();
+                    $diffOrig = abs($now->diffInDays($dt, false));
+                    $diffProp = abs($now->diffInDays($proposed, false));
+                    $autoPrefer = $diffProp < $diffOrig; // preferir se aproxima do presente
+                    $this->line("\nRegistro #{$rec->id}: atual={$dt->format('d/m/Y H:i:s')} -> proposto={$proposed->format('d/m/Y H:i:s')}".
+                        ($autoPrefer ? ' (mais próximo do presente)' : ''));
                     if ($dry) {
-                        // somente exibe
+                        // exibição apenas
                     } else {
-                        $apply = $forceAll ? true : $this->confirm('Aplicar conversão?', true);
+                        $apply = false;
+                        if ($swapAllAmbiguous) {
+                            $apply = true; // decisão global
+                        } elseif ($forceAll) {
+                            $apply = true; // manter compatibilidade
+                        } elseif ($autoPrefer) {
+                            // sugestão automática mas ainda pergunta
+                            $apply = $this->confirm('Aplicar (heurística sugere sim)?', true);
+                        } else {
+                            $apply = $this->confirm('Aplicar conversão?', false);
+                        }
                         if ($apply) {
                             $rec->occurred_at = $proposed;
                             $rec->save();
@@ -96,6 +110,7 @@ class FixOpenAIChatRecordDates extends Command
         $this->info("Registros alterados: $changed");
     if ($dry) $this->warn('Execução em modo dry-run (nada alterado).');
     if ($forceAll) $this->info('Conversão automática aplicada (--force-all).');
+    if ($swapAllAmbiguous) $this->info('Inversão automática aplicada para todos ambíguos (--swap-all-ambiguous).');
         return Command::SUCCESS;
     }
 }

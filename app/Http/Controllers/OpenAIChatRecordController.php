@@ -24,45 +24,111 @@ class OpenAIChatRecordController extends Controller
         $chatId = (int) $request->input('chat_id');
         $from = $request->input('from');
         $to = $request->input('to');
-        $query = OpenAIChatRecord::with(['chat:id,title,code','user:id,name']);
+        $remember = $request->boolean('remember');
+        $clearSaved = $request->boolean('clear_saved');
+        if($clearSaved){
+            session()->forget('openai_records_saved_filters');
+        }
+        if($remember){
+            session(['openai_records_saved_filters' => [
+                'chat_id' => $chatId ?: null,
+                'from' => $from ?: null,
+                'to' => $to ?: null,
+            ]]);
+        }
+        if(!$clearSaved && !$request->hasAny(['chat_id','from','to']) && session()->has('openai_records_saved_filters')){
+            $saved = session('openai_records_saved_filters');
+            if($saved){
+                $chatId = (int)($saved['chat_id'] ?? 0);
+                $from = $saved['from'] ?? null;
+                $to = $saved['to'] ?? null;
+            }
+        }
+    $sort = $request->input('sort','occurred_at');
+    $dir = strtolower($request->input('dir','desc')) === 'asc' ? 'asc' : 'desc';
+    $query = OpenAIChatRecord::with(['chat:id,title,code','user:id,name']);
+    $showAll = (bool)$request->input('all');
+
+
         if ($chatId > 0) {
             $query->where('chat_id', $chatId);
         }
-        if ($from) {
+        // Filtros de data com bindings seguros (evita formato inválido para SQL Server)
+        $dateExpr = 'occurred_at';
+        $driver = DB::getDriverName();
+        // Detectar se coluna ainda é texto no SQL Server (causa erro de conversão implícita)
+        if ($driver === 'sqlsrv') {
             try {
-                if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $from)) {
-                    $fromDate = Carbon::createFromFormat('d/m/Y', $from)->startOfDay();
-                } else {
-                    $fromDate = Carbon::parse($from)->startOfDay();
+                $colInfo = DB::selectOne("SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='openai_chat_records' AND COLUMN_NAME='occurred_at'");
+                $dataType = $colInfo->DATA_TYPE ?? null;
+                if ($dataType && !in_array(strtolower($dataType), ['datetime','datetime2','smalldatetime','date'])) {
+                    // usar conversão explícita estilo 103 (dd/mm/yyyy)
+                    $dateExpr = "TRY_CONVERT(datetime2, occurred_at, 103)";
                 }
-                $query->where('occurred_at', '>=', $fromDate);
-            } catch (\Exception $e) {
-                // ignorar parse inválido silenciosamente
-            }
+            } catch (\Exception $e) { /* ignora */ }
         }
-        if ($to) {
-            try {
-                if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $to)) {
-                    $toDate = Carbon::createFromFormat('d/m/Y', $to)->endOfDay();
-                } else {
-                    $toDate = Carbon::parse($to)->endOfDay();
-                }
-                $query->where('occurred_at', '<=', $toDate);
-            } catch (\Exception $e) {
-                // ignorar parse inválido silenciosamente
+        try {
+            $fromDate = null; $toDate = null;
+            if ($from) {
+                $fromDate = preg_match('/^\d{2}\/\d{2}\/\d{4}$/',$from)
+                    ? Carbon::createFromFormat('d/m/Y', $from)->startOfDay()
+                    : Carbon::parse($from)->startOfDay();
             }
+            if ($to) {
+                $toDate = preg_match('/^\d{2}\/\d{2}\/\d{4}$/',$to)
+                    ? Carbon::createFromFormat('d/m/Y', $to)->endOfDay()
+                    : Carbon::parse($to)->endOfDay();
+            }
+            if ($fromDate && $toDate) {
+                $query->whereRaw($dateExpr.' BETWEEN ? AND ?', [$fromDate, $toDate]);
+            } elseif ($fromDate) {
+                $query->whereRaw($dateExpr.' >= ?', [$fromDate]);
+            } elseif ($toDate) {
+                $query->whereRaw($dateExpr.' <= ?', [$toDate]);
+            }
+        } catch (\Exception $e) { /* ignora datas inválidas */ }
+    // Ordenação usa mesma expressão para evitar conversão implícita problemática
+        // Mapear sort permitido
+        $allowed = [
+            'occurred_at' => $dateExpr,
+            'amount' => 'amount',
+            'chat' => 'chat_id',
+            'user' => 'user_id',
+            'code' => 'code_subselect', // marcador especial
+        ];
+        $orderKey = $allowed[$sort] ?? $dateExpr;
+        if($orderKey === $dateExpr){
+            $query->orderByRaw($orderKey.' '.$dir);
+        } elseif($orderKey === 'code_subselect') {
+            // Ordenar por código da conversa (subselect evita join adicional)
+            $query->orderByRaw('(SELECT code FROM open_a_i_chats WHERE open_a_i_chats.id = openai_chat_records.chat_id) '.$dir);
+        } else {
+            $query->orderBy($orderKey, $dir);
         }
-        $records = $query->orderByDesc('occurred_at')->paginate(25)->appends([
-            'chat_id' => $chatId,
-            'from' => $from,
-            'to' => $to,
-        ]);
+
+        if ($showAll) {
+            $maxAll = 2000;
+            $records = $query->limit($maxAll)->get();
+        } else {
+            $records = $query->paginate(25)->appends(array_filter([
+                'chat_id' => $chatId ?: null,
+                'from' => $from ?: null,
+                'to' => $to ?: null,
+                'sort' => $sort !== 'occurred_at' ? $sort : null,
+                'dir' => ($dir !== 'desc') ? $dir : null,
+                'all' => $showAll ? 1 : null,
+            ]));
+        }
+
+
+        // dd($records);
         $chats = OpenAIChat::where('user_id', Auth::id())->orderBy('title')->get(['id','title','code']);
         $selectedChat = null;
         if ($chatId > 0) {
             $selectedChat = $chats->firstWhere('id', $chatId);
         }
-        return view('openai.records.index', compact('records','chats','chatId','selectedChat','from','to'));
+    $savedFilters = session('openai_records_saved_filters');
+    return view('openai.records.index', compact('records','chats','chatId','selectedChat','from','to','showAll','sort','dir','savedFilters'));
     }
 
     public function store(Request $request): RedirectResponse
