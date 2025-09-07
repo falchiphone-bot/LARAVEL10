@@ -226,8 +226,65 @@
   </script>
   @endpush
     @if($selectedChat)
-      <div class="alert alert-info py-2 mb-2">
-        <strong>Conversa Selecionada:</strong> {{ $selectedChat->title }} @if($selectedChat->code)<span class="badge bg-dark ms-1">{{ $selectedChat->code }}</span>@endif
+      @php
+        $ticker = trim($selectedChat->code ?? '');
+        $titleChat = trim($selectedChat->title ?? '');
+        // Monta consultas para análise temporal de 5 anos
+        $queryBase = trim(($ticker ? $ticker.' ' : '').$titleChat.' 5 year financial performance growth revenue');
+        $queryPrice = $ticker ? ($ticker.' 5 year stock price chart') : (($titleChat?:'').' 5 year stock performance');
+        $querySec   = $ticker ? ($ticker.' SEC filings 10-K 10Q') : (($titleChat?:'').' SEC filings');
+  $queryInvest = $ticker ? ($ticker.' investor relations presentations CAGR') : (($titleChat?:'').' investor relations');
+  // Consultas foco analistas/mercado
+  $queryAnalyst = ($ticker ? $ticker.' analyst ratings target price consensus' : ($titleChat?:'').' analyst ratings target price');
+  $queryEarnings = ($ticker ? $ticker.' quarterly earnings EPS history last 5 years' : ($titleChat?:'').' quarterly earnings EPS history');
+  $queryTranscript = ($ticker ? $ticker.' earnings call transcript' : ($titleChat?:'').' earnings call transcript');
+  $queryOwnership = ($ticker ? $ticker.' institutional ownership shareholders' : ($titleChat?:'').' institutional ownership');
+  // Queries adicionais para aprofundar
+  $queryCashFlow = ($ticker ? $ticker.' free cash flow trend 5 years' : ($titleChat?:'').' free cash flow trend 5 years');
+  $queryMargins = ($ticker ? $ticker.' gross margin operating margin net margin 5 years' : ($titleChat?:'').' margin evolution 5 years');
+  $queryDebt = ($ticker ? $ticker.' debt to equity leverage ratio 10-K' : ($titleChat?:'').' leverage ratio');
+  $queryGuidance = ($ticker ? $ticker.' guidance outlook next year' : ($titleChat?:'').' guidance outlook');
+  $queryValuation = ($ticker ? $ticker.' valuation multiples PE PS EV EBITDA history' : ($titleChat?:'').' valuation multiples');
+  $queryDividends = ($ticker ? $ticker.' dividend history payout ratio 5 years' : ($titleChat?:'').' dividend history');
+  $queryBuybacks = ($ticker ? $ticker.' share repurchase buyback program' : ($titleChat?:'').' share repurchase');
+  $queryShortInterest = ($ticker ? $ticker.' short interest days to cover' : ($titleChat?:'').' short interest');
+  $queryESG = ($ticker ? $ticker.' ESG sustainability score report' : ($titleChat?:'').' ESG sustainability');
+  $queryMoat = ($ticker ? $ticker.' competitive advantage market share' : ($titleChat?:'').' competitive advantage');
+      @endphp
+      <div class="alert alert-info py-2 mb-2 d-flex flex-column gap-2">
+        <div>
+          <strong>Conversa Selecionada:</strong> {{ $selectedChat->title }} @if($ticker)<span class="badge bg-dark ms-1">{{ $ticker }}</span>@endif
+        </div>
+        <div class="d-flex flex-wrap gap-1">
+          <a class="btn btn-sm btn-outline-success" target="_blank" rel="noopener" href="https://www.google.com/search?q={{ urlencode($queryBase) }}" title="Pesquisar panorama financeiro 5 anos">🌐 Análise 5 anos</a>
+          <a class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener" href="https://www.google.com/search?q={{ urlencode($queryPrice) }}" title="Histórico de preço 5 anos">📈 Preço 5y</a>
+          <a class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener" href="https://www.google.com/search?q={{ urlencode($queryInvest) }}" title="Relações com investidores / apresentações">💼 IR / Apresentações</a>
+          <a class="btn btn-sm btn-outline-dark" target="_blank" rel="noopener" href="https://www.google.com/search?q={{ urlencode($querySec) }}" title="Filings regulatórios (EDGAR / SEC)">📝 SEC Filings</a>
+          <a class="btn btn-sm btn-outline-info" target="_blank" rel="noopener" href="https://www.google.com/search?q={{ urlencode($queryAnalyst) }}" title="Opiniões / ratings de analistas">🧠 Analyst Ratings</a>
+          <a class="btn btn-sm btn-outline-warning" target="_blank" rel="noopener" href="https://www.google.com/search?q={{ urlencode($queryEarnings) }}" title="Histórico de resultados e EPS">📊 Earnings 5y</a>
+          <a class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener" href="https://www.google.com/search?q={{ urlencode($queryTranscript) }}" title="Transcrições de conference calls">🗣️ Transcripts</a>
+          <a class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener" href="https://www.google.com/search?q={{ urlencode($queryOwnership) }}" title="Estrutura de acionistas institucionais">🏦 Ownership</a>
+          <a class="btn btn-sm btn-outline-success" target="_blank" rel="noopener" href="https://www.google.com/search?q={{ urlencode($queryCashFlow) }}" title="Evolução do fluxo de caixa livre">💧 FCF</a>
+          <a class="btn btn-sm btn-outline-success" target="_blank" rel="noopener" href="https://www.google.com/search?q={{ urlencode($queryMargins) }}" title="Margens (bruta / operacional / líquida)">📐 Margens</a>
+          <a class="btn btn-sm btn-outline-danger" target="_blank" rel="noopener" href="https://www.google.com/search?q={{ urlencode($queryDebt) }}" title="Alavancagem / dívida">⚖️ Dívida</a>
+          <a class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener" href="https://www.google.com/search?q={{ urlencode($queryGuidance) }}" title="Guidance / Outlook">🧭 Guidance</a>
+          <a class="btn btn-sm btn-outline-dark" target="_blank" rel="noopener" href="https://www.google.com/search?q={{ urlencode($queryValuation) }}" title="Múltiplos de Valuation">💲 Valuation</a>
+          <a class="btn btn-sm btn-outline-warning" target="_blank" rel="noopener" href="https://www.google.com/search?q={{ urlencode($queryDividends) }}" title="Histórico de dividendos">💰 Dividendos</a>
+          <a class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener" href="https://www.google.com/search?q={{ urlencode($queryBuybacks) }}" title="Programas de recompra de ações">🔄 Buybacks</a>
+          <a class="btn btn-sm btn-outline-danger" target="_blank" rel="noopener" href="https://www.google.com/search?q={{ urlencode($queryShortInterest) }}" title="Short interest / days to cover">🧪 Short Interest</a>
+          <a class="btn btn-sm btn-outline-success" target="_blank" rel="noopener" href="https://www.google.com/search?q={{ urlencode($queryESG) }}" title="ESG / Sustentabilidade">🌱 ESG</a>
+          <a class="btn btn-sm btn-outline-info" target="_blank" rel="noopener" href="https://www.google.com/search?q={{ urlencode($queryMoat) }}" title="Vantagem competitiva / Moat">🛡️ Moat</a>
+          @if($ticker)
+            <a class="btn btn-sm btn-outline-warning" target="_blank" rel="noopener" href="https://finance.yahoo.com/quote/{{ urlencode($ticker) }}" title="Yahoo Finance (resumo)">🗞️ Yahoo</a>
+            <a class="btn btn-sm btn-outline-danger" target="_blank" rel="noopener" href="https://www.google.com/finance/quote/{{ urlencode($ticker) }}" title="Google Finance">🔎 G.Finance</a>
+            <a class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener" href="https://www.morningstar.com/search?query={{ urlencode($ticker) }}" title="Morningstar">⭐ Morningstar</a>
+            <a class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener" href="https://seekingalpha.com/symbol/{{ urlencode($ticker) }}" title="Seeking Alpha">📰 SeekingAlpha</a>
+            <a class="btn btn-sm btn-outline-dark" target="_blank" rel="noopener" href="https://tipranks.com/stocks/{{ strtolower($ticker) }}" title="TipRanks (analistas)">📊 TipRanks</a>
+            <a class="btn btn-sm btn-outline-info" target="_blank" rel="noopener" href="https://www.marketwatch.com/investing/stock/{{ strtolower($ticker) }}" title="MarketWatch">🕒 MarketWatch</a>
+            <a class="btn btn-sm btn-outline-success" target="_blank" rel="noopener" href="https://www.macrotrends.net/stocks/charts/{{ strtoupper($ticker) }}/" title="Macrotrends (históricos)">📈 Macrotrends</a>
+          @endif
+        </div>
+        <div class="small text-muted">Abre pesquisas externas para compor análise temporal (últimos 5 anos). Verifique sempre fontes oficiais antes de decisões.</div>
       </div>
     @endif
     @php
