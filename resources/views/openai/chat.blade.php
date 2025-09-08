@@ -21,10 +21,8 @@
             <a href="{{ route('openai.chats', array_merge($baseParams, ['view' => 'cards'])) }}" class="btn {{ $lastView==='cards' ? 'btn-primary' : 'btn-outline-secondary' }}">Conversas (Cartões)</a>
             <a href="{{ route('openai.chats', array_merge($baseParams, ['view' => 'table'])) }}" class="btn {{ $lastView==='table' ? 'btn-primary' : 'btn-outline-secondary' }}">Conversas (Tabela)</a>
         </div>
-        @if($currentChat)
+        @if($currentChat && $currentChat->type && strtoupper($currentChat->type->name) === 'BOLSA DE VALORES AMERICANA')
             <a href="{{ route('openai.records.index', ['chat_id'=>$currentChat->id]) }}#newRecordForm" class="btn btn-outline-danger">Registros</a>
-        @else
-            <a href="{{ route('openai.records.index') }}" class="btn btn-outline-danger">Registros</a>
         @endif
         <form action="{{ route('openai.chat.save') }}" method="POST" class="d-inline-flex align-items-center gap-2">
             @csrf
@@ -60,6 +58,17 @@
         <h1 class="h4 mb-0" title="Título da conversa">{{ $chatTitle }}</h1>
         @if($chatCode)
             <span class="badge" style="background:#b30000; font-size:.70rem; letter-spacing:1px;">CÓD: {{ $chatCode }}</span>
+        @endif
+        @if($currentChat && $currentChat->type && strtoupper($currentChat->type->name) === 'BOLSA DE VALORES AMERICANA')
+            @php $imgPath = public_path('images/bolsa-americana.png'); @endphp
+            @if(file_exists($imgPath))
+                <img src="{{ asset('images/bolsa-americana.png') }}" alt="Bolsa de Valores Americana" style="height:32px" />
+            @else
+                <span class="badge bg-light text-dark border" title="Bolsa de Valores Americana" style="display:inline-flex; align-items:center; gap:.35rem;">
+                    <span style="font-size:1.05rem; line-height:1;">🇺🇸</span>
+                    Bolsa de Valores Americana
+                </span>
+            @endif
         @endif
                 @if($currentChat && ($currentChat->target_min !== null || $currentChat->target_avg !== null || $currentChat->target_max !== null))
                         <span class="badge bg-info text-dark" title="Intervalo de preço alvo">
@@ -138,7 +147,7 @@
     </div>
     @endif
 
-    @if($currentChat)
+    @if($currentChat && $currentChat->type && strtoupper($currentChat->type->name) === 'BOLSA DE VALORES AMERICANA')
     <div class="card shadow-sm mb-4">
         <div class="card-body py-3">
             <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
