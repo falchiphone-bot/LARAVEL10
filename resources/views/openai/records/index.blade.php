@@ -6,6 +6,7 @@
     <div class="d-flex gap-2">
       <a href="{{ route('openai.menu') }}" class="btn btn-outline-secondary">← Menu</a>
       <a href="{{ route('openai.chats', ['view'=>'table']) }}" class="btn btn-outline-primary">Ver Conversas</a>
+  <a href="{{ route('openai.orders.index', array_filter(['chat_id'=>$chatId?:null])) }}" class="btn btn-outline-success">Ordens</a>
       <a href="{{ route('openai.chat') }}" class="btn btn-outline-dark">Chat</a>
     </div>
   </div>
@@ -68,6 +69,9 @@
             <span class="badge bg-dark">{{ $selectedChat->code }}</span>
           @endif
           <a href="{{ route('openai.chat.load', $selectedChat->id) }}" class="btn btn-sm btn-outline-danger" title="Ir para o chat desta conversa">Ir para Chat</a>
+          <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#codeOrderModal">
+            Cadastrar Código (Compra/Venda)
+          </button>
         </div>
       @endif
   <form id="newRecordForm" method="POST" action="{{ route('openai.records.store') }}" class="row g-2 align-items-end">
@@ -118,6 +122,51 @@
           <button type="submit" class="btn btn-sm btn-success w-100">Adicionar</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal: Cadastrar ordem de código -->
+  <div class="modal fade" id="codeOrderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Cadastrar Código</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <form method="POST" action="{{ route('openai.records.codeOrder.store') }}">
+          @csrf
+          <div class="modal-body vstack gap-2">
+            <input type="hidden" name="chat_id" value="{{ $selectedChat->id ?? ($chatId ?? '') }}">
+            <div>
+              <label class="form-label small mb-1">Código</label>
+              @php $hasCode = isset($selectedChat) && $selectedChat && $selectedChat->code; @endphp
+              <input type="text" name="code" class="form-control" value="{{ $selectedChat->code ?? '' }}" maxlength="50" {{ $hasCode ? 'readonly' : 'required' }}>
+              @if($hasCode)
+                <div class="form-text">O código será vinculado à conversa selecionada.</div>
+              @endif
+            </div>
+            <div>
+              <label class="form-label small mb-1">Tipo</label>
+              <select name="type" class="form-select" required>
+                <option value="compra">Compra</option>
+                <option value="venda">Venda</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label small mb-1">Quantidade</label>
+              <input type="text" name="quantity" class="form-control" inputmode="decimal" placeholder="Ex: 100 ou 100,5" required>
+            </div>
+            <div>
+              <label class="form-label small mb-1">Valor</label>
+              <input type="text" name="value" class="form-control mask-money-br" inputmode="decimal" placeholder="Ex: 10,50">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Salvar</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -469,6 +518,112 @@
       @endif
     </div>
   </div>
+
+  @if(isset($codeOrders) && $codeOrders->count())
+    <div class="card shadow-sm mt-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h2 class="h6 mb-0">Ordens cadastradas</h2>
+          @if(($chatId ?? 0) > 0 && $selectedChat)
+            <span class="small text-muted">Conversa: {{ $selectedChat->title }} @if($selectedChat->code)<span class="badge bg-dark ms-1">{{ $selectedChat->code }}</span>@endif</span>
+          @endif
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th style="width:18%">Código</th>
+                <th style="width:12%">Tipo</th>
+                <th style="width:14%" class="text-end">Quantidade</th>
+                <th style="width:14%" class="text-end">Valor</th>
+                <th>Conversa</th>
+                <th style="width:16%">Criado em</th>
+                <th style="width:16%" class="text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              @foreach($codeOrders as $o)
+                <tr>
+                  <td><span class="badge bg-dark">{{ $o->code }}</span></td>
+                  <td>
+                    @php $cls = $o->type === 'compra' ? 'success' : 'danger'; @endphp
+                    <span class="badge bg-{{ $cls }}">{{ ucfirst($o->type) }}</span>
+                  </td>
+                  <td class="text-end">{{ rtrim(rtrim(number_format((float)$o->quantity, 6, ',', '.'), '0'), ',') }}</td>
+                  <td>{{ $o->chat?->title ?? '—' }}</td>
+                  <td class="text-end">
+                    @if(!is_null($o->value))
+                      {{ number_format((float)$o->value, 2, ',', '.') }}
+                    @else
+                      —
+                    @endif
+                  </td>
+                  <td>
+                    @php $cdt = $o->created_at ? $o->created_at->timezone(config('app.timezone')) : null; @endphp
+                    @if($cdt)
+                      <span title="{{ $cdt->toIso8601String() }}">{{ $cdt->format('d/m/Y H:i:s') }}</span>
+                    @else — @endif
+                  </td>
+                  <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#editOrderModal_{{ $o->id }}">Editar</button>
+                    <form action="{{ route('openai.records.codeOrder.destroy', $o->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Excluir esta ordem?');">
+                      @csrf
+                      @method('DELETE')
+                      <button class="btn btn-sm btn-outline-danger">Excluir</button>
+                    </form>
+                  </td>
+                </tr>
+                <!-- Modal editar ordem -->
+                <div class="modal fade" id="editOrderModal_{{ $o->id }}" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title">Editar Ordem</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                      </div>
+                      <form method="POST" action="{{ route('openai.records.codeOrder.update', $o->id) }}">
+                        @csrf
+                        @method('PATCH')
+                        <div class="modal-body vstack gap-2">
+                          <div>
+                            <label class="form-label small mb-1">Código</label>
+                            @php $chatHasCode = $o->chat && $o->chat->code; @endphp
+                            <input type="text" name="code" class="form-control" value="{{ $chatHasCode ? $o->chat->code : $o->code }}" maxlength="50" {{ $chatHasCode ? 'readonly' : '' }}>
+                            @if($chatHasCode)
+                              <div class="form-text">Vinculado ao código da conversa.</div>
+                            @endif
+                          </div>
+                          <div>
+                            <label class="form-label small mb-1">Tipo</label>
+                            <select name="type" class="form-select" required>
+                              <option value="compra" {{ $o->type==='compra'?'selected':'' }}>Compra</option>
+                              <option value="venda" {{ $o->type==='venda'?'selected':'' }}>Venda</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label class="form-label small mb-1">Quantidade</label>
+                            <input type="text" name="quantity" class="form-control" inputmode="decimal" value="{{ rtrim(rtrim(number_format((float)$o->quantity, 6, ',', '.'), '0'), ',') }}" required>
+                          </div>
+                          <div>
+                            <label class="form-label small mb-1">Valor</label>
+                            <input type="text" name="value" class="form-control mask-money-br" inputmode="decimal" value="{{ !is_null($o->value) ? number_format((float)$o->value, 2, ',', '.') : '' }}">
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                          <button type="submit" class="btn btn-primary">Salvar</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              @endforeach
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  @endif
 </div>
 @endsection
 @push('scripts')

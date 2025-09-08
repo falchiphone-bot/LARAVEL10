@@ -134,7 +134,15 @@ class OpenAIChatRecordController extends Controller
             $selectedChat = $chats->firstWhere('id', $chatId);
         }
     $savedFilters = session('openai_records_saved_filters');
-    return view('openai.records.index', compact('records','chats','chatId','selectedChat','from','to','showAll','sort','dir','savedFilters','varMode'));
+        // Ordens de código (mostra da conversa selecionada ou recentes do usuário)
+        $ordersQuery = \App\Models\OpenAICodeOrder::with(['chat:id,title,code','user:id,name'])
+            ->where('user_id', Auth::id());
+        if ($chatId > 0) {
+            $ordersQuery->where('chat_id', $chatId);
+        }
+        $codeOrders = $ordersQuery->latest('created_at')->limit(50)->get();
+
+        return view('openai.records.index', compact('records','chats','chatId','selectedChat','from','to','showAll','sort','dir','savedFilters','varMode','codeOrders'));
     }
 
     public function store(Request $request): RedirectResponse

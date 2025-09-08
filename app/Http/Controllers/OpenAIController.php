@@ -781,6 +781,155 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
     }
 
     /**
+     * Cadastra uma ordem para um código (compra/venda) com quantidade.
+     */
+    public function storeCodeOrder(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'chat_id' => 'nullable|integer|exists:open_a_i_chats,id',
+            'code'    => 'nullable|string|max:50',
+            'type'    => 'required|in:compra,venda',
+            'quantity'=> 'required|numeric|min:0.000001',
+            'value'   => 'nullable|numeric|min:0',
+        ], [
+            'type.in' => 'Tipo inválido.',
+            'quantity.min' => 'Quantidade deve ser positiva.',
+        ]);
+
+        // Normaliza quantidade (aceita vírgula como decimal)
+        $q = (string) $data['quantity'];
+        $q = trim($q);
+        if ($q !== '') {
+            if (str_contains($q, ',')) {
+                // formato BR: remove milhares e troca vírgula por ponto
+                $q = str_replace('.', '', $q);
+                $q = str_replace(',', '.', $q);
+            }
+        }
+        $quantity = ($q !== '') ? (float) $q : 0.0;
+        $val = isset($data['value']) ? (string) $data['value'] : '';
+        $val = trim($val);
+        if ($val !== '') {
+            if (str_contains($val, ',')) {
+                $val = str_replace('.', '', $val);
+                $val = str_replace(',', '.', $val);
+            }
+        }
+    $value = $val !== '' ? (float) $val : null;
+
+        $chatId = $data['chat_id'] ?? (int) $request->session()->get('openai_current_chat_id') ?: null;
+        $codeProvided = trim((string) ($data['code'] ?? ''));
+        $code = $codeProvided;
+
+        // Se veio chat_id, prioriza o código da conversa
+        if ($chatId) {
+            $chat = \App\Models\OpenAIChat::select('id','user_id','code')->where('id', $chatId)->first();
+            if ($chat) {
+                // opcional: garantir posse
+                if ((int)$chat->user_id !== (int)Auth::id()) {
+                    return back()->with('error', 'Conversa inválida para o usuário.');
+                }
+                if ($chat->code) {
+                    $code = (string) $chat->code;
+                }
+            }
+        }
+
+        if ($code === '') {
+            return back()->with('error', 'Código não informado e conversa selecionada não possui código.')->withInput();
+        }
+        $type = $data['type'];
+
+        \App\Models\OpenAICodeOrder::create([
+            'user_id' => Auth::id(),
+            'chat_id' => $chatId,
+            'code' => $code,
+            'type' => $type,
+            'quantity' => $quantity,
+            'value' => $value,
+        ]);
+
+        return back()->with('success', 'Ordem registrada com sucesso.');
+    }
+
+    public function editCodeOrder(\App\Models\OpenAICodeOrder $order)
+    {
+        if ((int)$order->user_id !== (int)Auth::id()) { abort(403); }
+        $order->load(['chat:id,title,code']);
+        // Reutiliza a view de registros adicionando um modal de edição inline via anchor/hash
+        return redirect()->route('openai.records.index', ['chat_id' => $order->chat_id ?: null])->with('edit_order_id', $order->id);
+    }
+
+    public function updateCodeOrder(Request $request, \App\Models\OpenAICodeOrder $order): RedirectResponse
+    {
+        if ((int)$order->user_id !== (int)Auth::id()) { abort(403); }
+        $data = $request->validate([
+            'code'    => 'nullable|string|max:50',
+            'type'    => 'required|in:compra,venda',
+            'quantity'=> 'required|numeric|min:0.000001',
+            'value'   => 'nullable|numeric|min:0',
+        ]);
+        $code = trim((string)($data['code'] ?? ''));
+        if ($order->chat_id) {
+            $chat = \App\Models\OpenAIChat::select('id','user_id','code')->find($order->chat_id);
+            if ($chat && $chat->code) { $code = (string)$chat->code; }
+        }
+        if ($code === '') {
+            return back()->with('error', 'Informe o código ou vincule a conversa.');
+        }
+        $q = (string) $data['quantity'];
+        $q = trim($q);
+        if ($q !== '') {
+            if (str_contains($q, ',')) {
+                $q = str_replace('.', '', $q);
+                $q = str_replace(',', '.', $q);
+            }
+        }
+        $order->code = $code;
+        $order->type = $data['type'];
+    $order->quantity = (float)$q;
+        $val = isset($data['value']) ? (string) $data['value'] : '';
+        $val = trim($val);
+        if ($val !== '') {
+            if (str_contains($val, ',')) {
+                $val = str_replace('.', '', $val);
+                $val = str_replace(',', '.', $val);
+            }
+        }
+    $order->value = $val !== '' ? (float)$val : null;
+        $order->save();
+        return back()->with('success', 'Ordem atualizada.');
+    }
+
+    public function destroyCodeOrder(\App\Models\OpenAICodeOrder $order): RedirectResponse
+    {
+        if ((int)$order->user_id !== (int)Auth::id()) { abort(403); }
+        $order->delete();
+        return back()->with('success', 'Ordem excluída.');
+    }
+
+    public function ordersIndex(Request $request)
+    {
+        $this->middleware('auth');
+        $chatId = (int) $request->input('chat_id');
+        $code = trim((string)$request->input('code'));
+        $type = $request->input('type');
+        $q = \App\Models\OpenAICodeOrder::with(['chat:id,title,code','user:id,name'])
+            ->where('user_id', Auth::id());
+        if ($chatId > 0) { $q->where('chat_id', $chatId); }
+        if ($code !== '') { $q->where('code','LIKE','%'.$code.'%'); }
+        if (in_array($type, ['compra','venda'], true)) { $q->where('type',$type); }
+        $q->latest('created_at');
+        $orders = $q->paginate(25)->appends(array_filter([
+            'chat_id' => $chatId ?: null,
+            'code' => $code ?: null,
+            'type' => in_array($type,['compra','venda'],true)?$type:null,
+        ]));
+        $chats = \App\Models\OpenAIChat::where('user_id', Auth::id())->orderBy('title')->get(['id','title','code']);
+        return view('openai.orders.index', compact('orders','chats','chatId','code','type'));
+    }
+
+    /**
      * Handles audio transcription and translation.
      *
      * @param Request $request
