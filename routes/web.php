@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\LancamentosController;
 use App\Http\Controllers\OpenAIController;
+use App\Http\Controllers\InvestmentAccountController;
 use App\Http\Controllers\OAuthController;
 use App\Http\Controllers\MailController;
 use App\Http\Services;
@@ -988,6 +989,12 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     Route::delete('/openai/records/code-order/{order}', [OpenAIController::class, 'destroyCodeOrder'])->name('openai.records.codeOrder.destroy');
     // View dedicada das ordens
     Route::get('/openai/orders', [OpenAIController::class, 'ordersIndex'])->name('openai.orders.index');
+
+    // Investment accounts (data, total investido, conta, corretora)
+    Route::get('/openai/investments', [InvestmentAccountController::class, 'index'])->name('openai.investments.index');
+    Route::post('/openai/investments', [InvestmentAccountController::class, 'store'])->name('openai.investments.store');
+    Route::patch('/openai/investments/{account}', [InvestmentAccountController::class, 'update'])->name('openai.investments.update');
+    Route::delete('/openai/investments/{account}', [InvestmentAccountController::class, 'destroy'])->name('openai.investments.destroy');
     Route::match(['get', 'post'], '/openai/transcribe', [OpenAIController::class, 'transcribe'])->name('openai.transcribe');
 
     // Tipos de conversa (CRUD simples)

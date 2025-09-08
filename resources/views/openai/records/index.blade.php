@@ -7,6 +7,7 @@
       <a href="{{ route('openai.menu') }}" class="btn btn-outline-secondary">← Menu</a>
       <a href="{{ route('openai.chats', ['view'=>'table']) }}" class="btn btn-outline-primary">Ver Conversas</a>
   <a href="{{ route('openai.orders.index', array_filter(['chat_id'=>$chatId?:null])) }}" class="btn btn-outline-success">Ordens</a>
+  <a href="{{ route('openai.investments.index') }}" class="btn btn-outline-info">Investimentos</a>
       <a href="{{ route('openai.chat') }}" class="btn btn-outline-dark">Chat</a>
     </div>
   </div>
