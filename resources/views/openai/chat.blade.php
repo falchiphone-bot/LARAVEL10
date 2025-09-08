@@ -202,6 +202,12 @@
             {{ session('success') }}
         </div>
     @endif
+    @if(session('openai_web_last_warning'))
+        <div class="alert alert-warning d-flex align-items-start gap-2" role="alert">
+            <span>⚠️ {{ session('openai_web_last_warning') }}</span>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
+    @endif
 
     <div class="card shadow-sm mb-4">
         <div class="card-body">
@@ -240,6 +246,14 @@
                                 <option value="mine" {{ $scopeValue === 'mine' ? 'selected' : '' }}>Minhas conversas</option>
                                 <option value="all" {{ $scopeValue === 'all' ? 'selected' : '' }}>Todas as conversas</option>
                             </select>
+                        </div>
+                    @endif
+                    @php $webEnabled = config('openai.chat.web.enabled'); @endphp
+                    @if($webEnabled)
+                        @php $webChecked = old('web_search', isset($webSearch) ? (int)$webSearch : (int)config('openai.chat.web.default_enabled')); @endphp
+                        <div class="form-check m-0">
+                            <input type="checkbox" class="form-check-input" id="web_search" name="web_search" value="1" {{ $webChecked ? 'checked' : '' }}>
+                            <label class="form-check-label" for="web_search">Buscar na Web</label>
                         </div>
                     @endif
                 </div>
@@ -296,20 +310,124 @@
         </form>
     </div>
 
-    @if(isset($messages) && count($messages) > 1)
+    @if(isset($messagesIndexed) && count($messagesIndexed) > 1)
         <div class="card shadow-sm">
             <div class="card-body">
-                <h2 class="h5 mb-3">Histórico da Conversa:</h2>
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <h2 class="h5 mb-0">Histórico da Conversa</h2>
+                    <form method="GET" action="{{ route('openai.chat') }}" class="d-flex align-items-center gap-2">
+                        <input type="hidden" name="order" value="{{ $messagesOrder === 'desc' ? 'asc' : 'desc' }}">
+                        <button class="btn btn-sm btn-outline-secondary" title="Alterar ordenação">
+                            Ordem: {{ $messagesOrder === 'desc' ? 'Mais recentes ↓' : 'Mais antigas ↑' }}
+                        </button>
+                    </form>
+                </div>
                 <div class="vstack gap-3">
-                    @foreach(array_reverse($messages) as $message)
-                        @if($message['role'] === 'system')
-                            @continue
-                        @endif
-                        <div class="p-3 rounded {{ $message['role'] === 'user' ? 'bg-primary bg-opacity-10 border border-primary text-primary' : 'bg-light border' }}">
-                            <div class="fw-bold mb-1">{{ $message['role'] === 'user' ? 'Você' : 'Assistente' }}:</div>
+                    @foreach($messagesIndexed as $row)
+                        @php $message = $row; $idxOriginal = $row['_idx']; @endphp
+                        @if(($message['role'] ?? '') === 'system') @continue @endif
+                        @php
+                            $ts = $message['ts'] ?? null;
+                            try { $dt = $ts ? \Carbon\Carbon::parse($ts)->timezone(config('app.timezone')) : null; } catch (Exception $e) { $dt=null; }
+                        @endphp
+                        <div class="p-3 rounded position-relative {{ $message['role'] === 'user' ? 'bg-primary bg-opacity-10 border border-primary text-primary' : 'bg-light border' }}">
+                            <div class="d-flex justify-content-between align-items-start mb-1 gap-2 flex-wrap">
+                                <div class="d-flex flex-column">
+                                    <strong>{{ $message['role'] === 'user' ? 'Você' : 'Assistente' }}</strong>
+                                    @if($dt)
+                                        @php
+                                            try { $rel = $dt->copy()->locale('pt_BR')->diffForHumans(); } catch (Exception $e) { $rel = null; }
+                                        @endphp
+                                        <small class="text-muted" title="{{ $dt->toIso8601String() }}">{{ $dt->format('d/m/Y H:i:s') }}@if($rel) · {{ $rel }} @endif</small>
+                                    @else
+                                        <small class="text-muted">(sem data)</small>
+                                    @endif
+                                </div>
+                                <form action="{{ route('openai.chat.message.delete', ['index'=>$idxOriginal]) }}" method="POST" onsubmit="return confirm('Excluir esta mensagem?');" class="m-0 p-0">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1" title="Excluir mensagem" style="font-size:.65rem;">✕</button>
+                                </form>
+                            </div>
                             <div style="white-space: pre-wrap;">{{ $message['content'] }}</div>
                         </div>
                     @endforeach
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if(!empty($webMeta))
+        <div class="card mb-4 border-info">
+            <div class="card-header py-2 bg-info bg-opacity-10">
+                <strong class="small">Status da Busca Web</strong>
+            </div>
+            <div class="card-body p-2">
+                <div class="table-responsive mb-0">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead>
+                            <tr class="small text-muted">
+                                <th>Provedor</th>
+                                <th>Status</th>
+                                <th>Resultados</th>
+                                <th>Auth</th>
+                                <th>Cache</th>
+                                <th>Mensagem</th>
+                            </tr>
+                        </thead>
+                        <tbody class="small">
+                            @foreach($webMeta as $m)
+                                @php
+                                    $providerRaw = $m['provider'] ?? '-';
+                                    $providerLabel = [
+                                        'serpapi' => 'SerpAPI',
+                                        'bing' => 'Bing',
+                                        'google_cse' => 'Google CSE',
+                                    ][$providerRaw] ?? $providerRaw;
+                                    $st = $m['status'] ?? null;
+                                    $authErr = !empty($m['auth_error']);
+                                    $cached = !empty($m['cached']);
+                                    $msg = $m['message'] ?? '';
+                                    // Classe de status
+                                    $statusClass = 'bg-secondary';
+                                    if ($st==='CACHED')      $statusClass='bg-info';
+                                    elseif ($st===200)       $statusClass='bg-success';
+                                    elseif (in_array($st, [400,401,403])) $statusClass='bg-danger';
+                                    elseif (in_array($st, [429])) $statusClass='bg-warning text-dark';
+                                    elseif ($st>=500)        $statusClass='bg-danger';
+                                @endphp
+                                <tr @if($authErr) class="table-danger" @elseif($st==='CACHED') class="table-info" @endif>
+                                    <td>{{ $providerLabel }}</td>
+                                    <td>
+                                        <span class="badge {{ $statusClass }}" title="Status HTTP / Indicador">{{ $st ?? '-' }}</span>
+                                    </td>
+                                    <td>
+                                        @php $res = (int)($m['results'] ?? 0); @endphp
+                                        <span class="badge {{ $res>0 ? 'bg-success' : 'bg-light text-muted' }}">{{ $res }}</span>
+                                    </td>
+                                    <td>
+                                        @if($authErr)
+                                            <span class="badge bg-danger" title="Falha de autenticação / chave">auth</span>
+                                        @else
+                                            <span class="badge bg-success" title="Autenticação OK">ok</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($cached)
+                                            <span class="badge bg-primary" title="Servido do cache">sim</span>
+                                        @else
+                                            <span class="badge bg-light text-muted">não</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <span class="small" @if($msg) title="{{ $msg }}" @endif>
+                                            {{ $msg ?: '-' }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

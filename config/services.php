@@ -50,6 +50,9 @@ return [
         'client_secret' => env('GOOGLE_API_CLIENT_SECRET'),
         // 'redirect' => 'http://localhost:82/auth/google/callback',
         'redirect' => 'https://contabilidade.falchi.com.br/auth/google/callback',
+
+        'cx' => env('GOOGLE_CSE_CX'),
+        'key' => env('GOOGLE_CSE_KEY'),
     ],
 
 

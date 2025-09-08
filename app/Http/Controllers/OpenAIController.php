@@ -6,6 +6,7 @@ use Exception;
 use Illuminate\View\View;
 use Illuminate\Http\Request;
 use App\Services\OpenAIService;
+use App\Services\WebSearchService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
@@ -120,15 +121,31 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
 
         // Recupera o histórico da sessão ou inicializa um novo com uma instrução de sistema.
         $messages = $request->session()->get('openai_messages', [
-            ['role' => 'system', 'content' => 'You are a helpful assistant.'],
+            ['role' => 'system', 'content' => 'You are a helpful assistant.', 'ts' => now()->format('c')],
         ]);
+        // Garante que cada mensagem tenha timestamp (somente enquanto ainda não é conversa salva)
+        $hasPersisted = (int) $request->session()->get('openai_current_chat_id') > 0;
+        if (!$hasPersisted) {
+            foreach ($messages as $i => $m) {
+                if (!isset($m['ts'])) {
+                    $messages[$i]['ts'] = now()->format('c');
+                }
+            }
+        }
+
+        // Preferência de ordenação (asc ou desc) via query/POST -> sessão
+        $orderReq = $request->input('order');
+        if ($orderReq && in_array($orderReq, ['asc','desc'], true)) {
+            $request->session()->put('openai_messages_order', $orderReq);
+        }
+        $messagesOrder = (string) $request->session()->get('openai_messages_order', 'desc');
 
         $error = null;
 
     // Adiciona a nova mensagem do usuário ao histórico (apenas em requisições POST)
         if ($request->isMethod('post')) {
             $prompt = $request->input('prompt');
-            $messages[] = ['role' => 'user', 'content' => $prompt];
+            $messages[] = ['role' => 'user', 'content' => $prompt, 'ts' => now()->format('c')];
 
             // Prepara mensagens para envio à API (com possível contexto de conversas salvas e anexos)
             $messagesToSend = $messages;
@@ -143,7 +160,7 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
                 $maxTerms   = (int) ($cfg['max_terms'] ?? 5);
                 $minLen     = (int) ($cfg['min_term_length'] ?? 4);
                 $maxQuery   = (int) ($cfg['max_conversations_to_query'] ?? 5);
-                $maxInject  = (int) ($cfg['max_conversations_to_inject'] ?? 3);
+                $maxInject  = (int) ($cfg['max_conversations_to_inject' ] ?? 3);
                 $tailPerConv= (int) ($cfg['tail_messages_per_conversation'] ?? 6);
                 $contextPreamble = (string) ($cfg['context_preamble'] ?? '');
 
@@ -278,6 +295,72 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
                 }
             }
 
+            // (1b) Injetar resultados de busca web (se solicitado)
+            $webSearchRequested = $request->boolean('web_search', (bool)$request->session()->get('openai_web_search', config('openai.chat.web.default_enabled')));
+            $request->session()->put('openai_web_search', $webSearchRequested);
+            if ($webSearchRequested) {
+                $webCfg = (array) config('openai.chat.web', []);
+                if (($webCfg['enabled'] ?? true) === true) {
+                    try {
+                        $providersList = $webCfg['providers'] ?? [];
+                        $ws = app(\App\Services\WebSearchService::class);
+                        $webResults = $ws->search(
+                            $prompt,
+                            (int)($webCfg['max_results'] ?? 5),
+                            (string)($webCfg['provider'] ?? 'serpapi'),
+                            (int)($webCfg['timeout'] ?? 8),
+                            is_array($providersList) ? $providersList : [],
+                            (array)($webCfg['cache'] ?? [])
+                        );
+                        $request->session()->put('openai_web_meta', $ws->getLastMeta());
+                        // Marca na sessão se houve provável falha auth (ex: chave inválida) usando logs já produzidos; heurística simples
+                        if (empty($webResults) && env('SERPAPI_KEY')) {
+                            // Heurística: se última linha de log continha 401 serpapi, set flag
+                            // (Simplificação: set flag sempre que resultados vazios e SERPAPI_KEY presente - ajuste se necessário)
+                            $request->session()->put('openai_web_last_warning', 'Falha ao buscar na web (possível 401/credencial inválida).');
+                        } else {
+                            $request->session()->forget('openai_web_last_warning');
+                        }
+                        if (!empty($webResults)) {
+                            $ctx = $ws->buildContext($webResults, (string)($webCfg['preamble'] ?? 'Resultados recentes da web:'));
+                            if ($ctx) {
+                                // Inserir logo após a primeira system para dar prioridade alta
+                                array_splice($messagesToSend, 1, 0, [$ctx]);
+                                // Instrução de sumarização estruturada
+                                $summaryInstruction = [
+                                    'role' => 'system',
+                                    'content' => 'Com base exclusivamente nos RESULTADOS RECENTES DA WEB fornecidos acima e no prompt do usuário, gere uma resposta estruturada em português contendo: \n1. Resumo sintético (1 parágrafo).\n2. Lista de fatos verificados (bullet points).\n3. Tabela resumida (se houver dados temporais ou categorias) usando markdown simples.\n4. Fontes citadas entre colchetes usando [n] onde n corresponde ao índice listado nos resultados.\nRegras: Não afirme que não tem acesso à internet; a busca já foi efetuada. Se algum ponto não aparece nas fontes, não invente. Se não houver dados suficientes sobre parte solicitada, diga "(sem dados nas fontes fornecidas)". Use um tom objetivo. Evite repetir títulos exatamente como no resultado — reescreva levemente.'
+                                ];
+                                array_splice($messagesToSend, 2, 0, [$summaryInstruction]);
+                            }
+                        } else {
+                            $chavesAusentes = [];
+                            if (!env('SERPAPI_KEY')) { $chavesAusentes[] = 'SERPAPI_KEY'; }
+                            if (!env('BING_SEARCH_V7_KEY') && !env('BING_SEARCH_KEY')) { $chavesAusentes[] = 'BING_SEARCH_V7_KEY'; }
+                            if (!env('GOOGLE_CSE_KEY') || !env('GOOGLE_CSE_CX')) { $chavesAusentes[] = 'GOOGLE_CSE_KEY/GOOGLE_CSE_CX'; }
+                            $motivo = empty($webResults) ? 'Nenhum resultado relevante retornado.' : 'Resultados insuficientes.';
+                            if (!empty($chavesAusentes)) {
+                                $motivo .= ' Credenciais ausentes: '.implode(', ', $chavesAusentes).'.';
+                            }
+                            $noResMsg = [
+                                'role' => 'system',
+                                'content' => 'Contexto de busca web: tentativa realizada para "'.$prompt.'". '.$motivo.' Regras: Não diga que não tem acesso; a busca foi executada. Responda com conhecimento consolidado, deixando claro que não foram identificadas atualizações específicas recentes nas fontes configuradas e evitando especulação.'
+                            ];
+                            array_splice($messagesToSend, 1, 0, [$noResMsg]);
+                        }
+                        Log::debug('WebSearch injection', [
+                            'query' => $prompt,
+                            'results' => count($webResults ?? []),
+                            'providers_used' => $webCfg['providers'] ?? $webCfg['provider'] ?? null,
+                        ]);
+                    } catch (\Throwable $t) {
+                        Log::warning('WebSearch falhou', ['error' => $t->getMessage()]);
+                        $request->session()->put('openai_web_last_warning', 'Erro inesperado na busca web: '.$t->getMessage());
+                        $request->session()->forget('openai_web_meta');
+                    }
+                }
+            }
+
             // 2) Injetar conteúdo de anexos (PDF/Imagem) do chat ativo (se habilitado)
             $attCfg = (array) config('openai.chat.attachments', []);
             $attEnabled = (bool) ($attCfg['enabled'] ?? true);
@@ -334,7 +417,7 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
                     // Adiciona a resposta do assistente ao histórico (mantém sessão sem poluir com contexto)
                     $assistantMessage = $response['choices'][0]['message']['content'] ?? null;
                     if ($assistantMessage) {
-                        $messages[] = ['role' => 'assistant', 'content' => $assistantMessage];
+                        $messages[] = ['role' => 'assistant', 'content' => $assistantMessage, 'ts' => now()->format('c')];
                     } else {
                         $error = 'Não foi possível obter uma resposta válida da API.';
                         Log::error($error, ['response' => $response]);
@@ -400,16 +483,67 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
         $types = \App\Models\OpenAIChatType::orderBy('name')->get();
         $currentChat = null;
         if ($currentId > 0) {
-            $currentChat = OpenAIChat::select('id','type_id','title','code','target_min','target_avg','target_max')->where('id', $currentId)->first();
+            $currentChat = OpenAIChat::select('id','type_id','title','code','target_min','target_avg','target_max','messages','created_at','updated_at')
+                ->where('id', $currentId)
+                ->first();
+            if ($currentChat && $currentChat->messages) {
+                $raw = $currentChat->messages;
+                $dbMsgs = null;
+                if (is_string($raw)) {
+                    $decoded = json_decode($raw, true);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                        $dbMsgs = $decoded;
+                    }
+                } elseif (is_array($raw)) {
+                    // Model provavelmente tem cast para array
+                    $dbMsgs = $raw;
+                }
+                if (is_array($dbMsgs) && !empty($dbMsgs)) {
+                    $messages = $dbMsgs;
+                    // Normaliza timestamps ausentes retroativamente
+                    $changed = false;
+                    $base = $currentChat->created_at ?? $currentChat->updated_at ?? now();
+                    // Garante objeto Carbon
+                    try { $baseDt = \Carbon\Carbon::parse($base); } catch (\Throwable $t) { $baseDt = now(); }
+                    foreach ($messages as $i => $m) {
+                        if (!isset($m['ts']) || !$m['ts']) {
+                            $messages[$i]['ts'] = $baseDt->copy()->addSeconds($i)->format('c');
+                            $changed = true;
+                        }
+                    }
+                    if ($changed) {
+                        // Persiste normalização para evitar repetir custo
+                        DB::table('open_a_i_chats')
+                            ->where('id', $currentChat->id)
+                            ->update([
+                                'messages' => json_encode($messages, JSON_UNESCAPED_UNICODE),
+                                'updated_at' => DB::raw('GETDATE()'),
+                            ]);
+                        // Atualiza instância carregada
+                        $currentChat->messages = json_encode($messages, JSON_UNESCAPED_UNICODE);
+                    }
+                }
+            }
         }
 
+        $webSearchPref = (bool)$request->session()->get('openai_web_search', config('openai.chat.web.default_enabled'));
+        $webMeta = $request->session()->get('openai_web_meta', []);
+        // Prepara array indexado para view + ordenação sem perder índice original
+        $messagesIndexed = [];
+        foreach ($messages as $idx => $m) { $messagesIndexed[] = $m + ['_idx' => $idx]; }
+        if ($messagesOrder === 'desc') { $messagesIndexed = array_reverse($messagesIndexed); }
+
         return view('openai.chat', [
-            'messages' => $messages,
+            'messages' => $messages, // original (cronológico asc)
+            'messagesIndexed' => $messagesIndexed,
+            'messagesOrder' => $messagesOrder,
             'searchInChats' => $searchInChatsPref,
             'searchScope' => $searchScopePref,
             'attachments' => $attachments,
             'types' => $types,
             'currentChat' => $currentChat,
+            'webSearch' => $webSearchPref,
+            'webMeta' => $webMeta,
         ]);
     }
 
@@ -495,6 +629,38 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
         $request->session()->forget('openai_current_chat_id');
 
         return redirect()->route('openai.chat');
+    }
+
+    /**
+     * Remove uma mensagem individual do histórico.
+     * O índice recebido é sempre o índice original (baseado na ordem cronológica ascendente armazenada na sessão),
+     * mesmo que a view esteja mostrando em ordem descendente.
+     */
+    public function deleteChatMessage(Request $request, int $index): RedirectResponse
+    {
+        $messages = $request->session()->get('openai_messages', []);
+        if (!is_array($messages) || empty($messages)) {
+            return back()->with('error', 'Histórico vazio.');
+        }
+        // Índices válidos 0..n-1, não permitir excluir a primeira system
+        if ($index < 0 || $index >= count($messages) || ($messages[$index]['role'] ?? '') === 'system') {
+            return back()->with('error', 'Índice inválido ou mensagem protegida.');
+        }
+        // Remove
+        array_splice($messages, $index, 1);
+        $request->session()->put('openai_messages', $messages);
+        // Se conversa salva, persiste
+        $currentId = (int) $request->session()->get('openai_current_chat_id');
+        if ($currentId > 0) {
+            DB::table('open_a_i_chats')
+                ->where('id', $currentId)
+                ->where('user_id', Auth::id())
+                ->update([
+                    'messages' => json_encode($messages, JSON_UNESCAPED_UNICODE),
+                    'updated_at' => DB::raw('GETDATE()'),
+                ]);
+        }
+        return back()->with('success', 'Mensagem removida.');
     }
 
     /**

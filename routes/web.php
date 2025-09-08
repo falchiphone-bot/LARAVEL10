@@ -962,6 +962,8 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     })->name('openai.menu');
     Route::match(['get', 'post'], '/openai/chat', [OpenAIController::class, 'chat'])->name('openai.chat');
     Route::post('/openai/chat/clear', [OpenAIController::class, 'clearChat'])->name('openai.chat.clear');
+    // Excluir mensagem individual do histórico em sessão / chat salvo
+    Route::delete('/openai/chat/message/{index}', [OpenAIController::class, 'deleteChatMessage'])->name('openai.chat.message.delete');
     Route::get('/openai/chat/new', [OpenAIController::class, 'newChat'])->name('openai.chat.new');
     // Conversas salvas
     Route::get('/openai/chats', [OpenAIController::class, 'chats'])->name('openai.chats');

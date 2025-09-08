@@ -36,5 +36,28 @@ return [
             // Preambulo para orientar a IA
             'context_preamble' => env('OPENAI_CHAT_ATTACHMENTS_CONTEXT_PREAMBLE', 'Use o conteúdo dos anexos abaixo como fonte primária para responder. Se a pergunta estiver coberta pelos anexos, priorize-os. Não invente informações que não estejam neles.'),
         ],
+        'web' => [
+            // Habilitar recurso de busca web para enriquecer a resposta
+            'enabled' => env('OPENAI_CHAT_WEB_ENABLED', true),
+            // Se deve vir marcado por padrão
+            'default_enabled' => env('OPENAI_CHAT_WEB_DEFAULT', false),
+            // Provedor principal (legacy). Mantido p/ retrocompatibilidade.
+            'provider' => env('OPENAI_CHAT_WEB_PROVIDER', 'serpapi'),
+            // Lista de provedores em ordem de tentativa. Suporta: serpapi, bing, google_cse
+            // Se definida, sobrescreve 'provider'. Ex: "serpapi,bing" ou só "bing"
+            'providers' => array_filter(array_map('trim', explode(',', env('OPENAI_CHAT_WEB_PROVIDERS', '')))),
+            // Máximo de resultados agregados finais
+            'max_results' => env('OPENAI_CHAT_WEB_MAX_RESULTS', 5),
+            // Timeout individual por requisição HTTP (segundos)
+            'timeout' => env('OPENAI_CHAT_WEB_TIMEOUT', 8),
+            // Preambulo contextual a ser injetado antes dos resultados
+            'preamble' => env('OPENAI_CHAT_WEB_PREAMBLE', 'Resultados recentes da web (não verificados). Use-os para complementar a resposta. Cite a fonte (URL) quando fizer afirmações baseadas neles. Ignore se irrelevantes.'),
+            // Cache: habilitar e TTL em segundos (0 = desabilita)
+            'cache' => [
+                'enabled' => env('OPENAI_CHAT_WEB_CACHE_ENABLED', true),
+                'ttl' => env('OPENAI_CHAT_WEB_CACHE_TTL', 600), // 10 min padrão
+                'key_prefix' => env('OPENAI_CHAT_WEB_CACHE_PREFIX', 'websearch:'),
+            ],
+        ],
     ],
 ];
