@@ -31,6 +31,20 @@
             @endforeach
           </select>
         </div>
+        <div class="col-sm-4 col-md-3">
+          <label class="form-label small mb-1">Conta de investimento</label>
+          <select name="investment_account_id" class="form-select form-select-sm">
+            <option value="" {{ ($invAccId ?? '') === '' ? 'selected' : '' }}>Todas</option>
+            <option value="0" {{ ($invAccId ?? '') === '0' ? 'selected' : '' }}>Sem associação</option>
+            @isset($investmentAccounts)
+              @foreach($investmentAccounts as $ia)
+                <option value="{{ $ia->id }}" {{ (string)($invAccId ?? '') === (string)$ia->id ? 'selected' : '' }}>
+                  {{ $ia->account_name }} @if($ia->broker) — {{ $ia->broker }} @endif
+                </option>
+              @endforeach
+            @endisset
+          </select>
+        </div>
         <div class="col-sm-3 col-md-2">
           <label class="form-label small mb-1">De</label>
           <input type="date" name="from" value="{{ request('from') }}" class="form-control form-control-sm">
@@ -42,15 +56,15 @@
         <div class="col-sm-2 col-md-2 d-grid gap-2">
           <button class="btn btn-sm btn-outline-primary" type="submit">Filtrar</button>
           @if(!($showAll ?? false))
-            <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'all'=>1])) }}">Todos</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'all'=>1,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null])) }}">Todos</a>
           @else
-            <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null])) }}">Paginar</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null])) }}">Paginar</a>
           @endif
           @if(!empty($savedFilters))
-            <a class="btn btn-sm btn-outline-warning" href="{{ route('openai.records.index', array_filter(['clear_saved'=>1,'chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null, 'all'=>($showAll??false)?1:null])) }}" title="Remover filtro salvo">Limpar Salvo</a>
+            <a class="btn btn-sm btn-outline-warning" href="{{ route('openai.records.index', array_filter(['clear_saved'=>1,'chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null, 'all'=>($showAll??false)?1:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null])) }}" title="Remover filtro salvo">Limpar Salvo</a>
           @endif
         </div>
-        @if(request()->hasAny(['chat_id','from','to']) && (request('chat_id')||request('from')||request('to')))
+        @if(request()->hasAny(['chat_id','from','to','investment_account_id']) && (request('chat_id')||request('from')||request('to')||request('investment_account_id')!==null))
           <div class="col-sm-2 col-md-2">
             <a href="{{ route('openai.records.index') }}" class="btn btn-sm btn-outline-dark w-100">Limpar</a>
           </div>
@@ -118,6 +132,17 @@
         <div class="col-sm-3 col-md-2">
           <label class="form-label small mb-1">Valor * <span class="text-muted">(R$)</span></label>
           <input type="text" inputmode="decimal" name="amount" class="form-control form-control-sm mask-money-br" required placeholder="0,00">
+        </div>
+        <div class="col-sm-5 col-md-3">
+          <label class="form-label small mb-1">Conta de investimento (opcional)</label>
+          <select name="investment_account_id" class="form-select form-select-sm">
+            <option value="">— Não associar —</option>
+            @isset($investmentAccounts)
+              @foreach($investmentAccounts as $ia)
+                <option value="{{ $ia->id }}">{{ $ia->account_name }} @if($ia->broker) — {{ $ia->broker }} @endif</option>
+              @endforeach
+            @endisset
+          </select>
         </div>
         <div class="col-sm-2 col-md-2">
           <button type="submit" class="btn btn-sm btn-success w-100">Adicionar</button>
@@ -358,6 +383,7 @@
         'from'=>$from?:null,
         'to'=>$to?:null,
         'all'=>($showAll??false)?1:null,
+        'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,
       ]);
     @endphp
     @php
@@ -374,7 +400,8 @@
             'all'=>($showAll??false)?1:null,
             'sort'=>$sort!=='occurred_at'?$sort:null,
             'dir'=>$dir!=='desc'?$dir:null,
-            'var_mode'=>$isSeq?'acum':'seq'
+            'var_mode'=>$isSeq?'acum':'seq',
+            'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null
           ]);
         @endphp
         <a href="{{ route('openai.records.index',$modeParams) }}" class="btn btn-sm btn-outline-secondary" title="Alternar modo de variação">
@@ -396,6 +423,9 @@
           </th>
           <th style="width:15%" class="text-end">
             <a class="text-decoration-none text-light" href="{{ route('openai.records.index', array_merge($baseParams,['sort'=>'amount','dir'=>$flipDir('amount')])) }}">Valor {{ $sortIcon('amount') }}</a>
+          </th>
+          <th style="width:18%">
+            <a class="text-decoration-none text-light" href="{{ route('openai.records.index', array_merge($baseParams,['sort'=>'investment','dir'=>$flipDir('investment')])) }}">Investimento {{ $sortIcon('investment') }}</a>
           </th>
           <th style="width:20%">
             <a class="text-decoration-none text-light" href="{{ route('openai.records.index', array_merge($baseParams,['sort'=>'user','dir'=>$flipDir('user')])) }}">Usuário {{ $sortIcon('user') }}</a>
@@ -438,7 +468,7 @@
             <td>
               @if($r->chat)
                 @php $day = $r->occurred_at->format('Y-m-d'); @endphp
-                <a href="{{ route('openai.records.index', array_filter(['chat_id'=>$r->chat_id,'from'=>$day,'to'=>$day,'remember'=>1,'sort'=>$sort!=='occurred_at'?$sort:null,'dir'=>$dir!=='desc'?$dir:null,'all'=>($showAll??false)?1:null])) }}" class="text-decoration-none">
+                <a href="{{ route('openai.records.index', array_filter(['chat_id'=>$r->chat_id,'from'=>$day,'to'=>$day,'remember'=>1,'sort'=>$sort!=='occurred_at'?$sort:null,'dir'=>$dir!=='desc'?$dir:null,'all'=>($showAll??false)?1:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null])) }}" class="text-decoration-none">
                   {{ $r->chat->title }}
                 </a>
               @else
@@ -482,10 +512,36 @@
                   @endif
               @endif
             </td>
+            <td>
+              @if($r->investmentAccount)
+                <a class="text-decoration-none" href="{{ route('openai.investments.index', ['account'=>$r->investmentAccount->account_name, 'broker'=>$r->investmentAccount->broker]) }}">
+                  {{ $r->investmentAccount->account_name }}
+                  @if($r->investmentAccount->broker)
+                    <span class="text-muted">— {{ $r->investmentAccount->broker }}</span>
+                  @endif
+                </a>
+              @else
+                —
+              @endif
+            </td>
             <td>{{ $r->user?->name }}</td>
             <td class="text-center">
               <button type="button" class="btn btn-sm btn-success me-1" onclick="prepQuickAdd({{ $r->chat_id }})" title="Adicionar novo registro desta conversa">➕</button>
               <a href="{{ route('openai.records.edit', $r) }}" class="btn btn-sm btn-outline-primary me-1">Editar</a>
+              @if($r->investmentAccount)
+                @php
+                  $prefill = [
+                    'open_new' => 1,
+                    'date' => optional($r->occurred_at)->format('Y-m-d'),
+                    'total_invested' => number_format((float)$r->amount, 2, ',', '.'),
+                    'account_name' => $r->investmentAccount->account_name,
+                    'broker' => $r->investmentAccount->broker,
+                    // manter filtros de listagem da página destino úteis
+                    'account' => $r->investmentAccount->account_name,
+                  ];
+                @endphp
+                <a href="{{ route('openai.investments.index', $prefill) }}" class="btn btn-sm btn-outline-info me-1" title="Lançar em Investimentos">Lançar Inv.</a>
+              @endif
               <form action="{{ route('openai.records.destroy', $r) }}" method="POST" onsubmit="return confirm('Remover registro?');" class="d-inline">
                 @csrf
                 @method('DELETE')
@@ -494,7 +550,7 @@
             </td>
           </tr>
         @empty
-          <tr><td colspan="6" class="text-center text-muted">Nenhum registro.</td></tr>
+          <tr><td colspan="7" class="text-center text-muted">Nenhum registro.</td></tr>
         @endforelse
       </tbody>
     </table>
@@ -510,12 +566,12 @@
         <span class="badge bg-info text-dark me-2" title="Filtro salvo em sessão">Filtro salvo</span>
       @endif
       @if(!($showAll ?? false))
-        <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'all'=>1])) }}">Ver Todos</a>
+  <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'all'=>1,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null])) }}">Ver Todos</a>
       @else
-        <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null])) }}">Voltar à Paginação</a>
+  <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null])) }}">Voltar à Paginação</a>
       @endif
       @if(!empty($savedFilters))
-        <a class="btn btn-sm btn-outline-warning ms-2" href="{{ route('openai.records.index', array_filter(['clear_saved'=>1,'all'=>($showAll??false)?1:null])) }}" title="Remover filtro salvo da sessão">Limpar Filtro Salvo</a>
+  <a class="btn btn-sm btn-outline-warning ms-2" href="{{ route('openai.records.index', array_filter(['clear_saved'=>1,'all'=>($showAll??false)?1:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null])) }}" title="Remover filtro salvo da sessão">Limpar Filtro Salvo</a>
       @endif
     </div>
   </div>

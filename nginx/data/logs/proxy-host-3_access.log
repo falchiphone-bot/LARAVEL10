@@ -1,0 +1,6 @@
+[11/Sep/2025:17:42:22 +0000] - 200 200 - GET http vec.org.br "/" [Client 172.19.0.1] [Length 1409] [Gzip -] [Sent-to laravel10] "Mozilla/5.0 (compatible; CensysInspect/1.1; +https://about.censys.io/)" "-"
+[11/Sep/2025:17:42:24 +0000] - 200 200 - GET http vec.org.br "/favicon.ico" [Client 172.19.0.1] [Length 0] [Gzip -] [Sent-to laravel10] "Mozilla/5.0 (compatible; CensysInspect/1.1; +https://about.censys.io/)" "-"
+[11/Sep/2025:18:04:00 +0000] - 200 200 - GET https vec.org.br "/robots.txt" [Client 172.19.0.1] [Length 24] [Gzip -] [Sent-to laravel10] "Mozilla/5.0 (compatible; MJ12bot/v2.0.4; http://mj12bot.com/)" "-"
+[11/Sep/2025:18:04:00 +0000] - 200 200 - GET https vec.org.br "/" [Client 172.19.0.1] [Length 1415] [Gzip -] [Sent-to laravel10] "Mozilla/5.0 (compatible; MJ12bot/v2.0.4; http://mj12bot.com/)" "-"
+[11/Sep/2025:18:28:43 +0000] - 200 200 - GET http vec.org.br "/" [Client 172.19.0.1] [Length 1409] [Gzip -] [Sent-to laravel10] "Peach/1.01 (Ubuntu 8.04 LTS; U; en)" "-"
+[11/Sep/2025:18:28:43 +0000] - 200 200 - GET https vec.org.br "/" [Client 172.19.0.1] [Length 1410] [Gzip -] [Sent-to laravel10] "Mozilla/5.0 (Linux; Android 4.4.4; XT1032 Build/KXB21.14-L1.61) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.94 Mobile Safari/537.36" "-"

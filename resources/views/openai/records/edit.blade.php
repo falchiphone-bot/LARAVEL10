@@ -61,6 +61,20 @@
           <label class="form-label small mb-1">Valor * <span class="text-muted">(R$)</span></label>
           <input type="text" name="amount" class="form-control form-control-sm mask-money-br" required value="{{ old('amount', number_format((float)$record->amount,2,',','.')) }}" placeholder="0,00">
         </div>
+        <div class="col-md-6">
+          <label class="form-label small mb-1">Conta de investimento</label>
+          <select name="investment_account_id" class="form-select form-select-sm">
+            <option value="">— Não associar —</option>
+            @isset($investmentAccounts)
+              @foreach($investmentAccounts as $acc)
+                <option value="{{ $acc->id }}" {{ (string)old('investment_account_id', (string)($record->investment_account_id ?? '')) === (string)$acc->id ? 'selected' : '' }}>
+                  {{ $acc->account_name }} @if($acc->broker) — {{ $acc->broker }} @endif @if($acc->date) ({{ optional($acc->date)->format('d/m/Y') }}) @endif
+                </option>
+              @endforeach
+            @endisset
+          </select>
+          <div class="form-text">Opcional: vincule este registro a uma conta de investimentos.</div>
+        </div>
         <div class="col-12 d-flex justify-content-between mt-2">
           <button type="submit" class="btn btn-sm btn-primary">Salvar</button>
           <a href="{{ route('openai.records.index', ['chat_id' => $record->chat_id]) }}" class="btn btn-sm btn-outline-secondary">Cancelar</a>

@@ -6,7 +6,7 @@
     <div class="d-flex gap-2">
       <a href="{{ route('openai.records.index') }}" class="btn btn-outline-secondary">← Registros</a>
       <a href="{{ route('openai.chat') }}" class="btn btn-outline-dark">Chat</a>
-      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newAccountModal">Nova Conta</button>
+  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newAccountModal">Nova Conta</button>
     </div>
   </div>
 
@@ -19,7 +19,7 @@
 
   <div class="card shadow-sm mb-3">
     <div class="card-body">
-      <form class="row g-2 align-items-end" method="GET" action="{{ route('openai.investments.index') }}">
+  <form class="row g-2 align-items-end" method="GET" action="{{ route('openai.investments.index') }}">
         <div class="col-sm-3 col-md-2">
           <label class="form-label small mb-1">De</label>
           <input type="date" name="from" value="{{ $from ?? '' }}" class="form-control form-control-sm">
@@ -30,11 +30,11 @@
         </div>
         <div class="col-sm-3 col-md-3">
           <label class="form-label small mb-1">Conta</label>
-          <input type="text" name="account" value="{{ $account ?? '' }}" class="form-control form-control-sm" placeholder="Nome da conta">
+          <input type="text" name="account" value="{{ request('account', $account ?? '') }}" class="form-control form-control-sm" placeholder="Nome da conta">
         </div>
         <div class="col-sm-3 col-md-3">
           <label class="form-label small mb-1">Corretora</label>
-          <input type="text" name="broker" value="{{ $broker ?? '' }}" class="form-control form-control-sm" placeholder="Corretora">
+          <input type="text" name="broker" value="{{ request('broker', $broker ?? '') }}" class="form-control form-control-sm" placeholder="Corretora">
         </div>
         <div class="col-sm-2 col-md-2 d-grid">
           <button class="btn btn-sm btn-outline-primary">Filtrar</button>
@@ -139,24 +139,24 @@
         <h5 class="modal-title">Novo Registro</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
       </div>
-      <form method="POST" action="{{ route('openai.investments.store') }}">
+  <form method="POST" action="{{ route('openai.investments.store') }}">
         @csrf
         <div class="modal-body vstack gap-2">
           <div>
             <label class="form-label small mb-1">Data</label>
-            <input type="date" name="date" class="form-control" value="{{ now()->format('Y-m-d') }}" required>
+    <input type="date" name="date" class="form-control" value="{{ request('date', now()->format('Y-m-d')) }}" required>
           </div>
           <div>
             <label class="form-label small mb-1">Total investido</label>
-            <input type="text" name="total_invested" class="form-control mask-money-br" inputmode="decimal" placeholder="0,00" required>
+    <input type="text" name="total_invested" class="form-control mask-money-br" inputmode="decimal" placeholder="0,00" value="{{ request('total_invested') }}" required>
           </div>
           <div>
             <label class="form-label small mb-1">Nome da conta</label>
-            <input type="text" name="account_name" class="form-control" maxlength="100" required>
+    <input type="text" name="account_name" class="form-control" maxlength="100" value="{{ request('account_name') }}" required>
           </div>
           <div>
             <label class="form-label small mb-1">Corretora</label>
-            <input type="text" name="broker" class="form-control" maxlength="100" required>
+    <input type="text" name="broker" class="form-control" maxlength="100" value="{{ request('broker') }}" required>
           </div>
         </div>
         <div class="modal-footer">
@@ -185,6 +185,18 @@
     el.addEventListener('blur', ()=>{ if(el.value==='') el.value='0,00'; });
     el.form?.addEventListener('submit', ()=>{ if(el.value){ el.value = el.value.replace(/\./g,'').replace(',','.'); } });
   });
+})();
+
+// Abrir modal automaticamente quando solicitado via query (open_new=1)
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  if(params.get('open_new') === '1'){
+    const modalEl = document.getElementById('newAccountModal');
+    if(modalEl){
+      const m = new bootstrap.Modal(modalEl);
+      m.show();
+    }
+  }
 })();
 </script>
 @endpush

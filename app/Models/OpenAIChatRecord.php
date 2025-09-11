@@ -18,6 +18,7 @@ class OpenAIChatRecord extends Model
         'user_id',
         'occurred_at',
         'amount',
+    'investment_account_id',
     ];
 
     protected $casts = [
@@ -33,5 +34,10 @@ class OpenAIChatRecord extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function investmentAccount(): BelongsTo
+    {
+        return $this->belongsTo(InvestmentAccount::class, 'investment_account_id');
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\OpenAIChat;
 use App\Models\OpenAIChatRecord;
+use App\Models\InvestmentAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -50,29 +51,30 @@ class OpenAIChatRecordController extends Controller
                 $to = $saved['to'] ?? null;
             }
         }
-    $sort = $request->input('sort','occurred_at');
-    $dir = strtolower($request->input('dir','desc')) === 'asc' ? 'asc' : 'desc';
-    $query = OpenAIChatRecord::with(['chat:id,title,code','user:id,name']);
-    $showAll = (bool)$request->input('all');
 
+        $sort = $request->input('sort','occurred_at');
+        $dir = strtolower($request->input('dir','desc')) === 'asc' ? 'asc' : 'desc';
+        $invAccId = $request->input('investment_account_id'); // '' | '0' (sem) | id
+        $query = OpenAIChatRecord::with(['chat:id,title,code','user:id,name','investmentAccount:id,account_name,broker']);
+        $showAll = (bool)$request->input('all');
 
         if ($chatId > 0) {
             $query->where('chat_id', $chatId);
         }
+
         // Filtros de data com bindings seguros (evita formato inválido para SQL Server)
         $dateExpr = 'occurred_at';
         $driver = DB::getDriverName();
-        // Detectar se coluna ainda é texto no SQL Server (causa erro de conversão implícita)
         if ($driver === 'sqlsrv') {
             try {
                 $colInfo = DB::selectOne("SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='openai_chat_records' AND COLUMN_NAME='occurred_at'");
                 $dataType = $colInfo->DATA_TYPE ?? null;
                 if ($dataType && !in_array(strtolower($dataType), ['datetime','datetime2','smalldatetime','date'])) {
-                    // usar conversão explícita estilo 103 (dd/mm/yyyy)
                     $dateExpr = "TRY_CONVERT(datetime2, occurred_at, 103)";
                 }
             } catch (\Exception $e) { /* ignora */ }
         }
+
         try {
             $fromDate = null; $toDate = null;
             if ($from) {
@@ -93,23 +95,34 @@ class OpenAIChatRecordController extends Controller
                 $query->whereRaw($dateExpr.' <= ?', [$toDate]);
             }
         } catch (\Exception $e) { /* ignora datas inválidas */ }
-    // Ordenação usa mesma expressão para evitar conversão implícita problemática
-        // Mapear sort permitido
+
+        // Ordenação
         $allowed = [
             'occurred_at' => $dateExpr,
             'amount' => 'amount',
             'chat' => 'chat_id',
             'user' => 'user_id',
-            'code' => 'code_subselect', // marcador especial
+            'code' => 'code_subselect',
+            'investment' => 'investment_name_subselect',
         ];
         $orderKey = $allowed[$sort] ?? $dateExpr;
         if($orderKey === $dateExpr){
             $query->orderByRaw($orderKey.' '.$dir);
         } elseif($orderKey === 'code_subselect') {
-            // Ordenar por código da conversa (subselect evita join adicional)
             $query->orderByRaw('(SELECT code FROM open_a_i_chats WHERE open_a_i_chats.id = openai_chat_records.chat_id) '.$dir);
+        } elseif($orderKey === 'investment_name_subselect') {
+            $query->orderByRaw('(SELECT account_name FROM investment_accounts WHERE investment_accounts.id = openai_chat_records.investment_account_id) '.$dir);
         } else {
             $query->orderBy($orderKey, $dir);
+        }
+
+        // Filtro por conta de investimento
+        if ($invAccId !== null && $invAccId !== '') {
+            if ((string)$invAccId === '0') {
+                $query->whereNull('investment_account_id');
+            } else {
+                $query->where('investment_account_id', (int)$invAccId);
+            }
         }
 
         if ($showAll) {
@@ -123,18 +136,17 @@ class OpenAIChatRecordController extends Controller
                 'sort' => $sort !== 'occurred_at' ? $sort : null,
                 'dir' => ($dir !== 'desc') ? $dir : null,
                 'all' => $showAll ? 1 : null,
+                'investment_account_id' => ($invAccId !== null && $invAccId !== '') ? $invAccId : null,
             ]));
         }
 
-
-        // dd($records);
+        // Dados auxiliares
         $chats = OpenAIChat::where('user_id', Auth::id())->orderBy('title')->get(['id','title','code']);
         $selectedChat = null;
         if ($chatId > 0) {
             $selectedChat = $chats->firstWhere('id', $chatId);
         }
-    $savedFilters = session('openai_records_saved_filters');
-        // Ordens de código (mostra da conversa selecionada ou recentes do usuário)
+        $savedFilters = session('openai_records_saved_filters');
         $ordersQuery = \App\Models\OpenAICodeOrder::with(['chat:id,title,code','user:id,name'])
             ->where('user_id', Auth::id());
         if ($chatId > 0) {
@@ -142,7 +154,11 @@ class OpenAIChatRecordController extends Controller
         }
         $codeOrders = $ordersQuery->latest('created_at')->limit(50)->get();
 
-        return view('openai.records.index', compact('records','chats','chatId','selectedChat','from','to','showAll','sort','dir','savedFilters','varMode','codeOrders'));
+        $investmentAccounts = InvestmentAccount::where('user_id', Auth::id())
+            ->orderBy('account_name')
+            ->get(['id','account_name','broker']);
+
+        return view('openai.records.index', compact('records','chats','chatId','selectedChat','from','to','showAll','sort','dir','savedFilters','varMode','codeOrders','investmentAccounts','invAccId'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -151,6 +167,7 @@ class OpenAIChatRecordController extends Controller
             'chat_id' => 'required|integer|exists:open_a_i_chats,id',
             'occurred_at' => 'required', // parse manual abaixo para suportar dd/mm/yyyy
             'amount' => 'required|numeric',
+            'investment_account_id' => 'nullable|integer|exists:investment_accounts,id',
         ]);
 
         // Garantir que o chat pertence ao usuário
@@ -161,20 +178,31 @@ class OpenAIChatRecordController extends Controller
             return back()->withErrors(['occurred_at'=>'Data/hora inválida. Use dd/mm/AAAA HH:MM[:SS].'])->withInput();
         }
 
+        // Checar ownership da conta de investimentos (se enviada)
+        $invId = null;
+        if (!empty($validated['investment_account_id'] ?? null)) {
+            $ownAcc = \App\Models\InvestmentAccount::where('id', $validated['investment_account_id'])
+                ->where('user_id', Auth::id())->exists();
+            if (!$ownAcc) {
+                return back()->withErrors(['investment_account_id' => 'Conta de investimento inválida.'])->withInput();
+            }
+            $invId = (int)$validated['investment_account_id'];
+        }
+
         OpenAIChatRecord::create([
             'chat_id' => $chat->id,
             'user_id' => Auth::id(),
             'occurred_at' => $occurredAt,
             'amount' => $validated['amount'],
+            'investment_account_id' => $invId,
         ]);
 
-    $from = $occurredAt->format('Y-m-d');
-    return redirect()->route('openai.records.index', [
-        'chat_id' => $chat->id,
-        'from' => $from,
-        'to' => $from,
-        ])
-            ->with('success', 'Registro adicionado.');
+        $fromDate = $occurredAt->format('Y-m-d');
+        return redirect()->route('openai.records.index', [
+            'chat_id' => $chat->id,
+            'from' => $fromDate,
+            'to' => $fromDate,
+        ])->with('success', 'Registro adicionado.');
     }
 
     public function destroy(OpenAIChatRecord $record): RedirectResponse
@@ -193,9 +221,13 @@ class OpenAIChatRecordController extends Controller
             abort(403);
         }
         $chats = OpenAIChat::where('user_id', Auth::id())->orderBy('title')->get(['id','title','code']);
+        $investmentAccounts = \App\Models\InvestmentAccount::where('user_id', Auth::id())
+            ->orderByDesc('date')->orderBy('account_name')
+            ->get(['id','account_name','broker','date']);
         return view('openai.records.edit', [
             'record' => $record,
             'chats' => $chats,
+            'investmentAccounts' => $investmentAccounts,
         ]);
     }
 
@@ -209,6 +241,7 @@ class OpenAIChatRecordController extends Controller
             'chat_id' => 'required|integer|exists:open_a_i_chats,id',
             'occurred_at' => 'required',
             'amount' => 'required|numeric',
+            'investment_account_id' => 'nullable|integer|exists:investment_accounts,id',
         ]);
         // Validar que chat pertence ao usuário
         $chat = OpenAIChat::where('id', $validated['chat_id'])->where('user_id', Auth::id())->firstOrFail();
@@ -220,6 +253,17 @@ class OpenAIChatRecordController extends Controller
         $record->chat_id = $chat->id;
         $record->occurred_at = $occurredAt;
         $record->amount = $validated['amount'];
+        // Garantir que a conta pertence ao usuário (quando enviada)
+        if (!empty($validated['investment_account_id'] ?? null)) {
+            $ownAcc = \App\Models\InvestmentAccount::where('id', $validated['investment_account_id'])
+                ->where('user_id', Auth::id())->exists();
+            if (!$ownAcc) {
+                return back()->withErrors(['investment_account_id' => 'Conta de investimento inválida.'])->withInput();
+            }
+            $record->investment_account_id = (int)$validated['investment_account_id'];
+        } else {
+            $record->investment_account_id = null;
+        }
         $record->save();
         return redirect()->route('openai.records.index', [
             'chat_id' => $chat->id,
