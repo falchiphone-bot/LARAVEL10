@@ -990,6 +990,9 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     // View dedicada das ordens
     Route::get('/openai/orders', [OpenAIController::class, 'ordersIndex'])->name('openai.orders.index');
 
+    // Market Data (cotações)
+    Route::get('/api/market/quote', [\App\Http\Controllers\MarketDataController::class, 'quote'])->name('api.market.quote');
+
     // Investment accounts (data, total investido, conta, corretora)
     Route::get('/openai/investments', [InvestmentAccountController::class, 'index'])->name('openai.investments.index');
     Route::post('/openai/investments', [InvestmentAccountController::class, 'store'])->name('openai.investments.store');

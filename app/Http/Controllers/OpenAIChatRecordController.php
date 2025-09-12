@@ -22,9 +22,10 @@ class OpenAIChatRecordController extends Controller
 
     public function index(Request $request): View
     {
-        $chatId = (int) $request->input('chat_id');
-        $from = $request->input('from');
-        $to = $request->input('to');
+    $chatId = (int) $request->input('chat_id');
+    $from = $request->input('from');
+    $to = $request->input('to');
+    $datesReapplied = false;
         // modo de variação (sequencial ou acumulada)
         $incomingMode = $request->input('var_mode');
         if($incomingMode && in_array($incomingMode, ['seq','acum'])){
@@ -35,6 +36,8 @@ class OpenAIChatRecordController extends Controller
         $clearSaved = $request->boolean('clear_saved');
         if($clearSaved){
             session()->forget('openai_records_saved_filters');
+            session()->forget('openai_records_last_from');
+            session()->forget('openai_records_last_to');
         }
         if($remember){
             session(['openai_records_saved_filters' => [
@@ -49,6 +52,24 @@ class OpenAIChatRecordController extends Controller
                 $chatId = (int)($saved['chat_id'] ?? 0);
                 $from = $saved['from'] ?? null;
                 $to = $saved['to'] ?? null;
+            }
+        }
+
+        // Persistência automática das datas: se vierem na requisição, salva; se não, usa últimas da sessão
+        if ($request->filled('from')) {
+            session(['openai_records_last_from' => $from]);
+        } else {
+            if (!$from) {
+                $fallbackFrom = session('openai_records_last_from');
+                if ($fallbackFrom) { $from = $fallbackFrom; $datesReapplied = true; }
+            }
+        }
+        if ($request->filled('to')) {
+            session(['openai_records_last_to' => $to]);
+        } else {
+            if (!$to) {
+                $fallbackTo = session('openai_records_last_to');
+                if ($fallbackTo) { $to = $fallbackTo; $datesReapplied = true; }
             }
         }
 
@@ -154,11 +175,12 @@ class OpenAIChatRecordController extends Controller
         }
         $codeOrders = $ordersQuery->latest('created_at')->limit(50)->get();
 
-        $investmentAccounts = InvestmentAccount::where('user_id', Auth::id())
+    $investmentAccounts = InvestmentAccount::where('user_id', Auth::id())
             ->orderBy('account_name')
             ->get(['id','account_name','broker']);
+    $lastInvestmentAccountId = (int) (session('last_investment_account_id') ?: 0) ?: null;
 
-        return view('openai.records.index', compact('records','chats','chatId','selectedChat','from','to','showAll','sort','dir','savedFilters','varMode','codeOrders','investmentAccounts','invAccId'));
+    return view('openai.records.index', compact('records','chats','chatId','selectedChat','from','to','showAll','sort','dir','savedFilters','varMode','codeOrders','investmentAccounts','invAccId','lastInvestmentAccountId','datesReapplied'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -197,11 +219,13 @@ class OpenAIChatRecordController extends Controller
             'investment_account_id' => $invId,
         ]);
 
-        $fromDate = $occurredAt->format('Y-m-d');
+        // Memoriza última conta de investimento usada (se informada)
+        if ($invId) {
+            session(['last_investment_account_id' => $invId]);
+        }
+
         return redirect()->route('openai.records.index', [
             'chat_id' => $chat->id,
-            'from' => $fromDate,
-            'to' => $fromDate,
         ])->with('success', 'Registro adicionado.');
     }
 
@@ -261,14 +285,14 @@ class OpenAIChatRecordController extends Controller
                 return back()->withErrors(['investment_account_id' => 'Conta de investimento inválida.'])->withInput();
             }
             $record->investment_account_id = (int)$validated['investment_account_id'];
+            // Memoriza última conta
+            session(['last_investment_account_id' => (int)$validated['investment_account_id']]);
         } else {
             $record->investment_account_id = null;
         }
         $record->save();
         return redirect()->route('openai.records.index', [
             'chat_id' => $chat->id,
-            'from' => $occurredAt->format('Y-m-d'),
-            'to' => $occurredAt->format('Y-m-d'),
         ])->with('success', 'Registro atualizado.');
     }
 

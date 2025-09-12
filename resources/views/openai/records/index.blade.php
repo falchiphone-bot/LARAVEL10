@@ -47,11 +47,11 @@
         </div>
         <div class="col-sm-3 col-md-2">
           <label class="form-label small mb-1">De</label>
-          <input type="date" name="from" value="{{ request('from') }}" class="form-control form-control-sm">
+          <input type="date" name="from" value="{{ $from ?? '' }}" class="form-control form-control-sm">
         </div>
         <div class="col-sm-3 col-md-2">
           <label class="form-label small mb-1">Até</label>
-          <input type="date" name="to" value="{{ request('to') }}" class="form-control form-control-sm">
+          <input type="date" name="to" value="{{ $to ?? '' }}" class="form-control form-control-sm">
         </div>
         <div class="col-sm-2 col-md-2 d-grid gap-2">
           <button class="btn btn-sm btn-outline-primary" type="submit">Filtrar</button>
@@ -70,6 +70,11 @@
           </div>
         @endif
       </form>
+      @if(!empty($datesReapplied))
+        <div class="mt-2 small text-muted">
+          Datas reaplicadas automaticamente do último filtro. <a href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null])) }}" class="text-decoration-none">Limpar datas</a>
+        </div>
+      @endif
     </div>
   </div>
 
@@ -82,6 +87,10 @@
           <strong>{{ $selectedChat->title }}</strong>
           @if($selectedChat->code)
             <span class="badge bg-dark">{{ $selectedChat->code }}</span>
+            <span id="mdq_box" class="small ms-2">
+              <button class="btn btn-sm btn-outline-info" type="button" id="mdq_btn">Cotação</button>
+              <span id="mdq_result" class="ms-2 text-muted" aria-live="polite"></span>
+            </span>
           @endif
           <a href="{{ route('openai.chat.load', $selectedChat->id) }}" class="btn btn-sm btn-outline-danger" title="Ir para o chat desta conversa">Ir para Chat</a>
           <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#codeOrderModal">
@@ -138,8 +147,9 @@
           <select name="investment_account_id" class="form-select form-select-sm">
             <option value="">— Não associar —</option>
             @isset($investmentAccounts)
+              @php $prefAcc = old('investment_account_id') ?? ($invAccId !== null && $invAccId !== '' ? (string)$invAccId : ($lastInvestmentAccountId ?? '')); @endphp
               @foreach($investmentAccounts as $ia)
-                <option value="{{ $ia->id }}">{{ $ia->account_name }} @if($ia->broker) — {{ $ia->broker }} @endif</option>
+                <option value="{{ $ia->id }}" {{ (string)$prefAcc === (string)$ia->id ? 'selected' : '' }}>{{ $ia->account_name }} @if($ia->broker) — {{ $ia->broker }} @endif</option>
               @endforeach
             @endisset
           </select>
@@ -742,5 +752,47 @@ function prepQuickAdd(chatId){
   document.getElementById('newRecordForm').scrollIntoView({behavior:'smooth', block:'center'});
   if(timeEl) timeEl.focus();
 }
+
+// Widget de cotação em tempo real (auto e botão)
+(function(){
+  const btn = document.getElementById('mdq_btn');
+  const out = document.getElementById('mdq_result');
+  const amountInput = document.querySelector('#newRecordForm input[name="amount"]');
+  const symbol = '{{ $selectedChat->code ?? '' }}'.trim();
+
+  async function fetchQuoteAndPrefill(){
+    if (!symbol || !out) return;
+    out.textContent = 'Consultando…';
+    try {
+      const url = '{{ route('api.market.quote') }}' + '?symbol=' + encodeURIComponent(symbol);
+      const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const data = await resp.json();
+      if (data && typeof data.price !== 'undefined' && data.price !== null) {
+        // Mostra cotação (moeda do provedor)
+        const display = Number(data.price).toLocaleString('en-US', { style: 'currency', currency: (data.currency||'USD') });
+        out.innerHTML = `<span class="text-success">${display}</span>` + (data.updated_at ? ` <small class="text-muted">(${data.updated_at})</small>` : '');
+        // Preenche o campo "Valor" (pt-BR). Não sobrescreve se já houver conteúdo digitado.
+        if (amountInput && (!amountInput.value || amountInput.value.trim() === '')) {
+          const br = Number(data.price).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 6 });
+          amountInput.value = br;
+        }
+      } else {
+        out.innerHTML = '<span class="text-warning">Sem dados</span>';
+      }
+    } catch (e) {
+      out.innerHTML = '<span class="text-danger">Falha ao consultar</span>';
+    }
+  }
+
+  if (btn) {
+    btn.addEventListener('click', fetchQuoteAndPrefill);
+  }
+  // Aciona automaticamente ao carregar quando há símbolo
+  if (symbol) {
+    // Aguarda a máscara/DOM estabilizar antes de preencher
+    window.addEventListener('DOMContentLoaded', () => setTimeout(fetchQuoteAndPrefill, 50));
+  }
+})();
 </script>
 @endpush
