@@ -914,8 +914,30 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
         $chatId = (int) $request->input('chat_id');
         $code = trim((string)$request->input('code'));
         $type = $request->input('type');
+        // Subqueries para descobrir a primeira conta de investimento associada a registros do chat
+        $subAccName = DB::table('openai_chat_records as r')
+            ->join('investment_accounts as ia', 'ia.id', '=', 'r.investment_account_id')
+            ->whereColumn('r.chat_id', 'open_a_i_code_orders.chat_id')
+            ->where('r.user_id', Auth::id())
+            ->whereNotNull('r.investment_account_id')
+            ->orderBy('r.occurred_at', 'asc') // primeiro localizado
+            ->limit(1)
+            ->select('ia.account_name');
+        $subAccBroker = DB::table('openai_chat_records as r')
+            ->join('investment_accounts as ia', 'ia.id', '=', 'r.investment_account_id')
+            ->whereColumn('r.chat_id', 'open_a_i_code_orders.chat_id')
+            ->where('r.user_id', Auth::id())
+            ->whereNotNull('r.investment_account_id')
+            ->orderBy('r.occurred_at', 'asc')
+            ->limit(1)
+            ->select('ia.broker');
+
         $q = \App\Models\OpenAICodeOrder::with(['chat:id,title,code','user:id,name'])
             ->where('user_id', Auth::id());
+        // adiciona colunas derivadas (nome e corretora da conta)
+        $q->addSelect('*')
+          ->addSelect(['derived_account_name' => $subAccName])
+          ->addSelect(['derived_account_broker' => $subAccBroker]);
         if ($chatId > 0) { $q->where('chat_id', $chatId); }
         if ($code !== '') { $q->where('code','LIKE','%'.$code.'%'); }
         if (in_array($type, ['compra','venda'], true)) { $q->where('type',$type); }
@@ -926,7 +948,11 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
             'type' => in_array($type,['compra','venda'],true)?$type:null,
         ]));
         $chats = \App\Models\OpenAIChat::where('user_id', Auth::id())->orderBy('title')->get(['id','title','code']);
-        return view('openai.orders.index', compact('orders','chats','chatId','code','type'));
+        // Fallback: primeira conta do usuário (se existir)
+        $firstUserAccount = \App\Models\InvestmentAccount::where('user_id', Auth::id())
+            ->orderBy('id', 'asc')
+            ->first(['id','account_name','broker']);
+        return view('openai.orders.index', compact('orders','chats','chatId','code','type','firstUserAccount'));
     }
 
     /**

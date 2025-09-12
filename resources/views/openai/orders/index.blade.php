@@ -60,6 +60,7 @@
           <th style="width:12%">Tipo</th>
           <th style="width:14%" class="text-end">Quantidade</th>
           <th style="width:14%" class="text-end">Valor</th>
+          <th style="width:22%">Conta</th>
           <th>Conversa</th>
           <th style="width:18%">Criado em</th>
           <th style="width:16%" class="text-center">Ações</th>
@@ -75,6 +76,24 @@
             </td>
             <td class="text-end">{{ rtrim(rtrim(number_format((float)$o->quantity, 6, ',', '.'), '0'), ',') }}</td>
             <td class="text-end">@if(!is_null($o->value)) {{ number_format((float)$o->value, 2, ',', '.') }} @else — @endif</td>
+            <td>
+              @php
+                $accName = $o->derived_account_name ?? null;
+                $accBroker = $o->derived_account_broker ?? null;
+                if(!$accName && isset($firstUserAccount)){
+                  $accName = $firstUserAccount->account_name;
+                  $accBroker = $firstUserAccount->broker;
+                }
+              @endphp
+              @if($accName)
+                <span title="Conta de investimento">{{ $accName }}</span>
+                @if($accBroker)
+                  <small class="text-muted">— {{ $accBroker }}</small>
+                @endif
+              @else
+                <span class="text-muted">—</span>
+              @endif
+            </td>
             <td>{{ $o->chat?->title ?? '—' }}</td>
             <td>
               @php $cdt = $o->created_at ? $o->created_at->timezone(config('app.timezone')) : null; @endphp
@@ -93,7 +112,7 @@
             </td>
           </tr>
         @empty
-          <tr><td colspan="7" class="text-center text-muted">Nenhuma ordem.</td></tr>
+          <tr><td colspan="8" class="text-center text-muted">Nenhuma ordem.</td></tr>
         @endforelse
       </tbody>
     </table>
