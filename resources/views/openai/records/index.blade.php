@@ -409,6 +409,45 @@
         </a>
       @endif
     </div>
+    @if(($chatId ?? 0) > 0)
+      @php
+        // Calcula média dos percentuais exibidos (baseado nos registros atuais)
+        $allListAvg = collect($records instanceof \Illuminate\Pagination\AbstractPaginator ? $records->items() : $records);
+        $sortedAvg = $allListAvg->sortBy(fn($item)=>$item->occurred_at)->values();
+        $prevAvg = null; $firstValAvg = null; $variationMapAvg = []; $accumMapAvg = [];
+        foreach($sortedAvg as $it){
+          $cur = (float)$it->amount;
+          if($prevAvg !== null && $prevAvg != 0){
+            $variationMapAvg[$it->id] = (($cur - $prevAvg) / $prevAvg) * 100.0;
+          } else {
+            $variationMapAvg[$it->id] = null;
+          }
+          if($firstValAvg === null){
+            $firstValAvg = $cur;
+            $accumMapAvg[$it->id] = null;
+          } else if($firstValAvg != 0) {
+            $accumMapAvg[$it->id] = (($cur - $firstValAvg)/$firstValAvg)*100.0;
+          } else {
+            $accumMapAvg[$it->id] = null;
+          }
+          $prevAvg = $cur;
+        }
+        $sumAvg = 0.0; $cntAvg = 0;
+        foreach($allListAvg as $it){
+          $v = $isSeq ? ($variationMapAvg[$it->id] ?? null) : ($accumMapAvg[$it->id] ?? null);
+          if(!is_null($v)) { $sumAvg += (float)$v; $cntAvg++; }
+        }
+        $avgPercent = $cntAvg > 0 ? ($sumAvg / $cntAvg) : null;
+      @endphp
+      <div class="alert alert-secondary py-2 mb-2">
+        <strong>Média dos percentuais ({{ $isSeq ? 'Sequencial' : 'Acumulada' }}):</strong>
+        @if(!is_null($avgPercent))
+          {{ number_format($avgPercent, 2, ',', '.') }}%
+        @else
+          —
+        @endif
+      </div>
+    @endif
     <table class="table table-sm table-bordered align-middle">
       <thead class="table-dark">
         <tr>
