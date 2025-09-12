@@ -86,9 +86,9 @@
                 }
               @endphp
               @if($accName)
-                <span title="Conta de investimento">{{ $accName }}</span>
+                <span class="text-primary" title="Conta de investimento">{{ $accName }}</span>
                 @if($accBroker)
-                  <small class="text-muted">— {{ $accBroker }}</small>
+                  <small class="text-danger">— {{ $accBroker }}</small>
                 @endif
               @else
                 <span class="text-muted">—</span>
