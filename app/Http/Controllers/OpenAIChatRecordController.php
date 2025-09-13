@@ -18,7 +18,7 @@ class OpenAIChatRecordController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-    $this->middleware(['permission:OPENAI - CHAT'])->only('index','store','destroy','edit','update');
+    $this->middleware(['permission:OPENAI - CHAT'])->only('index','store','destroy','edit','update','assets');
     }
 
     public function index(Request $request): View
@@ -388,5 +388,88 @@ class OpenAIChatRecordController extends Controller
             try { return Carbon::parse($raw); } catch(\Exception $e) { return null; }
         }
         return null;
+    }
+
+    public function assets(Request $request): View
+    {
+        $userId = (int) Auth::id();
+        $from = $request->input('from');
+        $to = $request->input('to');
+        $invAccId = $request->input('investment_account_id');
+
+        // Base: registros do usuário com join leve em chat para pegar title/code
+        $q = OpenAIChatRecord::query()
+            ->select('openai_chat_records.*')
+            ->with(['chat:id,title,code','user:id,name','investmentAccount:id,account_name,broker'])
+            ->where('openai_chat_records.user_id', $userId)
+            ->join('open_a_i_chats as c', 'c.id', '=', 'openai_chat_records.chat_id');
+
+        // Filtros de data
+        if ($from) {
+            try { $fromDate = \Carbon\Carbon::parse($from)->startOfDay(); $q->where('openai_chat_records.occurred_at', '>=', $fromDate); } catch (\Throwable $e) {}
+        }
+        if ($to) {
+            try { $toDate = \Carbon\Carbon::parse($to)->endOfDay(); $q->where('openai_chat_records.occurred_at', '<=', $toDate); } catch (\Throwable $e) {}
+        }
+        if ($invAccId !== null && $invAccId !== '') {
+            if ((string)$invAccId === '0') {
+                $q->whereNull('openai_chat_records.investment_account_id');
+            } else {
+                $q->where('openai_chat_records.investment_account_id', (int)$invAccId);
+            }
+        }
+
+        // Agrupar por código (ou título quando não houver código) e pegar o último registro por grupo
+        // Estratégia: subquery para last_id por grupo e join de volta
+        $driver = DB::getDriverName();
+        // Atenção aos aliases nas subqueries: usamos 'cc' para open_a_i_chats
+        $groupExpr = "ISNULL(NULLIF(LTRIM(RTRIM(cc.code)), ''), LTRIM(RTRIM(cc.title)))";
+        if ($driver !== 'sqlsrv') {
+            $groupExpr = "COALESCE(NULLIF(TRIM(cc.code), ''), TRIM(cc.title))";
+        }
+
+        // Subquery: conta por grupo e último id por grupo (maior occurred_at; se empate, maior id)
+    $sub = DB::table('openai_chat_records as r')
+            ->join('open_a_i_chats as cc', 'cc.id', '=', 'r.chat_id')
+            ->selectRaw($groupExpr . ' as grp, COUNT(*) as qty, MAX(r.occurred_at) as max_dt');
+        // Reaplica filtros ao sub
+        $sub->where('r.user_id', $userId);
+        if ($from) { try { $fromDate = \Carbon\Carbon::parse($from)->startOfDay(); $sub->where('r.occurred_at', '>=', $fromDate); } catch (\Throwable $e) {} }
+        if ($to) { try { $toDate = \Carbon\Carbon::parse($to)->endOfDay(); $sub->where('r.occurred_at', '<=', $toDate); } catch (\Throwable $e) {} }
+        if ($invAccId !== null && $invAccId !== '') {
+            if ((string)$invAccId === '0') { $sub->whereNull('r.investment_account_id'); } else { $sub->where('r.investment_account_id', (int)$invAccId); }
+        }
+    // SQL Server não aceita alias no GROUP BY. Agrupar pela expressão completa.
+    $sub->groupByRaw($groupExpr);
+    $subSql = $sub->toSql();
+
+    // Junta para pegar o registro mais recente de cada grupo (por occurred_at)
+    $latest = DB::table('openai_chat_records as r')
+            ->join('open_a_i_chats as cc', 'cc.id', '=', 'r.chat_id')
+            ->join(DB::raw('(' . $subSql . ') as agg'), function($join) use ($groupExpr){
+                $join->on(DB::raw($groupExpr), '=', 'agg.grp')
+                     ->on('r.occurred_at', '=', 'agg.max_dt');
+            })
+            ->mergeBindings($sub);
+
+        // Seleção final: apenas colunas do registro (r.*) + agregados necessários (grp, qty)
+        $rows = $latest
+            ->select('r.*', DB::raw('agg.grp as grp'), DB::raw('agg.qty as qty'))
+            ->get();
+
+        // Carregar modelos dos ids resultantes para ter relações eager-loaded facilmente
+        $ids = collect($rows)->pluck('id')->unique()->values()->all();
+        $records = OpenAIChatRecord::with(['chat:id,title,code','user:id,name','investmentAccount:id,account_name,broker'])->whereIn('id', $ids)->get();
+
+        // Mapa quantidades por grupo
+        $counts = collect($rows)->groupBy('grp')->map->first()->map(fn($r)=> (int)($r->qty ?? 0));
+
+        return view('openai.records.assets', [
+            'records' => $records->sortBy(fn($r)=> $r->chat?->code ?: $r->chat?->title)->values(),
+            'counts' => $counts,
+            'from' => $from,
+            'to' => $to,
+            'invAccId' => $invAccId,
+        ]);
     }
 }

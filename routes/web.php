@@ -973,6 +973,8 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     Route::get('/openai/records/{record}/edit', [\App\Http\Controllers\OpenAIChatRecordController::class, 'edit'])->name('openai.records.edit');
     Route::match(['put','patch'], '/openai/records/{record}', [\App\Http\Controllers\OpenAIChatRecordController::class, 'update'])->name('openai.records.update');
     Route::delete('/openai/records/{record}', [\App\Http\Controllers\OpenAIChatRecordController::class, 'destroy'])->name('openai.records.destroy');
+    // Nova visão agregada: ativos (códigos) sem repetição
+    Route::get('/openai/records/assets', [\App\Http\Controllers\OpenAIChatRecordController::class, 'assets'])->name('openai.records.assets');
     Route::post('/openai/chat/save', [OpenAIController::class, 'saveChat'])->name('openai.chat.save');
     Route::get('/openai/chat/load/{chat}', [OpenAIController::class, 'loadChat'])->name('openai.chat.load');
     Route::match(['put','patch'], '/openai/chat/{chat}', [OpenAIController::class, 'updateChat'])->name('openai.chat.update');

@@ -9,6 +9,7 @@
   <a href="{{ route('openai.orders.index', array_filter(['chat_id'=>$chatId?:null])) }}" class="btn btn-outline-success">Ordens</a>
   <a href="{{ route('openai.investments.index') }}" class="btn btn-outline-info">Investimentos</a>
       <a href="{{ route('openai.chat') }}" class="btn btn-outline-dark">Chat</a>
+  <a href="{{ route('openai.records.assets') }}" class="btn btn-outline-success">Ativos (únicos)</a>
     </div>
   </div>
 
@@ -759,6 +760,38 @@ function prepQuickAdd(chatId){
   const out = document.getElementById('mdq_result');
   const amountInput = document.querySelector('#newRecordForm input[name="amount"]');
   const symbol = '{{ $selectedChat->code ?? '' }}'.trim();
+  const dateEl = document.getElementById('new_date_br');
+  const timeEl = document.getElementById('new_time_br');
+  const hiddenDT = document.getElementById('new_occurred_at_hidden');
+
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function applyDateTimeFromQuote(updated){
+    if (!updated || !dateEl) return;
+    // Espera formatos: 'YYYY-MM-DD' ou 'YYYY-MM-DD HH:MM:SS' ou ISO
+    let y,m,d,hh,mm,ss;
+    const m1 = String(updated).match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}):(\d{2}))?$/);
+    if (m1) {
+      y = parseInt(m1[1],10); m = parseInt(m1[2],10); d = parseInt(m1[3],10);
+      if (m1[4]) { hh = parseInt(m1[4],10); mm = parseInt(m1[5],10); ss = parseInt(m1[6],10); }
+    } else {
+      // Fallback: tentar Date()
+      const dt = new Date(updated);
+      if (!isNaN(dt.getTime())) {
+        y = dt.getFullYear(); m = dt.getMonth()+1; d = dt.getDate();
+        hh = dt.getHours(); mm = dt.getMinutes(); ss = dt.getSeconds();
+      }
+    }
+    if (!y || !m || !d) return;
+    // Define data BR
+    dateEl.value = pad(d)+'/'+pad(m)+'/'+y;
+    // Define hora se disponível; se não, mantém a hora atual já digitada
+    if (typeof hh === 'number' && typeof mm === 'number' && typeof ss === 'number' && timeEl) {
+      timeEl.value = pad(hh)+':'+pad(mm)+':'+pad(ss);
+    }
+    if (hiddenDT && timeEl && timeEl.value) {
+      hiddenDT.value = dateEl.value+' '+timeEl.value;
+    }
+  }
 
   async function fetchQuoteAndPrefill(){
     if (!symbol || !out) return;
@@ -776,6 +809,10 @@ function prepQuickAdd(chatId){
         if (amountInput && (!amountInput.value || amountInput.value.trim() === '')) {
           const br = Number(data.price).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 6 });
           amountInput.value = br;
+        }
+        // Aplica data/hora da cotação ao formulário, quando disponível
+        if (data.updated_at) {
+          applyDateTimeFromQuote(data.updated_at);
         }
       } else {
         out.innerHTML = '<span class="text-warning">Sem dados</span>';
