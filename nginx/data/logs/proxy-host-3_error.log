@@ -1,0 +1,1 @@
+2025/09/13 01:18:19 [warn] 726#726: *293834 an upstream response is buffered to a temporary file /var/cache/nginx/proxy_temp/0/81/0000127810 while reading upstream, client: 172.19.0.1, server: vec.org.br, request: "GET /download/40757 HTTP/1.1", upstream: "http://172.19.0.3:80/download/40757", host: "vec.org.br"

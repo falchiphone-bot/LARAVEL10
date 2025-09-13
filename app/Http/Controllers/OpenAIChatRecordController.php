@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Carbon\Carbon;
+use Illuminate\Database\QueryException;
 
 class OpenAIChatRecordController extends Controller
 {
@@ -260,7 +261,7 @@ class OpenAIChatRecordController extends Controller
         if ((int)$record->user_id !== (int)Auth::id()) {
             abort(403);
         }
-    // $originalOccurredAt = $record->occurred_at ? $record->occurred_at->copy() : null; // debug removido
+        // $originalOccurredAt = $record->occurred_at ? $record->occurred_at->copy() : null; // debug removido
         $validated = $request->validate([
             'chat_id' => 'required|integer|exists:open_a_i_chats,id',
             'occurred_at' => 'required',
@@ -275,7 +276,6 @@ class OpenAIChatRecordController extends Controller
             return back()->withErrors(['occurred_at'=>'Data/hora inválida. Use dd/mm/AAAA HH:MM[:SS].'])->withInput();
         }
         $record->chat_id = $chat->id;
-        $record->occurred_at = $occurredAt;
         $record->amount = $validated['amount'];
         // Garantir que a conta pertence ao usuário (quando enviada)
         if (!empty($validated['investment_account_id'] ?? null)) {
@@ -290,7 +290,47 @@ class OpenAIChatRecordController extends Controller
         } else {
             $record->investment_account_id = null;
         }
-        $record->save();
+        $driver = DB::getDriverName();
+        if ($driver === 'sqlsrv') {
+            // Evita problemas de conversão no SQL Server: atualiza explicitamente só os campos necessários
+            $originalOccurredAt = $record->getOriginal('occurred_at');
+            $origCarbon = null;
+            if ($originalOccurredAt instanceof \Carbon\Carbon) {
+                $origCarbon = $originalOccurredAt;
+            } elseif (!empty($originalOccurredAt)) {
+                try { $origCarbon = \Carbon\Carbon::parse($originalOccurredAt); } catch (\Throwable $e) { $origCarbon = null; }
+            }
+            $occurredChanged = true;
+            if ($origCarbon) {
+                $occurredChanged = !$origCarbon->equalTo($occurredAt);
+            }
+            $updateData = [
+                'chat_id' => $chat->id,
+                'amount' => $validated['amount'],
+                'investment_account_id' => $record->investment_account_id,
+                // usar função nativa para updated_at e evitar conversão de string
+                'updated_at' => DB::raw('SYSUTCDATETIME()'),
+            ];
+            if ($occurredChanged) {
+                $updateData['occurred_at'] = $occurredAt->format('Y-m-d H:i:s');
+            }
+            try {
+                DB::table('openai_chat_records')->where('id', $record->id)->update($updateData);
+            } catch (QueryException $e) {
+                // Tentativa em duas etapas como fallback: primeiro occurred_at, depois demais
+                if (isset($updateData['occurred_at'])) {
+                    DB::table('openai_chat_records')->where('id', $record->id)->update([
+                        'occurred_at' => $updateData['occurred_at'],
+                    ]);
+                    unset($updateData['occurred_at']);
+                }
+                DB::table('openai_chat_records')->where('id', $record->id)->update($updateData);
+            }
+        } else {
+            // Outros drivers seguem o fluxo normal do Eloquent
+            $record->occurred_at = $occurredAt;
+            $record->save();
+        }
         return redirect()->route('openai.records.index', [
             'chat_id' => $chat->id,
         ])->with('success', 'Registro atualizado.');
