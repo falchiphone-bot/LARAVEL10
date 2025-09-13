@@ -40,8 +40,17 @@
 
   <div class="table-responsive">
     @if(isset($totalSelected))
-      <div class="mb-2">
+      <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
         <span class="badge bg-info text-dark">Total de registros selecionados: {{ number_format((int)$totalSelected, 0, ',', '.') }}</span>
+        <div class="d-flex align-items-center gap-2">
+          <button type="button" id="btn-batch-quotes" class="btn btn-sm btn-outline-primary">
+            Consultar todos
+          </button>
+          <button type="button" id="btn-batch-stop" class="btn btn-sm btn-outline-danger d-none">
+            Parar
+          </button>
+          <small id="batch-status" class="text-muted"></small>
+        </div>
       </div>
     @endif
     <table class="table table-sm table-bordered align-middle">
@@ -123,6 +132,7 @@
 <script>
   (function(){
     const endpoint = "{{ route('api.market.quote') }}";
+    let batchAbort = false;
     function formatPrice(value) {
       const n = Number(value);
       if (!isFinite(n)) return '';
@@ -158,9 +168,7 @@
       const MM = String(d.getMinutes()).padStart(2,'0');
       return `${dd}/${mm}/${yyyy} ${HH}:${MM}`;
     }
-    document.addEventListener('click', async function(ev){
-      const btn = ev.target.closest('.btn-quote');
-      if(!btn) return;
+    async function handleQuoteButton(btn){
       const symbol = (btn.getAttribute('data-symbol') || '').trim();
       if(!symbol){ return; }
   const container = btn.closest('td');
@@ -234,6 +242,12 @@
         btn.disabled = false;
         btn.innerHTML = prevHtml;
       }
+    }
+    // Click individual: usa a função de tratamento
+    document.addEventListener('click', async function(ev){
+      const btn = ev.target.closest('.btn-quote');
+      if(!btn) return;
+      await handleQuoteButton(btn);
     });
 
     // Aplicar cotação ao valor do registro
@@ -317,6 +331,41 @@
         btn.disabled = false;
         btn.innerHTML = prev;
       }
+    });
+
+    // Consultar todos (lote sequencial, linha a linha)
+    document.getElementById('btn-batch-quotes')?.addEventListener('click', async function(){
+      const btn = this;
+      const status = document.getElementById('batch-status');
+      const btnStop = document.getElementById('btn-batch-stop');
+      const all = Array.from(document.querySelectorAll('button.btn-quote'));
+      if (all.length === 0) { if(status) status.textContent = 'Nada para consultar'; return; }
+      const prev = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Consultando…';
+      // Exibir botão Parar
+      batchAbort = false;
+      if (btnStop){ btnStop.classList.remove('d-none'); btnStop.disabled = false; }
+      let ok = 0, fail = 0;
+      for (let i=0;i<all.length;i++){
+        if (batchAbort) { if(status){ status.textContent = `Interrompido (${i}/${all.length})`; } break; }
+        const b = all[i];
+        if(status){ status.textContent = `(${i+1}/${all.length})`; }
+        try{
+          await handleQuoteButton(b);
+          ok++;
+        }catch(e){ fail++; }
+      }
+      if(!batchAbort){ if(status){ status.textContent = `Concluído: ${ok} ok, ${fail} erro(s)`; } }
+      btn.disabled = false;
+      btn.innerHTML = prev;
+      if (btnStop){ btnStop.classList.add('d-none'); btnStop.disabled = true; }
+    });
+
+    // Botão Parar
+    document.getElementById('btn-batch-stop')?.addEventListener('click', function(){
+      batchAbort = true;
+      this.disabled = true;
     });
   })();
 </script>
