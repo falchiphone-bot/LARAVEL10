@@ -18,7 +18,7 @@ class OpenAIChatRecordController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-    $this->middleware(['permission:OPENAI - CHAT'])->only('index','store','destroy','edit','update','assets');
+    $this->middleware(['permission:OPENAI - CHAT'])->only('index','store','destroy','edit','update','assets','applyQuote','createFromQuote');
     }
 
     public function index(Request $request): View
@@ -498,5 +498,85 @@ class OpenAIChatRecordController extends Controller
             'sort' => $sort,
             'dir' => $dir,
         ]);
+    }
+
+    /**
+     * Aplica a cotação informada ao valor do registro (amount).
+     * Regras:
+     * - Requer autenticação e permissão.
+     * - Só permite para registros do próprio usuário.
+     * - Atualiza apenas amount e updated_at.
+     */
+    public function applyQuote(Request $request, OpenAIChatRecord $record)
+    {
+        if ((int)$record->user_id !== (int)Auth::id()) {
+            abort(403);
+        }
+        $validated = $request->validate([
+            'amount' => 'required|numeric',
+        ]);
+        $newAmount = (float)$validated['amount'];
+        $driver = DB::getDriverName();
+        if ($driver === 'sqlsrv') {
+            DB::table('openai_chat_records')->where('id', $record->id)->update([
+                'amount' => $newAmount,
+                'updated_at' => DB::raw('SYSUTCDATETIME()'),
+            ]);
+        } else {
+            $record->amount = $newAmount;
+            $record->save();
+        }
+        return response()->json([
+            'ok' => true,
+            'amount' => $newAmount,
+        ]);
+    }
+
+    /**
+     * Cria um novo registro a partir de uma cotação obtida.
+     * Copia chat_id, user_id e investment_account_id do registro de referência.
+     * Usa a data/hora informada (updated_at da cotação) como occurred_at.
+     */
+    public function createFromQuote(Request $request, OpenAIChatRecord $record)
+    {
+        if ((int)$record->user_id !== (int)Auth::id()) {
+            abort(403);
+        }
+        $validated = $request->validate([
+            'amount' => 'required|numeric',
+            'updated_at' => 'nullable|string',
+        ]);
+        $amount = (float)$validated['amount'];
+        $rawWhen = (string)($validated['updated_at'] ?? '');
+        // Tenta parsear a data/hora da cotação; se falhar, usa agora
+        $when = null;
+        try {
+            if (trim($rawWhen) !== '') {
+                $when = \Carbon\Carbon::parse($rawWhen);
+            }
+        } catch (\Throwable $e) { $when = null; }
+        if (!$when) { $when = now(); }
+
+        $driver = DB::getDriverName();
+        if ($driver === 'sqlsrv') {
+            DB::table('openai_chat_records')->insert([
+                'chat_id' => $record->chat_id,
+                'user_id' => Auth::id(),
+                'occurred_at' => $when->format('Y-m-d H:i:s'),
+                'amount' => $amount,
+                'investment_account_id' => $record->investment_account_id,
+                'created_at' => DB::raw('SYSUTCDATETIME()'),
+                'updated_at' => DB::raw('SYSUTCDATETIME()'),
+            ]);
+        } else {
+            OpenAIChatRecord::create([
+                'chat_id' => $record->chat_id,
+                'user_id' => Auth::id(),
+                'occurred_at' => $when,
+                'amount' => $amount,
+                'investment_account_id' => $record->investment_account_id,
+            ]);
+        }
+        return response()->json(['ok' => true]);
     }
 }
