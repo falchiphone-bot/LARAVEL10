@@ -396,6 +396,12 @@ class OpenAIChatRecordController extends Controller
         $from = $request->input('from');
         $to = $request->input('to');
         $invAccId = $request->input('investment_account_id');
+    $sort = $request->input('sort', 'code'); // code|title|date|amount|account|qty
+    $dir = strtolower($request->input('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+        // Carregar contas de investimento do usuário para o filtro
+        $investmentAccounts = InvestmentAccount::where('user_id', $userId)
+            ->orderBy('account_name')
+            ->get(['id','account_name','broker']);
 
         // Base: registros do usuário com join leve em chat para pegar title/code
         $q = OpenAIChatRecord::query()
@@ -453,7 +459,7 @@ class OpenAIChatRecordController extends Controller
             ->mergeBindings($sub);
 
         // Seleção final: apenas colunas do registro (r.*) + agregados necessários (grp, qty)
-        $rows = $latest
+    $rows = $latest
             ->select('r.*', DB::raw('agg.grp as grp'), DB::raw('agg.qty as qty'))
             ->get();
 
@@ -462,14 +468,35 @@ class OpenAIChatRecordController extends Controller
         $records = OpenAIChatRecord::with(['chat:id,title,code','user:id,name','investmentAccount:id,account_name,broker'])->whereIn('id', $ids)->get();
 
         // Mapa quantidades por grupo
-        $counts = collect($rows)->groupBy('grp')->map->first()->map(fn($r)=> (int)($r->qty ?? 0));
+    $counts = collect($rows)->groupBy('grp')->map->first()->map(fn($r)=> (int)($r->qty ?? 0));
+    $totalSelected = collect($rows)->sum(function($r){ return (int)($r->qty ?? 0); });
+
+        // Ordenação dinâmica conforme solicitação
+        $recordsSorted = $records->sortBy(function($r) use ($sort, $counts){
+            $code = trim((string)($r->chat->code ?? ''));
+            $title = trim((string)($r->chat->title ?? ''));
+            $grp = $code !== '' ? $code : $title;
+            return match($sort){
+                'code' => mb_strtoupper($code),
+                'title' => mb_strtoupper($title),
+                'date' => $r->occurred_at ? $r->occurred_at->timestamp : 0,
+                'amount' => (float)($r->amount ?? 0),
+                'account' => mb_strtoupper(trim((string)($r->investmentAccount->account_name ?? ''))),
+                'qty' => (int)($counts[$grp] ?? 0),
+                default => mb_strtoupper($code),
+            };
+        }, SORT_NATURAL | SORT_FLAG_CASE, $dir === 'desc')->values();
 
         return view('openai.records.assets', [
-            'records' => $records->sortBy(fn($r)=> $r->chat?->code ?: $r->chat?->title)->values(),
+            'records' => $recordsSorted,
             'counts' => $counts,
             'from' => $from,
             'to' => $to,
             'invAccId' => $invAccId,
+            'investmentAccounts' => $investmentAccounts,
+            'totalSelected' => $totalSelected,
+            'sort' => $sort,
+            'dir' => $dir,
         ]);
     }
 }

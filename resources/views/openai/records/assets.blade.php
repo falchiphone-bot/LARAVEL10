@@ -19,9 +19,17 @@
           <label class="form-label small mb-1">Até</label>
           <input type="date" name="to" value="{{ request('to') }}" class="form-control form-control-sm">
         </div>
-        <div class="col-sm-3 col-md-3">
-          <label class="form-label small mb-1">Conta Investimento</label>
-          <input type="text" name="investment_account_id" value="{{ request('investment_account_id') }}" class="form-control form-control-sm" placeholder="(opcional) id ou 0=sem">
+        <div class="col-sm-4 col-md-4">
+          <label class="form-label small mb-1">Conta de investimento</label>
+          <select name="investment_account_id" class="form-select form-select-sm">
+            <option value="">Todas</option>
+            <option value="0" {{ (string)request('investment_account_id')==='0' ? 'selected' : '' }}>Sem conta</option>
+            @foreach(($investmentAccounts ?? []) as $acc)
+              <option value="{{ $acc->id }}" {{ (string)request('investment_account_id')===(string)$acc->id ? 'selected' : '' }}>
+                {{ $acc->account_name }} @if($acc->broker) ({{ $acc->broker }}) @endif
+              </option>
+            @endforeach
+          </select>
         </div>
         <div class="col-sm-3 col-md-2 d-grid">
           <button class="btn btn-sm btn-outline-primary">Filtrar</button>
@@ -31,15 +39,37 @@
   </div>
 
   <div class="table-responsive">
+    @if(isset($totalSelected))
+      <div class="mb-2">
+        <span class="badge bg-info text-dark">Total de registros selecionados: {{ number_format((int)$totalSelected, 0, ',', '.') }}</span>
+      </div>
+    @endif
     <table class="table table-sm table-bordered align-middle">
       <thead class="table-dark">
         <tr>
-          <th style="width:18%">Código</th>
-          <th style="width:30%">Conversa</th>
-          <th style="width:16%">Data/Hora</th>
-          <th style="width:14%" class="text-end">Valor</th>
-          <th style="width:14%">Conta</th>
-          <th style="width:8%" class="text-center">Qtd</th>
+          @php
+            $q = request()->except(['sort','dir']);
+            $toggle = fn($col) => ($sort ?? 'code')===$col && ($dir ?? 'asc')==='asc' ? 'desc' : 'asc';
+            $icon = fn($col) => ($sort ?? 'code')===$col ? (($dir ?? 'asc')==='asc' ? '▲' : '▼') : '';
+          @endphp
+          <th style="width:18%">
+            <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'code','dir'=>$toggle('code')])) }}">Código {{ $icon('code') }}</a>
+          </th>
+          <th style="width:30%">
+            <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'title','dir'=>$toggle('title')])) }}">Conversa {{ $icon('title') }}</a>
+          </th>
+          <th style="width:16%">
+            <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'date','dir'=>$toggle('date')])) }}">Data/Hora {{ $icon('date') }}</a>
+          </th>
+          <th style="width:14%" class="text-end">
+            <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'amount','dir'=>$toggle('amount')])) }}">Valor {{ $icon('amount') }}</a>
+          </th>
+          <th style="width:14%">
+            <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'account','dir'=>$toggle('account')])) }}">Conta {{ $icon('account') }}</a>
+          </th>
+          <th style="width:8%" class="text-center">
+            <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'qty','dir'=>$toggle('qty')])) }}">Qtd {{ $icon('qty') }}</a>
+          </th>
         </tr>
       </thead>
       <tbody>
