@@ -7,7 +7,6 @@
       <a href="{{ route('openai.records.index') }}" class="btn btn-outline-secondary">← Registros</a>
     </div>
   </div>
-
   <div class="card shadow-sm mb-3">
     <div class="card-body">
       <form method="GET" action="{{ route('openai.records.assets') }}" class="row g-2 align-items-end">
@@ -56,7 +55,14 @@
           <small id="batch-status" class="text-muted"></small>
         </div>
       </div>
+      @if(request('baseline'))
+        <div class="mb-2 small text-muted">
+          • Linhas em destaque indicam que não há registro para a Data base (marcadas como “Sem base”).<br>
+          • Selo “Base ok” indica que a data base foi encontrada para o ativo.
+        </div>
+      @endif
     @endif
+
     <table class="table table-sm table-bordered align-middle">
       <thead class="table-dark">
         <tr>
@@ -94,10 +100,46 @@
       </thead>
       <tbody>
         @forelse($records as $r)
-          @php $code = trim($r->chat?->code ?? '') ?: trim($r->chat?->title ?? ''); @endphp
-          <tr>
+          @php
+            $code = trim($r->chat?->code ?? '') ?: trim($r->chat?->title ?? '');
+            $b = isset($baselines) ? ($baselines[$code] ?? null) : null;
+            $rowClass = request('baseline') && !$b ? 'table-warning' : '';
+            // baselineRef: data do primeiro registro >= baseline, senão a própria baseline solicitada
+            $baselineRef = null;
+            if (request('baseline')) {
+              if ($b && isset($b['occurred_at'])) { $baselineRef = $b['occurred_at']; }
+              else {
+                try { $baselineRef = \Carbon\Carbon::parse(request('baseline')); } catch (\Throwable $e) { $baselineRef = null; }
+              }
+            }
+            // calcular dia útil anterior (NYSE) baseado na baselineRef
+            $prevBizDateRow = null; $prevReasonRow = '';
+            if ($baselineRef) {
+              try {
+                $svc = app(\App\Services\HolidayService::class);
+                $info = $svc->previousBusinessDayInfo($baselineRef);
+                $prevBizDateRow = $info['date'] ?? null;
+                $prevReasonRow = (string)($info['reason'] ?? '');
+              } catch (\Throwable $e) { $prevBizDateRow = null; $prevReasonRow=''; }
+            }
+          @endphp
+          <tr class="{{ $rowClass }}">
             <td>
               <strong>{{ $r->chat?->code ?? '—' }}</strong>
+              @if(request('baseline'))
+                @if(!$b)
+                  <span class="badge bg-warning text-dark ms-2" title="Não há registro na data base ou posterior">Sem base</span>
+                @else
+                  @php $baseTip = $baselineRef ? ('Registro base: ' . $baselineRef->format('d/m/Y H:i:s')) : 'Há registro na data base (ou posterior)'; @endphp
+                  <span class="badge bg-success ms-2" title="{{ $baseTip }}">Base ok</span>
+                @endif
+                @if($prevBizDateRow)
+                  <span class="badge bg-secondary ms-2 baseline-prev-badge" title="Data útil anterior ao registro base">Base anterior: {{ $prevBizDateRow->format('d/m/Y') }}</span>
+                  <span class="badge bg-dark ms-1" title="Calendário: NYSE {{ $prevReasonRow ? '(' . $prevReasonRow . ')' : '' }}">NYSE</span>
+                @else
+                  <span class="badge bg-secondary ms-2 d-none baseline-prev-badge" title="Data útil anterior à base"></span>
+                @endif
+              @endif
             </td>
             <td>
               <a href="{{ route('openai.records.index', ['chat_id' => $r->chat_id]) }}" class="text-decoration-none">
@@ -142,6 +184,17 @@
                   <small class="text-muted">({{ optional($b['occurred_at'])->format('d/m/Y') }})</small>
                 @endif
               @endif
+              @if(request('baseline'))
+                @php $symbol = strtoupper(trim($r->chat?->code ?? '')); @endphp
+                @if($symbol)
+                  <div class="mt-1 small">
+                    <button type="button" class="btn btn-xs btn-outline-secondary btn-baseline-quote" data-symbol="{{ $symbol }}" data-date="{{ $baselineRef ? $baselineRef->format('Y-m-d') : request('baseline') }}" title="{{ ($baselineRef ? ('Registro base: '.$baselineRef->format('d/m/Y H:i:s')) : 'Registro base: —') . ($prevBizDateRow ? (' • Dia útil anterior (NYSE): '.$prevBizDateRow->format('d/m/Y')) : '') }}">
+                      Buscar cotação anterior ao registro base
+                    </button>
+                    <span class="baseline-quote-result ms-2"></span>
+                  </div>
+                @endif
+              @endif
             </td>
             <td class="text-center" data-ref="{{ number_format((float)$r->amount, 6, '.', '') }}" data-occurred="{{ optional($r->occurred_at)->format('Y-m-d') }}" data-apply-url="{{ route('openai.records.applyQuote', $r) }}">
               @php $symbol = strtoupper(trim($r->chat?->code ?? '')); @endphp
@@ -177,6 +230,7 @@
 <script>
   (function(){
     const endpoint = "{{ route('api.market.quote') }}";
+  const endpointHist = "{{ route('api.market.historical') }}";
     let batchAbort = false;
     function formatPrice(value) {
       const n = Number(value);
@@ -411,6 +465,68 @@
     document.getElementById('btn-batch-stop')?.addEventListener('click', function(){
       batchAbort = true;
       this.disabled = true;
+    });
+
+    // Buscar cotação histórica para a data base (ou próxima útil)
+    document.addEventListener('click', async function(ev){
+      const btn = ev.target.closest('.btn-baseline-quote');
+      if(!btn) return;
+      const symbol = btn.getAttribute('data-symbol');
+      const date = btn.getAttribute('data-date');
+      const row = btn.closest('tr');
+      const cell = btn.closest('td');
+      const out = cell ? cell.querySelector('.baseline-quote-result') : null;
+      const prev = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+      if (out) { out.textContent=''; out.classList.remove('text-danger'); }
+      try{
+        const url = endpointHist + '?symbol=' + encodeURIComponent(symbol) + '&date=' + encodeURIComponent(date);
+        const resp = await fetch(url, { headers: { 'Accept':'application/json' } });
+        const data = await resp.json();
+        if (!resp.ok || !data || data.price === null || !data.date){
+          throw new Error((data && (data.error || data.message)) || 'Sem dados para a data base');
+        }
+        const txt = formatPrice(data.price) + (data.currency ? ' ' + String(data.currency).toUpperCase() : '') + ' (' + data.date.replace(/^(\d{4})-(\d{2})-(\d{2})$/, '$3/$2/$1') + ')';
+        if (out) {
+          out.textContent = txt;
+          // Oferecer criar registro desta data
+          const createBtn = document.createElement('button');
+          createBtn.type = 'button';
+          createBtn.className = 'btn btn-xs btn-outline-secondary ms-2';
+          createBtn.textContent = 'Inserir registro';
+          createBtn.addEventListener('click', async ()=>{
+            const cotCell = row.querySelector('td[data-apply-url]');
+            if(!cotCell) return;
+            const urlCreate = cotCell.getAttribute('data-apply-url').replace('/apply-quote','/from-quote');
+            try{
+              const resp2 = await fetch(urlCreate, {
+                method: 'POST',
+                headers: { 'Accept':'application/json','Content-Type':'application/json','X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
+                body: JSON.stringify({ amount: Number(data.price), updated_at: data.date })
+              });
+              const r2 = await resp2.json().catch(()=>({}));
+              if(!resp2.ok || !r2 || r2.ok !== true) throw new Error((r2 && (r2.message||r2.error)) || 'Falha ao inserir');
+              createBtn.disabled = true; createBtn.textContent = 'Inserido';
+            }catch(e){ alert('Erro: ' + String(e.message||e)); }
+          });
+          out.appendChild(createBtn);
+        }
+        // Atualiza selo na coluna do código
+        try{
+          const codeCell = row?.querySelector('td:nth-child(1) .baseline-prev-badge');
+          if (codeCell){
+            const brDate = String(data.date).replace(/^(\d{4})-(\d{2})-(\d{2})$/, '$3/$2/$1');
+            codeCell.textContent = 'Base anterior: ' + brDate;
+            codeCell.classList.remove('d-none');
+          }
+        }catch(e){/* noop */}
+      }catch(err){
+        if (out) { out.textContent = 'Erro'; out.classList.add('text-danger'); }
+      }finally{
+        btn.disabled = false;
+        btn.innerHTML = prev;
+      }
     });
   })();
 </script>

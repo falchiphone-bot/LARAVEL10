@@ -5,6 +5,7 @@ namespace App\Services;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class MarketDataService
 {
@@ -54,6 +55,149 @@ class MarketDataService
             $st = $this->getQuoteStooq($symbol);
             return $st;
         });
+    }
+
+    /**
+     * Retorna cotação histórica (fechamento diário) para a data imediatamente anterior à informada (YYYY-MM-DD),
+     * procurando até alguns dias úteis anteriores.
+     * @return array{symbol:string, price:float|null, currency:?string, date:?string, source:string}
+     */
+    public function getHistoricalQuote(string $symbol, string $date): array
+    {
+        $symbol = strtoupper(trim($symbol));
+        if ($symbol === '') {
+            return ['symbol'=>$symbol,'price'=>null,'currency'=>null,'date'=>null,'source'=>'none'];
+        }
+        // Normalizar data
+        try { $base = new \DateTimeImmutable($date); } catch (\Throwable $e) { return ['symbol'=>$symbol,'price'=>null,'currency'=>null,'date'=>null,'source'=>'none']; }
+
+        // Determinar dia útil anterior (NYSE) como alvo preferencial
+        $preferred = null;
+        try {
+            $svc = app(\App\Services\HolidayService::class);
+            $info = $svc->previousBusinessDayInfo(Carbon::instance(new \DateTime($date)));
+            /** @var Carbon $pref */
+            $pref = $info['date'] ?? null;
+            if ($pref instanceof Carbon) { $preferred = $pref->format('Y-m-d'); }
+        } catch (\Throwable $e) { $preferred = null; }
+
+        // 1) Stooq (rápido e simples)
+        $st = $this->getHistoricalStooq($symbol, $base, $preferred);
+        if ($st['price'] !== null) { return $st; }
+
+        // 2) Alpha Vantage (fallback)
+        $av = $this->getHistoricalAlpha($symbol, $base, $preferred);
+        return $av;
+    }
+
+    protected function getHistoricalStooq(string $symbol, \DateTimeImmutable $base, ?string $preferred = null): array
+    {
+        $upper = strtoupper($symbol);
+        $candidates = [];
+        $plain = strtolower(preg_replace('/\s+/', '', $symbol));
+        $candidates[] = $plain; // original
+        // B3: remover .SA
+        if (str_ends_with($upper, '.SA')) { $candidates[] = strtolower(substr($upper, 0, -3)); }
+        // US: stooq usa sufixo .us para muitos tickers
+        if (!str_ends_with($upper, '.US')) {
+            $candidates[] = $plain . '.us';
+        } else {
+            $candidates[] = $plain; // já vem com .us em maiúsculas; plain já cobre minúsculo
+        }
+        // Se veio com outro sufixo (.NY, .US, etc.), tentar sem sufixo e com .us
+        if (strpos($plain, '.') !== false) {
+            $baseSym = explode('.', $plain)[0];
+            if ($baseSym) {
+                $candidates[] = $baseSym;
+                $candidates[] = $baseSym . '.us';
+            }
+        }
+        $candidates = array_unique($candidates);
+        $currency = (str_ends_with($upper, '.SA') ? 'BRL' : 'USD');
+        foreach ($candidates as $cand) {
+            try {
+                $resp = $this->http->get('https://stooq.com/q/d/l/', [
+                    'query' => [ 's' => $cand, 'i' => 'd' ],
+                    'http_errors' => false,
+                ]);
+                if ($resp->getStatusCode() !== 200) { continue; }
+                $csv = trim((string) $resp->getBody());
+                if ($csv === '') { continue; }
+                $lines = preg_split('/\r?\n/', $csv);
+                if (count($lines) < 2) { continue; }
+                $headers = str_getcsv($lines[0]);
+                $dataRows = array_slice($lines, 1);
+                // montar lista de alvos: preferred (se houver) e depois 1..7 dias corridos anteriores
+                $targets = [];
+                if ($preferred) { $targets[] = $preferred; }
+                for ($off = 1; $off <= 7; $off++) {
+                    $targets[] = $base->modify("-{$off} day")->format('Y-m-d');
+                }
+                $targets = array_values(array_unique($targets));
+                foreach ($targets as $target) {
+                    foreach ($dataRows as $ln) {
+                        $row = str_getcsv($ln);
+                        $rowAssoc = [];
+                        foreach ($headers as $i=>$h) { $rowAssoc[$h] = $row[$i] ?? null; }
+                        if (($rowAssoc['Date'] ?? '') === $target) {
+                            $priceStr = $rowAssoc['Close'] ?? null;
+                            $price = is_numeric($priceStr) ? (float)$priceStr : null;
+                            if ($price !== null) {
+                                return [
+                                    'symbol' => $symbol,
+                                    'price' => $price,
+                                    'currency' => $currency,
+                                    'date' => $target,
+                                    'source' => 'stooq',
+                                ];
+                            }
+                        }
+                    }
+                }
+            } catch (\Throwable $t) {
+                Log::warning('MarketData: exceção Stooq histórico', ['error'=>$t->getMessage(),'sym'=>$symbol]);
+                continue;
+            }
+        }
+        return ['symbol'=>$symbol,'price'=>null,'currency'=>null,'date'=>null,'source'=>'stooq'];
+    }
+
+    protected function getHistoricalAlpha(string $symbol, \DateTimeImmutable $base, ?string $preferred = null): array
+    {
+        $apiKey = env('ALPHAVANTAGE_KEY') ?: env('ALPHAVANTAGE_API_KEY');
+        if (!$apiKey) {
+            return ['symbol'=>$symbol,'price'=>null,'currency'=>null,'date'=>null,'source'=>'alpha_vantage'];
+        }
+        try {
+            $resp = $this->http->get('https://www.alphavantage.co/query', [
+                'query' => [ 'function' => 'TIME_SERIES_DAILY', 'symbol' => $symbol, 'apikey' => $apiKey, 'outputsize' => 'compact' ],
+                'http_errors' => false,
+            ]);
+            if ($resp->getStatusCode() !== 200) {
+                return ['symbol'=>$symbol,'price'=>null,'currency'=>null,'date'=>null,'source'=>'alpha_vantage'];
+            }
+            $body = json_decode((string)$resp->getBody(), true);
+            $series = $body['Time Series (Daily)'] ?? [];
+            // montar alvos: preferred e depois até 7 dias corridos para trás
+            $targets = [];
+            if ($preferred) { $targets[] = $preferred; }
+            for ($off=1;$off<=7;$off++) {
+                $targets[] = $base->modify("-{$off} day")->format('Y-m-d');
+            }
+            $targets = array_values(array_unique($targets));
+            foreach ($targets as $target) {
+                if (isset($series[$target])) {
+                    $closeStr = $series[$target]['4. close'] ?? null;
+                    $price = is_numeric($closeStr) ? (float)$closeStr : null;
+                    if ($price !== null) {
+                        return ['symbol'=>$symbol,'price'=>$price,'currency'=>'USD','date'=>$target,'source'=>'alpha_vantage'];
+                    }
+                }
+            }
+        } catch (\Throwable $t) {
+            Log::warning('MarketData: exceção Alpha histórico', ['error'=>$t->getMessage(),'sym'=>$symbol]);
+        }
+        return ['symbol'=>$symbol,'price'=>null,'currency'=>null,'date'=>null,'source'=>'alpha_vantage'];
     }
 
     /**
