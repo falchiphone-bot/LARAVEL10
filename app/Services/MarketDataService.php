@@ -127,9 +127,11 @@ class MarketDataService
                 if (count($lines) < 2) { continue; }
                 $headers = str_getcsv($lines[0]);
                 $dataRows = array_slice($lines, 1);
-                // montar lista de alvos: preferred (se houver) e depois 1..7 dias corridos anteriores
+                // montar lista de alvos: 1) a data solicitada (exata), 2) previous business day (se houver), 3) 1..7 dias corridos anteriores
                 $targets = [];
-                if ($preferred) { $targets[] = $preferred; }
+                $requested = $base->format('Y-m-d');
+                $targets[] = $requested;
+                if ($preferred && $preferred !== $requested) { $targets[] = $preferred; }
                 for ($off = 1; $off <= 7; $off++) {
                     $targets[] = $base->modify("-{$off} day")->format('Y-m-d');
                 }
@@ -178,9 +180,11 @@ class MarketDataService
             }
             $body = json_decode((string)$resp->getBody(), true);
             $series = $body['Time Series (Daily)'] ?? [];
-            // montar alvos: preferred e depois até 7 dias corridos para trás
+            // montar alvos: 1) data solicitada (exata), 2) previous business day (se houver), 3) até 7 dias corridos para trás
             $targets = [];
-            if ($preferred) { $targets[] = $preferred; }
+            $requested = $base->format('Y-m-d');
+            $targets[] = $requested;
+            if ($preferred && $preferred !== $requested) { $targets[] = $preferred; }
             for ($off=1;$off<=7;$off++) {
                 $targets[] = $base->modify("-{$off} day")->format('Y-m-d');
             }

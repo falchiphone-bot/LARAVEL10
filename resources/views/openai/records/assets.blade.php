@@ -20,11 +20,12 @@
         </div>
         <div class="col-sm-3 col-md-2">
           <label class="form-label small mb-1">Data base (comparação)</label>
-          <input type="date" name="baseline" value="{{ request('baseline') }}" class="form-control form-control-sm">
+          <input type="date" id="assets-baseline" name="baseline" value="{{ request('baseline') }}" class="form-control form-control-sm">
         </div>
         <div class="col-sm-3 col-md-2">
           <label class="form-label small mb-1">Excluir data (linha)</label>
-          <input type="date" name="exclude_date" value="{{ request('exclude_date') }}" class="form-control form-control-sm" placeholder="YYYY-MM-DD">
+          <input type="date" id="assets-exclude-date" name="exclude_date" value="{{ request('exclude_date') }}" class="form-control form-control-sm" placeholder="YYYY-MM-DD" {{ request('baseline') ? '' : 'disabled' }}>
+          <small class="text-muted d-block mt-1">Usa a data mostrada nas colunas Var/Dif (registro base). Requer informar a “Data base”.</small>
         </div>
         <div class="col-sm-4 col-md-4">
           <label class="form-label small mb-1">Conta de investimento</label>
@@ -192,8 +193,14 @@
                 @php $symbol = strtoupper(trim($r->chat?->code ?? '')); @endphp
                 @if($symbol)
                   <div class="mt-1 small">
-                    <button type="button" class="btn btn-xs btn-outline-secondary btn-baseline-quote" data-symbol="{{ $symbol }}" data-date="{{ $baselineRef ? $baselineRef->format('Y-m-d') : request('baseline') }}" title="{{ ($baselineRef ? ('Registro base: '.$baselineRef->format('d/m/Y H:i:s')) : 'Registro base: —') . ($prevBizDateRow ? (' • Dia útil anterior (NYSE): '.$prevBizDateRow->format('d/m/Y')) : '') }}">
-                      Buscar cotação anterior ao registro base
+                    @php
+                      $baseAnteriorLabel = null; $btnDate = null;
+                      if ($prevBizDateRow) {
+                        try { $baseAnteriorLabel = $prevBizDateRow->format('d/m/Y'); $btnDate = $prevBizDateRow->format('Y-m-d'); } catch (\Throwable $e) { $baseAnteriorLabel = null; $btnDate = null; }
+                      }
+                    @endphp
+                    <button type="button" class="btn btn-xs btn-outline-secondary btn-baseline-quote" data-symbol="{{ $symbol }}" @if($btnDate) data-date="{{ $btnDate }}" @endif title="{{ ($baselineRef ? ('Registro base: '.$baselineRef->format('d/m/Y H:i:s')) : 'Registro base: —') . ($prevBizDateRow ? (' • Dia útil anterior (NYSE): '.$prevBizDateRow->format('d/m/Y')) : '') }}">
+                      Buscar cotação{{ $baseAnteriorLabel ? ' (base anterior: ' . $baseAnteriorLabel . ')' : '' }}
                     </button>
                     <span class="baseline-quote-result ms-2"></span>
                   </div>
@@ -474,12 +481,13 @@
       this.disabled = true;
     });
 
-    // Buscar cotação histórica para a data base (ou próxima útil)
+    // Buscar cotação histórica usando exatamente a data indicada no botão (texto Base anterior)
     document.addEventListener('click', async function(ev){
       const btn = ev.target.closest('.btn-baseline-quote');
       if(!btn) return;
       const symbol = btn.getAttribute('data-symbol');
       const date = btn.getAttribute('data-date');
+      if(!date){ alert('Sem data base anterior definida para esta linha.'); return; }
       const row = btn.closest('tr');
       const cell = btn.closest('td');
       const out = cell ? cell.querySelector('.baseline-quote-result') : null;
@@ -500,7 +508,7 @@
           // Oferecer criar registro desta data
           const createBtn = document.createElement('button');
           createBtn.type = 'button';
-          createBtn.className = 'btn btn-xs btn-outline-secondary ms-2';
+          createBtn.className = 'btn btn-xs btn-success ms-2';
           createBtn.textContent = 'Inserir registro';
           createBtn.addEventListener('click', async ()=>{
             const cotCell = row.querySelector('td[data-apply-url]');
@@ -538,6 +546,16 @@
         btn.innerHTML = prev;
       }
     });
+  })();
+</script>
+<script>
+  (function(){
+    const baseline = document.getElementById('assets-baseline');
+    const exclude = document.getElementById('assets-exclude-date');
+    function toggle(){ if(!baseline || !exclude) return; exclude.disabled = !baseline.value; }
+    baseline?.addEventListener('input', toggle);
+    document.addEventListener('DOMContentLoaded', toggle);
+    toggle();
   })();
 </script>
 @endpush
