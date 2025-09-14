@@ -22,6 +22,10 @@
           <label class="form-label small mb-1">Data base (comparação)</label>
           <input type="date" name="baseline" value="{{ request('baseline') }}" class="form-control form-control-sm">
         </div>
+        <div class="col-sm-3 col-md-2">
+          <label class="form-label small mb-1">Excluir data (linha)</label>
+          <input type="date" name="exclude_date" value="{{ request('exclude_date') }}" class="form-control form-control-sm" placeholder="YYYY-MM-DD">
+        </div>
         <div class="col-sm-4 col-md-4">
           <label class="form-label small mb-1">Conta de investimento</label>
           <select name="investment_account_id" class="form-select form-select-sm">

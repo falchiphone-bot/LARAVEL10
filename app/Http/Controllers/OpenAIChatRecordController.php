@@ -396,6 +396,7 @@ class OpenAIChatRecordController extends Controller
         $from = $request->input('from');
         $to = $request->input('to');
     $baseline = $request->input('baseline'); // data base para comparação
+        $excludeDate = $request->input('exclude_date'); // YYYY-MM-DD
         $invAccId = $request->input('investment_account_id');
     $sort = $request->input('sort', 'code'); // code|title|date|amount|account|qty
     $dir = strtolower($request->input('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
@@ -460,17 +461,9 @@ class OpenAIChatRecordController extends Controller
             ->mergeBindings($sub);
 
         // Seleção final: apenas colunas do registro (r.*) + agregados necessários (grp, qty)
-    $rows = $latest
+        $rows = $latest
             ->select('r.*', DB::raw('agg.grp as grp'), DB::raw('agg.qty as qty'))
             ->get();
-
-        // Carregar modelos dos ids resultantes para ter relações eager-loaded facilmente
-        $ids = collect($rows)->pluck('id')->unique()->values()->all();
-        $records = OpenAIChatRecord::with(['chat:id,title,code','user:id,name','investmentAccount:id,account_name,broker'])->whereIn('id', $ids)->get();
-
-        // Mapa quantidades por grupo
-    $counts = collect($rows)->groupBy('grp')->map->first()->map(fn($r)=> (int)($r->qty ?? 0));
-    $totalSelected = collect($rows)->sum(function($r){ return (int)($r->qty ?? 0); });
 
         // Baselines: para cada grupo, pegar o primeiro registro com occurred_at >= baseline
         $baselines = collect();
@@ -509,6 +502,28 @@ class OpenAIChatRecordController extends Controller
             }
         }
 
+        // Se pediu exclusão e há baseline, removemos grupos cuja data do registro base (coluna Var/Dif) == exclude_date
+        if ($excludeDate && $baseline && $baselines->isNotEmpty()) {
+            try {
+                $ex = \Carbon\Carbon::parse($excludeDate)->format('Y-m-d');
+                $rows = $rows->filter(function($row) use ($baselines, $ex){
+                    $grp = $row->grp;
+                    $b = $baselines->get($grp);
+                    if (!$b || empty($b['occurred_at'])) { return true; }
+                    try { $bd = \Carbon\Carbon::parse($b['occurred_at'])->format('Y-m-d'); } catch (\Throwable $e) { return true; }
+                    return $bd !== $ex;
+                })->values();
+            } catch (\Throwable $e) { /* ignora formato inválido */ }
+        }
+
+        // Carregar modelos dos ids resultantes para ter relações eager-loaded facilmente
+        $ids = collect($rows)->pluck('id')->unique()->values()->all();
+        $records = OpenAIChatRecord::with(['chat:id,title,code','user:id,name','investmentAccount:id,account_name,broker'])->whereIn('id', $ids)->get();
+
+        // Mapa quantidades por grupo e total (após aplicar filtros)
+        $counts = collect($rows)->groupBy('grp')->map->first()->map(fn($r)=> (int)($r->qty ?? 0));
+        $totalSelected = collect($rows)->sum(function($r){ return (int)($r->qty ?? 0); });
+
         // Ordenação dinâmica conforme solicitação
         $recordsSorted = $records->sortBy(function($r) use ($sort, $counts, $baselines){
             $code = trim((string)($r->chat->code ?? ''));
@@ -534,12 +549,13 @@ class OpenAIChatRecordController extends Controller
             };
         }, SORT_NATURAL | SORT_FLAG_CASE, $dir === 'desc')->values();
 
-        return view('openai.records.assets', [
+    return view('openai.records.assets', [
             'records' => $recordsSorted,
             'counts' => $counts,
             'from' => $from,
             'to' => $to,
             'baseline' => $baseline,
+            'exclude_date' => $excludeDate,
             'invAccId' => $invAccId,
             'investmentAccounts' => $investmentAccounts,
             'totalSelected' => $totalSelected,
