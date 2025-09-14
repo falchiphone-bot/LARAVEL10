@@ -39,6 +39,16 @@
             @endforeach
           </select>
         </div>
+        <div class="col-sm-3 col-md-2">
+          <label class="form-label small mb-1">Intervalo CHECK (ms)</label>
+          <input type="number" min="0" step="50" name="auto_prev_interval" value="{{ request('auto_prev_interval') }}" class="form-control form-control-sm" placeholder="ex: 400">
+          <small class="text-muted d-block mt-1">Intervalo do polling do CHECK. Padrão 400 ms.</small>
+        </div>
+        <div class="col-sm-3 col-md-2">
+          <label class="form-label small mb-1">Atraso recarregar (ms)</label>
+          <input type="number" min="0" step="50" name="auto_prev_reload_delay" value="{{ request('auto_prev_reload_delay') }}" class="form-control form-control-sm" placeholder="ex: 250">
+          <small class="text-muted d-block mt-1">Espera antes de aplicar o filtro após inserir. Padrão 250 ms.</small>
+        </div>
         <div class="col-sm-3 col-md-2 d-grid">
           <button class="btn btn-sm btn-outline-primary">Filtrar</button>
         </div>
@@ -251,6 +261,30 @@
     const endpoint = "{{ route('api.market.quote') }}";
   const endpointHist = "{{ route('api.market.historical') }}";
     let batchAbort = false;
+    // Utilitário: obtém número de querystring ou localStorage com fallback
+    function getConfigNumber(paramName, defaultValue){
+      try{
+        const url = new URL(window.location.href);
+        const qv = url.searchParams.get(paramName);
+        if (qv !== null && qv !== '') {
+          const n = Number(qv);
+          if (isFinite(n) && n >= 0) return n;
+        }
+      }catch(e){/* noop */}
+      try{
+        const keyMap = {
+          'auto_prev_interval': 'assets.autoPrev.intervalMs',
+          'auto_prev_reload_delay': 'assets.autoPrev.reloadDelayMs',
+        };
+        const lsKey = keyMap[paramName] || paramName;
+        const ls = localStorage.getItem(lsKey);
+        if (ls !== null && ls !== ''){
+          const n = Number(ls);
+          if (isFinite(n) && n >= 0) return n;
+        }
+      }catch(e){/* noop */}
+      return defaultValue;
+    }
     function formatPrice(value) {
       const n = Number(value);
       if (!isFinite(n)) return '';
@@ -519,8 +553,9 @@
       updateAutoStatus('Ativo');
       // inicia polling para garantir continuidade após recarregar
       if (autoPrevTimer) { clearInterval(autoPrevTimer); autoPrevTimer = null; }
-      autoPrevTimer = setInterval(runAutoPrev, 400);
-      setTimeout(runAutoPrev, 100);
+  const intervalMs = getConfigNumber('auto_prev_interval', 400);
+  autoPrevTimer = setInterval(runAutoPrev, Math.max(100, intervalMs));
+  setTimeout(runAutoPrev, Math.min(250, intervalMs));
     }
     function stopAutoPrev(){
       autoAbort = true;
@@ -602,18 +637,24 @@
               const r2 = await resp2.json().catch(()=>({}));
               if(!resp2.ok || !r2 || r2.ok !== true) throw new Error((r2 && (r2.message||r2.error)) || 'Falha ao inserir');
               createBtn.disabled = true; createBtn.textContent = 'Inserido';
-              // CHECK ativo: recarrega para reavaliar a nova primeira linha
+              // CHECK ativo: recarrega para reavaliar a nova primeira linha (com atraso opcional)
               if (window.__autoPrevActive && localStorage.getItem('assets.autoPrev.enabled') === '1') {
                 const f = document.getElementById('assets-filter-form');
-                if (f) { (typeof f.requestSubmit === 'function') ? f.requestSubmit() : f.submit(); }
-                else { window.location.reload(); }
+                const delay = getConfigNumber('auto_prev_reload_delay', 250);
+                setTimeout(()=>{
+                  if (f) { (typeof f.requestSubmit === 'function') ? f.requestSubmit() : f.submit(); }
+                  else { window.location.reload(); }
+                }, Math.max(0, delay));
                 // fallback: se por algum motivo não recarregar, libera e tenta de novo
                 setTimeout(()=>{ if(window.__autoPrevActive){ window.__autoPrevBusy = false; runAutoPrev(); } }, 1500);
               } else {
                 // Comportamento padrão: recarrega a lista aplicando filtros
                 const f = document.getElementById('assets-filter-form');
-                if (f) { (typeof f.requestSubmit === 'function') ? f.requestSubmit() : f.submit(); }
-                else { window.location.reload(); }
+                const delay = getConfigNumber('auto_prev_reload_delay', 250);
+                setTimeout(()=>{
+                  if (f) { (typeof f.requestSubmit === 'function') ? f.requestSubmit() : f.submit(); }
+                  else { window.location.reload(); }
+                }, Math.max(0, delay));
               }
             }catch(e){ alert('Erro: ' + String(e.message||e)); }
             finally {
@@ -645,11 +686,11 @@
         }catch(e){/* noop */}
       }catch(err){
         if (out) { out.textContent = 'Erro'; out.classList.add('text-danger'); }
-        // em erro, libera para tentar novamente no CHECK
+        // em erro na consulta histórica: parar automaticamente o CHECK
         try{
           if (window.__autoPrevActive) {
-            window.__autoPrevBusy = false;
-            setTimeout(runAutoPrev, 300);
+            updateAutoStatus('Erro na consulta; CHECK parado');
+            stopAutoPrev();
           }
         }catch(e){/* noop */}
       }finally{
