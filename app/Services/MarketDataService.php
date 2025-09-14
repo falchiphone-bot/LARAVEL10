@@ -123,6 +123,18 @@ class MarketDataService
                 if ($resp->getStatusCode() !== 200) { continue; }
                 $csv = trim((string) $resp->getBody());
                 if ($csv === '') { continue; }
+                // Detectar limite diário do Stooq
+                if (stripos($csv, 'Exceeded') !== false && stripos($csv, 'limit') !== false) {
+                    return [
+                        'symbol' => $symbol,
+                        'price' => null,
+                        'currency' => null,
+                        'date' => null,
+                        'source' => 'stooq',
+                        'reason' => 'rate_limit',
+                        'detail' => 'Stooq: daily hits limit exceeded',
+                    ];
+                }
                 $lines = preg_split('/\r?\n/', $csv);
                 if (count($lines) < 2) { continue; }
                 $headers = str_getcsv($lines[0]);
@@ -161,14 +173,14 @@ class MarketDataService
                 continue;
             }
         }
-        return ['symbol'=>$symbol,'price'=>null,'currency'=>null,'date'=>null,'source'=>'stooq'];
+    return ['symbol'=>$symbol,'price'=>null,'currency'=>null,'date'=>null,'source'=>'stooq','reason'=>'no_data'];
     }
 
     protected function getHistoricalAlpha(string $symbol, \DateTimeImmutable $base, ?string $preferred = null): array
     {
         $apiKey = env('ALPHAVANTAGE_KEY') ?: env('ALPHAVANTAGE_API_KEY');
         if (!$apiKey) {
-            return ['symbol'=>$symbol,'price'=>null,'currency'=>null,'date'=>null,'source'=>'alpha_vantage'];
+            return ['symbol'=>$symbol,'price'=>null,'currency'=>null,'date'=>null,'source'=>'alpha_vantage','reason'=>'missing_api_key','detail'=>'Alpha Vantage: missing API key'];
         }
         try {
             $resp = $this->http->get('https://www.alphavantage.co/query', [
@@ -176,10 +188,37 @@ class MarketDataService
                 'http_errors' => false,
             ]);
             if ($resp->getStatusCode() !== 200) {
-                return ['symbol'=>$symbol,'price'=>null,'currency'=>null,'date'=>null,'source'=>'alpha_vantage'];
+                return ['symbol'=>$symbol,'price'=>null,'currency'=>null,'date'=>null,'source'=>'alpha_vantage','reason'=>'http_error'];
             }
-            $body = json_decode((string)$resp->getBody(), true);
+            $rawBody = (string)$resp->getBody();
+            $body = json_decode($rawBody, true);
             $series = $body['Time Series (Daily)'] ?? [];
+            // Detectar rate limit / notas de uso
+            $note = $body['Note'] ?? null;
+            $info = $body['Information'] ?? null;
+            $errMsg = $body['Error Message'] ?? null;
+            if ($note || ($info && stripos($info, 'frequency') !== false)) {
+                return [
+                    'symbol' => $symbol,
+                    'price' => null,
+                    'currency' => null,
+                    'date' => null,
+                    'source' => 'alpha_vantage',
+                    'reason' => 'rate_limit',
+                    'detail' => is_string($note ?: $info) ? (string)($note ?: $info) : 'Alpha Vantage: rate limit reached',
+                ];
+            }
+            if ($errMsg) {
+                return [
+                    'symbol' => $symbol,
+                    'price' => null,
+                    'currency' => null,
+                    'date' => null,
+                    'source' => 'alpha_vantage',
+                    'reason' => 'api_error',
+                    'detail' => is_string($errMsg) ? $errMsg : 'Alpha Vantage: API error',
+                ];
+            }
             // montar alvos: 1) data solicitada (exata), 2) previous business day (se houver), 3) até 7 dias corridos para trás
             $targets = [];
             $requested = $base->format('Y-m-d');
@@ -198,10 +237,10 @@ class MarketDataService
                     }
                 }
             }
-        } catch (\Throwable $t) {
+    } catch (\Throwable $t) {
             Log::warning('MarketData: exceção Alpha histórico', ['error'=>$t->getMessage(),'sym'=>$symbol]);
-        }
-        return ['symbol'=>$symbol,'price'=>null,'currency'=>null,'date'=>null,'source'=>'alpha_vantage'];
+    }
+    return ['symbol'=>$symbol,'price'=>null,'currency'=>null,'date'=>null,'source'=>'alpha_vantage','reason'=>'network_error'];
     }
 
     /**

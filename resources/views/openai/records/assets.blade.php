@@ -538,6 +538,25 @@
     let autoPrevTimer = null; // intervalo de polling
     window.__autoPrevActive = false; // estado ligado/desligado
     window.__autoPrevBusy = false;   // evita cliques duplicados na mesma página
+    // Preservar estado do CHECK ao enviar o filtro: adiciona auto_prev=1
+    (function(){
+      const form = document.getElementById('assets-filter-form');
+      if (!form) return;
+      form.addEventListener('submit', function(){
+        try{
+          if (localStorage.getItem(AUTO_KEY) === '1'){
+            let hp = form.querySelector('input[name="auto_prev"]');
+            if (!hp) {
+              hp = document.createElement('input');
+              hp.type = 'hidden';
+              hp.name = 'auto_prev';
+              form.appendChild(hp);
+            }
+            hp.value = '1';
+          }
+        }catch(e){/* noop */}
+      });
+    })();
     function updateAutoStatus(msg){
       const status = document.getElementById('auto-prev-status');
       if (!status) return;
@@ -579,11 +598,21 @@
     }
     document.getElementById('btn-auto-prev-start')?.addEventListener('click', startAutoPrev);
     document.getElementById('btn-auto-prev-stop')?.addEventListener('click', stopAutoPrev);
-    // Restaura estado ao carregar a página
-    if (localStorage.getItem(AUTO_KEY) === '1') {
-      // aguarda carregamento e então inicia automaticamente
-      window.addEventListener('load', () => startAutoPrev());
-    }
+    // Restaura estado ao carregar a página (considera localStorage e query auto_prev=1)
+    (function(){
+      try{
+        const url = new URL(window.location.href);
+        const autoParam = url.searchParams.get('auto_prev');
+        const shouldAuto = (localStorage.getItem(AUTO_KEY) === '1') || (autoParam === '1');
+        if (!shouldAuto) return;
+        const kickoff = () => startAutoPrev();
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+          setTimeout(kickoff, 0);
+        } else {
+          window.addEventListener('DOMContentLoaded', kickoff);
+        }
+      }catch(_e){/* noop */}
+    })();
 
     // Buscar cotação histórica usando exatamente a data indicada no botão (texto Base anterior)
     document.addEventListener('click', async function(ev){
@@ -623,7 +652,10 @@
         const resp = await fetch(url, { headers: { 'Accept':'application/json' } });
         const data = await resp.json();
         if (!resp.ok || !data || data.price === null || !data.date){
-          throw new Error((data && (data.error || data.message)) || 'Sem dados para a data base');
+          let msg = (data && (data.error || data.message)) || 'Sem dados para a data base';
+          if (data && data.reason) { msg += ` [${data.reason}]`; }
+          if (data && data.detail) { msg += ` - ${data.detail}`; }
+          throw new Error(msg);
         }
         const txt = formatPrice(data.price) + (data.currency ? ' ' + String(data.currency).toUpperCase() : '') + ' (' + data.date.replace(/^(\d{4})-(\d{2})-(\d{2})$/, '$3/$2/$1') + ')';
         if (out) {

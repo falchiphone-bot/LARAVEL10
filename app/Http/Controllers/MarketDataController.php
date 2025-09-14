@@ -49,12 +49,17 @@ class MarketDataController extends Controller
         $svc = app(MarketDataService::class);
         $data = $svc->getHistoricalQuote($symbol, $date);
         if (!$data || ($data['price'] ?? null) === null || !($data['date'] ?? null)) {
-            // Indicar falha de dados (ex.: limite do Stooq atingido ou Alpha Vantage sem chave)
             $src = $data['source'] ?? null;
+            $reason = $data['reason'] ?? 'no_data';
+            $detail = $data['detail'] ?? null;
+            $status = $reason === 'rate_limit' ? 429 : 404;
             $msg = 'Sem dados para a data informada';
-            if ($src === 'stooq') { $msg .= ' (fonte Stooq possivelmente com limite diário atingido)'; }
-            if ($src === 'alpha_vantage') { $msg .= ' (Alpha Vantage sem chave ou sem dados)'; }
-            return response()->json(['error' => $msg, 'source' => $src], 404);
+            if ($reason === 'rate_limit') { $msg = 'Limite de uso atingido na fonte'; }
+            if ($reason === 'missing_api_key') { $msg = 'Chave de API ausente para a fonte'; }
+            if ($reason === 'api_error') { $msg = 'Erro na API da fonte'; }
+            $payload = ['error' => $msg, 'source' => $src, 'reason' => $reason];
+            if ($detail) { $payload['detail'] = $detail; }
+            return response()->json($payload, $status);
         }
         return response()->json($data);
     }
