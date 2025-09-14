@@ -19,6 +19,10 @@
           <label class="form-label small mb-1">Até</label>
           <input type="date" name="to" value="{{ request('to') }}" class="form-control form-control-sm">
         </div>
+        <div class="col-sm-3 col-md-2">
+          <label class="form-label small mb-1">Data base (comparação)</label>
+          <input type="date" name="baseline" value="{{ request('baseline') }}" class="form-control form-control-sm">
+        </div>
         <div class="col-sm-4 col-md-4">
           <label class="form-label small mb-1">Conta de investimento</label>
           <select name="investment_account_id" class="form-select form-select-sm">
@@ -79,6 +83,12 @@
           <th style="width:8%" class="text-center">
             <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'qty','dir'=>$toggle('qty')])) }}">Qtd {{ $icon('qty') }}</a>
           </th>
+          <th style="width:12%" class="text-end">
+            <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'var','dir'=>$toggle('var')])) }}">Var (%) {{ $icon('var') }}</a>
+          </th>
+          <th style="width:12%" class="text-end">
+            <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'diff','dir'=>$toggle('diff')])) }}">Dif {{ $icon('diff') }}</a>
+          </th>
           <th style="width:10%" class="text-center">Cotação</th>
         </tr>
       </thead>
@@ -98,6 +108,41 @@
             <td class="text-end">{{ number_format((float)$r->amount, 2, ',', '.') }}</td>
             <td>{{ $r->investmentAccount?->account_name ?? '—' }} @if($r->investmentAccount?->broker) <small class="text-muted">({{ $r->investmentAccount?->broker }})</small> @endif</td>
             <td class="text-center">{{ $counts[ $code ] ?? 1 }}</td>
+            @php
+              $b = isset($baselines) ? ($baselines[$code] ?? null) : null;
+              $pct = null; $dif = null; $cls = '';
+              if ($b && isset($b['amount'])) {
+                $base = (float) $b['amount'];
+                $cur = (float) ($r->amount ?? 0);
+                $dif = $cur - $base;
+                if (abs($base) > 0.0000001) {
+                  $pct = ($dif / $base) * 100.0;
+                }
+                if ($dif > 0) { $cls = 'text-success'; }
+                elseif ($dif < 0) { $cls = 'text-danger'; }
+                else { $cls = 'text-muted'; }
+              }
+            @endphp
+            <td class="text-end {{ $cls }}">
+              @if($pct === null)
+                —
+              @else
+                {{ number_format((float)$pct, 2, ',', '.') }} %
+                @if($b && isset($b['occurred_at']))
+                  <small class="text-muted">({{ optional($b['occurred_at'])->format('d/m/Y') }})</small>
+                @endif
+              @endif
+            </td>
+            <td class="text-end {{ $cls }}">
+              @if($dif === null)
+                —
+              @else
+                {{ number_format((float)$dif, 2, ',', '.') }}
+                @if($b && isset($b['occurred_at']))
+                  <small class="text-muted">({{ optional($b['occurred_at'])->format('d/m/Y') }})</small>
+                @endif
+              @endif
+            </td>
             <td class="text-center" data-ref="{{ number_format((float)$r->amount, 6, '.', '') }}" data-occurred="{{ optional($r->occurred_at)->format('Y-m-d') }}" data-apply-url="{{ route('openai.records.applyQuote', $r) }}">
               @php $symbol = strtoupper(trim($r->chat?->code ?? '')); @endphp
               @if($symbol !== '')
@@ -116,7 +161,7 @@
             </td>
           </tr>
         @empty
-          <tr><td colspan="7" class="text-center text-muted">Nenhum ativo encontrado.</td></tr>
+          <tr><td colspan="9" class="text-center text-muted">Nenhum ativo encontrado.</td></tr>
         @endforelse
       </tbody>
     </table>

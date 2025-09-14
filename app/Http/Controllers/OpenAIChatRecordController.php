@@ -395,6 +395,7 @@ class OpenAIChatRecordController extends Controller
         $userId = (int) Auth::id();
         $from = $request->input('from');
         $to = $request->input('to');
+    $baseline = $request->input('baseline'); // data base para comparação
         $invAccId = $request->input('investment_account_id');
     $sort = $request->input('sort', 'code'); // code|title|date|amount|account|qty
     $dir = strtolower($request->input('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
@@ -434,7 +435,7 @@ class OpenAIChatRecordController extends Controller
             $groupExpr = "COALESCE(NULLIF(TRIM(cc.code), ''), TRIM(cc.title))";
         }
 
-        // Subquery: conta por grupo e último id por grupo (maior occurred_at; se empate, maior id)
+    // Subquery: conta por grupo e último id por grupo (maior occurred_at; se empate, maior id)
     $sub = DB::table('openai_chat_records as r')
             ->join('open_a_i_chats as cc', 'cc.id', '=', 'r.chat_id')
             ->selectRaw($groupExpr . ' as grp, COUNT(*) as qty, MAX(r.occurred_at) as max_dt');
@@ -471,11 +472,55 @@ class OpenAIChatRecordController extends Controller
     $counts = collect($rows)->groupBy('grp')->map->first()->map(fn($r)=> (int)($r->qty ?? 0));
     $totalSelected = collect($rows)->sum(function($r){ return (int)($r->qty ?? 0); });
 
+        // Baselines: para cada grupo, pegar o primeiro registro com occurred_at >= baseline
+        $baselines = collect();
+        if ($baseline) {
+            try { $baselineDt = \Carbon\Carbon::parse($baseline)->startOfDay(); } catch (\Throwable $e) { $baselineDt = null; }
+            if ($baselineDt) {
+                $subBase = DB::table('openai_chat_records as r')
+                    ->join('open_a_i_chats as cc', 'cc.id', '=', 'r.chat_id')
+                    ->selectRaw($groupExpr . ' as grp, MIN(r.occurred_at) as min_dt')
+                    ->where('r.user_id', $userId)
+                    ->where('r.occurred_at', '>=', $baselineDt);
+                if ($invAccId !== null && $invAccId !== '') {
+                    if ((string)$invAccId === '0') { $subBase->whereNull('r.investment_account_id'); }
+                    else { $subBase->where('r.investment_account_id', (int)$invAccId); }
+                }
+                $subBase->groupByRaw($groupExpr);
+                $subBaseSql = $subBase->toSql();
+
+                $baseRows = DB::table('openai_chat_records as r')
+                    ->join('open_a_i_chats as cc', 'cc.id', '=', 'r.chat_id')
+                    ->join(DB::raw('(' . $subBaseSql . ') as b'), function($join) use ($groupExpr){
+                        $join->on(DB::raw($groupExpr), '=', 'b.grp')
+                             ->on('r.occurred_at', '=', 'b.min_dt');
+                    })
+                    ->mergeBindings($subBase)
+                    ->select(DB::raw('b.grp as grp'), 'r.amount', 'r.occurred_at')
+                    ->get();
+                $pairs = [];
+                foreach ($baseRows as $row) {
+                    $pairs[$row->grp] = [
+                        'amount' => (float) $row->amount,
+                        'occurred_at' => \Carbon\Carbon::parse($row->occurred_at),
+                    ];
+                }
+                $baselines = collect($pairs);
+            }
+        }
+
         // Ordenação dinâmica conforme solicitação
-        $recordsSorted = $records->sortBy(function($r) use ($sort, $counts){
+        $recordsSorted = $records->sortBy(function($r) use ($sort, $counts, $baselines){
             $code = trim((string)($r->chat->code ?? ''));
             $title = trim((string)($r->chat->title ?? ''));
             $grp = $code !== '' ? $code : $title;
+            $base = null;
+            if (isset($baselines) && $baselines instanceof \Illuminate\Support\Collection) {
+                $base = $baselines->get($grp)['amount'] ?? null;
+            }
+            $cur = (float)($r->amount ?? 0);
+            $dif = ($base !== null) ? ($cur - (float)$base) : null;
+            $var = ($base && abs((float)$base) > 0.0000001) ? (($cur - (float)$base) / (float)$base * 100.0) : null;
             return match($sort){
                 'code' => mb_strtoupper($code),
                 'title' => mb_strtoupper($title),
@@ -483,6 +528,8 @@ class OpenAIChatRecordController extends Controller
                 'amount' => (float)($r->amount ?? 0),
                 'account' => mb_strtoupper(trim((string)($r->investmentAccount->account_name ?? ''))),
                 'qty' => (int)($counts[$grp] ?? 0),
+                'var' => $var !== null ? (float)$var : -INF,
+                'diff' => $dif !== null ? (float)$dif : -INF,
                 default => mb_strtoupper($code),
             };
         }, SORT_NATURAL | SORT_FLAG_CASE, $dir === 'desc')->values();
@@ -492,11 +539,13 @@ class OpenAIChatRecordController extends Controller
             'counts' => $counts,
             'from' => $from,
             'to' => $to,
+            'baseline' => $baseline,
             'invAccId' => $invAccId,
             'investmentAccounts' => $investmentAccounts,
             'totalSelected' => $totalSelected,
             'sort' => $sort,
             'dir' => $dir,
+            'baselines' => $baselines,
         ]);
     }
 
