@@ -389,6 +389,15 @@
         }
       }catch(err){
         if (out) { out.textContent = 'Erro'; out.classList.add('text-danger'); out.title = String(err.message || err); }
+        // Em erro na consulta atual: se CHECK estiver ativo, parar automaticamente
+        try{
+          if (window.__autoPrevActive) {
+            const statusMsg = 'Erro na consulta; CHECK parado';
+            const status = document.getElementById('auto-prev-status');
+            if (status) status.textContent = statusMsg;
+            if (typeof stopAutoPrev === 'function') stopAutoPrev();
+          }
+        }catch(e){/* noop */}
         if (outTime) { outTime.textContent = ''; }
       }finally{
         btn.disabled = false;
@@ -685,7 +694,12 @@
           }
         }catch(e){/* noop */}
       }catch(err){
-        if (out) { out.textContent = 'Erro'; out.classList.add('text-danger'); }
+        if (out) {
+          const msg = String(err && err.message ? err.message : err || 'Erro desconhecido');
+          out.textContent = 'Erro: ' + msg;
+          out.classList.add('text-danger');
+          out.title = msg;
+        }
         // em erro na consulta histórica: parar automaticamente o CHECK
         try{
           if (window.__autoPrevActive) {
