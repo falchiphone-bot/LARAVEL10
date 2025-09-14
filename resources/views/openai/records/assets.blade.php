@@ -58,6 +58,14 @@
             Parar
           </button>
           <small id="batch-status" class="text-muted"></small>
+          <div class="vr mx-2 d-none d-md-block"></div>
+          <button type="button" id="btn-auto-prev-start" class="btn btn-sm btn-outline-success">
+            CHECK
+          </button>
+          <button type="button" id="btn-auto-prev-stop" class="btn btn-sm btn-outline-danger d-none">
+            Parar (CHECK)
+          </button>
+          <small id="auto-prev-status" class="text-muted"></small>
         </div>
       </div>
       @if(request('baseline'))
@@ -199,7 +207,7 @@
                         try { $baseAnteriorLabel = $prevBizDateRow->format('d/m/Y'); $btnDate = $prevBizDateRow->format('Y-m-d'); } catch (\Throwable $e) { $baseAnteriorLabel = null; $btnDate = null; }
                       }
                     @endphp
-                    <button type="button" class="btn btn-xs btn-outline-secondary btn-baseline-quote" data-symbol="{{ $symbol }}" @if($btnDate) data-date="{{ $btnDate }}" @endif title="{{ ($baselineRef ? ('Registro base: '.$baselineRef->format('d/m/Y H:i:s')) : 'Registro base: —') . ($prevBizDateRow ? (' • Dia útil anterior (NYSE): '.$prevBizDateRow->format('d/m/Y')) : '') }}">
+                    <button type="button" class="btn btn-xs btn-outline-secondary btn-baseline-quote" data-role="baseline-quote" data-symbol="{{ $symbol }}" @if($btnDate) data-date="{{ $btnDate }}" @endif title="{{ ($baselineRef ? ('Registro base: '.$baselineRef->format('d/m/Y H:i:s')) : 'Registro base: —') . ($prevBizDateRow ? (' • Dia útil anterior (NYSE): '.$prevBizDateRow->format('d/m/Y')) : '') }}">
                       Buscar cotação{{ $baseAnteriorLabel ? ' (base anterior: ' . $baseAnteriorLabel . ')' : '' }}
                     </button>
                     <span class="baseline-quote-result ms-2"></span>
@@ -481,13 +489,84 @@
       this.disabled = true;
     });
 
+    // CHECK: modo automático sempre na primeira linha da tabela
+    const AUTO_KEY = 'assets.autoPrev.enabled';
+    let autoAbort = false;
+    let autoPrevTimer = null; // intervalo de polling
+    window.__autoPrevActive = false; // estado ligado/desligado
+    window.__autoPrevBusy = false;   // evita cliques duplicados na mesma página
+    function updateAutoStatus(msg){
+      const status = document.getElementById('auto-prev-status');
+      if (!status) return;
+      status.textContent = typeof msg === 'string' ? msg : '';
+    }
+    function runAutoPrev(){
+      if (autoAbort || !window.__autoPrevActive || window.__autoPrevBusy) return;
+      const btn = document.querySelector('tbody button.btn-baseline-quote[data-role="baseline-quote"]');
+      if (!btn) { updateAutoStatus('Aguardando a primeira linha…'); return; }
+      window.__autoPrevBusy = true;
+      updateAutoStatus('Consultando primeira linha…');
+      btn.click();
+    }
+    function startAutoPrev(){
+      autoAbort = false;
+      window.__autoPrevActive = true;
+      window.__autoPrevBusy = false;
+      localStorage.setItem(AUTO_KEY, '1');
+      document.getElementById('btn-auto-prev-start')?.classList.add('d-none');
+      const stopBtn = document.getElementById('btn-auto-prev-stop');
+      if (stopBtn){ stopBtn.classList.remove('d-none'); stopBtn.disabled = false; }
+      updateAutoStatus('Ativo');
+      // inicia polling para garantir continuidade após recarregar
+      if (autoPrevTimer) { clearInterval(autoPrevTimer); autoPrevTimer = null; }
+      autoPrevTimer = setInterval(runAutoPrev, 400);
+      setTimeout(runAutoPrev, 100);
+    }
+    function stopAutoPrev(){
+      autoAbort = true;
+      window.__autoPrevActive = false;
+      window.__autoPrevBusy = false;
+      localStorage.removeItem(AUTO_KEY);
+      if (autoPrevTimer) { clearInterval(autoPrevTimer); autoPrevTimer = null; }
+      document.getElementById('btn-auto-prev-start')?.classList.remove('d-none');
+      const stopBtn = document.getElementById('btn-auto-prev-stop');
+      if (stopBtn){ stopBtn.classList.add('d-none'); stopBtn.disabled = true; }
+      updateAutoStatus('Parado');
+    }
+    document.getElementById('btn-auto-prev-start')?.addEventListener('click', startAutoPrev);
+    document.getElementById('btn-auto-prev-stop')?.addEventListener('click', stopAutoPrev);
+    // Restaura estado ao carregar a página
+    if (localStorage.getItem(AUTO_KEY) === '1') {
+      // aguarda carregamento e então inicia automaticamente
+      window.addEventListener('load', () => startAutoPrev());
+    }
+
     // Buscar cotação histórica usando exatamente a data indicada no botão (texto Base anterior)
     document.addEventListener('click', async function(ev){
       const btn = ev.target.closest('.btn-baseline-quote');
       if(!btn) return;
       const symbol = btn.getAttribute('data-symbol');
-      const date = btn.getAttribute('data-date');
-      if(!date){ alert('Sem data base anterior definida para esta linha.'); return; }
+      let date = btn.getAttribute('data-date');
+      if(!date){
+        // tentar extrair do rótulo "Base anterior: dd/mm/aaaa" na coluna Código
+        try{
+          const row = btn.closest('tr');
+          const badge = row?.querySelector('td:nth-child(1) .baseline-prev-badge');
+          if (badge){
+            const m = String(badge.textContent||'').match(/(\d{2})\/(\d{2})\/(\d{4})/);
+            if (m){ date = `${m[3]}-${m[2]}-${m[1]}`; }
+          }
+        }catch(e){ /* noop */ }
+      }
+      if(!date){
+        alert('Sem data base anterior definida para esta linha.');
+        // libera para nova tentativa automática
+        if (window.__autoPrevActive) {
+          window.__autoPrevBusy = false;
+          setTimeout(runAutoPrev, 300);
+        }
+        return;
+      }
       const row = btn.closest('tr');
       const cell = btn.closest('td');
       const out = cell ? cell.querySelector('.baseline-quote-result') : null;
@@ -523,12 +602,37 @@
               const r2 = await resp2.json().catch(()=>({}));
               if(!resp2.ok || !r2 || r2.ok !== true) throw new Error((r2 && (r2.message||r2.error)) || 'Falha ao inserir');
               createBtn.disabled = true; createBtn.textContent = 'Inserido';
-              const f = document.getElementById('assets-filter-form');
-              if (f) { (typeof f.requestSubmit === 'function') ? f.requestSubmit() : f.submit(); }
-              else { window.location.reload(); }
+              // CHECK ativo: recarrega para reavaliar a nova primeira linha
+              if (window.__autoPrevActive && localStorage.getItem('assets.autoPrev.enabled') === '1') {
+                const f = document.getElementById('assets-filter-form');
+                if (f) { (typeof f.requestSubmit === 'function') ? f.requestSubmit() : f.submit(); }
+                else { window.location.reload(); }
+                // fallback: se por algum motivo não recarregar, libera e tenta de novo
+                setTimeout(()=>{ if(window.__autoPrevActive){ window.__autoPrevBusy = false; runAutoPrev(); } }, 1500);
+              } else {
+                // Comportamento padrão: recarrega a lista aplicando filtros
+                const f = document.getElementById('assets-filter-form');
+                if (f) { (typeof f.requestSubmit === 'function') ? f.requestSubmit() : f.submit(); }
+                else { window.location.reload(); }
+              }
             }catch(e){ alert('Erro: ' + String(e.message||e)); }
+            finally {
+              // Se houve erro e o CHECK continuar ativo, libera para nova tentativa
+              try{
+                if (window.__autoPrevActive && localStorage.getItem('assets.autoPrev.enabled') === '1') {
+                  window.__autoPrevBusy = false;
+                  setTimeout(runAutoPrev, 300);
+                }
+              }catch(_e){/* noop */}
+            }
           });
           out.appendChild(createBtn);
+            // Se CHECK estiver ativo, aciona automaticamente o botão Inserir registro
+            try {
+              if (localStorage.getItem('assets.autoPrev.enabled') === '1' && typeof autoAbort !== 'undefined' && !autoAbort && !createBtn.disabled) {
+                setTimeout(() => { if(!createBtn.disabled) createBtn.click(); }, 50);
+              }
+            } catch(e) { /* noop */ }
         }
         // Atualiza selo na coluna do código
         try{
@@ -541,6 +645,13 @@
         }catch(e){/* noop */}
       }catch(err){
         if (out) { out.textContent = 'Erro'; out.classList.add('text-danger'); }
+        // em erro, libera para tentar novamente no CHECK
+        try{
+          if (window.__autoPrevActive) {
+            window.__autoPrevBusy = false;
+            setTimeout(runAutoPrev, 300);
+          }
+        }catch(e){/* noop */}
       }finally{
         btn.disabled = false;
         btn.innerHTML = prev;
