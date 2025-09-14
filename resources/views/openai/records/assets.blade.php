@@ -9,7 +9,7 @@
   </div>
   <div class="card shadow-sm mb-3">
     <div class="card-body">
-      <form method="GET" action="{{ route('openai.records.assets') }}" class="row g-2 align-items-end">
+  <form id="assets-filter-form" method="GET" action="{{ route('openai.records.assets') }}" class="row g-2 align-items-end">
         <div class="col-sm-3 col-md-2">
           <label class="form-label small mb-1">De</label>
           <input type="date" name="from" value="{{ request('from') }}" class="form-control form-control-sm">
@@ -422,8 +422,11 @@
         if(!resp.ok || !data || data.ok !== true){
           throw new Error((data && (data.message||data.error)) || 'Falha ao criar registro');
         }
-        // Feedback mínimo: esconder botão "Novo registro"
-        btn.classList.add('d-none');
+  // Feedback: esconder botão e reenviar filtro para atualizar a lista
+  btn.classList.add('d-none');
+  const f = document.getElementById('assets-filter-form');
+  if (f) { (typeof f.requestSubmit === 'function') ? f.requestSubmit() : f.submit(); }
+  else { window.location.reload(); }
       }catch(err){
         alert('Erro ao criar novo registro: ' + String(err.message || err));
       }finally{
@@ -508,6 +511,9 @@
               const r2 = await resp2.json().catch(()=>({}));
               if(!resp2.ok || !r2 || r2.ok !== true) throw new Error((r2 && (r2.message||r2.error)) || 'Falha ao inserir');
               createBtn.disabled = true; createBtn.textContent = 'Inserido';
+              const f = document.getElementById('assets-filter-form');
+              if (f) { (typeof f.requestSubmit === 'function') ? f.requestSubmit() : f.submit(); }
+              else { window.location.reload(); }
             }catch(e){ alert('Erro: ' + String(e.message||e)); }
           });
           out.appendChild(createBtn);
