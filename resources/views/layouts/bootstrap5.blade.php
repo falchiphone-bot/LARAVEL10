@@ -208,7 +208,7 @@
 
 
 
-                            <li>
+              <li>
                                 <a href="/dashboard" data-bs-toggle="tooltip" data-bs-placement="top" . . .
                                     data-bs-custom-class="custom-tooltip"
                                     data-bs-title="Ir para o início do sistema com as opções disponíveis"
@@ -217,6 +217,9 @@
                                     Início do sistema
                                 </a>
                             </li>
+              <li class="ms-2 d-none d-md-flex align-items-center">
+                <span id="market-status-global" class="badge rounded-pill bg-secondary" title="Status do mercado (NYSE)">Mercado: carregando…</span>
+              </li>
 
                             @canany(['OPENAI - CHAT', 'OPENAI - TRANSCRIBE - ESPANHOL'])
                             <li>
@@ -301,6 +304,48 @@
     <script>
         const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
         const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    </script>
+    <script>
+      (function(){
+        async function loadMarketStatus(){
+          const badge = document.getElementById('market-status-global');
+          if (!badge) return;
+          try{
+            const url = "{{ route('api.market.status') }}";
+            const resp = await fetch(url, { headers: { 'Accept':'application/json' } });
+            const data = await resp.json().catch(()=>null);
+            if(!resp.ok || !data) throw new Error('fail');
+            const st = String(data.status||'').toLowerCase();
+            const label = String(data.label||'Mercado');
+            function fmtBR(s){
+              if (!s) return '';
+              try{
+                const d = new Date(String(s).replace(' ','T'));
+                if (isNaN(d.getTime())) return s;
+                const dd = String(d.getDate()).padStart(2,'0');
+                const mm = String(d.getMonth()+1).padStart(2,'0');
+                const yy = d.getFullYear();
+                const HH = String(d.getHours()).padStart(2,'0');
+                const MM = String(d.getMinutes()).padStart(2,'0');
+                return `${dd}/${mm}/${yy} ${HH}:${MM}`;
+              }catch(_e){ return s; }
+            }
+            const nextStr = data.next_change_at ? ` • Próx: ${fmtBR(data.next_change_at)}` : '';
+            let cls = 'bg-secondary';
+            if (st === 'open') cls = 'bg-success';
+            else if (st === 'pre') cls = 'bg-warning text-dark';
+            else if (st === 'after') cls = 'bg-info text-dark';
+            else if (st === 'closed') cls = 'bg-secondary';
+            badge.className = 'badge rounded-pill ' + cls;
+            badge.textContent = `Mercado: ${label}` + nextStr;
+            if (data.reason){ badge.title = `${label} — ${data.reason}`; }
+          }catch(_e){
+            const badge = document.getElementById('market-status-global');
+            if (badge){ badge.className='badge rounded-pill bg-secondary'; badge.textContent='Mercado: indisponível'; }
+          }
+        }
+        try{ loadMarketStatus(); setInterval(loadMarketStatus, 60000); }catch(_e){}
+      })();
     </script>
     @stack('scripts')
 

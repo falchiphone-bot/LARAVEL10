@@ -2,7 +2,10 @@
 @section('content')
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-    <h1 class="h4 mb-0">Registros de Conversas</h1>
+    <h1 class="h4 mb-0 d-flex align-items-center gap-2">
+      Registros de Conversas
+      <x-market.badge storageKey="records.localBadge.visible" idPrefix="records" />
+    </h1>
     <div class="d-flex gap-2">
       <a href="{{ route('openai.menu') }}" class="btn btn-outline-secondary">← Menu</a>
       <a href="{{ route('openai.chats', ['view'=>'table']) }}" class="btn btn-outline-primary">Ver Conversas</a>
@@ -78,6 +81,10 @@
       @endif
     </div>
   </div>
+
+  @push('scripts')
+  <!-- Componente x-market.badge já inclui script de status/toggle -->
+  @endpush
 
   <div class="card shadow-sm mb-4">
     <div class="card-body">

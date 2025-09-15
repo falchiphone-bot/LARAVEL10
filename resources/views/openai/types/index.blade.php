@@ -2,7 +2,10 @@
 @section('content')
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h4 mb-0">Tipos de Conversa</h1>
+    <h1 class="h4 mb-0 d-flex align-items-center gap-2">
+      Tipos de Conversa
+      <x-market.badge storageKey="types.localBadge.visible" idPrefix="types" />
+    </h1>
     <div class="d-flex gap-2">
       <a href="{{ route('openai.chats') }}" class="btn btn-outline-secondary">← Minhas Conversas</a>
     </div>
@@ -96,3 +99,42 @@
   </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+const endpointStatus = "{{ route('api.market.status') }}";
+(function(){
+  const KEY = 'types.localBadge.visible';
+  const btn = document.getElementById('toggle-local-badge');
+  const badge = document.getElementById('market-status-badge');
+  function getVisible(){ try{ return localStorage.getItem(KEY) !== '0'; }catch(_e){ return true; } }
+  function setVisible(v){ try{ localStorage.setItem(KEY, v ? '1' : '0'); }catch(_e){} }
+  function apply(){ const vis = getVisible(); if (badge){ badge.classList.toggle('d-none', !vis); } if (btn){ const s=btn.querySelector('[data-state]'); if(s) s.textContent = vis ? 'ON' : 'OFF'; } }
+  if (btn){ btn.addEventListener('click', function(){ setVisible(!getVisible()); apply(); }); }
+  apply();
+})();
+(async function(){
+  try{
+    const badge = document.getElementById('market-status-badge');
+    if(!badge) return;
+    const resp = await fetch(endpointStatus, { headers: { 'Accept':'application/json' } });
+    const data = await resp.json().catch(()=>null);
+    if(!resp.ok || !data){ throw new Error('Falha ao obter status'); }
+    const st = String(data.status||'').toLowerCase();
+    const label = String(data.label||'Mercado');
+    const next = data.next_change_at ? ` • Próx: ${String(data.next_change_at).replace('T',' ').slice(0,16)}` : '';
+    let cls = 'bg-secondary';
+    if (st === 'open') cls = 'bg-success';
+    else if (st === 'pre') cls = 'bg-warning text-dark';
+    else if (st === 'after') cls = 'bg-info text-dark';
+    else if (st === 'closed') cls = 'bg-secondary';
+    badge.className = 'badge ' + cls;
+    badge.textContent = `Mercado: ${label}` + next;
+    if (data.reason){ badge.title = `${label} — ${data.reason}`; }
+  }catch(_e){
+    const badge = document.getElementById('market-status-badge');
+    if (badge){ badge.className='badge bg-secondary'; badge.textContent='Mercado: indisponível'; }
+  }
+})();
+</script>
+@endpush

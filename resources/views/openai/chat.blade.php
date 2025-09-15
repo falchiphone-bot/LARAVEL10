@@ -1,7 +1,7 @@
 @extends('layouts.bootstrap5')
 @section('content')
 <div class="container py-4">
-    <div class="mb-3 d-flex gap-2 align-items-center">
+    <div class="mb-3 d-flex gap-2 align-items-center flex-wrap">
         @canany(['OPENAI - CHAT', 'OPENAI - TRANSCRIBE - ESPANHOL'])
         <a href="{{ route('openai.menu') }}" class="btn btn-outline-secondary">← Voltar ao Menu</a>
         @endcanany
@@ -44,10 +44,11 @@
             @endif
             <button type="submit" class="btn btn-sm btn-success">Salvar conversa</button>
         </form>
-        @if(session('openai_current_chat_id'))
-            <span class="badge bg-success">Conversa salva ativa</span>
-            <small class="text-muted">Novas mensagens serão gravadas automaticamente.</small>
-        @endif
+                @if(session('openai_current_chat_id'))
+                    <span class="badge bg-success">Conversa salva ativa</span>
+                    <small class="text-muted">Novas mensagens serão gravadas automaticamente.</small>
+                @endif
+                <x-market.badge storageKey="chat.localBadge.visible" idPrefix="chat" />
     </div>
 
     @php
@@ -443,6 +444,10 @@
     @endif
 </div>
 @endsection
+
+@push('scripts')
+<!-- Componente x-market.badge já inclui script de status/toggle -->
+@endpush
 @push('scripts')
 <script>
 (function(){

@@ -2,9 +2,15 @@
 @section('content')
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-    <h1 class="h5 mb-0">Ativos (sem repetição)</h1>
+    <h1 class="h5 mb-0 d-flex align-items-center gap-2">
+      Ativos (sem repetição)
+      <span id="market-status-badge" class="badge bg-secondary" title="Status do mercado (NYSE)">Mercado: carregando…</span>
+    </h1>
     <div class="d-flex gap-2">
       <a href="{{ route('openai.records.index') }}" class="btn btn-outline-secondary">← Registros</a>
+      <button type="button" id="toggle-local-badge" class="btn btn-sm btn-outline-secondary" title="Mostrar/ocultar badge local do mercado">
+        Badge Mercado: <span data-state>ON</span>
+      </button>
     </div>
   </div>
   <div class="card shadow-sm mb-3">
@@ -264,6 +270,7 @@
     const endpoint = "{{ route('api.market.quote') }}";
   const endpointHist = "{{ route('api.market.historical') }}";
   const endpointUsage = "{{ route('api.market.usage') }}";
+  const endpointStatus = "{{ route('api.market.status') }}";
     let batchAbort = false;
     // Utilitário: obtém número de querystring ou localStorage com fallback
     function getConfigNumber(paramName, defaultValue){
@@ -298,6 +305,52 @@
         return n.toFixed(2);
       }
     }
+    // Toggle para mostrar/ocultar o badge local (por página)
+    (function(){
+      const KEY = 'assets.localBadge.visible';
+      const btn = document.getElementById('toggle-local-badge');
+      const badge = document.getElementById('market-status-badge');
+      function getVisible(){
+        try{ return localStorage.getItem(KEY) !== '0'; }catch(_e){ return true; }
+      }
+      function setVisible(v){
+        try{ localStorage.setItem(KEY, v ? '1' : '0'); }catch(_e){}
+      }
+      function apply(){
+        const vis = getVisible();
+        if (badge){ badge.classList.toggle('d-none', !vis); }
+        if (btn){ const s = btn.querySelector('[data-state]'); if (s) s.textContent = vis ? 'ON' : 'OFF'; }
+      }
+      if (btn){
+        btn.addEventListener('click', function(){ setVisible(!getVisible()); apply(); });
+      }
+      apply();
+    })();
+    // Mercado: buscar status atual (NYSE) e pintar badge
+    (async function(){
+      try{
+        const badge = document.getElementById('market-status-badge');
+        if(!badge) return;
+        const resp = await fetch(endpointStatus, { headers: { 'Accept':'application/json' } });
+        const data = await resp.json().catch(()=>null);
+        if(!resp.ok || !data){ throw new Error('Falha ao obter status'); }
+        const st = String(data.status||'').toLowerCase();
+        const label = String(data.label||'Mercado');
+        const next = data.next_change_at ? ` • Próx: ${String(data.next_change_at).replace('T',' ').slice(0,16)}` : '';
+        // cor por status
+        let cls = 'bg-secondary';
+        if (st === 'open') cls = 'bg-success';
+        else if (st === 'pre') cls = 'bg-warning text-dark';
+        else if (st === 'after') cls = 'bg-info text-dark';
+        else if (st === 'closed') cls = 'bg-secondary';
+        badge.className = 'badge ' + cls;
+        badge.textContent = `Mercado: ${label}` + next;
+        if (data.reason){ badge.title = `${label} — ${data.reason}`; }
+      }catch(_e){
+        const badge = document.getElementById('market-status-badge');
+        if (badge){ badge.className='badge bg-secondary'; badge.textContent='Mercado: indisponível'; }
+      }
+    })();
     // Botão: Ver limites (snapshot de uso e limites)
     document.getElementById('btn-usage')?.addEventListener('click', async function(){
       const btn = this;

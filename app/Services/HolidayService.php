@@ -233,4 +233,89 @@ class HolidayService
         $day = (($h + $l - 7 * $m + 114) % 31) + 1;
         return Carbon::create($year, $month, $day, 0, 0, 0);
     }
+
+    /**
+     * Retorna o status da sessão da NYSE no momento informado.
+     * status: 'pre' | 'open' | 'after' | 'closed'
+     * Campos: tz, now, date, labels, horários de referência e next_change_at
+     */
+    public function marketSessionInfoNY(?Carbon $now = null): array
+    {
+        $tz = 'America/New_York';
+        $n = ($now ? $now->copy() : Carbon::now())->setTimezone($tz);
+        $dateKey = $n->format('Y-m-d');
+        $weekday = $n->isWeekday();
+
+        // Configuração padrão NYSE
+        $preStart = Carbon::createFromTime(4, 0, 0, $tz)->setDate($n->year, $n->month, $n->day);   // 04:00
+        $regOpen  = Carbon::createFromTime(9, 30, 0, $tz)->setDate($n->year, $n->month, $n->day);  // 09:30
+        $regClose = Carbon::createFromTime(16, 0, 0, $tz)->setDate($n->year, $n->month, $n->day);  // 16:00
+        $aftEnd   = Carbon::createFromTime(20, 0, 0, $tz)->setDate($n->year, $n->month, $n->day);  // 20:00
+
+        $closedReason = '';
+        $isHoliday = $this->isHoliday($n);
+        $isHalf = $this->isHalfDay($n); // early close
+        if ($isHalf) {
+            // Em meia sessão, fechamento às 13:00 e pós-mercado não é considerado
+            $regClose = Carbon::createFromTime(13, 0, 0, $tz)->setDate($n->year, $n->month, $n->day);
+            $aftEnd = $regClose->copy();
+        }
+
+        // Situações de fechamento completo
+        if (!$weekday) {
+            $closedReason = $n->isSaturday() ? 'Fim de semana (sábado)' : 'Fim de semana (domingo)';
+        } elseif ($isHoliday) {
+            $lbl = $this->getHolidayLabel($n);
+            $closedReason = $lbl !== '' ? ('Feriado: ' . $lbl) : 'Feriado';
+        }
+
+        $status = 'closed';
+        $label = 'Fechado';
+        $nextChange = null;
+
+        if ($closedReason !== '') {
+            // Fechado o dia todo
+            $status = 'closed';
+            $label = 'Fechado';
+            $nextChange = null;
+        } else {
+            if ($n->lt($preStart)) {
+                $status = 'closed';
+                $label = 'Fechado';
+                $nextChange = $preStart;
+            } elseif ($n->lt($regOpen)) {
+                $status = 'pre';
+                $label = 'Pré-mercado';
+                $nextChange = $regOpen;
+            } elseif ($n->lt($regClose)) {
+                $status = 'open';
+                $label = $isHalf ? 'Em mercado (meia sessão)' : 'Em mercado';
+                $nextChange = $regClose;
+            } elseif ($n->lt($aftEnd)) {
+                $status = 'after';
+                $label = $isHalf ? 'Fechado (meia sessão)' : 'After-hours';
+                $nextChange = $aftEnd;
+            } else {
+                $status = 'closed';
+                $label = 'Fechado';
+                $nextChange = null;
+            }
+        }
+
+        return [
+            'market' => 'NYSE',
+            'timezone' => $tz,
+            'now' => $n->format('Y-m-d H:i:s'),
+            'date' => $dateKey,
+            'status' => $status,
+            'label' => $label,
+            'reason' => $closedReason ?: null,
+            'pre_start' => $preStart->format('H:i'),
+            'regular_open' => $regOpen->format('H:i'),
+            'regular_close' => $regClose->format('H:i'),
+            'after_end' => $aftEnd->format('H:i'),
+            'half_day' => $isHalf,
+            'next_change_at' => $nextChange ? $nextChange->format('Y-m-d H:i:s') : null,
+        ];
+    }
 }

@@ -2,7 +2,10 @@
 @section('content')
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-    <h1 class="h4 mb-0">Contas / Investimentos</h1>
+    <h1 class="h4 mb-0 d-flex align-items-center gap-2">
+      Contas / Investimentos
+      <x-market.badge storageKey="investments.localBadge.visible" idPrefix="inv" />
+    </h1>
     <div class="d-flex gap-2">
       <a href="{{ route('openai.records.index') }}" class="btn btn-outline-secondary">← Registros</a>
       <a href="{{ route('openai.chat') }}" class="btn btn-outline-dark">Chat</a>

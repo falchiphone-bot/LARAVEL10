@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Services\MarketDataService;
+use App\Services\HolidayService;
+use Carbon\Carbon;
 
 class MarketDataController extends Controller
 {
@@ -70,5 +72,21 @@ class MarketDataController extends Controller
         $svc = app(MarketDataService::class);
         $snap = $svc->getUsageSnapshot($probe);
         return response()->json($snap);
+    }
+
+    /**
+     * Status da sessão do mercado (NYSE): pré-mercado, aberto, after-hours, fechado.
+     * Parâmetro opcional: at=YYYY-MM-DD HH:mm:ss (assume timezone local do servidor) ou ISO8601.
+     */
+    public function status(Request $request): JsonResponse
+    {
+        $now = null;
+        $at = $request->input('at');
+        if (is_string($at) && trim($at) !== '') {
+            try { $now = new Carbon($at); } catch (\Throwable $e) { $now = null; }
+        }
+        $svc = app(HolidayService::class);
+        $info = $svc->marketSessionInfoNY($now);
+        return response()->json($info);
     }
 }

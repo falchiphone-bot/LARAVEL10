@@ -27,10 +27,11 @@
     .table-zebra th.sorted a.sort-link:hover{color:#ffeaea !important;}
   </style>
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h4 mb-0">Minhas Conversas
+    <h1 class="h4 mb-0 d-flex align-items-center gap-2">Minhas Conversas
       @if(isset($q) && trim($q) !== '')
         <span class="badge text-bg-info ms-2">Resultados: {{ $chats->total() }}</span>
       @endif
+      <x-market.badge storageKey="chats.localBadge.visible" idPrefix="chats" />
     </h1>
     <div class="d-flex align-items-center gap-2">
       <form action="{{ route('openai.chats') }}" method="GET" class="d-flex gap-2 align-items-center">
@@ -297,3 +298,7 @@
     @endif
 </div>
 @endsection
+
+@push('scripts')
+<!-- Componente x-market.badge já inclui script de status/toggle -->
+@endpush
