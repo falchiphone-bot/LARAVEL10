@@ -27,8 +27,18 @@
                     <h5>Detalhes</h5>
                     <ul class="list-group">
                         <li class="list-group-item">Moeda: <strong>{{ $resultado['moeda_nome'] ?? ($moeda->nome ?? '-') }}</strong></li>
-                        <li class="list-group-item">Data de referência: <strong>{{ $resultado['data_formatada'] ?? (isset($dataRef) ? \Carbon\Carbon::parse($dataRef)->format('d/m/Y') : '-') }}</strong></li>
-                        <li class="list-group-item">Fonte: <span class="badge {{ ($resultado['origem'] ?? $fonte ?? 'api') === 'api' ? 'bg-success' : 'bg-secondary' }}">{{ strtoupper($resultado['origem'] ?? $fonte ?? 'api') }}</span></li>
+                        <li class="list-group-item">Data de referência: <strong>{{ $resultado['data_referencia'] ?? (isset($dataRef) ? \Carbon\Carbon::parse($dataRef)->format('d/m/Y') : '-') }}</strong></li>
+                        @if(($resultado['data_utilizada'] ?? null) && ($resultado['data_referencia'] ?? null) && $resultado['data_utilizada'] !== $resultado['data_referencia'])
+                            <li class="list-group-item">Data utilizada na API: <strong>{{ $resultado['data_utilizada'] }}</strong>
+                                <small class="text-muted">(sem cotação no dia de referência; usada a última disponível)</small>
+                            </li>
+                        @endif
+                        <li class="list-group-item">Fonte:
+                            <span class="badge {{ ($resultado['origem'] ?? $fonte ?? 'api') === 'api' ? 'bg-success' : 'bg-secondary' }}">{{ strtoupper($resultado['origem'] ?? $fonte ?? 'api') }}</span>
+                            @if(!empty($resultado['provider']))
+                                <span class="badge bg-info ms-2">{{ $resultado['provider'] }}</span>
+                            @endif
+                        </li>
                         @if(($resultado['status'] ?? null) === 'success')
                             <li class="list-group-item">Valor: <strong>{{ $resultado['valor_formatado'] ?? '-' }}</strong></li>
                             @if(!empty($resultado['codigo']))

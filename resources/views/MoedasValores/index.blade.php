@@ -30,7 +30,7 @@
 
 
                 <h1><span class="me-2" aria-hidden="true">🪙</span>Selecione uma Moeda</h1>
-                <form action="{{ route('moedas.selecionar') }}" method="POST">
+                <form id="form-moedas" action="{{ route('moedas.selecionar') }}" method="POST">
                     @csrf
                     <label for="moeda">Moeda:</label>
                     <select name="moeda_id" id="moeda" class="select2" style="width: 260px;">
@@ -157,36 +157,38 @@
             $('.select2').select2();
         });
 
-        $('form').submit(function(e) {
-            e.preventDefault();
-            $.confirm({
-                title: 'Confirmar!',
-                content: 'Confirma?',
-                buttons: {
-                    confirmar: function() {
-                        // $.alert('Confirmar!');
-                        $.confirm({
-                            title: 'Confirmar!',
-                            content: 'Deseja realmente continuar?',
-                            buttons: {
-                                confirmar: function() {
-                                    // $.alert('Confirmar!');
-                                    e.currentTarget.submit()
-                                },
-                                cancelar: function() {
-                                    // $.alert('Cancelar!');
-                                },
+        (function() {
+            let lastSubmitter = null;
+            const form = document.getElementById('form-moedas');
 
-                            }
-                        });
+            if (!form) return;
 
-                    },
-                    cancelar: function() {
-                        // $.alert('Cancelar!');
-                    },
-
+            // Captura qual botão de submit foi clicado
+            form.addEventListener('click', function(ev) {
+                const t = ev.target;
+                if (t && (t.matches('button[type="submit"]') || t.matches('input[type="submit"]'))) {
+                    lastSubmitter = t;
                 }
             });
-        });
+
+            $('#form-moedas').on('submit', function(e) {
+                e.preventDefault();
+                const submitter = lastSubmitter || e.originalEvent?.submitter || null;
+                $.confirm({
+                    title: 'Confirmar!',
+                    content: 'Deseja realmente continuar?',
+                    buttons: {
+                        confirmar: function() {
+                            if (submitter && submitter.hasAttribute('formaction')) {
+                                e.currentTarget.setAttribute('action', submitter.getAttribute('formaction'));
+                            }
+                            lastSubmitter = null;
+                            e.currentTarget.submit();
+                        },
+                        cancelar: function() {}
+                    }
+                });
+            });
+        })();
     </script>
 @endpush

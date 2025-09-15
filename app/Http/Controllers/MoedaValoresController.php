@@ -8,6 +8,7 @@ use App\Models\MoedasValores;
 use App\Models\MoedaValores;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 use App\Services\CambioService;
 
 
@@ -65,7 +66,7 @@ class MoedaValoresController extends Controller
     public function consultarValor(Request $request)
     {
 
-dd($request->all());
+// dd($request->all());
 
         $validated = $request->validate([
             'moeda_id' => 'required|exists:moedas,id',
@@ -78,15 +79,19 @@ dd($request->all());
         $fonte = $validated['fonte'] ?? 'api';
         $moeda = Moeda::find($validated['moeda_id']);
 
+
+
         // Tenta fonte externa primeiro se selecionado API
         if ($fonte === 'api') {
             $cambio = new CambioService();
+            $codigo = $cambio->resolverCodigoMoeda($moeda->nome);
             $externo = $cambio->cotacaoParaBRL($moeda->nome, $dataRef);
 
             if ($externo) {
+                $dataUsada = $externo['data_utilizada'] ?? $dataRef;
                 $mensagem = sprintf(
                     'Valor em %s (%s->BRL via API): %s',
-                    \Carbon\Carbon::parse($dataRef)->format('d/m/Y'),
+                    \Carbon\Carbon::parse($dataUsada)->format('d/m/Y'),
                     $externo['codigo'],
                     number_format($externo['valor'], 4, ',', '.')
                 );
@@ -98,11 +103,22 @@ dd($request->all());
                     'codigo' => $externo['codigo'],
                     'valor_formatado' => number_format($externo['valor'], 4, ',', '.'),
                     'moeda_nome' => $moeda->nome,
-                    'data_formatada' => \Carbon\Carbon::parse($dataRef)->format('d/m/Y'),
+                    'data_formatada' => \Carbon\Carbon::parse($dataUsada)->format('d/m/Y'),
+                    'data_referencia' => \Carbon\Carbon::parse($dataRef)->format('d/m/Y'),
+                    'data_utilizada' => \Carbon\Carbon::parse($dataUsada)->format('d/m/Y'),
+                    'provider' => $externo['provider'] ?? 'exchangerate.host',
                 ];
+
+
 
                 return view('MoedasValores.consultar', compact('resultado', 'moeda', 'dataRef', 'fonte'));
             }
+            Log::warning('API de câmbio sem retorno (externo=null)', [
+                'moeda_nome' => $moeda->nome,
+                'codigo_resolvido' => $codigo,
+                'data_referencia' => $dataRef,
+                'fonte' => $fonte,
+            ]);
         }
 
         // Fallback banco local
