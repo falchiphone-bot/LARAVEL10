@@ -159,6 +159,39 @@ class MoedaValoresController extends Controller
         return view('MoedasValores.consultar', compact('resultado', 'moeda', 'dataRef', 'fonte'));
     }
 
+    /**
+     * Persiste um novo registro a partir do retorno da consulta API
+     */
+    public function salvarDaConsulta(Request $request)
+    {
+        $validated = $request->validate([
+            'idmoeda' => 'required|exists:moedas,id',
+            'data' => 'required|date',
+            'valor' => 'required|numeric',
+        ]);
+
+        // Checar duplicidade: já existe registro para a mesma moeda e data?
+        $exists = MoedasValores::where('idmoeda', $validated['idmoeda'])
+            ->whereDate('data', $validated['data'])
+            ->exists();
+
+        if ($exists) {
+            return redirect()->route('MoedasValores.index')
+                ->with('error', 'Já existe um registro para esta moeda e data.');
+        }
+
+        $payload = [
+            'idmoeda' => (int) $validated['idmoeda'],
+            'data' => $validated['data'],
+            'valor' => (float) $validated['valor'],
+        ];
+
+        MoedasValores::create($payload);
+
+        return redirect()->route('MoedasValores.index')
+            ->with('success', 'Registro salvo com sucesso a partir da consulta da API.');
+    }
+
 
     /**
      * Show the form for creating a new resource.

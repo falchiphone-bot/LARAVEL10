@@ -51,6 +51,15 @@
                 <div class="mt-4 d-flex gap-2">
                     <a href="{{ route('MoedasValores.index') }}" class="btn btn-outline-primary">Voltar à lista</a>
                     <a href="{{ route('MoedasValores.index') }}#consulta" class="btn btn-primary">Nova consulta</a>
+                    @if(($resultado['status'] ?? null) === 'success' && ($resultado['origem'] ?? null) === 'api')
+                        <form method="POST" action="{{ route('moedas.consultarSalvar') }}" class="d-inline">
+                            @csrf
+                            <input type="hidden" name="idmoeda" value="{{ $moeda->id }}">
+                            <input type="hidden" name="data" value="{{ \Carbon\Carbon::createFromFormat('d/m/Y', $resultado['data_utilizada'] ?? $resultado['data_referencia'])->format('Y-m-d') }}">
+                            <input type="hidden" name="valor" value="{{ str_replace(['.',','], ['','.' ], $resultado['valor_formatado'] ?? '0') }}">
+                            <button type="submit" class="btn btn-success" title="Salvar este valor no banco">Inserir registro com este valor</button>
+                        </form>
+                    @endif
                 </div>
             </div>
         </div>
