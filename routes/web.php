@@ -999,6 +999,7 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     // Market Data (cotações)
     Route::get('/api/market/quote', [\App\Http\Controllers\MarketDataController::class, 'quote'])->name('api.market.quote');
     Route::get('/api/market/historical-quote', [\App\Http\Controllers\MarketDataController::class, 'historicalQuote'])->name('api.market.historical');
+    Route::get('/api/market/usage', [\App\Http\Controllers\MarketDataController::class, 'usage'])->name('api.market.usage');
 
     // Investment accounts (data, total investido, conta, corretora)
     Route::get('/openai/investments', [InvestmentAccountController::class, 'index'])->name('openai.investments.index');

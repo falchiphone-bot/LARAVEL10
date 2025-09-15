@@ -19,6 +19,132 @@ class MarketDataService
         ]);
     }
 
+    protected function todayKey(): string
+    {
+        return gmdate('Y-m-d');
+    }
+
+    protected function usageKey(string $provider, string $type = 'logical'): string
+    {
+        return 'md.usage.' . $type . '.' . $provider . '.' . $this->todayKey();
+    }
+
+    protected function statusKey(string $provider, string $field): string
+    {
+        return 'md.status.' . $provider . '.' . $field . '.' . $this->todayKey();
+    }
+
+    protected function trackUsageForResult(array $res): void
+    {
+        try {
+            $src = $res['source'] ?? null;
+            if ($src) {
+                \Illuminate\Support\Facades\Cache::increment($this->usageKey($src, 'logical'));
+                // Guardar último motivo/detalhe do dia se informado
+                if (!empty($res['reason'])) {
+                    \Illuminate\Support\Facades\Cache::put($this->statusKey($src, 'last_reason'), (string)$res['reason'], 86400);
+                }
+                if (!empty($res['detail'])) {
+                    \Illuminate\Support\Facades\Cache::put($this->statusKey($src, 'last_detail'), (string)$res['detail'], 86400);
+                }
+            }
+        } catch (\Throwable $e) { /* noop */ }
+    }
+
+    /**
+     * Snapshot de uso e limites conhecidos. Se $probeRapid for true, tenta obter headers de rate limit do RapidAPI.
+     */
+    public function getUsageSnapshot(bool $probeRapid = false): array
+    {
+        $date = $this->todayKey();
+        $alphaConfigured = (bool) (env('ALPHAVANTAGE_KEY') ?: env('ALPHAVANTAGE_API_KEY'));
+        $rapidHostsEnv = env('RAPIDAPI_YH_HOSTS') ?: (env('RAPIDAPI_YH_HOST') ?: env('RAPIDAPI_HOST'));
+        $rapidHosts = array_values(array_filter(array_map('trim', explode(',', (string) $rapidHostsEnv))));
+        $rapidKey = env('RAPIDAPI_KEY');
+        $rapidConfigured = $rapidKey && !empty($rapidHosts);
+
+        $alpha = [
+            'provider' => 'alpha_vantage',
+            'configured' => $alphaConfigured,
+            'used_today' => (int) \Illuminate\Support\Facades\Cache::get($this->usageKey('alpha_vantage'), 0),
+            'daily_limit' => (int) env('ALPHAVANTAGE_DAILY_LIMIT', 500),
+            'per_minute_limit' => (int) env('ALPHAVANTAGE_PER_MINUTE', 5),
+            'last_reason' => \Illuminate\Support\Facades\Cache::get($this->statusKey('alpha_vantage', 'last_reason')),
+            'last_detail' => \Illuminate\Support\Facades\Cache::get($this->statusKey('alpha_vantage', 'last_detail')),
+        ];
+
+        $stooq = [
+            'provider' => 'stooq',
+            'configured' => true,
+            'used_today' => (int) \Illuminate\Support\Facades\Cache::get($this->usageKey('stooq'), 0),
+            'daily_limit' => null,
+            'per_minute_limit' => null,
+            'last_reason' => \Illuminate\Support\Facades\Cache::get($this->statusKey('stooq', 'last_reason')),
+            'last_detail' => \Illuminate\Support\Facades\Cache::get($this->statusKey('stooq', 'last_detail')),
+        ];
+
+        $rapid = [
+            'provider' => 'yahoo_rapidapi',
+            'configured' => (bool) $rapidConfigured,
+            'used_today' => (int) \Illuminate\Support\Facades\Cache::get($this->usageKey('yahoo_rapidapi'), 0),
+            // Fallback configurável via env quando headers não estão disponíveis
+            'daily_limit' => (function(){ $v = env('RAPIDAPI_DAILY_LIMIT'); return is_numeric($v) && (int)$v > 0 ? (int)$v : null; })(),
+            'per_minute_limit' => (function(){ $v = env('RAPIDAPI_PER_MINUTE'); return is_numeric($v) && (int)$v > 0 ? (int)$v : null; })(),
+            'headers' => null,
+            'host' => null,
+            // Normalização de headers comuns de rate limit
+            'header_requests_limit' => null,
+            'header_requests_remaining' => null,
+            'header_requests_used' => null,
+        ];
+
+        if ($probeRapid && $rapidConfigured) {
+            foreach ($rapidHosts as $host) {
+                try {
+                    // Probe simples: pedir um símbolo conhecido para capturar headers; evitar contabilizar logical usage
+                    $resp = $this->http->get('https://' . $host . '/v6/finance/quote', [
+                        'query' => ['region' => env('RAPIDAPI_YH_REGION', 'US'), 'symbols' => 'AAPL'],
+                        'headers' => [
+                            'X-RapidAPI-Key' => $rapidKey,
+                            'X-RapidAPI-Host' => $host,
+                        ],
+                        'http_errors' => false,
+                    ]);
+                    $hdrs = [];
+                    foreach (['X-RateLimit-Requests-Limit','X-RateLimit-Requests-Remaining','X-RateLimit-Requests-Reset','x-ratelimit-requests-limit','x-ratelimit-requests-remaining','x-ratelimit-requests-reset','X-RateLimit-Limit','X-RateLimit-Remaining','X-RateLimit-Reset'] as $h) {
+                        if ($resp->hasHeader($h)) { $hdrs[$h] = $resp->getHeaderLine($h); }
+                    }
+                    $rapid['headers'] = $hdrs ?: null;
+                    $rapid['host'] = $host;
+                    // Extrai valores numéricos normalizados, quando disponíveis
+                    $limitVal = null; $remainVal = null;
+                    foreach (['X-RateLimit-Requests-Limit','x-ratelimit-requests-limit','X-RateLimit-Limit','x-ratelimit-limit'] as $k) {
+                        if (isset($hdrs[$k]) && is_numeric($hdrs[$k])) { $limitVal = (int) $hdrs[$k]; break; }
+                    }
+                    foreach (['X-RateLimit-Requests-Remaining','x-ratelimit-requests-remaining','X-RateLimit-Remaining','x-ratelimit-remaining'] as $k) {
+                        if (isset($hdrs[$k]) && is_numeric($hdrs[$k])) { $remainVal = (int) $hdrs[$k]; break; }
+                    }
+                    if ($limitVal !== null) { $rapid['header_requests_limit'] = $limitVal; }
+                    if ($remainVal !== null) { $rapid['header_requests_remaining'] = $remainVal; }
+                    if ($limitVal !== null && $remainVal !== null) {
+                        $usedCalc = max(0, $limitVal - $remainVal);
+                        $rapid['header_requests_used'] = $usedCalc;
+                    }
+                    break;
+                } catch (\Throwable $e) {
+                    continue;
+                }
+            }
+        }
+
+        return [
+            'date' => $date,
+            'alpha_vantage' => $alpha,
+            'yahoo_rapidapi' => $rapid,
+            'stooq' => $stooq,
+        ];
+    }
+
     /**
      * Retorna cotação atual do símbolo (ex.: AAPL).
      * Prioriza Yahoo Finance via RapidAPI quando configurado. Fallback: Alpha Vantage.
@@ -46,13 +172,16 @@ class MarketDataService
         return Cache::remember($cacheKey, $ttl > 0 ? $ttl : 60, function () use ($symbol, $hasRapid) {
             if ($hasRapid) {
                 $qh = $this->getQuoteYahoo($symbol);
+                $this->trackUsageForResult($qh);
                 if ($qh['price'] !== null) { return $qh; }
                 // se falhar, cai para Alpha
             }
             $av = $this->getQuoteAlpha($symbol);
+            $this->trackUsageForResult($av);
             if ($av['price'] !== null) { return $av; }
             // Fallback 3: Stooq (gratuito)
             $st = $this->getQuoteStooq($symbol);
+            $this->trackUsageForResult($st);
             return $st;
         });
     }
@@ -82,12 +211,14 @@ class MarketDataService
         } catch (\Throwable $e) { $preferred = null; }
 
         // 1) Stooq (rápido e simples)
-        $st = $this->getHistoricalStooq($symbol, $base, $preferred);
-        if ($st['price'] !== null) { return $st; }
+    $st = $this->getHistoricalStooq($symbol, $base, $preferred);
+    $this->trackUsageForResult($st);
+    if ($st['price'] !== null) { return $st; }
 
         // 2) Alpha Vantage (fallback)
-        $av = $this->getHistoricalAlpha($symbol, $base, $preferred);
-        return $av;
+    $av = $this->getHistoricalAlpha($symbol, $base, $preferred);
+    $this->trackUsageForResult($av);
+    return $av;
     }
 
     protected function getHistoricalStooq(string $symbol, \DateTimeImmutable $base, ?string $preferred = null): array

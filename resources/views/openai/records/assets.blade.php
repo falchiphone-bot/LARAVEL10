@@ -76,6 +76,9 @@
             Parar (CHECK)
           </button>
           <small id="auto-prev-status" class="text-muted"></small>
+          <div class="vr mx-2 d-none d-md-block"></div>
+          <button type="button" id="btn-usage" class="btn btn-sm btn-outline-secondary">Ver limites</button>
+          <small id="usage-status" class="text-muted"></small>
         </div>
       </div>
       @if(request('baseline'))
@@ -260,6 +263,7 @@
   (function(){
     const endpoint = "{{ route('api.market.quote') }}";
   const endpointHist = "{{ route('api.market.historical') }}";
+  const endpointUsage = "{{ route('api.market.usage') }}";
     let batchAbort = false;
     // Utilitário: obtém número de querystring ou localStorage com fallback
     function getConfigNumber(paramName, defaultValue){
@@ -294,6 +298,60 @@
         return n.toFixed(2);
       }
     }
+    // Botão: Ver limites (snapshot de uso e limites)
+    document.getElementById('btn-usage')?.addEventListener('click', async function(){
+      const btn = this;
+      const out = document.getElementById('usage-status');
+      const prev = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+      if (out) out.textContent = '';
+      try{
+        const url = endpointUsage + '?probe=1';
+        const resp = await fetch(url, { headers: { 'Accept':'application/json' } });
+        const data = await resp.json();
+        if (!resp.ok || !data){ throw new Error('Falha ao obter limites'); }
+        const parts = [];
+        if (data.alpha_vantage) {
+          const a = data.alpha_vantage;
+          parts.push(`Alpha: usado ${a.used_today}/${a.daily_limit || '?'} hoje${a.last_reason ? ` [${a.last_reason}]` : ''}`);
+        }
+        if (data.stooq) {
+          const s = data.stooq;
+          parts.push(`Stooq: usado ${s.used_today}${s.last_reason ? ` [${s.last_reason}]` : ''}`);
+        }
+        if (data.yahoo_rapidapi) {
+          const y = data.yahoo_rapidapi;
+          const usedHdr = typeof y.header_requests_used === 'number' ? y.header_requests_used : null;
+          const remHdr = typeof y.header_requests_remaining === 'number' ? y.header_requests_remaining : null;
+          const limHdr = typeof y.header_requests_limit === 'number' ? y.header_requests_limit : null;
+          let txt = `Yahoo(RapidAPI): ${y.configured ? 'configurado' : 'não configurado'}`;
+          if (y.configured) {
+            // Preferir números dos headers; se ausentes, usar fallback env (daily_limit) com used_today
+            if (limHdr !== null && (usedHdr !== null || remHdr !== null)) {
+              if (usedHdr !== null) {
+                txt += `, usado ${usedHdr}/${limHdr}`;
+              } else if (remHdr !== null) {
+                txt += `, restante ${remHdr}/${limHdr}`;
+              }
+            } else if (remHdr !== null && typeof y.daily_limit === 'number') {
+              // Temos Remaining via header, mas não o Limit nos headers; usar fallback de limite diário
+              txt += `, restante ${remHdr}/${y.daily_limit}`;
+            } else if (typeof y.daily_limit === 'number' && typeof y.used_today === 'number') {
+              const used = Math.max(0, y.used_today);
+              const limit = y.daily_limit;
+              txt += `, usado ${used}/${limit}`;
+            } else if (typeof y.used_today === 'number' && y.used_today > 0) {
+              // fallback mínimo
+              txt += ` • lógico hoje: ${y.used_today}`;
+            }
+          }
+          parts.push(txt);
+        }
+        if (out) out.textContent = parts.join(' • ');
+      }catch(e){ if (out) out.textContent = 'Erro ao consultar limites'; }
+      finally { btn.disabled = false; btn.innerHTML = prev; }
+    });
   function formatUpdatedAtBR(s){
       if(!s) return '';
       // Tenta transformar em ISO seguro para Safari (YYYY-MM-DDTHH:mm:ssZ)

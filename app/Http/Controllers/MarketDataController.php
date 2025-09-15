@@ -63,4 +63,12 @@ class MarketDataController extends Controller
         }
         return response()->json($data);
     }
+
+    public function usage(Request $request): JsonResponse
+    {
+        $probe = (bool) $request->boolean('probe');
+        $svc = app(MarketDataService::class);
+        $snap = $svc->getUsageSnapshot($probe);
+        return response()->json($snap);
+    }
 }
