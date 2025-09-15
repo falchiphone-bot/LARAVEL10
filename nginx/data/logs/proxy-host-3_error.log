@@ -1,0 +1,1 @@
+2025/09/15 13:06:45 [warn] 830#830: *323838 an upstream response is buffered to a temporary file /var/cache/nginx/proxy_temp/0/00/0000139000 while reading upstream, client: 172.19.0.1, server: vec.org.br, request: "GET /download/40649 HTTP/1.1", upstream: "http://172.19.0.3:80/download/40649", host: "vec.org.br"

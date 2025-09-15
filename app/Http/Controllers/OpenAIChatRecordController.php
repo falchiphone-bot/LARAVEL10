@@ -212,13 +212,27 @@ class OpenAIChatRecordController extends Controller
             $invId = (int)$validated['investment_account_id'];
         }
 
-        OpenAIChatRecord::create([
-            'chat_id' => $chat->id,
-            'user_id' => Auth::id(),
-            'occurred_at' => $occurredAt,
-            'amount' => $validated['amount'],
-            'investment_account_id' => $invId,
-        ]);
+        // Inserção compatível com SQL Server (formatando datetime e usando SYSUTCDATETIME)
+        $driver = DB::getDriverName();
+        if ($driver === 'sqlsrv') {
+            DB::table('openai_chat_records')->insert([
+                'chat_id' => $chat->id,
+                'user_id' => Auth::id(),
+                'occurred_at' => $occurredAt->format('Y-m-d H:i:s'),
+                'amount' => $validated['amount'],
+                'investment_account_id' => $invId,
+                'created_at' => DB::raw('SYSUTCDATETIME()'),
+                'updated_at' => DB::raw('SYSUTCDATETIME()'),
+            ]);
+        } else {
+            OpenAIChatRecord::create([
+                'chat_id' => $chat->id,
+                'user_id' => Auth::id(),
+                'occurred_at' => $occurredAt,
+                'amount' => $validated['amount'],
+                'investment_account_id' => $invId,
+            ]);
+        }
 
         // Memoriza última conta de investimento usada (se informada)
         if ($invId) {

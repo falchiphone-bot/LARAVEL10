@@ -1,6 +1,6 @@
 @extends('layouts.bootstrap5')
 @section('content')
-<div class="container py-4">
+<div class="container py-4" id="records-index">
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <h1 class="h4 mb-0 d-flex align-items-center gap-2">
       Registros de Conversas
@@ -837,6 +837,46 @@ function prepQuickAdd(chatId){
     // Aguarda a máscara/DOM estabilizar antes de preencher
     window.addEventListener('DOMContentLoaded', () => setTimeout(fetchQuoteAndPrefill, 50));
   }
+})();
+</script>
+@endpush
+
+@push('scripts')
+<script>
+// Preserva o fragmento do Google CSE (#gsc.*) ao clicar em links e ao enviar formulários GET
+(function(){
+  const hash = window.location.hash;
+  if (!hash || !hash.startsWith('#gsc.')) return;
+  const root = document.getElementById('records-index') || document;
+  // Acrescenta hash nos links internos sem fragmento
+  root.querySelectorAll('a[href]').forEach(a => {
+    const href = a.getAttribute('href');
+    if (!href) return;
+    if (href.startsWith('javascript:')) return;
+    if (href.includes('#')) return; // já possui fragmento
+    try {
+      const u = new URL(href, window.location.origin);
+      if (u.origin !== window.location.origin) return; // externo
+      a.setAttribute('href', u.pathname + (u.search || '') + hash);
+    } catch(_e) { /* ignora urls relativas estranhas */ }
+  });
+  // Intercepta formulários GET para reaplicar o hash na navegação
+  root.querySelectorAll('form[method="GET"], form[method="get"]').forEach(form => {
+    form.addEventListener('submit', function(ev){
+      try {
+        ev.preventDefault();
+        const formData = new FormData(form);
+        const params = new URLSearchParams();
+        for (const [k, v] of formData.entries()) { if (v !== null && v !== '') params.append(k, v); }
+        const action = form.getAttribute('action') || window.location.pathname;
+        const url = action + (params.toString() ? ('?' + params.toString()) : '');
+        window.location.assign(url + hash);
+      } catch(_e) {
+        // fallback
+        setTimeout(() => form.submit(), 0);
+      }
+    });
+  });
 })();
 </script>
 @endpush
