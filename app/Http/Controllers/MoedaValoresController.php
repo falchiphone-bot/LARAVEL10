@@ -8,6 +8,7 @@ use App\Models\MoedasValores;
 use App\Models\MoedaValores;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Services\CambioService;
 
 
 class MoedaValoresController extends Controller
@@ -56,6 +57,90 @@ class MoedaValoresController extends Controller
         $moedas = Moeda::get();
 
         return view('MoedasValores.index',compact('moedasvalores','moedas','ordem'));
+    }
+
+    /**
+     * Consulta o valor da moeda na data informada (ou o último valor anterior)
+     */
+    public function consultarValor(Request $request)
+    {
+
+dd($request->all());
+
+        $validated = $request->validate([
+            'moeda_id' => 'required|exists:moedas,id',
+            'data_referencia' => 'nullable|date',
+            'fonte' => 'nullable|in:api,local',
+        ]);
+
+
+        $dataRef = $validated['data_referencia'] ?? now()->toDateString();
+        $fonte = $validated['fonte'] ?? 'api';
+        $moeda = Moeda::find($validated['moeda_id']);
+
+        // Tenta fonte externa primeiro se selecionado API
+        if ($fonte === 'api') {
+            $cambio = new CambioService();
+            $externo = $cambio->cotacaoParaBRL($moeda->nome, $dataRef);
+
+            if ($externo) {
+                $mensagem = sprintf(
+                    'Valor em %s (%s->BRL via API): %s',
+                    \Carbon\Carbon::parse($dataRef)->format('d/m/Y'),
+                    $externo['codigo'],
+                    number_format($externo['valor'], 4, ',', '.')
+                );
+
+                $resultado = [
+                    'status' => 'success',
+                    'mensagem' => $mensagem,
+                    'origem' => 'api',
+                    'codigo' => $externo['codigo'],
+                    'valor_formatado' => number_format($externo['valor'], 4, ',', '.'),
+                    'moeda_nome' => $moeda->nome,
+                    'data_formatada' => \Carbon\Carbon::parse($dataRef)->format('d/m/Y'),
+                ];
+
+                return view('MoedasValores.consultar', compact('resultado', 'moeda', 'dataRef', 'fonte'));
+            }
+        }
+
+        // Fallback banco local
+        $registro = MoedasValores::where('idmoeda', $validated['moeda_id'])
+            ->whereDate('data', '<=', $dataRef)
+            ->orderBy('data', 'desc')
+            ->first();
+
+        if (!$registro) {
+            // Nenhum valor encontrado até a data informada
+            $resultado = [
+                'status' => 'error',
+                'mensagem' => 'Nenhum valor encontrado para a moeda até a data informada.',
+                'origem' => 'local',
+                'moeda_nome' => $moeda->nome,
+                'data_formatada' => \Carbon\Carbon::parse($dataRef)->format('d/m/Y'),
+            ];
+            return view('MoedasValores.consultar', compact('resultado', 'moeda', 'dataRef', 'fonte'));
+        }
+
+        // Passa mensagem com o valor encontrado
+        $mensagem = sprintf(
+            'Valor em %s (%s - base local): %s',
+            optional($registro->data)->format('d/m/Y'),
+            $registro->ValoresComMoeda->nome ?? 'Moeda',
+            number_format($registro->valor, 4, ',', '.')
+        );
+
+        $resultado = [
+            'status' => 'success',
+            'mensagem' => $mensagem,
+            'origem' => 'local',
+            'valor_formatado' => number_format($registro->valor, 4, ',', '.'),
+            'moeda_nome' => $registro->ValoresComMoeda->nome ?? $moeda->nome,
+            'data_formatada' => optional($registro->data)->format('d/m/Y'),
+        ];
+
+        return view('MoedasValores.consultar', compact('resultado', 'moeda', 'dataRef', 'fonte'));
     }
 
 

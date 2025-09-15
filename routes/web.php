@@ -859,6 +859,7 @@ Route::resource('RedeSocialUsuarios', App\Http\Controllers\RedeSocialUsuarioCont
 
     Route::resource('MoedasValores', App\Http\Controllers\MoedaValoresController::class);
     Route::post('Moedas/selecionar', [App\Http\Controllers\MoedaValoresController::class, 'selecionarMoeda'])->name('moedas.selecionar');
+    Route::post('Moedas/consultar-valor', [App\Http\Controllers\MoedaValoresController::class, 'consultarValor'])->name('moedas.consultarValor');
 
 #LANCAMENTO - DOCUMENTO
 // Route::get('Moedas/dashboard', [App\Http\Controllers\MoedaController::class, 'dashboard'])->name('moedas.dashboard');

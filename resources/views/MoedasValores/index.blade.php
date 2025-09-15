@@ -11,15 +11,6 @@
 
 
                 <div class="card-body">
-                    @if (session('success'))
-                        <div class="alert alert-success">
-                            {{ session('success') }}
-                        </div>
-                    @elseif (session('error'))
-                        <div class="alert alert-danger">
-                            {{ session('error') }}
-                        </div>
-                    @endif
 
                      <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                      <a class="btn btn-warning" href="/Moedas/dashboard">Retornar a lista de opções</a> </nav>
@@ -38,11 +29,11 @@
                 </div>
 
 
-                <h1>Selecione uma Moeda</h1>
+                <h1><span class="me-2" aria-hidden="true">🪙</span>Selecione uma Moeda</h1>
                 <form action="{{ route('moedas.selecionar') }}" method="POST">
                     @csrf
                     <label for="moeda">Moeda:</label>
-                    <select name="moeda_id" id="moeda">
+                    <select name="moeda_id" id="moeda" class="select2" style="width: 260px;">
                         @foreach ($moedas as $moeda)
                             {{-- <option value="{{ $moeda->id }}">{{ $moeda->nome }}</option> --}}
                             <option value="{{ $moeda->id }}"
@@ -52,8 +43,15 @@
                         @endforeach
                     </select>
 
+                    <label for="data_referencia" style="margin-left:16px;">Data referência:</label>
+                    <input type="date" id="data_referencia" name="data_referencia"
+                           value="{{ old('data_referencia', now()->toDateString()) }}">
 
-
+                    <label for="fonte" style="margin-left:16px;">Fonte:</label>
+                    <select name="fonte" id="fonte">
+                        <option value="api" {{ old('fonte', 'api') === 'api' ? 'selected' : '' }}>API (com fallback)</option>
+                        <option value="local" {{ old('fonte') === 'local' ? 'selected' : '' }}>Base local</option>
+                    </select>
 
 
                     <label for="ordem">Ordenar por Data:</label>
@@ -62,15 +60,28 @@
                         <option value="desc" {{ $ordem == 'desc' ? 'selected' : '' }}>Decrescente</option>
                     </select>
 
-                    
-
                     <button type="submit">Selecionar</button>
+                    <button type="submit" formaction="{{ route('moedas.consultarValor') }}" class="btn btn-info">
+                        Consultar valor (atual/anteriores)
+                    </button>
                 </form>
 
+                @if (session('success'))
+                    <div class="alert alert-success d-flex align-items-center mt-3 fw-bold border-2 border-success shadow-sm alert-dismissible fade show" role="alert">
+                        <span class="me-2" aria-hidden="true">✅</span>
+                        <div>{{ session('success') }}</div>
+                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+                @if (session('error'))
+                    <div class="alert alert-danger d-flex align-items-center mt-3 fw-bold border-2 border-danger shadow-sm alert-dismissible fade show" role="alert">
+                        <span class="me-2" aria-hidden="true">⚠️</span>
+                        <div>{{ session('error') }}</div>
+                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
 
 
-
-                <tbody>
                     <table class="table" style="background-color: rgb(247, 247, 213);">
                         <thead>
                             <tr>
