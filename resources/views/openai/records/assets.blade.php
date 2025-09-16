@@ -178,7 +178,16 @@
                 {{ $r->chat?->title ?? '—' }}
               </a>
             </td>
-            <td>{{ $r->occurred_at?->format('d/m/Y H:i:s') ?? '—' }}</td>
+            <td>
+              @php
+                $dt = $r->occurred_at ? $r->occurred_at->clone()->locale('pt_BR') : null;
+              @endphp
+              @if($dt)
+                {{ $dt->format('d/m/Y H:i:s') }} — {{ $dt->translatedFormat('l') }}
+              @else
+                —
+              @endif
+            </td>
             <td class="text-end">{{ number_format((float)$r->amount, 2, ',', '.') }}</td>
             <td>{{ $r->investmentAccount?->account_name ?? '—' }} @if($r->investmentAccount?->broker) <small class="text-muted">({{ $r->investmentAccount?->broker }})</small> @endif</td>
             <td class="text-center">{{ $counts[ $code ] ?? 1 }}</td>
