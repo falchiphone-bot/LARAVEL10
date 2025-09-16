@@ -12,6 +12,9 @@ class OpenAIChatAttachment extends Model
 
     protected $table = 'openai_chat_attachments';
 
+    // Deixe o SQL Server preencher created_at/updated_at via default (useCurrent/GETDATE())
+    public $timestamps = false;
+
     protected $fillable = [
         'chat_id',
         'user_id',
@@ -21,11 +24,17 @@ class OpenAIChatAttachment extends Model
         'mime_type',
         'size',
         'message_index',
-        'created_at',
-        'updated_at',
     ];
 
-    protected $dateFormat = 'Y-m-d H:i:s';
+    // Opcional: casts explícitos
+    protected $casts = [
+        'chat_id' => 'integer',
+        'user_id' => 'integer',
+        'size' => 'integer',
+        'message_index' => 'integer',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 
     public function chat(): BelongsTo
     {
