@@ -162,6 +162,14 @@
             @endisset
           </select>
         </div>
+        <div class="col-sm-5 col-md-3">
+          <div class="form-check mt-4">
+            <input class="form-check-input" type="checkbox" value="1" id="check_update" name="check_update">
+            <label class="form-check-label small" for="check_update">
+              CHECK: se já existir registro para esta conversa na mesma data, atualizar o valor em vez de criar um novo.
+            </label>
+          </div>
+        </div>
         <div class="col-sm-2 col-md-2">
           <button type="submit" class="btn btn-sm btn-success w-100">Adicionar</button>
         </div>
@@ -664,7 +672,6 @@
                     <span class="badge bg-{{ $cls }}">{{ ucfirst($o->type) }}</span>
                   </td>
                   <td class="text-end">{{ rtrim(rtrim(number_format((float)$o->quantity, 6, ',', '.'), '0'), ',') }}</td>
-                  <td>{{ $o->chat?->title ?? '—' }}</td>
                   <td class="text-end">
                     @if(!is_null($o->value))
                       {{ number_format((float)$o->value, 2, ',', '.') }}
@@ -672,10 +679,11 @@
                       —
                     @endif
                   </td>
+                  <td>{{ $o->chat?->title ?? '—' }}</td>
                   <td>
                     @php $cdt = $o->created_at ? $o->created_at->timezone(config('app.timezone')) : null; @endphp
                     @if($cdt)
-                      <span title="{{ $cdt->toIso8601String() }}">{{ $cdt->format('d/m/Y H:i:s') }}</span>
+                      <span title="{{ $cdt->format('d/m/Y H:i:s') }}">{{ $cdt->format('d/m/Y H:i:s') }}</span>
                     @else — @endif
                   </td>
                   <td class="text-center">
@@ -687,50 +695,7 @@
                     </form>
                   </td>
                 </tr>
-                <!-- Modal editar ordem -->
-                <div class="modal fade" id="editOrderModal_{{ $o->id }}" tabindex="-1" aria-hidden="true">
-                  <div class="modal-dialog">
-                    <div class="modal-content">
-                      <div class="modal-header">
-                        <h5 class="modal-title">Editar Ordem</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                      </div>
-                      <form method="POST" action="{{ route('openai.records.codeOrder.update', $o->id) }}">
-                        @csrf
-                        @method('PATCH')
-                        <div class="modal-body vstack gap-2">
-                          <div>
-                            <label class="form-label small mb-1">Código</label>
-                            @php $chatHasCode = $o->chat && $o->chat->code; @endphp
-                            <input type="text" name="code" class="form-control" value="{{ $chatHasCode ? $o->chat->code : $o->code }}" maxlength="50" {{ $chatHasCode ? 'readonly' : '' }}>
-                            @if($chatHasCode)
-                              <div class="form-text">Vinculado ao código da conversa.</div>
-                            @endif
-                          </div>
-                          <div>
-                            <label class="form-label small mb-1">Tipo</label>
-                            <select name="type" class="form-select" required>
-                              <option value="compra" {{ $o->type==='compra'?'selected':'' }}>Compra</option>
-                              <option value="venda" {{ $o->type==='venda'?'selected':'' }}>Venda</option>
-                            </select>
-                          </div>
-                          <div>
-                            <label class="form-label small mb-1">Quantidade</label>
-                            <input type="text" name="quantity" class="form-control" inputmode="decimal" value="{{ rtrim(rtrim(number_format((float)$o->quantity, 6, ',', '.'), '0'), ',') }}" required>
-                          </div>
-                          <div>
-                            <label class="form-label small mb-1">Valor</label>
-                            <input type="text" name="value" class="form-control mask-money-br" inputmode="decimal" value="{{ !is_null($o->value) ? number_format((float)$o->value, 2, ',', '.') : '' }}">
-                          </div>
-                        </div>
-                        <div class="modal-footer">
-                          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                          <button type="submit" class="btn btn-primary">Salvar</button>
-                        </div>
-                      </form>
-                    </div>
-                  </div>
-                </div>
+                @include('openai.partials.code_order_modal', ['order' => $o])
               @endforeach
             </tbody>
           </table>

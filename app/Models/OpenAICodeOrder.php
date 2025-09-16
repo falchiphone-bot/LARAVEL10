@@ -11,6 +11,10 @@ class OpenAICodeOrder extends Model
 
     protected $table = 'open_a_i_code_orders';
 
+    // SQL Server: evitar ambiguidade de DATEFORMAT usando ISO 8601 com 'T' literal
+    // e sem frações de segundo. (ex.: 2025-09-15T22:23:17)
+    protected $dateFormat = 'Y-m-d\\TH:i:s';
+
     protected $fillable = [
         'user_id', 'chat_id', 'code', 'type', 'quantity', 'value',
     ];

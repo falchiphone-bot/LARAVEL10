@@ -21,6 +21,9 @@ class OpenAIChatRecord extends Model
     'investment_account_id',
     ];
 
+    // Evita milissegundos em SQL Server nos timestamps created_at/updated_at.
+    protected $dateFormat = 'Y-m-d H:i:s';
+
     protected $casts = [
         'occurred_at' => 'datetime',
         'amount' => 'decimal:2',

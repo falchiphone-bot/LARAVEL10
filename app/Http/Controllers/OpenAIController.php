@@ -20,6 +20,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use App\Models\OpenAIChatAttachment;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 // Storage already imported above
 
 class OpenAIController extends Controller
@@ -37,6 +38,24 @@ class OpenAIController extends Controller
     $this->middleware(['permission:OPENAI - CHAT'])->only('chat', 'chats', 'saveChat', 'loadChat', 'updateChat', 'deleteChat', 'newChat', 'uploadAttachment', 'viewAttachment', 'downloadAttachment', 'deleteAttachment');
     $this->middleware(['permission:OPENAI - TRANSCRIBE - ESPANHOL'])->only('transcribe', 'transcribeStatus');
          $this->openAIService = $openAIService;
+    }
+
+    /**
+     * Converte número em formato BR (1.234,56) para string com ponto (1234.56).
+     * Mantém null/'' quando vazio.
+     */
+    protected function normalizeDecimal($val): ?string
+    {
+        if ($val === null) { return null; }
+        $s = trim((string) $val);
+        if ($s === '') { return null; }
+        // remove espaços e símbolos não numéricos exceto dígitos, ponto e vírgula
+        // primeiro, se tem vírgula como decimal, remove pontos de milhar
+        if (str_contains($s, ',')) {
+            $s = str_replace('.', '', $s);
+            $s = str_replace(',', '.', $s);
+        }
+        return $s;
     }
 
 
@@ -785,6 +804,12 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
      */
     public function storeCodeOrder(Request $request): RedirectResponse
     {
+        // Normaliza números em formato BR antes de validar
+        $request->merge([
+            'quantity' => $this->normalizeDecimal($request->input('quantity')),
+            'value'    => $this->normalizeDecimal($request->input('value')),
+        ]);
+
         $data = $request->validate([
             'chat_id' => 'nullable|integer|exists:open_a_i_chats,id',
             'code'    => 'nullable|string|max:50',
@@ -795,27 +820,10 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
             'type.in' => 'Tipo inválido.',
             'quantity.min' => 'Quantidade deve ser positiva.',
         ]);
-
-        // Normaliza quantidade (aceita vírgula como decimal)
-        $q = (string) $data['quantity'];
-        $q = trim($q);
-        if ($q !== '') {
-            if (str_contains($q, ',')) {
-                // formato BR: remove milhares e troca vírgula por ponto
-                $q = str_replace('.', '', $q);
-                $q = str_replace(',', '.', $q);
-            }
-        }
-        $quantity = ($q !== '') ? (float) $q : 0.0;
-        $val = isset($data['value']) ? (string) $data['value'] : '';
-        $val = trim($val);
-        if ($val !== '') {
-            if (str_contains($val, ',')) {
-                $val = str_replace('.', '', $val);
-                $val = str_replace(',', '.', $val);
-            }
-        }
-    $value = $val !== '' ? (float) $val : null;
+        $quantity = (float) $request->input('quantity');
+        $value = ($request->filled('value') && $request->input('value') !== null && $request->input('value') !== '')
+            ? (float) $request->input('value')
+            : null;
 
         $chatId = $data['chat_id'] ?? (int) $request->session()->get('openai_current_chat_id') ?: null;
         $codeProvided = trim((string) ($data['code'] ?? ''));
@@ -856,19 +864,33 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
     {
         if ((int)$order->user_id !== (int)Auth::id()) { abort(403); }
         $order->load(['chat:id,title,code']);
-        // Reutiliza a view de registros adicionando um modal de edição inline via anchor/hash
-        return redirect()->route('openai.records.index', ['chat_id' => $order->chat_id ?: null])->with('edit_order_id', $order->id);
+        // Reutiliza a listagem de ordens com modal inline e volta para Ordens
+        return redirect()->route('openai.orders.index', [
+            'chat_id' => $order->chat_id ?: null,
+        ])->with('edit_order_id', $order->id);
     }
 
     public function updateCodeOrder(Request $request, \App\Models\OpenAICodeOrder $order): RedirectResponse
     {
         if ((int)$order->user_id !== (int)Auth::id()) { abort(403); }
-        $data = $request->validate([
+        // Normaliza números BR antes de validar
+        $input = $request->all();
+        $input['quantity'] = $this->normalizeDecimal($request->input('quantity'));
+        $input['value'] = $this->normalizeDecimal($request->input('value'));
+
+        $validator = Validator::make($input, [
             'code'    => 'nullable|string|max:50',
             'type'    => 'required|in:compra,venda',
             'quantity'=> 'required|numeric|min:0.000001',
             'value'   => 'nullable|numeric|min:0',
         ]);
+        if ($validator->fails()) {
+            return back()
+                ->withErrors($validator)
+                ->withInput()
+                ->with('edit_order_id', $order->id);
+        }
+        $data = $validator->validated();
         $code = trim((string)($data['code'] ?? ''));
         if ($order->chat_id) {
             $chat = \App\Models\OpenAIChat::select('id','user_id','code')->find($order->chat_id);
@@ -877,26 +899,10 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
         if ($code === '') {
             return back()->with('error', 'Informe o código ou vincule a conversa.');
         }
-        $q = (string) $data['quantity'];
-        $q = trim($q);
-        if ($q !== '') {
-            if (str_contains($q, ',')) {
-                $q = str_replace('.', '', $q);
-                $q = str_replace(',', '.', $q);
-            }
-        }
         $order->code = $code;
         $order->type = $data['type'];
-    $order->quantity = (float)$q;
-        $val = isset($data['value']) ? (string) $data['value'] : '';
-        $val = trim($val);
-        if ($val !== '') {
-            if (str_contains($val, ',')) {
-                $val = str_replace('.', '', $val);
-                $val = str_replace(',', '.', $val);
-            }
-        }
-    $order->value = $val !== '' ? (float)$val : null;
+        $order->quantity = (float)$data['quantity'];
+        $order->value = (isset($data['value']) && $data['value'] !== null && $data['value'] !== '') ? (float)$data['value'] : null;
         $order->save();
         return back()->with('success', 'Ordem atualizada.');
     }
@@ -914,6 +920,8 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
         $chatId = (int) $request->input('chat_id');
         $code = trim((string)$request->input('code'));
         $type = $request->input('type');
+        $sort = $request->input('sort', 'created_at');
+        $dir = strtolower($request->input('dir','desc')) === 'asc' ? 'asc' : 'desc';
         // Subqueries para descobrir a primeira conta de investimento associada a registros do chat
         $subAccName = DB::table('openai_chat_records as r')
             ->join('investment_accounts as ia', 'ia.id', '=', 'r.investment_account_id')
@@ -941,18 +949,44 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
         if ($chatId > 0) { $q->where('chat_id', $chatId); }
         if ($code !== '') { $q->where('code','LIKE','%'.$code.'%'); }
         if (in_array($type, ['compra','venda'], true)) { $q->where('type',$type); }
-        $q->latest('created_at');
+        // Ordenação dinâmica segura
+        $allowed = [
+            'code' => 'code',
+            'type' => 'type',
+            'quantity' => 'quantity',
+            'value' => 'value',
+            'account' => 'derived_account_name',
+            'chat' => null, // dependerá de subselect
+            'created_at' => 'created_at',
+        ];
+        $orderKey = $allowed[$sort] ?? 'created_at';
+        if ($orderKey === 'created_at') {
+            $q->orderBy('created_at', $dir);
+        } elseif ($orderKey) {
+            $q->orderBy($orderKey, $dir);
+        } else {
+            // ordenar por título do chat via subselect
+            $q->orderByRaw('(SELECT title FROM open_a_i_chats WHERE open_a_i_chats.id = open_a_i_code_orders.chat_id) ' . $dir);
+        }
         $orders = $q->paginate(25)->appends(array_filter([
             'chat_id' => $chatId ?: null,
             'code' => $code ?: null,
             'type' => in_array($type,['compra','venda'],true)?$type:null,
+            'sort' => $sort !== 'created_at' ? $sort : null,
+            'dir' => ($dir !== 'desc') ? $dir : null,
         ]));
-        $chats = \App\Models\OpenAIChat::where('user_id', Auth::id())->orderBy('title')->get(['id','title','code']);
+        // Chats somente do tipo "BOLSA DE VALORES AMERICANA" (mesmo filtro dos Registros)
+        $chats = \App\Models\OpenAIChat::where('user_id', Auth::id())
+            ->whereHas('type', function($q){
+                $q->whereRaw('UPPER(name) = ?', ['BOLSA DE VALORES AMERICANA']);
+            })
+            ->orderBy('title')
+            ->get(['id','title','code']);
         // Fallback: primeira conta do usuário (se existir)
         $firstUserAccount = \App\Models\InvestmentAccount::where('user_id', Auth::id())
             ->orderBy('id', 'asc')
             ->first(['id','account_name','broker']);
-        return view('openai.orders.index', compact('orders','chats','chatId','code','type','firstUserAccount'));
+        return view('openai.orders.index', compact('orders','chats','chatId','code','type','firstUserAccount','sort','dir'));
     }
 
     /**

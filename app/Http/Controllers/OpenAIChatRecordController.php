@@ -162,8 +162,13 @@ class OpenAIChatRecordController extends Controller
             ]));
         }
 
-        // Dados auxiliares
-        $chats = OpenAIChat::where('user_id', Auth::id())->orderBy('title')->get(['id','title','code']);
+        // Dados auxiliares - chats somente do tipo "BOLSA DE VALORES AMERICANA"
+        $chats = OpenAIChat::where('user_id', Auth::id())
+            ->whereHas('type', function($q){
+                $q->whereRaw('UPPER(name) = ?', ['BOLSA DE VALORES AMERICANA']);
+            })
+            ->orderBy('title')
+            ->get(['id','title','code']);
         $selectedChat = null;
         if ($chatId > 0) {
             $selectedChat = $chats->firstWhere('id', $chatId);
@@ -212,8 +217,53 @@ class OpenAIChatRecordController extends Controller
             $invId = (int)$validated['investment_account_id'];
         }
 
-        // Inserção compatível com SQL Server (formatando datetime e usando SYSUTCDATETIME)
+        // Modo CHECK: se ativado, atualizar se já existir registro do mesmo chat na mesma data; senão, criar novo
+        $checkUpdate = $request->boolean('check_update');
         $driver = DB::getDriverName();
+        $dateOnly = $occurredAt->format('Y-m-d');
+
+        if ($checkUpdate) {
+            // Busca por registro existente do mesmo chat e mesma data (ignorando hora)
+            if ($driver === 'sqlsrv') {
+                $existing = OpenAIChatRecord::where('chat_id', $chat->id)
+                    ->whereRaw("CONVERT(date, occurred_at) = ?", [$dateOnly])
+                    ->orderByDesc('occurred_at')
+                    ->first();
+            } else {
+                $existing = OpenAIChatRecord::where('chat_id', $chat->id)
+                    ->whereDate('occurred_at', $dateOnly)
+                    ->orderByDesc('occurred_at')
+                    ->first();
+            }
+
+            if ($existing) {
+                // Atualiza apenas o amount e opcionalmente a occurred_at para a nova hora informada
+                if ($driver === 'sqlsrv') {
+                    DB::table('openai_chat_records')->where('id', $existing->id)->update([
+                        'amount' => $validated['amount'],
+                        'occurred_at' => $occurredAt->format('Y-m-d H:i:s'),
+                        'investment_account_id' => $invId,
+                        'updated_at' => DB::raw('SYSUTCDATETIME()'),
+                    ]);
+                } else {
+                    $existing->amount = $validated['amount'];
+                    $existing->occurred_at = $occurredAt;
+                    $existing->investment_account_id = $invId;
+                    $existing->save();
+                }
+
+                // Memoriza última conta de investimento usada (se informada)
+                if ($invId) {
+                    session(['last_investment_account_id' => $invId]);
+                }
+
+                return redirect()->route('openai.records.index', [
+                    'chat_id' => $chat->id,
+                ])->with('success', 'Registro atualizado (CHECK ativo).');
+            }
+        }
+
+        // Caso não haja CHECK ou não exista registro na data, inserir novo
         if ($driver === 'sqlsrv') {
             DB::table('openai_chat_records')->insert([
                 'chat_id' => $chat->id,
@@ -259,7 +309,13 @@ class OpenAIChatRecordController extends Controller
         if ((int)$record->user_id !== (int)Auth::id()) {
             abort(403);
         }
-        $chats = OpenAIChat::where('user_id', Auth::id())->orderBy('title')->get(['id','title','code']);
+        // Apenas chats do tipo "BOLSA DE VALORES AMERICANA"
+        $chats = OpenAIChat::where('user_id', Auth::id())
+            ->whereHas('type', function($q){
+                $q->whereRaw('UPPER(name) = ?', ['BOLSA DE VALORES AMERICANA']);
+            })
+            ->orderBy('title')
+            ->get(['id','title','code']);
         $investmentAccounts = \App\Models\InvestmentAccount::where('user_id', Auth::id())
             ->orderByDesc('date')->orderBy('account_name')
             ->get(['id','account_name','broker','date']);

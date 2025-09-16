@@ -18,6 +18,11 @@
   @if(session('error'))
     <div class="alert alert-danger py-2">{{ session('error') }}</div>
   @endif
+  @if($errors->any())
+    <div class="alert alert-danger py-2">
+      {{ $errors->first() }}
+    </div>
+  @endif
 
   <div class="card shadow-sm mb-4">
     <div class="card-body">
@@ -58,14 +63,40 @@
   <div class="table-responsive">
     <table class="table table-sm table-bordered align-middle">
       <thead class="table-dark">
+        @php
+          $flip = fn($c) => (($sort ?? 'created_at') === $c && ($dir ?? 'desc')==='asc') ? 'desc' : 'asc';
+          $icon = function($c) use ($sort,$dir){
+            if(($sort ?? 'created_at') !== $c) return '↕';
+            return (($dir ?? 'desc')==='asc') ? '↑' : '↓';
+          };
+          $base = array_filter([
+            'chat_id' => $chatId ?: null,
+            'code' => $code ?: null,
+            'type' => ($type ?? null) && in_array($type,['compra','venda'],true) ? $type : null,
+          ]);
+        @endphp
         <tr>
-          <th style="width:18%">Código</th>
-          <th style="width:12%">Tipo</th>
-          <th style="width:14%" class="text-end">Quantidade</th>
-          <th style="width:14%" class="text-end">Valor</th>
-          <th style="width:22%">Conta</th>
-          <th>Conversa</th>
-          <th style="width:18%">Criado em</th>
+          <th style="width:18%" class="{{ (($sort ?? 'created_at') === 'code') ? 'active-sort' : '' }}">
+            <a class="text-decoration-none text-light" href="{{ route('openai.orders.index', array_merge($base,['sort'=>'code','dir'=>$flip('code')])) }}">Código {{ $icon('code') }}</a>
+          </th>
+          <th style="width:12%" class="{{ (($sort ?? 'created_at') === 'type') ? 'active-sort' : '' }}">
+            <a class="text-decoration-none text-light" href="{{ route('openai.orders.index', array_merge($base,['sort'=>'type','dir'=>$flip('type')])) }}">Tipo {{ $icon('type') }}</a>
+          </th>
+          <th style="width:14%" class="text-end {{ (($sort ?? 'created_at') === 'quantity') ? 'active-sort' : '' }}">
+            <a class="text-decoration-none text-light" href="{{ route('openai.orders.index', array_merge($base,['sort'=>'quantity','dir'=>$flip('quantity')])) }}">Quantidade {{ $icon('quantity') }}</a>
+          </th>
+          <th style="width:14%" class="text-end {{ (($sort ?? 'created_at') === 'value') ? 'active-sort' : '' }}">
+            <a class="text-decoration-none text-light" href="{{ route('openai.orders.index', array_merge($base,['sort'=>'value','dir'=>$flip('value')])) }}">Valor {{ $icon('value') }}</a>
+          </th>
+          <th style="width:22%" class="{{ (($sort ?? 'created_at') === 'account') ? 'active-sort' : '' }}">
+            <a class="text-decoration-none text-light" href="{{ route('openai.orders.index', array_merge($base,['sort'=>'account','dir'=>$flip('account')])) }}">Conta {{ $icon('account') }}</a>
+          </th>
+          <th class="{{ (($sort ?? 'created_at') === 'chat') ? 'active-sort' : '' }}">
+            <a class="text-decoration-none text-light" href="{{ route('openai.orders.index', array_merge($base,['sort'=>'chat','dir'=>$flip('chat')])) }}">Conversa {{ $icon('chat') }}</a>
+          </th>
+          <th style="width:18%" class="{{ (($sort ?? 'created_at') === 'created_at') ? 'active-sort' : '' }}">
+            <a class="text-decoration-none text-light" href="{{ route('openai.orders.index', array_merge($base,['sort'=>'created_at','dir'=>$flip('created_at')])) }}">Criado em {{ $icon('created_at') }}</a>
+          </th>
           <th style="width:16%" class="text-center">Ações</th>
         </tr>
       </thead>
@@ -101,12 +132,12 @@
             <td>
               @php $cdt = $o->created_at ? $o->created_at->timezone(config('app.timezone')) : null; @endphp
               @if($cdt)
-                <span title="{{ $cdt->toIso8601String() }}">{{ $cdt->format('d/m/Y H:i:s') }}</span>
+                <span title="{{ $cdt->format('d/m/Y H:i:s') }}">{{ $cdt->format('d/m/Y H:i') }}</span>
               @else — @endif
             </td>
             <td class="text-center">
               <a href="{{ route('openai.records.index', ['chat_id' => $o->chat_id]) }}" class="btn btn-sm btn-outline-secondary">Registros</a>
-              <a href="{{ route('openai.records.codeOrder.edit', $o->id) }}" class="btn btn-sm btn-outline-primary">Editar</a>
+              <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editOrderModal_{{ $o->id }}">Editar</button>
               <form action="{{ route('openai.records.codeOrder.destroy', $o->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Excluir esta ordem?');">
                 @csrf
                 @method('DELETE')
@@ -114,6 +145,7 @@
               </form>
             </td>
           </tr>
+          @include('openai.partials.code_order_modal', ['order' => $o])
         @empty
           <tr><td colspan="8" class="text-center text-muted">Nenhuma ordem.</td></tr>
         @endforelse
@@ -129,4 +161,19 @@
 
 @push('scripts')
 <!-- Componente x-market.badge já inclui script de status/toggle -->
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const editId = @json(session('edit_order_id'));
+  if (editId) {
+    const modalEl = document.getElementById('editOrderModal_' + editId);
+    if (modalEl && window.bootstrap) {
+      const modal = new bootstrap.Modal(modalEl);
+      modal.show();
+    } else if (modalEl) { // fallback
+      modalEl.classList.add('show');
+      modalEl.style.display = 'block';
+    }
+  }
+});
+</script>
 @endpush
