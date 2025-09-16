@@ -995,6 +995,7 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     Route::get('/openai/records/code-order/{order}/edit', [OpenAIController::class, 'editCodeOrder'])->name('openai.records.codeOrder.edit');
     Route::match(['put','patch'],'/openai/records/code-order/{order}', [OpenAIController::class, 'updateCodeOrder'])->name('openai.records.codeOrder.update');
     Route::delete('/openai/records/code-order/{order}', [OpenAIController::class, 'destroyCodeOrder'])->name('openai.records.codeOrder.destroy');
+    Route::post('/openai/records/code-order/{order}/refresh-quote', [OpenAIController::class, 'refreshOrderQuote'])->name('openai.records.codeOrder.refreshQuote');
     // View dedicada das ordens
     Route::get('/openai/orders', [OpenAIController::class, 'ordersIndex'])->name('openai.orders.index');
 

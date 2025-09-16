@@ -17,6 +17,11 @@ class OpenAICodeOrder extends Model
 
     protected $fillable = [
         'user_id', 'chat_id', 'code', 'type', 'quantity', 'value',
+        'quote_value', 'quote_updated_at',
+    ];
+
+    protected $casts = [
+        'quote_updated_at' => 'datetime:Y-m-d\TH:i:s',
     ];
 
     public function chat()

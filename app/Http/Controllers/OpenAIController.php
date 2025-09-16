@@ -914,6 +914,48 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
         return back()->with('success', 'Ordem excluída.');
     }
 
+    /**
+     * Atualiza e persiste a última cotação para a ordem (usando o code da ordem).
+     */
+    public function refreshOrderQuote(\App\Models\OpenAICodeOrder $order): RedirectResponse
+    {
+        if ((int)$order->user_id !== (int)Auth::id()) { abort(403); }
+        // Garante que as colunas existem (em ambientes sem migrate ainda)
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('open_a_i_code_orders', 'quote_value') ||
+            !\Illuminate\Support\Facades\Schema::hasColumn('open_a_i_code_orders', 'quote_updated_at')) {
+            return back()->with('error', 'Colunas de cotação ausentes. Execute as migrations (php artisan migrate).');
+        }
+        $code = trim((string) $order->code);
+        if ($order->chat_id) {
+            $chat = \App\Models\OpenAIChat::select('id','user_id','code')->find($order->chat_id);
+            if ($chat && $chat->code) { $code = (string) $chat->code; }
+        }
+        if ($code === '') {
+            return back()->with('error', 'Código ausente para consultar cotação.');
+        }
+        try {
+            $svc = app(\App\Services\MarketDataService::class);
+            $q = $svc->getQuote(strtoupper($code));
+            if (!$q || ($q['price'] ?? null) === null) {
+                return back()->with('error', 'Sem dados de cotação no momento.');
+            }
+            // Atualiza diretamente no banco para evitar conflitos de cast com Expression
+            \Illuminate\Support\Facades\DB::table('open_a_i_code_orders')
+                ->where('id', $order->id)
+                ->where('user_id', Auth::id())
+                ->update([
+                    'quote_value' => (float)$q['price'],
+                    'quote_updated_at' => \Illuminate\Support\Facades\DB::raw('GETDATE()'),
+                    'updated_at' => \Illuminate\Support\Facades\DB::raw('GETDATE()'),
+                ]);
+            // Recarrega instância para refletir valores na view
+            $order->refresh();
+            return back()->with('success', 'Cotação atualizada.');
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Falha ao atualizar cotação: '.$e->getMessage());
+        }
+    }
+
     public function ordersIndex(Request $request)
     {
         $this->middleware('auth');
