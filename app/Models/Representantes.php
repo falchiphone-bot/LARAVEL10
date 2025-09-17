@@ -2,6 +2,7 @@
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Representantes extends Model
 {
@@ -30,6 +31,30 @@ class Representantes extends Model
     public function MostraEmpresa(): HasOne
     {
         return $this->hasOne(Empresa::class, 'id', 'EmpresaID');
+    }
+
+    /**
+     * Acessor/Mutator para CPF: trata string vazia como null na leitura e
+     * evita gravar NULL em coluna NOT NULL (usa string vazia) na escrita.
+     */
+    protected function cpf(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => ($value === '' ? null : $value),
+            set: fn ($value) => ($value === null ? '' : $value),
+        );
+    }
+
+    /**
+     * Acessor/Mutator para CNPJ: trata string vazia como null na leitura e
+     * evita gravar NULL em coluna NOT NULL (usa string vazia) na escrita.
+     */
+    protected function cnpj(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => ($value === '' ? null : $value),
+            set: fn ($value) => ($value === null ? '' : $value),
+        );
     }
 
 

@@ -1,6 +1,27 @@
 @csrf
 <div class="card">
     <div class="card-body">
+        @if($model->MostraEmpresa)
+            <div class="alert alert-info mb-3">
+                Empresa atual: <strong>{{ $model->MostraEmpresa->Descricao }}</strong> (ID: {{ $model->EmpresaID }})
+            </div>
+        @endif
+        @can('EMPRESAS - EDITAR')
+            <div class="mb-3">
+                <label for="EmpresaID" class="form-label">Alterar empresa</label>
+                <select class="form-control select2 @error('EmpresaID') is-invalid @else is-valid @enderror" id="EmpresaID" name="EmpresaID">
+                    <option value="">(Manter atual)</option>
+                    @foreach(($empresas ?? []) as $empresa)
+                        <option value="{{ $empresa->ID }}" @selected(old('EmpresaID', $model->EmpresaID) == $empresa->ID)>
+                            {{ $empresa->Descricao }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('EmpresaID')
+                    <div class="alert alert-danger">{{ $message }}</div>
+                @enderror
+            </div>
+        @endcan
         @if (session('success'))
             <div class="alert alert-success">
                 {{ session('success') }}
@@ -16,11 +37,14 @@
         <div class="row">
             <div class="col-6">
                 <label for="cpf">CPF</label>
-                <input required class="form-control @error('cpf') is-invalid @else is-valid @enderror" name="cpf"
+                <input class="form-control @error('cpf') is-invalid @else is-valid @enderror" name="cpf"
                     type="text" id="cpf" value="{{ $model->cpf ?? null }}">
                 @error('cpf')
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
+                @can('REPRESENTANTES - LIMPA CAMPO CPF')
+                    <small class="form-text text-muted">Deixe em branco para limpar o CPF.</small>
+                @endcan
 
                 @can('REPRESENTANTES - LIBERA VALIDAR CPF')
                     <input type="checkbox" name="liberacpf" value="1">
@@ -41,6 +65,9 @@
                 @error('cnpj')
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
+                @can('REPRESENTANTES - LIMPA CAMPO CNPJ')
+                    <small class="form-text text-muted">Deixe em branco para limpar o CNPJ.</small>
+                @endcan
 
                 @can('REPRESENTANTES - LIBERA VALIDAR CNPJ')
                     <input type="checkbox" name="liberacnpj" value="1">
@@ -65,7 +92,7 @@
 
             <div class="col-6">
                 <label for="email">Email</label>
-                <input required class="form-control @error('email') is-invalid @else is-valid @enderror" name="email"
+                <input class="form-control @error('email') is-invalid @else is-valid @enderror" name="email"
                     type="text" id="email" value="{{ $model->email ?? null }}">
                 @error('email')
                     <div class="alert alert-danger">{{ $message }}</div>
@@ -74,7 +101,7 @@
 
             <div class="col-6">
                 <label for="telefone">Telefone</label>
-                <input required class="form-control @error('telefone') is-invalid @else is-valid @enderror"
+                <input class="form-control @error('telefone') is-invalid @else is-valid @enderror"
                     name="telefone" type="text" id="telefone" value="{{ $model->telefone ?? null }}">
                 @error('telefone')
                     <div class="alert alert-danger">{{ $message }}</div>

@@ -35,15 +35,49 @@
                     <a class="btn btn-warning" href="/Cadastros">Retornar a lista de opções</a>
                 </nav>
 
+                <div class="d-flex align-items-center justify-content-between my-2">
+                    <div>
+                        <label for="quick_empresa_id" class="form-label me-2">Filtro rápido: Empresa</label>
+                        <select id="quick_empresa_id" class="form-select select2 d-inline-block" style="width:auto; min-width: 260px;">
+                            <option value="">Todas</option>
+                            @foreach(($empresas ?? []) as $empresa)
+                                <option value="{{ $empresa->ID }}" {{ (string)request('empresa_id') === (string)$empresa->ID ? 'selected' : '' }}>
+                                    {{ $empresa->Descricao }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <button type="button" id="quick_clear_empresa" class="btn btn-outline-secondary ms-2">
+                            Limpar filtro rápido
+                        </button>
+                    </div>
+                </div>
+
                 <div class="card-header">
                     <div class="badge bg-info text-wrap" style="width: 100%;font-size: 24px;text-align: center;">
                         <p>Total de representantes cadastrados no sistema de gerenciamento administrativo e contábil:
                             {{ $total ?? ($model->count() ?? 0) }}</p>
                     </div>
+                    @if(request('empresa_id'))
+                        @php($empresaSelecionada = ($empresas ?? collect())->firstWhere('ID', (int)request('empresa_id')))
+                        <div class="alert alert-secondary mt-2" role="alert">
+                            Empresa filtrada: <strong>{{ $empresaSelecionada->Descricao ?? ('ID: '.request('empresa_id')) }}</strong>
+                        </div>
+                    @endif
                 </div>
 
                 <form method="GET" action="{{ route('Representantes.index') }}" class="mb-3">
                     <div class="row g-2 align-items-end">
+                        <div class="col-12 col-md-3">
+                            <label class="form-label">Empresa</label>
+                            <select name="empresa_id" class="form-select select2">
+                                <option value="">Todas</option>
+                                @foreach(($empresas ?? []) as $empresa)
+                                    <option value="{{ $empresa->ID }}" {{ (string)request('empresa_id') === (string)$empresa->ID ? 'selected' : '' }}>
+                                        {{ $empresa->Descricao }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                         <div class="col-12 col-md-3">
                             <label class="form-label">Nome</label>
                             <input type="text" name="nome" value="{{ request('nome') }}" class="form-control" placeholder="Buscar por nome">
@@ -124,7 +158,12 @@
                         <th scope="col" class="px-6 py-4">CNPJ</th>
 
 
-                        <th scope="col" class="px-6 py-4">CLUBE</th>
+                        <th scope="col" class="px-6 py-4">
+                            @php($isCol = request('sort')==='empresa')
+                            <a href="{{ route('Representantes.index', array_merge(request()->except(['page']), ['sort' => 'empresa', 'dir' => request('dir')==='asc' && request('sort')==='empresa' ? 'desc' : 'asc'])) }}">
+                                EMPRESA {!! $isCol ? (request('dir')==='desc' ? '▼' : '▲') : '' !!}
+                            </a>
+                        </th>
                         <th scope="col" class="px-6 py-4">
                             @php($isCol = request('sort')==='agente_fifa')
                             <a href="{{ route('Representantes.index', array_merge(request()->except(['page']), ['sort' => 'agente_fifa', 'dir' => request('dir')==='asc' && request('sort')==='agente_fifa' ? 'desc' : 'asc'])) }}">
@@ -166,27 +205,45 @@
                                 {{ $Model->cnpj }}
                             </td>
                             <td class="">
-                                {{ $Model->MostraEmpresa->Descricao }}
+                                @if($Model->EmpresaID)
+                                    <a href="{{ route('Representantes.index', array_merge(request()->except(['page']), ['empresa_id' => $Model->EmpresaID])) }}">
+                                        {{ $Model->MostraEmpresa->Descricao ?? '' }}
+                                    </a>
+                                @else
+                                    {{ $Model->MostraEmpresa->Descricao ?? '' }}
+                                @endif
                             </td>
                             <td class="">
                                 @if ($Model->agente_fifa)
-                                    <span class="badge bg-success">SIM</span>
+                                    <a href="{{ route('Representantes.index', array_merge(request()->except(['page']), ['agente_fifa' => '1'])) }}" class="text-decoration-none">
+                                        <span class="badge bg-success" title="Filtrar Agente FIFA = SIM">SIM</span>
+                                    </a>
                                 @else
-                                    <span class="badge bg-secondary">NÃO</span>
+                                    <a href="{{ route('Representantes.index', array_merge(request()->except(['page']), ['agente_fifa' => '0'])) }}" class="text-decoration-none">
+                                        <span class="badge bg-secondary" title="Filtrar Agente FIFA = NÃO">NÃO</span>
+                                    </a>
                                 @endif
                             </td>
                             <td class="">
                                 @if ($Model->oficial_cbf)
-                                    <span class="badge bg-success">SIM</span>
+                                    <a href="{{ route('Representantes.index', array_merge(request()->except(['page']), ['oficial_cbf' => '1'])) }}" class="text-decoration-none">
+                                        <span class="badge bg-success" title="Filtrar Oficial CBF = SIM">SIM</span>
+                                    </a>
                                 @else
-                                    <span class="badge bg-secondary">NÃO</span>
+                                    <a href="{{ route('Representantes.index', array_merge(request()->except(['page']), ['oficial_cbf' => '0'])) }}" class="text-decoration-none">
+                                        <span class="badge bg-secondary" title="Filtrar Oficial CBF = NÃO">NÃO</span>
+                                    </a>
                                 @endif
                             </td>
                             <td class="">
                                 @if ($Model->sem_registro)
-                                    <span class="badge bg-success">SIM</span>
+                                    <a href="{{ route('Representantes.index', array_merge(request()->except(['page']), ['sem_registro' => '1'])) }}" class="text-decoration-none">
+                                        <span class="badge bg-success" title="Filtrar Sem registro = SIM">SIM</span>
+                                    </a>
                                 @else
-                                    <span class="badge bg-secondary">NÃO</span>
+                                    <a href="{{ route('Representantes.index', array_merge(request()->except(['page']), ['sem_registro' => '0'])) }}" class="text-decoration-none">
+                                        <span class="badge bg-secondary" title="Filtrar Sem registro = NÃO">NÃO</span>
+                                    </a>
                                 @endif
                             </td>
                             @can('REPRESENTANTES - EDITAR')
@@ -236,6 +293,27 @@
     <script>
         $(document).ready(function() {
             $('.select2').select2();
+            $('#quick_empresa_id').on('change', function(){
+                const base = '{{ route('Representantes.index') }}';
+                const params = new URLSearchParams(window.location.search);
+                if (this.value) {
+                    params.set('empresa_id', this.value);
+                } else {
+                    params.delete('empresa_id');
+                }
+                params.delete('page');
+                window.location = base + '?' + params.toString();
+            });
+            $('#quick_clear_empresa').on('click', function(){
+                const base = '{{ route('Representantes.index') }}';
+                const params = new URLSearchParams(window.location.search);
+                params.delete('empresa_id');
+                params.delete('page');
+                // Resetar select visualmente
+                const $sel = $('#quick_empresa_id');
+                $sel.val('').trigger('change.select2');
+                window.location = base + '?' + params.toString();
+            });
         });
 
         $('form').submit(function(e) {

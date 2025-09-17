@@ -133,6 +133,8 @@
                             @endcan
                         </tr>
 
+
+
                         <tr>
 
                             @can('ENERGIAINJETADA - DASHBOARD')
@@ -255,24 +257,83 @@
                             </tr>
                         @endcan
 
-                        @can('FUNCAOPROFISSIONAL - LISTAR')
+                        @can('CADASTROS - LISTAR')
                             <tr>
                                 <th>
-
-                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                        <a class="btn btn-primary" href="/FuncaoProfissional">Função profissional</a>
-                                    </nav>
-
-                                </th>
-                            </tr>
-                        @endcan
-
-                        @can('CATEGORIAS - LISTAR')
-                            <tr>
-                                <th>
-                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                        <a class="btn btn-primary" href="/Categorias">Categorias</a>
-                                    </nav>
+                                    <div class="card mb-2" style="background-color: hsla(234, 92%, 47%, 0.04);">
+                                        <div class="card-header">Cadastros</div>
+                                        <div class="card-body">
+                                            @php(
+                                                $counts = [
+                                                    'representantes' => \App\Models\Representantes::count(),
+                                                    'preparadores' => class_exists(\App\Models\Preparadores::class) ? \App\Models\Preparadores::count() : null,
+                                                    'funcao' => class_exists(\App\Models\FuncaoProfissional::class) ? \App\Models\FuncaoProfissional::count() : null,
+                                                    'categorias' => class_exists(\App\Models\Categorias::class) ? \App\Models\Categorias::count() : null,
+                                                    'posicoes' => class_exists(\App\Models\Posicoes::class) ? \App\Models\Posicoes::count() : null,
+                                                    'tipoarquivo' => class_exists(\App\Models\TipoArquivo::class) ? \App\Models\TipoArquivo::count() : null,
+                                                    'tipoesporte' => class_exists(\App\Models\TipoEsporte::class) ? \App\Models\TipoEsporte::count() : null,
+                                                ]
+                                            )
+                                            <div class="d-flex flex-wrap gap-2">
+                                                @can('REPRESENTANTES - LISTAR')
+                                                    <a class="btn btn-primary" href="/Representantes">
+                                                        Representantes
+                                                        @isset($counts['representantes'])
+                                                            <span class="badge bg-light text-dark ms-1">{{ $counts['representantes'] }}</span>
+                                                        @endisset
+                                                    </a>
+                                                @endcan
+                                                @can('PREPARADORES - LISTAR')
+                                                    <a class="btn btn-primary" href="/Preparadores">
+                                                        Preparadores
+                                                        @isset($counts['preparadores'])
+                                                            <span class="badge bg-light text-dark ms-1">{{ $counts['preparadores'] }}</span>
+                                                        @endisset
+                                                    </a>
+                                                @endcan
+                                                @can('FUNCAOPROFISSIONAL - LISTAR')
+                                                    <a class="btn btn-primary" href="/FuncaoProfissional">
+                                                        Função profissional
+                                                        @isset($counts['funcao'])
+                                                            <span class="badge bg-light text-dark ms-1">{{ $counts['funcao'] }}</span>
+                                                        @endisset
+                                                    </a>
+                                                @endcan
+                                                @can('CATEGORIAS - LISTAR')
+                                                    <a class="btn btn-primary" href="/Categorias">
+                                                        Categorias
+                                                        @isset($counts['categorias'])
+                                                            <span class="badge bg-light text-dark ms-1">{{ $counts['categorias'] }}</span>
+                                                        @endisset
+                                                    </a>
+                                                @endcan
+                                                @can('POSICOES - LISTAR')
+                                                    <a class="btn btn-primary" href="/Posicoes">
+                                                        Posições
+                                                        @isset($counts['posicoes'])
+                                                            <span class="badge bg-light text-dark ms-1">{{ $counts['posicoes'] }}</span>
+                                                        @endisset
+                                                    </a>
+                                                @endcan
+                                                @can('TIPOARQUIVO - LISTAR')
+                                                    <a class="btn btn-primary" href="/TipoArquivo">
+                                                        Tipo de Arquivo
+                                                        @isset($counts['tipoarquivo'])
+                                                            <span class="badge bg-light text-dark ms-1">{{ $counts['tipoarquivo'] }}</span>
+                                                        @endisset
+                                                    </a>
+                                                @endcan
+                                                @can('TIPOESPORTE - LISTAR')
+                                                    <a class="btn btn-primary" href="/TipoEsporte">
+                                                        Tipo de Esporte
+                                                        @isset($counts['tipoesporte'])
+                                                            <span class="badge bg-light text-dark ms-1">{{ $counts['tipoesporte'] }}</span>
+                                                        @endisset
+                                                    </a>
+                                                @endcan
+                                            </div>
+                                        </div>
+                                    </div>
                                 </th>
                             </tr>
                         @endcan
@@ -340,17 +401,7 @@
                             </tr>
                         @endcan
 
-                        @can('CADASTROS - LISTAR')
-                        <tr>
-                            <th>
 
-                                <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                    <a class="btn btn-primary" href="/Cadastros">Cadastros</a>
-                                </nav>
-
-                            </th>
-                        </tr>
-                    @endcan
 
 
 

@@ -5,6 +5,7 @@ namespace App\Exports;
 use App\Models\Representantes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -22,9 +23,21 @@ class RepresentantesExport implements FromQuery, WithHeadings, WithMapping
     {
         $request = new Request($this->filters);
 
-        $query = Representantes::join('Contabilidade.EmpresasUsuarios', 'Representantes.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
-            ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
-            ->select('Representantes.*');
+        $empresaIds = DB::table('Contabilidade.EmpresasUsuarios')
+            ->where('UsuarioID', Auth::id())
+            ->pluck('EmpresaID');
+
+        $query = Representantes::query()
+            ->whereIn('EmpresaID', $empresaIds)
+            ->with('MostraEmpresa')
+            ->select('representantes.*');
+        // Filtro por empresa específica
+        if ($request->filled('empresa_id')) {
+            $empresaIdReq = (int)$request->input('empresa_id');
+            if ($empresaIds->contains($empresaIdReq)) {
+                $query->where('EmpresaID', $empresaIdReq);
+            }
+        }
 
         if ($request->filled('nome')) {
             $query->where('Representantes.nome', 'like', '%' . trim($request->input('nome')) . '%');
@@ -58,12 +71,13 @@ class RepresentantesExport implements FromQuery, WithHeadings, WithMapping
 
     public function headings(): array
     {
-        return ['Nome', 'Telefone', 'Email', 'CPF', 'CNPJ', 'Agente FIFA', 'Oficial CBF', 'Sem registro'];
+    return ['Empresa', 'Nome', 'Telefone', 'Email', 'CPF', 'CNPJ', 'Agente FIFA', 'Oficial CBF', 'Sem registro'];
     }
 
     public function map($row): array
     {
         return [
+            optional($row->MostraEmpresa)->Descricao,
             $row->nome,
             $row->telefone,
             $row->email,

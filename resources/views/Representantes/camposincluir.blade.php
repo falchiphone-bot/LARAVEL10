@@ -14,6 +14,21 @@
         @endif
 
         <div class="form-group">
+            <label for="EmpresaID">Empresa</label>
+            <select required class="form-control select2 @error('EmpresaID') is-invalid @else is-valid @enderror" id="EmpresaID" name="EmpresaID">
+                <option value="">Selecione a empresa</option>
+                @foreach(($empresas ?? []) as $empresa)
+                    <option value="{{ $empresa->ID }}" @selected(old('EmpresaID', session('EmpresaID')) == $empresa->ID)>
+                        {{ $empresa->Descricao }}
+                    </option>
+                @endforeach
+            </select>
+            @error('EmpresaID')
+                <div class="alert alert-danger">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="form-group">
             <label for="cpf">CPF</label>
             <input required class="form-control @error('cpf') is-invalid @else is-valid @enderror" name="cpf"
                 type="text" id="cpf" value="{{ $model->cpf ?? null }}">
@@ -112,11 +127,14 @@
     </div>
 </div>
 @push('scripts')
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.6/jquery.inputmask.min.js"></script>
 
     <script>
         $(document).ready(function() {
+            $('.select2').select2();
             $('#cpf').inputmask('999.999.999-99', {
                 clearMaskOnLostFocus: false
             });
