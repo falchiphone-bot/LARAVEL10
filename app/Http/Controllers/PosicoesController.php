@@ -12,6 +12,9 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Session;
+use App\Exports\PosicoesExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 
 class PosicoesController extends Controller
@@ -19,7 +22,7 @@ class PosicoesController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware(['permission:POSICOES - LISTAR'])->only('index');
+        $this->middleware(['permission:POSICOES - LISTAR'])->only(['index','export','exportXlsx']);
         $this->middleware(['permission:POSICOES - INCLUIR'])->only(['create', 'store']);
         $this->middleware(['permission:POSICOES - EDITAR'])->only(['edit', 'update']);
         $this->middleware(['permission:POSICOES - VER'])->only(['edit', 'update']);
@@ -29,15 +32,49 @@ class PosicoesController extends Controller
     /**
      * Display a listing of the resource.
      */
-
-
-
-    public function index()
+    public function index(Request $request)
     {
-       $model= Posicoes::OrderBy('nome')->get();
+        // Limpar filtros salvos
+        if ($request->boolean('clear')) {
+            Session::forget('posicoes.index.filters');
+            return redirect()->route('Posicoes.index');
+        }
 
+        // Carregar filtros salvos se nenhum parâmetro informado
+        $saved = Session::get('posicoes.index.filters', []);
+        $incomingFilters = $request->only(['nome','tipo_esporte','per_page','sort','dir']);
+        $hasIncoming = collect($incomingFilters)->filter(function($v){ return $v !== null && $v !== ''; })->isNotEmpty();
+        if (!$hasIncoming && !empty($saved)) {
+            return redirect()->route('Posicoes.index', $saved);
+        }
 
-        return view('Posicoes.index',compact('model'));
+        // Salvar filtros se solicitado
+        if ($request->boolean('remember')) {
+            Session::put('posicoes.index.filters', $incomingFilters);
+        }
+
+        $query = Posicoes::query()->with('MostraTipoEsporte');
+        if ($request->filled('nome')) {
+            $query->where('nome', 'like', '%' . trim($request->input('nome')) . '%');
+        }
+        if ($request->filled('tipo_esporte')) {
+            $query->where('tipo_esporte', (int)$request->input('tipo_esporte'));
+        }
+
+        $allowedSorts = ['nome'];
+        $sort = $request->input('sort', 'nome');
+        if (!in_array($sort, $allowedSorts, true)) { $sort = 'nome'; }
+        $dir = strtolower($request->input('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        $total = (clone $query)->count();
+        $perPage = (int)($request->input('per_page', 25));
+        if ($perPage <= 0) { $perPage = 25; }
+        $model = $query->orderBy($sort, $dir)
+            ->paginate($perPage)
+            ->appends($request->except('page'));
+
+        $TipoEsporte = TipoEsporte::orderBy('nome')->get();
+        return view('Posicoes.index', compact('model','total','perPage','sort','dir','TipoEsporte'));
     }
 
     /**
@@ -161,7 +198,7 @@ class PosicoesController extends Controller
             session(['error' => "POSIÇÃO:  ". $FormandoBasePosicao->MostraPosicao->nome  ." sendo usado!"]);
             return redirect(route('Posicoes.index'));
         }
-        
+
         $model = Posicoes::find($id);
 
 
@@ -171,5 +208,45 @@ class PosicoesController extends Controller
         session(['success' => "TIPO DE ESPORTE:  ". $model->nome  ." EXCLUÍDO COM SUCESSO!"]);
         return redirect(route('Posicoes.index'));
 
+    }
+
+    public function export(Request $request)
+    {
+        $query = Posicoes::query()->with('MostraTipoEsporte');
+        if ($request->filled('nome')) {
+            $query->where('nome', 'like', '%' . trim($request->input('nome')) . '%');
+        }
+        if ($request->filled('tipo_esporte')) {
+            $query->where('tipo_esporte', (int)$request->input('tipo_esporte'));
+        }
+        $allowedSorts = ['nome'];
+        $sort = $request->input('sort', 'nome');
+        if (!in_array($sort, $allowedSorts, true)) { $sort = 'nome'; }
+        $dir = strtolower($request->input('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        $data = $query->orderBy($sort, $dir)->get();
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="posicoes.csv"',
+        ];
+        $columns = ['Nome','Esporte'];
+        return response()->streamDownload(function () use ($data, $columns) {
+            $out = fopen('php://output', 'w');
+            fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fputcsv($out, $columns, ';');
+            foreach ($data as $row) {
+                fputcsv($out, [
+                    $row->nome,
+                    optional($row->MostraTipoEsporte)->nome,
+                ], ';');
+            }
+            fclose($out);
+        }, 'posicoes.csv', $headers);
+    }
+
+    public function exportXlsx(Request $request)
+    {
+        $filters = $request->only(['nome','tipo_esporte','sort','dir']);
+        return Excel::download(new PosicoesExport($filters), 'posicoes.xlsx');
     }
 }

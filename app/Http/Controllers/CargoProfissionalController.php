@@ -8,6 +8,9 @@ use App\Models\Preparadores;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Session;
+use App\Exports\CargoProfissionalExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 
 class CargoProfissionalController extends Controller
@@ -15,7 +18,7 @@ class CargoProfissionalController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware(['permission:CARGOPROFISSIONAL - LISTAR'])->only('index');
+        $this->middleware(['permission:CARGOPROFISSIONAL - LISTAR'])->only(['index','export','exportXlsx']);
         $this->middleware(['permission:CARGOPROFISSIONAL - INCLUIR'])->only(['create', 'store']);
         $this->middleware(['permission:CARGOPROFISSIONAL - EDITAR'])->only(['edit', 'update']);
         $this->middleware(['permission:CARGOPROFISSIONAL - VER'])->only(['edit', 'update']);
@@ -26,14 +29,51 @@ class CargoProfissionalController extends Controller
      * Display a listing of the resource.
      */
 
-
-
-    public function index()
+    public function index(Request $request)
     {
-       $model= CargoProfissional::OrderBy('nome')->get();
+        // Limpar filtros salvos
+        if ($request->boolean('clear')) {
+            Session::forget('cargoprofissional.index.filters');
+            return redirect()->route('CargoProfissional.index');
+        }
 
+        // Carregar filtros salvos se nenhum parâmetro informado
+        $saved = Session::get('cargoprofissional.index.filters', []);
+        $incomingFilters = $request->only(['nome','per_page','sort','dir']);
+        $hasIncoming = collect($incomingFilters)->filter(function($v){ return $v !== null && $v !== ''; })->isNotEmpty();
+        if (!$hasIncoming && !empty($saved)) {
+            return redirect()->route('CargoProfissional.index', $saved);
+        }
 
-        return view('CargoProfissional.index',compact('model'));
+        // Salvar filtros se solicitado
+        if ($request->boolean('remember')) {
+            Session::put('cargoprofissional.index.filters', $incomingFilters);
+        }
+
+        $query = CargoProfissional::query();
+
+        if ($request->filled('nome')) {
+            $query->where('nome', 'like', '%' . trim($request->input('nome')) . '%');
+        }
+
+        // Ordenação
+        $allowedSorts = ['nome'];
+        $sort = $request->input('sort', 'nome');
+        if (!in_array($sort, $allowedSorts, true)) { $sort = 'nome'; }
+        $dir = strtolower($request->input('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        // Total antes de paginar
+        $total = (clone $query)->count();
+
+        // Paginação
+        $perPage = (int)($request->input('per_page', 25));
+        if ($perPage <= 0) { $perPage = 25; }
+
+        $model = $query->orderBy($sort, $dir)
+            ->paginate($perPage)
+            ->appends($request->except('page'));
+
+        return view('CargoProfissional.index', compact('model','total','perPage','sort','dir'));
     }
 
     public function create()
@@ -126,5 +166,47 @@ class CargoProfissionalController extends Controller
        session(['success' => "CARGO PROFISSIONAL:  ". $model->nome  .",  EXCLUÍDO COM SUCESSO!"]);
         return redirect(route('CargoProfissional.index'));
 
+    }
+
+    public function export(Request $request)
+    {
+        $query = CargoProfissional::query();
+
+        if ($request->filled('nome')) {
+            $query->where('nome', 'like', '%' . trim($request->input('nome')) . '%');
+        }
+
+        $allowedSorts = ['nome'];
+        $sort = $request->input('sort', 'nome');
+        if (!in_array($sort, $allowedSorts, true)) { $sort = 'nome'; }
+        $dir = strtolower($request->input('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        $data = $query->orderBy($sort, $dir)->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="cargo-profissional.csv"',
+        ];
+
+        $columns = ['Nome'];
+
+        return response()->streamDownload(function () use ($data, $columns) {
+            $out = fopen('php://output', 'w');
+            // BOM UTF-8
+            fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fputcsv($out, $columns, ';');
+            foreach ($data as $row) {
+                fputcsv($out, [
+                    $row->nome,
+                ], ';');
+            }
+            fclose($out);
+        }, 'cargo-profissional.csv', $headers);
+    }
+
+    public function exportXlsx(Request $request)
+    {
+        $filters = $request->only(['nome','sort','dir']);
+        return Excel::download(new CargoProfissionalExport($filters), 'cargo-profissional.xlsx');
     }
 }

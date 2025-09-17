@@ -142,6 +142,48 @@ Route::get('Representantes-export', [App\Http\Controllers\RepresentantesControll
 Route::get('Representantes-export-xlsx', [App\Http\Controllers\RepresentantesController::class, 'exportXlsx'])
     ->name('Representantes.exportXlsx');
 
+// Preparadores - exportação CSV/XLSX
+Route::get('Preparadores-export', [App\Http\Controllers\PreparadoresController::class, 'export'])
+    ->name('Preparadores.export');
+Route::get('Preparadores-export-xlsx', [App\Http\Controllers\PreparadoresController::class, 'exportXlsx'])
+    ->name('Preparadores.exportXlsx');
+
+// Cargo Profissional - exportação CSV/XLSX
+Route::get('CargoProfissional-export', [App\Http\Controllers\CargoProfissionalController::class, 'export'])
+    ->name('CargoProfissional.export');
+Route::get('CargoProfissional-export-xlsx', [App\Http\Controllers\CargoProfissionalController::class, 'exportXlsx'])
+    ->name('CargoProfissional.exportXlsx');
+
+// Função Profissional - exportação CSV/XLSX
+Route::get('FuncaoProfissional-export', [App\Http\Controllers\FuncaoProfissionalController::class, 'export'])
+    ->name('FuncaoProfissional.export');
+Route::get('FuncaoProfissional-export-xlsx', [App\Http\Controllers\FuncaoProfissionalController::class, 'exportXlsx'])
+    ->name('FuncaoProfissional.exportXlsx');
+
+// Tipo de Arquivo - exportação CSV/XLSX
+Route::get('TipoArquivo-export', [App\Http\Controllers\TipoArquivoController::class, 'export'])
+    ->name('TipoArquivo.export');
+Route::get('TipoArquivo-export-xlsx', [App\Http\Controllers\TipoArquivoController::class, 'exportXlsx'])
+    ->name('TipoArquivo.exportXlsx');
+
+// Tipo de Esporte - exportação CSV/XLSX
+Route::get('TipoEsporte-export', [App\Http\Controllers\TipoEsporteController::class, 'export'])
+    ->name('TipoEsporte.export');
+Route::get('TipoEsporte-export-xlsx', [App\Http\Controllers\TipoEsporteController::class, 'exportXlsx'])
+    ->name('TipoEsporte.exportXlsx');
+
+// Categorias - exportação CSV/XLSX
+Route::get('Categorias-export', [App\Http\Controllers\CategoriasController::class, 'export'])
+    ->name('Categorias.export');
+Route::get('Categorias-export-xlsx', [App\Http\Controllers\CategoriasController::class, 'exportXlsx'])
+    ->name('Categorias.exportXlsx');
+
+// Posições - exportação CSV/XLSX
+Route::get('Posicoes-export', [App\Http\Controllers\PosicoesController::class, 'export'])
+    ->name('Posicoes.export');
+Route::get('Posicoes-export-xlsx', [App\Http\Controllers\PosicoesController::class, 'exportXlsx'])
+    ->name('Posicoes.exportXlsx');
+
 // Atalho para o dashboard administrativo
 Route::get('/adm', function () {
     return redirect()->route('dashboard');

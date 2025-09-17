@@ -23,7 +23,7 @@ class PreparadoresController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware(['permission:PREPARADORES - LISTAR'])->only('index');
+        $this->middleware(['permission:PREPARADORES - LISTAR'])->only(['index','export','exportXlsx']);
         $this->middleware(['permission:PREPARADORES - INCLUIR'])->only(['create', 'store']);
         $this->middleware(['permission:PREPARADORES - EDITAR'])->only(['edit', 'update']);
         $this->middleware(['permission:PREPARADORES - VER'])->only(['edit', 'update']);

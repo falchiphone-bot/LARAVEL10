@@ -7,6 +7,9 @@ use App\Models\FuncaoProfissional;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Session;
+use App\Exports\FuncaoProfissionalExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 
 class FuncaoProfissionalController extends Controller
@@ -14,7 +17,7 @@ class FuncaoProfissionalController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware(['permission:FUNCAOPROFISSIONAL - LISTAR'])->only('index');
+    $this->middleware(['permission:FUNCAOPROFISSIONAL - LISTAR'])->only(['index','export','exportXlsx']);
         $this->middleware(['permission:FUNCAOPROFISSIONAL - INCLUIR'])->only(['create', 'store']);
     $this->middleware(['permission:FUNCAOPROFISSIONAL - EDITAR'])->only(['edit', 'update']);
     $this->middleware(['permission:FUNCAOPROFISSIONAL - VER'])->only(['show']);
@@ -23,26 +26,79 @@ class FuncaoProfissionalController extends Controller
 
     public function index(Request $request)
     {
+        // Limpar filtros salvos
+        if ($request->boolean('clear')) {
+            Session::forget('funcaoprofissional.index.filters');
+            return redirect()->route('FuncaoProfissional.index');
+        }
+
+        // Carregar filtros salvos se nenhum parâmetro informado
+        $saved = Session::get('funcaoprofissional.index.filters', []);
+        $incomingFilters = $request->only(['q','per_page','sort','dir']);
+        $hasIncoming = collect($incomingFilters)->filter(function($v){ return $v !== null && $v !== ''; })->isNotEmpty();
+        if (!$hasIncoming && !empty($saved)) {
+            return redirect()->route('FuncaoProfissional.index', $saved);
+        }
+
+        // Salvar filtros se solicitado
+        if ($request->boolean('remember')) {
+            Session::put('funcaoprofissional.index.filters', $incomingFilters);
+        }
+
         $allowedSorts = ['nome'];
         $sort = $request->query('sort', 'nome');
         if (!in_array($sort, $allowedSorts, true)) { $sort = 'nome'; }
         $dir = strtolower($request->query('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
 
-        $defaultPerPage = (int) ($request->session()->get('funcaoprofissional.per_page', 20));
-        if ($defaultPerPage < 5 || $defaultPerPage > 100) { $defaultPerPage = 20; }
-        $perPage = (int) $request->query('per_page', $defaultPerPage);
+        $perPage = (int) $request->query('per_page', 25);
         if ($perPage < 5) { $perPage = 5; }
         if ($perPage > 100) { $perPage = 100; }
-        $request->session()->put('funcaoprofissional.per_page', $perPage);
 
         $q = trim((string) $request->query('q', ''));
         $query = FuncaoProfissional::query();
         if ($q !== '') {
             $query->where('nome', 'like', "%{$q}%");
         }
-        $model = $query->orderBy($sort, $dir)->paginate($perPage);
 
-        return view('FuncaoProfissional.index', compact('model','sort','dir','q'));
+        $total = (clone $query)->count();
+        $model = $query->orderBy($sort, $dir)->paginate($perPage)->appends($request->except('page'));
+
+        return view('FuncaoProfissional.index', compact('model','sort','dir','q','perPage','total'));
+    }
+
+    public function export(Request $request)
+    {
+        $query = FuncaoProfissional::query();
+        $q = trim((string) $request->query('q', ''));
+        if ($q !== '') {
+            $query->where('nome', 'like', "%{$q}%");
+        }
+        $allowedSorts = ['nome'];
+        $sort = $request->query('sort', 'nome');
+        if (!in_array($sort, $allowedSorts, true)) { $sort = 'nome'; }
+        $dir = strtolower($request->query('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        $data = $query->orderBy($sort, $dir)->get();
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="funcao-profissional.csv"',
+        ];
+        $columns = ['Nome'];
+        return response()->streamDownload(function () use ($data, $columns) {
+            $out = fopen('php://output', 'w');
+            fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fputcsv($out, $columns, ';');
+            foreach ($data as $row) {
+                fputcsv($out, [$row->nome], ';');
+            }
+            fclose($out);
+        }, 'funcao-profissional.csv', $headers);
+    }
+
+    public function exportXlsx(Request $request)
+    {
+        $filters = $request->only(['q','sort','dir']);
+        return Excel::download(new FuncaoProfissionalExport($filters), 'funcao-profissional.xlsx');
     }
 
 

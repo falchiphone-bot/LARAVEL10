@@ -16,15 +16,26 @@
                     <div class="alert alert-danger">{{ session('error') }}</div>
                 @endif
 
-                <form method="GET" class="row g-2 align-items-center mb-3">
+                <form method="GET" class="row g-2 align-items-center mb-3" action="{{ route('FuncaoProfissional.index') }}">
                     <input type="hidden" name="sort" value="{{ $sort ?? 'nome' }}">
                     <input type="hidden" name="dir" value="{{ $dir ?? 'asc' }}">
-                    <input type="hidden" name="per_page" value="{{ request('per_page', $model->perPage()) }}">
+                    <input type="hidden" name="per_page" value="{{ request('per_page', $perPage ?? $model->perPage()) }}">
                     <div class="col-md-6">
                         <input type="text" name="q" class="form-control" placeholder="Buscar por nome" value="{{ $q ?? '' }}">
                     </div>
                     <div class="col-auto">
                         <button class="btn btn-primary" type="submit">Buscar</button>
+                    </div>
+                    <div class="col-auto">
+                        <a class="btn btn-outline-secondary" href="{{ route('FuncaoProfissional.index', array_merge(request()->except(['page']), ['clear'=>1])) }}">Limpar</a>
+                    </div>
+                    <div class="col-auto form-check">
+                        <input class="form-check-input" type="checkbox" value="1" id="remember" name="remember" {{ request('remember', old('remember', session()->has('funcaoprofissional.index.filters') ? '1' : '')) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="remember">Lembrar filtros</label>
+                    </div>
+                    <div class="col-12 mt-2">
+                        <a href="{{ route('FuncaoProfissional.export', request()->all()) }}" class="btn btn-outline-success">Exportar CSV</a>
+                        <a href="{{ route('FuncaoProfissional.exportXlsx', request()->all()) }}" class="btn btn-outline-success">Exportar XLSX</a>
                     </div>
                     @if(($q ?? '') !== '')
                         <div class="col-auto">
@@ -78,14 +89,14 @@
 
                 <div class="d-flex justify-content-between align-items-center gap-3">
                     <div class="text-muted">Exibindo {{ $model->firstItem() }}–{{ $model->lastItem() }} de {{ $model->total() }}</div>
-                    <form method="GET" class="d-flex align-items-center gap-2">
+                    <form method="GET" class="d-flex align-items-center gap-2" action="{{ route('FuncaoProfissional.index') }}">
                         <input type="hidden" name="sort" value="{{ $sort ?? 'nome' }}">
                         <input type="hidden" name="dir" value="{{ $dir ?? 'asc' }}">
                         <input type="hidden" name="q" value="{{ $q ?? '' }}">
                         <label for="per_page" class="form-label m-0">por página</label>
                         <select id="per_page" name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
                             @foreach ([10,20,50,100] as $n)
-                                <option value="{{ $n }}" {{ (int)request('per_page', $model->perPage()) === $n ? 'selected' : '' }}>{{ $n }}</option>
+                                <option value="{{ $n }}" {{ (int)request('per_page', $perPage ?? $model->perPage()) === $n ? 'selected' : '' }}>{{ $n }}</option>
                             @endforeach
                         </select>
                     </form>

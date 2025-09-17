@@ -21,4 +21,10 @@ class Posicoes extends Model
     {
         return $this->hasOne(TipoEsporte::class, 'id', 'tipo_esporte');
     }
+
+    // Alias para clareza na view/controller: retorna o TipoEsporte relacionado
+    public function MostraTipoEsporte(): HasOne
+    {
+        return $this->hasOne(TipoEsporte::class, 'id', 'tipo_esporte');
+    }
 }
