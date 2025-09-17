@@ -1,0 +1,15 @@
+@extends('layouts.bootstrap5')
+@section('content')
+<div class="py-5 bg-light">
+    <div class="container">
+        <div class="card">
+            <div class="card-header"><h5 class="mb-0">Incluir Clube</h5></div>
+            <div class="card-body">
+                <form method="POST" action="{{ route('SafClubes.store') }}">
+                    @include('SafClubes.campos')
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection

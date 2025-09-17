@@ -55,12 +55,32 @@ class UserController extends Controller
         return redirect('/Usuarios/' . $idusuario)->with('success', 'Permissão atualizadas');
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $cadastros = User::get();
-        $linhas = count($cadastros);
+        $allowedSorts = ['name', 'email'];
+        $sort = $request->query('sort', 'name');
+        if (!in_array($sort, $allowedSorts, true)) { $sort = 'name'; }
+        $dir = strtolower($request->query('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+    // Persistência de preferência de paginação em sessão
+    $defaultPerPage = (int) ($request->session()->get('users.per_page', 20));
+    if ($defaultPerPage < 5 || $defaultPerPage > 100) { $defaultPerPage = 20; }
+    $perPage = (int) $request->query('per_page', $defaultPerPage);
+    if ($perPage < 5) { $perPage = 5; }
+    if ($perPage > 100) { $perPage = 100; }
+    $request->session()->put('users.per_page', $perPage);
+
+        $q = trim((string) $request->query('q', ''));
+        $query = User::query();
+        if ($q !== '') {
+            $query->where(function($w) use ($q) {
+                $w->where('name', 'like', "%{$q}%")
+                  ->orWhere('email', 'like', "%{$q}%");
+            });
+        }
+        $cadastros = $query->orderBy($sort, $dir)->paginate($perPage)->appends(['q' => $q]);
+        $linhas = $cadastros->total();
         session(['error' => '']);
-        return view('Users.index', compact('cadastros', 'linhas'));
+        return view('Users.index', compact('cadastros', 'linhas', 'sort', 'dir', 'q'));
     }
 
     /**

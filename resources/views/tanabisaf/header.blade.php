@@ -22,6 +22,10 @@
             <li><a href="{{ url('/tanabisaf.transparencias') }}" class="block p-2 hover:text-red-500">Transparências</a></li>
             <li><a href="{{ url('/tanabisaf.categoria') }}" class="block p-2 hover:text-red-500">Categorias/Jogos</a></li>
             <li><a href="{{ url('/tanabisaf.localtreino') }}" class="block p-2 hover:text-red-500">Local treinos</a></li>
+            <li><a href="{{ url('/tanabisaf.clubes') }}" class="block p-2 hover:text-red-500">Clubes</a></li>
+            <li><a href="{{ url('/tanabisaf.federacoes') }}" class="block p-2 hover:text-red-500">Federações</a></li>
+            <li><a href="{{ url('/tanabisaf.campeonatos') }}" class="block p-2 hover:text-red-500">Campeonatos</a></li>
+            <li><a href="{{ url('/adm') }}" class="block p-2 hover:text-red-500">Área Administrativa</a></li>
             {{-- <li><a href="{{ url('/vec.comoparticipar') }}" class="block p-2 hover:text-red-500">Participar</a></li> --}}
 
             <li><a href="{{ url('/tanabisaf.contato') }}" class="block p-2 hover:text-red-500">Contato</a></li>

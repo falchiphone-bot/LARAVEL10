@@ -114,6 +114,19 @@ Route::get('/', function () {
     return redirect('/dashboard'); // Caso não seja nenhum dos domínios específicos
 });
 
+// Página pública: lista de clubes (Tanabi SAF)
+Route::get('tanabisaf.clubes', [\App\Http\Controllers\TanabiSafPublicController::class, 'clubes'])
+    ->name('tanabisaf.clubes');
+Route::get('tanabisaf.federacoes', [\App\Http\Controllers\TanabiSafPublicController::class, 'federacoes'])
+    ->name('tanabisaf.federacoes');
+Route::get('tanabisaf.campeonatos', [\App\Http\Controllers\TanabiSafPublicController::class, 'campeonatos'])
+    ->name('tanabisaf.campeonatos');
+
+// Atalho para o dashboard administrativo
+Route::get('/adm', function () {
+    return redirect()->route('dashboard');
+})->name('adm');
+
 
 Route::get('sites', [App\Http\Controllers\LancamentosDocumentosController::class, 'sites'])->name('lancamentosdocumentos.sites');
 Route::get('documentosvideos', [App\Http\Controllers\LancamentosDocumentosController::class, 'documentosvideos'])->name('lancamentosdocumentos.documentosvideos');
@@ -427,6 +440,11 @@ Route::get('tanabisaf.jogos.2025.sub23.premiacaosub23-01092025', function ()
     { return view('tanabisaf.pde');})->name('tanabisaf.pde');
 
 
+
+# SAF Clubes
+Route::resource('SafClubes', App\Http\Controllers\SafClubeController::class);
+Route::resource('SafCampeonatos', App\Http\Controllers\SafCampeonatoController::class);
+Route::resource('SafFederacoes', App\Http\Controllers\SafFederacaoController::class);
 
 
 # Irmaos_EmausPia
@@ -957,7 +975,7 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     #Cadastros
     Route::get('/Cadastros', function () {
         return view('Cadastros/dashboard');
-    });
+    })->name('Cadastros');
 
     #OpenAI
     Route::get('/openai', function () {

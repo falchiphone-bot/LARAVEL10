@@ -16,7 +16,7 @@
                         style="width: 100%; height: 50px;
                     ; font-size: 24px;align=˜Center˜ ">
                         Menu Principal do sistema administrativo e contábil -
-                        versão: 10.06.2025 12:35
+                        versão: 16.09.2025 21:35
                     </div>
                 </div>
                 <div class="card-body">
@@ -190,6 +190,42 @@
                             </tr>
                         @endcan
 
+                        @can('SAF_CLUBES - LISTAR')
+                            <tr>
+                                <th>
+
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="/SafClubes">SAF - Clubes</a>
+                                    </nav>
+
+                                </th>
+
+                            </tr>
+                        @endcan
+
+                        @can('SAF_FEDERACOES - LISTAR')
+                            <tr>
+                                <th>
+
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="/SafFederacoes">SAF - Federações</a>
+                                    </nav>
+
+                                </th>
+
+                            </tr>
+                        @endcan
+
+                        @can('CATEGORIAS - LISTAR')
+                            <tr>
+                                <th>
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="/Categorias">Categorias</a>
+                                    </nav>
+                                </th>
+                            </tr>
+                        @endcan
+
 
                         @can('PERMISSOES - LISTAR')
                             <tr>
@@ -200,6 +236,19 @@
                                     </nav>
 
                                 </th>
+                            </tr>
+                        @endcan
+
+                        @can('SAF_CAMPEONATOS - LISTAR')
+                            <tr>
+                                <th>
+
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="/SafCampeonatos">SAF - Campeonatos</a>
+                                    </nav>
+
+                                </th>
+
                             </tr>
                         @endcan
 
