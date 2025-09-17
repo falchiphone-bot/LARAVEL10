@@ -19,13 +19,34 @@
                     <input type="hidden" name="sort" value="{{ $sort ?? 'nome' }}">
                     <input type="hidden" name="dir" value="{{ $dir ?? 'asc' }}">
                     <input type="hidden" name="per_page" value="{{ request('per_page', $model->perPage()) }}">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <input type="text" name="q" class="form-control" placeholder="Buscar por nome, cidade, UF ou país" value="{{ $q ?? '' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="federacao_id" class="form-select" aria-label="Filtrar por Federação">
+                            <option value="">Todas as Federações</option>
+                            @isset($federacoes)
+                                @foreach($federacoes as $f)
+                                    <option value="{{ $f->id }}" {{ (string)request('federacao_id') === (string)$f->id ? 'selected' : '' }}>{{ $f->nome }}</option>
+                                @endforeach
+                            @endisset
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="ano_id" class="form-select" aria-label="Filtrar por Ano">
+                            <option value="">Todos os Anos</option>
+                            @isset($anos)
+                                @foreach($anos as $a)
+                                    <option value="{{ $a->id }}" {{ (string)request('ano_id') === (string)$a->id ? 'selected' : '' }}>{{ $a->ano }}</option>
+                                @endforeach
+                            @endisset
+                        </select>
                     </div>
                     <div class="col-auto">
                         <button class="btn btn-primary" type="submit">Buscar</button>
                     </div>
-                    @if(($q ?? '') !== '')
+                    @php $hasAnyFilter = ($q ?? '') !== '' || request('federacao_id') || request('ano_id'); @endphp
+                    @if($hasAnyFilter)
                         <div class="col-auto">
                             <a class="btn btn-outline-secondary" href="{{ route('SafCampeonatos.index', ['sort' => $sort ?? 'nome', 'dir' => $dir ?? 'asc', 'per_page' => request('per_page', $model->perPage())]) }}">Limpar</a>
                         </div>
@@ -69,6 +90,7 @@
                                     </a>
                                 </th>
                                 <th>Federação</th>
+                                <th>Ano</th>
                                 <th>Categorias</th>
                                 <th class="text-end">Ações</th>
                             </tr>
@@ -81,6 +103,7 @@
                                     <td>{{ $item->uf }}</td>
                                     <td>{{ $item->pais }}</td>
                                     <td>{{ optional($item->federacao)->nome ?? '—' }}</td>
+                                    <td>{{ optional($item->ano)->ano ?? '—' }}</td>
                                     <td>
                                         @if($item->categorias && $item->categorias->count())
                                             <span class="badge bg-secondary">{{ $item->categorias->pluck('nome')->join(', ') }}</span>
@@ -105,7 +128,7 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="6" class="text-center text-muted">Nenhum campeonato cadastrado.</td></tr>
+                                <tr><td colspan="8" class="text-center text-muted">Nenhum campeonato cadastrado.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -127,7 +150,14 @@
                         </select>
                     </form>
                     <div>
-                        {{ $model->appends(['sort' => $sort ?? null, 'dir' => $dir ?? null, 'per_page' => request('per_page', $model->perPage()), 'q' => $q ?? null])->links() }}
+                        {{ $model->appends([
+                            'sort' => $sort ?? null,
+                            'dir' => $dir ?? null,
+                            'per_page' => request('per_page', $model->perPage()),
+                            'q' => $q ?? null,
+                            'federacao_id' => request('federacao_id'),
+                            'ano_id' => request('ano_id'),
+                        ])->links() }}
                     </div>
                 </div>
             </div>

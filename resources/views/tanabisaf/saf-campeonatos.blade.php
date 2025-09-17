@@ -7,7 +7,7 @@
       <p class="mt-2 text-lg leading-8 text-gray-600">Lista de campeonatos organizados/participados pela TANABI SAF.</p>
     </div>
 
-  <form method="GET" class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-6">
+  <form method="GET" class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-7">
       <input type="text" name="q" value="{{ $q ?? '' }}" placeholder="Buscar por nome ou cidade"
         class="w-full rounded-md border-gray-300 text-black font-bold shadow-sm focus:border-green-600 focus:ring-green-600" />
       <input type="text" name="uf" value="{{ $uf ?? '' }}" placeholder="UF"
@@ -19,6 +19,14 @@
         @isset($federacoes)
           @foreach($federacoes as $fed)
             <option value="{{ $fed->id }}" {{ (string)($federacaoId ?? '') === (string)$fed->id ? 'selected' : '' }}>{{ $fed->nome }}</option>
+          @endforeach
+        @endisset
+      </select>
+      <select name="ano_id" class="w-full rounded-md border-gray-300 text-black font-bold shadow-sm focus:border-green-600 focus:ring-green-600">
+        <option value="">— Ano —</option>
+        @isset($anos)
+          @foreach($anos as $a)
+            <option value="{{ $a->id }}" {{ (string)($anoId ?? '') === (string)$a->id ? 'selected' : '' }}>{{ $a->ano }}</option>
           @endforeach
         @endisset
       </select>
@@ -42,6 +50,7 @@
           </p>
           <p class="mt-1 text-sm text-gray-600">{{ $camp->pais }}</p>
           <p class="mt-2 text-sm text-gray-700"><span class="font-medium">Federação:</span> {{ optional($camp->federacao)->nome ?? '—' }}</p>
+          <p class="mt-1 text-sm text-gray-700"><span class="font-medium">Ano:</span> {{ optional($camp->ano)->ano ?? '—' }}</p>
           <p class="mt-1 text-sm text-gray-700"><span class="font-medium">Categorias:</span> {{ ($camp->categorias && $camp->categorias->count()) ? $camp->categorias->pluck('nome')->join(', ') : '—' }}</p>
         </div>
       @empty

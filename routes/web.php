@@ -17,6 +17,7 @@ use App\Http\Controllers\PDFController;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Http\Controllers\SafTipoPrestadorController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -121,6 +122,12 @@ Route::get('tanabisaf.federacoes', [\App\Http\Controllers\TanabiSafPublicControl
     ->name('tanabisaf.federacoes');
 Route::get('tanabisaf.campeonatos', [\App\Http\Controllers\TanabiSafPublicController::class, 'campeonatos'])
     ->name('tanabisaf.campeonatos');
+
+// Admin: SAF - Anos
+Route::resource('SafAnos', App\Http\Controllers\SafAnoController::class);
+
+// Admin: SAF - Tipos de Prestadores
+Route::resource('SafTiposPrestadores', SafTipoPrestadorController::class);
 
 // Atalho para o dashboard administrativo
 Route::get('/adm', function () {

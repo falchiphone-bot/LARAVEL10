@@ -19,6 +19,7 @@ class SafCampeonatoRequest extends FormRequest
             'uf' => ['nullable','string','size:2'],
             'pais' => ['nullable','string','max:255'],
             'federacao_id' => ['nullable','integer','exists:saf_federacoes,id'],
+            'ano_id' => ['nullable','integer','exists:saf_anos,id'], // Added validation for ano_id
             'categorias' => ['nullable','array'],
             'categorias.*' => ['integer','exists:categorias,id'],
         ];

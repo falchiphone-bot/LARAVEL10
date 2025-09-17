@@ -216,6 +216,44 @@
                             </tr>
                         @endcan
 
+                        @can('SAF_ANOS - LISTAR')
+                            <tr>
+                                <th>
+
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="/SafAnos">SAF - Anos</a>
+                                    </nav>
+
+                                </th>
+
+                            </tr>
+                        @endcan
+
+                        @can('SAF_TIPOS_PRESTADORES - LISTAR')
+                            <tr>
+                                <th>
+
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="/SafTiposPrestadores">SAF - Tipos de Prestadores</a>
+                                    </nav>
+
+                                </th>
+
+                            </tr>
+                        @endcan
+
+                        @can('FUNCAOPROFISSIONAL - LISTAR')
+                            <tr>
+                                <th>
+
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="/FuncaoProfissional">Função profissional</a>
+                                    </nav>
+
+                                </th>
+                            </tr>
+                        @endcan
+
                         @can('CATEGORIAS - LISTAR')
                             <tr>
                                 <th>

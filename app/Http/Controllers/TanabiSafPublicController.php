@@ -58,10 +58,11 @@ class TanabiSafPublicController extends Controller
         $q = trim((string) $request->query('q',''));
         $uf = trim((string) $request->query('uf',''));
         $pais = trim((string) $request->query('pais',''));
-        $federacaoId = $request->query('federacao_id');
+    $federacaoId = $request->query('federacao_id');
+    $anoId = $request->query('ano_id');
         $perPage = (int) $request->query('per_page', 15);
         $perPage = max(1, min(100, $perPage));
-        $query = SafCampeonato::with(['federacao','categorias']);
+    $query = SafCampeonato::with(['federacao','categorias','ano']);
         if ($q !== '') {
             $query->where(function($w) use ($q) {
                 $w->where('nome','like',"%{$q}%")
@@ -70,9 +71,11 @@ class TanabiSafPublicController extends Controller
         }
         if ($uf !== '') { $query->where('uf',$uf); }
         if ($pais !== '') { $query->where('pais','like',"%{$pais}%"); }
-        if (!empty($federacaoId)) { $query->where('federacao_id',(int)$federacaoId); }
-        $campeonatos = $query->orderBy('nome')->paginate($perPage)->appends($request->query());
-        $federacoes = SafFederacao::orderBy('nome')->get();
-        return view('tanabisaf.saf-campeonatos', compact('campeonatos','federacoes','q','uf','pais','federacaoId','perPage'));
+    if (!empty($federacaoId)) { $query->where('federacao_id',(int)$federacaoId); }
+    if (!empty($anoId)) { $query->where('ano_id', (int) $anoId); }
+    $campeonatos = $query->orderBy('nome')->paginate($perPage)->appends($request->query());
+    $federacoes = SafFederacao::orderBy('nome')->get();
+    $anos = \App\Models\SafAno::orderBy('ano','desc')->get();
+    return view('tanabisaf.saf-campeonatos', compact('campeonatos','federacoes','anos','q','uf','pais','federacaoId','anoId','perPage'));
     }
 }

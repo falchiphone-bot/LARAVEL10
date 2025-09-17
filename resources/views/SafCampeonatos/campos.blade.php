@@ -16,6 +16,19 @@
         <label class="form-label">País</label>
         <input type="text" name="pais" class="form-control" value="{{ old('pais', $model->pais ?? 'BRASIL') }}">
     </div>
+    <div class="col-md-2">
+        <label class="form-label">Ano</label>
+        <select name="ano_id" class="form-select">
+            <option value="">— Selecione —</option>
+            @php $selAno = old('ano_id', $model->ano_id ?? null); @endphp
+            @isset($anos)
+                @foreach($anos as $ano)
+                    <option value="{{ $ano->id }}" {{ (string)$selAno === (string)$ano->id ? 'selected' : '' }}>{{ $ano->ano }}</option>
+                @endforeach
+            @endisset
+        </select>
+        <small class="text-muted">Ano do campeonato.</small>
+    </div>
     <div class="col-md-8">
         <label class="form-label">Categorias</label>
         <select name="categorias[]" class="form-select" multiple size="6">

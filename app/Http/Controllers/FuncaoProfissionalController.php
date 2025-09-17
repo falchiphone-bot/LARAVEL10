@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\FuncaoProfissionalCreateRequest;
+use App\Http\Requests\FuncaoProfissionalRequest;
 use App\Models\FuncaoProfissional;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -16,17 +16,33 @@ class FuncaoProfissionalController extends Controller
         $this->middleware('auth');
         $this->middleware(['permission:FUNCAOPROFISSIONAL - LISTAR'])->only('index');
         $this->middleware(['permission:FUNCAOPROFISSIONAL - INCLUIR'])->only(['create', 'store']);
-        $this->middleware(['permission:FUNCAOPROFISSIONAL - EDITAR'])->only(['edit', 'update']);
-        $this->middleware(['permission:FUNCAOPROFISSIONAL - VER'])->only(['edit', 'update']);
+    $this->middleware(['permission:FUNCAOPROFISSIONAL - EDITAR'])->only(['edit', 'update']);
+    $this->middleware(['permission:FUNCAOPROFISSIONAL - VER'])->only(['show']);
         $this->middleware(['permission:FUNCAOPROFISSIONAL - EXCLUIR'])->only('destroy');
     }
 
-    public function index()
+    public function index(Request $request)
     {
-       $model= FuncaoProfissional::OrderBy('nome')->get();
+        $allowedSorts = ['nome'];
+        $sort = $request->query('sort', 'nome');
+        if (!in_array($sort, $allowedSorts, true)) { $sort = 'nome'; }
+        $dir = strtolower($request->query('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
 
+        $defaultPerPage = (int) ($request->session()->get('funcaoprofissional.per_page', 20));
+        if ($defaultPerPage < 5 || $defaultPerPage > 100) { $defaultPerPage = 20; }
+        $perPage = (int) $request->query('per_page', $defaultPerPage);
+        if ($perPage < 5) { $perPage = 5; }
+        if ($perPage > 100) { $perPage = 100; }
+        $request->session()->put('funcaoprofissional.per_page', $perPage);
 
-        return view('FuncaoProfissional.index',compact('model'));
+        $q = trim((string) $request->query('q', ''));
+        $query = FuncaoProfissional::query();
+        if ($q !== '') {
+            $query->where('nome', 'like', "%{$q}%");
+        }
+        $model = $query->orderBy($sort, $dir)->paginate($perPage);
+
+        return view('FuncaoProfissional.index', compact('model','sort','dir','q'));
     }
 
 
@@ -38,14 +54,14 @@ class FuncaoProfissionalController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(FuncaoProfissionalCreateRequest $request)
+    public function store(FuncaoProfissionalRequest $request)
     {
         $request["nome"] = strtoupper($request["nome"]);
-        $existecadastro = FuncaoProfissional::where('nome',trim($request["nome"]))->first();
+        $existecadastro = FuncaoProfissional::where('nome', trim($request["nome"]))->first();
         if($existecadastro)
         {
             session(['error' => "NOME:  ". $request->nome  .", já existe! NADA INCLUÍDO! "]);
-            return redirect(route('FuncaoProfissional.index'));
+            return redirect()->route('FuncaoProfissional.index');
         }
 
 
@@ -54,7 +70,7 @@ class FuncaoProfissionalController extends Controller
 
         FuncaoProfissional::create($model);
         session(['success' => "FUNÇÃO PROFISSIONAL:  ". $request->nome  .",  INCLUÍDO COM SUCESSO!"]);
-        return redirect(route('FuncaoProfissional.index'));
+        return redirect()->route('FuncaoProfissional.index');
 
     }
 
@@ -76,16 +92,17 @@ class FuncaoProfissionalController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(FuncaoProfissionalRequest $request, string $id)
     {
 
         $request["nome"] = strtoupper($request["nome"]);
-        // $existecadastro = FuncaoProfissional::where('nome',trim($request["nome"]))->first();
-        // if($existecadastro)
-        // {
-        //     session(['error' => "NOME:  ". $request->nome  .", já existe ou não precisa ser alterado! "]);
-        //     return redirect(route('FuncaoProfissional.index'));
-        // }
+        $existecadastro = FuncaoProfissional::where('nome', trim($request["nome"]))
+            ->where('id', '!=', $id)
+            ->first();
+        if ($existecadastro) {
+            session(['error' => "NOME:  " . $request->nome . ", já usado por outro registro! "]);
+            return redirect()->route('FuncaoProfissional.index');
+        }
 
 
         $cadastro = FuncaoProfissional::find($id);
@@ -96,29 +113,23 @@ class FuncaoProfissionalController extends Controller
         $cadastro->save();
 
 
-        return redirect(route('FuncaoProfissional.index'));
+        session(['success' => "FUNÇÃO PROFISSIONAL:  ". $cadastro->nome  .",  ATUALIZADA COM SUCESSO!"]);
+        return redirect()->route('FuncaoProfissional.index');
     }
 
 
     public function destroy(Request $request, string $id)
     {
 
-       $Achar = FuncaoProfissional::where('FuncaoProfissional', $id)->get();
-
-       if($Achar->Count() > 0)
-       {
-
-        session(['error' => "FUNÇÃO PROFISSIONAL:  ". $request->nome  .",  SELECIONADO! NÃO PODE SER EXCLUÍDO POIS ESTÁ SENDO USADO! RETORNADO A SITUAÇÃO ANTERIOR. ATENÇÃO!"]);
-        return redirect(route('FuncaoProfissional.index'));
-       }
-
-
         $model= FuncaoProfissional::find($id);
-
+        if (!$model) {
+            session(['error' => 'Registro não encontrado.']);
+            return redirect()->route('FuncaoProfissional.index');
+        }
+        $nome = $model->nome;
         $model->delete();
-
-       session(['success' => "FUNÇÃO PROFISSIONAL:  ". $model->nome  .",  EXCLUÍDO COM SUCESSO!"]);
-        return redirect(route('FuncaoProfissional.index'));
+        session(['success' => "FUNÇÃO PROFISSIONAL:  ". $nome  .",  EXCLUÍDA COM SUCESSO!"]);
+        return redirect()->route('FuncaoProfissional.index');
 
     }
 }

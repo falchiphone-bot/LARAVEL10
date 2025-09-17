@@ -17,6 +17,7 @@ class SafCampeonato extends Model
         'uf',
         'pais',
         'federacao_id',
+        'ano_id',
     ];
 
     protected $casts = [
@@ -25,6 +26,7 @@ class SafCampeonato extends Model
         'uf' => 'string',
         'pais' => 'string',
         'federacao_id' => 'integer',
+        'ano_id' => 'integer',
     ];
 
     public function categorias(): BelongsToMany
@@ -35,5 +37,10 @@ class SafCampeonato extends Model
     public function federacao()
     {
         return $this->belongsTo(SafFederacao::class, 'federacao_id');
+    }
+
+    public function ano()
+    {
+        return $this->belongsTo(SafAno::class, 'ano_id');
     }
 }

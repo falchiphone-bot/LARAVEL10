@@ -14,6 +14,14 @@ class DatabaseSeeder extends Seeder
     {
         // \App\Models\User::factory(10)->create();
 
+        // SAF: anos padrão para facilitar seleção nos campeonatos
+        $this->call([
+            SafAnosSeeder::class,
+            SafAnosPermissionsSeeder::class,
+            SafTiposPrestadoresPermissionsSeeder::class,
+            FuncaoProfissionalPermissionsSeeder::class,
+        ]);
+
         // \App\Models\User::factory()->create([
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',

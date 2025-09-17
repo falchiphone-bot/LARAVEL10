@@ -17,6 +17,8 @@
                     <dd class="col-sm-10">{{ $cadastro->uf }}</dd>
                     <div class="col-md-4">
                     <dd class="col-sm-10">{{ $cadastro->pais }}</dd>
+                    <dt class="col-sm-3">Ano</dt>
+                    <dd class="col-sm-9">{{ optional($cadastro->ano)->ano ?? '—' }}</dd>
                     <dt class="col-sm-2">Categorias</dt>
                     <dd class="col-sm-10">
                     <div class="col-md-8">

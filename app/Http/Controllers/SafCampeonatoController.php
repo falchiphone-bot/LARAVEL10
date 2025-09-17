@@ -6,6 +6,7 @@ use App\Http\Requests\SafCampeonatoRequest;
 use App\Models\Categorias;
 use App\Models\SafCampeonato;
 use App\Models\SafFederacao;
+use App\Models\SafAno;
 
 class SafCampeonatoController extends Controller
 {
@@ -34,7 +35,10 @@ class SafCampeonatoController extends Controller
         $request->session()->put('saf_campeonatos.per_page', $perPage);
 
         $q = trim((string) $request->query('q', ''));
-        $query = SafCampeonato::with('categorias');
+        $federacaoId = $request->query('federacao_id');
+        $anoId = $request->query('ano_id');
+
+        $query = SafCampeonato::with(['categorias','ano','federacao']);
         if ($q !== '') {
             $query->where(function($w) use ($q) {
                 $w->where('nome', 'like', "%{$q}%")
@@ -43,20 +47,32 @@ class SafCampeonatoController extends Controller
                   ->orWhere('pais', 'like', "%{$q}%");
             });
         }
+        if (!empty($federacaoId)) {
+            $query->where('federacao_id', (int) $federacaoId);
+        }
+        if (!empty($anoId)) {
+            $query->where('ano_id', (int) $anoId);
+        }
         $model = $query->orderBy($sort, $dir)->paginate($perPage);
-        return view('SafCampeonatos.index', compact('model','sort','dir','q'));
+
+        // listas para filtros
+        $federacoes = SafFederacao::orderBy('nome')->get();
+        $anos = SafAno::orderBy('ano','desc')->get();
+
+        return view('SafCampeonatos.index', compact('model','sort','dir','q','federacoes','anos'));
     }
 
     public function create()
     {
         $categorias = Categorias::orderBy('nome')->get();
         $federacoes = SafFederacao::orderBy('nome')->get();
-        return view('SafCampeonatos.create', compact('categorias','federacoes'));
+        $anos = SafAno::orderBy('ano','desc')->get();
+        return view('SafCampeonatos.create', compact('categorias','federacoes','anos'));
     }
 
     public function store(SafCampeonatoRequest $request)
     {
-    $dados = $request->only(['nome','cidade','uf','pais','federacao_id']);
+    $dados = $request->only(['nome','cidade','uf','pais','federacao_id','ano_id']);
         $dados['nome'] = strtoupper($dados['nome']);
         if (!empty($dados['uf'])) { $dados['uf'] = strtoupper($dados['uf']); }
         if (!empty($dados['cidade'])) { $dados['cidade'] = strtoupper($dados['cidade']); }
@@ -87,13 +103,14 @@ class SafCampeonatoController extends Controller
         $model = SafCampeonato::with('categorias')->findOrFail($id);
         $categorias = Categorias::orderBy('nome')->get();
         $federacoes = SafFederacao::orderBy('nome')->get();
-        return view('SafCampeonatos.edit', compact('model','categorias','federacoes'));
+        $anos = SafAno::orderBy('ano','desc')->get();
+        return view('SafCampeonatos.edit', compact('model','categorias','federacoes','anos'));
     }
 
     public function update(SafCampeonatoRequest $request, string $id)
     {
         $cadastro = SafCampeonato::findOrFail($id);
-    $dados = $request->only(['nome','cidade','uf','pais','federacao_id']);
+    $dados = $request->only(['nome','cidade','uf','pais','federacao_id','ano_id']);
         $dados['nome'] = strtoupper($dados['nome']);
         if (!empty($dados['uf'])) { $dados['uf'] = strtoupper($dados['uf']); }
         if (!empty($dados['cidade'])) { $dados['cidade'] = strtoupper($dados['cidade']); }
