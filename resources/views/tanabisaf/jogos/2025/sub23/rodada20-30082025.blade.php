@@ -73,7 +73,7 @@
                     LEI 2987/2019 - CESSÃO DE USO DO ESTÁDIO
                 </th>
                 <td class="px-6 py-4 text-center">
-                    <a href="{{ route('download', ['id_arquivo' => 40992]) }}"
+                    <a href="{{ route('download', ['id_arquivo' => 41043]) }}"
                     class="flex items-center justify-center gap-2 px-4 py-2 bg-gray-800 rounded-lg shadow-md text-blue-300 font-semibold hover:text-blue-400 hover:underline hover:bg-gray-700 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 w-full"
                     target="_blank" rel="noopener noreferrer">
                         <!-- Ícone PDF com hover -->
