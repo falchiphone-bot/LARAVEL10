@@ -13,4 +13,9 @@ class FuncaoProfissional extends Model
     protected $casts = [
         'nome' => 'string',
     ];
+
+    public function faixasSalariais()
+    {
+        return $this->hasMany(\App\Models\SafFaixaSalarial::class, 'funcao_profissional_id');
+    }
 }

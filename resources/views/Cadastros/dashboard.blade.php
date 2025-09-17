@@ -253,6 +253,16 @@
                                 </tr>
 
                                 <tr>
+                                    @can('SAF_FAIXASSALARIAIS - LISTAR')
+                                        <th>
+                                            <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                                <a class="btn btn-success" href="/SafFaixasSalariais">SAF - Faixas Salariais</a>
+                                            </nav>
+                                        </th>
+                                    @endcan
+                                </tr>
+
+                                <tr>
                                     @can('REDESOCIAL - LISTAR')
                                         <th>
                                             <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">

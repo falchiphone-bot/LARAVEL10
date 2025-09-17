@@ -25,4 +25,9 @@ class SafTipoPrestador extends Model
     {
         return $this->belongsTo(\App\Models\FuncaoProfissional::class, 'funcao_profissional_id');
     }
+
+    public function faixasSalariais()
+    {
+        return $this->hasMany(\App\Models\SafFaixaSalarial::class, 'saf_tipo_prestador_id');
+    }
 }

@@ -129,6 +129,13 @@ Route::resource('SafAnos', App\Http\Controllers\SafAnoController::class);
 // Admin: SAF - Tipos de Prestadores
 Route::resource('SafTiposPrestadores', SafTipoPrestadorController::class);
 
+// Admin: SAF - Faixas Salariais
+Route::resource('SafFaixasSalariais', App\Http\Controllers\SafFaixaSalarialController::class);
+Route::get('SafFaixasSalariais-export', [App\Http\Controllers\SafFaixaSalarialController::class, 'export'])->name('SafFaixasSalariais.export');
+Route::post('SafFaixasSalariais-import', [App\Http\Controllers\SafFaixaSalarialController::class, 'import'])->name('SafFaixasSalariais.import');
+Route::get('SafFaixasSalariais-import-template', [App\Http\Controllers\SafFaixaSalarialController::class, 'importTemplate'])->name('SafFaixasSalariais.importTemplate');
+Route::get('SafFaixasSalariais/{id}/duplicate', [App\Http\Controllers\SafFaixaSalarialController::class, 'duplicate'])->name('SafFaixasSalariais.duplicate');
+
 // Atalho para o dashboard administrativo
 Route::get('/adm', function () {
     return redirect()->route('dashboard');
