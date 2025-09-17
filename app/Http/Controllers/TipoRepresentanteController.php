@@ -9,6 +9,9 @@ use App\Models\Representantes;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Session;
+use App\Exports\TipoRepresentanteExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 
 class TipoRepresentanteController extends Controller
@@ -16,7 +19,7 @@ class TipoRepresentanteController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware(['permission:TIPOREPRESENTANTE - LISTAR'])->only('index');
+        $this->middleware(['permission:TIPOREPRESENTANTE - LISTAR'])->only(['index','export','exportXlsx']);
         $this->middleware(['permission:TIPOREPRESENTANTE - INCLUIR'])->only(['create', 'store']);
         $this->middleware(['permission:TIPOREPRESENTANTE - EDITAR'])->only(['edit', 'update']);
         $this->middleware(['permission:TIPOREPRESENTANTE - VER'])->only(['edit', 'update']);
@@ -29,12 +32,39 @@ class TipoRepresentanteController extends Controller
 
 
 
-    public function index()
+    public function index(Request $request)
     {
-       $model= TipoRepresentante::OrderBy('nome')->get();
+        // Limpar filtros salvos
+        if ($request->boolean('clear')) {
+            Session::forget('tiporepresentante.index.filters');
+            return redirect()->route('TipoRepresentantes.index');
+        }
 
+        // Carregar filtros salvos quando não houver parâmetros
+        $saved = Session::get('tiporepresentante.index.filters', []);
+        $incoming = $request->only(['nome','per_page','sort','dir']);
+        $hasIncoming = collect($incoming)->filter(fn($v) => $v !== null && $v !== '')->isNotEmpty();
+        if (!$hasIncoming && !empty($saved)) {
+            return redirect()->route('TipoRepresentantes.index', $saved);
+        }
+        if ($request->boolean('remember')) {
+            Session::put('tiporepresentante.index.filters', $incoming);
+        }
 
-        return view('TipoRepresentante.index',compact('model'));
+        $query = TipoRepresentante::query();
+        if ($request->filled('nome')) {
+            $query->where('nome', 'like', '%' . trim($request->input('nome')) . '%');
+        }
+        $allowedSorts = ['nome'];
+        $sort = in_array($request->input('sort'), $allowedSorts, true) ? $request->input('sort') : 'nome';
+        $dir = strtolower($request->input('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        $total = (clone $query)->count();
+        $perPage = (int) $request->input('per_page', 25);
+        if ($perPage <= 0) { $perPage = 25; }
+        $model = $query->orderBy($sort, $dir)->paginate($perPage)->appends($request->except('page'));
+
+        return view('TipoRepresentante.index', compact('model','total','perPage','sort','dir'));
     }
 
     /**
@@ -139,5 +169,39 @@ class TipoRepresentanteController extends Controller
        session(['success' => "TIPO DE REPRESENTANTES:  ". $model->nome  .",  EXCLUÍDO COM SUCESSO!"]);
         return redirect(route('TipoRepresentantes.index'));
 
+    }
+
+    public function export(Request $request)
+    {
+        $query = TipoRepresentante::query();
+        if ($request->filled('nome')) {
+            $query->where('nome', 'like', '%' . trim($request->input('nome')) . '%');
+        }
+        $allowedSorts = ['nome'];
+        $sort = in_array($request->input('sort'), $allowedSorts, true) ? $request->input('sort') : 'nome';
+        $dir = strtolower($request->input('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+        $data = $query->orderBy($sort, $dir)->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="tipo-representantes.csv"',
+        ];
+        $columns = ['Nome'];
+
+        return response()->streamDownload(function () use ($data, $columns) {
+            $out = fopen('php://output', 'w');
+            fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fputcsv($out, $columns, ';');
+            foreach ($data as $row) {
+                fputcsv($out, [$row->nome], ';');
+            }
+            fclose($out);
+        }, 'tipo-representantes.csv', $headers);
+    }
+
+    public function exportXlsx(Request $request)
+    {
+        $filters = $request->only(['nome','sort','dir']);
+        return Excel::download(new TipoRepresentanteExport($filters), 'tipo-representantes.xlsx');
     }
 }

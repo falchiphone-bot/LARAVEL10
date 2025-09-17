@@ -80,6 +80,21 @@
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
             </div>
+            <div class="col-12 mt-3">
+                <label style="display:block;">Registro do representante</label>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="agente_fifa" name="agente_fifa" value="1" @checked(old('agente_fifa', $model->agente_fifa ?? false))>
+                    <label class="form-check-label" for="agente_fifa">Agente FIFA</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="oficial_cbf" name="oficial_cbf" value="1" @checked(old('oficial_cbf', $model->oficial_cbf ?? false))>
+                    <label class="form-check-label" for="oficial_cbf">Oficial CBF</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="sem_registro" name="sem_registro" value="1" @checked(old('sem_registro', $model->sem_registro ?? false))>
+                    <label class="form-check-label" for="sem_registro">Sem registro</label>
+                </div>
+            </div>
             <div class="col-6">
                 <label for="telefone">Tipo de representante</label>
                 <select class="form-control select2" id="tipo_representante" name="tipo_representante">
@@ -192,6 +207,20 @@
         $(document).ready(function() {
             $('.select2').select2();
         });
+
+        function syncFlags() {
+            const sem = $('#sem_registro').is(':checked');
+            $('#agente_fifa, #oficial_cbf').prop('disabled', sem);
+            if (sem) {
+                $('#agente_fifa, #oficial_cbf').prop('checked', false);
+            }
+            const anyReg = $('#agente_fifa').is(':checked') || $('#oficial_cbf').is(':checked');
+            if (anyReg) {
+                $('#sem_registro').prop('checked', false);
+            }
+        }
+        $('#sem_registro, #agente_fifa, #oficial_cbf').on('change', syncFlags);
+        syncFlags();
 
         $('form').submit(function(e) {
             e.preventDefault();

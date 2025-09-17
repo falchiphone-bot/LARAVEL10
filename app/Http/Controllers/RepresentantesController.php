@@ -18,6 +18,7 @@ use App\Models\TipoRepresentante;
 
 use Google\Service\ServiceControl\Auth as ServiceControlAuth;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 
@@ -26,6 +27,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\Gate;
 
 require_once app_path('helpers.php');
+use App\Exports\RepresentantesExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class RepresentantesController extends Controller
 {
@@ -40,16 +43,159 @@ class RepresentantesController extends Controller
         $this->middleware(['permission:REPRESENTANTES - EXCLUIR'])->only('destroy');
     }
 
-    public function index()
+    public function index(Request $request)
     {
+        // Sessão: limpar filtros
+        if ($request->boolean('clear')) {
+            Session::forget('representantes.index.filters');
+            return redirect()->route('Representantes.index');
+        }
 
-                    $model = Representantes::join('Contabilidade.EmpresasUsuarios', 'Representantes.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
-                        ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
-                        ->orderBy('nome')
-                        ->get();
-                     return view('Representantes.index', compact('model'));
+        // Carregar filtros salvos se nenhum filtro informado
+        $saved = Session::get('representantes.index.filters', []);
+        $incomingFilters = $request->only(['nome','email','agente_fifa','oficial_cbf','sem_registro','per_page','sort','dir']);
+        $hasIncoming = collect($incomingFilters)->filter(function($v){ return $v !== null && $v !== ''; })->isNotEmpty();
+        if (!$hasIncoming && !empty($saved)) {
+            // Aplicar filtros salvos e redirecionar para manter URL limpa
+            return redirect()->route('Representantes.index', $saved);
+        }
 
+        // Se lembrar filtros estiver marcado, salvar na sessão
+        if ($request->boolean('remember')) {
+            Session::put('representantes.index.filters', $incomingFilters);
+        }
 
+        $query = Representantes::join('Contabilidade.EmpresasUsuarios', 'Representantes.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
+            ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id);
+
+        // Busca por nome e e-mail
+        if ($request->filled('nome')) {
+            $nome = trim($request->input('nome'));
+            $query->where('Representantes.nome', 'like', "%{$nome}%");
+        }
+        if ($request->filled('email')) {
+            $email = trim($request->input('email'));
+            $query->where('Representantes.email', 'like', "%{$email}%");
+        }
+
+        // Filtros por flags booleanas
+        $mapBool = function ($v) {
+            if (is_null($v) || $v === '') return null;
+            $v = strtolower((string)$v);
+            if (in_array($v, ['1', 'true', 'sim', 'yes'], true)) return 1;
+            if (in_array($v, ['0', 'false', 'nao', 'não', 'no'], true)) return 0;
+            return null;
+        };
+
+        $agente = $mapBool($request->input('agente_fifa'));
+        if ($agente !== null) {
+            $query->where('agente_fifa', $agente);
+        }
+
+        $oficial = $mapBool($request->input('oficial_cbf'));
+        if ($oficial !== null) {
+            $query->where('oficial_cbf', $oficial);
+        }
+
+        $sem = $mapBool($request->input('sem_registro'));
+        if ($sem !== null) {
+            $query->where('sem_registro', $sem);
+        }
+
+        // Ordenação
+        $allowedSorts = ['nome', 'agente_fifa', 'oficial_cbf', 'sem_registro'];
+        $sort = $request->input('sort', 'nome');
+        if (!in_array($sort, $allowedSorts, true)) {
+            $sort = 'nome';
+        }
+        $dir = strtolower($request->input('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        // Total antes da paginação
+        $total = (clone $query)->count();
+
+        // Seleciona apenas colunas do modelo principal para evitar colisão de nomes do join
+        $query->select('Representantes.*');
+
+        // Paginação com preservação de filtros e ordenação
+        $perPage = (int)($request->input('per_page', 25));
+        if ($perPage <= 0) { $perPage = 25; }
+
+        $model = $query->orderBy($sort, $dir)
+            ->paginate($perPage)
+            ->appends($request->except('page'));
+
+        return view('Representantes.index', compact('model', 'total', 'perPage', 'sort', 'dir'));
+    }
+
+    public function export(Request $request)
+    {
+        // Reaproveita a construção da query da index
+        $query = Representantes::join('Contabilidade.EmpresasUsuarios', 'Representantes.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
+            ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id);
+
+        if ($request->filled('nome')) {
+            $nome = trim($request->input('nome'));
+            $query->where('Representantes.nome', 'like', "%{$nome}%");
+        }
+        if ($request->filled('email')) {
+            $email = trim($request->input('email'));
+            $query->where('Representantes.email', 'like', "%{$email}%");
+        }
+
+        $mapBool = function ($v) {
+            if (is_null($v) || $v === '') return null;
+            $v = strtolower((string)$v);
+            if (in_array($v, ['1', 'true', 'sim', 'yes'], true)) return 1;
+            if (in_array($v, ['0', 'false', 'nao', 'não', 'no'], true)) return 0;
+            return null;
+        };
+        $agente = $mapBool($request->input('agente_fifa'));
+        if ($agente !== null) $query->where('agente_fifa', $agente);
+        $oficial = $mapBool($request->input('oficial_cbf'));
+        if ($oficial !== null) $query->where('oficial_cbf', $oficial);
+        $sem = $mapBool($request->input('sem_registro'));
+        if ($sem !== null) $query->where('sem_registro', $sem);
+
+        $allowedSorts = ['nome', 'agente_fifa', 'oficial_cbf', 'sem_registro'];
+        $sort = $request->input('sort', 'nome');
+        if (!in_array($sort, $allowedSorts, true)) $sort = 'nome';
+        $dir = strtolower($request->input('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        $query->select('Representantes.*');
+        $data = $query->orderBy($sort, $dir)->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="representantes.csv"',
+        ];
+
+        $columns = ['Nome', 'Telefone', 'Email', 'CPF', 'CNPJ', 'Agente FIFA', 'Oficial CBF', 'Sem registro'];
+
+        return response()->streamDownload(function () use ($data, $columns) {
+            $out = fopen('php://output', 'w');
+            // BOM para Excel
+            fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fputcsv($out, $columns, ';');
+            foreach ($data as $row) {
+                fputcsv($out, [
+                    $row->nome,
+                    $row->telefone,
+                    $row->email,
+                    $row->cpf,
+                    $row->cnpj,
+                    $row->agente_fifa ? 'SIM' : 'NÃO',
+                    $row->oficial_cbf ? 'SIM' : 'NÃO',
+                    $row->sem_registro ? 'SIM' : 'NÃO',
+                ], ';');
+            }
+            fclose($out);
+        }, 'representantes.csv', $headers);
+    }
+
+    public function exportXlsx(Request $request)
+    {
+        $filters = $request->only(['nome','email','agente_fifa','oficial_cbf','sem_registro','sort','dir']);
+        return Excel::download(new RepresentantesExport($filters), 'representantes.xlsx');
     }
 
     public function representantecadastro()
@@ -92,8 +238,8 @@ class RepresentantesController extends Controller
                 if (validarCPF($cpf)) {
                     session(['cpf' => 'CPF:  ' . $request->cpf . ', VALIDADO! ']);
                 } else {
-                    session(['error' => 'CPF:  ' . $request->cpf . ', DEVE SER CORRIGIDO! NADA ALTERADO! ']);
-                    return redirect(route('Representantes.edit', $id));
+                    session(['error' => 'CPF:  ' . $request->cpf . ', DEVE SER CORRIGIDO! NADA INCLUÍDO! ']);
+                    return redirect()->route('Representantes.create')->withInput();
                 }
             }
         } else {
@@ -107,8 +253,8 @@ class RepresentantesController extends Controller
                 if (validarCNPJ($cnpj)) {
                     session(['cnpj' => 'CNPJ:  ' . $request->cnpj . ', VALIDADO! ']);
                 } else {
-                    session(['error' => 'CNPJ:  ' . $request->cnpj . ', DEVE SER CORRIGIDO! NADA ALTERADO! ']);
-                    return redirect(route('Representantes.edit', $id));
+                    session(['error' => 'CNPJ:  ' . $request->cnpj . ', DEVE SER CORRIGIDO! NADA INCLUÍDO! ']);
+                    return redirect()->route('Representantes.create')->withInput();
                 }
             }
         } else {
@@ -163,6 +309,15 @@ class RepresentantesController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        // Regra: sem_registro não pode coexistir com as outras flags
+        $agente = (bool)$request->input('agente_fifa');
+        $oficial = (bool)$request->input('oficial_cbf');
+        $sem = (bool)$request->input('sem_registro');
+        if ($sem && ($agente || $oficial)) {
+            session(['error' => 'Sem registro não pode ser marcado junto com Agente FIFA ou Oficial CBF.']);
+            return redirect(route('Representantes.edit', $id));
+        }
+
         $cpf = $request->cpf;
         $cnpj = $request->cnpj;
         $LiberaCPF = $request->liberacpf;

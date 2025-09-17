@@ -22,8 +22,22 @@ class RepresentantesCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // 'data' =>'required|unique:feriados',
-            'nome' =>'required',
+            'nome' => 'required',
+            'agente_fifa' => 'nullable|boolean',
+            'oficial_cbf' => 'nullable|boolean',
+            'sem_registro' => 'nullable|boolean',
         ];
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($v) {
+            $agente = (bool)$this->input('agente_fifa');
+            $oficial = (bool)$this->input('oficial_cbf');
+            $sem = (bool)$this->input('sem_registro');
+            if ($sem && ($agente || $oficial)) {
+                $v->errors()->add('sem_registro', 'Sem registro não pode ser marcado junto com Agente FIFA ou Oficial CBF.');
+            }
+        });
     }
 }

@@ -39,6 +39,15 @@
                             <p>
                                 TIPO REPRESENTANTE: {{ $cadastro->mostratipo->nome ?? null}}
                             </p>
+                            <p>
+                                AGENTE FIFA: {{ $cadastro->agente_fifa ? 'SIM' : 'NÃO' }}
+                            </p>
+                            <p>
+                                OFICIAL CBF: {{ $cadastro->oficial_cbf ? 'SIM' : 'NÃO' }}
+                            </p>
+                            <p>
+                                SEM REGISTRO: {{ $cadastro->sem_registro ? 'SIM' : 'NÃO' }}
+                            </p>
                         </div>
                         <div class="card-footer">
                             <a href="{{ route('Representantes.index') }}">Retornar para a lista</a>

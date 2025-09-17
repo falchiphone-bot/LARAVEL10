@@ -136,6 +136,12 @@ Route::post('SafFaixasSalariais-import', [App\Http\Controllers\SafFaixaSalarialC
 Route::get('SafFaixasSalariais-import-template', [App\Http\Controllers\SafFaixaSalarialController::class, 'importTemplate'])->name('SafFaixasSalariais.importTemplate');
 Route::get('SafFaixasSalariais/{id}/duplicate', [App\Http\Controllers\SafFaixaSalarialController::class, 'duplicate'])->name('SafFaixasSalariais.duplicate');
 
+// Representantes - exportação CSV
+Route::get('Representantes-export', [App\Http\Controllers\RepresentantesController::class, 'export'])
+    ->name('Representantes.export');
+Route::get('Representantes-export-xlsx', [App\Http\Controllers\RepresentantesController::class, 'exportXlsx'])
+    ->name('Representantes.exportXlsx');
+
 // Atalho para o dashboard administrativo
 Route::get('/adm', function () {
     return redirect()->route('dashboard');
@@ -784,6 +790,8 @@ Route::resource('FuncaoProfissional', App\Http\Controllers\FuncaoProfissionalCon
 
  # Representantes
  Route::resource('TipoRepresentantes', App\Http\Controllers\TipoRepresentanteController::class);
+ Route::get('TipoRepresentantes-export', [App\Http\Controllers\TipoRepresentanteController::class, 'export'])->name('TipoRepresentantes.export');
+ Route::get('TipoRepresentantes-export-xlsx', [App\Http\Controllers\TipoRepresentanteController::class, 'exportXlsx'])->name('TipoRepresentantes.exportXlsx');
 
 
  # Tipo de esportes

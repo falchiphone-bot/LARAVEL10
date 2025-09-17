@@ -13,6 +13,9 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
+use App\Exports\PreparadoresExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 
 class PreparadoresController extends Controller
@@ -28,12 +31,60 @@ class PreparadoresController extends Controller
     }
 
 
-    public function index()
+    public function index(Request $request)
     {
-       $model= Preparadores::OrderBy('nome')->get();
+        // Limpar filtros salvos
+        if ($request->boolean('clear')) {
+            Session::forget('preparadores.index.filters');
+            return redirect()->route('Preparadores.index');
+        }
 
+        // Carregar filtros salvos se nenhum parâmetro informado
+        $saved = Session::get('preparadores.index.filters', []);
+        $incomingFilters = $request->only(['nome','email','telefone','licencaCBF','per_page','sort','dir']);
+        $hasIncoming = collect($incomingFilters)->filter(function($v){ return $v !== null && $v !== ''; })->isNotEmpty();
+        if (!$hasIncoming && !empty($saved)) {
+            return redirect()->route('Preparadores.index', $saved);
+        }
 
-        return view('Preparadores.index',compact('model'));
+        // Salvar filtros se solicitado
+        if ($request->boolean('remember')) {
+            Session::put('preparadores.index.filters', $incomingFilters);
+        }
+
+        $query = Preparadores::query();
+
+        if ($request->filled('nome')) {
+            $query->where('nome', 'like', '%' . trim($request->input('nome')) . '%');
+        }
+        if ($request->filled('email')) {
+            $query->where('email', 'like', '%' . trim($request->input('email')) . '%');
+        }
+        if ($request->filled('telefone')) {
+            $query->where('telefone', 'like', '%' . trim($request->input('telefone')) . '%');
+        }
+        if ($request->filled('licencaCBF')) {
+            $query->where('licencaCBF', 'like', '%' . trim($request->input('licencaCBF')) . '%');
+        }
+
+        // Ordenação
+        $allowedSorts = ['nome','email','telefone','licencaCBF'];
+        $sort = $request->input('sort', 'nome');
+        if (!in_array($sort, $allowedSorts, true)) { $sort = 'nome'; }
+        $dir = strtolower($request->input('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        // Total antes de paginar
+        $total = (clone $query)->count();
+
+        // Paginação
+        $perPage = (int)($request->input('per_page', 25));
+        if ($perPage <= 0) { $perPage = 25; }
+
+        $model = $query->orderBy($sort, $dir)
+            ->paginate($perPage)
+            ->appends($request->except('page'));
+
+        return view('Preparadores.index', compact('model','total','perPage','sort','dir'));
     }
 
     /**
@@ -157,6 +208,60 @@ class PreparadoresController extends Controller
        session(['success' => "Preparador:  ". $model->nome  .",  EXCLUÍDO COM SUCESSO!"]);
         return redirect(route('Preparadores.index'));
 
+    }
+
+    public function export(Request $request)
+    {
+        $query = Preparadores::query();
+
+        if ($request->filled('nome')) {
+            $query->where('nome', 'like', '%' . trim($request->input('nome')) . '%');
+        }
+        if ($request->filled('email')) {
+            $query->where('email', 'like', '%' . trim($request->input('email')) . '%');
+        }
+        if ($request->filled('telefone')) {
+            $query->where('telefone', 'like', '%' . trim($request->input('telefone')) . '%');
+        }
+        if ($request->filled('licencaCBF')) {
+            $query->where('licencaCBF', 'like', '%' . trim($request->input('licencaCBF')) . '%');
+        }
+
+        $allowedSorts = ['nome','email','telefone','licencaCBF'];
+        $sort = $request->input('sort', 'nome');
+        if (!in_array($sort, $allowedSorts, true)) { $sort = 'nome'; }
+        $dir = strtolower($request->input('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        $data = $query->orderBy($sort, $dir)->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="preparadores.csv"',
+        ];
+
+        $columns = ['Nome','Email','Telefone','Licença CBF'];
+
+        return response()->streamDownload(function () use ($data, $columns) {
+            $out = fopen('php://output', 'w');
+            // BOM UTF-8
+            fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fputcsv($out, $columns, ';');
+            foreach ($data as $row) {
+                fputcsv($out, [
+                    $row->nome,
+                    $row->email,
+                    $row->telefone,
+                    $row->licencaCBF,
+                ], ';');
+            }
+            fclose($out);
+        }, 'preparadores.csv', $headers);
+    }
+
+    public function exportXlsx(Request $request)
+    {
+        $filters = $request->only(['nome','email','telefone','licencaCBF','sort','dir']);
+        return Excel::download(new PreparadoresExport($filters), 'preparadores.xlsx');
     }
 
     public function CreateArquivoPreparadores(ArquivoPreparadoresCreateRequest $request)
