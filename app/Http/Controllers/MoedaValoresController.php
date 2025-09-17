@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use App\Services\CambioService;
+use Illuminate\Support\Facades\Cache;
+use App\Services\MoedaVariacaoService;
 
 
 class MoedaValoresController extends Controller
@@ -32,32 +34,104 @@ class MoedaValoresController extends Controller
      */
 
 
-    public function index()
+    public function index(Request $request, MoedaVariacaoService $variacaoService)
     {
+        $ordem = $request->get('ordem', 'desc');
+        $baseVariacao = $request->get('base_variacao', 'anterior');
+        $perPage = (int) $request->get('per_page', 25);
+        $perPage = $perPage > 0 && $perPage <= 200 ? $perPage : 25;
+        $moedaId = $request->get('moeda_id');
+        $page = $request->get('page', 1);
 
-        $ordem = 'desc';
+        $cacheKey = "moedasvalores:index:moeda:" . ($moedaId ?: 'all') . ":$ordem:$baseVariacao:$perPage:$page";
 
-        $moedasvalores= MoedasValores::limit(100)
-       ->OrderBy('data','desc')->get();
+        $paginado = Cache::remember($cacheKey, 300, function () use ($ordem, $perPage, $moedaId) {
+            $query = MoedasValores::query();
+            if ($moedaId) {
+                $query->where('idmoeda', $moedaId);
+            }
+            return $query->orderBy('data', $ordem)->paginate($perPage);
+        });
 
-       $moedas = Moeda::get();
+        $colecao = collect($paginado->items());
+        $variacaoService->atribuir($colecao, $baseVariacao);
 
-        return view('MoedasValores.index',compact('moedasvalores','moedas','ordem'));
+        $moedas = Moeda::get();
+
+        return view('MoedasValores.index', [
+            'moedasvalores' => $colecao,
+            'moedas' => $moedas,
+            'ordem' => $ordem,
+            'baseVariacao' => $baseVariacao,
+            'paginacao' => $paginado,
+            'perPage' => $perPage,
+            'moedaSelecionada' => $moedaId,
+        ]);
     }
 
     public function selecionarMoeda(Request $request)
     {
+        // Converte POST em redirect GET para evitar problemas com resource show capturando segmentos
+        $params = [
+            'moeda_id' => $request->moeda_id,
+            'ordem' => $request->ordem ?? 'desc',
+            'base_variacao' => $request->base_variacao ?? 'anterior',
+            'per_page' => $request->per_page ?? 25,
+        ];
+        return redirect()->route('MoedasValores.index', $params);
+    }
 
-        $ordem = $request->ordem;
+    /**
+     * Atribui a cada item da coleção a variação percentual em relação ao dia posterior
+     * (ou anterior dependendo da ordenação). A variação é calculada como:
+     * (valor_dia_posterior - valor_atual) / valor_atual * 100
+     * Se valor_atual for 0 ou não houver dia posterior, retorna null.
+     */
+    // Método legado de variação removido (refatorado para serviço)
 
-        $moedasvalores = MoedasValores::where('idmoeda', $request->moeda_id)
-        ->OrderBy('data',$ordem)
-        ->get();
+    public function clearCache()
+    {
+        Cache::flush();
+        return redirect()->back()->with('success', 'Cache limpo com sucesso.');
+    }
 
+    public function exportCsv(Request $request, MoedaVariacaoService $variacaoService)
+    {
+        $ordem = $request->get('ordem', 'asc');
+        $baseVariacao = $request->get('base_variacao', 'posterior');
+        $moedaId = $request->get('moeda_id');
 
-        $moedas = Moeda::get();
+        $query = MoedasValores::query();
+        if ($moedaId) {
+            $query->where('idmoeda', $moedaId);
+        }
+        // eager load para evitar N+1
+        $registros = $query->with('ValoresComMoeda')->orderBy('data', $ordem)->get();
+        $variacaoService->atribuir($registros, $baseVariacao);
 
-        return view('MoedasValores.index',compact('moedasvalores','moedas','ordem'));
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="moedas_valores.csv"',
+        ];
+
+        $callback = function () use ($registros, $baseVariacao) {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['data', 'valor', 'moeda', 'variacao_tipo', 'variacao_percentual', 'valor_comparacao', 'data_comparacao']);
+            foreach ($registros as $r) {
+                fputcsv($out, [
+                    optional($r->data)->format('d/m/Y'),
+                    $r->valor,
+                    optional($r->ValoresComMoeda)->nome ?? $r->idmoeda,
+                    $r->variacao_tipo,
+                    is_null($r->variacao_percentual) ? null : number_format($r->variacao_percentual, 6, '.', ''),
+                    $r->variacao_valor_comparacao,
+                    $r->variacao_data_comparacao ? $r->variacao_data_comparacao->format('d/m/Y') : null,
+                ]);
+            }
+            fclose($out);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     /**
@@ -212,7 +286,9 @@ class MoedaValoresController extends Controller
 
         $moedasvalores['valor'] = str_replace(",",".",str_replace('.','',$moedasvalores ['valor']));
 //  dd($moedasvalores);
-        MoedasValores::create($moedasvalores);
+    MoedasValores::create($moedasvalores);
+    // Invalida cache simples
+    Cache::flush();
 
         return redirect(route('MoedasValores.index'));
 
@@ -252,7 +328,8 @@ class MoedaValoresController extends Controller
 
         $moedasvalores['valor'] = str_replace(",",".",str_replace('.','',$moedasvalores ['valor']));
 
-        $moedasvalores->save();
+    $moedasvalores->save();
+    Cache::flush();
 
 
         return redirect(route('MoedasValores.index'));
@@ -266,7 +343,8 @@ class MoedaValoresController extends Controller
         $moedasvalores = MoedasValores::find($id);
 
 
-        $moedasvalores->delete();
+    $moedasvalores->delete();
+    Cache::flush();
         return redirect(route('MoedasValores.index'));
 
     }

@@ -937,9 +937,15 @@ Route::resource('RedeSocialUsuarios', App\Http\Controllers\RedeSocialUsuarioCont
 
     #Moedas e valores
     Route::get('Moedas/dashboard', [App\Http\Controllers\MoedaController::class, 'dashboard'])->name('moedas.dashboard');
-    Route::resource('Moedas', App\Http\Controllers\MoedaController::class);
+    Route::resource('Moedas', App\Http\Controllers\MoedaController::class)->where(['Moedas' => '[0-9]+']);
 
-    Route::resource('MoedasValores', App\Http\Controllers\MoedaValoresController::class);
+    // Rotas auxiliares devem vir antes do resource para evitar captura como {MoedasValore}
+    Route::post('MoedasValores/clear-cache', [App\Http\Controllers\MoedaValoresController::class, 'clearCache'])->name('moedasvalores.clearCache');
+    Route::get('MoedasValores/export-csv', [App\Http\Controllers\MoedaValoresController::class, 'exportCsv'])->name('moedasvalores.exportCsv');
+
+    Route::resource('MoedasValores', App\Http\Controllers\MoedaValoresController::class)
+        ->parameters(['MoedasValores' => 'moedavalores'])
+        ->where(['moedavalores' => '[0-9]+']);
     Route::post('Moedas/selecionar', [App\Http\Controllers\MoedaValoresController::class, 'selecionarMoeda'])->name('moedas.selecionar');
     Route::post('Moedas/consultar-valor', [App\Http\Controllers\MoedaValoresController::class, 'consultarValor'])->name('moedas.consultarValor');
     Route::post('Moedas/consultar-salvar', [App\Http\Controllers\MoedaValoresController::class, 'salvarDaConsulta'])->name('moedas.consultarSalvar');
