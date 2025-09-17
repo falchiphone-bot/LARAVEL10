@@ -1,6 +1,7 @@
 <?php
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
@@ -28,9 +29,10 @@ class Representantes extends Model
     {
         return $this->hasOne(TipoRepresentante::class, 'id', 'tipo_representante');
     }
-    public function MostraEmpresa(): HasOne
+    public function MostraEmpresa(): BelongsTo
     {
-        return $this->hasOne(Empresa::class, 'id', 'EmpresaID');
+        // Representante pertence a uma Empresa (Empresas.ID)
+        return $this->belongsTo(Empresa::class, 'EmpresaID', 'ID');
     }
 
     /**
