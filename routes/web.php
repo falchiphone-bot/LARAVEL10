@@ -1098,6 +1098,13 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     Route::get('/openai/investments', [InvestmentAccountController::class, 'index'])->name('openai.investments.index');
     Route::post('/openai/investments', [InvestmentAccountController::class, 'store'])->name('openai.investments.store');
     Route::patch('/openai/investments/{account}', [InvestmentAccountController::class, 'update'])->name('openai.investments.update');
+
+    // Investment daily balances (snapshots de evolução do saldo)
+    Route::get('/openai/investments/daily-balances', [\App\Http\Controllers\InvestmentDailyBalanceController::class, 'index'])->name('investments.daily-balances.index');
+    Route::post('/openai/investments/daily-balances', [\App\Http\Controllers\InvestmentDailyBalanceController::class, 'store'])->name('investments.daily-balances.store');
+    Route::get('/openai/investments/daily-balances/export-csv', [\App\Http\Controllers\InvestmentDailyBalanceController::class, 'exportCsv'])->name('investments.daily-balances.exportCsv');
+    Route::delete('/openai/investments/daily-balances/{dailyBalance}', [\App\Http\Controllers\InvestmentDailyBalanceController::class, 'destroy'])->name('investments.daily-balances.destroy');
+    Route::patch('/openai/investments/daily-balances/{id}/restore', [\App\Http\Controllers\InvestmentDailyBalanceController::class, 'restore'])->name('investments.daily-balances.restore');
     Route::delete('/openai/investments/{account}', [InvestmentAccountController::class, 'destroy'])->name('openai.investments.destroy');
     Route::match(['get', 'post'], '/openai/transcribe', [OpenAIController::class, 'transcribe'])->name('openai.transcribe');
 

@@ -123,7 +123,18 @@
         <tr class="table-light">
           <th colspan="1" class="text-end">Total</th>
           <th class="text-end">{{ number_format((float)($totalSum ?? 0), 2, ',', '.') }}</th>
-          <th colspan="3"></th>
+          <th colspan="3" class="text-start">
+            <form id="snapshot-form" method="POST" action="{{ route('investments.daily-balances.store') }}" class="d-inline">
+              @csrf
+              @if(request('from')) <input type="hidden" name="from" value="{{ request('from') }}"> @endif
+              @if(request('to')) <input type="hidden" name="to" value="{{ request('to') }}"> @endif
+              @if(request('account')) <input type="hidden" name="account" value="{{ request('account') }}"> @endif
+              @if(request('broker')) <input type="hidden" name="broker" value="{{ request('broker') }}"> @endif
+              <button type="submit" class="btn btn-sm btn-outline-primary" title="Salvar snapshot do saldo atual (soma dos registros de contas filtradas)">Snapshot Saldo</button>
+            </form>
+            <a href="{{ route('investments.daily-balances.index') }}" class="btn btn-sm btn-outline-secondary ms-2" title="Ver evolução dos snapshots">Histórico Saldos</a>
+            <small id="snapshot-status" class="text-muted ms-2"></small>
+          </th>
         </tr>
       </tfoot>
     </table>
