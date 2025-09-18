@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Http\Controllers\SafTipoPrestadorController;
+use Illuminate\Support\Facades\Cache;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -204,6 +205,14 @@ Route::get('/dashboard', function () {
 })
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
+
+// Refresh counters cache (cadastros / atletas)
+Route::post('/dashboard/refresh-counters', function() {
+    foreach (['cadastros_counts','athletes_counts'] as $key) {
+        if (Cache::has($key)) { Cache::forget($key); }
+    }
+    return back()->with('status','Contadores atualizados.');
+})->middleware(['auth','verified'])->name('dashboard.refresh-counters');
 
     ///// vec.org.çbr
     Route::get('vec.historia1', function ()

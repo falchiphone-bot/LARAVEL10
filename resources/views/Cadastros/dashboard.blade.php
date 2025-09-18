@@ -20,272 +20,101 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <table class="table table-success table-striped">
-                        <thead class="table-light">
-                            <div class="badge bg-warning text-wrap"
-                                style="width: 100%;
-                            ; font-size: 16px;a lign=˜Center˜ ">
-                                Opções para o sistema de cadastros
+                    <div class="badge bg-warning text-wrap w-100 mb-3" style="font-size:16px;">Opções para o sistema de cadastros</div>
+                    <div class="row g-3">
+                        @if(session('status'))
+                            <div class="col-12">
+                                <div class="alert alert-success py-2 mb-2">{{ session('status') }}</div>
                             </div>
-                        </thead>
-                        <tbody>
+                        @endif
+                        <div class="col-12 d-flex justify-content-end mb-1">
+                            <form method="POST" action="{{ route('dashboard.refresh-counters') }}" class="d-inline">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Recalcular imediatamente os contadores em cache">
+                                    Atualizar contadores
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-12 col-xl-6 col-xxl-4">
+                            @include('partials.cadastros_block')
+                        </div>
+                        <div class="col-12 col-xl-6 col-xxl-4">
+                            @include('partials.athletes_block')
+                        </div>
 
+                        @canany(['PACPIE - LISTAR'])
+                        <div class="col-12 col-md-6 col-xl-4 col-xxl-3">
+                            <div class="card h-100">
+                                <div class="card-header py-2">PAC PIE</div>
+                                <div class="card-body py-2 d-flex flex-column gap-2">
+                                    @can('PACPIE - LISTAR')<a class="btn btn-outline-primary btn-sm" href="/Pacpie">Empresas PAC PIE</a>@endcan
+                                    @can('PACPIE - LISTAR')<a class="btn btn-outline-primary btn-sm" href="/OrigemPacpie">Origem PAC PIE</a>@endcan
+                                </div>
+                            </div>
+                        </div>
+                        @endcanany
 
-                            @can('CADASTROS - LISTAR')
+                        @canany(['AGRUPAMENTOS CONTAS - LISTAR','CENTROCUSTOS - LISTAR'])
+                        <div class="col-12 col-md-6 col-xl-4 col-xxl-3">
+                            <div class="card h-100">
+                                <div class="card-header py-2">Estrutura Contábil</div>
+                                <div class="card-body py-2 d-flex flex-column gap-2">
+                                    @can('AGRUPAMENTOS CONTAS - LISTAR')<a class="btn btn-outline-secondary btn-sm" href="/AgrupamentosContas">Agrupamentos de Contas</a>@endcan
+                                    @can('CENTROCUSTOS - LISTAR')<a class="btn btn-outline-secondary btn-sm" href="/CentroCustos/dashboard">Centro de custos</a>@endcan
+                                </div>
+                            </div>
+                        </div>
+                        @endcanany
 
+                        @canany(['REPRESENTANTES - LISTAR','REPRESENTANTES - CADASTRO DO REPRESENTANTE','TIPOREPRESENTANTES - LISTAR','FORMANDOBASERECEBIMENTOS - LISTAR'])
+                        <div class="col-12 col-xl-6 col-xxl-4">
+                            <div class="card h-100">
+                                <div class="card-header py-2">Representação</div>
+                                <div class="card-body py-2 d-flex flex-wrap gap-2">
+                                    @can('REPRESENTANTES - LISTAR')<a class="btn btn-outline-dark btn-sm" href="/Representantes">Representantes</a>@endcan
+                                    @can('REPRESENTANTES - CADASTRO DO REPRESENTANTE')<a class="btn btn-outline-dark btn-sm" href="/Representantes/RepresentantesCadastro">Cadastro Representante</a>@endcan
+                                    @can('TIPOREPRESENTANTES - LISTAR')<a class="btn btn-outline-dark btn-sm" href="/TipoRepresentantes">Tipos</a>@endcan
+                                    @can('FORMANDOBASERECEBIMENTOS - LISTAR')<a class="btn btn-outline-dark btn-sm" href="/FormandoBaseRecebimentos">Recebimentos</a>@endcan
+                                </div>
+                            </div>
+                        </div>
+                        @endcanany
 
-                            <tr>
-                                @can('PACPIE - LISTAR')
+                        @canany(['SAF_CLUBES - LISTAR','SAF_FEDERACOES - LISTAR','SAF_CAMPEONATOS - LISTAR','SAF_ANOS - LISTAR','SAF_TIPOS_PRESTADORES - LISTAR','SAF_FAIXASSALARIAIS - LISTAR'])
+                        <div class="col-12 col-xl-6 col-xxl-4">
+                            <div class="card h-100">
+                                <div class="card-header py-2">SAF</div>
+                                <div class="card-body py-2 d-flex flex-wrap gap-2">
+                                    @can('SAF_CLUBES - LISTAR')<a class="btn btn-outline-primary btn-sm" href="/SafClubes">Clubes</a>@endcan
+                                    @can('SAF_FEDERACOES - LISTAR')<a class="btn btn-outline-primary btn-sm" href="/SafFederacoes">Federações</a>@endcan
+                                    @can('SAF_CAMPEONATOS - LISTAR')<a class="btn btn-outline-primary btn-sm" href="/SafCampeonatos">Campeonatos</a>@endcan
+                                    @can('SAF_ANOS - LISTAR')<a class="btn btn-outline-primary btn-sm" href="/SafAnos">Anos</a>@endcan
+                                    @can('SAF_TIPOS_PRESTADORES - LISTAR')<a class="btn btn-outline-primary btn-sm" href="/SafTiposPrestadores">Tipos Prestadores</a>@endcan
+                                    @can('SAF_FAIXASSALARIAIS - LISTAR')<a class="btn btn-outline-primary btn-sm" href="/SafFaixasSalariais">Faixas</a>@endcan
+                                </div>
+                            </div>
+                        </div>
+                        @endcanany
 
-                                    <th>
-                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-success" href="/Pacpie">
-                                            cadastro de empresas para PAC PIE do Estado de São Paulo</a>
-                                        </nav>
-                                    </th>
-                                @endcan
-                            </tr>
+                        @canany(['REDESOCIAL - LISTAR','TIPOARQUIVO - LISTAR','TIPOESPORTE - LISTAR','CATEGORIAS - LISTAR','POSICOES - LISTAR','PREPARADORES - LISTAR','CARGOPROFISSIONAL - LISTAR','FUNCAOPROFISSIONAL - LISTAR'])
+                        <div class="col-12 col-xl-6 col-xxl-4">
+                            <div class="card h-100">
+                                <div class="card-header py-2">Esportes & Arquivos</div>
+                                <div class="card-body py-2 d-flex flex-wrap gap-2">
+                                    @can('TIPOESPORTE - LISTAR')<a class="btn btn-outline-success btn-sm" href="/TipoEsporte">Tipos Esporte</a>@endcan
+                                    @can('CATEGORIAS - LISTAR')<a class="btn btn-outline-success btn-sm" href="/Categorias">Categorias</a>@endcan
+                                    @can('POSICOES - LISTAR')<a class="btn btn-outline-success btn-sm" href="/Posicoes">Posições</a>@endcan
+                                    @can('PREPARADORES - LISTAR')<a class="btn btn-outline-success btn-sm" href="/Preparadores">Preparadores</a>@endcan
+                                    @can('CARGOPROFISSIONAL - LISTAR')<a class="btn btn-outline-success btn-sm" href="/CargoProfissional">Cargos</a>@endcan
+                                    @can('FUNCAOPROFISSIONAL - LISTAR')<a class="btn btn-outline-success btn-sm" href="/FuncaoProfissional">Funções</a>@endcan
+                                    @can('TIPOARQUIVO - LISTAR')<a class="btn btn-outline-success btn-sm" href="/TipoArquivo">Tipos Arquivo</a>@endcan
+                                    @can('REDESOCIAL - LISTAR')<a class="btn btn-outline-success btn-sm" href="/RedeSocial">Redes Sociais</a>@endcan
+                                </div>
+                            </div>
+                        </div>
+                        @endcanany
 
-                            <tr>
-                                @can('PACPIE - LISTAR')
-
-                                    <th>
-                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-success" href="/OrigemPacpie">
-                                            Origem do Pacpie</a>
-                                        </nav>
-                                    </th>
-                                @endcan
-                            </tr>
-
-
-                            <tr>
-                                @can('AGRUPAMENTOS CONTAS - LISTAR')
-
-                                    <th>
-                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-success" href="/AgrupamentosContas">Agrupamentos de contas</a>
-                                        </nav>
-                                    </th>
-                                @endcan
-                            </tr>
-
-                            <tr>
-                                @can('CENTROCUSTOS - LISTAR')
-
-                                    <th>
-                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-success" href="/CentroCustos/dashboard">Centro de custos</a>
-                                        </nav>
-                                    </th>
-                                @endcan
-                            </tr>
-
-                            <tr>
-                                @can('FORMANDOBASE - LISTAR')
-
-                                    <th>
-                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-success" href="/FormandoBase">Formandos - atletas </a>
-                                        </nav>
-                                    </th>
-                                @endcan
-                            </tr>
-                            <tr>
-                                @can('FORMANDOBASEWHATSAPP - LISTAR')
-
-                                    <th>
-                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-success" href="/FormandoBaseWhatsapp">Formandos - atletas - cadastros via flow whatsapp </a>
-                                        </nav>
-                                    </th>
-                                @endcan
-                            </tr>
-                                <tr>
-                                    @can('REPRESENTANTES - LISTAR')
-                                        <th>
-                                            <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                                <a class="btn btn-success" href="/Representantes">Representantes</a>
-                                            </nav>
-                                        </th>
-                                    @endcan
-                                    @can('REPRESENTANTES - CADASTRO DO REPRESENTANTE')
-                                    <th>
-                                        <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                            <a class="btn btn-success" href="/Representantes/RepresentantesCadastro">Cadastro do representante</a>
-                                        </nav>
-                                    </th>
-                                @endcan
-                                </tr>
-
-                                <tr>
-                                    @can('TIPOREPRESENTANTES - LISTAR')
-
-                                        <th>
-                                            <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                                <a class="btn btn-success" href="/TipoRepresentantes">Tipo de representantes</a>
-                                            </nav>
-                                        </th>
-                                    @endcan
-                                </tr>
-
-
-                                <tr>
-                                    @can('PREPARADORES - LISTAR')
-
-                                        <th>
-                                            <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                                <a class="btn btn-success" href="/Preparadores">Preparadores / Professores / Treinadores</a>
-                                            </nav>
-                                        </th>
-                                    @endcan
-                                </tr>
-
-                                <tr>
-                                    @can('CARGOPROFISSIONAL - LISTAR')
-
-                                        <th>
-                                            <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                                <a class="btn btn-success" href="/CargoProfissional">Cargo profissional</a>
-                                            </nav>
-                                        </th>
-                                    @endcan
-                                </tr>
-
-                                <tr>
-                                    @can('FUNCAOPROFISSIONAL - LISTAR')
-
-                                        <th>
-                                            <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                                <a class="btn btn-success" href="/FuncaoProfissional">Função profissional</a>
-                                            </nav>
-                                        </th>
-                                    @endcan
-                                </tr>
-
-                                <tr>
-                                    @can('TIPOARQUIVO - LISTAR')
-
-                                        <th>
-                                            <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                                <a class="btn btn-success" href="/TipoArquivo">Tipo de arquivos</a>
-                                            </nav>
-                                        </th>
-                                    @endcan
-                                </tr>
-
-                                <tr>
-                                    @can('TIPOESPORTE - LISTAR')
-                                        <th>
-                                            <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                                <a class="btn btn-success" href="/TipoEsporte">Tipo de esportes</a>
-                                            </nav>
-                                        </th>
-                                    @endcan
-                                </tr>
-                                <tr>
-                                    @can('CATEGORIAS - LISTAR')
-                                        <th>
-                                            <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                                <a class="btn btn-success" href="/Categorias">Categorias</a>
-                                            </nav>
-                                        </th>
-                                    @endcan
-                                </tr>
-                                <tr>
-                                    @can('POSICOES - LISTAR')
-                                        <th>
-                                            <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                                <a class="btn btn-success" href="/Posicoes">Posições</a>
-                                            </nav>
-                                        </th>
-                                    @endcan
-                                </tr>
-
-                                <tr>
-                                    @can('SAF_CLUBES - LISTAR')
-                                        <th>
-                                            <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                                <a class="btn btn-success" href="/SafClubes">SAF - Clubes</a>
-                                            </nav>
-                                        </th>
-                                    @endcan
-                                </tr>
-
-                                <tr>
-                                    @can('SAF_FEDERACOES - LISTAR')
-                                        <th>
-                                            <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                                <a class="btn btn-success" href="/SafFederacoes">SAF - Federações</a>
-                                            </nav>
-                                        </th>
-                                    @endcan
-                                </tr>
-
-                                <tr>
-                                    @can('SAF_CAMPEONATOS - LISTAR')
-                                        <th>
-                                            <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                                <a class="btn btn-success" href="/SafCampeonatos">SAF - Campeonatos</a>
-                                            </nav>
-                                        </th>
-                                    @endcan
-                                </tr>
-
-                                <tr>
-                                    @can('SAF_ANOS - LISTAR')
-                                        <th>
-                                            <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                                <a class="btn btn-success" href="/SafAnos">SAF - Anos</a>
-                                            </nav>
-                                        </th>
-                                    @endcan
-                                </tr>
-
-                                <tr>
-                                    @can('SAF_TIPOS_PRESTADORES - LISTAR')
-                                        <th>
-                                            <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                                <a class="btn btn-success" href="/SafTiposPrestadores">SAF - Tipos de Prestadores</a>
-                                            </nav>
-                                        </th>
-                                    @endcan
-                                </tr>
-
-                                <tr>
-                                    @can('SAF_FAIXASSALARIAIS - LISTAR')
-                                        <th>
-                                            <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                                <a class="btn btn-success" href="/SafFaixasSalariais">SAF - Faixas Salariais</a>
-                                            </nav>
-                                        </th>
-                                    @endcan
-                                </tr>
-
-                                <tr>
-                                    @can('REDESOCIAL - LISTAR')
-                                        <th>
-                                            <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                                <a class="btn btn-success" href="/RedeSocial">Redes sociais</a>
-                                            </nav>
-                                        </th>
-                                    @endcan
-                                </tr>
-
-                                <tr>
-                                    @can('FORMANDOBASERECEBIMENTOS - LISTAR')
-                                        <th>
-                                            <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
-                                                <a class="btn btn-success" href="/FormandoBaseRecebimentos">Recebimentos e representantes</a>
-                                            </nav>
-                                        </th>
-                                    @endcan
-                                </tr>
-
-                            @endcan
-
-                        </tbody>
-                    </table>
+                    </div>
                 </div>
             </div>
             <div class="badge bg-warning text-wrap" style="width: 100%;
@@ -300,6 +129,12 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
         <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
         <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
+            });
+        </script>
         {{-- <script>
             $(document).ready(function() {
                 $('.select2').select2();
