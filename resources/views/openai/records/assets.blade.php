@@ -25,6 +25,11 @@
           <input type="date" name="to" value="{{ request('to') }}" class="form-control form-control-sm">
         </div>
         <div class="col-sm-3 col-md-2">
+          <label class="form-label small mb-1" title="Inclui apenas ativos cujo último registro não é posterior a esta data">Sem registros após</label>
+          <input type="date" name="no_after" value="{{ request('no_after') }}" class="form-control form-control-sm">
+          <small class="text-muted d-block mt-1">Mostra somente grupos cujo último registro <= data.</small>
+        </div>
+        <div class="col-sm-3 col-md-2">
           <label class="form-label small mb-1">Data base (comparação)</label>
           <input type="date" id="assets-baseline" name="baseline" value="{{ request('baseline') }}" class="form-control form-control-sm">
         </div>

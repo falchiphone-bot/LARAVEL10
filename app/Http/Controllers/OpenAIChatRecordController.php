@@ -463,8 +463,12 @@ class OpenAIChatRecordController extends Controller
     public function assets(Request $request): View
     {
         $userId = (int) Auth::id();
-        $from = $request->input('from');
-        $to = $request->input('to');
+    $from = $request->input('from');
+    $to = $request->input('to');
+    // Novo filtro: mostrar apenas ativos cujo último registro NÃO é posterior a esta data (no_after)
+    // Interpretação: se informado YYYY-MM-DD, só incluir grupos cujo max(occurred_at) <= fim do dia informado.
+    // (Se o usuário desejar posteriormente a modalidade de igualdade estrita, poderemos ampliar com outro parâmetro.)
+    $noAfter = $request->input('no_after');
     $baseline = $request->input('baseline'); // data base para comparação
         $excludeDate = $request->input('exclude_date'); // YYYY-MM-DD
         $invAccId = $request->input('investment_account_id');
@@ -586,6 +590,25 @@ class OpenAIChatRecordController extends Controller
             } catch (\Throwable $e) { /* ignora formato inválido */ }
         }
 
+        // Filtro adicional: remover grupos que possuam registros posteriores à data limite (no_after)
+        if ($noAfter) {
+            try {
+                $limitDt = \Carbon\Carbon::parse($noAfter)->endOfDay();
+                // Obter max global (sem filtros de data from/to) por grupo para o usuário
+                $globalSub = DB::table('openai_chat_records as r')
+                    ->join('open_a_i_chats as cc', 'cc.id', '=', 'r.chat_id')
+                    ->where('r.user_id', $userId)
+                    ->selectRaw($groupExpr . ' as grp, MAX(r.occurred_at) as gmax')
+                    ->groupByRaw($groupExpr)
+                    ->pluck('gmax', 'grp');
+                $rows = $rows->filter(function($row) use ($globalSub, $limitDt){
+                    if (!isset($globalSub[$row->grp])) { return false; }
+                    try { $gmax = \Carbon\Carbon::parse($globalSub[$row->grp]); } catch (\Throwable $e) { return false; }
+                    return $gmax->lessThanOrEqualTo($limitDt);
+                })->values();
+            } catch (\Throwable $e) { /* formato inválido -> ignora filtro */ }
+        }
+
         // Carregar modelos dos ids resultantes para ter relações eager-loaded facilmente
         $ids = collect($rows)->pluck('id')->unique()->values()->all();
         $records = OpenAIChatRecord::with(['chat:id,title,code','user:id,name','investmentAccount:id,account_name,broker'])->whereIn('id', $ids)->get();
@@ -624,6 +647,7 @@ class OpenAIChatRecordController extends Controller
             'counts' => $counts,
             'from' => $from,
             'to' => $to,
+        'no_after' => $noAfter,
             'baseline' => $baseline,
             'exclude_date' => $excludeDate,
             'invAccId' => $invAccId,
