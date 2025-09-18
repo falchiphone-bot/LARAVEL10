@@ -1105,6 +1105,13 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     Route::get('/openai/investments/daily-balances/export-csv', [\App\Http\Controllers\InvestmentDailyBalanceController::class, 'exportCsv'])->name('investments.daily-balances.exportCsv');
     Route::delete('/openai/investments/daily-balances/{dailyBalance}', [\App\Http\Controllers\InvestmentDailyBalanceController::class, 'destroy'])->name('investments.daily-balances.destroy');
     Route::patch('/openai/investments/daily-balances/{id}/restore', [\App\Http\Controllers\InvestmentDailyBalanceController::class, 'restore'])->name('investments.daily-balances.restore');
+    // Percentuais Atletas TANABI SAF
+    Route::get('/tanabi/athletes/percentages', [\App\Http\Controllers\TanabiAthletePercentageController::class,'index'])->name('tanabi.athletes.percentages.index');
+    Route::post('/tanabi/athletes/percentages', [\App\Http\Controllers\TanabiAthletePercentageController::class,'store'])->name('tanabi.athletes.percentages.store');
+    Route::put('/tanabi/athletes/percentages/{percentage}', [\App\Http\Controllers\TanabiAthletePercentageController::class,'update'])->name('tanabi.athletes.percentages.update');
+    Route::get('/tanabi/athletes/percentages/export/csv', [\App\Http\Controllers\TanabiAthletePercentageController::class,'exportCsv'])->name('tanabi.athletes.percentages.exportCsv');
+    Route::post('/tanabi/athletes/percentages/{percentage}/other-clubs', [\App\Http\Controllers\TanabiAthletePercentageController::class,'storeOtherClubPercentage'])->name('tanabi.athletes.percentages.other.store');
+    Route::delete('/tanabi/athletes/percentages/other-clubs/{id}', [\App\Http\Controllers\TanabiAthletePercentageController::class,'destroyOtherClubPercentage'])->name('tanabi.athletes.percentages.other.destroy');
     Route::delete('/openai/investments/{account}', [InvestmentAccountController::class, 'destroy'])->name('openai.investments.destroy');
     Route::match(['get', 'post'], '/openai/transcribe', [OpenAIController::class, 'transcribe'])->name('openai.transcribe');
 

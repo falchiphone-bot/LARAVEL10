@@ -233,6 +233,30 @@
                             </li>
                             @endcanany
 
+              <!-- Link: Snapshots de Investimentos -->
+              <li>
+                <a href="{{ route('investments.daily-balances.index') }}"
+                   class="nav-link text-white"
+                   data-bs-toggle="tooltip" data-bs-placement="top"
+                   data-bs-custom-class="custom-tooltip"
+                   data-bs-title="Ver e gerar snapshots diários (saldo consolidado, variação e exportação CSV)">
+                  <i class="fa-solid fa-chart-line"></i>
+                  Investimentos (Snapshots)
+                </a>
+              </li>
+
+              <!-- Link: Percentuais Atletas TANABI -->
+              <li>
+                <a href="{{ route('tanabi.athletes.percentages.index') }}"
+                   class="nav-link text-white"
+                   data-bs-toggle="tooltip" data-bs-placement="top"
+                   data-bs-custom-class="custom-tooltip"
+                   data-bs-title="Gerenciar percentuais TANABI x outros clubes, breakdown multi-clubes e exportar CSV">
+                  <i class="fa-solid fa-percent"></i>
+                  Percentuais Atletas
+                </a>
+              </li>
+
                             <li>
                                 <a href="/profile" data-bs-toggle="tooltip" data-bs-placement="top"
                                     data-bs-custom-class="custom-tooltip"
