@@ -234,6 +234,7 @@
                             @endcanany
 
               <!-- Link: Snapshots de Investimentos -->
+              @can('INVESTIMENTOS SNAPSHOTS - LISTAR')
               <li>
                 <a href="{{ route('investments.daily-balances.index') }}"
                    class="nav-link text-white"
@@ -244,8 +245,10 @@
                   Investimentos (Snapshots)
                 </a>
               </li>
+              @endcan
 
               <!-- Link: Percentuais Atletas TANABI -->
+              @can('TANABI ATLETAS PERCENTUAIS - LISTAR')
               <li>
                 <a href="{{ route('tanabi.athletes.percentages.index') }}"
                    class="nav-link text-white"
@@ -256,6 +259,7 @@
                   Percentuais Atletas
                 </a>
               </li>
+              @endcan
 
                             <li>
                                 <a href="/profile" data-bs-toggle="tooltip" data-bs-placement="top"

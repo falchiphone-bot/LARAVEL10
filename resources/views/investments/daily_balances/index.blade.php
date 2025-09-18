@@ -5,11 +5,15 @@
     <h1 class="h5 mb-0">Evolução do Saldo (Snapshots)</h1>
     <div class="d-flex gap-2">
         <a href="{{ route('openai.investments.index') }}" class="btn btn-outline-secondary">← Investimentos</a>
+        @can('INVESTIMENTOS SNAPSHOTS - CRIAR')
         <form method="POST" action="{{ route('investments.daily-balances.store') }}" id="new-snapshot-form">
           @csrf
           <button class="btn btn-outline-primary" title="Gerar novo snapshot agora">Novo Snapshot</button>
         </form>
+        @endcan
+        @can('INVESTIMENTOS SNAPSHOTS - EXPORTAR')
         <a href="{{ route('investments.daily-balances.exportCsv', request()->only('with_deleted')) }}" class="btn btn-outline-secondary" title="Exportar CSV">Exportar CSV</a>
+        @endcan
         <form method="GET" action="{{ route('investments.daily-balances.index') }}" class="ms-3">
           <div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" name="with_deleted" value="1" id="withDeletedSwitch" onchange="this.form.submit()" {{ $withDeleted ? 'checked' : '' }}>
@@ -59,17 +63,21 @@
               <td>{{ optional($m->created_at)->format('d/m/Y H:i') }}</td>
               <td class="d-flex gap-1">
                 @if(!$m->trashed())
+                  @can('INVESTIMENTOS SNAPSHOTS - EXCLUIR')
                   <form method="POST" action="{{ route('investments.daily-balances.destroy', $m) }}" class="d-inline" onsubmit="return confirm('Excluir este snapshot?');">
                     @csrf
                     @method('DELETE')
                     <button class="btn btn-sm btn-outline-danger" title="Excluir snapshot">Excluir</button>
                   </form>
+                  @endcan
                 @else
+                  @can('INVESTIMENTOS SNAPSHOTS - RESTAURAR')
                   <form method="POST" action="{{ route('investments.daily-balances.restore', $m->id) }}" class="d-inline" onsubmit="return confirm('Restaurar este snapshot?');">
                     @csrf
                     @method('PATCH')
                     <button class="btn btn-sm btn-outline-success" title="Restaurar snapshot">Restaurar</button>
                   </form>
+                  @endcan
                 @endif
               </td>
             </tr>

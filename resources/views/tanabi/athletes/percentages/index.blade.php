@@ -5,16 +5,19 @@
     <h1 class="h5 mb-0">Percentuais Atletas - TANABI SAF</h1>
     <div class="d-flex gap-2">
       <a href="{{ route('openai.investments.index') }}" class="btn btn-outline-secondary">← Voltar</a>
+      @can('TANABI ATLETAS PERCENTUAIS - EXPORTAR')
       <a href="{{ route('tanabi.athletes.percentages.exportCsv') }}" class="btn btn-outline-success">Exportar CSV</a>
+      @endcan
     </div>
   </div>
   @if(session('success'))
     <div class="alert alert-success py-2">{{ session('success') }}</div>
   @endif
+  @can('TANABI ATLETAS PERCENTUAIS - CRIAR')
   <div class="card mb-4">
     <div class="card-header py-2">Novo Percentual</div>
     <div class="card-body py-3">
-      <form method="POST" action="{{ route('tanabi.athletes.percentages.store') }}" class="row g-2 align-items-end" id="createForm">
+  <form method="POST" action="{{ route('tanabi.athletes.percentages.store') }}" class="row g-2 align-items-end" id="createForm">
         @csrf
         <div class="col-md-4">
           <label class="form-label small mb-1 d-flex justify-content-between align-items-center">
@@ -62,6 +65,7 @@
       </form>
     </div>
   </div>
+  @endcan
   <div class="table-responsive">
     <table class="table table-sm table-striped align-middle">
       <thead class="table-dark">
@@ -95,7 +99,9 @@
             <td>{{ $it->otherClub?->nome ?? ($it->other_club_name ?: '—') }}</td>
             <td class="small text-muted">{{ optional($it->created_at)->format('d/m/Y H:i') }}</td>
             <td>
+              @can('TANABI ATLETAS PERCENTUAIS - EDITAR')
               <button class="btn btn-sm btn-outline-primary btn-edit w-100" data-id="{{ $it->id }}">Editar</button>
+              @endcan
             </td>
           </tr>
           @if($it->otherClubPercentages->count())
@@ -125,11 +131,13 @@
                           <td class="text-end">@if($relOutro!==null) {{ number_format($relOutro,2,',','.') }}% @else — @endif</td>
                           <td class="text-end">{{ number_format($br->percentage,4,',','.') }}%</td>
                           <td class="text-center">
+                            @can('TANABI ATLETAS PERCENTUAIS - EXCLUIR')
                             <form method="POST" action="{{ route('tanabi.athletes.percentages.other.destroy', $br->id) }}" onsubmit="return confirm('Remover percentual detalhado?');" class="d-inline">
                               @csrf
                               @method('DELETE')
                               <button class="btn btn-sm btn-outline-danger">Excluir</button>
                             </form>
+                            @endcan
                           </td>
                         </tr>
                       @endforeach
@@ -141,6 +149,7 @@
                     </tbody>
                   </table>
                 </div>
+                @can('TANABI ATLETAS PERCENTUAIS - ADICIONAR OUTRO CLUBE')
                 <form method="POST" action="{{ route('tanabi.athletes.percentages.other.store', $it) }}" class="row g-2 align-items-end">
                   @csrf
                   <div class="col-md-3">
@@ -164,6 +173,7 @@
                     <button class="btn btn-sm btn-outline-primary w-100 mt-2">Adicionar</button>
                   </div>
                 </form>
+                @endcan
               </div>
             </td>
           </tr>
@@ -172,6 +182,7 @@
             <td colspan="7" class="p-0">
               <div class="p-2 small">
                 <div class="fw-semibold mb-1">Adicionar Percentuais em Outros Clubes</div>
+                @can('TANABI ATLETAS PERCENTUAIS - ADICIONAR OUTRO CLUBE')
                 <form method="POST" action="{{ route('tanabi.athletes.percentages.other.store', $it) }}" class="row g-2 align-items-end">
                   @csrf
                   <div class="col-md-3">
@@ -195,6 +206,7 @@
                     <button class="btn btn-sm btn-outline-primary w-100 mt-2">Adicionar</button>
                   </div>
                 </form>
+                @endcan
               </div>
             </td>
           </tr>

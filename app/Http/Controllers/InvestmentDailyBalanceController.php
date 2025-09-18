@@ -14,7 +14,11 @@ class InvestmentDailyBalanceController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware(['permission:OPENAI - CHAT']); // Reutiliza mesma permissão existente
+        $this->middleware('permission:INVESTIMENTOS SNAPSHOTS - LISTAR')->only(['index']);
+        $this->middleware('permission:INVESTIMENTOS SNAPSHOTS - CRIAR')->only(['store']);
+        $this->middleware('permission:INVESTIMENTOS SNAPSHOTS - EXCLUIR')->only(['destroy']);
+        $this->middleware('permission:INVESTIMENTOS SNAPSHOTS - EXPORTAR')->only(['exportCsv']);
+        $this->middleware('permission:INVESTIMENTOS SNAPSHOTS - RESTAURAR')->only(['restore']);
     }
 
     /**

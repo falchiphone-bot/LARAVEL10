@@ -15,8 +15,12 @@ class TanabiAthletePercentageController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        // Ajustar permissão se necessário
-        $this->middleware(['permission:OPENAI - CHAT'])->only(['index','store']);
+        $this->middleware('permission:TANABI ATLETAS PERCENTUAIS - LISTAR')->only(['index','exportCsv']);
+        $this->middleware('permission:TANABI ATLETAS PERCENTUAIS - CRIAR')->only(['store']);
+        $this->middleware('permission:TANABI ATLETAS PERCENTUAIS - EDITAR')->only(['update']);
+        $this->middleware('permission:TANABI ATLETAS PERCENTUAIS - EXCLUIR')->only(['destroyOtherClubPercentage']);
+        $this->middleware('permission:TANABI ATLETAS PERCENTUAIS - ADICIONAR OUTRO CLUBE')->only(['storeOtherClubPercentage']);
+        $this->middleware('permission:TANABI ATLETAS PERCENTUAIS - EXPORTAR')->only(['exportCsv']);
     }
 
     public function index()
