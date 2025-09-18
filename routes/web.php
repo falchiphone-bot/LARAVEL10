@@ -1065,6 +1065,7 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     Route::delete('/openai/records/{record}', [\App\Http\Controllers\OpenAIChatRecordController::class, 'destroy'])->name('openai.records.destroy');
     // Nova visão agregada: ativos (códigos) sem repetição
     Route::get('/openai/records/assets', [\App\Http\Controllers\OpenAIChatRecordController::class, 'assets'])->name('openai.records.assets');
+    Route::get('/openai/records/assets/export-csv', [\App\Http\Controllers\OpenAIChatRecordController::class, 'assetsExport'])->name('openai.records.assets.exportCsv');
     // Aplicar cotação ao valor do registro
     Route::patch('/openai/records/{record}/apply-quote', [\App\Http\Controllers\OpenAIChatRecordController::class, 'applyQuote'])->name('openai.records.applyQuote');
     // Criar novo registro a partir da cotação

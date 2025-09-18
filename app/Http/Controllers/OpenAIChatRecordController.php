@@ -465,6 +465,8 @@ class OpenAIChatRecordController extends Controller
         $userId = (int) Auth::id();
     $from = $request->input('from');
     $to = $request->input('to');
+    // Filtro por ativo (código ou título parcial – aplicado sobre o grupo consolidado)
+    $assetFilter = trim((string)$request->input('asset', ''));
     // Novo filtro: mostrar apenas ativos cujo último registro NÃO é posterior a esta data (no_after)
     // Interpretação: se informado YYYY-MM-DD, só incluir grupos cujo max(occurred_at) <= fim do dia informado.
     // (Se o usuário desejar posteriormente a modalidade de igualdade estrita, poderemos ampliar com outro parâmetro.)
@@ -510,10 +512,10 @@ class OpenAIChatRecordController extends Controller
             $groupExpr = "COALESCE(NULLIF(TRIM(cc.code), ''), TRIM(cc.title))";
         }
 
-    // Subquery: conta por grupo e último id por grupo (maior occurred_at; se empate, maior id)
+    // Subquery: conta por grupo e último id por grupo (maior occurred_at; se empate, maior id) + média no período filtrado
     $sub = DB::table('openai_chat_records as r')
             ->join('open_a_i_chats as cc', 'cc.id', '=', 'r.chat_id')
-            ->selectRaw($groupExpr . ' as grp, COUNT(*) as qty, MAX(r.occurred_at) as max_dt');
+        ->selectRaw($groupExpr . ' as grp, COUNT(*) as qty, MAX(r.occurred_at) as max_dt, AVG(CAST(r.amount as float)) as avg_amt');
         // Reaplica filtros ao sub
         $sub->where('r.user_id', $userId);
         if ($from) { try { $fromDate = \Carbon\Carbon::parse($from)->startOfDay(); $sub->where('r.occurred_at', '>=', $fromDate); } catch (\Throwable $e) {} }
@@ -536,12 +538,22 @@ class OpenAIChatRecordController extends Controller
 
         // Seleção final: apenas colunas do registro (r.*) + agregados necessários (grp, qty)
         $rows = $latest
-            ->select('r.*', DB::raw('agg.grp as grp'), DB::raw('agg.qty as qty'))
+            ->select('r.*', DB::raw('agg.grp as grp'), DB::raw('agg.qty as qty'), DB::raw('agg.avg_amt as avg_amt'))
             ->get();
+
+        // Aplicar filtro por ativo (case-insensitive) após carga dos grupos
+        if ($assetFilter !== '') {
+            $needle = mb_strtolower($assetFilter);
+            $rows = $rows->filter(function($row) use ($needle){
+                $grp = mb_strtolower((string)($row->grp ?? ''));
+                return $grp !== '' && str_contains($grp, $needle);
+            })->values();
+        }
 
         // Baselines: para cada grupo, pegar o primeiro registro com occurred_at >= baseline
         $baselines = collect();
-        if ($baseline) {
+    $statsService = app(\App\Services\AssetStatsService::class);
+    if ($baseline) {
             try { $baselineDt = \Carbon\Carbon::parse($baseline)->startOfDay(); } catch (\Throwable $e) { $baselineDt = null; }
             if ($baselineDt) {
                 $subBase = DB::table('openai_chat_records as r')
@@ -615,10 +627,107 @@ class OpenAIChatRecordController extends Controller
 
         // Mapa quantidades por grupo e total (após aplicar filtros)
         $counts = collect($rows)->groupBy('grp')->map->first()->map(fn($r)=> (int)($r->qty ?? 0));
+        // Mapa médias por grupo
+        $averages = collect($rows)->groupBy('grp')->map->first()->map(function($r){
+            $v = $r->avg_amt ?? null; return $v !== null ? (float)$v : null;
+        });
+        // Estatísticas até a baseline (se informada): considerar somente registros <= fim do dia baseline
+        $baselineStats = collect();
+        // Estatísticas gerais (independentes de baseline) para o intervalo filtrado
+        $overallStats = collect();
+
+        // Cache key base
+        $cacheKeyBase = 'assets_stats:' . $userId . ':' . md5(json_encode([
+            'from'=>$from,'to'=>$to,'inv'=>$invAccId,'baseline'=>$baseline,'noAfter'=>$noAfter
+        ]));
+        if (function_exists('cache')) {
+            $cachedBaseline = cache()->get($cacheKeyBase.':baseline');
+            $cachedOverall = cache()->get($cacheKeyBase.':overall');
+            if ($cachedBaseline instanceof \Illuminate\Support\Collection) { $baselineStats = $cachedBaseline; }
+            if ($cachedOverall instanceof \Illuminate\Support\Collection) { $overallStats = $cachedOverall; }
+        }
+
+        if ($baseline) {
+            try { $baselineEnd = \Carbon\Carbon::parse($baseline)->endOfDay(); } catch (\Throwable $e) { $baselineEnd = null; }
+            if ($baselineEnd) {
+                // Buscar registros para os grupos já selecionados respeitando filtros existentes + occurred_at <= baselineEnd
+                $grpKeys = collect($rows)->pluck('grp')->unique()->values();
+                if ($grpKeys->isNotEmpty()) {
+                    $statsQuery = DB::table('openai_chat_records as r')
+                        ->join('open_a_i_chats as cc', 'cc.id', '=', 'r.chat_id')
+                        ->where('r.user_id', $userId)
+                        ->where('r.occurred_at', '<=', $baselineEnd);
+                    if ($from) { try { $fromDate = \Carbon\Carbon::parse($from)->startOfDay(); $statsQuery->where('r.occurred_at', '>=', $fromDate); } catch (\Throwable $e) {} }
+                    if ($to) { try { $toDate = \Carbon\Carbon::parse($to)->endOfDay(); $statsQuery->where('r.occurred_at', '<=', $toDate); } catch (\Throwable $e) {} }
+                    if ($invAccId !== null && $invAccId !== '') {
+                        if ((string)$invAccId === '0') { $statsQuery->whereNull('r.investment_account_id'); }
+                        else { $statsQuery->where('r.investment_account_id', (int)$invAccId); }
+                    }
+                    // Selecionar quantidades individuais para calcular mediana em PHP
+                    $statsRows = $statsQuery->selectRaw($groupExpr . ' as grp, r.amount')->get();
+                    $tmp = [];
+                    foreach ($statsRows as $sr) {
+                        $g = $sr->grp;
+                        if (!$grpKeys->contains($g)) continue; // só grupos exibidos
+                        $amt = (float)($sr->amount ?? 0);
+                        if (!isset($tmp[$g])) {
+                            $tmp[$g] = ['sum'=>0.0,'count'=>0,'min'=>null,'max'=>null,'values'=>[]];
+                        }
+                        $tmp[$g]['sum'] += $amt;
+                        $tmp[$g]['count'] += 1;
+                        $tmp[$g]['min'] = $tmp[$g]['min'] === null ? $amt : min($tmp[$g]['min'], $amt);
+                        $tmp[$g]['max'] = $tmp[$g]['max'] === null ? $amt : max($tmp[$g]['max'], $amt);
+                        $tmp[$g]['values'][] = $amt;
+                    }
+                    foreach ($tmp as $g => $data) {
+                        if ($data['count'] === 0) continue;
+                        $baselineStats[$g] = $statsService->compute($data['values']);
+                    }
+                    if (isset($statsRows) && function_exists('cache') && $baselineStats->isNotEmpty()) {
+                        cache()->put($cacheKeyBase.':baseline', $baselineStats, 300); // 5 min
+                    }
+                }
+            }
+        }
+        // Estatísticas gerais (sem limite baseline, mas respeitando filtros from/to/conta)
+        if ($overallStats->isEmpty()) {
+            $grpKeysAll = collect($rows)->pluck('grp')->unique()->values();
+            if ($grpKeysAll->isNotEmpty()) {
+                $oQuery = DB::table('openai_chat_records as r')
+                    ->join('open_a_i_chats as cc', 'cc.id', '=', 'r.chat_id')
+                    ->where('r.user_id', $userId);
+                if ($from) { try { $fromDate = \Carbon\Carbon::parse($from)->startOfDay(); $oQuery->where('r.occurred_at', '>=', $fromDate); } catch (\Throwable $e) {} }
+                if ($to) { try { $toDate = \Carbon\Carbon::parse($to)->endOfDay(); $oQuery->where('r.occurred_at', '<=', $toDate); } catch (\Throwable $e) {} }
+                if ($invAccId !== null && $invAccId !== '') {
+                    if ((string)$invAccId === '0') { $oQuery->whereNull('r.investment_account_id'); }
+                    else { $oQuery->where('r.investment_account_id', (int)$invAccId); }
+                }
+                $oRows = $oQuery->selectRaw($groupExpr . ' as grp, r.amount')->get();
+                $tmp2 = [];
+                foreach ($oRows as $or) {
+                    $g = $or->grp;
+                    if (!$grpKeysAll->contains($g)) continue;
+                    $amt = (float)($or->amount ?? 0);
+                    if (!isset($tmp2[$g])) { $tmp2[$g] = ['sum'=>0.0,'count'=>0,'min'=>null,'max'=>null,'values'=>[]]; }
+                    $tmp2[$g]['sum'] += $amt;
+                    $tmp2[$g]['count'] += 1;
+                    $tmp2[$g]['min'] = $tmp2[$g]['min'] === null ? $amt : min($tmp2[$g]['min'], $amt);
+                    $tmp2[$g]['max'] = $tmp2[$g]['max'] === null ? $amt : max($tmp2[$g]['max'], $amt);
+                    $tmp2[$g]['values'][] = $amt;
+                }
+                foreach ($tmp2 as $g => $data) {
+                    if ($data['count'] === 0) continue;
+                    $overallStats[$g] = $statsService->compute($data['values']);
+                }
+                if (isset($oRows) && function_exists('cache') && $overallStats->isNotEmpty()) {
+                    cache()->put($cacheKeyBase.':overall', $overallStats, 300);
+                }
+            }
+        }
         $totalSelected = collect($rows)->sum(function($r){ return (int)($r->qty ?? 0); });
 
         // Ordenação dinâmica conforme solicitação
-        $recordsSorted = $records->sortBy(function($r) use ($sort, $counts, $baselines){
+        $recordsSorted = $records->sortBy(function($r) use ($sort, $counts, $baselines, $averages, $baselineStats, $overallStats){
             $code = trim((string)($r->chat->code ?? ''));
             $title = trim((string)($r->chat->title ?? ''));
             $grp = $code !== '' ? $code : $title;
@@ -629,6 +738,17 @@ class OpenAIChatRecordController extends Controller
             $cur = (float)($r->amount ?? 0);
             $dif = ($base !== null) ? ($cur - (float)$base) : null;
             $var = ($base && abs((float)$base) > 0.0000001) ? (($cur - (float)$base) / (float)$base * 100.0) : null;
+            // usar média baseline se disponível
+            $avg = $baselineStats->get($grp)['avg'] ?? ($averages[$grp] ?? null);
+            $median = $baselineStats->get($grp)['median'] ?? ($overallStats->get($grp)['median'] ?? null);
+            $maxV = $baselineStats->get($grp)['max'] ?? ($overallStats->get($grp)['max'] ?? null);
+            $minV = $baselineStats->get($grp)['min'] ?? ($overallStats->get($grp)['min'] ?? null);
+            $countBase = $baselineStats->get($grp)['count'] ?? null;
+            $countTotal = $overallStats->get($grp)['count'] ?? null;
+            $avgTotal = $overallStats->get($grp)['avg'] ?? null;
+            $medianTotal = $overallStats->get($grp)['median'] ?? null;
+            $maxTotal = $overallStats->get($grp)['max'] ?? null;
+            $minTotal = $overallStats->get($grp)['min'] ?? null;
             return match($sort){
                 'code' => mb_strtoupper($code),
                 'title' => mb_strtoupper($title),
@@ -638,6 +758,16 @@ class OpenAIChatRecordController extends Controller
                 'qty' => (int)($counts[$grp] ?? 0),
                 'var' => $var !== null ? (float)$var : -INF,
                 'diff' => $dif !== null ? (float)$dif : -INF,
+                'avg' => $avg !== null ? (float)$avg : -INF,
+                'median' => $median !== null ? (float)$median : -INF,
+                'max' => $maxV !== null ? (float)$maxV : -INF,
+                'min' => $minV !== null ? (float)$minV : -INF,
+                'count_base' => $countBase !== null ? (float)$countBase : -INF,
+                'count_total' => $countTotal !== null ? (float)$countTotal : -INF,
+                'avg_total' => $avgTotal !== null ? (float)$avgTotal : -INF,
+                'median_total' => $medianTotal !== null ? (float)$medianTotal : -INF,
+                'max_total' => $maxTotal !== null ? (float)$maxTotal : -INF,
+                'min_total' => $minTotal !== null ? (float)$minTotal : -INF,
                 default => mb_strtoupper($code),
             };
         }, SORT_NATURAL | SORT_FLAG_CASE, $dir === 'desc')->values();
@@ -651,11 +781,100 @@ class OpenAIChatRecordController extends Controller
             'baseline' => $baseline,
             'exclude_date' => $excludeDate,
             'invAccId' => $invAccId,
+        'asset' => $assetFilter,
             'investmentAccounts' => $investmentAccounts,
             'totalSelected' => $totalSelected,
             'sort' => $sort,
             'dir' => $dir,
             'baselines' => $baselines,
+        'averages' => $averages, // média completa (sem baseline) – usada fallback
+        'baselineStats' => $baselineStats, // estatísticas limitadas até baseline
+        'overallStats' => $overallStats, // estatísticas gerais sem limite baseline
+        ]);
+    }
+
+    /**
+     * Exporta a visão de assets em CSV incluindo estatísticas baseline.
+     */
+    public function assetsExport(Request $request)
+    {
+        // Reutiliza lógica de assets() executando internamente e recolhendo dados já prontos.
+        // Para evitar duplicação grande, chamaremos assets() parcialmente refatorado no futuro.
+        // Aqui replicamos apenas o essencial de leitura (mantendo consistência com assets()).
+        $responseView = $this->assets($request); // View com dados compactados
+        $data = $responseView->getData();
+    $records = $data['records'] ?? collect();
+    $baselines = $data['baselines'] ?? collect();
+    $baselineStats = $data['baselineStats'] ?? collect();
+    $overallStats = $data['overallStats'] ?? collect();
+    $counts = $data['counts'] ?? collect();
+        $baseline = $data['baseline'] ?? null;
+        $locale = strtolower((string)$request->input('locale'));
+        $ptBR = $locale === 'br' || $locale === 'pt-br';
+        $callback = function() use ($records, $baselines, $baselineStats, $counts, $baseline, $overallStats, $ptBR){
+            $out = fopen('php://output', 'w');
+            // Cabeçalho
+            fputcsv($out, [
+                'Codigo','Conversa','DataUltimo','ValorUltimo','Qtd',
+                'BaseValor','BaseData','VarPercent','Dif',
+                'MediaBase','MedianaBase','MaxBase','MinBase','CountBase',
+                'MediaTotal','MedianaTotal','MaxTotal','MinTotal','CountTotal'
+            ], ';');
+            foreach ($records as $r) {
+                $code = trim($r->chat->code ?? '') ?: trim($r->chat->title ?? '');
+                $b = $baselines->get($code) ?? null;
+                $baseAmount = $b['amount'] ?? null;
+                $baseDate = isset($b['occurred_at']) ? (optional($b['occurred_at'])->format('Y-m-d')) : null;
+                $cur = (float)($r->amount ?? 0);
+                $dif = ($baseAmount !== null) ? ($cur - (float)$baseAmount) : null;
+                $var = ($baseAmount !== null && abs((float)$baseAmount) > 0.0000001) ? ($dif / (float)$baseAmount * 100.0) : null;
+                $stats = $baselineStats->get($code) ?? [];
+                $statsAll = $overallStats->get($code) ?? [];
+                // Função util formatação pt-BR opcional
+                $fmt = function($n, $dec=6) use ($ptBR){
+                    if ($n === '' || $n === null) return '';
+                    $n = (float)$n;
+                    return $ptBR ? number_format($n, $dec, ',', '.') : number_format($n, $dec, '.', '');
+                };
+                $fmtDate = function($dtStr) use ($ptBR){
+                    if (!$dtStr) return '';
+                    if (!$ptBR) return $dtStr; // já ISO
+                    // espera formatos Y-m-d ou Y-m-d H:i:s
+                    if (preg_match('/^(\d{4})-(\d{2})-(\d{2})(?: (\d{2}:\d{2}:\d{2}))?$/', $dtStr, $m)) {
+                        $d = $m[3].'/'.$m[2].'/'.$m[1];
+                        if (!empty($m[4])) return $d.' '.$m[4];
+                        return $d;
+                    }
+                    return $dtStr;
+                };
+                $row = [
+                    $code,
+                    $r->chat->title ?? '',
+                    $fmtDate(optional($r->occurred_at)->format('Y-m-d H:i:s')),
+                    $fmt($cur),
+                    (int)($counts[$code] ?? 0),
+                    $baseAmount !== null ? $fmt($baseAmount) : '',
+                    $fmtDate($baseDate),
+                    $var !== null ? $fmt($var) : '',
+                    $dif !== null ? $fmt($dif) : '',
+                    isset($stats['avg']) ? $fmt($stats['avg']) : '',
+                    isset($stats['median']) ? $fmt($stats['median']) : '',
+                    isset($stats['max']) ? $fmt($stats['max']) : '',
+                    isset($stats['min']) ? $fmt($stats['min']) : '',
+                    isset($stats['count']) ? (int)$stats['count'] : '',
+                    isset($statsAll['avg']) ? $fmt($statsAll['avg']) : '',
+                    isset($statsAll['median']) ? $fmt($statsAll['median']) : '',
+                    isset($statsAll['max']) ? $fmt($statsAll['max']) : '',
+                    isset($statsAll['min']) ? $fmt($statsAll['min']) : '',
+                    isset($statsAll['count']) ? (int)$statsAll['count'] : '',
+                ];
+                fputcsv($out, $row, ';');
+            }
+            fclose($out);
+        };
+        $fileName = 'assets_export_' . date('Ymd_His') . '.csv';
+        return response()->streamDownload($callback, $fileName, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
     }
 

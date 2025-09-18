@@ -7,7 +7,8 @@
       <span id="market-status-badge" class="badge bg-secondary" title="Status do mercado (NYSE)">Mercado: carregando…</span>
     </h1>
     <div class="d-flex gap-2">
-      <a href="{{ route('openai.records.index') }}" class="btn btn-outline-secondary">← Registros</a>
+          <a href="{{ route('openai.records.index') }}" class="btn btn-outline-secondary">← Registros</a>
+          <button type="button" id="toggle-stats-total" class="btn btn-outline-secondary" title="Mostrar/ocultar estatísticas gerais (sem limite baseline)">Stats Totais: <span data-state>OFF</span></button>
       <button type="button" id="toggle-local-badge" class="btn btn-sm btn-outline-secondary" title="Mostrar/ocultar badge local do mercado">
         Badge Mercado: <span data-state>ON</span>
       </button>
@@ -16,6 +17,10 @@
   <div class="card shadow-sm mb-3">
     <div class="card-body">
   <form id="assets-filter-form" method="GET" action="{{ route('openai.records.assets') }}" class="row g-2 align-items-end">
+        <div class="col-sm-4 col-md-3">
+          <label class="form-label small mb-1" title="Filtra por código ou parte do título do ativo">Ativo (código/título)</label>
+          <input type="text" name="asset" value="{{ request('asset') }}" class="form-control form-control-sm" placeholder="Ex: AAPL ou parte do nome">
+        </div>
         <div class="col-sm-3 col-md-2">
           <label class="form-label small mb-1">De</label>
           <input type="date" name="from" value="{{ request('from') }}" class="form-control form-control-sm">
@@ -72,6 +77,9 @@
       <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
         <span class="badge bg-info text-dark">Total de registros selecionados: {{ number_format((int)$totalSelected, 0, ',', '.') }}</span>
         <div class="d-flex align-items-center gap-2">
+          @php $exportParams = request()->all(); @endphp
+          <a href="{{ route('openai.records.assets.exportCsv', $exportParams) }}" class="btn btn-sm btn-outline-success" title="Exportar visão atual em CSV">Exportar CSV</a>
+          <a href="{{ route('openai.records.assets.exportCsv', array_merge($exportParams, ['locale'=>'br'])) }}" class="btn btn-sm btn-outline-success" title="Exportar CSV com formatação brasileira (vírgula decimal)">CSV (pt-BR)</a>
           <button type="button" id="btn-batch-quotes" class="btn btn-sm btn-outline-primary">
             Consultar todos
           </button>
@@ -96,6 +104,9 @@
         <div class="mb-2 small text-muted">
           • Linhas em destaque indicam que não há registro para a Data base (marcadas como “Sem base”).<br>
           • Selo “Base ok” indica que a data base foi encontrada para o ativo.
+          <br>• Estatísticas com “≤Base” consideram apenas registros até o final do dia da baseline.
+          <br>• Use o botão “Stats Totais” para alternar a exibição das estatísticas gerais (todo intervalo filtrado).
+          <br>• Para exportar com vírgula decimal e datas dd/mm/aaaa use o botão “CSV (pt-BR)”.
         </div>
       @endif
     @endif
@@ -131,6 +142,36 @@
           </th>
           <th style="width:12%" class="text-end">
             <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'diff','dir'=>$toggle('diff')])) }}">Dif {{ $icon('diff') }}</a>
+          </th>
+          <th style="width:9%" class="text-end" title="Média até a baseline (inclui registros <= baseline; se sem baseline, usa média geral)">
+            <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'avg','dir'=>$toggle('avg')])) }}">Média ≤Base {{ $icon('avg') }}</a>
+          </th>
+          <th style="width:9%" class="text-end" title="Mediana dos valores até a baseline (ou geral)">
+            <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'median','dir'=>$toggle('median')])) }}">Mediana {{ $icon('median') }}</a>
+          </th>
+          <th style="width:7%" class="text-end" title="Máximo dos valores até a baseline (ou geral)">
+            <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'max','dir'=>$toggle('max')])) }}">Máx {{ $icon('max') }}</a>
+          </th>
+          <th style="width:7%" class="text-end" title="Mínimo dos valores até a baseline (ou geral)">
+            <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'min','dir'=>$toggle('min')])) }}">Mín {{ $icon('min') }}</a>
+          </th>
+          <th style="width:6%" class="text-end" title="Quantidade de registros até a baseline">
+            <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'count_base','dir'=>$toggle('count_base')])) }}">N≤Base {{ $icon('count_base') }}</a>
+          </th>
+          <th style="width:9%" class="text-end stats-total d-none" title="Média geral no intervalo filtrado">
+            <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'avg_total','dir'=>$toggle('avg_total')])) }}">Média Tot {{ $icon('avg_total') }}</a>
+          </th>
+          <th style="width:9%" class="text-end stats-total d-none" title="Mediana geral no intervalo filtrado">
+            <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'median_total','dir'=>$toggle('median_total')])) }}">Mediana Tot {{ $icon('median_total') }}</a>
+          </th>
+          <th style="width:7%" class="text-end stats-total d-none" title="Máximo geral no intervalo filtrado">
+            <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'max_total','dir'=>$toggle('max_total')])) }}">Máx Tot {{ $icon('max_total') }}</a>
+          </th>
+          <th style="width:7%" class="text-end stats-total d-none" title="Mínimo geral no intervalo filtrado">
+            <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'min_total','dir'=>$toggle('min_total')])) }}">Mín Tot {{ $icon('min_total') }}</a>
+          </th>
+          <th style="width:6%" class="text-end stats-total d-none" title="Quantidade total de registros no intervalo">
+            <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'count_total','dir'=>$toggle('count_total')])) }}">N Tot {{ $icon('count_total') }}</a>
           </th>
           <th style="width:10%" class="text-center">Cotação</th>
         </tr>
@@ -248,6 +289,28 @@
                 @endif
               @endif
             </td>
+            @php
+              $codeKey = trim($r->chat?->code ?? '') ?: trim($r->chat?->title ?? '');
+              $stats = ($baselineStats ?? collect())->get($codeKey) ?? [];
+              $avgVal = $stats['avg'] ?? (($averages ?? collect())->get($codeKey) ?? null);
+              $medianVal = $stats['median'] ?? null;
+              $maxVal = $stats['max'] ?? null;
+              $minVal = $stats['min'] ?? null;
+            @endphp
+            <td class="text-end">@if($avgVal!==null) {{ number_format($avgVal, 2, ',', '.') }} @else — @endif</td>
+            <td class="text-end">@if($medianVal!==null) {{ number_format($medianVal, 2, ',', '.') }} @else — @endif</td>
+            <td class="text-end">@if($maxVal!==null) {{ number_format($maxVal, 2, ',', '.') }} @else — @endif</td>
+            <td class="text-end">@if($minVal!==null) {{ number_format($minVal, 2, ',', '.') }} @else — @endif</td>
+            @php $countBase = $stats['count'] ?? null; @endphp
+            <td class="text-end">@if($countBase!==null) {{ $countBase }} @else — @endif</td>
+            @php
+              $statsAll = ($overallStats ?? collect())->get($codeKey) ?? [];
+            @endphp
+            <td class="text-end stats-total d-none">@if(isset($statsAll['avg'])) {{ number_format($statsAll['avg'], 2, ',', '.') }} @else — @endif</td>
+            <td class="text-end stats-total d-none">@if(isset($statsAll['median'])) {{ number_format($statsAll['median'], 2, ',', '.') }} @else — @endif</td>
+            <td class="text-end stats-total d-none">@if(isset($statsAll['max'])) {{ number_format($statsAll['max'], 2, ',', '.') }} @else — @endif</td>
+            <td class="text-end stats-total d-none">@if(isset($statsAll['min'])) {{ number_format($statsAll['min'], 2, ',', '.') }} @else — @endif</td>
+            <td class="text-end stats-total d-none">@if(isset($statsAll['count'])) {{ $statsAll['count'] }} @else — @endif</td>
             <td class="text-center" data-ref="{{ number_format((float)$r->amount, 6, '.', '') }}" data-occurred="{{ optional($r->occurred_at)->format('Y-m-d') }}" data-apply-url="{{ route('openai.records.applyQuote', $r) }}">
               @php $symbol = strtoupper(trim($r->chat?->code ?? '')); @endphp
               @if($symbol !== '')
@@ -879,6 +942,21 @@
     baseline?.addEventListener('input', toggle);
     document.addEventListener('DOMContentLoaded', toggle);
     toggle();
+  })();
+</script>
+<script>
+  (function(){
+    const KEY='assets.showTotalStats';
+    const btn=document.getElementById('toggle-stats-total');
+    function get(){ try{return localStorage.getItem(KEY)==='1';}catch(e){return false;} }
+    function set(v){ try{localStorage.setItem(KEY, v?'1':'0');}catch(e){} }
+    function apply(){
+      const show=get();
+      document.querySelectorAll('.stats-total').forEach(el=>el.classList.toggle('d-none', !show));
+      if(btn){ const s=btn.querySelector('[data-state]'); if(s) s.textContent = show?'ON':'OFF'; }
+    }
+    btn?.addEventListener('click', ()=>{ set(!get()); apply(); });
+    apply();
   })();
 </script>
 @endpush
