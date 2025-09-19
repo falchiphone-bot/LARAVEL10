@@ -52,10 +52,12 @@
             <td class="text-end">
               <a class="btn btn-sm btn-outline-secondary" target="_blank" href="{{ route('Envios.arquivos.view', [$envio, $arq]) }}">Visualizar</a>
               <a class="btn btn-sm btn-outline-secondary" href="{{ route('Envios.arquivos.download', [$envio, $arq]) }}">Baixar</a>
-              <form class="d-inline" method="POST" action="{{ route('Envios.arquivos.destroy', [$envio,$arq]) }}" onsubmit="return confirm('Remover este arquivo?')">
-                @csrf @method('DELETE')
-                <button class="btn btn-sm btn-outline-danger">Excluir</button>
-              </form>
+              @can('ENVIOS - EXCLUIR')
+                <form class="d-inline" method="POST" action="{{ route('Envios.arquivos.destroy', [$envio,$arq]) }}" onsubmit="return confirm('Remover este arquivo?')">
+                  @csrf @method('DELETE')
+                  <button class="btn btn-sm btn-outline-danger">Excluir</button>
+                </form>
+              @endcan
             </td>
           </tr>
         @empty

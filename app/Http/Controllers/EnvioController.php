@@ -13,6 +13,64 @@ use App\Jobs\TranscodeEnvioVideo;
 
 class EnvioController extends Controller
 {
+    /**
+     * Detecta se o navegador do request suporta WebP via header Accept e/ou User-Agent (fallback para Safari antigo).
+     */
+    protected function browserSupportsWebP(Request $request): bool
+    {
+        $accept = (string) $request->headers->get('Accept', '');
+        if (stripos($accept, 'image/webp') !== false) {
+            return true;
+        }
+        $ua = (string) $request->headers->get('User-Agent', '');
+        // Safari ganhou suporte nativo a WebP no 14+. Vamos supor que versões antigas não suportam
+        if (stripos($ua, 'Safari') !== false && stripos($ua, 'Chrome') === false) {
+            if (preg_match('/Version\/(\d+)/i', $ua, $m)) {
+                $major = (int)($m[1] ?? 0);
+                return $major >= 14; // 14+ suporta
+            }
+            return false; // Safari sem versão clara: assumir que não suporta
+        }
+        // Outros navegadores: se não anunciaram image/webp no Accept, considerar que não suportam
+        return false;
+    }
+
+    /**
+     * Detecta suporte a AVIF via header Accept e heurísticas simples de UA.
+     */
+    protected function browserSupportsAvif(Request $request): bool
+    {
+        $accept = (string) $request->headers->get('Accept', '');
+        if (stripos($accept, 'image/avif') !== false) {
+            return true;
+        }
+        $ua = (string) $request->headers->get('User-Agent', '');
+        // Safari só passou a suportar AVIF por volta do 16+; heurística simples
+        if (stripos($ua, 'Safari') !== false && stripos($ua, 'Chrome') === false) {
+            if (preg_match('/Version\/(\d+)/i', $ua, $m)) {
+                $major = (int)($m[1] ?? 0);
+                return $major >= 16; // assumir 16+
+            }
+            return false;
+        }
+        return false;
+    }
+
+    /**
+     * Gera um caminho relativo no disco "public" para o fallback PNG baseado no path original.
+     * Ex.: envios/2025/09/foto.webp -> envios/2025/09/foto.fallback.png
+     */
+    protected function buildWebpFallbackRelative(string $storedPath): string
+    {
+        $relative = ltrim($storedPath, '/');
+        if (Str::startsWith($relative, 'public/')) { $relative = Str::after($relative, 'public/'); }
+        if (Str::startsWith($relative, 'storage/')) { $relative = Str::after($relative, 'storage/'); }
+        $dir = pathinfo($relative, PATHINFO_DIRNAME);
+        $name = pathinfo($relative, PATHINFO_FILENAME);
+        $fallback = ($dir && $dir !== '.') ? ($dir . '/' . $name . '.fallback.png') : ($name . '.fallback.png');
+        return $fallback;
+    }
+
     protected function isAdmin(): bool
     {
         $user = auth()->user();
@@ -171,6 +229,32 @@ class EnvioController extends Controller
                     'mime_type' => $file->getMimeType(),
                     'uploaded_by' => auth()->id(),
                 ]);
+
+                // Pré-gerar fallback para Safari: WebP/AVIF -> PNG
+                try {
+                    $ext = strtolower(pathinfo((string)$path, PATHINFO_EXTENSION));
+                    if (in_array($ext, ['webp','avif'])) {
+                        $fallbackRel = $this->buildWebpFallbackRelative((string)$path);
+                        if (!Storage::disk('public')->exists($fallbackRel)) {
+                            $absSource = storage_path('app/public/' . ltrim($path, '/'));
+                            if ($ext === 'webp' && function_exists('imagecreatefromwebp')) {
+                                $im = @imagecreatefromwebp($absSource);
+                            } elseif ($ext === 'avif' && function_exists('imagecreatefromavif')) {
+                                $im = @imagecreatefromavif($absSource);
+                            } else { $im = false; }
+                            if ($im) {
+                                $absFallback = storage_path('app/public/' . $fallbackRel);
+                                @mkdir(dirname($absFallback), 0775, true);
+                                imagealphablending($im, false);
+                                imagesavealpha($im, true);
+                                @imagepng($im, $absFallback, 6);
+                                @imagedestroy($im);
+                            }
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    Log::info('Falha ao pré-gerar fallback de imagem', ['path'=>$path,'error'=>$e->getMessage()]);
+                }
             }
         }
 
@@ -211,6 +295,32 @@ class EnvioController extends Controller
                     'mime_type' => $file->getMimeType(),
                     'uploaded_by' => auth()->id(),
                 ]);
+
+                // Pré-gerar fallback para Safari: WebP/AVIF -> PNG
+                try {
+                    $ext = strtolower(pathinfo((string)$path, PATHINFO_EXTENSION));
+                    if (in_array($ext, ['webp','avif'])) {
+                        $fallbackRel = $this->buildWebpFallbackRelative((string)$path);
+                        if (!Storage::disk('public')->exists($fallbackRel)) {
+                            $absSource = storage_path('app/public/' . ltrim($path, '/'));
+                            if ($ext === 'webp' && function_exists('imagecreatefromwebp')) {
+                                $im = @imagecreatefromwebp($absSource);
+                            } elseif ($ext === 'avif' && function_exists('imagecreatefromavif')) {
+                                $im = @imagecreatefromavif($absSource);
+                            } else { $im = false; }
+                            if ($im) {
+                                $absFallback = storage_path('app/public/' . $fallbackRel);
+                                @mkdir(dirname($absFallback), 0775, true);
+                                imagealphablending($im, false);
+                                imagesavealpha($im, true);
+                                @imagepng($im, $absFallback, 6);
+                                @imagedestroy($im);
+                            }
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    Log::info('Falha ao pré-gerar fallback de imagem', ['path'=>$path,'error'=>$e->getMessage()]);
+                }
             }
         }
 
@@ -225,6 +335,14 @@ class EnvioController extends Controller
             if ($arq->path && Storage::disk('public')->exists($arq->path)) {
                 Storage::disk('public')->delete($arq->path);
             }
+            // Remove fallback PNG se existir
+            $ext = strtolower(pathinfo((string)$arq->path, PATHINFO_EXTENSION));
+            if (in_array($ext, ['webp','avif'])) {
+                $fallbackRel = $this->buildWebpFallbackRelative((string)$arq->path);
+                if (Storage::disk('public')->exists($fallbackRel)) {
+                    Storage::disk('public')->delete($fallbackRel);
+                }
+            }
         }
         $Envio->delete();
         return redirect()->route('Envios.index')->with('success','Envio excluído.');
@@ -237,6 +355,14 @@ class EnvioController extends Controller
         if (!$isAdmin && $arquivo->uploaded_by !== auth()->id()) { abort(404); }
         if ($arquivo->path && Storage::disk('public')->exists($arquivo->path)) {
             Storage::disk('public')->delete($arquivo->path);
+        }
+        // Remove fallback PNG se existir
+        $ext = strtolower(pathinfo((string)$arquivo->path, PATHINFO_EXTENSION));
+        if (in_array($ext, ['webp','avif'])) {
+            $fallbackRel = $this->buildWebpFallbackRelative((string)$arquivo->path);
+            if (Storage::disk('public')->exists($fallbackRel)) {
+                Storage::disk('public')->delete($fallbackRel);
+            }
         }
         $arquivo->delete();
         return back()->with('success','Arquivo removido.');
@@ -418,10 +544,68 @@ class EnvioController extends Controller
             }, $status, $headers);
         }
 
-        // Demais tipos (ex.: imagens, PDFs) seguem via file() inline
+        // Fallback para imagens WebP em navegadores sem suporte (ex.: Safari < 14)
+        $extLower = strtolower(pathinfo($absolutePath, PATHINFO_EXTENSION));
+        $needsWebpFallback = ($mime === 'image/webp' || $extLower === 'webp') && !$this->browserSupportsWebP($request);
+        $needsAvifFallback = ($mime === 'image/avif' || $extLower === 'avif') && !$this->browserSupportsAvif($request);
+        if ($needsWebpFallback || $needsAvifFallback) {
+            try {
+                $fallbackRel = $this->buildWebpFallbackRelative((string)$arquivo->path);
+                // Se já existe o fallback, servir direto
+                if (Storage::disk('public')->exists($fallbackRel)) {
+                    $abs = storage_path('app/public/' . $fallbackRel);
+                    $lastMod = gmdate('D, d M Y H:i:s', @filemtime($abs) ?: time()) . ' GMT';
+                    return response()->file($abs, [
+                        'Content-Type' => 'image/png',
+                        'Content-Disposition' => 'inline; filename="' . addslashes(pathinfo($arquivo->original_name, PATHINFO_FILENAME)) . '.png"',
+                        'Cache-Control' => 'public, max-age=31536000, immutable',
+                        'Last-Modified' => $lastMod,
+                    ]);
+                }
+
+                // Tentar converter usando GD
+                $im = false;
+                if ($needsWebpFallback && function_exists('imagecreatefromwebp')) {
+                    $im = @imagecreatefromwebp($absolutePath);
+                } elseif ($needsAvifFallback && function_exists('imagecreatefromavif')) {
+                    $im = @imagecreatefromavif($absolutePath);
+                }
+                if ($im !== false) {
+                    // Garante diretório
+                    $absFallback = storage_path('app/public/' . $fallbackRel);
+                    @mkdir(dirname($absFallback), 0775, true);
+                    // Preserva transparência ao salvar PNG
+                    imagealphablending($im, false);
+                    imagesavealpha($im, true);
+                    @imagepng($im, $absFallback, 6);
+                    @imagedestroy($im);
+                    if (file_exists($absFallback)) {
+                        $lastMod = gmdate('D, d M Y H:i:s', @filemtime($absFallback) ?: time()) . ' GMT';
+                        return response()->file($absFallback, [
+                            'Content-Type' => 'image/png',
+                            'Content-Disposition' => 'inline; filename="' . addslashes(pathinfo($arquivo->original_name, PATHINFO_FILENAME)) . '.png"',
+                            'Cache-Control' => 'public, max-age=31536000, immutable',
+                            'Last-Modified' => $lastMod,
+                        ]);
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Falha ao gerar fallback PNG para WebP', [
+                    'envio_id' => $Envio->id,
+                    'arquivo_id' => $arquivo->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+            // Se não conseguiu gerar, segue com o original
+        }
+
+        // Demais tipos (ex.: imagens, PDFs) seguem via file() inline com cache
+        $lastMod = gmdate('D, d M Y H:i:s', @filemtime($absolutePath) ?: time()) . ' GMT';
         return response()->file($absolutePath, [
             'Content-Type' => $mime,
-            'Content-Disposition' => 'inline; filename="'.addslashes($arquivo->original_name).'"'
+            'Content-Disposition' => 'inline; filename="'.addslashes($arquivo->original_name).'"',
+            'Cache-Control' => Str::startsWith($mime, 'image/') ? 'public, max-age=31536000, immutable' : 'public, max-age=3600',
+            'Last-Modified' => $lastMod,
         ]);
     }
 
