@@ -16,7 +16,7 @@
                         style="width: 100%; height: 50px;
                     ; font-size: 24px;align=˜Center˜ ">
                         Menu Principal do sistema administrativo e contábil -
-                        versão: 16.09.2025 21:35
+                        versão: 19.09.2025 13:15
                     </div>
                 </div>
                 <div class="card-body">
@@ -260,6 +260,7 @@
                                             @can('FERIADOS - LISTAR')<a class="btn btn-outline-success btn-sm" href="Feriados">Feriados</a>@endcan
                                             @can('PIX - LISTAR')<a class="btn btn-outline-success btn-sm" href="{{ route('Pix.index') }}">PIX</a>@endcan
                                             @can('FORMA_PAGAMENTOS - LISTAR')<a class="btn btn-outline-success btn-sm" href="{{ route('FormaPagamento.index') }}">Formas de Pagamento</a>@endcan
+                                            @can('ENVIOS - LISTAR')<a class="btn btn-outline-success btn-sm" href="{{ route('Envios.index') }}">Envios de arquivos</a>@endcan
                                         </div>
                                     </div>
                                 </div>

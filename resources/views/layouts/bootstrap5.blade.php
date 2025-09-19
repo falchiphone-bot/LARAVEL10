@@ -261,6 +261,20 @@
               </li>
               @endcan
 
+              {{-- Link: Envios de arquivos --}}
+              @can('ENVIOS - LISTAR')
+              <li>
+                <a href="{{ route('Envios.index') }}"
+                   class="nav-link text-white"
+                   data-bs-toggle="tooltip" data-bs-placement="top"
+                   data-bs-custom-class="custom-tooltip"
+                   data-bs-title="Registrar envios e anexar vários arquivos (até 100 MB)">
+                  <i class="fa-solid fa-paperclip"></i>
+                  Envios de arquivos
+                </a>
+              </li>
+              @endcan
+
 
               <!-- Link: Percentuais Atletas TANABI -->
               @can('TANABI ATLETAS PERCENTUAIS - LISTAR')

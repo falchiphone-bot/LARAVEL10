@@ -228,6 +228,20 @@ Route::get('Categorias-export-xlsx', [App\Http\Controllers\CategoriasController:
 Route::get('Categorias-export-pdf', [App\Http\Controllers\CategoriasController::class, 'exportPdf'])
     ->name('Categorias.exportPdf');
 
+// Envios de arquivos (múltiplos arquivos por registro)
+Route::resource('Envios', App\Http\Controllers\EnvioController::class);
+Route::get('Envios/{Envio}/arquivos/{arquivo}/download', [App\Http\Controllers\EnvioController::class, 'download'])
+    ->name('Envios.arquivos.download');
+Route::get('Envios/{Envio}/arquivos/{arquivo}/ver', [App\Http\Controllers\EnvioController::class, 'view'])
+    ->name('Envios.arquivos.view');
+Route::delete('Envios/{Envio}/arquivos/{arquivo}', [App\Http\Controllers\EnvioController::class, 'destroyArquivo'])
+    ->name('Envios.arquivos.destroy');
+Route::get('Envios/{Envio}/zip', [App\Http\Controllers\EnvioController::class, 'zip'])
+    ->name('Envios.zip');
+// Diagnóstico de arquivo (apenas para admins com ENVIOS - VER)
+Route::get('Envios/{Envio}/arquivos/{arquivo}/diagnose', [App\Http\Controllers\EnvioController::class, 'diagnose'])
+    ->name('Envios.arquivos.diagnose');
+
 // Posições - exportação CSV/XLSX
 Route::get('Posicoes-export', [App\Http\Controllers\PosicoesController::class, 'export'])
     ->name('Posicoes.export');

@@ -24,7 +24,17 @@ class AuthServiceProvider extends ServiceProvider
         // Implicitly grant "Super Admin" role all permissions
         // This works in the app by using gate-related functions like auth()->user->can() and @can()
         Gate::before(function ($user, $ability) {
-            return $user->hasRole('super-admin') ? true : null;
+            try {
+                if (method_exists($user, 'hasAnyRole')) {
+                    return $user->hasAnyRole(['super-admin','Super-Admin','Super Admin']) ? true : null;
+                }
+                if (method_exists($user, 'hasRole')) {
+                    return ($user->hasRole('super-admin') || $user->hasRole('Super-Admin') || $user->hasRole('Super Admin')) ? true : null;
+                }
+            } catch (\Throwable $e) {
+                // se algo falhar, não interfere
+            }
+            return null;
         });
     }
 }
