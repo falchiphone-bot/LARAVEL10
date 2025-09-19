@@ -36,6 +36,17 @@
           </select>
         </div>
         <div class="col-sm-4 col-md-3">
+          <label class="form-label small mb-1">Ativo (código/título)</label>
+          <input list="asset-options" name="asset" value="{{ $asset ?? '' }}" class="form-control form-control-sm" placeholder="Digite para buscar">
+          @isset($assetOptions)
+            <datalist id="asset-options">
+              @foreach($assetOptions as $opt)
+                <option value="{{ $opt['label'] }}">{{ $opt['text'] }}</option>
+              @endforeach
+            </datalist>
+          @endisset
+        </div>
+        <div class="col-sm-4 col-md-3">
           <label class="form-label small mb-1">Conta de investimento</label>
           <select name="investment_account_id" class="form-select form-select-sm">
             <option value="" {{ ($invAccId ?? '') === '' ? 'selected' : '' }}>Todas</option>
@@ -60,15 +71,15 @@
         <div class="col-sm-2 col-md-2 d-grid gap-2">
           <button class="btn btn-sm btn-outline-primary" type="submit">Filtrar</button>
           @if(!($showAll ?? false))
-            <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'all'=>1,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null])) }}">Todos</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'asset'=>($asset??'')!==''?$asset:null,'all'=>1,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null])) }}">Todos</a>
           @else
-            <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null])) }}">Paginar</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'asset'=>($asset??'')!==''?$asset:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null])) }}">Paginar</a>
           @endif
           @if(!empty($savedFilters))
-            <a class="btn btn-sm btn-outline-warning" href="{{ route('openai.records.index', array_filter(['clear_saved'=>1,'chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null, 'all'=>($showAll??false)?1:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null])) }}" title="Remover filtro salvo">Limpar Salvo</a>
+            <a class="btn btn-sm btn-outline-warning" href="{{ route('openai.records.index', array_filter(['clear_saved'=>1,'chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'asset'=>($asset??'')!==''?$asset:null, 'all'=>($showAll??false)?1:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null])) }}" title="Remover filtro salvo">Limpar Salvo</a>
           @endif
         </div>
-        @if(request()->hasAny(['chat_id','from','to','investment_account_id']) && (request('chat_id')||request('from')||request('to')||request('investment_account_id')!==null))
+        @if(request()->hasAny(['chat_id','from','to','investment_account_id','asset']) && (request('chat_id')||request('from')||request('to')||request('investment_account_id')!==null||request('asset')))
           <div class="col-sm-2 col-md-2">
             <a href="{{ route('openai.records.index') }}" class="btn btn-sm btn-outline-dark w-100">Limpar</a>
           </div>
@@ -76,7 +87,7 @@
       </form>
       @if(!empty($datesReapplied))
         <div class="mt-2 small text-muted">
-          Datas reaplicadas automaticamente do último filtro. <a href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null])) }}" class="text-decoration-none">Limpar datas</a>
+          Datas reaplicadas automaticamente do último filtro. <a href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'asset'=>($asset??'')!==''?$asset:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null])) }}" class="text-decoration-none">Limpar datas</a>
         </div>
       @endif
     </div>
@@ -408,6 +419,7 @@
         'chat_id'=>$chatId?:null,
         'from'=>$from?:null,
         'to'=>$to?:null,
+        'asset'=>($asset??'')!==''?$asset:null,
         'all'=>($showAll??false)?1:null,
         'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,
       ]);
@@ -423,6 +435,7 @@
             'chat_id'=>$chatId?:null,
             'from'=>$from?:null,
             'to'=>$to?:null,
+            'asset'=>($asset??'')!==''?$asset:null,
             'all'=>($showAll??false)?1:null,
             'sort'=>$sort!=='occurred_at'?$sort:null,
             'dir'=>$dir!=='desc'?$dir:null,

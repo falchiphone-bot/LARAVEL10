@@ -17,9 +17,15 @@
   <div class="card shadow-sm mb-3">
     <div class="card-body">
   <form id="assets-filter-form" method="GET" action="{{ route('openai.records.assets') }}" class="row g-2 align-items-end">
-        <div class="col-sm-4 col-md-3">
-          <label class="form-label small mb-1" title="Filtra por código ou parte do título do ativo">Ativo (código/título)</label>
-          <input type="text" name="asset" value="{{ request('asset') }}" class="form-control form-control-sm" placeholder="Ex: AAPL ou parte do nome">
+        <div class="col-sm-5 col-md-4">
+          <label class="form-label small mb-1" title="Filtra pelos códigos das conversas do tipo 'Bolsa de Valores Americana'">Ativo (código)</label>
+          <select name="asset" class="form-select form-select-sm">
+            <option value="">Todos</option>
+            @foreach(($assetOptions ?? collect()) as $opt)
+              <option value="{{ $opt['label'] }}" {{ request('asset')===$opt['label'] ? 'selected' : '' }}>{{ $opt['text'] }}</option>
+            @endforeach
+          </select>
+          <small class="text-muted d-block mt-1">Códigos extraídos das conversas do tipo “Bolsa de Valores Americana”.</small>
         </div>
         <div class="col-sm-3 col-md-2">
           <label class="form-label small mb-1">De</label>

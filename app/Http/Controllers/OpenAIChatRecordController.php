@@ -26,6 +26,8 @@ class OpenAIChatRecordController extends Controller
     $chatId = (int) $request->input('chat_id');
     $from = $request->input('from');
     $to = $request->input('to');
+    // Filtro por ativo (código ou título da conversa)
+    $asset = trim((string)$request->input('asset', ''));
     $datesReapplied = false;
         // modo de variação (sequencial ou acumulada)
         $incomingMode = $request->input('var_mode');
@@ -76,12 +78,25 @@ class OpenAIChatRecordController extends Controller
 
         $sort = $request->input('sort','occurred_at');
         $dir = strtolower($request->input('dir','desc')) === 'asc' ? 'asc' : 'desc';
-        $invAccId = $request->input('investment_account_id'); // '' | '0' (sem) | id
+    $invAccId = $request->input('investment_account_id'); // '' | '0' (sem) | id
         $query = OpenAIChatRecord::with(['chat:id,title,code','user:id,name','investmentAccount:id,account_name,broker']);
         $showAll = (bool)$request->input('all');
 
         if ($chatId > 0) {
             $query->where('chat_id', $chatId);
+        }
+
+        // Filtro por ativo (código/título) limitado às conversas do tipo "BOLSA DE VALORES AMERICANA"
+        if ($asset !== '') {
+            $like = '%'.$asset.'%';
+            $query->whereHas('chat', function($q) use ($like){
+                $q->where(function($qq) use ($like){
+                    $qq->where('code','like',$like)
+                       ->orWhere('title','like',$like);
+                })->whereHas('type', function($t){
+                    $t->whereRaw('UPPER(name) = ?', ['BOLSA DE VALORES AMERICANA']);
+                });
+            });
         }
 
         // Filtros de data com bindings seguros (evita formato inválido para SQL Server)
@@ -159,6 +174,7 @@ class OpenAIChatRecordController extends Controller
                 'dir' => ($dir !== 'desc') ? $dir : null,
                 'all' => $showAll ? 1 : null,
                 'investment_account_id' => ($invAccId !== null && $invAccId !== '') ? $invAccId : null,
+                'asset' => $asset !== '' ? $asset : null,
             ]));
         }
 
@@ -186,7 +202,28 @@ class OpenAIChatRecordController extends Controller
             ->get(['id','account_name','broker']);
     $lastInvestmentAccountId = (int) (session('last_investment_account_id') ?: 0) ?: null;
 
-    return view('openai.records.index', compact('records','chats','chatId','selectedChat','from','to','showAll','sort','dir','savedFilters','varMode','codeOrders','investmentAccounts','invAccId','lastInvestmentAccountId','datesReapplied'));
+        // Combo de Ativo (código/título) baseado nas conversas do tipo "BOLSA DE VALORES AMERICANA"
+        $assetOptions = OpenAIChat::where('user_id', Auth::id())
+            ->whereHas('type', function($q){
+                $q->whereRaw('UPPER(name) = ?', ['BOLSA DE VALORES AMERICANA']);
+            })
+            ->where(function($q){
+                $q->whereNotNull('code')->whereRaw("LTRIM(RTRIM(code)) <> ''")
+                  ->orWhere(function($q2){ $q2->whereNotNull('title')->whereRaw("LTRIM(RTRIM(title)) <> ''"); });
+            })
+            ->orderByRaw("COALESCE(NULLIF(LTRIM(RTRIM(code)), ''), LTRIM(RTRIM(title)))")
+            ->get(['code','title'])
+            ->map(function($c){
+                $code = trim((string)($c->code ?? ''));
+                $title = trim((string)($c->title ?? ''));
+                $label = $code !== '' ? $code : $title;
+                $text = $code !== '' ? ($code . ' — ' . $title) : $title;
+                return ['label' => $label, 'text' => $text];
+            })
+            ->unique('label')
+            ->values();
+
+    return view('openai.records.index', compact('records','chats','chatId','selectedChat','from','to','showAll','sort','dir','savedFilters','varMode','codeOrders','investmentAccounts','invAccId','lastInvestmentAccountId','datesReapplied','assetOptions','asset'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -465,8 +502,9 @@ class OpenAIChatRecordController extends Controller
         $userId = (int) Auth::id();
     $from = $request->input('from');
     $to = $request->input('to');
-    // Filtro por ativo (código ou título parcial – aplicado sobre o grupo consolidado)
+    // Filtro por ativo (agora: somente código da conversa)
     $assetFilter = trim((string)$request->input('asset', ''));
+    $assetCode = $assetFilter !== '' ? strtoupper($assetFilter) : '';
     // Novo filtro: mostrar apenas ativos cujo último registro NÃO é posterior a esta data (no_after)
     // Interpretação: se informado YYYY-MM-DD, só incluir grupos cujo max(occurred_at) <= fim do dia informado.
     // (Se o usuário desejar posteriormente a modalidade de igualdade estrita, poderemos ampliar com outro parâmetro.)
@@ -480,6 +518,25 @@ class OpenAIChatRecordController extends Controller
         $investmentAccounts = InvestmentAccount::where('user_id', $userId)
             ->orderBy('account_name')
             ->get(['id','account_name','broker']);
+
+        // Combo de Ativo (apenas CÓDIGOS) baseado nas conversas do tipo "BOLSA DE VALORES AMERICANA"
+        // Mantemos apenas chats do usuário com code não vazio, ordenados pelo code e únicos.
+        $assetOptions = \App\Models\OpenAIChat::where('user_id', $userId)
+            ->whereHas('type', function($q){
+                $q->whereRaw('UPPER(name) = ?', ['BOLSA DE VALORES AMERICANA']);
+            })
+            ->whereNotNull('code')
+            ->whereRaw("LTRIM(RTRIM(code)) <> ''")
+            ->select('code')
+            ->groupBy('code')
+            ->orderByRaw("UPPER(LTRIM(RTRIM(code)))")
+            ->get()
+            ->map(function($c){
+                $code = strtoupper(trim((string)($c->code ?? '')));
+                return ['label' => $code, 'text' => $code];
+            })
+            ->unique('label')
+            ->values();
 
         // Base: registros do usuário com join leve em chat para pegar title/code
         $q = OpenAIChatRecord::query()
@@ -502,6 +559,12 @@ class OpenAIChatRecordController extends Controller
                 $q->where('openai_chat_records.investment_account_id', (int)$invAccId);
             }
         }
+        // Filtro por CÓDIGO exato (aplica nas consultas base)
+        $driver = DB::getDriverName();
+        $codeExpr = $driver === 'sqlsrv' ? "UPPER(LTRIM(RTRIM(cc.code)))" : "UPPER(TRIM(cc.code))";
+        if ($assetCode !== '') {
+            $q->whereRaw($codeExpr . ' = ?', [$assetCode]);
+        }
 
         // Agrupar por código (ou título quando não houver código) e pegar o último registro por grupo
         // Estratégia: subquery para last_id por grupo e join de volta
@@ -518,6 +581,7 @@ class OpenAIChatRecordController extends Controller
         ->selectRaw($groupExpr . ' as grp, COUNT(*) as qty, MAX(r.occurred_at) as max_dt, AVG(CAST(r.amount as float)) as avg_amt');
         // Reaplica filtros ao sub
         $sub->where('r.user_id', $userId);
+        if ($assetCode !== '') { $sub->whereRaw($codeExpr . ' = ?', [$assetCode]); }
         if ($from) { try { $fromDate = \Carbon\Carbon::parse($from)->startOfDay(); $sub->where('r.occurred_at', '>=', $fromDate); } catch (\Throwable $e) {} }
         if ($to) { try { $toDate = \Carbon\Carbon::parse($to)->endOfDay(); $sub->where('r.occurred_at', '<=', $toDate); } catch (\Throwable $e) {} }
         if ($invAccId !== null && $invAccId !== '') {
@@ -535,20 +599,14 @@ class OpenAIChatRecordController extends Controller
                      ->on('r.occurred_at', '=', 'agg.max_dt');
             })
             ->mergeBindings($sub);
+        if ($assetCode !== '') { $latest->whereRaw($codeExpr . ' = ?', [$assetCode]); }
 
         // Seleção final: apenas colunas do registro (r.*) + agregados necessários (grp, qty)
         $rows = $latest
             ->select('r.*', DB::raw('agg.grp as grp'), DB::raw('agg.qty as qty'), DB::raw('agg.avg_amt as avg_amt'))
             ->get();
 
-        // Aplicar filtro por ativo (case-insensitive) após carga dos grupos
-        if ($assetFilter !== '') {
-            $needle = mb_strtolower($assetFilter);
-            $rows = $rows->filter(function($row) use ($needle){
-                $grp = mb_strtolower((string)($row->grp ?? ''));
-                return $grp !== '' && str_contains($grp, $needle);
-            })->values();
-        }
+        // Filtro por código já aplicado nas consultas; não é mais necessário filtrar por título/parcial aqui
 
         // Baselines: para cada grupo, pegar o primeiro registro com occurred_at >= baseline
         $baselines = collect();
@@ -561,6 +619,7 @@ class OpenAIChatRecordController extends Controller
                     ->selectRaw($groupExpr . ' as grp, MIN(r.occurred_at) as min_dt')
                     ->where('r.user_id', $userId)
                     ->where('r.occurred_at', '>=', $baselineDt);
+                if ($assetCode !== '') { $subBase->whereRaw($codeExpr . ' = ?', [$assetCode]); }
                 if ($invAccId !== null && $invAccId !== '') {
                     if ((string)$invAccId === '0') { $subBase->whereNull('r.investment_account_id'); }
                     else { $subBase->where('r.investment_account_id', (int)$invAccId); }
@@ -575,6 +634,7 @@ class OpenAIChatRecordController extends Controller
                              ->on('r.occurred_at', '=', 'b.min_dt');
                     })
                     ->mergeBindings($subBase)
+                    ->when($assetCode !== '', function($q) use ($codeExpr, $assetCode){ return $q->whereRaw($codeExpr.' = ?', [$assetCode]); })
                     ->select(DB::raw('b.grp as grp'), 'r.amount', 'r.occurred_at')
                     ->get();
                 $pairs = [];
@@ -610,6 +670,7 @@ class OpenAIChatRecordController extends Controller
                 $globalSub = DB::table('openai_chat_records as r')
                     ->join('open_a_i_chats as cc', 'cc.id', '=', 'r.chat_id')
                     ->where('r.user_id', $userId)
+                    ->when($assetCode !== '', function($q) use ($codeExpr, $assetCode){ return $q->whereRaw($codeExpr.' = ?', [$assetCode]); })
                     ->selectRaw($groupExpr . ' as grp, MAX(r.occurred_at) as gmax')
                     ->groupByRaw($groupExpr)
                     ->pluck('gmax', 'grp');
@@ -657,6 +718,7 @@ class OpenAIChatRecordController extends Controller
                         ->join('open_a_i_chats as cc', 'cc.id', '=', 'r.chat_id')
                         ->where('r.user_id', $userId)
                         ->where('r.occurred_at', '<=', $baselineEnd);
+                    if ($assetCode !== '') { $statsQuery->whereRaw($codeExpr . ' = ?', [$assetCode]); }
                     if ($from) { try { $fromDate = \Carbon\Carbon::parse($from)->startOfDay(); $statsQuery->where('r.occurred_at', '>=', $fromDate); } catch (\Throwable $e) {} }
                     if ($to) { try { $toDate = \Carbon\Carbon::parse($to)->endOfDay(); $statsQuery->where('r.occurred_at', '<=', $toDate); } catch (\Throwable $e) {} }
                     if ($invAccId !== null && $invAccId !== '') {
@@ -696,6 +758,7 @@ class OpenAIChatRecordController extends Controller
                 $oQuery = DB::table('openai_chat_records as r')
                     ->join('open_a_i_chats as cc', 'cc.id', '=', 'r.chat_id')
                     ->where('r.user_id', $userId);
+                if ($assetCode !== '') { $oQuery->whereRaw($codeExpr . ' = ?', [$assetCode]); }
                 if ($from) { try { $fromDate = \Carbon\Carbon::parse($from)->startOfDay(); $oQuery->where('r.occurred_at', '>=', $fromDate); } catch (\Throwable $e) {} }
                 if ($to) { try { $toDate = \Carbon\Carbon::parse($to)->endOfDay(); $oQuery->where('r.occurred_at', '<=', $toDate); } catch (\Throwable $e) {} }
                 if ($invAccId !== null && $invAccId !== '') {
@@ -783,6 +846,7 @@ class OpenAIChatRecordController extends Controller
             'invAccId' => $invAccId,
         'asset' => $assetFilter,
             'investmentAccounts' => $investmentAccounts,
+            'assetOptions' => $assetOptions,
             'totalSelected' => $totalSelected,
             'sort' => $sort,
             'dir' => $dir,
