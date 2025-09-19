@@ -33,8 +33,8 @@
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <select name="ano_id" class="form-select" aria-label="Filtrar por Ano">
-                            <option value="">Todos os Anos</option>
+                        <select name="ano_id" class="form-select" aria-label="Filtrar por Temporada">
+                            <option value="">Todas as Temporadas</option>
                             @isset($anos)
                                 @foreach($anos as $a)
                                     <option value="{{ $a->id }}" {{ (string)request('ano_id') === (string)$a->id ? 'selected' : '' }}>{{ $a->ano }}</option>
@@ -90,7 +90,7 @@
                                     </a>
                                 </th>
                                 <th>Federação</th>
-                                <th>Ano</th>
+                                <th>Temporada</th>
                                 <th>Categorias</th>
                                 <th class="text-end">Ações</th>
                             </tr>

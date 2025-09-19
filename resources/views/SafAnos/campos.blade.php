@@ -1,7 +1,7 @@
 @csrf
 <div class="row g-3">
   <div class="col-md-4">
-    <label class="form-label">Ano</label>
+    <label class="form-label">Temporada</label>
     <input type="number" name="ano" class="form-control" min="1900" max="9999" value="{{ old('ano', $model->ano ?? '') }}" required>
   </div>
 </div>

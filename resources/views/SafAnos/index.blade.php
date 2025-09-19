@@ -3,9 +3,9 @@
 @section('content')
 <div class="container">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3">SAF - Anos</h1>
+    <h1 class="h3">SAF - Temporadas</h1>
     @can('SAF_ANOS - INCLUIR')
-      <a href="{{ route('SafAnos.create') }}" class="btn btn-primary">Novo Ano</a>
+      <a href="{{ route('SafAnos.create') }}" class="btn btn-primary">Nova Temporada</a>
     @endcan
   </div>
 
@@ -13,7 +13,7 @@
     <input type="hidden" name="sort" value="{{ $sort ?? 'ano' }}">
     <input type="hidden" name="dir" value="{{ $dir ?? 'asc' }}">
     <div class="col-md-4">
-      <input type="text" name="q" value="{{ $q ?? '' }}" class="form-control" placeholder="Buscar ano...">
+      <input type="text" name="q" value="{{ $q ?? '' }}" class="form-control" placeholder="Buscar temporada...">
     </div>
     <div class="col-md-3">
       <select name="per_page" class="form-select" onchange="this.form.submit()">
@@ -34,7 +34,7 @@
         <tr>
           <th>
             @php $nextDir = ($sort ?? 'ano') === 'ano' && ($dir ?? 'asc') === 'asc' ? 'desc' : 'asc'; @endphp
-            <a href="{{ route('SafAnos.index', ['sort' => 'ano', 'dir' => $nextDir, 'per_page' => request('per_page', $perPage ?? 20), 'q' => $q ?? null]) }}">Ano
+            <a href="{{ route('SafAnos.index', ['sort' => 'ano', 'dir' => $nextDir, 'per_page' => request('per_page', $perPage ?? 20), 'q' => $q ?? null]) }}">Temporada
               @if(($sort ?? 'ano') === 'ano')
                 <small>{!! ($dir ?? 'asc') === 'asc' ? '&#9650;' : '&#9660;' !!}</small>
               @endif

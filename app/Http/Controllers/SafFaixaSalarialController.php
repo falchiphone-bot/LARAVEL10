@@ -11,13 +11,16 @@ use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\SafFaixasSalariaisExport;
 use App\Imports\SafFaixasSalariaisImport;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 class SafFaixaSalarialController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware(['permission:SAF_FAIXASSALARIAIS - LISTAR'])->only(['index','export']);
+        $this->middleware(['permission:SAF_FAIXASSALARIAIS - LISTAR'])->only(['index']);
+        $this->middleware(['permission:SAF_FAIXASSALARIAIS - EXPORTAR'])->only(['export','exportPdf']);
         $this->middleware(['permission:SAF_FAIXASSALARIAIS - INCLUIR'])->only(['create','store','import','duplicate','importTemplate']);
         $this->middleware(['permission:SAF_FAIXASSALARIAIS - EDITAR'])->only(['edit','update']);
         $this->middleware(['permission:SAF_FAIXASSALARIAIS - VER'])->only(['show']);
@@ -147,6 +150,76 @@ class SafFaixaSalarialController extends Controller
         $file = 'faixas-salariais-'.date('Ymd-His').'.'.$fmt;
         $export = new SafFaixasSalariaisExport($request->all());
         return Excel::download($export, $file);
+    }
+
+    // Exportação PDF (Dompdf) respeitando filtros e ordenação atuais
+    public function exportPdf(Request $request)
+    {
+        $allowedSorts = ['nome','valor_minimo','valor_maximo','vigencia_inicio','vigencia_fim','funcao','senioridade'];
+        $sort = $request->query('sort', 'vigencia_inicio');
+        if (!in_array($sort, $allowedSorts, true)) { $sort = 'vigencia_inicio'; }
+        $dir = strtolower($request->query('dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        $q = trim((string) $request->query('q', ''));
+        $funcaoId = $request->query('funcao_profissional_id');
+        $tipoPrestadorId = $request->query('saf_tipo_prestador_id');
+        $senioridade = $request->query('senioridade');
+        $tipoContrato = $request->query('tipo_contrato');
+        $moeda = $request->query('moeda');
+        $vigentes = $request->boolean('somente_vigentes', false);
+        $dataCorte = $request->query('data_corte');
+
+        $query = SafFaixaSalarial::query()->with(['funcaoProfissional','tipoPrestador']);
+        if ($q !== '') {
+            $query->where(function($w) use ($q) {
+                $w->where('nome', 'like', "%{$q}%")
+                  ->orWhere('observacoes', 'like', "%{$q}%");
+            });
+        }
+        if (!empty($funcaoId)) { $query->where('funcao_profissional_id', $funcaoId); }
+        if (!empty($tipoPrestadorId)) { $query->where('saf_tipo_prestador_id', $tipoPrestadorId); }
+        if (!empty($senioridade)) { $query->where('senioridade', $senioridade); }
+        if (!empty($tipoContrato)) { $query->where('tipo_contrato', $tipoContrato); }
+        if (!empty($moeda)) { $query->where('moeda', strtoupper($moeda)); }
+        if ($vigentes) {
+            $data = $dataCorte ? date('Y-m-d 00:00:00', strtotime($dataCorte)) : now();
+            $query->where('vigencia_inicio','<=',$data)
+                  ->where(function($w) use ($data) { $w->whereNull('vigencia_fim')->orWhere('vigencia_fim','>=',$data); });
+        }
+
+        if ($sort === 'funcao') {
+            $query->leftJoin('FuncaoProfissional as fp', 'fp.id', '=', 'saf_faixas_salariais.funcao_profissional_id')
+                  ->select('saf_faixas_salariais.*')
+                  ->orderBy('fp.nome', $dir);
+        } else {
+            $query->orderBy($sort, $dir);
+        }
+
+        $registros = $query->get();
+
+        $html = view('SafFaixasSalariais.export-pdf', [
+            'registros' => $registros,
+            // Customizações opcionais vindas da query
+            'headerTitle' => $request->query('header_title'),
+            'headerSubtitle' => $request->query('header_subtitle'),
+            'footerLeft' => $request->query('footer_left'),
+            'footerRight' => $request->query('footer_right'),
+            'logoUrl' => $request->query('logo_url'),
+        ])->render();
+
+        $options = new Options();
+        $options->set('isRemoteEnabled', true);
+        $options->set('defaultFont', 'DejaVu Sans');
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('a4', 'portrait');
+        $dompdf->render();
+
+        $fileName = 'saf-faixas-salariais-'.date('Ymd-His').'.pdf';
+        return response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
     }
 
     // Import de CSV/XLSX (com heading row)

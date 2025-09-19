@@ -136,6 +136,7 @@ Route::get('SafTiposPrestadores-export-pdf', [SafTipoPrestadorController::class,
 // Admin: SAF - Faixas Salariais
 Route::resource('SafFaixasSalariais', App\Http\Controllers\SafFaixaSalarialController::class);
 Route::get('SafFaixasSalariais-export', [App\Http\Controllers\SafFaixaSalarialController::class, 'export'])->name('SafFaixasSalariais.export');
+Route::get('SafFaixasSalariais-export-pdf', [App\Http\Controllers\SafFaixaSalarialController::class, 'exportPdf'])->name('SafFaixasSalariais.exportPdf');
 Route::post('SafFaixasSalariais-import', [App\Http\Controllers\SafFaixaSalarialController::class, 'import'])->name('SafFaixasSalariais.import');
 Route::get('SafFaixasSalariais-import-template', [App\Http\Controllers\SafFaixaSalarialController::class, 'importTemplate'])->name('SafFaixasSalariais.importTemplate');
 Route::get('SafFaixasSalariais/{id}/duplicate', [App\Http\Controllers\SafFaixaSalarialController::class, 'duplicate'])->name('SafFaixasSalariais.duplicate');

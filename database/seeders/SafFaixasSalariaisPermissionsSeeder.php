@@ -16,6 +16,7 @@ class SafFaixasSalariaisPermissionsSeeder extends Seeder
             'SAF_FAIXASSALARIAIS - EDITAR',
             'SAF_FAIXASSALARIAIS - VER',
             'SAF_FAIXASSALARIAIS - EXCLUIR',
+            'SAF_FAIXASSALARIAIS - EXPORTAR',
         ];
 
         foreach ($perms as $p) {

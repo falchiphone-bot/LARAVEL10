@@ -11,8 +11,14 @@
         <h2>SAF - Faixas Salariais</h2>
         <div class="d-flex gap-2">
             <a href="{{ route('SafFaixasSalariais.index') }}" class="btn btn-outline-secondary">Limpar</a>
+            @can('SAF_FAIXASSALARIAIS - EXPORTAR')
             <a href="{{ route('SafFaixasSalariais.export', array_merge(request()->query(), ['fmt'=>'csv'])) }}" class="btn btn-outline-success">Exportar CSV</a>
             <a href="{{ route('SafFaixasSalariais.export', array_merge(request()->query(), ['fmt'=>'xlsx'])) }}" class="btn btn-outline-success">Exportar Excel</a>
+            @can('SAF_FAIXASSALARIAIS - EXPORTAR')
+            <a href="{{ route('SafFaixasSalariais.exportPdf', request()->query()) }}" class="btn btn-outline-danger">Exportar PDF</a>
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#exportPdfAdvancedModal">Exportar PDF (avançado)</button>
+            @endcan
+            @endcan
             @can('SAF_FAIXASSALARIAIS - INCLUIR')
             <a href="{{ route('SafFaixasSalariais.create') }}" class="btn btn-primary">Nova Faixa</a>
             @endcan
@@ -174,6 +180,62 @@
     <div>
         {{ $model->appends(request()->query())->links() }}
     </div>
+        @can('SAF_FAIXASSALARIAIS - EXPORTAR')
+        <!-- Modal: Exportar PDF (avançado) -->
+        <div class="modal fade" id="exportPdfAdvancedModal" tabindex="-1" aria-labelledby="exportPdfAdvancedModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exportPdfAdvancedModalLabel">Exportar PDF (opções avançadas)</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="GET" action="{{ route('SafFaixasSalariais.exportPdf') }}" target="_blank">
+                        <div class="modal-body">
+                            <!-- Preservar filtros atuais -->
+                            <input type="hidden" name="q" value="{{ $q }}">
+                            <input type="hidden" name="funcao_profissional_id" value="{{ $funcaoId }}">
+                            <input type="hidden" name="saf_tipo_prestador_id" value="{{ $tipoPrestadorId }}">
+                            <input type="hidden" name="senioridade" value="{{ $senioridade }}">
+                            <input type="hidden" name="tipo_contrato" value="{{ $tipoContrato }}">
+                            <input type="hidden" name="moeda" value="{{ $moeda }}">
+                            <input type="hidden" name="somente_vigentes" value="{{ $vigentes ? 1 : 0 }}">
+                            <input type="hidden" name="data_corte" value="{{ request('data_corte') }}">
+                            <input type="hidden" name="sort" value="{{ $sort }}">
+                            <input type="hidden" name="dir" value="{{ $dir }}">
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Título do cabeçalho</label>
+                                    <input type="text" name="header_title" class="form-control" value="SAF - Faixas Salariais">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Subtítulo do cabeçalho</label>
+                                    <input type="text" name="header_subtitle" class="form-control" placeholder="Ex.: Relatório gerado em {{ now()->format('d/m/Y H:i') }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Rodapé (lado esquerdo)</label>
+                                    <input type="text" name="footer_left" class="form-control" placeholder="Texto do rodapé à esquerda">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Rodapé (lado direito)</label>
+                                    <input type="text" name="footer_right" class="form-control" placeholder="Texto do rodapé à direita">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">URL do logo (opcional)</label>
+                                    <input type="url" name="logo_url" class="form-control" placeholder="https://exemplo.com/logo.png">
+                                    <div class="form-text">Deixe em branco para usar o logo padrão do sistema (public/images/logo.png).</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-danger">Exportar PDF</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        @endcan
 </div>
 @endsection
 @push('scripts')
