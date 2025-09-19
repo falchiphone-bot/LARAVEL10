@@ -13,6 +13,9 @@
 
     {{-- <link rel="stylesheet" href="https://getbootstrap.com/docs/5.3/examples/features/features.css" crossorigin="anonymous"> --}}
     @stack('styles')
+  {{-- Prism.js para destaque de código --}}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
 
     {{-- LINK PARA PEGAR NOME DE ICONES --}}
     {{-- https://fontawesome.com/search?q=money&o=r&m=free --}}
@@ -338,6 +341,24 @@
             </div> --}}
         </header>
 
+        {{-- Toasts de feedback via sessão --}}
+        <div aria-live="polite" aria-atomic="true" class="position-relative">
+          <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 2000;">
+            @foreach (['success'=>'success','info'=>'info','warning'=>'warning','error'=>'danger'] as $k => $cls)
+              @if (session($k))
+                <div class="toast align-items-center text-bg-{{ $cls }} border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000">
+                  <div class="d-flex">
+                    <div class="toast-body">
+                      {{ session($k) }}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                  </div>
+                </div>
+              @endif
+            @endforeach
+          </div>
+        </div>
+
         @yield('content')
 
     </main>
@@ -363,6 +384,17 @@
         const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
     </script>
     <script>
+    // Inicializa toasts presentes no DOM
+    (function(){
+      try{
+        document.querySelectorAll('.toast').forEach(function(el){
+          const t = new bootstrap.Toast(el);
+          t.show();
+        });
+      }catch(_e){}
+    })();
+  </script>
+  <script>
       (function(){
         async function loadMarketStatus(){
           const badge = document.getElementById('market-status-global');
@@ -405,6 +437,35 @@
       })();
     </script>
     @stack('scripts')
+
+    {{-- Prism.js core e plugins --}}
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+    <script>
+      // Configura o autoloader para buscar componentes
+      if (window.Prism && Prism.plugins && Prism.plugins.autoloader) {
+        Prism.plugins.autoloader.languages_path = 'https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/';
+      }
+      // Carrega conteúdo de texto via fetch e injeta no <code>
+      document.addEventListener('DOMContentLoaded', function(){
+        const nodes = document.querySelectorAll('code[data-text-src]');
+        nodes.forEach(async function(code){
+          const url = code.getAttribute('data-text-src');
+          try {
+            const resp = await fetch(url, { headers: { 'Accept': 'text/plain,*/*' } });
+            const text = await resp.text();
+            // Escapa para exibição segura
+            code.textContent = text;
+            if (window.Prism) {
+              Prism.highlightElement(code);
+            }
+          } catch(e) {
+            code.textContent = 'Não foi possível carregar o conteúdo.';
+          }
+        });
+      });
+    </script>
 
     <script src="https://kit.fontawesome.com/941fc38062.js" crossorigin="anonymous"></script>
 

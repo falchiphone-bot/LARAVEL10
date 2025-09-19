@@ -12,7 +12,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        // Retentar transcodificações com falha diariamente às 03:00
+        $schedule->command('envios:transcode --status=failed --limit=25')->dailyAt('03:00');
     }
 
     /**

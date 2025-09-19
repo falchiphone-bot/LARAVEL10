@@ -234,6 +234,9 @@ Route::get('Envios/{Envio}/arquivos/{arquivo}/download', [App\Http\Controllers\E
     ->name('Envios.arquivos.download');
 Route::get('Envios/{Envio}/arquivos/{arquivo}/ver', [App\Http\Controllers\EnvioController::class, 'view'])
     ->name('Envios.arquivos.view');
+// Transcodificação/HLS
+Route::post('Envios/{Envio}/arquivos/{arquivo}/transcode', [App\Http\Controllers\EnvioController::class, 'transcode'])
+    ->name('Envios.arquivos.transcode');
 Route::delete('Envios/{Envio}/arquivos/{arquivo}', [App\Http\Controllers\EnvioController::class, 'destroyArquivo'])
     ->name('Envios.arquivos.destroy');
 Route::get('Envios/{Envio}/zip', [App\Http\Controllers\EnvioController::class, 'zip'])

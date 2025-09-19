@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use App\Jobs\TranscodeEnvioVideo;
 
 class EnvioController extends Controller
 {
@@ -133,6 +134,9 @@ class EnvioController extends Controller
         }
         $envios = $query
             ->withCount(['arquivos'])
+            ->withMax(['arquivos as last_transcode_at' => function($q2) use ($isAdmin, $escopo, $authId){
+                if (!$isAdmin || $escopo === 'meus') { $q2->where('uploaded_by', $authId); }
+            }], 'last_transcode_at')
             ->when((!$isAdmin) || ($isAdmin && $escopo === 'meus'), function($q) use ($authId){
                 $q->withCount(['arquivos as arquivos_user_count' => function($q2) use ($authId){
                     $q2->where('uploaded_by', $authId);
@@ -298,7 +302,7 @@ class EnvioController extends Controller
         return response()->download($absolutePath, $arquivo->original_name);
     }
 
-    public function view(Envio $Envio, EnvioArquivo $arquivo)
+    public function view(Request $request, Envio $Envio, EnvioArquivo $arquivo)
     {
         $authId = auth()->id();
         $isAdmin = $this->isAdmin();
@@ -359,8 +363,62 @@ class EnvioController extends Controller
             ]);
             abort(404);
         }
-        // Servir diretamente via PHP (evita depender de /storage no Nginx)
-        $mime = $arquivo->mime_type ?: 'application/octet-stream';
+        // Servir com suporte a Range para vídeos/áudios (permitindo seek no player)
+        $mime = $arquivo->mime_type ?: (function($p){
+            $detected = @mime_content_type($p);
+            return $detected ?: 'application/octet-stream';
+        })($absolutePath);
+
+        $ext = strtolower(pathinfo($absolutePath, PATHINFO_EXTENSION));
+        $isMedia = Str::startsWith($mime, 'video/') || Str::startsWith($mime, 'audio/') || in_array($mime, ['video/quicktime','video/x-matroska']) || in_array($ext, ['mov','mp4','m4v','webm','mkv','avi','mp3','wav','aac','ogg']);
+
+        if ($isMedia) {
+            $size = @filesize($absolutePath);
+            if ($size === false) { $size = 0; }
+            $start = 0;
+            $end = max(0, $size - 1);
+            $status = 200;
+            $headers = [
+                'Accept-Ranges' => 'bytes',
+                'Content-Type' => $mime,
+                'Content-Disposition' => 'inline; filename="'.addslashes($arquivo->original_name).'"'
+            ];
+
+            $range = $request->headers->get('Range');
+            if ($range && preg_match('/bytes=(\d*)-(\d*)/i', $range, $m)) {
+                if ($m[1] !== '') { $start = (int)$m[1]; }
+                if ($m[2] !== '') { $end = (int)$m[2]; }
+                if ($start > $end || $start >= $size) {
+                    return response('', 416, [ 'Content-Range' => 'bytes */'.$size ]);
+                }
+                $status = 206; // Partial Content
+                $headers['Content-Range'] = 'bytes '.$start.'-'.$end.'/'.$size;
+            }
+
+            $length = ($size > 0) ? ($end - $start + 1) : 0;
+            $headers['Content-Length'] = max(0, (int)$length);
+
+            return response()->stream(function() use ($absolutePath, $start, $length) {
+                $chunkSize = 1024 * 512; // 512KB por chunk
+                $bytesToRead = $length;
+                $fh = @fopen($absolutePath, 'rb');
+                if ($fh === false) { return; }
+                if ($start > 0) { @fseek($fh, $start); }
+                while ($bytesToRead > 0 && !feof($fh)) {
+                    $read = ($bytesToRead > $chunkSize) ? $chunkSize : $bytesToRead;
+                    $buffer = @fread($fh, $read);
+                    if ($buffer === false) { break; }
+                    echo $buffer;
+                    @ob_flush();
+                    flush();
+                    $bytesToRead -= strlen($buffer);
+                    if (connection_aborted()) { break; }
+                }
+                @fclose($fh);
+            }, $status, $headers);
+        }
+
+        // Demais tipos (ex.: imagens, PDFs) seguem via file() inline
         return response()->file($absolutePath, [
             'Content-Type' => $mime,
             'Content-Disposition' => 'inline; filename="'.addslashes($arquivo->original_name).'"'
@@ -433,5 +491,26 @@ class EnvioController extends Controller
         $zip->close();
 
         return response()->download($zipFullPath, $zipFileName)->deleteFileAfterSend(true);
+    }
+
+    // Agenda transcodificação para MP4/HLS
+    public function transcode(Request $request, Envio $Envio, EnvioArquivo $arquivo)
+    {
+        $authId = auth()->id();
+        $isAdmin = $this->isAdmin();
+        if ((int)$arquivo->envio_id !== (int)$Envio->id) { abort(404); }
+        if (!$isAdmin && $arquivo->uploaded_by !== $authId) { abort(403); }
+
+        // Checa se já está processando ou concluído
+        if ($arquivo->transcode_status === 'processing') {
+            return back()->with('info','Este arquivo já está em processamento.');
+        }
+        if ($arquivo->transcode_status === 'done' && $arquivo->mp4_path && $arquivo->hls_path) {
+            return back()->with('info','Este arquivo já foi convertido.');
+        }
+
+        $arquivo->update(['transcode_status' => 'pending', 'transcode_error' => null]);
+        TranscodeEnvioVideo::dispatch($arquivo->id)->onQueue('default');
+        return back()->with('success','Conversão para MP4/HLS agendada. Você pode atualizar a página em alguns minutos.');
     }
 }

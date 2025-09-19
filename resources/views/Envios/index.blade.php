@@ -60,12 +60,19 @@
         @endif
       </form>
       <table class="table table-striped">
-        <thead><tr><th>Nome</th><th>Descrição</th><th>Criado em</th><th>Arquivos</th><th></th></tr></thead>
+        <thead><tr><th>Nome</th><th>Descrição</th><th>Última tentativa</th><th>Criado em</th><th>Arquivos</th><th></th></tr></thead>
         <tbody>
           @forelse($envios as $e)
           <tr>
             <td>{{ $e->nome }}</td>
             <td class="text-muted">{{ Str::limit($e->descricao,80) }}</td>
+            <td>
+              @php
+                $lt = $e->last_transcode_at ?? null;
+                try { $ltFmt = $lt ? (\Illuminate\Support\Carbon::parse($lt)->format('d/m/Y H:i')) : null; } catch (\Throwable $ex) { $ltFmt = null; }
+              @endphp
+              {{ $ltFmt ?? '—' }}
+            </td>
             <td>{{ optional($e->created_at)->format('d/m/Y H:i') }}</td>
             <td>
               @if(!empty($isAdmin) && $isAdmin)
@@ -90,7 +97,7 @@
             </td>
           </tr>
           @empty
-            <tr><td colspan="5" class="text-muted">Nenhum envio encontrado.</td></tr>
+            <tr><td colspan="6" class="text-muted">Nenhum envio encontrado.</td></tr>
           @endforelse
         </tbody>
       </table>
