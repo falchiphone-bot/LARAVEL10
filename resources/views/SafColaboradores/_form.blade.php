@@ -50,6 +50,21 @@
         </select>
         <div class="form-text">Cadastre as chaves em: Dashboard → PIX.</div>
     </div>
+    <div class="col-md-6">
+        <label class="form-label">Forma de Pagamento</label>
+        <select name="forma_pagamento_nome" class="form-select">
+            <option value="">-- selecione --</option>
+            @foreach(($formasPagamento ?? []) as $nome => $label)
+                <option value="{{ $nome }}" {{ (string)old('forma_pagamento_nome', $model->forma_pagamento_nome ?? '') === (string)$nome ? 'selected' : '' }}>{{ $label }}</option>
+            @endforeach
+        </select>
+        <div class="form-text">Cadastre as formas em: Dashboard → Formas de Pagamento.</div>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Valor de salário</label>
+        <input type="text" name="valor_salario" class="form-control money-br" value="{{ old('valor_salario', isset($model->valor_salario) ? number_format($model->valor_salario, 2, ',', '.') : '') }}" placeholder="0,00">
+        <div class="form-text">Use vírgula como separador decimal. Ex: 1.234,56</div>
+    </div>
     <div class="col-md-3">
         <label class="form-label">Documento</label>
         <input type="text" name="documento" class="form-control" value="{{ old('documento', $model->documento ?? '') }}">
@@ -107,6 +122,21 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // máscara simples para moeda BRL (somente formatação visual, validação no backend)
+    function maskMoneyBR(v){
+        v = (v||'').toString();
+        // remove tudo exceto dígitos
+        v = v.replace(/\D/g,'');
+        if (!v) return '';
+        // garante pelo menos 3 dígitos para posicionar a vírgula
+        while (v.length < 3) v = '0' + v;
+        const cents = v.slice(-2);
+        let ints = v.slice(0, -2);
+        // adiciona pontos de milhar
+        ints = ints.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        return ints + ',' + cents;
+    }
+
     function maskCPF(value){
         const v = (value||'').replace(/\D/g,'').slice(0,11);
         const p1 = v.slice(0,3);
@@ -124,6 +154,13 @@ document.addEventListener('DOMContentLoaded', function() {
         el.addEventListener('input', function(){ this.value = maskCPF(this.value); });
         // aplica na carga
         el.value = maskCPF(el.value);
+    });
+
+    document.querySelectorAll('input.money-br').forEach(function(el){
+        // aplica máscara durante digitação
+        el.addEventListener('input', function(){ this.value = maskMoneyBR(this.value); });
+        // normaliza valor existente
+        el.value = maskMoneyBR(el.value);
     });
 });
 </script>

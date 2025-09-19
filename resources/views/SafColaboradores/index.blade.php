@@ -79,10 +79,19 @@
                             @endforeach
                         </select>
                     </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Forma de Pagamento</label>
+                        <select name="forma_pagamento_nome" class="form-select">
+                            <option value="">-- todas --</option>
+                            @foreach(($formasPagamento ?? []) as $nome => $label)
+                                <option value="{{ $nome }}" {{ (string)request('forma_pagamento_nome') === (string)$nome ? 'selected' : '' }}>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div class="col-auto">
                         <button class="btn btn-primary" type="submit">Buscar</button>
                     </div>
-                    @if(($q ?? '') !== '' || request('cpf') || request('cpf_exact') || $representanteId || $funcaoId || $tipoId || $faixaId)
+                    @if(($q ?? '') !== '' || request('cpf') || request('cpf_exact') || $representanteId || $funcaoId || $tipoId || $faixaId || request('forma_pagamento_nome'))
                         <div class="col-auto">
                             <a class="btn btn-outline-secondary" href="{{ route('SafColaboradores.index', ['sort' => $sort ?? 'nome', 'dir' => $dir ?? 'asc', 'per_page' => request('per_page', $model->perPage())]) }}">Limpar</a>
                         </div>
@@ -98,13 +107,6 @@
                                 <th>
                                     <a href="{{ route('SafColaboradores.index', array_merge(request()->query(), ['sort' => 'nome', 'dir' => ($sort ?? 'nome') === 'nome' ? $nextDir : 'asc'])) }}">Nome
                                         @if(($sort ?? 'nome') === 'nome')
-                                            <small>{!! ($dir ?? 'asc') === 'asc' ? '&#9650;' : '&#9660;' !!}</small>
-                                        @endif
-                                    </a>
-                                </th>
-                                <th>
-                                    <a href="{{ route('SafColaboradores.index', array_merge(request()->query(), ['sort' => 'representante', 'dir' => ($sort ?? 'nome') === 'representante' ? $nextDir : 'asc'])) }}">Representante
-                                        @if(($sort ?? 'nome') === 'representante')
                                             <small>{!! ($dir ?? 'asc') === 'asc' ? '&#9650;' : '&#9660;' !!}</small>
                                         @endif
                                     </a>
@@ -131,10 +133,23 @@
                                     </a>
                                 </th>
                                 <th>PIX</th>
+                                <th>
+                                    <a href="{{ route('SafColaboradores.index', array_merge(request()->query(), ['sort' => 'forma_pagamento', 'dir' => ($sort ?? 'nome') === 'forma_pagamento' ? $nextDir : 'asc'])) }}">Forma de Pagamento
+                                        @if(($sort ?? 'nome') === 'forma_pagamento')
+                                            <small>{!! ($dir ?? 'asc') === 'asc' ? '&#9650;' : '&#9660;' !!}</small>
+                                        @endif
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="{{ route('SafColaboradores.index', array_merge(request()->query(), ['sort' => 'valor_salario', 'dir' => ($sort ?? 'nome') === 'valor_salario' ? $nextDir : 'asc'])) }}">Valor de salário
+                                        @if(($sort ?? 'nome') === 'valor_salario')
+                                            <small>{!! ($dir ?? 'asc') === 'asc' ? '&#9650;' : '&#9660;' !!}</small>
+                                        @endif
+                                    </a>
+                                </th>
                                 <th>CPF</th>
                                 <th>Cidade</th>
                                 <th>UF</th>
-                                <th>País</th>
                                 <th>Ativo</th>
                                 <th class="text-end">Ações</th>
                             </tr>
@@ -143,15 +158,17 @@
                             @forelse($model as $item)
                                 <tr>
                                     <td>{{ $item->nome }}</td>
-                                    <td>{{ optional($item->representante)->nome }}</td>
+                                    
                                     <td>{{ optional($item->funcaoProfissional)->nome }}</td>
                                     <td>{{ optional($item->tipoPrestador)->nome }}</td>
                                     <td>{{ optional($item->faixaSalarial)->nome }}</td>
-                                    <td>{{ optional($item->pix)->nome }}</td>
+                                        <td>{{ optional($item->pix)->nome }}</td>
+                                        <td>{{ optional($item->formaPagamento)->nome }}</td>
+                                    <td>{{ $item->valor_salario !== null ? number_format($item->valor_salario, 2, ',', '.') : '' }}</td>
                                     <td>{{ $item->cpf }}</td>
                                     <td>{{ $item->cidade }}</td>
                                     <td>{{ $item->uf }}</td>
-                                    <td>{{ $item->pais }}</td>
+                                    
                                     <td>{{ $item->ativo ? 'SIM' : 'NÃO' }}</td>
                                     <td class="text-end">
                                         @can('SAF_COLABORADORES - VER')
@@ -170,7 +187,7 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="12" class="text-center text-muted">Nenhum colaborador encontrado.</td></tr>
+                              <tr><td colspan="12" class="text-center text-muted">Nenhum colaborador encontrado.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -191,6 +208,7 @@
                         <input type="hidden" name="funcao_profissional_id" value="{{ $funcaoId ?? '' }}">
                         <input type="hidden" name="saf_tipo_prestador_id" value="{{ $tipoId ?? '' }}">
                         <input type="hidden" name="saf_faixa_salarial_id" value="{{ $faixaId ?? '' }}">
+                        <input type="hidden" name="forma_pagamento_nome" value="{{ request('forma_pagamento_nome','') }}">
                         <label for="per_page" class="form-label m-0">por página</label>
                         <select id="per_page" name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
                             @foreach ([10,20,50,100] as $n)
@@ -221,10 +239,12 @@
                     <input type="hidden" name="q" value="{{ $q ?? '' }}">
                     <input type="hidden" name="cpf" value="{{ request('cpf','') }}">
                     <input type="hidden" name="cpf_exact" value="{{ request('cpf_exact','') }}">
+                    <input type="hidden" name="forma_pagamento_nome" value="{{ request('forma_pagamento_nome','') }}">
                     <input type="hidden" name="representante_id" value="{{ $representanteId ?? '' }}">
                     <input type="hidden" name="funcao_profissional_id" value="{{ $funcaoId ?? '' }}">
                     <input type="hidden" name="saf_tipo_prestador_id" value="{{ $tipoId ?? '' }}">
                     <input type="hidden" name="saf_faixa_salarial_id" value="{{ $faixaId ?? '' }}">
+                    <input type="hidden" name="forma_pagamento_nome" value="{{ request('forma_pagamento_nome','') }}">
                     <input type="hidden" name="sort" value="{{ $sort ?? 'nome' }}">
                     <input type="hidden" name="dir" value="{{ $dir ?? 'asc' }}">
 

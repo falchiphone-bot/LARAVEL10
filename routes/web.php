@@ -20,6 +20,7 @@ use Illuminate\Support\Str;
 use App\Http\Controllers\SafTipoPrestadorController;
 use App\Http\Controllers\SafColaboradorController;
 use App\Http\Controllers\PixController;
+use App\Http\Controllers\FormaPagamentoController;
 use Illuminate\Support\Facades\Cache;
 /*
 |--------------------------------------------------------------------------
@@ -161,6 +162,19 @@ Route::resource('pix', PixController::class)->names([
 ]);
 Route::get('Pix-export', [PixController::class, 'export'])->name('Pix.export');
 Route::get('Pix-export-pdf', [PixController::class, 'exportPdf'])->name('Pix.exportPdf');
+
+// Forma de Pagamentos - CRUD e exportações (nome único como chave)
+Route::resource('forma-pagamentos', FormaPagamentoController::class)->names([
+    'index' => 'FormaPagamento.index',
+    'create' => 'FormaPagamento.create',
+    'store' => 'FormaPagamento.store',
+    'show' => 'FormaPagamento.show',
+    'edit' => 'FormaPagamento.edit',
+    'update' => 'FormaPagamento.update',
+    'destroy' => 'FormaPagamento.destroy',
+]);
+Route::get('FormaPagamento-export', [FormaPagamentoController::class, 'export'])->name('FormaPagamento.export');
+Route::get('FormaPagamento-export-pdf', [FormaPagamentoController::class, 'exportPdf'])->name('FormaPagamento.exportPdf');
 
 // Representantes - exportação CSV
 Route::get('Representantes-export', [App\Http\Controllers\RepresentantesController::class, 'export'])

@@ -26,6 +26,12 @@
                     <dt class="col-sm-3">Chave PIX</dt>
                     <dd class="col-sm-9">{{ optional($cadastro->pix)->nome }}</dd>
 
+                    <dt class="col-sm-3">Forma de Pagamento</dt>
+                    <dd class="col-sm-9">{{ optional($cadastro->formaPagamento)->nome }}</dd>
+
+                    <dt class="col-sm-3">Valor de salário</dt>
+                    <dd class="col-sm-9">{{ $cadastro->valor_salario !== null ? number_format($cadastro->valor_salario, 2, ',', '.') : '' }}</dd>
+
                     <dt class="col-sm-3">Documento</dt>
                     <dd class="col-sm-9">{{ $cadastro->documento }} @if($cadastro->cpf) <span class="text-muted">| CPF:</span> {{ $cadastro->cpf }} @endif</dd>
 

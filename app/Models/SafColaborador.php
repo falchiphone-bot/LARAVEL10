@@ -17,6 +17,7 @@ class SafColaborador extends Model
         'saf_tipo_prestador_id',
         'saf_faixa_salarial_id',
         'pix_nome',
+    'forma_pagamento_nome',
         'documento',
     'cpf',
         'email',
@@ -24,6 +25,7 @@ class SafColaborador extends Model
         'cidade',
         'uf',
         'pais',
+    'valor_salario',
         'ativo',
         'observacoes',
     ];
@@ -33,11 +35,13 @@ class SafColaborador extends Model
         'documento' => 'string',
     'cpf' => 'string',
         'pix_nome' => 'string',
+    'forma_pagamento_nome' => 'string',
         'email' => 'string',
         'telefone' => 'string',
         'cidade' => 'string',
         'uf' => 'string',
         'pais' => 'string',
+        'valor_salario' => 'decimal:2',
         'ativo' => 'boolean',
     ];
 
@@ -64,5 +68,10 @@ class SafColaborador extends Model
     public function pix()
     {
         return $this->belongsTo(\App\Models\Pix::class, 'pix_nome', 'nome');
+    }
+
+    public function formaPagamento()
+    {
+        return $this->belongsTo(\App\Models\FormaPagamento::class, 'forma_pagamento_nome', 'nome');
     }
 }

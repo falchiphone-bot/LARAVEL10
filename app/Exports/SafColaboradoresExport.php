@@ -18,7 +18,7 @@ class SafColaboradoresExport implements FromQuery, WithHeadings, WithMapping
 
     public function query()
     {
-    $query = SafColaborador::query()->with(['representante','funcaoProfissional','tipoPrestador','faixaSalarial','pix']);
+    $query = SafColaborador::query()->with(['representante','funcaoProfissional','tipoPrestador','faixaSalarial','pix','formaPagamento']);
 
         $q = trim((string)($this->filters['q'] ?? ''));
         if ($q !== '') {
@@ -34,14 +34,16 @@ class SafColaboradoresExport implements FromQuery, WithHeadings, WithMapping
 
     $representanteId = $this->filters['representante_id'] ?? null;
         $funcaoId = $this->filters['funcao_profissional_id'] ?? null;
-        $tipoId = $this->filters['saf_tipo_prestador_id'] ?? null;
+    $tipoId = $this->filters['saf_tipo_prestador_id'] ?? null;
         $faixaId = $this->filters['saf_faixa_salarial_id'] ?? null;
+    $formaPagamentoNome = $this->filters['forma_pagamento_nome'] ?? null;
     $cpfParam = isset($this->filters['cpf']) ? preg_replace('/\D/', '', (string)$this->filters['cpf']) : null;
         $cpfExact = filter_var($this->filters['cpf_exact'] ?? null, FILTER_VALIDATE_BOOLEAN);
         if (!empty($representanteId)) { $query->where('representante_id', $representanteId); }
         if (!empty($funcaoId)) { $query->where('funcao_profissional_id', $funcaoId); }
         if (!empty($tipoId)) { $query->where('saf_tipo_prestador_id', $tipoId); }
-        if (!empty($faixaId)) { $query->where('saf_faixa_salarial_id', $faixaId); }
+    if (!empty($faixaId)) { $query->where('saf_faixa_salarial_id', $faixaId); }
+    if (!empty($formaPagamentoNome)) { $query->where('forma_pagamento_nome', $formaPagamentoNome); }
     if (!empty($cpfParam)) {
             if ($cpfExact) {
                 $query->whereRaw("REGEXP_REPLACE(IFNULL(cpf,''), '[^0-9]', '') = ?", [$cpfParam]);
@@ -50,7 +52,7 @@ class SafColaboradoresExport implements FromQuery, WithHeadings, WithMapping
             }
         }
 
-    $allowedSorts = ['nome','cidade','uf','pais','representante','funcao','tipo','faixa','pix'];
+    $allowedSorts = ['nome','cidade','uf','pais','representante','funcao','tipo','faixa','pix','forma_pagamento','valor_salario'];
         $sort = $this->filters['sort'] ?? 'nome';
         if (!in_array($sort, $allowedSorts, true)) { $sort = 'nome'; }
         $dir = strtolower($this->filters['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
@@ -75,6 +77,10 @@ class SafColaboradoresExport implements FromQuery, WithHeadings, WithMapping
             $query->leftJoin('pix as px', 'px.nome', '=', 'saf_colaboradores.pix_nome')
                   ->select('saf_colaboradores.*')
                   ->orderBy('px.nome', $dir);
+        } elseif ($sort === 'forma_pagamento') {
+            $query->leftJoin('forma_pagamentos as fpag', 'fpag.nome', '=', 'saf_colaboradores.forma_pagamento_nome')
+                  ->select('saf_colaboradores.*')
+                  ->orderBy('fpag.nome', $dir);
         } else {
             $query->orderBy($sort, $dir);
         }
@@ -84,7 +90,7 @@ class SafColaboradoresExport implements FromQuery, WithHeadings, WithMapping
 
     public function headings(): array
     {
-    return ['Nome','Representante','Função Profissional','Tipo de Colaborador','Faixa Salarial','Chave PIX','Documento','CPF','Email','Telefone','Cidade','UF','País','Ativo'];
+    return ['Nome','Representante','Função Profissional','Tipo de Colaborador','Faixa Salarial','Chave PIX','Forma de Pagamento','Valor de salário','Documento','CPF','Email','Telefone','Cidade','UF','País','Ativo'];
     }
 
     public function map($row): array
@@ -96,6 +102,8 @@ class SafColaboradoresExport implements FromQuery, WithHeadings, WithMapping
             optional($row->tipoPrestador)->nome,
             optional($row->faixaSalarial)->nome,
             optional($row->pix)->nome,
+            optional($row->formaPagamento)->nome,
+            $row->valor_salario,
             $row->documento,
             $row->cpf,
             $row->email,

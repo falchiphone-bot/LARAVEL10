@@ -100,7 +100,12 @@
                         <td><strong>Documento:</strong> {{ $r->documento }}  <span class="muted">| CPF:</span> {{ $r->cpf }}</td>
                     </tr>
                     <tr>
-                        <td colspan="2"><strong>Chave PIX:</strong> {{ optional($r->pix)->nome }}</td>
+                        <td><strong>Valor de salário:</strong> {{ $r->valor_salario !== null ? number_format($r->valor_salario, 2, ',', '.') : '' }}</td>
+                        <td><strong>Chave PIX:</strong> {{ optional($r->pix)->nome }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Forma de Pagamento:</strong> {{ optional($r->formaPagamento)->nome }}</td>
+                        <td></td>
                     </tr>
                     <tr>
                         <td><strong>Email:</strong> {{ $r->email }}</td>

@@ -259,6 +259,7 @@
                                             @can('GoogleDrive - Opções')<a class="btn btn-outline-success btn-sm" href="drive/dashboard">Google Drive</a>@endcan
                                             @can('FERIADOS - LISTAR')<a class="btn btn-outline-success btn-sm" href="Feriados">Feriados</a>@endcan
                                             @can('PIX - LISTAR')<a class="btn btn-outline-success btn-sm" href="{{ route('Pix.index') }}">PIX</a>@endcan
+                                            @can('FORMA_PAGAMENTOS - LISTAR')<a class="btn btn-outline-success btn-sm" href="{{ route('FormaPagamento.index') }}">Formas de Pagamento</a>@endcan
                                         </div>
                                     </div>
                                 </div>

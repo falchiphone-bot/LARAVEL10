@@ -21,6 +21,7 @@ class SafColaboradorRequest extends FormRequest
             'saf_tipo_prestador_id' => ['nullable','integer','exists:saf_tipos_prestadores,id'],
             'saf_faixa_salarial_id' => ['nullable','integer','exists:saf_faixas_salariais,id'],
             'pix_nome' => ['nullable','string','max:255','exists:pix,nome'],
+            'forma_pagamento_nome' => ['nullable','string','max:255','exists:forma_pagamentos,nome'],
             'documento' => ['nullable','string','max:20'],
             // Aceita com/sem máscara e valida dígitos verificadores
             'cpf' => ['nullable','string','max:20', new CpfBr()],
@@ -29,8 +30,22 @@ class SafColaboradorRequest extends FormRequest
             'cidade' => ['nullable','string','max:120'],
             'uf' => ['nullable','string','size:2'],
             'pais' => ['nullable','string','max:60'],
+            'valor_salario' => ['nullable','numeric','min:0'],
             'ativo' => ['nullable','boolean'],
             'observacoes' => ['nullable','string'],
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('valor_salario')) {
+            $raw = $this->input('valor_salario');
+            if (is_string($raw)) {
+                // Normaliza formato brasileiro: 1.234,56 -> 1234.56
+                $norm = str_replace(['.', ' '], '', $raw);
+                $norm = str_replace(',', '.', $norm);
+                $this->merge(['valor_salario' => $norm]);
+            }
+        }
     }
 }
