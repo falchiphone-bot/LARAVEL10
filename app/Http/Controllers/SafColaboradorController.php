@@ -47,9 +47,8 @@ class SafColaboradorController extends Controller
     $representanteId = $request->query('representante_id');
         $funcaoId = $request->query('funcao_profissional_id');
         $tipoId = $request->query('saf_tipo_prestador_id');
-        $faixaId = $request->query('saf_faixa_salarial_id');
-        $formaPagamentoNome = $request->query('forma_pagamento_nome');
-        $formaPagamentoNome = $request->query('forma_pagamento_nome');
+    $faixaId = $request->query('saf_faixa_salarial_id');
+    $formaPagamentoNome = $request->query('forma_pagamento_nome');
         $diaPagamento = $request->query('dia_pagamento');
     $cpfParam = preg_replace('/\D/', '', (string)$request->query('cpf', ''));
         $cpfExact = filter_var($request->query('cpf_exact'), FILTER_VALIDATE_BOOLEAN);
@@ -73,7 +72,6 @@ class SafColaboradorController extends Controller
         if (!empty($tipoId)) { $query->where('saf_tipo_prestador_id', $tipoId); }
     if (!empty($faixaId)) { $query->where('saf_faixa_salarial_id', $faixaId); }
         if (!empty($formaPagamentoNome)) { $query->where('forma_pagamento_nome', $formaPagamentoNome); }
-    if (!empty($formaPagamentoNome)) { $query->where('forma_pagamento_nome', $formaPagamentoNome); }
     if (!empty($diaPagamento)) { $query->where('dia_pagamento', (int)$diaPagamento); }
     if (!empty($cpfParam)) {
             if ($cpfExact) {
@@ -110,8 +108,13 @@ class SafColaboradorController extends Controller
                   ->orderBy('fpag.nome', $dir)
                   ->orderBy('saf_colaboradores.nome', 'asc');
         } else {
-            $query->orderBy($sort, $dir)
-                  ->orderBy('saf_colaboradores.nome', 'asc');
+            // Prefixamos com a tabela base e evitamos duplicar ORDER BY quando sort = 'nome'
+            if ($sort === 'nome') {
+                $query->orderBy('saf_colaboradores.nome', $dir);
+            } else {
+                $query->orderBy('saf_colaboradores.' . $sort, $dir)
+                      ->orderBy('saf_colaboradores.nome', 'asc');
+            }
         }
 
         $model = $query->paginate($perPage);
@@ -199,8 +202,13 @@ class SafColaboradorController extends Controller
                   ->orderBy('fpag.nome', $dir)
                   ->orderBy('saf_colaboradores.nome', 'asc');
         } else {
-            $query->orderBy($sort, $dir)
-                  ->orderBy('saf_colaboradores.nome', 'asc');
+            // Prefixamos com a tabela base e evitamos duplicar ORDER BY quando sort = 'nome'
+            if ($sort === 'nome') {
+                $query->orderBy('saf_colaboradores.nome', $dir);
+            } else {
+                $query->orderBy('saf_colaboradores.' . $sort, $dir)
+                      ->orderBy('saf_colaboradores.nome', 'asc');
+            }
         }
 
         $data = $query->get();
@@ -312,8 +320,13 @@ class SafColaboradorController extends Controller
                   ->orderBy('fpag.nome', $dir)
                   ->orderBy('saf_colaboradores.nome', 'asc');
         } else {
-            $query->orderBy($sort, $dir)
-                  ->orderBy('saf_colaboradores.nome', 'asc');
+            // Prefixamos com a tabela base e evitamos duplicar ORDER BY quando sort = 'nome'
+            if ($sort === 'nome') {
+                $query->orderBy('saf_colaboradores.nome', $dir);
+            } else {
+                $query->orderBy('saf_colaboradores.' . $sort, $dir)
+                      ->orderBy('saf_colaboradores.nome', 'asc');
+            }
         }
 
         $registros = $query->get();
