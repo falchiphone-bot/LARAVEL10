@@ -3110,3 +3110,7 @@
 [19/Sep/2025:16:14:27 +0000] 400 - - http localhost-nginx-proxy-manager "-" [Client 172.19.0.1] [Length 0] [Gzip -] "-" "-"
 [19/Sep/2025:16:15:28 +0000] 404 - POST http 186.237.225.6 "/boaform/admin/formLogin" [Client 172.19.0.1] [Length 122] [Gzip 1.35] "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:71.0) Gecko/20100101 Firefox/71.0" "http://186.237.225.6:80/admin/login.asp"
 [19/Sep/2025:16:15:28 +0000] 400 - - http localhost-nginx-proxy-manager "-" [Client 172.19.0.1] [Length 0] [Gzip -] "-" "-"
+[19/Sep/2025:16:20:00 +0000] 404 - GET http 186.237.225.6 "/login.rsp" [Client 172.19.0.1] [Length 150] [Gzip -] "Hello World" "-"
+[19/Sep/2025:16:27:17 +0000] 404 - GET http 186.237.225.6 "/.env" [Client 172.19.0.1] [Length 122] [Gzip 1.35] "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:77.0) Gecko/20100101 Firefox/77.0" "-"
+[19/Sep/2025:16:27:18 +0000] 404 - GET http 186.237.225.6 "/wp-content/" [Client 172.19.0.1] [Length 122] [Gzip 1.35] "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:77.0) Gecko/20100101 Firefox/77.0" "-"
+[19/Sep/2025:16:31:21 +0000] 200 - GET http 186.237.225.6 "/" [Client 172.19.0.1] [Length 1033] [Gzip -] "Hello World/1.0" "-"

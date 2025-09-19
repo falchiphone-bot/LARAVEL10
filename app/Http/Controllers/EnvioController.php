@@ -19,14 +19,17 @@ class EnvioController extends Controller
         // Compatível com spatie/laravel-permission
         try {
             if (method_exists($user, 'hasAnyRole')) {
-                return (bool) call_user_func([$user, 'hasAnyRole'], ['Admin', 'Super-Admin', 'super-admin']);
+                return (bool) call_user_func([$user, 'hasAnyRole'], ['Admin', 'admin', 'Super-Admin', 'super-admin', 'Super Admin', 'SuperAdmin']);
             }
             if (method_exists($user, 'hasRole')) {
                 // Verifica múltiplas variações de nome de papel
                 return (bool) (
                     call_user_func([$user, 'hasRole'], 'Admin') ||
+                    call_user_func([$user, 'hasRole'], 'admin') ||
                     call_user_func([$user, 'hasRole'], 'Super-Admin') ||
-                    call_user_func([$user, 'hasRole'], 'super-admin')
+                    call_user_func([$user, 'hasRole'], 'super-admin') ||
+                    call_user_func([$user, 'hasRole'], 'Super Admin') ||
+                    call_user_func([$user, 'hasRole'], 'SuperAdmin')
                 );
             }
         } catch (\Throwable $e) {
@@ -41,6 +44,14 @@ class EnvioController extends Controller
     protected function resolveAbsolutePath(string $storedPath): ?string
     {
         if (empty($storedPath)) { return null; }
+        // Se já for um caminho absoluto (Linux/Unix ou Windows), retorna se existir
+        $isAbsoluteUnix = Str::startsWith($storedPath, ['/','\\']);
+    // Usa delimitador '#' para evitar conflitos com '/'
+    $isAbsoluteWin = (bool) preg_match('#^[A-Za-z]:[\\/]#', $storedPath);
+        if ($isAbsoluteUnix || $isAbsoluteWin) {
+            return file_exists($storedPath) ? $storedPath : null;
+        }
+
         $relative = ltrim($storedPath, '/');
         if (Str::startsWith($relative, 'public/')) { $relative = Str::after($relative, 'public/'); }
         if (Str::startsWith($relative, 'storage/')) { $relative = Str::after($relative, 'storage/'); }
@@ -48,6 +59,8 @@ class EnvioController extends Controller
         $candidates = [
             storage_path('app/public/' . $relative),
             storage_path('app/' . $relative),
+            public_path('storage/' . $relative),
+            base_path('public/' . $relative),
         ];
 
         foreach ($candidates as $abs) {
@@ -163,7 +176,7 @@ class EnvioController extends Controller
     public function show(Envio $Envio)
     {
         $isAdmin = $this->isAdmin();
-        if (!$isAdmin && $Envio->user_id !== auth()->id()) { abort(404); }
+    if (!$isAdmin && (int)$Envio->user_id !== (int)auth()->id()) { abort(404); }
         $Envio->load(['arquivos' => function($q) use ($isAdmin){
             if (!$isAdmin) { $q->where('uploaded_by', auth()->id()); }
         }]);
@@ -173,14 +186,14 @@ class EnvioController extends Controller
     public function edit(Envio $Envio)
     {
     $isAdmin = $this->isAdmin();
-        if (!$isAdmin && $Envio->user_id !== auth()->id()) { abort(404); }
+    if (!$isAdmin && (int)$Envio->user_id !== (int)auth()->id()) { abort(404); }
         return view('Envios.edit', ['envio' => $Envio]);
     }
 
     public function update(EnvioRequest $request, Envio $Envio)
     {
     $isAdmin = $this->isAdmin();
-        if (!$isAdmin && $Envio->user_id !== auth()->id()) { abort(404); }
+    if (!$isAdmin && (int)$Envio->user_id !== (int)auth()->id()) { abort(404); }
         $Envio->fill($request->only(['nome','descricao']));
         $Envio->save();
 
@@ -215,7 +228,7 @@ class EnvioController extends Controller
 
     public function destroyArquivo(Envio $Envio, EnvioArquivo $arquivo)
     {
-        if ($arquivo->envio_id !== $Envio->id) { abort(404); }
+    if ((int)$arquivo->envio_id !== (int)$Envio->id) { abort(404); }
         $isAdmin = $this->isAdmin();
         if (!$isAdmin && $arquivo->uploaded_by !== auth()->id()) { abort(404); }
         if ($arquivo->path && Storage::disk('public')->exists($arquivo->path)) {
@@ -227,13 +240,59 @@ class EnvioController extends Controller
 
     public function download(Envio $Envio, EnvioArquivo $arquivo)
     {
-        Log::info('Envios download chamado', ['envio_id'=>$Envio->id,'arquivo_id'=>$arquivo->id]);
-        if ($arquivo->envio_id !== $Envio->id) { abort(404); }
+        $authId = auth()->id();
         $isAdmin = $this->isAdmin();
-        if (!$isAdmin && $arquivo->uploaded_by !== auth()->id()) { abort(404); }
-        $absolutePath = $this->resolveAbsolutePath((string)$arquivo->path);
+        Log::info('Envios download chamado', [
+            'envio_id'=>$Envio->id,
+            'arquivo_id'=>$arquivo->id,
+            'arquivo_envio_id'=>$arquivo->envio_id,
+            'uploaded_by'=>$arquivo->uploaded_by,
+            'auth_id'=>$authId,
+            'is_admin'=>$isAdmin,
+        ]);
+        if ((int)$arquivo->envio_id !== (int)$Envio->id) {
+            Log::warning('Envios download 404: arquivo não pertence ao envio', [
+                'envio_id'=>$Envio->id,
+                'arquivo_id'=>$arquivo->id,
+                'arquivo_envio_id'=>$arquivo->envio_id,
+            ]);
+            abort(404);
+        }
+        if (!$isAdmin && $arquivo->uploaded_by !== $authId) {
+            Log::warning('Envios download 404: sem permissão (não admin e não é o uploader)', [
+                'envio_id'=>$Envio->id,
+                'arquivo_id'=>$arquivo->id,
+                'uploaded_by'=>$arquivo->uploaded_by,
+                'auth_id'=>$authId,
+            ]);
+            abort(404);
+        }
+        $stored = (string)$arquivo->path;
+        $relative = ltrim($stored, '/');
+        if (Str::startsWith($relative, 'public/')) { $relative = Str::after($relative, 'public/'); }
+        if (Str::startsWith($relative, 'storage/')) { $relative = Str::after($relative, 'storage/'); }
+        $absPublic = storage_path('app/public/' . $relative);
+        $absLocal = storage_path('app/' . $relative);
+        $absSymlink = public_path('storage/' . $relative);
+        $absPublicDir = base_path('public/' . $relative);
+        $absolutePath = $this->resolveAbsolutePath($stored);
         if (!$absolutePath) {
-            Log::warning('Envios download 404: arquivo não resolvido', ['envio_id'=>$Envio->id,'arquivo_id'=>$arquivo->id,'path'=>$arquivo->path]);
+            // Fallback via Storage disk 'public'
+            if (Storage::disk('public')->exists($relative)) {
+                $absPublic = storage_path('app/public/' . $relative);
+                Log::info('Envios download via Storage', ['envio_id'=>$Envio->id,'arquivo_id'=>$arquivo->id,'relative'=>$relative]);
+                return response()->download($absPublic, $arquivo->original_name);
+            }
+            Log::warning('Envios download 404: arquivo não resolvido', [
+                'envio_id'=>$Envio->id,
+                'arquivo_id'=>$arquivo->id,
+                'stored'=>$stored,
+                'normalized'=>$relative,
+                'abs_public'=>$absPublic,'abs_public_exists'=>file_exists($absPublic),
+                'abs_local'=>$absLocal,'abs_local_exists'=>file_exists($absLocal),
+                'abs_symlink'=>$absSymlink,'abs_symlink_exists'=>file_exists($absSymlink),
+                'abs_public_dir'=>$absPublicDir,'abs_public_dir_exists'=>file_exists($absPublicDir),
+            ]);
             abort(404);
         }
         return response()->download($absolutePath, $arquivo->original_name);
@@ -241,14 +300,63 @@ class EnvioController extends Controller
 
     public function view(Envio $Envio, EnvioArquivo $arquivo)
     {
-        Log::info('Envios view chamado', ['envio_id'=>$Envio->id,'arquivo_id'=>$arquivo->id]);
-        if ($arquivo->envio_id !== $Envio->id) { abort(404); }
+        $authId = auth()->id();
         $isAdmin = $this->isAdmin();
-        if (!$isAdmin && $arquivo->uploaded_by !== auth()->id()) { abort(404); }
+        Log::info('Envios view chamado', [
+            'envio_id'=>$Envio->id,
+            'arquivo_id'=>$arquivo->id,
+            'arquivo_envio_id'=>$arquivo->envio_id,
+            'uploaded_by'=>$arquivo->uploaded_by,
+            'auth_id'=>$authId,
+            'is_admin'=>$isAdmin,
+        ]);
+        if ((int)$arquivo->envio_id !== (int)$Envio->id) {
+            Log::warning('Envios view 404: arquivo não pertence ao envio', [
+                'envio_id'=>$Envio->id,
+                'arquivo_id'=>$arquivo->id,
+                'arquivo_envio_id'=>$arquivo->envio_id,
+            ]);
+            abort(404);
+        }
+        if (!$isAdmin && $arquivo->uploaded_by !== $authId) {
+            Log::warning('Envios view 404: sem permissão (não admin e não é o uploader)', [
+                'envio_id'=>$Envio->id,
+                'arquivo_id'=>$arquivo->id,
+                'uploaded_by'=>$arquivo->uploaded_by,
+                'auth_id'=>$authId,
+            ]);
+            abort(404);
+        }
         $stored = (string)$arquivo->path;
         $absolutePath = $this->resolveAbsolutePath($stored);
         if (!$absolutePath) {
-            Log::warning('Envios view 404: arquivo não resolvido', ['envio_id'=>$Envio->id,'arquivo_id'=>$arquivo->id,'path'=>$stored]);
+            $relative = ltrim($stored, '/');
+            if (Str::startsWith($relative, 'public/')) { $relative = Str::after($relative, 'public/'); }
+            if (Str::startsWith($relative, 'storage/')) { $relative = Str::after($relative, 'storage/'); }
+            // Fallback via Storage disk 'public'
+            if (Storage::disk('public')->exists($relative)) {
+                $absPublic = storage_path('app/public/' . $relative);
+                Log::info('Envios view via Storage', ['envio_id'=>$Envio->id,'arquivo_id'=>$arquivo->id,'relative'=>$relative]);
+                $mime = $arquivo->mime_type ?: 'application/octet-stream';
+                return response()->file($absPublic, [
+                    'Content-Type' => $mime,
+                    'Content-Disposition' => 'inline; filename="'.addslashes($arquivo->original_name).'"'
+                ]);
+            }
+            $absPublic = storage_path('app/public/' . $relative);
+            $absLocal = storage_path('app/' . $relative);
+            $absSymlink = public_path('storage/' . $relative);
+            $absPublicDir = base_path('public/' . $relative);
+            Log::warning('Envios view 404: arquivo não resolvido', [
+                'envio_id'=>$Envio->id,
+                'arquivo_id'=>$arquivo->id,
+                'stored'=>$stored,
+                'normalized'=>$relative,
+                'abs_public'=>$absPublic,'abs_public_exists'=>file_exists($absPublic),
+                'abs_local'=>$absLocal,'abs_local_exists'=>file_exists($absLocal),
+                'abs_symlink'=>$absSymlink,'abs_symlink_exists'=>file_exists($absSymlink),
+                'abs_public_dir'=>$absPublicDir,'abs_public_dir_exists'=>file_exists($absPublicDir),
+            ]);
             abort(404);
         }
         // Servir diretamente via PHP (evita depender de /storage no Nginx)

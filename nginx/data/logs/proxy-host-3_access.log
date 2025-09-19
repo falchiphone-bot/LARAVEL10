@@ -305,3 +305,4 @@
 [19/Sep/2025:14:19:15 +0000] - 200 200 - GET https vec.org.br "/vec/imagem/bola1.png" [Client 172.19.0.1] [Length 8121] [Gzip -] [Sent-to laravel10] "Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)" "-"
 [19/Sep/2025:15:11:14 +0000] - 200 200 - GET https vec.org.br "/vec.contato" [Client 172.19.0.1] [Length 1415] [Gzip -] [Sent-to laravel10] "Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)" "-"
 [19/Sep/2025:15:46:18 +0000] - 200 200 - GET https vec.org.br "/download/40682" [Client 172.19.0.1] [Length 86055] [Gzip -] [Sent-to laravel10] "Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)" "-"
+[19/Sep/2025:16:19:43 +0000] - 200 200 - GET https vec.org.br "/download/40683" [Client 172.19.0.1] [Length 259398] [Gzip -] [Sent-to laravel10] "Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)" "-"
