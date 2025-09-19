@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use App\Exports\PreparadoresExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 
 class PreparadoresController extends Controller
@@ -23,7 +25,8 @@ class PreparadoresController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware(['permission:PREPARADORES - LISTAR'])->only(['index','export','exportXlsx']);
+        $this->middleware(['permission:PREPARADORES - LISTAR'])->only(['index']);
+        $this->middleware(['permission:PREPARADORES - EXPORTAR'])->only(['export','exportXlsx','exportPdf']);
         $this->middleware(['permission:PREPARADORES - INCLUIR'])->only(['create', 'store']);
         $this->middleware(['permission:PREPARADORES - EDITAR'])->only(['edit', 'update']);
         $this->middleware(['permission:PREPARADORES - VER'])->only(['edit', 'update']);
@@ -262,6 +265,47 @@ class PreparadoresController extends Controller
     {
         $filters = $request->only(['nome','email','telefone','licencaCBF','sort','dir']);
         return Excel::download(new PreparadoresExport($filters), 'preparadores.xlsx');
+    }
+
+    // Exportação PDF (Dompdf) respeitando filtros e ordenação atuais
+    public function exportPdf(Request $request)
+    {
+        $query = Preparadores::query();
+
+        if ($request->filled('nome')) { $query->where('nome', 'like', '%' . trim($request->input('nome')) . '%'); }
+        if ($request->filled('email')) { $query->where('email', 'like', '%' . trim($request->input('email')) . '%'); }
+        if ($request->filled('telefone')) { $query->where('telefone', 'like', '%' . trim($request->input('telefone')) . '%'); }
+        if ($request->filled('licencaCBF')) { $query->where('licencaCBF', 'like', '%' . trim($request->input('licencaCBF')) . '%'); }
+
+        $allowedSorts = ['nome','email','telefone','licencaCBF'];
+        $sort = $request->input('sort', 'nome');
+        if (!in_array($sort, $allowedSorts, true)) { $sort = 'nome'; }
+        $dir = strtolower($request->input('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        $registros = $query->orderBy($sort, $dir)->get();
+
+        $html = view('Preparadores.export-pdf', [
+            'registros' => $registros,
+            'headerTitle' => $request->query('header_title'),
+            'headerSubtitle' => $request->query('header_subtitle'),
+            'footerLeft' => $request->query('footer_left'),
+            'footerRight' => $request->query('footer_right'),
+            'logoUrl' => $request->query('logo_url'),
+        ])->render();
+
+        $options = new Options();
+        $options->set('isRemoteEnabled', true);
+        $options->set('defaultFont', 'DejaVu Sans');
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('a4', 'portrait');
+        $dompdf->render();
+
+        $fileName = 'preparadores-'.date('Ymd-His').'.pdf';
+        return response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
     }
 
     public function CreateArquivoPreparadores(ArquivoPreparadoresCreateRequest $request)

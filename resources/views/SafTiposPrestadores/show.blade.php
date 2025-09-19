@@ -3,7 +3,7 @@
 <div class="py-5 bg-light">
   <div class="container">
     <div class="card shadow-sm">
-      <div class="card-header"><h5 class="mb-0">Detalhes - Tipo de Prestador</h5></div>
+  <div class="card-header"><h5 class="mb-0">Detalhes - Tipo de Colaborador</h5></div>
       <div class="card-body">
         <dl class="row">
           <dt class="col-sm-3">Nome</dt>

@@ -33,10 +33,14 @@
                         <input class="form-check-input" type="checkbox" value="1" id="remember" name="remember" {{ request('remember', old('remember', session()->has('funcaoprofissional.index.filters') ? '1' : '')) ? 'checked' : '' }}>
                         <label class="form-check-label" for="remember">Lembrar filtros</label>
                     </div>
-                    <div class="col-12 mt-2">
+                    @can('FUNCAOPROFISSIONAL - EXPORTAR')
+                    <div class="col-12 mt-2 d-flex gap-2 flex-wrap">
                         <a href="{{ route('FuncaoProfissional.export', request()->all()) }}" class="btn btn-outline-success">Exportar CSV</a>
                         <a href="{{ route('FuncaoProfissional.exportXlsx', request()->all()) }}" class="btn btn-outline-success">Exportar XLSX</a>
+                        <a href="{{ route('FuncaoProfissional.exportPdf', request()->all()) }}" class="btn btn-outline-danger">Exportar PDF</a>
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#exportPdfAdvancedModal">Exportar PDF (avançado)</button>
                     </div>
+                    @endcan
                     @if(($q ?? '') !== '')
                         <div class="col-auto">
                             <a class="btn btn-outline-secondary" href="{{ route('FuncaoProfissional.index', ['sort' => $sort ?? 'nome', 'dir' => $dir ?? 'asc', 'per_page' => request('per_page', $model->perPage())]) }}">Limpar</a>
@@ -108,4 +112,51 @@
         </div>
     </div>
 </div>
+                @can('FUNCAOPROFISSIONAL - EXPORTAR')
+                <!-- Modal PDF avançado -->
+                <div class="modal fade" id="exportPdfAdvancedModal" tabindex="-1" aria-labelledby="exportPdfAdvancedModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exportPdfAdvancedModalLabel">Exportar PDF (opções avançadas)</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form method="GET" action="{{ route('FuncaoProfissional.exportPdf') }}" target="_blank">
+                                <div class="modal-body">
+                                    <input type="hidden" name="q" value="{{ $q ?? '' }}">
+                                    <input type="hidden" name="sort" value="{{ $sort ?? 'nome' }}">
+                                    <input type="hidden" name="dir" value="{{ $dir ?? 'asc' }}">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Título do cabeçalho</label>
+                                            <input type="text" name="header_title" class="form-control" value="Função Profissional">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Subtítulo do cabeçalho</label>
+                                            <input type="text" name="header_subtitle" class="form-control" placeholder="Ex.: Relatório gerado em {{ now()->format('d/m/Y H:i') }}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Rodapé (lado esquerdo)</label>
+                                            <input type="text" name="footer_left" class="form-control" placeholder="Texto do rodapé à esquerda">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Rodapé (lado direito)</label>
+                                            <input type="text" name="footer_right" class="form-control" placeholder="Texto do rodapé à direita">
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label">URL do logo (opcional)</label>
+                                            <input type="url" name="logo_url" class="form-control" placeholder="https://exemplo.com/logo.png">
+                                            <div class="form-text">Deixe em branco para usar o logo padrão (public/images/logo.png).</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" class="btn btn-danger">Exportar PDF</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                @endcan
 @endsection

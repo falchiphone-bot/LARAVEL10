@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Session;
 use App\Exports\FuncaoProfissionalExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 
 class FuncaoProfissionalController extends Controller
@@ -17,7 +19,8 @@ class FuncaoProfissionalController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-    $this->middleware(['permission:FUNCAOPROFISSIONAL - LISTAR'])->only(['index','export','exportXlsx']);
+        $this->middleware(['permission:FUNCAOPROFISSIONAL - LISTAR'])->only(['index']);
+        $this->middleware(['permission:FUNCAOPROFISSIONAL - EXPORTAR'])->only(['export','exportXlsx','exportPdf']);
         $this->middleware(['permission:FUNCAOPROFISSIONAL - INCLUIR'])->only(['create', 'store']);
     $this->middleware(['permission:FUNCAOPROFISSIONAL - EDITAR'])->only(['edit', 'update']);
     $this->middleware(['permission:FUNCAOPROFISSIONAL - VER'])->only(['show']);
@@ -99,6 +102,45 @@ class FuncaoProfissionalController extends Controller
     {
         $filters = $request->only(['q','sort','dir']);
         return Excel::download(new FuncaoProfissionalExport($filters), 'funcao-profissional.xlsx');
+    }
+
+    // Exportação PDF (Dompdf) respeitando filtros e ordenação atuais
+    public function exportPdf(Request $request)
+    {
+        $query = FuncaoProfissional::query();
+        $q = trim((string) $request->query('q', ''));
+        if ($q !== '') {
+            $query->where('nome', 'like', "%{$q}%");
+        }
+        $allowedSorts = ['nome'];
+        $sort = $request->query('sort', 'nome');
+        if (!in_array($sort, $allowedSorts, true)) { $sort = 'nome'; }
+        $dir = strtolower($request->query('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        $registros = $query->orderBy($sort, $dir)->get();
+
+        $html = view('FuncaoProfissional.export-pdf', [
+            'registros' => $registros,
+            'headerTitle' => $request->query('header_title'),
+            'headerSubtitle' => $request->query('header_subtitle'),
+            'footerLeft' => $request->query('footer_left'),
+            'footerRight' => $request->query('footer_right'),
+            'logoUrl' => $request->query('logo_url'),
+        ])->render();
+
+        $options = new Options();
+        $options->set('isRemoteEnabled', true);
+        $options->set('defaultFont', 'DejaVu Sans');
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('a4', 'portrait');
+        $dompdf->render();
+
+        $fileName = 'funcao-profissional-'.date('Ymd-His').'.pdf';
+        return response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
     }
 
 

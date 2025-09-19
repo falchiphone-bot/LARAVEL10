@@ -136,8 +136,12 @@
                         aria-disabled="true">Incluir representante</a>
                 @endcan
 
+                @can('REPRESENTANTES - EXPORTAR')
                 <a href="{{ route('Representantes.export', request()->all()) }}" class="btn btn-outline-success btn-lg">Exportar CSV</a>
                 <a href="{{ route('Representantes.exportXlsx', request()->all()) }}" class="btn btn-outline-success btn-lg">Exportar XLSX</a>
+                <a href="{{ route('Representantes.exportPdf', request()->all()) }}" class="btn btn-outline-danger btn-lg">Exportar PDF</a>
+                <button type="button" class="btn btn-danger btn-lg" data-bs-toggle="modal" data-bs-target="#exportPdfAdvancedModal">Exportar PDF (avançado)</button>
+                @endcan
 
             </div>
 
@@ -284,6 +288,60 @@
         </div>
     </div>
 @endsection
+
+@can('REPRESENTANTES - EXPORTAR')
+<!-- Modal PDF avançado -->
+<div class="modal fade" id="exportPdfAdvancedModal" tabindex="-1" aria-labelledby="exportPdfAdvancedModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exportPdfAdvancedModalLabel">Exportar PDF (opções avançadas)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="GET" action="{{ route('Representantes.exportPdf') }}" target="_blank">
+                <div class="modal-body">
+                    <input type="hidden" name="empresa_id" value="{{ request('empresa_id') }}">
+                    <input type="hidden" name="nome" value="{{ request('nome') }}">
+                    <input type="hidden" name="email" value="{{ request('email') }}">
+                    <input type="hidden" name="agente_fifa" value="{{ request('agente_fifa') }}">
+                    <input type="hidden" name="oficial_cbf" value="{{ request('oficial_cbf') }}">
+                    <input type="hidden" name="sem_registro" value="{{ request('sem_registro') }}">
+                    <input type="hidden" name="sort" value="{{ request('sort','nome') }}">
+                    <input type="hidden" name="dir" value="{{ request('dir','asc') }}">
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Título do cabeçalho</label>
+                            <input type="text" name="header_title" class="form-control" value="Representantes">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Subtítulo do cabeçalho</label>
+                            <input type="text" name="header_subtitle" class="form-control" placeholder="Ex.: Relatório gerado em {{ now()->format('d/m/Y H:i') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Rodapé (lado esquerdo)</label>
+                            <input type="text" name="footer_left" class="form-control" placeholder="Texto do rodapé à esquerda">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Rodapé (lado direito)</label>
+                            <input type="text" name="footer_right" class="form-control" placeholder="Texto do rodapé à direita">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">URL do logo (opcional)</label>
+                            <input type="url" name="logo_url" class="form-control" placeholder="https://exemplo.com/logo.png">
+                            <div class="form-text">Deixe em branco para usar o logo padrão (public/images/logo.png).</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Exportar PDF</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endcan
 
 @push('scripts')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">

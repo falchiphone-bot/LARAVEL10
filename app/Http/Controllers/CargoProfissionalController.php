@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Session;
 use App\Exports\CargoProfissionalExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 
 class CargoProfissionalController extends Controller
@@ -18,7 +20,8 @@ class CargoProfissionalController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware(['permission:CARGOPROFISSIONAL - LISTAR'])->only(['index','export','exportXlsx']);
+        $this->middleware(['permission:CARGOPROFISSIONAL - LISTAR'])->only(['index']);
+        $this->middleware(['permission:CARGOPROFISSIONAL - EXPORTAR'])->only(['export','exportXlsx','exportPdf']);
         $this->middleware(['permission:CARGOPROFISSIONAL - INCLUIR'])->only(['create', 'store']);
         $this->middleware(['permission:CARGOPROFISSIONAL - EDITAR'])->only(['edit', 'update']);
         $this->middleware(['permission:CARGOPROFISSIONAL - VER'])->only(['edit', 'update']);
@@ -208,5 +211,44 @@ class CargoProfissionalController extends Controller
     {
         $filters = $request->only(['nome','sort','dir']);
         return Excel::download(new CargoProfissionalExport($filters), 'cargo-profissional.xlsx');
+    }
+
+    // Exportação PDF (Dompdf)
+    public function exportPdf(Request $request)
+    {
+        $query = CargoProfissional::query();
+        if ($request->filled('nome')) {
+            $query->where('nome', 'like', '%' . trim($request->input('nome')) . '%');
+        }
+
+        $allowedSorts = ['nome'];
+        $sort = $request->input('sort', 'nome');
+        if (!in_array($sort, $allowedSorts, true)) { $sort = 'nome'; }
+        $dir = strtolower($request->input('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        $registros = $query->orderBy($sort, $dir)->get();
+
+        $html = view('CargoProfissional.export-pdf', [
+            'registros' => $registros,
+            'headerTitle' => $request->query('header_title'),
+            'headerSubtitle' => $request->query('header_subtitle'),
+            'footerLeft' => $request->query('footer_left'),
+            'footerRight' => $request->query('footer_right'),
+            'logoUrl' => $request->query('logo_url'),
+        ])->render();
+
+        $options = new Options();
+        $options->set('isRemoteEnabled', true);
+        $options->set('defaultFont', 'DejaVu Sans');
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('a4', 'portrait');
+        $dompdf->render();
+
+        $fileName = 'cargo-profissional-'.date('Ymd-His').'.pdf';
+        return response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
     }
 }

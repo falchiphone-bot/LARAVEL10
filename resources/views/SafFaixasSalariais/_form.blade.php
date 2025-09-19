@@ -20,7 +20,7 @@
         @enderror
     </div>
     <div class="col-md-6">
-        <label class="form-label">Tipo de Prestador</label>
+    <label class="form-label">Tipo de Colaborador</label>
         <select name="saf_tipo_prestador_id" class="form-select @error('saf_tipo_prestador_id') is-invalid @enderror">
             <option value="">-- Selecione --</option>
             @foreach($tipos as $id=>$nome)

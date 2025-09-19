@@ -31,6 +31,8 @@ use Illuminate\Support\Facades\Gate;
 require_once app_path('helpers.php');
 use App\Exports\RepresentantesExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 class RepresentantesController extends Controller
 {
@@ -39,6 +41,7 @@ class RepresentantesController extends Controller
         $this->middleware('auth');
         $this->middleware(['permission:REPRESENTANTES - CADASTRO DO REPRESENTANTE'])->only('representantecadastro');
         $this->middleware(['permission:REPRESENTANTES - LISTAR'])->only('index');
+        $this->middleware(['permission:REPRESENTANTES - EXPORTAR'])->only(['export','exportXlsx','exportPdf']);
         $this->middleware(['permission:REPRESENTANTES - INCLUIR'])->only(['create', 'store']);
         $this->middleware(['permission:REPRESENTANTES - EDITAR'])->only(['edit', 'update']);
         $this->middleware(['permission:REPRESENTANTES - VER'])->only(['edit', 'update']);
@@ -234,6 +237,77 @@ class RepresentantesController extends Controller
     {
         $filters = $request->only(['nome','email','agente_fifa','oficial_cbf','sem_registro','sort','dir']);
         return Excel::download(new RepresentantesExport($filters), 'representantes.xlsx');
+    }
+
+    // Exportação PDF (Dompdf) respeitando filtros/ordenação e empresas acessíveis
+    public function exportPdf(Request $request)
+    {
+        // Empresas vinculadas ao usuário
+        $empresaIds = DB::table('Contabilidade.EmpresasUsuarios')
+            ->where('UsuarioID', Auth::id())
+            ->pluck('EmpresaID');
+
+        $query = Representantes::query()->with('MostraEmpresa')->whereIn('EmpresaID', $empresaIds);
+
+        if ($request->filled('empresa_id')) {
+            $empresaIdReq = (int)$request->input('empresa_id');
+            if ($empresaIds->contains($empresaIdReq)) {
+                $query->where('EmpresaID', $empresaIdReq);
+            }
+        }
+
+        if ($request->filled('nome')) {
+            $nome = trim($request->input('nome'));
+            $query->where('Representantes.nome', 'like', "%{$nome}%");
+        }
+        if ($request->filled('email')) {
+            $email = trim($request->input('email'));
+            $query->where('Representantes.email', 'like', "%{$email}%");
+        }
+
+        $mapBool = function ($v) {
+            if (is_null($v) || $v === '') return null;
+            $v = strtolower((string)$v);
+            if (in_array($v, ['1', 'true', 'sim', 'yes'], true)) return 1;
+            if (in_array($v, ['0', 'false', 'nao', 'não', 'no'], true)) return 0;
+            return null;
+        };
+        $agente = $mapBool($request->input('agente_fifa'));
+        if ($agente !== null) $query->where('agente_fifa', $agente);
+        $oficial = $mapBool($request->input('oficial_cbf'));
+        if ($oficial !== null) $query->where('oficial_cbf', $oficial);
+        $sem = $mapBool($request->input('sem_registro'));
+        if ($sem !== null) $query->where('sem_registro', $sem);
+
+        $allowedSorts = ['nome', 'agente_fifa', 'oficial_cbf', 'sem_registro'];
+        $sort = $request->input('sort', 'nome');
+        if (!in_array($sort, $allowedSorts, true)) $sort = 'nome';
+        $dir = strtolower($request->input('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        $registros = $query->select('representantes.*')->orderBy($sort, $dir)->get();
+
+        $html = view('Representantes.export-pdf', [
+            'registros' => $registros,
+            'headerTitle' => $request->query('header_title'),
+            'headerSubtitle' => $request->query('header_subtitle'),
+            'footerLeft' => $request->query('footer_left'),
+            'footerRight' => $request->query('footer_right'),
+            'logoUrl' => $request->query('logo_url'),
+        ])->render();
+
+        $options = new Options();
+        $options->set('isRemoteEnabled', true);
+        $options->set('defaultFont', 'DejaVu Sans');
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('a4', 'portrait');
+        $dompdf->render();
+
+        $fileName = 'representantes-'.date('Ymd-His').'.pdf';
+        return response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
     }
 
     public function representantecadastro()

@@ -11,7 +11,7 @@
                 <dt class="col-sm-3">Função</dt>
                 <dd class="col-sm-9">{{ optional($cadastro->funcaoProfissional)->nome }}</dd>
 
-                <dt class="col-sm-3">Tipo de Prestador</dt>
+                <dt class="col-sm-3">Tipo de Colaborador</dt>
                 <dd class="col-sm-9">{{ optional($cadastro->tipoPrestador)->nome }}</dd>
 
                 <dt class="col-sm-3">Senioridade</dt>

@@ -5,7 +5,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="utf-8">
-    <title>SAF - Tipos de Prestadores (PDF)</title>
+    <title>SAF - Tipos de Colaboradores (PDF)</title>
     <style>
         * { box-sizing: border-box; }
     @page { margin: 105px 30px 60px 30px; }
@@ -64,7 +64,7 @@
                     @endif
                 </td>
                 <td style="border: none; text-align: right;">
-                    <h1>{{ $headerTitle ?? 'SAF - Tipos de Prestadores' }}</h1>
+                    <h1>{{ $headerTitle ?? 'SAF - Tipos de Colaboradores' }}</h1>
                     <div class="meta">{{ $headerSubtitle ?? ('Gerado em: '.date('d/m/Y H:i')) }}</div>
                     <!-- Linha de filtros/ordenação/total removida a pedido -->
                 </td>

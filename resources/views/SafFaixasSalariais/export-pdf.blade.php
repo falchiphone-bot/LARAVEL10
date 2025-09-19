@@ -106,7 +106,7 @@
                 <tr>
                     <th>Nome</th>
                     <th>Função</th>
-                    <th>Tipo Prestador</th>
+                    <th>Tipo Colaborador</th>
                     <th>Senioridade</th>
                     <th>Contrato</th>
                     <th>Per.</th>

@@ -14,10 +14,8 @@
             @can('SAF_FAIXASSALARIAIS - EXPORTAR')
             <a href="{{ route('SafFaixasSalariais.export', array_merge(request()->query(), ['fmt'=>'csv'])) }}" class="btn btn-outline-success">Exportar CSV</a>
             <a href="{{ route('SafFaixasSalariais.export', array_merge(request()->query(), ['fmt'=>'xlsx'])) }}" class="btn btn-outline-success">Exportar Excel</a>
-            @can('SAF_FAIXASSALARIAIS - EXPORTAR')
             <a href="{{ route('SafFaixasSalariais.exportPdf', request()->query()) }}" class="btn btn-outline-danger">Exportar PDF</a>
             <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#exportPdfAdvancedModal">Exportar PDF (avançado)</button>
-            @endcan
             @endcan
             @can('SAF_FAIXASSALARIAIS - INCLUIR')
             <a href="{{ route('SafFaixasSalariais.create') }}" class="btn btn-primary">Nova Faixa</a>
@@ -41,7 +39,7 @@
                 </select>
             </div>
             <div class="col-md-3">
-                <label class="form-label">Tipo de Prestador</label>
+                <label class="form-label">Tipo de Colaborador</label>
                 <select name="saf_tipo_prestador_id" class="form-select">
                     <option value="">-- Todos --</option>
                     @foreach($tipos as $id=>$nome)
@@ -128,7 +126,7 @@
                 <tr>
                     <th>Nome</th>
                     <th>Função</th>
-                    <th>Tipo Prestador</th>
+                    <th>Tipo Colaborador</th>
                     <th>Senioridade</th>
                     <th>Contrato</th>
                     <th>Per.</th>

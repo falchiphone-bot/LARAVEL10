@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Http\Controllers\SafTipoPrestadorController;
+use App\Http\Controllers\SafColaboradorController;
 use Illuminate\Support\Facades\Cache;
 /*
 |--------------------------------------------------------------------------
@@ -141,29 +142,43 @@ Route::post('SafFaixasSalariais-import', [App\Http\Controllers\SafFaixaSalarialC
 Route::get('SafFaixasSalariais-import-template', [App\Http\Controllers\SafFaixaSalarialController::class, 'importTemplate'])->name('SafFaixasSalariais.importTemplate');
 Route::get('SafFaixasSalariais/{id}/duplicate', [App\Http\Controllers\SafFaixaSalarialController::class, 'duplicate'])->name('SafFaixasSalariais.duplicate');
 
+// Admin: SAF - Colaboradores
+Route::resource('SafColaboradores', SafColaboradorController::class);
+Route::get('SafColaboradores-export', [SafColaboradorController::class, 'export'])->name('SafColaboradores.export');
+Route::get('SafColaboradores-export-xlsx', [SafColaboradorController::class, 'exportXlsx'])->name('SafColaboradores.exportXlsx');
+Route::get('SafColaboradores-export-pdf', [SafColaboradorController::class, 'exportPdf'])->name('SafColaboradores.exportPdf');
+
 // Representantes - exportação CSV
 Route::get('Representantes-export', [App\Http\Controllers\RepresentantesController::class, 'export'])
     ->name('Representantes.export');
 Route::get('Representantes-export-xlsx', [App\Http\Controllers\RepresentantesController::class, 'exportXlsx'])
     ->name('Representantes.exportXlsx');
+Route::get('Representantes-export-pdf', [App\Http\Controllers\RepresentantesController::class, 'exportPdf'])
+    ->name('Representantes.exportPdf');
 
 // Preparadores - exportação CSV/XLSX
 Route::get('Preparadores-export', [App\Http\Controllers\PreparadoresController::class, 'export'])
     ->name('Preparadores.export');
 Route::get('Preparadores-export-xlsx', [App\Http\Controllers\PreparadoresController::class, 'exportXlsx'])
     ->name('Preparadores.exportXlsx');
+Route::get('Preparadores-export-pdf', [App\Http\Controllers\PreparadoresController::class, 'exportPdf'])
+    ->name('Preparadores.exportPdf');
 
 // Cargo Profissional - exportação CSV/XLSX
 Route::get('CargoProfissional-export', [App\Http\Controllers\CargoProfissionalController::class, 'export'])
     ->name('CargoProfissional.export');
 Route::get('CargoProfissional-export-xlsx', [App\Http\Controllers\CargoProfissionalController::class, 'exportXlsx'])
     ->name('CargoProfissional.exportXlsx');
+Route::get('CargoProfissional-export-pdf', [App\Http\Controllers\CargoProfissionalController::class, 'exportPdf'])
+    ->name('CargoProfissional.exportPdf');
 
 // Função Profissional - exportação CSV/XLSX
 Route::get('FuncaoProfissional-export', [App\Http\Controllers\FuncaoProfissionalController::class, 'export'])
     ->name('FuncaoProfissional.export');
 Route::get('FuncaoProfissional-export-xlsx', [App\Http\Controllers\FuncaoProfissionalController::class, 'exportXlsx'])
     ->name('FuncaoProfissional.exportXlsx');
+Route::get('FuncaoProfissional-export-pdf', [App\Http\Controllers\FuncaoProfissionalController::class, 'exportPdf'])
+    ->name('FuncaoProfissional.exportPdf');
 
 // Tipo de Arquivo - exportação CSV/XLSX
 Route::get('TipoArquivo-export', [App\Http\Controllers\TipoArquivoController::class, 'export'])
@@ -182,6 +197,8 @@ Route::get('Categorias-export', [App\Http\Controllers\CategoriasController::clas
     ->name('Categorias.export');
 Route::get('Categorias-export-xlsx', [App\Http\Controllers\CategoriasController::class, 'exportXlsx'])
     ->name('Categorias.exportXlsx');
+Route::get('Categorias-export-pdf', [App\Http\Controllers\CategoriasController::class, 'exportPdf'])
+    ->name('Categorias.exportPdf');
 
 // Posições - exportação CSV/XLSX
 Route::get('Posicoes-export', [App\Http\Controllers\PosicoesController::class, 'export'])

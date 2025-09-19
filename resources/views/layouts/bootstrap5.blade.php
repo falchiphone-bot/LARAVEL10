@@ -247,6 +247,20 @@
               </li>
               @endcan
 
+              {{-- Link: SAF - Colaboradores --}}
+              @can('SAF_COLABORADORES - LISTAR')
+              <li>
+                <a href="{{ route('SafColaboradores.index') }}"
+                   class="nav-link text-white"
+                   data-bs-toggle="tooltip" data-bs-placement="top"
+                   data-bs-custom-class="custom-tooltip"
+                   data-bs-title="Gerenciar Colaboradores (filtros, exportar CSV/XLSX/PDF)">
+                  <i class="fa-solid fa-people-group"></i>
+                  Colaboradores
+                </a>
+              </li>
+              @endcan
+
               <!-- Link: Percentuais Atletas TANABI -->
               @can('TANABI ATLETAS PERCENTUAIS - LISTAR')
               <li>

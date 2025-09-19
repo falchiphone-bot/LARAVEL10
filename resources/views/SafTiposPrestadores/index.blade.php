@@ -4,7 +4,7 @@
   <div class="container">
     <div class="card shadow-sm">
       <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">SAF - Tipos de Prestadores</h5>
+  <h5 class="mb-0">SAF - Tipos de Colaboradores</h5>
         @can('SAF_TIPOS_PRESTADORES - INCLUIR')
         <a href="{{ route('SafTiposPrestadores.create') }}" class="btn btn-primary btn-sm">Incluir</a>
         @endcan
@@ -70,7 +70,7 @@
                   <div class="row g-3">
                     <div class="col-md-6">
                       <label class="form-label">Título do cabeçalho</label>
-                      <input type="text" name="header_title" class="form-control" placeholder="Ex.: SAF - Tipos de Prestadores" value="SAF - Tipos de Prestadores">
+                      <input type="text" name="header_title" class="form-control" placeholder="Ex.: SAF - Tipos de Colaboradores" value="SAF - Tipos de Colaboradores">
                     </div>
                     <div class="col-md-6">
                       <label class="form-label">Subtítulo do cabeçalho</label>

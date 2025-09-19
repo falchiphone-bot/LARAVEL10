@@ -80,7 +80,7 @@
                         </div>
                         @endcanany
 
-                        @canany(['SAF_CLUBES - LISTAR','SAF_FEDERACOES - LISTAR','SAF_CAMPEONATOS - LISTAR','SAF_ANOS - LISTAR','SAF_TIPOS_PRESTADORES - LISTAR','SAF_FAIXASSALARIAIS - LISTAR'])
+                        @canany(['SAF_CLUBES - LISTAR','SAF_FEDERACOES - LISTAR','SAF_CAMPEONATOS - LISTAR','SAF_ANOS - LISTAR','SAF_TIPOS_PRESTADORES - LISTAR','SAF_FAIXASSALARIAIS - LISTAR','SAF_COLABORADORES - LISTAR'])
                         <div class="col-12 col-xl-6 col-xxl-4">
                             <div class="card h-100">
                                 <div class="card-header py-2">SAF</div>
@@ -89,8 +89,9 @@
                                     @can('SAF_FEDERACOES - LISTAR')<a class="btn btn-outline-primary btn-sm" href="/SafFederacoes">Federações</a>@endcan
                                     @can('SAF_CAMPEONATOS - LISTAR')<a class="btn btn-outline-primary btn-sm" href="/SafCampeonatos">Campeonatos</a>@endcan
                                     @can('SAF_ANOS - LISTAR')<a class="btn btn-outline-primary btn-sm" href="/SafAnos">Temporadas</a>@endcan
-                                    @can('SAF_TIPOS_PRESTADORES - LISTAR')<a class="btn btn-outline-primary btn-sm" href="/SafTiposPrestadores">Tipos Prestadores</a>@endcan
+                                    @can('SAF_TIPOS_PRESTADORES - LISTAR')<a class="btn btn-outline-primary btn-sm" href="/SafTiposPrestadores">Tipos de Colaboradores</a>@endcan
                                     @can('SAF_FAIXASSALARIAIS - LISTAR')<a class="btn btn-outline-primary btn-sm" href="/SafFaixasSalariais">Faixas</a>@endcan
+                                    @can('SAF_COLABORADORES - LISTAR')<a class="btn btn-outline-primary btn-sm" href="/SafColaboradores">Colaboradores</a>@endcan
                                 </div>
                             </div>
                         </div>

@@ -16,6 +16,7 @@ class FuncaoProfissionalPermissionsSeeder extends Seeder
             'FUNCAOPROFISSIONAL - EDITAR',
             'FUNCAOPROFISSIONAL - VER',
             'FUNCAOPROFISSIONAL - EXCLUIR',
+            'FUNCAOPROFISSIONAL - EXPORTAR',
         ];
         foreach ($perms as $name) {
             Permission::firstOrCreate(['name' => $name]);

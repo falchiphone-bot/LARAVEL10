@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Session;
 use App\Exports\CategoriasExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 
 class CategoriasController extends Controller
@@ -19,7 +21,8 @@ class CategoriasController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware(['permission:CATEGORIAS - LISTAR'])->only(['index','export','exportXlsx']);
+        $this->middleware(['permission:CATEGORIAS - LISTAR'])->only(['index']);
+        $this->middleware(['permission:CATEGORIAS - EXPORTAR'])->only(['export','exportXlsx','exportPdf']);
         $this->middleware(['permission:CATEGORIAS - INCLUIR'])->only(['create', 'store']);
         $this->middleware(['permission:CATEGORIAS - EDITAR'])->only(['edit', 'update']);
         $this->middleware(['permission:CATEGORIAS - VER'])->only(['edit', 'update']);
@@ -235,5 +238,46 @@ class CategoriasController extends Controller
     {
         $filters = $request->only(['nome','tipo_esporte','sort','dir']);
         return Excel::download(new CategoriasExport($filters), 'categorias.xlsx');
+    }
+
+    // Exportação PDF (Dompdf)
+    public function exportPdf(Request $request)
+    {
+        $query = Categorias::query()->with('MostraCategoria');
+        if ($request->filled('nome')) {
+            $query->where('nome', 'like', '%' . trim($request->input('nome')) . '%');
+        }
+        if ($request->filled('tipo_esporte')) {
+            $query->where('tipo_esporte', (int)$request->input('tipo_esporte'));
+        }
+        $allowedSorts = ['nome'];
+        $sort = $request->input('sort', 'nome');
+        if (!in_array($sort, $allowedSorts, true)) { $sort = 'nome'; }
+        $dir = strtolower($request->input('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        $registros = $query->orderBy($sort, $dir)->get();
+
+        $html = view('Categorias.export-pdf', [
+            'registros' => $registros,
+            'headerTitle' => $request->query('header_title'),
+            'headerSubtitle' => $request->query('header_subtitle'),
+            'footerLeft' => $request->query('footer_left'),
+            'footerRight' => $request->query('footer_right'),
+            'logoUrl' => $request->query('logo_url'),
+        ])->render();
+
+        $options = new Options();
+        $options->set('isRemoteEnabled', true);
+        $options->set('defaultFont', 'DejaVu Sans');
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('a4', 'portrait');
+        $dompdf->render();
+
+        $fileName = 'categorias-'.date('Ymd-His').'.pdf';
+        return response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
     }
 }
