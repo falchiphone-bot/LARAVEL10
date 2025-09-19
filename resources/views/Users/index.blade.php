@@ -46,8 +46,15 @@
                             role="button" aria-disabled="true">Incluir usuário pelo administrador</a>
                     @endcan
                     <div class="card-body">
-                        <div class="badge bg-success text-wrap" style="width: 100%; color: white;">
-                        <p>Total de usuários: {{ $linhas }}</p>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="badge bg-success text-wrap" style="width: 100%; color: white;">
+                                <p>Total de usuários: {{ $linhas }}</p>
+                            </div>
+                            <div class="ms-3 d-flex gap-2">
+                                <a href="{{ route('Usuarios.export', request()->query()) }}" class="btn btn-outline-success btn-sm">Exportar CSV</a>
+                                <a href="{{ route('Usuarios.exportXlsx', request()->query()) }}" class="btn btn-outline-success btn-sm">Exportar XLSX</a>
+                                <a href="{{ route('Usuarios.exportPdf', request()->query()) }}" class="btn btn-outline-success btn-sm">Exportar PDF</a>
+                            </div>
                         </div>
                         <form method="GET" class="row g-2 align-items-center mb-3">
                             <input type="hidden" name="sort" value="{{ $sort ?? 'name' }}">
@@ -56,10 +63,18 @@
                             <div class="col-md-6">
                                 <input type="text" name="q" class="form-control" placeholder="Buscar por nome ou email" value="{{ $q ?? '' }}">
                             </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Cadastrado de</label>
+                                <input type="date" name="created_from" class="form-control" value="{{ $createdFrom ?? '' }}">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Cadastrado até</label>
+                                <input type="date" name="created_to" class="form-control" value="{{ $createdTo ?? '' }}">
+                            </div>
                             <div class="col-auto">
                                 <button class="btn btn-primary" type="submit">Buscar</button>
                             </div>
-                            @if(($q ?? '') !== '')
+                            @if(($q ?? '') !== '' || ($createdFrom ?? '') !== '' || ($createdTo ?? '') !== '')
                                 <div class="col-auto">
                                     <a class="btn btn-outline-secondary" href="{{ route('Usuarios.index', ['sort' => $sort ?? 'name', 'dir' => $dir ?? 'asc', 'per_page' => request('per_page', $cadastros->perPage())]) }}">Limpar</a>
                                 </div>
@@ -92,6 +107,18 @@
                                             @endif
                                         </a>
                                     </th>
+                                    <th scope="col" class="px-6 py-4">
+                                        @php
+                                            $isCreated = ($sort ?? 'name') === 'created_at';
+                                            $nextDirCreated = ($isCreated && ($dir ?? 'asc') === 'asc') ? 'desc' : 'asc';
+                                        @endphp
+                                        <a href="{{ route('Usuarios.index', ['sort' => 'created_at', 'dir' => $nextDirCreated, 'per_page' => request('per_page', $cadastros->perPage()), 'q' => $q ?? null]) }}">
+                                            DATA CADASTRO
+                                            @if($isCreated)
+                                                <small>{!! ($dir ?? 'asc') === 'asc' ? '&#9650;' : '&#9660;' !!}</small>
+                                            @endif
+                                        </a>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -100,6 +127,7 @@
 
                                         <td class="whitespace-nowrap px-6 py-0"> {{ $cadastro->name }}</td>
                                         <td class="whitespace-nowrap px-6 py-0">{{ $cadastro->email }}</td>
+                                        <td class="whitespace-nowrap px-6 py-0">{{ optional($cadastro->created_at)->format('d/m/Y H:i') }}</td>
                                         <td>
                                             <div class="row mt-2">
                                                 <div class="col-6">
@@ -141,6 +169,9 @@
                             <form method="GET" class="d-flex align-items-center gap-2">
                                 <input type="hidden" name="sort" value="{{ $sort ?? 'name' }}">
                                 <input type="hidden" name="dir" value="{{ $dir ?? 'asc' }}">
+                                <input type="hidden" name="q" value="{{ $q ?? '' }}">
+                                <input type="hidden" name="created_from" value="{{ $createdFrom ?? '' }}">
+                                <input type="hidden" name="created_to" value="{{ $createdTo ?? '' }}">
                                 <label for="per_page" class="form-label m-0">por página</label>
                                 <select id="per_page" name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
                                     @foreach ([10,20,50,100] as $n)
@@ -149,7 +180,7 @@
                                 </select>
                             </form>
                             <div>
-                                {{ $cadastros->appends(['sort' => $sort ?? null, 'dir' => $dir ?? null, 'per_page' => request('per_page', $cadastros->perPage()), 'q' => $q ?? null])->links() }}
+                                {{ $cadastros->appends(['sort' => $sort ?? null, 'dir' => $dir ?? null, 'per_page' => request('per_page', $cadastros->perPage()), 'q' => $q ?? null, 'created_from' => $createdFrom ?? null, 'created_to' => $createdTo ?? null])->links() }}
                             </div>
                         </div>
                     </div>

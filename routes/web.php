@@ -943,6 +943,13 @@ Route::resource('RedeSocialUsuarios', App\Http\Controllers\RedeSocialUsuarioCont
 
     #Gerenciamento de Usuários
     Route::resource('Usuarios', App\Http\Controllers\UserController::class);
+    // Exportações de Usuários
+    Route::get('Usuarios-export', [App\Http\Controllers\UserController::class, 'export'])
+        ->name('Usuarios.export');
+    Route::get('Usuarios-export-xlsx', [App\Http\Controllers\UserController::class, 'exportXlsx'])
+        ->name('Usuarios.exportXlsx');
+    Route::get('Usuarios-export-pdf', [App\Http\Controllers\UserController::class, 'exportPdf'])
+        ->name('Usuarios.exportPdf');
     Route::post('Usuarios/salvarpermissao/{id}', [App\Http\Controllers\UserController::class, 'salvarpermissao']);
     Route::post('Usuarios/salvarfuncao/{id}', [App\Http\Controllers\UserController::class, 'salvarfuncao']);
     Route::post('Usuarios/salvar-empresa/{id}', [App\Http\Controllers\UserController::class, 'salvarEmpresa']);

@@ -14,6 +14,10 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\UsersExport;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 class UserController extends Controller
 {
@@ -57,7 +61,7 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
-        $allowedSorts = ['name', 'email'];
+        $allowedSorts = ['name', 'email', 'created_at'];
         $sort = $request->query('sort', 'name');
         if (!in_array($sort, $allowedSorts, true)) { $sort = 'name'; }
         $dir = strtolower($request->query('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
@@ -70,6 +74,8 @@ class UserController extends Controller
     $request->session()->put('users.per_page', $perPage);
 
         $q = trim((string) $request->query('q', ''));
+        $createdFrom = $request->query('created_from');
+        $createdTo = $request->query('created_to');
         $query = User::query();
         if ($q !== '') {
             $query->where(function($w) use ($q) {
@@ -77,10 +83,26 @@ class UserController extends Controller
                   ->orWhere('email', 'like', "%{$q}%");
             });
         }
-        $cadastros = $query->orderBy($sort, $dir)->paginate($perPage)->appends(['q' => $q]);
+        if (!empty($createdFrom)) {
+            $query->whereDate('created_at', '>=', $createdFrom);
+        }
+        if (!empty($createdTo)) {
+            $query->whereDate('created_at', '<=', $createdTo);
+        }
+        $cadastros = $query
+            ->orderBy($sort, $dir)
+            ->when($sort !== 'name', function($q) {
+                $q->orderBy('name', 'asc');
+            })
+            ->paginate($perPage)
+            ->appends([
+                'q' => $q,
+                'created_from' => $createdFrom,
+                'created_to' => $createdTo,
+            ]);
         $linhas = $cadastros->total();
         session(['error' => '']);
-        return view('Users.index', compact('cadastros', 'linhas', 'sort', 'dir', 'q'));
+        return view('Users.index', compact('cadastros', 'linhas', 'sort', 'dir', 'q', 'createdFrom', 'createdTo'));
     }
 
     /**
@@ -188,5 +210,109 @@ class UserController extends Controller
         } else {
             return back();
         }
+    }
+
+    // Exportação CSV
+    public function export(Request $request)
+    {
+        $allowedSorts = ['name','email','created_at'];
+        $sort = $request->query('sort', 'name');
+        if (!in_array($sort, $allowedSorts, true)) { $sort = 'name'; }
+        $dir = strtolower($request->query('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        $q = trim((string) $request->query('q', ''));
+        $createdFrom = $request->query('created_from');
+        $createdTo = $request->query('created_to');
+
+        $query = User::query();
+        if ($q !== '') {
+            $query->where(function($w) use ($q) {
+                $w->where('name', 'like', "%{$q}%")
+                  ->orWhere('email', 'like', "%{$q}%");
+            });
+        }
+        if (!empty($createdFrom)) { $query->whereDate('created_at', '>=', $createdFrom); }
+        if (!empty($createdTo)) { $query->whereDate('created_at', '<=', $createdTo); }
+
+    $query->orderBy($sort, $dir);
+    if ($sort !== 'name') { $query->orderBy('name', 'asc'); }
+        $data = $query->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="usuarios.csv"',
+        ];
+        $columns = ['Nome','Email','Data de cadastro'];
+        return response()->streamDownload(function () use ($data, $columns) {
+            $out = fopen('php://output', 'w');
+            fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fputcsv($out, $columns, ';');
+            foreach ($data as $row) {
+                fputcsv($out, [
+                    $row->name,
+                    $row->email,
+                    optional($row->created_at)->format('d/m/Y H:i'),
+                ], ';');
+            }
+            fclose($out);
+        }, 'usuarios.csv', $headers);
+    }
+
+    // Exportação XLSX
+    public function exportXlsx(Request $request)
+    {
+        $filters = $request->only(['q','created_from','created_to','sort','dir']);
+        return Excel::download(new UsersExport($filters), 'usuarios.xlsx');
+    }
+
+    // Exportação PDF
+    public function exportPdf(Request $request)
+    {
+        $allowedSorts = ['name','email','created_at'];
+        $sort = $request->query('sort', 'name');
+        if (!in_array($sort, $allowedSorts, true)) { $sort = 'name'; }
+        $dir = strtolower($request->query('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        $q = trim((string) $request->query('q', ''));
+        $createdFrom = $request->query('created_from');
+        $createdTo = $request->query('created_to');
+
+        $query = User::query();
+        if ($q !== '') {
+            $query->where(function($w) use ($q) {
+                $w->where('name', 'like', "%{$q}%")
+                  ->orWhere('email', 'like', "%{$q}%");
+            });
+        }
+        if (!empty($createdFrom)) { $query->whereDate('created_at', '>=', $createdFrom); }
+        if (!empty($createdTo)) { $query->whereDate('created_at', '<=', $createdTo); }
+
+    $registros = $query->orderBy($sort, $dir)->when($sort !== 'name', function($q){ $q->orderBy('name', 'asc'); })->get();
+
+        $html = view('Users.export-pdf', [
+            'registros' => $registros,
+            'q' => $q,
+            'sort' => $sort,
+            'dir' => $dir,
+            'headerTitle' => $request->query('header_title') ?? 'Usuários',
+            'headerSubtitle' => $request->query('header_subtitle'),
+            'footerLeft' => $request->query('footer_left'),
+            'footerRight' => $request->query('footer_right'),
+            'logoUrl' => $request->query('logo_url'),
+        ])->render();
+
+        $options = new Options();
+        $options->set('isRemoteEnabled', true);
+        $options->set('defaultFont', 'DejaVu Sans');
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('a4', 'landscape');
+        $dompdf->render();
+
+        $fileName = 'usuarios-'.date('Ymd-His').'.pdf';
+        return response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
     }
 }
