@@ -66,6 +66,16 @@
         <div class="form-text">Use vírgula como separador decimal. Ex: 1.234,56</div>
     </div>
     <div class="col-md-3">
+        <label class="form-label">Dia do pagamento</label>
+        <select name="dia_pagamento" class="form-select">
+            <option value="">-- selecione --</option>
+            @for($d=1;$d<=31;$d++)
+                <option value="{{ $d }}" {{ (string)old('dia_pagamento', $model->dia_pagamento ?? '') === (string)$d ? 'selected' : '' }}>{{ str_pad((string)$d,2,'0',STR_PAD_LEFT) }}</option>
+            @endfor
+        </select>
+        <div class="form-text">Dia do mês (01 a 31). Opcional.</div>
+    </div>
+    <div class="col-md-3">
         <label class="form-label">Documento</label>
         <input type="text" name="documento" class="form-control" value="{{ old('documento', $model->documento ?? '') }}">
     </div>

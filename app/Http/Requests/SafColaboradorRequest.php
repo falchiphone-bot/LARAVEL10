@@ -31,6 +31,7 @@ class SafColaboradorRequest extends FormRequest
             'uf' => ['nullable','string','size:2'],
             'pais' => ['nullable','string','max:60'],
             'valor_salario' => ['nullable','numeric','min:0'],
+            'dia_pagamento' => ['nullable','integer','min:1','max:31'],
             'ativo' => ['nullable','boolean'],
             'observacoes' => ['nullable','string'],
         ];
@@ -45,6 +46,14 @@ class SafColaboradorRequest extends FormRequest
                 $norm = str_replace(['.', ' '], '', $raw);
                 $norm = str_replace(',', '.', $norm);
                 $this->merge(['valor_salario' => $norm]);
+            }
+        }
+        if ($this->has('dia_pagamento')) {
+            $dp = $this->input('dia_pagamento');
+            if ($dp === '' || $dp === null) {
+                $this->merge(['dia_pagamento' => null]);
+            } else {
+                $this->merge(['dia_pagamento' => (int) $dp]);
             }
         }
     }

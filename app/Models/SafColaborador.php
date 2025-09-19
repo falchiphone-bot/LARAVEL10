@@ -26,6 +26,7 @@ class SafColaborador extends Model
         'uf',
         'pais',
     'valor_salario',
+        'dia_pagamento',
         'ativo',
         'observacoes',
     ];
@@ -42,6 +43,7 @@ class SafColaborador extends Model
         'uf' => 'string',
         'pais' => 'string',
         'valor_salario' => 'decimal:2',
+        'dia_pagamento' => 'integer',
         'ativo' => 'boolean',
     ];
 

@@ -88,10 +88,19 @@
                             @endforeach
                         </select>
                     </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Dia do pagamento</label>
+                        <select name="dia_pagamento" class="form-select">
+                            <option value="">-- todos --</option>
+                            @for($d=1;$d<=31;$d++)
+                                <option value="{{ $d }}" {{ (string)request('dia_pagamento') === (string)$d ? 'selected' : '' }}>{{ str_pad((string)$d,2,'0',STR_PAD_LEFT) }}</option>
+                            @endfor
+                        </select>
+                    </div>
                     <div class="col-auto">
                         <button class="btn btn-primary" type="submit">Buscar</button>
                     </div>
-                    @if(($q ?? '') !== '' || request('cpf') || request('cpf_exact') || $representanteId || $funcaoId || $tipoId || $faixaId || request('forma_pagamento_nome'))
+                    @if(($q ?? '') !== '' || request('cpf') || request('cpf_exact') || $representanteId || $funcaoId || $tipoId || $faixaId || request('forma_pagamento_nome') || request('dia_pagamento'))
                         <div class="col-auto">
                             <a class="btn btn-outline-secondary" href="{{ route('SafColaboradores.index', ['sort' => $sort ?? 'nome', 'dir' => $dir ?? 'asc', 'per_page' => request('per_page', $model->perPage())]) }}">Limpar</a>
                         </div>
@@ -147,6 +156,13 @@
                                         @endif
                                     </a>
                                 </th>
+                                <th>
+                                    <a href="{{ route('SafColaboradores.index', array_merge(request()->query(), ['sort' => 'dia_pagamento', 'dir' => ($sort ?? 'nome') === 'dia_pagamento' ? $nextDir : 'asc'])) }}">Dia pag.
+                                        @if(($sort ?? 'nome') === 'dia_pagamento')
+                                            <small>{!! ($dir ?? 'asc') === 'asc' ? '&#9650;' : '&#9660;' !!}</small>
+                                        @endif
+                                    </a>
+                                </th>
                                 <th>CPF</th>
                                 <th>Cidade</th>
                                 <th>UF</th>
@@ -165,6 +181,7 @@
                                         <td>{{ optional($item->pix)->nome }}</td>
                                         <td>{{ optional($item->formaPagamento)->nome }}</td>
                                     <td>{{ $item->valor_salario !== null ? number_format($item->valor_salario, 2, ',', '.') : '' }}</td>
+                                    <td>{{ $item->dia_pagamento !== null ? str_pad((string)$item->dia_pagamento, 2, '0', STR_PAD_LEFT) : '' }}</td>
                                     <td>{{ $item->cpf }}</td>
                                     <td>{{ $item->cidade }}</td>
                                     <td>{{ $item->uf }}</td>
@@ -187,7 +204,7 @@
                                     </td>
                                 </tr>
                             @empty
-                              <tr><td colspan="12" class="text-center text-muted">Nenhum colaborador encontrado.</td></tr>
+                              <tr><td colspan="13" class="text-center text-muted">Nenhum colaborador encontrado.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -209,6 +226,7 @@
                         <input type="hidden" name="saf_tipo_prestador_id" value="{{ $tipoId ?? '' }}">
                         <input type="hidden" name="saf_faixa_salarial_id" value="{{ $faixaId ?? '' }}">
                         <input type="hidden" name="forma_pagamento_nome" value="{{ request('forma_pagamento_nome','') }}">
+                        <input type="hidden" name="dia_pagamento" value="{{ request('dia_pagamento','') }}">
                         <label for="per_page" class="form-label m-0">por página</label>
                         <select id="per_page" name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
                             @foreach ([10,20,50,100] as $n)

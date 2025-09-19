@@ -32,6 +32,9 @@
                     <dt class="col-sm-3">Valor de salário</dt>
                     <dd class="col-sm-9">{{ $cadastro->valor_salario !== null ? number_format($cadastro->valor_salario, 2, ',', '.') : '' }}</dd>
 
+                    <dt class="col-sm-3">Dia do pagamento</dt>
+                    <dd class="col-sm-9">{{ $cadastro->dia_pagamento !== null ? str_pad((string)$cadastro->dia_pagamento, 2, '0', STR_PAD_LEFT) : '' }}</dd>
+
                     <dt class="col-sm-3">Documento</dt>
                     <dd class="col-sm-9">{{ $cadastro->documento }} @if($cadastro->cpf) <span class="text-muted">| CPF:</span> {{ $cadastro->cpf }} @endif</dd>
 

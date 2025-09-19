@@ -105,7 +105,7 @@
                     </tr>
                     <tr>
                         <td><strong>Forma de Pagamento:</strong> {{ optional($r->formaPagamento)->nome }}</td>
-                        <td></td>
+                        <td><strong>Dia do pagamento:</strong> {{ $r->dia_pagamento !== null ? str_pad((string)$r->dia_pagamento, 2, '0', STR_PAD_LEFT) : '' }}</td>
                     </tr>
                     <tr>
                         <td><strong>Email:</strong> {{ $r->email }}</td>

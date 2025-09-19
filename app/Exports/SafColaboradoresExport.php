@@ -37,6 +37,7 @@ class SafColaboradoresExport implements FromQuery, WithHeadings, WithMapping
     $tipoId = $this->filters['saf_tipo_prestador_id'] ?? null;
         $faixaId = $this->filters['saf_faixa_salarial_id'] ?? null;
     $formaPagamentoNome = $this->filters['forma_pagamento_nome'] ?? null;
+    $diaPagamento = $this->filters['dia_pagamento'] ?? null;
     $cpfParam = isset($this->filters['cpf']) ? preg_replace('/\D/', '', (string)$this->filters['cpf']) : null;
         $cpfExact = filter_var($this->filters['cpf_exact'] ?? null, FILTER_VALIDATE_BOOLEAN);
         if (!empty($representanteId)) { $query->where('representante_id', $representanteId); }
@@ -44,6 +45,7 @@ class SafColaboradoresExport implements FromQuery, WithHeadings, WithMapping
         if (!empty($tipoId)) { $query->where('saf_tipo_prestador_id', $tipoId); }
     if (!empty($faixaId)) { $query->where('saf_faixa_salarial_id', $faixaId); }
     if (!empty($formaPagamentoNome)) { $query->where('forma_pagamento_nome', $formaPagamentoNome); }
+    if (!empty($diaPagamento)) { $query->where('dia_pagamento', (int)$diaPagamento); }
     if (!empty($cpfParam)) {
             if ($cpfExact) {
                 $query->whereRaw("REGEXP_REPLACE(IFNULL(cpf,''), '[^0-9]', '') = ?", [$cpfParam]);
@@ -52,7 +54,7 @@ class SafColaboradoresExport implements FromQuery, WithHeadings, WithMapping
             }
         }
 
-    $allowedSorts = ['nome','cidade','uf','pais','representante','funcao','tipo','faixa','pix','forma_pagamento','valor_salario'];
+    $allowedSorts = ['nome','cidade','uf','pais','representante','funcao','tipo','faixa','pix','forma_pagamento','valor_salario','dia_pagamento'];
         $sort = $this->filters['sort'] ?? 'nome';
         if (!in_array($sort, $allowedSorts, true)) { $sort = 'nome'; }
         $dir = strtolower($this->filters['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
@@ -60,29 +62,36 @@ class SafColaboradoresExport implements FromQuery, WithHeadings, WithMapping
         if ($sort === 'representante') {
             $query->leftJoin('representantes as r', 'r.id', '=', 'saf_colaboradores.representante_id')
                   ->select('saf_colaboradores.*')
-                  ->orderBy('r.nome', $dir);
+                  ->orderBy('r.nome', $dir)
+                  ->orderBy('saf_colaboradores.nome', 'asc');
         } elseif ($sort === 'funcao') {
             $query->leftJoin('FuncaoProfissional as fp', 'fp.id', '=', 'saf_colaboradores.funcao_profissional_id')
                   ->select('saf_colaboradores.*')
-                  ->orderBy('fp.nome', $dir);
+                  ->orderBy('fp.nome', $dir)
+                  ->orderBy('saf_colaboradores.nome', 'asc');
         } elseif ($sort === 'tipo') {
             $query->leftJoin('saf_tipos_prestadores as tp', 'tp.id', '=', 'saf_colaboradores.saf_tipo_prestador_id')
                   ->select('saf_colaboradores.*')
-                  ->orderBy('tp.nome', $dir);
+                  ->orderBy('tp.nome', $dir)
+                  ->orderBy('saf_colaboradores.nome', 'asc');
         } elseif ($sort === 'faixa') {
             $query->leftJoin('saf_faixas_salariais as fs', 'fs.id', '=', 'saf_colaboradores.saf_faixa_salarial_id')
                   ->select('saf_colaboradores.*')
-                  ->orderBy('fs.nome', $dir);
+                  ->orderBy('fs.nome', $dir)
+                  ->orderBy('saf_colaboradores.nome', 'asc');
         } elseif ($sort === 'pix') {
             $query->leftJoin('pix as px', 'px.nome', '=', 'saf_colaboradores.pix_nome')
                   ->select('saf_colaboradores.*')
-                  ->orderBy('px.nome', $dir);
+                  ->orderBy('px.nome', $dir)
+                  ->orderBy('saf_colaboradores.nome', 'asc');
         } elseif ($sort === 'forma_pagamento') {
             $query->leftJoin('forma_pagamentos as fpag', 'fpag.nome', '=', 'saf_colaboradores.forma_pagamento_nome')
                   ->select('saf_colaboradores.*')
-                  ->orderBy('fpag.nome', $dir);
+                  ->orderBy('fpag.nome', $dir)
+                  ->orderBy('saf_colaboradores.nome', 'asc');
         } else {
-            $query->orderBy($sort, $dir);
+            $query->orderBy($sort, $dir)
+                  ->orderBy('saf_colaboradores.nome', 'asc');
         }
 
         return $query;
@@ -90,7 +99,7 @@ class SafColaboradoresExport implements FromQuery, WithHeadings, WithMapping
 
     public function headings(): array
     {
-    return ['Nome','Representante','Função Profissional','Tipo de Colaborador','Faixa Salarial','Chave PIX','Forma de Pagamento','Valor de salário','Documento','CPF','Email','Telefone','Cidade','UF','País','Ativo'];
+    return ['Nome','Representante','Função Profissional','Tipo de Colaborador','Faixa Salarial','Chave PIX','Forma de Pagamento','Valor de salário','Dia do pagamento','Documento','CPF','Email','Telefone','Cidade','UF','País','Ativo'];
     }
 
     public function map($row): array
@@ -104,6 +113,7 @@ class SafColaboradoresExport implements FromQuery, WithHeadings, WithMapping
             optional($row->pix)->nome,
             optional($row->formaPagamento)->nome,
             $row->valor_salario,
+            $row->dia_pagamento !== null ? str_pad((string)$row->dia_pagamento, 2, '0', STR_PAD_LEFT) : '',
             $row->documento,
             $row->cpf,
             $row->email,
