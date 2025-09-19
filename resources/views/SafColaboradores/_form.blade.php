@@ -40,6 +40,16 @@
             @endforeach
         </select>
     </div>
+    <div class="col-md-6">
+        <label class="form-label">Chave PIX</label>
+        <select name="pix_nome" class="form-select">
+            <option value="">-- selecione --</option>
+            @foreach(($pixList ?? []) as $nome => $label)
+                <option value="{{ $nome }}" {{ (string)old('pix_nome', $model->pix_nome ?? '') === (string)$nome ? 'selected' : '' }}>{{ $label }}</option>
+            @endforeach
+        </select>
+        <div class="form-text">Cadastre as chaves em: Dashboard → PIX.</div>
+    </div>
     <div class="col-md-3">
         <label class="form-label">Documento</label>
         <input type="text" name="documento" class="form-control" value="{{ old('documento', $model->documento ?? '') }}">

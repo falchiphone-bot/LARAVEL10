@@ -16,6 +16,7 @@ class SafColaborador extends Model
         'funcao_profissional_id',
         'saf_tipo_prestador_id',
         'saf_faixa_salarial_id',
+        'pix_nome',
         'documento',
     'cpf',
         'email',
@@ -31,6 +32,7 @@ class SafColaborador extends Model
         'nome' => 'string',
         'documento' => 'string',
     'cpf' => 'string',
+        'pix_nome' => 'string',
         'email' => 'string',
         'telefone' => 'string',
         'cidade' => 'string',
@@ -57,5 +59,10 @@ class SafColaborador extends Model
     public function faixaSalarial()
     {
         return $this->belongsTo(\App\Models\SafFaixaSalarial::class, 'saf_faixa_salarial_id');
+    }
+
+    public function pix()
+    {
+        return $this->belongsTo(\App\Models\Pix::class, 'pix_nome', 'nome');
     }
 }

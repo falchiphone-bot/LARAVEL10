@@ -9,6 +9,7 @@ use App\Models\FuncaoProfissional;
 use App\Models\SafTipoPrestador;
 use App\Models\SafFaixaSalarial;
 use Illuminate\Http\Request;
+use App\Models\Pix;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\SafColaboradoresExport;
 use Dompdf\Dompdf;
@@ -50,7 +51,7 @@ class SafColaboradorController extends Controller
         $cpfExact = filter_var($request->query('cpf_exact'), FILTER_VALIDATE_BOOLEAN);
 
         $query = SafColaborador::query()
-            ->with(['representante','funcaoProfissional','tipoPrestador','faixaSalarial']);
+            ->with(['representante','funcaoProfissional','tipoPrestador','faixaSalarial','pix']);
 
         if ($q !== '') {
             $query->where(function($w) use ($q) {
@@ -102,9 +103,12 @@ class SafColaboradorController extends Controller
         $funcoes = FuncaoProfissional::orderBy('nome')->pluck('nome','id');
         $tipos = SafTipoPrestador::orderBy('nome')->pluck('nome','id');
         $faixas = SafFaixaSalarial::orderBy('nome')->pluck('nome','id');
+    // Em SQL Server, pluck('nome','nome') pode gerar SELECT [nome], [nome] sem alias e causar ambiguidade
+    // Usamos get()->pluck para evitar esse problema
+    $pixList = Pix::orderBy('nome')->get()->pluck('nome','nome');
 
         return view('SafColaboradores.index', compact(
-            'model','sort','dir','q','representanteId','funcaoId','tipoId','faixaId','representantes','funcoes','tipos','faixas'
+            'model','sort','dir','q','representanteId','funcaoId','tipoId','faixaId','representantes','funcoes','tipos','faixas','pixList'
         ));
     }
 
@@ -123,7 +127,7 @@ class SafColaboradorController extends Controller
     $cpfParam = preg_replace('/\D/', '', (string)$request->query('cpf', ''));
         $cpfExact = filter_var($request->query('cpf_exact'), FILTER_VALIDATE_BOOLEAN);
 
-        $query = SafColaborador::query()->with(['representante','funcaoProfissional','tipoPrestador','faixaSalarial']);
+    $query = SafColaborador::query()->with(['representante','funcaoProfissional','tipoPrestador','faixaSalarial','pix']);
         if ($q !== '') {
             $query->where(function($w) use ($q) {
                                 $w->where('nome', 'like', "%{$q}%")
@@ -173,7 +177,7 @@ class SafColaboradorController extends Controller
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="saf-colaboradores.csv"',
         ];
-        $columns = ['Nome','Representante','Função Profissional','Tipo de Colaborador','Faixa Salarial','Documento','CPF','Email','Telefone','Cidade','UF','País','Ativo'];
+    $columns = ['Nome','Representante','Função Profissional','Tipo de Colaborador','Faixa Salarial','Chave PIX','Documento','CPF','Email','Telefone','Cidade','UF','País','Ativo'];
         return response()->streamDownload(function () use ($data, $columns) {
             $out = fopen('php://output', 'w');
             fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
@@ -185,6 +189,7 @@ class SafColaboradorController extends Controller
                     optional($row->funcaoProfissional)->nome,
                     optional($row->tipoPrestador)->nome,
                     optional($row->faixaSalarial)->nome,
+                    optional($row->pix)->nome,
                     $row->documento,
                     $row->cpf,
                     $row->email,
@@ -220,7 +225,7 @@ class SafColaboradorController extends Controller
     $cpfParam = preg_replace('/\D/', '', (string)$request->query('cpf', ''));
         $cpfExact = filter_var($request->query('cpf_exact'), FILTER_VALIDATE_BOOLEAN);
 
-        $query = SafColaborador::query()->with(['representante','funcaoProfissional','tipoPrestador','faixaSalarial']);
+    $query = SafColaborador::query()->with(['representante','funcaoProfissional','tipoPrestador','faixaSalarial','pix']);
         if ($q !== '') {
             $query->where(function($w) use ($q) {
                                 $w->where('nome', 'like', "%{$q}%")
@@ -296,17 +301,18 @@ class SafColaboradorController extends Controller
 
     public function create()
     {
-        $representantes = Representantes::orderBy('nome')->pluck('nome','id');
+    $representantes = Representantes::orderBy('nome')->pluck('nome','id');
         $funcoes = FuncaoProfissional::orderBy('nome')->pluck('nome','id');
         $tipos = SafTipoPrestador::orderBy('nome')->pluck('nome','id');
         $faixas = SafFaixaSalarial::orderBy('nome')->pluck('nome','id');
-        return view('SafColaboradores.create', compact('representantes','funcoes','tipos','faixas'));
+    $pixList = Pix::orderBy('nome')->get()->pluck('nome','nome');
+    return view('SafColaboradores.create', compact('representantes','funcoes','tipos','faixas','pixList'));
     }
 
     public function store(SafColaboradorRequest $request)
     {
         $dados = $request->only([
-            'nome','representante_id','funcao_profissional_id','saf_tipo_prestador_id','saf_faixa_salarial_id',
+            'nome','representante_id','funcao_profissional_id','saf_tipo_prestador_id','saf_faixa_salarial_id','pix_nome',
             'documento','cpf','email','telefone','cidade','uf','pais','ativo','observacoes'
         ]);
         $dados['nome'] = strtoupper($dados['nome']);
@@ -321,25 +327,26 @@ class SafColaboradorController extends Controller
 
     public function show(string $id)
     {
-        $cadastro = SafColaborador::with(['representante','funcaoProfissional','tipoPrestador','faixaSalarial'])->findOrFail($id);
+    $cadastro = SafColaborador::with(['representante','funcaoProfissional','tipoPrestador','faixaSalarial','pix'])->findOrFail($id);
         return view('SafColaboradores.show', compact('cadastro'));
     }
 
     public function edit(string $id)
     {
-        $model = SafColaborador::findOrFail($id);
-        $representantes = Representantes::orderBy('nome')->pluck('nome','id');
+    $model = SafColaborador::findOrFail($id);
+    $representantes = Representantes::orderBy('nome')->pluck('nome','id');
         $funcoes = FuncaoProfissional::orderBy('nome')->pluck('nome','id');
         $tipos = SafTipoPrestador::orderBy('nome')->pluck('nome','id');
         $faixas = SafFaixaSalarial::orderBy('nome')->pluck('nome','id');
-        return view('SafColaboradores.edit', compact('model','representantes','funcoes','tipos','faixas'));
+    $pixList = Pix::orderBy('nome')->get()->pluck('nome','nome');
+    return view('SafColaboradores.edit', compact('model','representantes','funcoes','tipos','faixas','pixList'));
     }
 
     public function update(SafColaboradorRequest $request, string $id)
     {
         $cadastro = SafColaborador::findOrFail($id);
         $dados = $request->only([
-            'nome','representante_id','funcao_profissional_id','saf_tipo_prestador_id','saf_faixa_salarial_id',
+            'nome','representante_id','funcao_profissional_id','saf_tipo_prestador_id','saf_faixa_salarial_id','pix_nome',
             'documento','cpf','email','telefone','cidade','uf','pais','ativo','observacoes'
         ]);
         $dados['nome'] = strtoupper($dados['nome']);

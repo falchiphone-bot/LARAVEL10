@@ -130,6 +130,7 @@
                                         @endif
                                     </a>
                                 </th>
+                                <th>PIX</th>
                                 <th>Documento</th>
                                 <th>CPF</th>
                                 <th>Cidade</th>
@@ -147,6 +148,7 @@
                                     <td>{{ optional($item->funcaoProfissional)->nome }}</td>
                                     <td>{{ optional($item->tipoPrestador)->nome }}</td>
                                     <td>{{ optional($item->faixaSalarial)->nome }}</td>
+                                    <td>{{ optional($item->pix)->nome }}</td>
                                     <td>{{ $item->documento }}</td>
                                     <td>{{ $item->cpf }}</td>
                                     <td>{{ $item->cidade }}</td>
@@ -170,7 +172,7 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="11" class="text-center text-muted">Nenhum colaborador encontrado.</td></tr>
+                                <tr><td colspan="13" class="text-center text-muted">Nenhum colaborador encontrado.</td></tr>
                             @endforelse
                         </tbody>
                     </table>

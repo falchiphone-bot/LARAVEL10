@@ -18,7 +18,7 @@ class SafColaboradoresExport implements FromQuery, WithHeadings, WithMapping
 
     public function query()
     {
-        $query = SafColaborador::query()->with(['representante','funcaoProfissional','tipoPrestador','faixaSalarial']);
+    $query = SafColaborador::query()->with(['representante','funcaoProfissional','tipoPrestador','faixaSalarial','pix']);
 
         $q = trim((string)($this->filters['q'] ?? ''));
         if ($q !== '') {
@@ -50,7 +50,7 @@ class SafColaboradoresExport implements FromQuery, WithHeadings, WithMapping
             }
         }
 
-        $allowedSorts = ['nome','cidade','uf','pais','representante','funcao','tipo','faixa'];
+    $allowedSorts = ['nome','cidade','uf','pais','representante','funcao','tipo','faixa','pix'];
         $sort = $this->filters['sort'] ?? 'nome';
         if (!in_array($sort, $allowedSorts, true)) { $sort = 'nome'; }
         $dir = strtolower($this->filters['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
@@ -71,6 +71,10 @@ class SafColaboradoresExport implements FromQuery, WithHeadings, WithMapping
             $query->leftJoin('saf_faixas_salariais as fs', 'fs.id', '=', 'saf_colaboradores.saf_faixa_salarial_id')
                   ->select('saf_colaboradores.*')
                   ->orderBy('fs.nome', $dir);
+        } elseif ($sort === 'pix') {
+            $query->leftJoin('pix as px', 'px.nome', '=', 'saf_colaboradores.pix_nome')
+                  ->select('saf_colaboradores.*')
+                  ->orderBy('px.nome', $dir);
         } else {
             $query->orderBy($sort, $dir);
         }
@@ -80,7 +84,7 @@ class SafColaboradoresExport implements FromQuery, WithHeadings, WithMapping
 
     public function headings(): array
     {
-    return ['Nome','Representante','Função Profissional','Tipo de Colaborador','Faixa Salarial','Documento','CPF','Email','Telefone','Cidade','UF','País','Ativo'];
+    return ['Nome','Representante','Função Profissional','Tipo de Colaborador','Faixa Salarial','Chave PIX','Documento','CPF','Email','Telefone','Cidade','UF','País','Ativo'];
     }
 
     public function map($row): array
@@ -91,6 +95,7 @@ class SafColaboradoresExport implements FromQuery, WithHeadings, WithMapping
             optional($row->funcaoProfissional)->nome,
             optional($row->tipoPrestador)->nome,
             optional($row->faixaSalarial)->nome,
+            optional($row->pix)->nome,
             $row->documento,
             $row->cpf,
             $row->email,

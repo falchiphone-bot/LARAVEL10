@@ -20,6 +20,7 @@ class SafColaboradorRequest extends FormRequest
             'funcao_profissional_id' => ['nullable','integer','exists:FuncaoProfissional,id'],
             'saf_tipo_prestador_id' => ['nullable','integer','exists:saf_tipos_prestadores,id'],
             'saf_faixa_salarial_id' => ['nullable','integer','exists:saf_faixas_salariais,id'],
+            'pix_nome' => ['nullable','string','max:255','exists:pix,nome'],
             'documento' => ['nullable','string','max:20'],
             // Aceita com/sem máscara e valida dígitos verificadores
             'cpf' => ['nullable','string','max:20', new CpfBr()],

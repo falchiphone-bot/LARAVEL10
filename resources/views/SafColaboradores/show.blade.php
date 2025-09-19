@@ -23,6 +23,9 @@
                     <dt class="col-sm-3">Faixa Salarial</dt>
                     <dd class="col-sm-9">{{ optional($cadastro->faixaSalarial)->nome }}</dd>
 
+                    <dt class="col-sm-3">Chave PIX</dt>
+                    <dd class="col-sm-9">{{ optional($cadastro->pix)->nome }}</dd>
+
                     <dt class="col-sm-3">Documento</dt>
                     <dd class="col-sm-9">{{ $cadastro->documento }} @if($cadastro->cpf) <span class="text-muted">| CPF:</span> {{ $cadastro->cpf }} @endif</dd>
 

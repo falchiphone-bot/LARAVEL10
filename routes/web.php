@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Http\Controllers\SafTipoPrestadorController;
 use App\Http\Controllers\SafColaboradorController;
+use App\Http\Controllers\PixController;
 use Illuminate\Support\Facades\Cache;
 /*
 |--------------------------------------------------------------------------
@@ -147,6 +148,19 @@ Route::resource('SafColaboradores', SafColaboradorController::class);
 Route::get('SafColaboradores-export', [SafColaboradorController::class, 'export'])->name('SafColaboradores.export');
 Route::get('SafColaboradores-export-xlsx', [SafColaboradorController::class, 'exportXlsx'])->name('SafColaboradores.exportXlsx');
 Route::get('SafColaboradores-export-pdf', [SafColaboradorController::class, 'exportPdf'])->name('SafColaboradores.exportPdf');
+
+// PIX - CRUD e exportações (path minúsculo, nomes preservados)
+Route::resource('pix', PixController::class)->names([
+    'index' => 'Pix.index',
+    'create' => 'Pix.create',
+    'store' => 'Pix.store',
+    'show' => 'Pix.show',
+    'edit' => 'Pix.edit',
+    'update' => 'Pix.update',
+    'destroy' => 'Pix.destroy',
+]);
+Route::get('Pix-export', [PixController::class, 'export'])->name('Pix.export');
+Route::get('Pix-export-pdf', [PixController::class, 'exportPdf'])->name('Pix.exportPdf');
 
 // Representantes - exportação CSV
 Route::get('Representantes-export', [App\Http\Controllers\RepresentantesController::class, 'export'])

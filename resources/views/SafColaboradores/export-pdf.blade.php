@@ -100,6 +100,9 @@
                         <td><strong>Documento:</strong> {{ $r->documento }}  <span class="muted">| CPF:</span> {{ $r->cpf }}</td>
                     </tr>
                     <tr>
+                        <td colspan="2"><strong>Chave PIX:</strong> {{ optional($r->pix)->nome }}</td>
+                    </tr>
+                    <tr>
                         <td><strong>Email:</strong> {{ $r->email }}</td>
                         <td><strong>Telefone:</strong> {{ $r->telefone }}</td>
                     </tr>
