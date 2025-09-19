@@ -234,6 +234,20 @@ Route::get('Envios/{Envio}/arquivos/{arquivo}/download', [App\Http\Controllers\E
     ->name('Envios.arquivos.download');
 Route::get('Envios/{Envio}/arquivos/{arquivo}/ver', [App\Http\Controllers\EnvioController::class, 'view'])
     ->name('Envios.arquivos.view');
+// Compartilhamento de arquivos
+Route::post('Envios/{Envio}/arquivos/{arquivo}/share', [App\Http\Controllers\EnvioController::class, 'share'])
+    ->name('Envios.arquivos.share');
+Route::delete('Envios/{Envio}/arquivos/{arquivo}/share/{user}', [App\Http\Controllers\EnvioController::class, 'unshare'])
+    ->name('Envios.arquivos.unshare');
+// Links públicos temporários
+Route::post('Envios/{Envio}/arquivos/{arquivo}/public-link', [App\Http\Controllers\EnvioController::class, 'createPublicLink'])
+    ->name('Envios.arquivos.publicLink.create');
+Route::delete('Envios/{Envio}/arquivos/{arquivo}/public-link/{token}', [App\Http\Controllers\EnvioController::class, 'revokePublicLink'])
+    ->name('Envios.arquivos.publicLink.revoke');
+Route::get('p/arquivo/{token}/ver', [App\Http\Controllers\EnvioController::class, 'publicView'])
+    ->name('Envios.public.view');
+Route::get('p/arquivo/{token}/download', [App\Http\Controllers\EnvioController::class, 'publicDownload'])
+    ->name('Envios.public.download');
 // Transcodificação/HLS
 Route::post('Envios/{Envio}/arquivos/{arquivo}/transcode', [App\Http\Controllers\EnvioController::class, 'transcode'])
     ->name('Envios.arquivos.transcode');

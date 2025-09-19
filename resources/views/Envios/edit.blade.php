@@ -60,6 +60,79 @@
               @endcan
             </td>
           </tr>
+          <tr>
+            <td></td>
+            <td colspan="4">
+              @php $canShare = auth()->id() === $envio->user_id || auth()->id() === $arq->uploaded_by || auth()->user()?->hasPermissionTo('ENVIOS - EDITAR'); @endphp
+              @if($canShare)
+                <div class="border rounded p-2 bg-light">
+                  <div class="d-flex align-items-end gap-2 flex-wrap">
+                    <div>
+                      <label class="form-label small mb-1">Compartilhar com usuário (e-mail)</label>
+                      <form class="d-flex gap-2" method="POST" action="{{ route('Envios.arquivos.share', [$envio, $arq]) }}">
+                        @csrf
+                        <input type="email" name="email" class="form-control form-control-sm" placeholder="usuario@dominio.com" required>
+                        <button class="btn btn-sm btn-outline-primary">Compartilhar</button>
+                      </form>
+                    </div>
+                    @if(($arq->sharedUsers ?? null) && $arq->sharedUsers->count())
+                      <div class="ms-auto">
+                        <div class="small text-muted">Compartilhado com:</div>
+                        <div class="d-flex flex-wrap gap-2">
+                          @foreach($arq->sharedUsers as $u)
+                            <form method="POST" action="{{ route('Envios.arquivos.unshare', [$envio, $arq, $u]) }}" class="d-inline">
+                              @csrf @method('DELETE')
+                              <span class="badge text-bg-secondary">
+                                {{ $u->name ?? $u->email }}
+                                <button class="btn btn-link btn-sm text-white p-0 ms-1 align-baseline" title="Remover" onclick="this.closest('form').submit(); return false;">×</button>
+                              </span>
+                            </form>
+                          @endforeach
+                        </div>
+                      </div>
+                    @endif
+                  </div>
+                  <div class="mt-2 border-top pt-2">
+                    <div class="d-flex align-items-end gap-2 flex-wrap">
+                      <div>
+                        <label class="form-label small mb-1">Link público temporário</label>
+                        <form class="d-flex gap-2" method="POST" action="{{ route('Envios.arquivos.publicLink.create', [$envio, $arq]) }}">
+                          @csrf
+                          <input type="number" min="1" max="168" name="hours" class="form-control form-control-sm" placeholder="Horas (ex: 24)">
+                          <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="allow_download" id="allowdl-{{ $arq->id }}" checked>
+                            <label class="form-check-label small" for="allowdl-{{ $arq->id }}">Permitir download</label>
+                          </div>
+                          <button class="btn btn-sm btn-outline-primary">Gerar link</button>
+                        </form>
+                      </div>
+                      @if(($arq->tokens ?? null) && $arq->tokens->count())
+                        <div class="w-100"></div>
+                        <div class="small text-muted">Links ativos:</div>
+                        <div class="d-flex flex-column gap-1 w-100">
+                          @foreach($arq->tokens as $t)
+                            <div class="d-flex align-items-center justify-content-between gap-2 border rounded p-2">
+                              <div class="small">
+                                <div>Visualizar: <a href="{{ route('Envios.public.view', [$t->token]) }}" target="_blank">{{ route('Envios.public.view', [$t->token]) }}</a></div>
+                                @if($t->allow_download)
+                                  <div>Download: <a href="{{ route('Envios.public.download', [$t->token]) }}" target="_blank">{{ route('Envios.public.download', [$t->token]) }}</a></div>
+                                @endif
+                                <div>Expira: {{ optional($t->expires_at)->format('d/m/Y H:i') ?? '—' }}</div>
+                              </div>
+                              <form method="POST" action="{{ route('Envios.arquivos.publicLink.revoke', [$envio, $arq, $t]) }}" onsubmit="return confirm('Revogar este link?')">
+                                @csrf @method('DELETE')
+                                <button class="btn btn-sm btn-outline-danger">Revogar</button>
+                              </form>
+                            </div>
+                          @endforeach
+                        </div>
+                      @endif
+                    </div>
+                  </div>
+                </div>
+              @endif
+            </td>
+          </tr>
         @empty
           <tr><td colspan="4" class="text-muted">Nenhum arquivo.</td></tr>
         @endforelse

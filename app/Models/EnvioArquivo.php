@@ -29,4 +29,19 @@ class EnvioArquivo extends Model
     {
         return $this->belongsTo(User::class, 'uploaded_by');
     }
+
+    public function shares()
+    {
+        return $this->hasMany(EnvioArquivoShare::class, 'envio_arquivo_id');
+    }
+
+    public function sharedUsers()
+    {
+        return $this->belongsToMany(User::class, 'envio_arquivo_shares', 'envio_arquivo_id', 'user_id');
+    }
+
+    public function tokens()
+    {
+        return $this->hasMany(EnvioArquivoToken::class, 'envio_arquivo_id');
+    }
 }

@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use App\Jobs\TranscodeEnvioVideo;
+use App\Models\EnvioArquivoShare;
+use App\Models\User;
+use App\Models\EnvioArquivoToken;
+use Illuminate\Support\Facades\URL;
 
 class EnvioController extends Controller
 {
@@ -129,15 +133,15 @@ class EnvioController extends Controller
     }
     public function __construct()
     {
-        $this->middleware('auth');
-        $this->middleware('permission:ENVIOS - LISTAR')->only('index');
-        $this->middleware('permission:ENVIOS - INCLUIR')->only(['create','store','uploadArquivos']);
-        $this->middleware('permission:ENVIOS - EDITAR')->only(['edit','update']);
-        // Ver detalhes e diagnóstico requer ENVIOS - VER
-        $this->middleware('permission:ENVIOS - VER')->only(['show','diagnose']);
-        // Download e ZIP aceitam VER ou LISTAR (qualquer um)
-        $this->middleware('permission:ENVIOS - VER|ENVIOS - LISTAR')->only(['download','zip']);
-        $this->middleware('permission:ENVIOS - EXCLUIR')->only(['destroy','destroyArquivo']);
+    $this->middleware('auth')->except(['publicView','publicDownload']);
+    $this->middleware('permission:ENVIOS - LISTAR')->only('index');
+    $this->middleware('permission:ENVIOS - INCLUIR')->only(['create','store','uploadArquivos']);
+    $this->middleware('permission:ENVIOS - EDITAR')->only(['edit','update']);
+    // Diagnóstico restrito a quem tem ENVIOS - VER
+    $this->middleware('permission:ENVIOS - VER')->only(['diagnose']);
+    // ZIP restrito a quem pode VER ou LISTAR; download será checado manualmente (owner/admin/compartilhado)
+    $this->middleware('permission:ENVIOS - VER|ENVIOS - LISTAR')->only(['zip']);
+    $this->middleware('permission:ENVIOS - EXCLUIR')->only(['destroy','destroyArquivo']);
     }
 
     public function index(Request $request)
@@ -156,7 +160,14 @@ class EnvioController extends Controller
         }
 
         $query = Envio::query();
-        if (!$isAdmin || $escopo === 'meus') { $query->where('user_id', $authId); }
+        if (!$isAdmin || $escopo === 'meus') {
+            $query->where(function($q) use ($authId){
+                $q->where('user_id', $authId)
+                  ->orWhereHas('arquivos.shares', function($q2) use ($authId){
+                      $q2->where('user_id', $authId);
+                  });
+            });
+        }
         if ($q !== '') { $query->where('nome','like',"%{$q}%"); }
         if (!empty($createdFrom)) { $query->whereDate('created_at', '>=', $createdFrom); }
         if (!empty($createdTo)) { $query->whereDate('created_at', '<=', $createdTo); }
@@ -263,11 +274,31 @@ class EnvioController extends Controller
 
     public function show(Envio $Envio)
     {
+        $authId = (int)auth()->id();
         $isAdmin = $this->isAdmin();
-    if (!$isAdmin && (int)$Envio->user_id !== (int)auth()->id()) { abort(404); }
-        $Envio->load(['arquivos' => function($q) use ($isAdmin){
-            if (!$isAdmin) { $q->where('uploaded_by', auth()->id()); }
-        }]);
+        $isOwner = (int)$Envio->user_id === $authId;
+        $hasShares = false;
+        if (!$isAdmin && !$isOwner) {
+            // Verifica se há pelo menos um arquivo compartilhado com este usuário
+            $hasShares = $Envio->arquivos()
+                ->whereHas('shares', function($q) use ($authId){ $q->where('user_id', $authId); })
+                ->exists();
+            if (!$hasShares) { abort(404); }
+        }
+
+        // Carrega arquivos conforme o contexto
+        if ($isAdmin || $isOwner) {
+            $Envio->load('arquivos');
+        } else {
+            // Mostrar apenas arquivos compartilhados com o usuário (e opcionalmente os que ele mesmo enviou)
+            $Envio->load(['arquivos' => function($q) use ($authId){
+                $q->where(function($w) use ($authId){
+                    $w->where('uploaded_by', $authId)
+                      ->orWhereHas('shares', function($s) use ($authId){ $s->where('user_id', $authId); });
+                });
+            }]);
+        }
+
         return view('Envios.show', ['envio' => $Envio]);
     }
 
@@ -275,6 +306,7 @@ class EnvioController extends Controller
     {
     $isAdmin = $this->isAdmin();
     if (!$isAdmin && (int)$Envio->user_id !== (int)auth()->id()) { abort(404); }
+    $Envio->load(['arquivos.sharedUsers','arquivos.tokens']);
         return view('Envios.edit', ['envio' => $Envio]);
     }
 
@@ -388,7 +420,11 @@ class EnvioController extends Controller
             ]);
             abort(404);
         }
-        if (!$isAdmin && $arquivo->uploaded_by !== $authId) {
+        // Permitir se proprietário (uploader), admin ou compartilhado com o usuário
+        $isShared = EnvioArquivoShare::where('envio_arquivo_id', $arquivo->id)
+            ->where('user_id', $authId)
+            ->exists();
+        if (!$isAdmin && $arquivo->uploaded_by !== $authId && !$isShared) {
             Log::warning('Envios download 404: sem permissão (não admin e não é o uploader)', [
                 'envio_id'=>$Envio->id,
                 'arquivo_id'=>$arquivo->id,
@@ -448,7 +484,11 @@ class EnvioController extends Controller
             ]);
             abort(404);
         }
-        if (!$isAdmin && $arquivo->uploaded_by !== $authId) {
+        // Permitir se proprietário (uploader), admin ou compartilhado com o usuário
+        $isShared = EnvioArquivoShare::where('envio_arquivo_id', $arquivo->id)
+            ->where('user_id', $authId)
+            ->exists();
+        if (!$isAdmin && $arquivo->uploaded_by !== $authId && !$isShared) {
             Log::warning('Envios view 404: sem permissão (não admin e não é o uploader)', [
                 'envio_id'=>$Envio->id,
                 'arquivo_id'=>$arquivo->id,
@@ -696,5 +736,115 @@ class EnvioController extends Controller
         $arquivo->update(['transcode_status' => 'pending', 'transcode_error' => null]);
         TranscodeEnvioVideo::dispatch($arquivo->id)->onQueue('default');
         return back()->with('success','Conversão para MP4/HLS agendada. Você pode atualizar a página em alguns minutos.');
+    }
+
+    // Compartilhar um arquivo do envio com outro usuário (por e-mail)
+    public function share(Request $request, Envio $Envio, EnvioArquivo $arquivo)
+    {
+        $request->validate(['email' => 'required|email']);
+        $authId = (int)auth()->id();
+        $isAdmin = $this->isAdmin();
+        if ((int)$arquivo->envio_id !== (int)$Envio->id) { abort(404); }
+        // Apenas admin, dono do envio ou uploader do arquivo podem compartilhar
+        if (!$isAdmin && $Envio->user_id !== $authId && (int)$arquivo->uploaded_by !== $authId) { abort(403); }
+
+        $user = User::where('email', $request->input('email'))->first();
+        if (!$user) {
+            return back()->with('error', 'Usuário não encontrado pelo e-mail informado.');
+        }
+        if ((int)$user->id === $authId) {
+            return back()->with('info', 'Você já tem acesso a este arquivo.');
+        }
+        EnvioArquivoShare::firstOrCreate([
+            'envio_arquivo_id' => $arquivo->id,
+            'user_id' => $user->id,
+        ]);
+        return back()->with('success', 'Arquivo compartilhado com '.$user->email.'.');
+    }
+
+    // Remover compartilhamento com um usuário
+    public function unshare(Request $request, Envio $Envio, EnvioArquivo $arquivo, User $user)
+    {
+        $authId = (int)auth()->id();
+        $isAdmin = $this->isAdmin();
+        if ((int)$arquivo->envio_id !== (int)$Envio->id) { abort(404); }
+        if (!$isAdmin && $Envio->user_id !== $authId && (int)$arquivo->uploaded_by !== $authId) { abort(403); }
+        EnvioArquivoShare::where('envio_arquivo_id', $arquivo->id)
+            ->where('user_id', $user->id)
+            ->delete();
+        return back()->with('success', 'Compartilhamento removido de '.$user->email.'.');
+    }
+
+    // Gera link público temporário
+    public function createPublicLink(Request $request, Envio $Envio, EnvioArquivo $arquivo)
+    {
+        $request->validate([
+            'hours' => 'nullable|integer|min:1|max:168',
+            'allow_download' => 'nullable|boolean',
+        ]);
+        $authId = (int)auth()->id();
+        $isAdmin = $this->isAdmin();
+        if ((int)$arquivo->envio_id !== (int)$Envio->id) { abort(404); }
+        if (!$isAdmin && $Envio->user_id !== $authId && (int)$arquivo->uploaded_by !== $authId) { abort(403); }
+
+        $hours = (int)($request->input('hours', 24));
+        $allow = (bool)$request->boolean('allow_download', true);
+        $token = bin2hex(random_bytes(16));
+
+        $expiresAt = now()->addHours($hours);
+        $rec = EnvioArquivoToken::create([
+            'envio_arquivo_id' => $arquivo->id,
+            'token' => $token,
+            'expires_at' => $expiresAt,
+            'allow_download' => $allow,
+            'created_by' => $authId,
+        ]);
+
+        $publicViewUrl = route('Envios.public.view', [$rec->token]);
+        $publicDownloadUrl = $allow ? route('Envios.public.download', [$rec->token]) : null;
+        return back()->with('success', 'Link público gerado.')->with('public_link', [
+            'view' => $publicViewUrl,
+            'download' => $publicDownloadUrl,
+            'expires_at' => $expiresAt->format('d/m/Y H:i'),
+        ]);
+    }
+
+    // Revoga um link público
+    public function revokePublicLink(Request $request, Envio $Envio, EnvioArquivo $arquivo, EnvioArquivoToken $token)
+    {
+        $authId = (int)auth()->id();
+        $isAdmin = $this->isAdmin();
+        if ((int)$arquivo->envio_id !== (int)$Envio->id) { abort(404); }
+        if (!$isAdmin && $Envio->user_id !== $authId && (int)$arquivo->uploaded_by !== $authId) { abort(403); }
+        if ((int)$token->envio_arquivo_id !== (int)$arquivo->id) { abort(404); }
+        $token->delete();
+        return back()->with('success', 'Link público revogado.');
+    }
+
+    // Endpoints públicos (sem auth)
+    public function publicView(Request $request, string $token)
+    {
+        $tok = EnvioArquivoToken::where('token', $token)
+            ->where(function($q){ $q->whereNull('expires_at')->orWhere('expires_at','>', now()); })
+            ->firstOrFail();
+        // Reutiliza lógica de view, mas sem checar permissão (já validado por token)
+        $arquivo = EnvioArquivo::findOrFail($tok->envio_arquivo_id);
+        $envio = Envio::findOrFail($arquivo->envio_id);
+        // Força bypass de verificação por permissão usando um flow interno reduzido
+        $request->headers->set('X-Envios-Public', '1');
+        // Agora reaproveita o código do método view() com uma pequena adaptação: vamos chamar internamente
+        return $this->view($request, $envio, $arquivo);
+    }
+
+    public function publicDownload(Request $request, string $token)
+    {
+        $tok = EnvioArquivoToken::where('token', $token)
+            ->where(function($q){ $q->whereNull('expires_at')->orWhere('expires_at','>', now()); })
+            ->firstOrFail();
+        if (!$tok->allow_download) { abort(403); }
+        $arquivo = EnvioArquivo::findOrFail($tok->envio_arquivo_id);
+        $envio = Envio::findOrFail($arquivo->envio_id);
+        $request->headers->set('X-Envios-Public', '1');
+        return $this->download($envio, $arquivo);
     }
 }
