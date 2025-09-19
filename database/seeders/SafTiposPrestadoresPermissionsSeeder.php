@@ -16,6 +16,7 @@ class SafTiposPrestadoresPermissionsSeeder extends Seeder
             'SAF_TIPOS_PRESTADORES - EDITAR',
             'SAF_TIPOS_PRESTADORES - VER',
             'SAF_TIPOS_PRESTADORES - EXCLUIR',
+            'SAF_TIPOS_PRESTADORES - EXPORTAR',
         ];
 
         foreach ($perms as $name) {

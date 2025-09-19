@@ -16,7 +16,7 @@
           <div class="alert alert-danger">{{ session('error') }}</div>
         @endif
 
-        <form method="GET" class="row g-2 align-items-center mb-3">
+  <form method="GET" class="row g-2 align-items-center mb-3">
           <input type="hidden" name="sort" value="{{ $sort ?? 'nome' }}">
           <input type="hidden" name="dir" value="{{ $dir ?? 'asc' }}">
           <input type="hidden" name="per_page" value="{{ request('per_page', $model->perPage()) }}">
@@ -40,6 +40,66 @@
             </div>
           @endif
         </form>
+
+        @can('SAF_TIPOS_PRESTADORES - EXPORTAR')
+        <div class="mb-3">
+          <a href="{{ route('SafTiposPrestadores.export', request()->all()) }}" class="btn btn-outline-success btn-sm">Exportar CSV</a>
+          <a href="{{ route('SafTiposPrestadores.exportXlsx', request()->all()) }}" class="btn btn-outline-success btn-sm">Exportar XLSX</a>
+          <a href="{{ route('SafTiposPrestadores.exportPdf', request()->all()) }}" class="btn btn-outline-danger btn-sm">Exportar PDF</a>
+          <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#exportPdfAdvancedModal">Exportar PDF (avançado)</button>
+        </div>
+        @endcan
+
+        @can('SAF_TIPOS_PRESTADORES - EXPORTAR')
+        <!-- Modal: Exportar PDF (avançado) -->
+        <div class="modal fade" id="exportPdfAdvancedModal" tabindex="-1" aria-labelledby="exportPdfAdvancedModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exportPdfAdvancedModalLabel">Exportar PDF (opções avançadas)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <form method="GET" action="{{ route('SafTiposPrestadores.exportPdf') }}" target="_blank">
+                <div class="modal-body">
+                  <!-- Preservar filtros atuais -->
+                  <input type="hidden" name="q" value="{{ $q ?? '' }}">
+                  <input type="hidden" name="funcao_profissional_id" value="{{ $funcaoId ?? '' }}">
+                  <input type="hidden" name="sort" value="{{ $sort ?? 'nome' }}">
+                  <input type="hidden" name="dir" value="{{ $dir ?? 'asc' }}">
+
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label">Título do cabeçalho</label>
+                      <input type="text" name="header_title" class="form-control" placeholder="Ex.: SAF - Tipos de Prestadores" value="SAF - Tipos de Prestadores">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Subtítulo do cabeçalho</label>
+                      <input type="text" name="header_subtitle" class="form-control" placeholder="Ex.: Relatório gerado em {{ now()->format('d/m/Y H:i') }}">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Rodapé (lado esquerdo)</label>
+                      <input type="text" name="footer_left" class="form-control" placeholder="Texto do rodapé à esquerda">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Rodapé (lado direito)</label>
+                      <input type="text" name="footer_right" class="form-control" placeholder="Texto do rodapé à direita">
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label">URL do logo (opcional)</label>
+                      <input type="url" name="logo_url" class="form-control" placeholder="https://exemplo.com/logo.png">
+                      <div class="form-text">Deixe em branco para usar o logo padrão do sistema (public/images/logo.png).</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                  <button type="submit" class="btn btn-danger">Exportar PDF</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        @endcan
 
         <p class="text-muted">Total: {{ $model->total() }}</p>
 

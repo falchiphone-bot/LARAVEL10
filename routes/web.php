@@ -129,6 +129,9 @@ Route::resource('SafAnos', App\Http\Controllers\SafAnoController::class);
 
 // Admin: SAF - Tipos de Prestadores
 Route::resource('SafTiposPrestadores', SafTipoPrestadorController::class);
+Route::get('SafTiposPrestadores-export', [SafTipoPrestadorController::class, 'export'])->name('SafTiposPrestadores.export');
+Route::get('SafTiposPrestadores-export-xlsx', [SafTipoPrestadorController::class, 'exportXlsx'])->name('SafTiposPrestadores.exportXlsx');
+Route::get('SafTiposPrestadores-export-pdf', [SafTipoPrestadorController::class, 'exportPdf'])->name('SafTiposPrestadores.exportPdf');
 
 // Admin: SAF - Faixas Salariais
 Route::resource('SafFaixasSalariais', App\Http\Controllers\SafFaixaSalarialController::class);
