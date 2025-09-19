@@ -1,1 +1,2 @@
 2025/09/19 15:36:02 [warn] 303#303: *154682 a client request body is buffered to a temporary file /tmp/nginx/body/0/59/0000045590, client: 172.19.0.1, server: tanabisaf.com.br, request: "POST /Envios HTTP/1.1", host: "tanabisaf.com.br", referrer: "https://tanabisaf.com.br/Envios/create"
+2025/09/19 22:36:33 [warn] 310#310: *163384 a client request body is buffered to a temporary file /tmp/nginx/body/3/59/0000045593, client: 172.19.0.1, server: tanabisaf.com.br, request: "POST /Envios HTTP/1.1", host: "tanabisaf.com.br", referrer: "https://tanabisaf.com.br/Envios/create"

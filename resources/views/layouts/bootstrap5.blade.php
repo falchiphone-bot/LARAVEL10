@@ -220,9 +220,11 @@
                                     Início do sistema
                                 </a>
                             </li>
+              @can('MERCADO - VER STATUS')
               <li class="ms-2 d-none d-md-flex align-items-center">
                 <span id="market-status-global" class="badge rounded-pill bg-secondary" title="Status do mercado (NYSE)">Mercado: carregando…</span>
               </li>
+              @endcan
 
                             @canany(['OPENAI - CHAT', 'OPENAI - TRANSCRIBE - ESPANHOL'])
                             <li>

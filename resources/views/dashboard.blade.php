@@ -168,9 +168,7 @@
                                                                     </button>
                                                                 </form>
                                                             </div>
-                                <div class="col-12">
-                                    <div class="badge bg-success w-100" style="font-size:16px;">Opções para o sistema</div>
-                                </div>
+
 
                                 {{-- Bloco Cadastros --}}
                                 <div class="col-12 col-lg-6 col-xxl-4">

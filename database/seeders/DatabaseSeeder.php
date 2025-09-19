@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             SafFaixasSalariaisPermissionsSeeder::class,
             SafColaboradoresPermissionsSeeder::class,
             PixPermissionsSeeder::class,
+            MarketPermissionsSeeder::class,
         ]);
 
         // \App\Models\User::factory()->create([
