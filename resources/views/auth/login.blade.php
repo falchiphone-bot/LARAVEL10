@@ -7,7 +7,7 @@
             <div class="card shadow">
                 <div class="card-header bg-primary text-white d-flex align-items-center gap-2">
                     <i class="fa-solid fa-right-to-bracket"></i>
-                    <strong>{{ __('Log in') }}</strong>
+                    <strong>Entrar</strong>
                 </div>
                 <div class="card-body">
                     @if (session('status'))
@@ -16,7 +16,7 @@
 
                     @if ($errors->any())
                         <div class="alert alert-danger">
-                            <div class="fw-bold mb-1">{{ __('Whoops! Something went wrong.') }}</div>
+                            <div class="fw-bold mb-1">Ops! Algo deu errado.</div>
                             <ul class="mb-0 ps-3">
                                 @foreach ($errors->all() as $error)
                                     <li>{{ $error }}</li>
@@ -29,7 +29,7 @@
                         @csrf
 
                         <div class="mb-3">
-                            <label for="email" class="form-label">{{ __('Email') }}</label>
+                            <label for="email" class="form-label">E-mail</label>
                             <input id="email" name="email" type="email" class="form-control form-control-lg @error('email') is-invalid @enderror" value="{{ old('email') }}" required autofocus autocomplete="username">
                             @error('email')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -37,7 +37,7 @@
                         </div>
 
                         <div class="mb-2">
-                            <label for="password" class="form-label">{{ __('Password') }}</label>
+                            <label for="password" class="form-label">Senha</label>
                             <input id="password" name="password" type="password" class="form-control form-control-lg @error('password') is-invalid @enderror" required autocomplete="current-password">
                             @error('password')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -48,19 +48,19 @@
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" value="1" id="remember_me" name="remember">
                                 <label class="form-check-label" for="remember_me">
-                                    {{ __('Remember me') }}
+                                    Lembrar de mim
                                 </label>
                             </div>
                             @if (Route::has('password.request'))
                                 <a href="{{ route('password.request') }}" class="text-decoration-none">
-                                    {{ __('Forgot your password?') }}
+                                    Esqueceu sua senha?
                                 </a>
                             @endif
                         </div>
 
                         <div class="d-flex flex-wrap gap-2 justify-content-end align-items-center">
                             <button type="submit" class="btn btn-danger">
-                                {{ __('Log in') }}
+                                Entrar
                             </button>
 
                             @if (config('services.google.enabled'))

@@ -1,1 +1,1 @@
-[{{ $slot }}]({{ $url }})
+[{{ config('app.name') }}]({{ $url }})

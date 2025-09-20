@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use App\Notifications\ResetPasswordNotification as AppResetPasswordNotification;
 
 class User extends Authenticatable
 {
@@ -37,5 +38,13 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    /**
+     * Envia a notificação de redefinição de senha usando nosso mailer padrão.
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new AppResetPasswordNotification($token));
+    }
 
 }
