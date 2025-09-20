@@ -25,9 +25,12 @@
                                 <div class="col-12">
                                     <select multiple id="permissao" name="permissao[]" autocomplete="permissao-name"
                                         class="select2 form-control">
+                                        @php
+                                            $rolePermissionIds = $cadastro->permissions ? $cadastro->permissions->pluck('id')->all() : [];
+                                        @endphp
                                         @foreach ($permissoes as $id => $name)
-                                            <option @if ($cadastro->hasPermissionTo($name)) selected @endif
-                                                value={{ $id }}>{{ $name }}
+                                            <option value="{{ $id }}" @if (in_array($id, $rolePermissionIds, true)) selected @endif>
+                                                {{ $name }}
                                             </option>
                                         @endforeach
                                     </select>

@@ -11,6 +11,13 @@ use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        // Apenas usuários com a permissão específica podem excluir a conta
+        $this->middleware('permission:PERFIL - EXCLUIR CONTA')->only('destroy');
+    }
+
     /**
      * Display the user's profile form.
      */

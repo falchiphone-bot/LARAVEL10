@@ -40,8 +40,12 @@
                         <div class="row">
                             <div class="col-sm-12">
                                 <select multiple id="permissao" name="permissao[]" class="select2 form-control">
+                                    @php
+                                        // Usa IDs já atribuídos ao usuário para evitar hasPermissionTo() que pode lançar exceção
+                                        $userPermissionIds = $cadastro->permissions ? $cadastro->permissions->pluck('id')->all() : [];
+                                    @endphp
                                     @foreach ($permissoes as $id => $name)
-                                        <option @if ($cadastro->hasPermissionTo($name)) selected @endif value={{ $id }}>
+                                        <option value="{{ $id }}" @if (in_array($id, $userPermissionIds, true)) selected @endif>
                                             {{ $name }}
                                         </option>
                                     @endforeach
