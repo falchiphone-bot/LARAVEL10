@@ -27,12 +27,25 @@ class RoleController extends Controller
     }
 
 
-    public function index()
+    public function index(Request $request)
     {
-       $cadastros = Role::OrderBy('name')->get();
-       $linhas = count($cadastros);
+        $q = $request->input('q');
+        // Tamanho de página via query, com limites seguros
+        $perPage = (int) $request->input('per_page', 15);
+        $allowedPerPage = [10, 15, 20, 30, 50, 100];
+        if (!in_array($perPage, $allowedPerPage, true)) {
+            $perPage = 15;
+        }
 
-        return view('Roles.index',compact('cadastros', 'linhas'));
+        $query = Role::query();
+        if (!empty($q)) {
+            $query->where('name', 'like', '%' . $q . '%');
+        }
+
+        $cadastros = $query->orderBy('name')->paginate($perPage)->withQueryString();
+        $linhas = $cadastros->total();
+
+        return view('Roles.index', compact('cadastros', 'linhas', 'q', 'perPage', 'allowedPerPage'));
     }
 
     /**

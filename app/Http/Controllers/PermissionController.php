@@ -21,12 +21,26 @@ class PermissionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-       $cadastros = Permission::OrderBy('name')->get();
-       $linhas = count($cadastros);
+        $q = $request->input('q');
+        // Tamanho de página via query, com limites seguros
+        $perPage = (int) $request->input('per_page', 15);
+        $allowedPerPage = [10, 15, 20, 30, 50, 100];
+        if (!in_array($perPage, $allowedPerPage, true)) {
+            $perPage = 15;
+        }
 
-       return view('Permissions.index',compact('cadastros', 'linhas'));
+        $query = Permission::query();
+        if (!empty($q)) {
+            $query->where('name', 'like', '%' . $q . '%');
+        }
+
+        // Paginação com preservação da query string
+        $cadastros = $query->orderBy('name')->paginate($perPage)->withQueryString();
+        $linhas = $cadastros->total();
+
+        return view('Permissions.index', compact('cadastros', 'linhas', 'q', 'perPage', 'allowedPerPage'));
     }
 
     /**

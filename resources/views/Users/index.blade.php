@@ -141,7 +141,7 @@
 
                                                     {{-- PROTEGIDO NA CONTROLLER PARA NÃO EXCLUIR CASO TIVER SENDO USADO EM ALGUMA MODEL. --}}
                                                         <form method="POST"
-                                                            action="{{ route('Usuarios.destroy', $cadastro->id) }}">
+                                                            action="{{ route('Usuarios.destroy', $cadastro->id) }}" class="js-confirm">
                                                             @csrf
                                                             <input type="hidden" name="_method" value="DELETE">
                                                             <button class="btn btn-danger btn-sm enabled" tabindex="-1"
@@ -203,34 +203,16 @@
             $('.select2').select2();
         });
 
-        $('form').submit(function(e) {
+        // Confirmação apenas para formulários marcados com .js-confirm (não interfere na busca/paginação)
+        $('form.js-confirm').on('submit', function(e) {
             e.preventDefault();
+            const form = this;
             $.confirm({
                 title: 'Confirmar!',
-                content: 'Confirma?',
+                content: 'Deseja realmente continuar?',
                 buttons: {
-                    confirmar: function() {
-                        // $.alert('Confirmar!');
-                        $.confirm({
-                            title: 'Confirmar!',
-                            content: 'Deseja realmente continuar?',
-                            buttons: {
-                                confirmar: function() {
-                                    // $.alert('Confirmar!');
-                                    e.currentTarget.submit()
-                                },
-                                cancelar: function() {
-                                    // $.alert('Cancelar!');
-                                },
-
-                            }
-                        });
-
-                    },
-                    cancelar: function() {
-                        // $.alert('Cancelar!');
-                    },
-
+                    confirmar: function() { form.submit(); },
+                    cancelar: function() {}
                 }
             });
         });

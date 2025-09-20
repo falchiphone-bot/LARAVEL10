@@ -39,12 +39,27 @@
 
                 @can('FUNCOES - LISTAR')
                     @can('FUNCOES - INCLUIR')
-                        <a href="{{ route('Funcoes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
-                            aria-disabled="true">Incluir função</a>
+                        <div class="d-flex justify-content-between align-items-center gap-2 p-2">
+                            <a href="{{ route('Funcoes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
+                                aria-disabled="true">Incluir função</a>
+                            <form method="GET" action="{{ route('Funcoes.index') }}" class="d-flex align-items-center gap-2">
+                                <input type="text" name="q" value="{{ $q ?? '' }}" class="form-control" placeholder="Buscar por nome..." />
+                                <select name="per_page" class="form-select" style="width:auto">
+                                    @php $perPage = $perPage ?? 15; @endphp
+                                    @foreach(($allowedPerPage ?? [10,15,20,30,50,100]) as $n)
+                                        <option value="{{ $n }}" @selected($perPage == $n)>{{ $n }} / pág.</option>
+                                    @endforeach
+                                </select>
+                                <button type="submit" class="btn btn-outline-secondary">Buscar</button>
+                                @if (!empty($q) || ($perPage ?? 15) != 15)
+                                    <a href="{{ route('Funcoes.index') }}" class="btn btn-link">Limpar</a>
+                                @endif
+                            </form>
+                        </div>
                     @endcan
 
                     <div class="card-body">
-                        <p>Total de funções: {{ $linhas }}</p>
+                        <p>Total de funções: {{ $linhas }} @if(!empty($q)) <small class="text-muted">(filtrado por "{{ $q }}")</small> @endif</p>
 
                         <table class="table">
 
@@ -101,6 +116,9 @@
                                 @endforeach
                             </tbody>
                         </table>
+                        <div class="d-flex justify-content-center">
+                            {{ $cadastros->links() }}
+                        </div>
 
                     </div>
                 </div>

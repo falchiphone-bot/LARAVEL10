@@ -22,10 +22,26 @@
                     Permissões para o sistema administrativo e contábil
                 </div>
 
-                <a href="{{ route('Permissoes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
-                    aria-disabled="true">Incluir permissão</a>
+                <div class="d-flex justify-content-between align-items-center gap-2 p-2">
+                    <a href="{{ route('Permissoes.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
+                        aria-disabled="true">Incluir permissão</a>
+
+                    <form method="GET" action="{{ route('Permissoes.index') }}" class="d-flex align-items-center gap-2">
+                        <input type="text" name="q" value="{{ $q ?? '' }}" class="form-control" placeholder="Buscar por nome..." />
+                        <select name="per_page" class="form-select" style="width:auto">
+                            @php $perPage = $perPage ?? 15; @endphp
+                            @foreach(($allowedPerPage ?? [10,15,20,30,50,100]) as $n)
+                                <option value="{{ $n }}" @selected($perPage == $n)>{{ $n }} / pág.</option>
+                            @endforeach
+                        </select>
+                        <button type="submit" class="btn btn-outline-secondary">Buscar</button>
+                        @if (!empty($q) || ($perPage ?? 15) != 15)
+                            <a href="{{ route('Permissoes.index') }}" class="btn btn-link">Limpar</a>
+                        @endif
+                    </form>
+                </div>
                 <div class="card-body">
-                    <p>Total de permissões: {{ $linhas }}</p>
+                    <p class="mb-3">Total de permissões: {{ $linhas }} @if(!empty($q)) <small class="text-muted">(filtrado por "{{ $q }}")</small> @endif</p>
                     <table class="table">
                         <tr>
                             <th>Nome</th>
@@ -80,6 +96,9 @@
                             </tr>
                         @endforeach
                     </table>
+                    <div class="d-flex justify-content-center">
+                        {{ $cadastros->links() }}
+                    </div>
                 @endsection
 
                 @push('scripts')

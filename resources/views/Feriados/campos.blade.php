@@ -6,7 +6,7 @@
             <div class="col-6">
                 <label for="data">Data</label>
                 <input class="form-control @error('data') is-invalid @else is-valid @enderror" name="data"
-                    type="Date" id="data" value="{{$feriados->data??null}}">
+                    type="date" id="data" value="{{ old('data', optional(data_get($feriados ?? null, 'data'))->format('Y-m-d')) }}">
                 @error('data')
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
@@ -15,7 +15,7 @@
             <div class="col-6">
                 <label for="nome">Nome</label>
                 <input class="form-control @error('nome') is-invalid @else is-valid @enderror" name="nome"
-                    type="text" id="nome" value="{{$feriados->nome??null}}">
+                    type="text" id="nome" value="{{ old('nome', data_get($feriados ?? null, 'nome')) }}">
                 @error('nome')
                     <div class="alert alert-danger">{{ $message }}</div>
                 @enderror

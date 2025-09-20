@@ -55,17 +55,42 @@ class EmpresaController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $cadastros = Empresa::join('Contabilidade.EmpresasUsuarios', 'EmpresasUsuarios.EmpresaID', '=', 'Empresas.ID')
-            ->where('EmpresasUsuarios.UsuarioID', Auth()->user()->id)
-            ->get();
+        // Filtros e paginação
+        $q = trim((string) $request->input('q'));
+        $allowedPerPage = [10, 15, 20, 30, 50, 100];
+        $perPage = (int) $request->input('per_page', 15);
+        if (! in_array($perPage, $allowedPerPage, true)) {
+            $perPage = 15;
+        }
 
-        $linhas = count($cadastros);
+        $query = Empresa::query()
+            ->join('Contabilidade.EmpresasUsuarios', 'EmpresasUsuarios.EmpresaID', '=', 'Empresas.ID')
+            ->where('EmpresasUsuarios.UsuarioID', Auth()->user()->id)
+            // selecionar colunas da tabela principal para manter os casts do modelo
+            ->select('Contabilidade.Empresas.*', 'EmpresasUsuarios.EmpresaID');
+
+        if ($q !== '') {
+            $query->where('Contabilidade.Empresas.Descricao', 'like', "%{$q}%");
+        }
+
+        $cadastros = $query
+            ->orderBy('Contabilidade.Empresas.Descricao')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        $linhas = $cadastros->total();
         session(['error' => '' ]);
         session(['success' => '']);
 
-        return view('Empresas.index', compact('cadastros', 'linhas'));
+        return view('Empresas.index', [
+            'cadastros' => $cadastros,
+            'linhas' => $linhas,
+            'q' => $q,
+            'perPage' => $perPage,
+            'allowedPerPage' => $allowedPerPage,
+        ]);
     }
 
     /**

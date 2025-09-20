@@ -22,8 +22,41 @@
                     @endif
 
                     <div class="card-header">
-                        <p>Total de empresas cadastradas no sistema de gerenciamento administrativo e contábil:
-                            {{ $linhas }}</p>
+                        <div class="d-flex flex-wrap align-items-end gap-2 justify-content-between">
+                            <div>
+                                <p class="mb-2">
+                                    Total de empresas cadastradas no sistema de gerenciamento administrativo e contábil:
+                                    {{ $linhas }}
+                                    @if(!empty($q))
+                                        <small class="text-muted">(filtrado por "{{ $q }}")</small>
+                                    @endif
+                                </p>
+                                @can('EMPRESAS - INCLUIR')
+                                    <a href="{{ route('Empresas.create') }}" class="btn btn-primary btn-sm" tabindex="-1" role="button"
+                                        aria-disabled="true">Incluir empresa e depois ir em Usuários e dar permissão para aparecer na lista de empresas</a>
+                                @endcan
+                            </div>
+                            <form method="GET" action="{{ route('Empresas.index') }}" class="row row-cols-lg-auto g-2 align-items-end">
+                                <div class="col-12">
+                                    <label for="q" class="form-label mb-0">Buscar por nome</label>
+                                    <input type="text" class="form-control" id="q" name="q" value="{{ $q ?? '' }}" placeholder="Ex.: Falchi"/>
+                                </div>
+                                <div class="col-12">
+                                    <label for="per_page" class="form-label mb-0">Por página</label>
+                                    <select class="form-select" id="per_page" name="per_page">
+                                        @foreach($allowedPerPage as $size)
+                                            <option value="{{ $size }}" @selected(($perPage ?? 15)==$size)>{{ $size }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-12 d-flex gap-2">
+                                    <button type="submit" class="btn btn-secondary">Buscar</button>
+                                    @if(!empty($q) || ($perPage ?? 15) != 15)
+                                        <a href="{{ route('Empresas.index') }}" class="btn btn-outline-secondary">Limpar</a>
+                                    @endif
+                                </div>
+                            </form>
+                        </div>
                     </div>
 
 
@@ -31,15 +64,12 @@
 
                         <thead>
 
-                            @can('EMPRESAS - INCLUIR')
-                            <a href="{{ route('Empresas.create') }}" class="btn btn-primary btn-lg enabled" tabindex="-1" role="button"
-                                aria-disabled="true">Incluir empresa e depois ir em Usuários e dar permissão para aparecer na lista de empresas</a>
-                        @endcan
+
 
                             <tr>
                                 @can('EMPRESAS - DESBLOQUEAR TODAS')
                                     <th>
-                                        <form method="POST" action="{{ route('Empresas.DesbloquearEmpresas') }}"
+                                        <form method="POST" action="{{ route('Empresas.DesbloquearEmpresas') }}" class="js-confirm"
                                             accept-charset="UTF-8">
                                             <input type="hidden" name="_method" value="PUT">
                                             @include('Empresas.desbloquearempresas')
@@ -49,7 +79,7 @@
 
                                 @can('EMPRESAS - BLOQUEAR TODAS')
                                     <th>
-                                        <form method="POST" action="{{ route('Empresas.BloquearEmpresas') }}"
+                                        <form method="POST" action="{{ route('Empresas.BloquearEmpresas') }}" class="js-confirm"
                                             accept-charset="UTF-8">
                                             <input type="hidden" name="_method" value="PUT">
                                             @include('Empresas.BloquearEmpresas')
@@ -81,7 +111,7 @@
                     </thead>
 
                     <tbody>
-                        @foreach ($cadastros as $cadastro)
+                        @forelse ($cadastros as $cadastro)
                             <tr>
                                 <td class="">
                                     <a href="{{ route('planocontas.autenticar', $cadastro->EmpresaID) }}">
@@ -130,9 +160,16 @@
 
                                 </td> --}}
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="8" class="text-center text-muted">Nenhuma empresa encontrada.</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
+                <div class="d-flex justify-content-end">
+                    {{ $cadastros->links() }}
+                </div>
         </div>
     </div>
 
@@ -151,34 +188,18 @@
             $('.select2').select2();
         });
 
-        $('form').submit(function(e) {
+        // Confirmação apenas para forms com a classe .js-confirm
+        $('form.js-confirm').on('submit', function(e) {
             e.preventDefault();
+            const form = this;
             $.confirm({
                 title: 'Confirmar!',
-                content: 'Confirma?',
+                content: 'Deseja realmente continuar?',
                 buttons: {
                     confirmar: function() {
-                        // $.alert('Confirmar!');
-                        $.confirm({
-                            title: 'Confirmar!',
-                            content: 'Deseja realmente continuar?',
-                            buttons: {
-                                confirmar: function() {
-                                    // $.alert('Confirmar!');
-                                    e.currentTarget.submit()
-                                },
-                                cancelar: function() {
-                                    // $.alert('Cancelar!');
-                                },
-
-                            }
-                        });
-
+                        form.submit();
                     },
-                    cancelar: function() {
-                        // $.alert('Cancelar!');
-                    },
-
+                    cancelar: function() {}
                 }
             });
         });
