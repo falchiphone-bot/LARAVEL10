@@ -12,3 +12,9 @@ services:
       #- 443:443
     volumes:
       - .:/var/www
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
