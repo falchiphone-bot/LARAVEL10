@@ -1,54 +1,84 @@
-<x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+@extends('layouts.bootstrap5')
 
-    <form method="POST" action="{{ route('login') }}">
-        @csrf
+@section('content')
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8 col-xl-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    <strong>{{ __('Log in') }}</strong>
+                </div>
+                <div class="card-body">
+                    @if (session('status'))
+                        <div class="alert alert-success mb-3">{{ session('status') }}</div>
+                    @endif
 
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <div class="fw-bold mb-1">{{ __('Whoops! Something went wrong.') }}</div>
+                            <ul class="mb-0 ps-3">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <form method="POST" action="{{ route('login') }}" novalidate>
+                        @csrf
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">{{ __('Email') }}</label>
+                            <input id="email" name="email" type="email" class="form-control form-control-lg @error('email') is-invalid @enderror" value="{{ old('email') }}" required autofocus autocomplete="username">
+                            @error('email')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-2">
+                            <label for="password" class="form-label">{{ __('Password') }}</label>
+                            <input id="password" name="password" type="password" class="form-control form-control-lg @error('password') is-invalid @enderror" required autocomplete="current-password">
+                            @error('password')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="1" id="remember_me" name="remember">
+                                <label class="form-check-label" for="remember_me">
+                                    {{ __('Remember me') }}
+                                </label>
+                            </div>
+                            @if (Route::has('password.request'))
+                                <a href="{{ route('password.request') }}" class="text-decoration-none">
+                                    {{ __('Forgot your password?') }}
+                                </a>
+                            @endif
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2 justify-content-end align-items-center">
+                            <button type="submit" class="btn btn-danger">
+                                {{ __('Log in') }}
+                            </button>
+
+                            @if (config('services.google.enabled'))
+                                <a href="{{ url('auth/google') }}" class="btn" style="background:#0d0080;color:#fff;">
+                                    <strong>Login com Google</strong>
+                                </a>
+                            @endif
+
+                            @if (config('services.ui.register_button_enabled'))
+                                <a href="{{ url('/register') }}" class="btn btn-success">
+                                    <strong>Registrar novo usuário</strong>
+                                </a>
+                            @endif
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800" name="remember">
-                <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Remember me') }}</span>
-            </label>
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
-                </a>
-            @endif
-
-            <x-primary-button class="ml-3">
-                {{ __('Log in') }}
-            </x-primary-button>
-
-            <a href="{{ url('auth/google') }}" style="margin-top: 0px !important;background: rgb(13, 0, 128);color: #ffffff;padding: 5px;border-radius:7px;" class="ml-2 btn-google">
-                <strong>Login com Google</strong>
-              </a>
-              <a href="{{ "/register"}}" style="margin-top: 0px !important;background: rgb(13, 200, 128);color: #ffffff;padding: 5px;border-radius:7px;" class="ml-2 btn-google">
-                <strong>Registrar novo usuário</strong>
-              </a>
-        </div>
-    </form>
-</x-guest-layout>
+    </div>
+</div>
+@endsection

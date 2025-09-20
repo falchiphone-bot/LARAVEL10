@@ -51,6 +51,9 @@ return [
         // 'redirect' => 'http://localhost:82/auth/google/callback',
         'redirect' => 'https://contabilidade.falchi.com.br/auth/google/callback',
 
+        // Flag para habilitar/desabilitar o login via Google na UI
+        'enabled' => (bool) env('GOOGLE_OAUTH_ENABLED', false),
+
         'cx' => env('GOOGLE_CSE_CX'),
         'key' => env('GOOGLE_CSE_KEY'),
     ],
@@ -59,5 +62,14 @@ return [
 
 
     'openai' => ['api_key' => env('OPENAI_API_KEY')],
+
+    // Flags de UI
+    'ui' => [
+        // Habilita o botão "Registrar novo usuário" na tela de login.
+        // Por padrão é o inverso do Google OAuth: se GOOGLE_OAUTH_ENABLED=true, este default será false; caso contrário, true.
+        'register_button_enabled' => env('REGISTER_BUTTON_ENABLED') !== null
+            ? filter_var(env('REGISTER_BUTTON_ENABLED'), FILTER_VALIDATE_BOOLEAN)
+            : (! (bool) env('GOOGLE_OAUTH_ENABLED', false)),
+    ],
 
 ];
