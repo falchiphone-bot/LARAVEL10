@@ -400,10 +400,11 @@ class EnvioController extends Controller
         return back()->with('success','Arquivo removido.');
     }
 
-    public function download(Envio $Envio, EnvioArquivo $arquivo)
+    public function download(Request $request, Envio $Envio, EnvioArquivo $arquivo)
     {
         $authId = auth()->id();
         $isAdmin = $this->isAdmin();
+        $isPublic = ((string)$request->headers->get('X-Envios-Public')) === '1';
         Log::info('Envios download chamado', [
             'envio_id'=>$Envio->id,
             'arquivo_id'=>$arquivo->id,
@@ -411,8 +412,9 @@ class EnvioController extends Controller
             'uploaded_by'=>$arquivo->uploaded_by,
             'auth_id'=>$authId,
             'is_admin'=>$isAdmin,
+            'is_public'=>$isPublic,
         ]);
-        if ((int)$arquivo->envio_id !== (int)$Envio->id) {
+            if ((int)$arquivo->envio_id !== (int)$Envio->id) {
             Log::warning('Envios download 404: arquivo não pertence ao envio', [
                 'envio_id'=>$Envio->id,
                 'arquivo_id'=>$arquivo->id,
@@ -424,7 +426,7 @@ class EnvioController extends Controller
         $isShared = EnvioArquivoShare::where('envio_arquivo_id', $arquivo->id)
             ->where('user_id', $authId)
             ->exists();
-        if (!$isAdmin && $arquivo->uploaded_by !== $authId && !$isShared) {
+            if (!$isPublic && !$isAdmin && (int)$arquivo->uploaded_by !== (int)$authId && !$isShared) {
             Log::warning('Envios download 404: sem permissão (não admin e não é o uploader)', [
                 'envio_id'=>$Envio->id,
                 'arquivo_id'=>$arquivo->id,
@@ -476,7 +478,7 @@ class EnvioController extends Controller
             'auth_id'=>$authId,
             'is_admin'=>$isAdmin,
         ]);
-        if ((int)$arquivo->envio_id !== (int)$Envio->id) {
+            if ((int)$arquivo->envio_id !== (int)$Envio->id) {
             Log::warning('Envios view 404: arquivo não pertence ao envio', [
                 'envio_id'=>$Envio->id,
                 'arquivo_id'=>$arquivo->id,
@@ -488,7 +490,7 @@ class EnvioController extends Controller
         $isShared = EnvioArquivoShare::where('envio_arquivo_id', $arquivo->id)
             ->where('user_id', $authId)
             ->exists();
-        if (!$isAdmin && $arquivo->uploaded_by !== $authId && !$isShared) {
+            if (!$isAdmin && (int)$arquivo->uploaded_by !== (int)$authId && !$isShared) {
             Log::warning('Envios view 404: sem permissão (não admin e não é o uploader)', [
                 'envio_id'=>$Envio->id,
                 'arquivo_id'=>$arquivo->id,
@@ -778,16 +780,23 @@ class EnvioController extends Controller
     // Gera link público temporário
     public function createPublicLink(Request $request, Envio $Envio, EnvioArquivo $arquivo)
     {
-        $request->validate([
-            'hours' => 'nullable|integer|min:1|max:168',
-            'allow_download' => 'nullable|boolean',
-        ]);
+        // $request->validate([
+        //     'hours' => 'nullable|integer|min:1|max:168',
+        //     'allow_download' => 'nullable|boolean',
+        // ]);
+
+
+
         $authId = (int)auth()->id();
         $isAdmin = $this->isAdmin();
         if ((int)$arquivo->envio_id !== (int)$Envio->id) { abort(404); }
         if (!$isAdmin && $Envio->user_id !== $authId && (int)$arquivo->uploaded_by !== $authId) { abort(403); }
 
-        $hours = (int)($request->input('hours', 24));
+    // Normaliza horas: aceita vazio e valores fora de faixa, aplicando default e clamp [1,168]
+    $hoursInput = $request->input('hours');
+    $hours = is_numeric($hoursInput) ? (int)$hoursInput : 24;
+    if ($hours < 1) { $hours = 24; }
+    if ($hours > 168) { $hours = 168; }
         $allow = (bool)$request->boolean('allow_download', true);
         $token = bin2hex(random_bytes(16));
 
@@ -802,11 +811,28 @@ class EnvioController extends Controller
 
         $publicViewUrl = route('Envios.public.view', [$rec->token]);
         $publicDownloadUrl = $allow ? route('Envios.public.download', [$rec->token]) : null;
-        return back()->with('success', 'Link público gerado.')->with('public_link', [
-            'view' => $publicViewUrl,
-            'download' => $publicDownloadUrl,
-            'expires_at' => $expiresAt->format('d/m/Y H:i'),
-        ]);
+
+        // Monta payload para alerta pós-redirect com links prontos para copiar
+        $links = [ [ 'label' => 'Visualizar', 'url' => $publicViewUrl ] ];
+        if ($publicDownloadUrl) { $links[] = [ 'label' => 'Download', 'url' => $publicDownloadUrl ]; }
+
+
+
+
+        return redirect()->route('Envios.edit', $Envio)
+            ->with('success', 'Link público gerado.')
+            ->with('public_links_created', [
+                'envio_id' => $Envio->id,
+                'arquivo_id' => $arquivo->id,
+                'expires_at' => $expiresAt->format('d/m/Y H:i'),
+                'links' => $links,
+            ])
+            // Compat: também flasheia no formato antigo 'public_link'
+            ->with('public_link', [
+                'view' => $publicViewUrl,
+                'download' => $publicDownloadUrl,
+                'expires_at' => $expiresAt->format('d/m/Y H:i'),
+            ]);
     }
 
     // Revoga um link público
@@ -817,8 +843,8 @@ class EnvioController extends Controller
         if ((int)$arquivo->envio_id !== (int)$Envio->id) { abort(404); }
         if (!$isAdmin && $Envio->user_id !== $authId && (int)$arquivo->uploaded_by !== $authId) { abort(403); }
         if ((int)$token->envio_arquivo_id !== (int)$arquivo->id) { abort(404); }
-        $token->delete();
-        return back()->with('success', 'Link público revogado.');
+    $token->delete();
+    return redirect()->route('Envios.edit', $Envio)->with('success', 'Link público revogado.');
     }
 
     // Endpoints públicos (sem auth)
@@ -845,6 +871,6 @@ class EnvioController extends Controller
         $arquivo = EnvioArquivo::findOrFail($tok->envio_arquivo_id);
         $envio = Envio::findOrFail($arquivo->envio_id);
         $request->headers->set('X-Envios-Public', '1');
-        return $this->download($envio, $arquivo);
+    return $this->download($request, $envio, $arquivo);
     }
 }

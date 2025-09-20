@@ -3,6 +3,31 @@
 <div class="py-4 bg-light"><div class="container">
   <div class="card"><div class="card-body">
     <h5 class="mb-3">Editar Envio</h5>
+    @if (session()->has('public_links_created') || session()->has('public_link'))
+      @php
+        $pl = session('public_links_created');
+        if (!$pl && session('public_link')) {
+          $one = session('public_link');
+          $lnks = [];
+          if (!empty($one['view'] ?? null)) { $lnks[] = ['label' => 'Visualizar', 'url' => $one['view']]; }
+          if (!empty($one['download'] ?? null)) { $lnks[] = ['label' => 'Download', 'url' => $one['download']]; }
+          $pl = [ 'expires_at' => $one['expires_at'] ?? '—', 'links' => $lnks ];
+        }
+      @endphp
+      <div class="alert alert-success d-print-none">
+        <div class="mb-1"><strong>Links públicos gerados</strong> (expira em: {{ $pl['expires_at'] ?? '—' }})</div>
+        <div class="d-flex flex-column gap-1">
+          @foreach(($pl['links'] ?? []) as $lnk)
+            <div class="input-group input-group-sm">
+              <span class="input-group-text">{{ $lnk['label'] ?? 'Link' }}</span>
+              <input type="text" class="form-control" value="{{ $lnk['url'] ?? '' }}" readonly>
+              <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText('{{ $lnk['url'] ?? '' }}').then(()=>{this.textContent='Copiado'; setTimeout(()=>this.textContent='Copiar',1500);})">Copiar</button>
+              <a class="btn btn-outline-primary" target="_blank" href="{{ $lnk['url'] ?? '' }}">Abrir</a>
+            </div>
+          @endforeach
+        </div>
+      </div>
+    @endif
     <form method="POST" action="{{ route('Envios.update', $envio) }}" enctype="multipart/form-data">
       @method('PUT')
       @include('Envios._form')
