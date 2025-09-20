@@ -22,6 +22,39 @@ use App\Http\Controllers\SafColaboradorController;
 use App\Http\Controllers\PixController;
 use App\Http\Controllers\FormaPagamentoController;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+
+// Healthcheck simples
+Route::get('/healthz', function (\Illuminate\Http\Request $request) {
+    $payload = [
+        'status' => 'ok',
+        'app' => config('app.name'),
+        'time' => now()->toIso8601String(),
+    ];
+
+    if ($request->boolean('deep')) {
+        // DB check
+        try {
+            DB::select('select 1');
+            $payload['db'] = 'ok';
+        } catch (\Throwable $e) {
+            $payload['db'] = 'error';
+            $payload['db_error'] = $e->getMessage();
+        }
+
+        // Cache check
+        try {
+            $key = 'healthz:ping';
+            Cache::put($key, 'pong', 5);
+            $payload['cache'] = Cache::get($key) === 'pong' ? 'ok' : 'error';
+        } catch (\Throwable $e) {
+            $payload['cache'] = 'error';
+            $payload['cache_error'] = $e->getMessage();
+        }
+    }
+
+    return response()->json($payload);
+});
 /*
 |--------------------------------------------------------------------------
 | Web Routes
