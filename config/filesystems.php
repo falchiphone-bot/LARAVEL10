@@ -65,16 +65,18 @@ return [
 
         'ftp' => [
             'driver' => 'ftp',
+            // Não deixe credenciais sensíveis aqui. Configure no arquivo .env.
+            // Exemplo de variáveis: FTP_HOST, FTP_USERNAME, FTP_PASSWORD, FTP_PORT, FTP_ROOT
             'host' => env('FTP_HOST'),
             'username' => env('FTP_USERNAME'),
             'password' => env('FTP_PASSWORD'),
-
-            // Optional FTP Settings...
-            // 'port' => env('FTP_PORT', 21),
-            // 'root' => env('FTP_ROOT'),
-            // 'passive' => true,
-            // 'ssl' => true,
-            // 'timeout' => 30,
+            'port' => env('FTP_PORT') ? (int) env('FTP_PORT') : 21,
+            // por padrão deixamos root vazio; se quiser um prefixo, defina FTP_ROOT no .env
+            'root' => env('FTP_ROOT', ''),
+            'passive' => filter_var(env('FTP_PASSIVE', true), FILTER_VALIDATE_BOOLEAN),
+            'ssl' => filter_var(env('FTP_SSL', false), FILTER_VALIDATE_BOOLEAN),
+            'timeout' => (int) env('FTP_TIMEOUT', 30),
+            'throw' => false,
         ],
 
         'google' => [

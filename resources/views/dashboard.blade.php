@@ -260,10 +260,15 @@
                                             @can('FORMA_PAGAMENTOS - LISTAR')<a class="btn btn-outline-success btn-sm" href="{{ route('FormaPagamento.index') }}">Formas de Pagamento</a>@endcan
                                             @can('ENVIOS - LISTAR')<a class="btn btn-outline-success btn-sm" href="{{ route('Envios.index') }}">Envios de arquivos</a>@endcan
                                             @can('backup.executar')
-                                                <button id="backup-btn" class="btn btn-outline-danger btn-sm">
+                                                <button id="backup-btn" class="btn btn-outline-danger btn-sm mb-1">
                                                     Backup Storage → HD Externo
                                                 </button>
                                                 <span id="backup-status" style="margin-left:10px;"></span>
+                                                <br>
+                                                <button id="backup-ftp-btn" class="btn btn-outline-primary btn-sm mb-1">
+                                                    Backup Storage → FTP
+                                                </button>
+                                                <span id="backup-ftp-status" style="margin-left:10px;"></span>
                                             @endcan
                                         </div>
                                     </div>
@@ -326,9 +331,11 @@
                         </script>
                         @endpush
 
+
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Backup HD externo
     const btn = document.getElementById('backup-btn');
     const status = document.getElementById('backup-status');
     if (btn) {
@@ -359,6 +366,40 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+
+    // Backup FTP
+    const btnFtp = document.getElementById('backup-ftp-btn');
+    const statusFtp = document.getElementById('backup-ftp-status');
+    if (btnFtp) {
+        btnFtp.addEventListener('click', function(e) {
+            if (!confirm('Deseja realmente fazer o backup do Storage para o servidor FTP?')) return;
+            btnFtp.disabled = true;
+            statusFtp.innerHTML = 'Processando...';
+            fetch("{{ url('/backup/storage-to-ftp') }}", {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+            })
+            .then(resp => resp.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    // se o backend fornecer uma mensagem mais rica (ex: enfileirado), exiba-a
+                    statusFtp.innerHTML = data.mensagem ? data.mensagem : 'Backup FTP realizado com sucesso! ('+data.total+' arquivos)';
+                } else {
+                    statusFtp.innerHTML = 'Erro: ' + (data.mensagem || 'Falha desconhecida');
+                }
+            })
+            .catch(() => {
+                statusFtp.innerHTML = 'Erro ao processar backup FTP.';
+            })
+            .finally(() => {
+                btnFtp.disabled = false;
+            });
+        });
+    }
 });
 </script>
 @endpush
+                        {{-- Removido bloco duplicado dos botões de backup --}}
