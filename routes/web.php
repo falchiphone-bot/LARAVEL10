@@ -1,9 +1,5 @@
-use App\Http\Controllers\BackupController;
-
-// Rota para backup do storage para o HD externo
-Route::get('/backup/storage-to-external', [BackupController::class, 'backupAll'])->middleware('can:backup.executar');
 <?php
-
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\ArquivosPublicos;
 use App\Http\Controllers\Irmaos_Emaus_FichaControleArquivoController;
 use App\Http\Controllers\ProfileController;
@@ -27,6 +23,9 @@ use App\Http\Controllers\PixController;
 use App\Http\Controllers\FormaPagamentoController;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+
+// Rota para backup do storage para o HD externo
+Route::get('/backup/storage-to-external', [BackupController::class, 'backupAll'])->middleware('can:backup.executar');
 
 // Healthcheck simples
 Route::get('/healthz', function (\Illuminate\Http\Request $request) {

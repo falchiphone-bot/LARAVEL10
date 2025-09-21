@@ -37,7 +37,6 @@ return [
             'root' => storage_path('app'),
             'throw' => false,
         ],
-
         'external' => [
             'driver' => 'local',
             'root' => '/mnt/external',
