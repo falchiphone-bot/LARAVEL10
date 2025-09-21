@@ -133,24 +133,43 @@ class BackupToFtp extends Command
                         $identical = false;
                         $canCompare = false;
                         if ($remoteSize !== -1 && $remoteSize == $localSize) {
-                            // tentar baixar remotamente para comparar MD5
-                            $tmpRemote = tempnam(sys_get_temp_dir(), 'bkftp_r');
-                            $ftpGetOk = @ftp_get($conn, $tmpRemote, $remoteFile, FTP_BINARY);
-                            if ($debugFile) {
-                                $this->info("[debug] ftp_size($remoteFile) = $remoteSize");
-                                $this->info('[debug] ftp_get returned: ' . ($ftpGetOk ? 'true' : 'false'));
-                                $this->info('[debug] last_error: ' . json_encode(error_get_last()));
+                            // tentar obter hash MD5 remoto via comando FTP
+                            $remoteMd5 = null;
+                            $md5Resp = @ftp_raw($conn, "XMD5 $remoteFile");
+                            if (!$md5Resp || !is_array($md5Resp) || stripos($md5Resp[0], '502') !== false) {
+                                // Tenta comando alternativo MD5
+                                $md5Resp = @ftp_raw($conn, "MD5 $remoteFile");
                             }
-                            if ($ftpGetOk) {
-                                $canCompare = true;
-                                if (md5_file($tmpRemote) === md5_file($tmp)) {
-                                    $identical = true;
+                            if ($md5Resp && is_array($md5Resp) && preg_match('/([a-fA-F0-9]{32})/', $md5Resp[0], $matches)) {
+                                $remoteMd5 = $matches[1];
+                                if ($debugFile) {
+                                    $this->info("[debug] MD5 remoto de $remoteFile: $remoteMd5");
                                 }
-                            } else {
-                                $this->warn("Não foi possível baixar arquivo remoto para comparar: $remoteFile");
-                                Log::warning('Não foi possível baixar arquivo remoto para comparar: ' . $remoteFile);
                             }
-                            @unlink($tmpRemote);
+                            $localMd5 = md5_file($tmp);
+                            if ($remoteMd5 && $localMd5 === $remoteMd5) {
+                                $identical = true;
+                                $canCompare = true;
+                            } else if ($remoteMd5 === null) {
+                                // Se não conseguiu obter MD5 remoto, faz download para comparar
+                                $tmpRemote = tempnam(sys_get_temp_dir(), 'bkftp_r');
+                                $ftpGetOk = @ftp_get($conn, $tmpRemote, $remoteFile, FTP_BINARY);
+                                if ($debugFile) {
+                                    $this->info("[debug] ftp_size($remoteFile) = $remoteSize");
+                                    $this->info('[debug] ftp_get returned: ' . ($ftpGetOk ? 'true' : 'false'));
+                                    $this->info('[debug] last_error: ' . json_encode(error_get_last()));
+                                }
+                                if ($ftpGetOk) {
+                                    $canCompare = true;
+                                    if (md5_file($tmpRemote) === $localMd5) {
+                                        $identical = true;
+                                    }
+                                } else {
+                                    $this->warn("Não foi possível baixar arquivo remoto para comparar: $remoteFile");
+                                    Log::warning('Não foi possível baixar arquivo remoto para comparar: ' . $remoteFile);
+                                }
+                                @unlink($tmpRemote);
+                            }
                         }
 
                         if ($identical) {
