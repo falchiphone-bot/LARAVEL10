@@ -97,8 +97,14 @@ class BackupToFtp extends Command
                             foreach ($parts as $part) {
                                 $path = ltrim($path . '/' . $part, '/');
                                 if (!isset($ftpDirsCache[$path])) {
-                                    if (!@ftp_chdir($conn, $path)) {
-                                        @ftp_mkdir($conn, $path);
+                                    $chdirOk = @ftp_chdir($conn, $path);
+                                    if (!$chdirOk) {
+                                        $mkdirOk = @ftp_mkdir($conn, $path);
+                                        Log::info('[FTP] mkdir ' . $path . ' => ' . ($mkdirOk ? 'OK' : 'FALHOU'));
+                                        $chdirOk2 = @ftp_chdir($conn, $path);
+                                        Log::info('[FTP] chdir após mkdir ' . $path . ' => ' . ($chdirOk2 ? 'OK' : 'FALHOU'));
+                                    } else {
+                                        Log::info('[FTP] chdir ' . $path . ' => OK');
                                     }
                                     // Marcar como já processado (exista ou não)
                                     $ftpDirsCache[$path] = true;
