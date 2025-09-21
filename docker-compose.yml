@@ -12,6 +12,7 @@ services:
       #- 443:443
     volumes:
       - .:/var/www
+      - /Volumes/SeagateDocker-21092025:/mnt/external:delegated
     networks:
       - proxy
 

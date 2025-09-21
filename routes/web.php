@@ -1,3 +1,7 @@
+use App\Http\Controllers\BackupController;
+
+// Rota para backup do storage para o HD externo
+Route::get('/backup/storage-to-external', [BackupController::class, 'backupAll'])->middleware('can:backup.executar');
 <?php
 
 use App\Http\Controllers\ArquivosPublicos;

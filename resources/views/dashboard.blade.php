@@ -259,6 +259,12 @@
                                             @can('PIX - LISTAR')<a class="btn btn-outline-success btn-sm" href="{{ route('Pix.index') }}">PIX</a>@endcan
                                             @can('FORMA_PAGAMENTOS - LISTAR')<a class="btn btn-outline-success btn-sm" href="{{ route('FormaPagamento.index') }}">Formas de Pagamento</a>@endcan
                                             @can('ENVIOS - LISTAR')<a class="btn btn-outline-success btn-sm" href="{{ route('Envios.index') }}">Envios de arquivos</a>@endcan
+                                            @can('backup.executar')
+                                                <button id="backup-btn" class="btn btn-outline-danger btn-sm">
+                                                    Backup Storage → HD Externo
+                                                </button>
+                                                <span id="backup-status" style="margin-left:10px;"></span>
+                                            @endcan
                                         </div>
                                     </div>
                                 </div>
@@ -319,3 +325,40 @@
                             });
                         </script>
                         @endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('backup-btn');
+    const status = document.getElementById('backup-status');
+    if (btn) {
+        btn.addEventListener('click', function(e) {
+            if (!confirm('Deseja realmente fazer o backup do Storage para o HD externo?')) return;
+            btn.disabled = true;
+            status.innerHTML = 'Processando...';
+            fetch("{{ url('/backup/storage-to-external') }}", {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+            })
+            .then(resp => resp.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    status.innerHTML = 'Backup realizado com sucesso! ('+data.total+' arquivos)';
+                } else {
+                    status.innerHTML = 'Erro: ' + (data.mensagem || 'Falha desconhecida');
+                }
+            })
+            .catch(() => {
+                status.innerHTML = 'Erro ao processar backup.';
+            })
+            .finally(() => {
+                btn.disabled = false;
+            });
+        });
+    }
+});
+</script>
+@endpush
