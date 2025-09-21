@@ -66,28 +66,22 @@ class BackupController extends Controller
      */
     public function backupAllToFtp()
     {
-        Log::info('BackupController@backupAllToFtp INICIADO (dispatch background)');
+        Log::info('BackupController@backupAllToFtp INICIADO (dispatch job)');
         try {
-            // montar comando para rodar em background. Usamos PHP_BINARY para garantir o PHP correto.
-            $php = defined('PHP_BINARY') ? PHP_BINARY : 'php';
-            $artisan = base_path('artisan');
-            // usar nohup/ampersand para garantir detach
-            $cmd = "cd " . base_path() . " && nohup " . escapeshellcmd($php) . " " . escapeshellarg($artisan) . " backup:ftp --raw-ftp --delay-ms=200 > /dev/null 2>&1 & echo $!";
-            $output = [];
-            @exec($cmd, $output);
-            $pid = $output[0] ?? null;
-            Log::info('Backup enfileirado em background. PID: ' . ($pid ?: 'n/a'));
+            // despacha job para a fila padrão
+            \App\Jobs\BackupToFtpJob::dispatch();
+            Log::info('BackupToFtpJob dispatch realizado com sucesso');
 
             return response()->json([
                 'status' => 'ok',
-                'mensagem' => 'Backup enfileirado e iniciado em background' . ($pid ? ' (PID: ' . $pid . ')' : ''),
+                'mensagem' => 'Backup enfileirado. Verifique o worker (php artisan queue:work) para acompanhar o progresso.',
                 'total' => 0,
             ]);
         } catch (\Exception $e) {
             Log::error('Backup FTP dispatch error: ' . $e->getMessage() . ' | Linha: ' . $e->getLine() . ' | Arquivo: ' . $e->getFile());
             return response()->json([
                 'status' => 'erro',
-                'mensagem' => 'Falha ao iniciar backup em background: ' . $e->getMessage(),
+                'mensagem' => 'Falha ao enfileirar backup: ' . $e->getMessage(),
             ], 500);
         }
     }
