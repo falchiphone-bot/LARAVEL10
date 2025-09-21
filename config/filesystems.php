@@ -72,7 +72,7 @@ return [
             'password' => env('FTP_PASSWORD'),
             'port' => env('FTP_PORT') ? (int) env('FTP_PORT') : 21,
             // por padrão deixamos root vazio; se quiser um prefixo, defina FTP_ROOT no .env
-            'root' => env('FTP_ROOT', ''),
+            'root' => env('FTP_ROOT', 'BACKUP_APOS_21092025'),
             'passive' => filter_var(env('FTP_PASSIVE', true), FILTER_VALIDATE_BOOLEAN),
             'ssl' => filter_var(env('FTP_SSL', false), FILTER_VALIDATE_BOOLEAN),
             'timeout' => (int) env('FTP_TIMEOUT', 30),

@@ -14,25 +14,29 @@ class FtpHelper
     public static function ensureFtpDirectories($ftpConn, $remotePath)
     {
         $dirs = explode('/', trim($remotePath, '/'));
-        $path = '';
+        // Sempre começa da raiz
+        @ftp_chdir($ftpConn, '/');
         foreach ($dirs as $dir) {
-            $path .= '/' . $dir;
-            $cwdResult = @ftp_chdir($ftpConn, $path);
-            Log::info("ftp_chdir('$path') => ", ['result' => $cwdResult]);
-            if ($cwdResult) {
-                Log::info("Diretório FTP já existe: $path");
-                continue;
-            }
-            $mkdirResult = @ftp_mkdir($ftpConn, $path);
-            Log::info("ftp_mkdir('$path') => ", ['result' => $mkdirResult]);
-            if ($mkdirResult) {
-                Log::info("Diretório FTP criado: $path");
-            } else {
-                Log::error("Falha ao criar diretório FTP: $path");
-                throw new \Exception("Falha ao criar diretório FTP: $path");
+            if ($dir === '' || $dir === '.') continue;
+            $cwdResult = @ftp_chdir($ftpConn, $dir);
+            Log::info("ftp_chdir('$dir') => ", ['result' => $cwdResult]);
+            if (!$cwdResult) {
+                $mkdirResult = @ftp_mkdir($ftpConn, $dir);
+                Log::info("ftp_mkdir('$dir') => ", ['result' => $mkdirResult]);
+                if (!$mkdirResult) {
+                    Log::error("Falha ao criar diretório FTP: $dir");
+                    throw new \Exception("Falha ao criar diretório FTP: $dir");
+                }
+                // Após criar, navega para ele
+                $cwdResult2 = @ftp_chdir($ftpConn, $dir);
+                Log::info("ftp_chdir('$dir') após mkdir => ", ['result' => $cwdResult2]);
+                if (!$cwdResult2) {
+                    Log::error("Falha ao navegar para diretório recém-criado: $dir");
+                    throw new \Exception("Falha ao navegar para diretório recém-criado: $dir");
+                }
             }
         }
-        // Volta para raiz
+        // Volta para raiz ao final
         $chdirRoot = ftp_chdir($ftpConn, '/');
         Log::info("ftp_chdir('/') => ", ['result' => $chdirRoot]);
     }
@@ -66,18 +70,57 @@ class FtpHelper
             Log::info('Conexão FTP aberta via config Laravel.');
         }
 
-        $remoteDir = dirname($remoteFile);
+        // Padroniza caminho remoto para sempre começar com '/'
+        $remoteFileAbs = '/' . ltrim($remoteFile, '/');
+        $remoteDir = dirname($remoteFileAbs);
         self::ensureFtpDirectories($ftpConn, $remoteDir);
 
-        Log::info("Iniciando upload FTP: $localFile => $remoteFile");
-        $putResult = ftp_put($ftpConn, $remoteFile, $localFile, FTP_BINARY);
-        Log::info("ftp_put('$remoteFile', '$localFile', FTP_BINARY) => ", ['result' => $putResult]);
-        if (!$putResult) {
-            Log::error("Falha ao enviar arquivo para FTP: $remoteFile");
-            if ($closeAfter) ftp_close($ftpConn);
-            throw new \Exception("Falha ao enviar arquivo para FTP: $remoteFile");
+        // Verifica se o arquivo já existe no FTP e se é idêntico (hash MD5 se possível, senão tamanho)
+        $ftpSize = @ftp_size($ftpConn, $remoteFileAbs);
+        $localSize = @filesize($localFile);
+        $localMd5 = @md5_file($localFile);
+        $remoteMd5 = null;
+        $isIdentical = false;
+        Log::info("ftp_size('$remoteFileAbs') => ", ['size' => $ftpSize, 'local_size' => $localSize]);
+        if ($ftpSize > -1 && $ftpSize === $localSize) {
+            // Tenta obter hash MD5 remoto via comando XMD5/MD5
+            $md5Resp = @ftp_raw($ftpConn, "XMD5 $remoteFileAbs");
+            if (!$md5Resp || !is_array($md5Resp) || stripos($md5Resp[0], '502') !== false) {
+                // Tenta comando alternativo MD5
+                $md5Resp = @ftp_raw($ftpConn, "MD5 $remoteFileAbs");
+            }
+            if ($md5Resp && is_array($md5Resp) && preg_match('/([a-fA-F0-9]{32})/', $md5Resp[0], $matches)) {
+                $remoteMd5 = $matches[1];
+                Log::info("MD5 remoto de $remoteFileAbs: $remoteMd5");
+                if ($remoteMd5 === $localMd5) {
+                    $isIdentical = true;
+                }
+            } else {
+                Log::info("Não foi possível obter MD5 remoto, comparando apenas tamanho.");
+                $isIdentical = true; // fallback: mesmo tamanho
+            }
         }
-        Log::info("Upload FTP realizado com sucesso: $remoteFile");
+        if ($isIdentical) {
+            Log::info("Arquivo já existe e é idêntico (hash MD5 ou tamanho), não será reenviado: $remoteFileAbs", [
+                'local_md5' => $localMd5,
+                'remote_md5' => $remoteMd5
+            ]);
+            if ($closeAfter) {
+                $closeResult = ftp_close($ftpConn);
+                Log::info('Conexão FTP fechada.', ['result' => $closeResult]);
+            }
+            return;
+        }
+
+        Log::info("Iniciando upload FTP: $localFile => $remoteFileAbs");
+        $putResult = ftp_put($ftpConn, $remoteFileAbs, $localFile, FTP_BINARY);
+        Log::info("ftp_put('$remoteFileAbs', '$localFile', FTP_BINARY) => ", ['result' => $putResult]);
+        if (!$putResult) {
+            Log::error("Falha ao enviar arquivo para FTP: $remoteFileAbs");
+            if ($closeAfter) ftp_close($ftpConn);
+            throw new \Exception("Falha ao enviar arquivo para FTP: $remoteFileAbs");
+        }
+        Log::info("Upload FTP realizado com sucesso: $remoteFileAbs");
 
         if ($closeAfter) {
             $closeResult = ftp_close($ftpConn);
