@@ -22,6 +22,7 @@ class Kernel extends ConsoleKernel
     protected function commands(): void
     {
         $this->load(__DIR__.'/Commands');
+        // Comando de backup FTP adicionado: app/Console/Commands/BackupToFtp.php
 
         require base_path('routes/console.php');
     }

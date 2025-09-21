@@ -32,13 +32,15 @@ class BackupToFtpJob implements ShouldQueue
     public function handle()
     {
         try {
-            Log::info('BackupToFtpJob: iniciando backup via Artisan::call');
-            // chamamos o comando internamente (sem spawn de processo)
+            Log::info('BackupToFtpJob: INICIADO');
+            Log::info('BackupToFtpJob: Chamando comando backup:ftp --raw-ftp --delay-ms=200');
             $returnVar = Artisan::call('backup:ftp', ['--raw-ftp' => true, '--delay-ms' => 200]);
+            Log::info('BackupToFtpJob: Comando Artisan::call retornou código: ' . $returnVar);
             $output = Artisan::output();
-            Log::info('BackupToFtpJob finalizado. return: ' . $returnVar . ' | saída: ' . $output);
+            Log::info('BackupToFtpJob: Saída do comando backup:ftp:\n' . $output);
+            Log::info('BackupToFtpJob: FINALIZADO');
         } catch (\Exception $e) {
-            Log::error('BackupToFtpJob erro: ' . $e->getMessage());
+            Log::error('BackupToFtpJob: ERRO - ' . $e->getMessage());
             throw $e;
         }
     }

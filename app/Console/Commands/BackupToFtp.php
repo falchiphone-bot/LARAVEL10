@@ -88,15 +88,20 @@ class BackupToFtp extends Command
                     $this->line("Processando: $file");
                     try {
                         $content = Storage::disk('local')->get($file);
-                        // criar diretórios recursivamente no FTP se necessário
+                        // criar diretórios recursivamente no FTP se necessário, mas só uma vez por diretório
+                        static $ftpDirsCache = [];
                         $dirname = dirname($file);
                         if ($dirname !== '.' && $dirname !== '') {
                             $parts = explode('/', $dirname);
                             $path = '';
                             foreach ($parts as $part) {
                                 $path = ltrim($path . '/' . $part, '/');
-                                if (!@ftp_chdir($conn, $path)) {
-                                    @ftp_mkdir($conn, $path);
+                                if (!isset($ftpDirsCache[$path])) {
+                                    if (!@ftp_chdir($conn, $path)) {
+                                        @ftp_mkdir($conn, $path);
+                                    }
+                                    // Marcar como já processado (exista ou não)
+                                    $ftpDirsCache[$path] = true;
                                 }
                             }
                         }
@@ -116,6 +121,7 @@ class BackupToFtp extends Command
                         $remoteSize = @ftp_size($conn, $file);
                         $localSize = filesize($tmp);
                         $identical = false;
+                        $canCompare = false;
                         if ($remoteSize !== -1 && $remoteSize == $localSize) {
                             // tentar baixar remotamente para comparar MD5
                             $tmpRemote = tempnam(sys_get_temp_dir(), 'bkftp_r');
@@ -126,19 +132,30 @@ class BackupToFtp extends Command
                                 $this->info('[debug] last_error: ' . json_encode(error_get_last()));
                             }
                             if ($ftpGetOk) {
+                                $canCompare = true;
                                 if (md5_file($tmpRemote) === md5_file($tmp)) {
                                     $identical = true;
                                 }
+                            } else {
+                                $this->warn("Não foi possível baixar arquivo remoto para comparar: $file");
+                                Log::warning('Não foi possível baixar arquivo remoto para comparar: ' . $file);
                             }
                             @unlink($tmpRemote);
                         }
 
                         if ($identical) {
                             $this->comment("Ignorado (idêntico): $file");
+                            Log::info('Ignorado (idêntico): ' . $file);
                             $skipped++;
                             @unlink($tmp);
                             if ($delayMs > 0) usleep($delayMs * 1000);
                             continue;
+                        }
+
+                        // Se não foi possível comparar, logar
+                        if ($remoteSize !== -1 && !$canCompare) {
+                            $this->warn("Não foi possível comparar conteúdo de $file, tentando enviar mesmo assim.");
+                            Log::warning('Não foi possível comparar conteúdo de ' . $file . ', tentando enviar mesmo assim.');
                         }
 
                         // enviar via ftp_put
@@ -154,16 +171,18 @@ class BackupToFtp extends Command
                         }
 
                         $sent = @ftp_put($conn, $file, $tmp, FTP_BINARY);
-                        if ($debugFile && !$sent) {
-                            $this->error('[debug] ftp_put falhou para ' . $file . '. error_get_last: ' . json_encode(error_get_last()));
+                        if (!$sent) {
+                            $err = error_get_last();
+                            $errMsg = $err ? (isset($err['message']) ? $err['message'] : json_encode($err)) : 'erro desconhecido';
+                            $ftpRaw = function_exists('ftp_raw') ? @ftp_raw($conn, 'NOOP') : null;
+                            $ftpRawMsg = $ftpRaw ? implode(' | ', $ftpRaw) : 'N/A';
+                            $this->error('[debug] ftp_put falhou para ' . $file . '. error_get_last: ' . $errMsg . ' | ftp_raw: ' . $ftpRawMsg);
+                            Log::error('Falha raw ftp: ' . $file . ' | Motivo: ' . $errMsg . ' | ftp_raw: ' . $ftpRawMsg);
                         }
                         @unlink($tmp);
                         if ($sent) {
                             $this->info("Enviado (raw): $file");
                             $copied++;
-                        } else {
-                            $this->error("Falha ao enviar (raw): $file");
-                            Log::error('Falha raw ftp: ' . $file);
                         }
                         if ($delayMs > 0) usleep($delayMs * 1000);
                     } catch (\Exception $e) {
@@ -173,7 +192,9 @@ class BackupToFtp extends Command
                 }
 
                 ftp_close($conn);
-                $this->info("Finalizado (raw). Copiados: $copied | Ignorados: $skipped");
+                $totalAnalisado = count($files);
+                $this->info("Finalizado (raw). Copiados: $copied | Ignorados: $skipped | Total analisado: $totalAnalisado");
+                Log::info("BackupToFtpJob: Finalizado (raw). Copiados: $copied | Ignorados: $skipped | Total analisado: $totalAnalisado");
                 return 0;
             }
             foreach ($files as $file) {

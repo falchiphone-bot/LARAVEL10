@@ -27,6 +27,9 @@ use Illuminate\Support\Facades\DB;
 // Rota para backup do storage para o HD externo
 Route::get('/backup/storage-to-external', [BackupController::class, 'backupAll'])->middleware('can:backup.executar');
 
+// Rota para backup do storage local para o FTP
+Route::get('/backup/storage-to-ftp', [BackupController::class, 'backupAllToFtp'])->middleware('can:backup.executar');
+
 // Healthcheck simples
 Route::get('/healthz', function (\Illuminate\Http\Request $request) {
     $payload = [
