@@ -8,6 +8,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Artisan;
 
 class BackupToFtpJob implements ShouldQueue
 {
@@ -31,15 +32,11 @@ class BackupToFtpJob implements ShouldQueue
     public function handle()
     {
         try {
-            Log::info('BackupToFtpJob: iniciando backup via comando artisan');
-            $php = defined('PHP_BINARY') ? PHP_BINARY : 'php';
-            $artisan = base_path('artisan');
-            $cmd = escapeshellcmd($php) . ' ' . escapeshellarg($artisan) . ' backup:ftp --raw-ftp --delay-ms=200';
-            $output = [];
-            $returnVar = 0;
-            // executar comando e aguardar término (job roda no worker)
-            exec($cmd, $output, $returnVar);
-            Log::info('BackupToFtpJob finalizado. return: ' . $returnVar . ' | saída: ' . implode('\n', $output));
+            Log::info('BackupToFtpJob: iniciando backup via Artisan::call');
+            // chamamos o comando internamente (sem spawn de processo)
+            $returnVar = Artisan::call('backup:ftp', ['--raw-ftp' => true, '--delay-ms' => 200]);
+            $output = Artisan::output();
+            Log::info('BackupToFtpJob finalizado. return: ' . $returnVar . ' | saída: ' . $output);
         } catch (\Exception $e) {
             Log::error('BackupToFtpJob erro: ' . $e->getMessage());
             throw $e;
