@@ -268,6 +268,9 @@
                                                 <button id="backup-ftp-btn" class="btn btn-outline-primary btn-sm mb-1">
                                                     Backup Storage → FTP
                                                 </button>
+                                                <a href="{{ url('/backup/ftp-logs') }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm mb-1">
+                                                    Ver logs FTP
+                                                </a>
                                                 <span id="backup-ftp-status" style="margin-left:10px;"></span>
                                             @endcan
                                         </div>

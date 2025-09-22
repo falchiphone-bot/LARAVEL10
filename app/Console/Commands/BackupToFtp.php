@@ -24,6 +24,23 @@ class BackupToFtp extends Command
 
     public function handle()
     {
+        // helper para registrar logs em JSONL
+        $jsonLog = function (array $data) {
+            try {
+                $record = array_merge([
+                    'ts' => now()->toIso8601String(),
+                    'type' => 'backup:ftp',
+                ], $data);
+                @file_put_contents(
+                    storage_path('logs/backup_ftp.jsonl'),
+                    json_encode($record, JSON_UNESCAPED_UNICODE) . PHP_EOL,
+                    FILE_APPEND | LOCK_EX
+                );
+            } catch (\Throwable $e) {
+                // não interromper o fluxo por falha no log JSON
+            }
+        };
+
         $limit = $this->option('limit') ? (int) $this->option('limit') : null;
         $dryRun = (bool) $this->option('dry-run');
 
@@ -33,6 +50,7 @@ class BackupToFtp extends Command
             $files = Storage::disk('local')->allFiles();
             $total = count($files);
             $this->info("Total encontrados no storage local: $total");
+            $jsonLog(['event' => 'start', 'total' => $total, 'dry_run' => $dryRun, 'raw_ftp' => (bool) $this->option('raw-ftp')]);
 
             if ($limit) {
                 $files = array_slice($files, 0, $limit);
@@ -116,6 +134,7 @@ class BackupToFtp extends Command
                         if ($dryRun) {
                             $this->comment("[dry-run] Enviaria: $file");
                             $copied++;
+                            $jsonLog(['event' => 'dry-run', 'file' => $file]);
                             if ($delayMs > 0) usleep($delayMs * 1000);
                             continue;
                         }
@@ -128,12 +147,13 @@ class BackupToFtp extends Command
                         $remoteFile = '/' . ltrim($file, '/');
 
 
-                        // Verifica apenas se o arquivo remoto já existe pelo tamanho (ftp_size)
+                        // Verifica apenas se o arquivo remoto já existe (ftp_size != -1)
                         $remoteSize = @ftp_size($conn, $remoteFile);
                         if ($remoteSize !== -1) {
                             $this->comment("Ignorado (já existe): $remoteFile");
                             Log::info('Ignorado (já existe): ' . $remoteFile);
                             $skipped++;
+                            $jsonLog(['event' => 'skipped', 'file' => $file, 'remote' => $remoteFile, 'bytes' => @strlen($content), 'reason' => 'already_exists', 'remote_size' => $remoteSize]);
                             @unlink($tmp);
                             if ($delayMs > 0) usleep($delayMs * 1000);
                             continue;
@@ -159,16 +179,19 @@ class BackupToFtp extends Command
                             $ftpRawMsg = $ftpRaw ? implode(' | ', $ftpRaw) : 'N/A';
                             $this->error('[debug] ftp_put falhou para ' . $remoteFile . '. error_get_last: ' . $errMsg . ' | ftp_raw: ' . $ftpRawMsg);
                             Log::error('Falha raw ftp: ' . $remoteFile . ' | Motivo: ' . $errMsg . ' | ftp_raw: ' . $ftpRawMsg);
+                            $jsonLog(['event' => 'error', 'file' => $file, 'remote' => $remoteFile, 'message' => $errMsg, 'context' => 'ftp_put']);
                         }
                         @unlink($tmp);
                         if ($sent) {
                             $this->info("Enviado (raw): $remoteFile");
                             $copied++;
+                            $jsonLog(['event' => 'sent', 'file' => $file, 'remote' => $remoteFile, 'bytes' => @strlen($content)]);
                         }
                         if ($delayMs > 0) usleep($delayMs * 1000);
                     } catch (\Exception $e) {
                         $this->error("Erro ao processar $file: " . $e->getMessage());
                         Log::error('BackupToFtp error (raw): ' . $e->getMessage());
+                        $jsonLog(['event' => 'error', 'file' => $file, 'message' => $e->getMessage(), 'context' => 'process_file']);
                     }
                 }
 
@@ -240,10 +263,12 @@ class BackupToFtp extends Command
             }
 
             $this->info("Finalizado. Copiados: $copied | Ignorados: $skipped");
+            $jsonLog(['event' => 'end', 'copied' => $copied, 'skipped' => $skipped, 'total' => $copied + $skipped]);
             return 0;
         } catch (\Exception $e) {
             $this->error('Erro no backup: ' . $e->getMessage());
             Log::error('BackupToFtp fatal: ' . $e->getMessage());
+            $jsonLog(['event' => 'fatal', 'message' => $e->getMessage()]);
             return 1;
         }
     }

