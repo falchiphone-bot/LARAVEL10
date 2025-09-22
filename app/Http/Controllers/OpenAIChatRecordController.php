@@ -950,6 +950,8 @@ class OpenAIChatRecordController extends Controller
         $ptBR = $locale === 'br' || $locale === 'pt-br';
         $callback = function() use ($records, $baselines, $baselineStats, $counts, $baseline, $overallStats, $ptBR, $trends){
             $out = fopen('php://output', 'w');
+            // Garantir BOM UTF-8 para exibir corretamente setas/símbolos em Excel/Editors
+            fwrite($out, "\xEF\xBB\xBF");
             // Cabeçalho
             fputcsv($out, [
                 'Codigo','Conversa','DataUltimo','ValorUltimo','Qtd',
@@ -994,6 +996,25 @@ class OpenAIChatRecordController extends Controller
                     $n = (float)$n;
                     return $ptBR ? number_format($n, $dec, ',', '.') : number_format($n, $dec, '.', '');
                 };
+                $arrowByNumber = function($n){
+                    if ($n === '' || $n === null) return '';
+                    $n = (float)$n;
+                    if ($n > 0) return '↑';
+                    if ($n < 0) return '↓';
+                    return '→';
+                };
+                $decoratePct = function($n, $preferLabel = null) use ($fmt, $arrowByNumber){
+                    if ($n === '' || $n === null) return '';
+                    $n = (float)$n;
+                    // seta pela label se disponível
+                    $arrow = '';
+                    if ($preferLabel === 'up') $arrow = '↑';
+                    elseif ($preferLabel === 'down') $arrow = '↓';
+                    elseif ($preferLabel === 'flat') $arrow = '→';
+                    else $arrow = $arrowByNumber($n);
+                    $signed = $n > 0 ? ('+' . $fmt($n)) : $fmt($n); // negativos já vêm com '-'
+                    return trim($arrow.' '.$signed.' %');
+                };
                 $fmtDate = function($dtStr) use ($ptBR){
                     if (!$dtStr) return '';
                     if (!$ptBR) return $dtStr; // já ISO
@@ -1005,6 +1026,10 @@ class OpenAIChatRecordController extends Controller
                     }
                     return $dtStr;
                 };
+                // Decorações para percentuais
+                $varDecor = $var !== null ? $decoratePct($var) : '';
+                $trendArrowKey = ($trendLabel === 'sobe') ? 'up' : (($trendLabel === 'desce') ? 'down' : (($trendLabel === 'mantem') ? 'flat' : null));
+                $trendDecor = ($trendPct !== '') ? $decoratePct($trendPct, $trendArrowKey) : '';
                 $row = [
                     $code,
                     $r->chat->title ?? '',
@@ -1013,7 +1038,7 @@ class OpenAIChatRecordController extends Controller
                     (int)($counts[$code] ?? 0),
                     $baseAmount !== null ? $fmt($baseAmount) : '',
                     $fmtDate($baseDate),
-                    $var !== null ? $fmt($var) : '',
+                    $varDecor,
                     $dif !== null ? $fmt($dif) : '',
                     isset($stats['avg']) ? $fmt($stats['avg']) : '',
                     isset($stats['median']) ? $fmt($stats['median']) : '',
@@ -1026,7 +1051,7 @@ class OpenAIChatRecordController extends Controller
                     isset($statsAll['min']) ? $fmt($statsAll['min']) : '',
                     isset($statsAll['count']) ? (int)$statsAll['count'] : '',
                     $trendLabel,
-                    $trendPct !== '' ? $fmt($trendPct) : '',
+                    $trendDecor,
                     $fmtDate($trendDate),
                 ];
                 fputcsv($out, $row, ';');
@@ -1051,8 +1076,10 @@ class OpenAIChatRecordController extends Controller
         $baseline = $data['baseline'] ?? (string)$request->input('baseline');
         $callback = function() use ($trendsSummary, $trendDays, $baseline){
             $out = fopen('php://output', 'w');
+            // BOM para suportar setas nos títulos, se necessário
+            fwrite($out, "\xEF\xBB\xBF");
             // Cabeçalho
-            fputcsv($out, ['Baseline','DiasApos','Total','Sobe','Desce','Mantem'], ';');
+            fputcsv($out, ['Baseline','DiasApos','Total','Sobe (↑)','Desce (↓)','Mantem (→)'], ';');
             $row = [
                 $baseline ?: '',
                 (int)$trendDays,
@@ -1221,6 +1248,31 @@ class OpenAIChatRecordController extends Controller
         foreach (['A','B','C','D','E','F'] as $c) { $sheet2->getColumnDimension($c)->setAutoSize(true); }
         // Inteiros linha 2 B..F
         $sheet2->getStyle('B2:F2')->getNumberFormat()->setFormatCode('0');
+
+        // Formatação condicional: positivos (verde) e negativos (vermelho) nas colunas H (Var%), I (Dif) e U (Trend Var%)
+        try {
+            $green = new \PhpOffice\PhpSpreadsheet\Style\Conditional();
+            $green->setConditionType(\PhpOffice\PhpSpreadsheet\Style\Conditional::CONDITION_CELLIS);
+            $green->setOperatorType(\PhpOffice\PhpSpreadsheet\Style\Conditional::OPERATOR_GREATERTHAN);
+            $green->addCondition('0');
+            $green->getStyle()->getFont()->getColor()->setARGB(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_DARKGREEN);
+            $green->getStyle()->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('E8F5E9');
+
+            $red = new \PhpOffice\PhpSpreadsheet\Style\Conditional();
+            $red->setConditionType(\PhpOffice\PhpSpreadsheet\Style\Conditional::CONDITION_CELLIS);
+            $red->setOperatorType(\PhpOffice\PhpSpreadsheet\Style\Conditional::OPERATOR_LESSTHAN);
+            $red->addCondition('0');
+            $red->getStyle()->getFont()->getColor()->setARGB(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_DARKRED);
+            $red->getStyle()->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('FDECEA');
+
+            foreach (['H','I','U'] as $colCF) {
+                $range = $colCF.'2:'.$colCF.$lastRow;
+                $conds = $sheet1->getStyle($range)->getConditionalStyles();
+                $conds[] = $green;
+                $conds[] = $red;
+                $sheet1->getStyle($range)->setConditionalStyles($conds);
+            }
+        } catch (\Throwable $e) { /* noop */ }
 
         // Saída
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
