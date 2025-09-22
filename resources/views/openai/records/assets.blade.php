@@ -9,9 +9,10 @@
     <div class="d-flex gap-2">
           <a href="{{ route('openai.records.index') }}" class="btn btn-outline-secondary">← Registros</a>
           <button type="button" id="toggle-stats-total" class="btn btn-outline-secondary" title="Mostrar/ocultar estatísticas gerais (sem limite baseline)">Stats Totais: <span data-state>OFF</span></button>
-      <button type="button" id="toggle-local-badge" class="btn btn-sm btn-outline-secondary" title="Mostrar/ocultar badge local do mercado">
+  <button type="button" id="toggle-local-badge" class="btn btn-sm btn-outline-secondary" title="Mostrar/ocultar badge local do mercado">
         Badge Mercado: <span data-state>ON</span>
       </button>
+  <button type="button" id="toggle-stats-base" class="btn btn-outline-secondary" title="Mostrar/ocultar estatísticas base (≤Base)">Stats Base: <span data-state>OFF</span></button>
     </div>
   </div>
   <div class="card shadow-sm mb-3">
@@ -115,6 +116,9 @@
           <br>• Para exportar com vírgula decimal e datas dd/mm/aaaa use o botão “CSV (pt-BR)”.
         </div>
       @endif
+      <div class="mb-2 small text-muted">
+        • Na coluna “Cotação”, os itens aparecem empilhados para não alargar a tabela. O botão “Aplicar” é mostrado quando a data da cotação coincide com a data do registro; o destaque em vermelho aparece apenas quando o valor difere do atual.
+      </div>
     @endif
 
     <table class="table table-sm table-bordered align-middle">
@@ -149,19 +153,19 @@
           <th style="width:12%" class="text-end">
             <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'diff','dir'=>$toggle('diff')])) }}">Dif {{ $icon('diff') }}</a>
           </th>
-          <th style="width:9%" class="text-end" title="Média até a baseline (inclui registros <= baseline; se sem baseline, usa média geral)">
+          <th style="width:9%" class="text-end stats-base d-none" title="Média até a baseline (inclui registros <= baseline; se sem baseline, usa média geral)">
             <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'avg','dir'=>$toggle('avg')])) }}">Média ≤Base {{ $icon('avg') }}</a>
           </th>
-          <th style="width:9%" class="text-end" title="Mediana dos valores até a baseline (ou geral)">
+          <th style="width:9%" class="text-end stats-base d-none" title="Mediana dos valores até a baseline (ou geral)">
             <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'median','dir'=>$toggle('median')])) }}">Mediana {{ $icon('median') }}</a>
           </th>
-          <th style="width:7%" class="text-end" title="Máximo dos valores até a baseline (ou geral)">
+          <th style="width:7%" class="text-end stats-base d-none" title="Máximo dos valores até a baseline (ou geral)">
             <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'max','dir'=>$toggle('max')])) }}">Máx {{ $icon('max') }}</a>
           </th>
-          <th style="width:7%" class="text-end" title="Mínimo dos valores até a baseline (ou geral)">
+          <th style="width:7%" class="text-end stats-base d-none" title="Mínimo dos valores até a baseline (ou geral)">
             <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'min','dir'=>$toggle('min')])) }}">Mín {{ $icon('min') }}</a>
           </th>
-          <th style="width:6%" class="text-end" title="Quantidade de registros até a baseline">
+          <th style="width:6%" class="text-end stats-base d-none" title="Quantidade de registros até a baseline">
             <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'count_base','dir'=>$toggle('count_base')])) }}">N≤Base {{ $icon('count_base') }}</a>
           </th>
           <th style="width:9%" class="text-end stats-total d-none" title="Média geral no intervalo filtrado">
@@ -179,7 +183,7 @@
           <th style="width:6%" class="text-end stats-total d-none" title="Quantidade total de registros no intervalo">
             <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'count_total','dir'=>$toggle('count_total')])) }}">N Tot {{ $icon('count_total') }}</a>
           </th>
-          <th style="width:10%" class="text-center">Cotação</th>
+          <th style="width:10%" class="text-center" title="Itens empilhados: consultar, valor, horário e ações. O botão ‘Aplicar’ aparece quando a data da cotação coincide com a do registro.">Cotação</th>
         </tr>
       </thead>
       <tbody>
@@ -303,12 +307,12 @@
               $maxVal = $stats['max'] ?? null;
               $minVal = $stats['min'] ?? null;
             @endphp
-            <td class="text-end">@if($avgVal!==null) {{ number_format($avgVal, 2, ',', '.') }} @else — @endif</td>
-            <td class="text-end">@if($medianVal!==null) {{ number_format($medianVal, 2, ',', '.') }} @else — @endif</td>
-            <td class="text-end">@if($maxVal!==null) {{ number_format($maxVal, 2, ',', '.') }} @else — @endif</td>
-            <td class="text-end">@if($minVal!==null) {{ number_format($minVal, 2, ',', '.') }} @else — @endif</td>
+            <td class="text-end stats-base d-none">@if($avgVal!==null) {{ number_format($avgVal, 2, ',', '.') }} @else — @endif</td>
+            <td class="text-end stats-base d-none">@if($medianVal!==null) {{ number_format($medianVal, 2, ',', '.') }} @else — @endif</td>
+            <td class="text-end stats-base d-none">@if($maxVal!==null) {{ number_format($maxVal, 2, ',', '.') }} @else — @endif</td>
+            <td class="text-end stats-base d-none">@if($minVal!==null) {{ number_format($minVal, 2, ',', '.') }} @else — @endif</td>
             @php $countBase = $stats['count'] ?? null; @endphp
-            <td class="text-end">@if($countBase!==null) {{ $countBase }} @else — @endif</td>
+            <td class="text-end stats-base d-none">@if($countBase!==null) {{ $countBase }} @else — @endif</td>
             @php
               $statsAll = ($overallStats ?? collect())->get($codeKey) ?? [];
             @endphp
@@ -320,14 +324,18 @@
             <td class="text-center" data-ref="{{ number_format((float)$r->amount, 6, '.', '') }}" data-occurred="{{ optional($r->occurred_at)->format('Y-m-d') }}" data-apply-url="{{ route('openai.records.applyQuote', $r) }}">
               @php $symbol = strtoupper(trim($r->chat?->code ?? '')); @endphp
               @if($symbol !== '')
-                <div class="d-inline-flex align-items-center gap-2">
-                  <button type="button" class="btn btn-sm btn-outline-primary btn-quote" data-symbol="{{ $symbol }}">
-                    Consultar
-                  </button>
-                  <span class="quote-value text-nowrap" aria-live="polite"></span>
-                  <small class="quote-time text-muted"></small>
-                  <button type="button" class="btn btn-sm btn-outline-success d-none btn-apply-quote" title="Aplicar cotação ao valor">Aplicar</button>
-                  <button type="button" class="btn btn-sm btn-outline-secondary d-none btn-create-from-quote" title="Criar novo registro com esta cotação">Novo registro</button>
+                <div class="d-inline-flex flex-column align-items-stretch gap-1 cotacao-col">
+                  <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-primary btn-quote" data-symbol="{{ $symbol }}" title="Consulta a cotação atual do ativo">Consultar</button>
+                  </div>
+                  <div class="d-flex align-items-baseline gap-2">
+                    <span class="quote-value" aria-live="polite" title="Valor retornado pela consulta"></span>
+                    <small class="quote-time text-muted" title="Horário da cotação obtida"></small>
+                  </div>
+                  <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-success d-none btn-apply-quote" title="Mostrado quando a data da cotação coincide com a data do registro; aplica o valor no registro">Aplicar</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary d-none btn-create-from-quote" title="Usado quando a data difere; cria um novo registro com essa cotação">Novo registro</button>
+                  </div>
                 </div>
               @else
                 <span class="text-muted">—</span>
@@ -559,16 +567,23 @@
         }
         const recordDateKey = container ? (container.getAttribute('data-occurred') || '') : '';
         if (quoteDateKey && recordDateKey && quoteDateKey === recordDateKey) {
-          // Comparar preço com valor de referência e pintar se diferente
+          // Se a data da cotação coincide com a data do registro, habilita o botão Aplicar
           const refStr = container ? container.getAttribute('data-ref') : null;
           const refVal = refStr ? parseFloat(refStr) : NaN;
           const price = Number(data.price);
-          if (isFinite(price) && isFinite(refVal)){
-            const p2 = Math.round(price * 100) / 100;
-            const r2 = Math.round(refVal * 100) / 100;
-            if (p2 !== r2 && container){
-              container.classList.add('table-danger');
-              if (btnApply) { btnApply.classList.remove('d-none'); btnApply.disabled = false; btnApply.setAttribute('data-amount', String(price)); }
+          if (isFinite(price)) {
+            if (btnApply) {
+              btnApply.classList.remove('d-none');
+              btnApply.disabled = false;
+              btnApply.setAttribute('data-amount', String(price));
+            }
+            // Comparar preço com valor de referência e destacar apenas quando diferente
+            if (isFinite(refVal) && container) {
+              const p2 = Math.round(price * 100) / 100;
+              const r2 = Math.round(refVal * 100) / 100;
+              if (p2 !== r2) {
+                container.classList.add('table-danger');
+              }
             }
           }
         } else {
@@ -948,6 +963,22 @@
     baseline?.addEventListener('input', toggle);
     document.addEventListener('DOMContentLoaded', toggle);
     toggle();
+  })();
+</script>
+<script>
+  (function(){
+    // Toggle de estatísticas base (Média, Mediana, Máx, Mín, N≤Base)
+    const KEY='assets.showBaseStats';
+    const btn=document.getElementById('toggle-stats-base');
+  function get(){ try{return localStorage.getItem(KEY)==='1';}catch(e){return false;} }
+    function set(v){ try{localStorage.setItem(KEY, v?'1':'0');}catch(e){} }
+    function apply(){
+      const show=get();
+      document.querySelectorAll('.stats-base').forEach(el=>el.classList.toggle('d-none', !show));
+      if(btn){ const s=btn.querySelector('[data-state]'); if(s) s.textContent = show?'ON':'OFF'; }
+    }
+    btn?.addEventListener('click', ()=>{ set(!get()); apply(); });
+    apply();
   })();
 </script>
 <script>
