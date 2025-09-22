@@ -25,3 +25,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 route::post('/whatsapp', [ApiController::class,'index']);
 route::get('/whatsapp', [ApiController::class,'index']);
 
+// Market status público (sem sessão), com throttle e simple.limit
+Route::middleware(['throttle:120,1'])->group(function() {
+    Route::get('/market/status', [\App\Http\Controllers\MarketDataController::class, 'status'])
+        ->middleware('simple.limit:status,20,10')
+        ->name('api.market.status');
+});
+
