@@ -70,20 +70,48 @@ class BackupToFtp extends Command
                     return 1;
                 }
 
-                $host = env('FTP_HOST');
-                $user = env('FTP_USERNAME');
-                $pass = env('FTP_PASSWORD');
-                $port = (int) env('FTP_PORT', 21);
-                $passive = filter_var(env('FTP_PASSIVE', true), FILTER_VALIDATE_BOOLEAN);
+                // Preferir config em tempo de execução (respeita config:cache)
+                $cfg = config('filesystems.disks.ftp', []);
+                $host = $cfg['host'] ?? null;
+                $user = $cfg['username'] ?? null;
+                $pass = $cfg['password'] ?? null;
+                $port = isset($cfg['port']) ? (int) $cfg['port'] : 21;
+                $passive = isset($cfg['passive']) ? (bool) $cfg['passive'] : true;
+                $ssl = isset($cfg['ssl']) ? (bool) $cfg['ssl'] : false;
+                $timeout = isset($cfg['timeout']) ? (int) $cfg['timeout'] : 30;
 
-                $conn = ftp_connect($host, $port, (int) env('FTP_TIMEOUT', 30));
-                if (!$conn) {
-                    $this->error('Não foi possível conectar ao servidor FTP: ' . $host . ':' . $port);
+                if (empty($host)) {
+                    $this->error('FTP host não configurado. Defina FTP_HOST no .env (e rode php artisan config:cache) ou configure filesystems.disks.ftp.host.');
+                    $this->line('Dicas: variáveis esperadas: FTP_HOST, FTP_USERNAME, FTP_PASSWORD, FTP_PORT, FTP_ROOT, FTP_PASSIVE, FTP_SSL, FTP_TIMEOUT');
                     return 1;
                 }
-                $login = @ftp_login($conn, $user, $pass);
+
+                // Em dry-run não precisamos abrir conexão; apenas simular
+                if ($dryRun) {
+                    $this->comment("[dry-run] Conectaria em {$host}:{$port} (passive=" . ($passive?'on':'off') . ", ssl=" . ($ssl?'on':'off') . ")");
+                    foreach ($files as $file) {
+                        $this->comment("[dry-run] Enviaria (raw): /" . ltrim($file, '/'));
+                        $copied++;
+                        if ($delayMs > 0) usleep($delayMs * 1000);
+                    }
+                    $this->info("Finalizado (dry-run raw). Copiados simulados: $copied | Ignorados: $skipped | Total analisado: " . count($files));
+                    return 0;
+                }
+
+                $this->line("Conectando em {$host}:{$port} (passive=" . ($passive?'on':'off') . ", ssl=" . ($ssl?'on':'off') . ") com timeout {$timeout}s");
+                $conn = @ftp_connect($host, $port, $timeout);
+                if (!$conn) {
+                    $err = error_get_last();
+                    $this->error('Não foi possível conectar ao servidor FTP: ' . $host . ':' . $port);
+                    if ($err && isset($err['message'])) {
+                        $this->error('Detalhe: ' . $err['message']);
+                    }
+                    return 1;
+                }
+                $login = @ftp_login($conn, $user ?? '', $pass ?? '');
                 if (!$login) {
-                    $this->error('Falha no login FTP com usuário ' . $user);
+                    $maskUser = $user ? (substr($user, 0, 2) . '***') : '(vazio)';
+                    $this->error('Falha no login FTP com usuário ' . $maskUser);
                     ftp_close($conn);
                     return 1;
                 }

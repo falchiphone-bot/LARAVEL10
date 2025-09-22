@@ -259,22 +259,6 @@
                                             @can('PIX - LISTAR')<a class="btn btn-outline-success btn-sm" href="{{ route('Pix.index') }}">PIX</a>@endcan
                                             @can('FORMA_PAGAMENTOS - LISTAR')<a class="btn btn-outline-success btn-sm" href="{{ route('FormaPagamento.index') }}">Formas de Pagamento</a>@endcan
                                             @can('ENVIOS - LISTAR')<a class="btn btn-outline-success btn-sm" href="{{ route('Envios.index') }}">Envios de arquivos</a>@endcan
-                                            @can('backup.executar')
-                                                <button id="backup-btn" class="btn btn-outline-danger btn-sm mb-1">
-                                                    Backup Storage → HD Externo
-                                                </button>
-                                                <span id="backup-status" style="margin-left:10px;"></span>
-                                                <br>
-                                                <button id="backup-ftp-btn" class="btn btn-outline-primary btn-sm mb-1">
-                                                    Backup Storage → FTP
-                                                </button>
-                                                @can('backup.logs.view')
-                                                    <a href="{{ url('/backup/ftp-logs') }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm mb-1">
-                                                        Ver logs FTP
-                                                    </a>
-                                                @endcan
-                                                <span id="backup-ftp-status" style="margin-left:10px;"></span>
-                                            @endcan
                                         </div>
                                     </div>
                                 </div>
@@ -314,6 +298,53 @@
                                         <div class="card-body py-2 d-flex flex-column gap-2">
                                             @can('PACPIE - LISTAR')<a class="btn btn-outline-dark btn-sm" href="Pacpie">PAC PIE</a>@endcan
                                             @can('CLIENTESIXCNETRUBI - LISTAR')<a class="btn btn-outline-dark btn-sm" href="Ixc">IXC NET RUBI</a>@endcan
+                                        </div>
+                                    </div>
+                                </div>
+                                @endcanany
+
+                                {{-- Backups (card dedicado) --}}
+                                @canany(['backup.executar','backup.logs.view','backup.logs.clear','backup.logs.download'])
+                                <div class="col-12 col-md-6 col-xl-4 col-xxl-3">
+                                    <div class="card h-100">
+                                        <div class="card-header py-2">Backups</div>
+                                        <div class="card-body py-2 d-flex flex-column gap-2">
+                                            @can('backup.executar')
+                                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                                    <button id="backup-btn" class="btn btn-outline-danger btn-sm">
+                                                        Storage → HD Externo
+                                                    </button>
+                                                    <span id="backup-status" class="small text-muted"></span>
+                                                </div>
+                                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                                    <button id="backup-ftp-btn" class="btn btn-outline-primary btn-sm">
+                                                        Storage → FTP
+                                                    </button>
+                                                    <button id="backup-ftp-test-btn" class="btn btn-outline-secondary btn-sm" title="Testa conexão FTP (dry-run)">
+                                                        Testar FTP (dry-run)
+                                                    </button>
+                                                    <span id="backup-ftp-status" class="small text-muted"></span>
+                                                </div>
+                                            @endcan
+
+                                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                                @can('backup.logs.view')
+                                                    <a href="{{ url('/backup/ftp-logs') }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm">
+                                                        Ver logs FTP
+                                                    </a>
+                                                @endcan
+                                                @can('backup.logs.download')
+                                                    <a href="{{ url('/backup/ftp-logs/download-last?n=500&format=ndjson') }}" class="btn btn-outline-secondary btn-sm" title="Baixar últimos 500 registros (NDJSON)">
+                                                        Baixar últimos logs
+                                                    </a>
+                                                @endcan
+                                                @can('backup.logs.clear')
+                                                    <form method="POST" action="{{ url('/backup/ftp-logs/clear') }}" class="d-inline" onsubmit="return confirm('Limpar/arquivar logs de backup?');">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-outline-warning btn-sm">Limpar logs</button>
+                                                    </form>
+                                                @endcan
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -443,6 +474,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 btnFtp.disabled = false;
                 backupFtpInProgress = false;
             });
+        });
+    }
+
+    // Teste de conexão FTP (dry-run)
+    const btnFtpTest = document.getElementById('backup-ftp-test-btn');
+    if (btnFtpTest) {
+        btnFtpTest.addEventListener('click', function() {
+            btnFtpTest.disabled = true;
+            const statusEl = document.getElementById('backup-ftp-status');
+            if (statusEl) statusEl.innerHTML = 'Testando conexão FTP...';
+            fetch("{{ route('backup.ftp-test') }}", {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) {
+                    statusEl.innerHTML = `Conexão OK em ${data.host}:${data.port}`;
+                } else {
+                    statusEl.innerHTML = 'Falha no teste FTP: ' + (data.message || 'erro desconhecido');
+                }
+            })
+            .catch(() => {
+                if (statusEl) statusEl.innerHTML = 'Erro ao testar FTP';
+            })
+            .finally(() => { btnFtpTest.disabled = false; });
         });
     }
 });

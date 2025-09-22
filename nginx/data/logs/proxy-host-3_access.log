@@ -408,3 +408,5 @@
 [22/Sep/2025:13:56:41 +0000] - 200 200 - HEAD https vec.org.br "/" [Client 172.18.0.1] [Length 0] [Gzip -] [Sent-to laravel10] "curl/8.7.1" "-"
 [22/Sep/2025:13:56:41 +0000] - 200 200 - HEAD https vec.org.br "/healthz" [Client 172.18.0.1] [Length 0] [Gzip -] [Sent-to laravel10] "curl/8.7.1" "-"
 [22/Sep/2025:13:57:17 +0000] - - 404 - GET http vec.org.br "/.well-known/acme-challenge/G83zhs86FXN0yylikSaUdKmJHOnpnYfqnR5txyemSeE" [Client 172.18.0.1] [Length 122] [Gzip 1.35] [Sent-to laravel10] "Mozilla/5.0 (compatible; Let's Encrypt validation server; +https://www.letsencrypt.org)" "-"
+[22/Sep/2025:15:22:05 +0000] - - 404 - GET http vec.org.br "/.well-known/acme-challenge/0_awesuQu_U96A44_ZIizl0e7k0_MBZgPl-raW02IhI" [Client 172.18.0.1] [Length 122] [Gzip 1.35] [Sent-to laravel10] "Mozilla/5.0 (compatible; Let's Encrypt validation server; +https://www.letsencrypt.org)" "-"
+[22/Sep/2025:15:57:08 +0000] - - 404 - GET http vec.org.br "/.well-known/acme-challenge/pYA5H7uzBQc5Q32g0cb6lpfiSxOyKtKTl57AwmPRAeA" [Client 172.18.0.1] [Length 122] [Gzip 1.35] [Sent-to laravel10] "Mozilla/5.0 (compatible; Let's Encrypt validation server; +https://www.letsencrypt.org)" "-"

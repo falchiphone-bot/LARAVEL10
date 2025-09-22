@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             PixPermissionsSeeder::class,
             MarketPermissionsSeeder::class,
             ProfilePermissionsSeeder::class,
+            BackupPermissionSeeder::class,
         ]);
 
         // \App\Models\User::factory()->create([

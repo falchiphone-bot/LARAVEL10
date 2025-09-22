@@ -66,6 +66,53 @@ Route::get('/healthz', function (\Illuminate\Http\Request $request) {
             $payload['cache'] = 'error';
             $payload['cache_error'] = $e->getMessage();
         }
+
+        // FTP DNS/porta reachability (sem autenticação)
+        try {
+            $cfg = config('filesystems.disks.ftp', []);
+            $host = $cfg['host'] ?? null;
+            $port = isset($cfg['port']) ? (int) $cfg['port'] : 21;
+            if ($host) {
+                // Testa DNS com gethostbynamel
+                $ips = @gethostbynamel($host);
+                $payload['ftp_dns'] = is_array($ips) && count($ips) > 0 ? 'ok' : 'error';
+                if ($payload['ftp_dns'] !== 'ok') {
+                    $payload['ftp_dns_error'] = 'Falha na resolução DNS';
+                } else {
+                    // Teste de porta via socket não bloqueante com timeout curto
+                    $conn = @fsockopen($host, $port, $errno, $errstr, 2.0);
+                    if (is_resource($conn)) {
+                        fclose($conn);
+                        $payload['ftp_port'] = 'ok';
+                    } else {
+                        $payload['ftp_port'] = 'error';
+                        $payload['ftp_port_error'] = $errstr ?: ('Erro ' . $errno);
+                    }
+                }
+            } else {
+                $payload['ftp_dns'] = 'skipped';
+                $payload['ftp_port'] = 'skipped';
+            }
+        } catch (\Throwable $e) {
+            $payload['ftp_dns'] = 'error';
+            $payload['ftp_port'] = 'error';
+            $payload['ftp_error'] = $e->getMessage();
+        }
+
+        // NPM reach (teste básico via APP_URL)
+        try {
+            $appUrl = config('app.url');
+            if ($appUrl) {
+                $ctx = stream_context_create(['http' => ['timeout' => 2, 'method' => 'HEAD']]);
+                $head = @get_headers($appUrl, 1, $ctx);
+                $payload['npm_reach'] = $head && is_array($head) ? 'ok' : 'error';
+            } else {
+                $payload['npm_reach'] = 'skipped';
+            }
+        } catch (\Throwable $e) {
+            $payload['npm_reach'] = 'error';
+            $payload['npm_error'] = $e->getMessage();
+        }
     }
 
     return response()->json($payload);
@@ -336,7 +383,7 @@ Route::get('/dashboard', function () {
 
 // Endpoint AJAX: contadores do dashboard (cadastros e atletas) com ETag e Cache-Control
 Route::get('/dashboard/counts', function (\Illuminate\Http\Request $request) {
-    $ttl = (int) env('DASHBOARD_COUNTS_TTL', 300);
+    $ttl = (int) env('DASHBOARD_COUNTS_TTL', 900);
     $cad = \Illuminate\Support\Facades\Cache::remember('cadastros_counts', $ttl, function() {
         return \App\Services\DashboardCache::cadastrosCounts();
     });
@@ -352,6 +399,34 @@ Route::get('/dashboard/counts', function (\Illuminate\Http\Request $request) {
         ->setEtag($etag)
         ->header('Cache-Control', 'private, max-age=60');
 })->middleware(['auth','verified'])->name('dashboard.counts');
+
+// Endpoint: testar conexão FTP (dry-run) sem enviar arquivos
+Route::get('/backup/ftp-test', function () {
+    try {
+        $cfg = config('filesystems.disks.ftp', []);
+        $host = $cfg['host'] ?? null;
+        $port = isset($cfg['port']) ? (int) $cfg['port'] : 21;
+        if (empty($host)) {
+            return response()->json(['ok' => false, 'message' => 'FTP_HOST não configurado.'], 400);
+        }
+        // Executa comando em dry-run, limitando a 1 arquivo para simulação rápida
+        \Illuminate\Support\Facades\Artisan::call('backup:ftp', [
+            '--raw-ftp' => true,
+            '--dry-run' => true,
+            '--limit' => 1,
+            '--delay-ms' => 0,
+        ]);
+        $output = \Illuminate\Support\Facades\Artisan::output();
+        return response()->json([
+            'ok' => true,
+            'host' => $host,
+            'port' => $port,
+            'output' => $output,
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json(['ok' => false, 'message' => $e->getMessage()], 500);
+    }
+})->middleware(['auth', 'verified', 'can:backup.executar'])->name('backup.ftp-test');
 
 // Refresh counters cache (cadastros / atletas)
 Route::post('/dashboard/refresh-counters', function() {

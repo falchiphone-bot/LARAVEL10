@@ -39,14 +39,13 @@ class AuthServiceProvider extends ServiceProvider
 
         // Abilities granulares para logs do backup FTP
         Gate::define('backup.logs.view', function ($user) {
-            // fallback: quem pode executar backup também pode ver logs
-            return $user->can('backup.executar');
+            return $user->can('backup.logs.view') || $user->can('backup.executar');
         });
         Gate::define('backup.logs.download', function ($user) {
-            return $user->can('backup.executar');
+            return $user->can('backup.logs.download') || $user->can('backup.executar');
         });
         Gate::define('backup.logs.clear', function ($user) {
-            return $user->can('backup.executar');
+            return $user->can('backup.logs.clear') || $user->can('backup.executar');
         });
     }
 }
