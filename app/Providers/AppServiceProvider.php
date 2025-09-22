@@ -24,8 +24,8 @@ class AppServiceProvider extends ServiceProvider
         // Usar paginação com estilos do Bootstrap 5
         Paginator::useBootstrapFive();
 
-        //forçar https em producao
-        if ($this->app->environment('local')) {
+        // Forçar HTTPS apenas em ambientes não-locais (ex.: produção/staging)
+        if ($this->app->environment(['production', 'staging'])) {
             URL::forceScheme('https');
         }
     }

@@ -14,6 +14,9 @@ class Kernel extends ConsoleKernel
     {
         // Retentar transcodificações com falha diariamente às 03:00
         $schedule->command('envios:transcode --status=failed --limit=25')->dailyAt('03:00');
+
+        // Aquecer caches do dashboard a cada 5 minutos (mantém contadores rápidos)
+        $schedule->command('dashboard:warm-cache')->everyFiveMinutes();
     }
 
     /**

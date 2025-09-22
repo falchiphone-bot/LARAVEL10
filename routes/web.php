@@ -31,13 +31,13 @@ Route::get('/backup/storage-to-external', [BackupController::class, 'backupAll']
 Route::get('/backup/storage-to-ftp', [BackupController::class, 'backupAllToFtp'])->middleware('can:backup.executar');
 
 // View para consultar logs JSON do backup FTP
-Route::get('/backup/ftp-logs', [BackupController::class, 'viewFtpLogs'])->middleware('can:backup.executar');
+Route::get('/backup/ftp-logs', [BackupController::class, 'viewFtpLogs'])->middleware('can:backup.logs.view');
 // Ação para limpar/arquivar logs do backup FTP
-Route::post('/backup/ftp-logs/clear', [BackupController::class, 'clearFtpLogs'])->middleware('can:backup.executar');
+Route::post('/backup/ftp-logs/clear', [BackupController::class, 'clearFtpLogs'])->middleware('can:backup.logs.clear');
 
 // Downloads de logs
-Route::get('/backup/ftp-logs/download', [BackupController::class, 'downloadFtpLogs'])->middleware('can:backup.executar');
-Route::get('/backup/ftp-logs/download-last', [BackupController::class, 'downloadFtpLogsLast'])->middleware('can:backup.executar');
+Route::get('/backup/ftp-logs/download', [BackupController::class, 'downloadFtpLogs'])->middleware('can:backup.logs.download');
+Route::get('/backup/ftp-logs/download-last', [BackupController::class, 'downloadFtpLogsLast'])->middleware('can:backup.logs.download');
 
 // Healthcheck simples
 Route::get('/healthz', function (\Illuminate\Http\Request $request) {
@@ -331,8 +331,27 @@ Route::get('/storage/arquivospublicos/{filename}', function ($filename) {
 Route::get('/dashboard', function () {
     return view('dashboard');
 })
-    ->middleware(['auth', 'verified'])
+    ->middleware(['profile', 'auth', 'verified'])
     ->name('dashboard');
+
+// Endpoint AJAX: contadores do dashboard (cadastros e atletas) com ETag e Cache-Control
+Route::get('/dashboard/counts', function (\Illuminate\Http\Request $request) {
+    $ttl = (int) env('DASHBOARD_COUNTS_TTL', 300);
+    $cad = \Illuminate\Support\Facades\Cache::remember('cadastros_counts', $ttl, function() {
+        return \App\Services\DashboardCache::cadastrosCounts();
+    });
+    $ath = \Illuminate\Support\Facades\Cache::remember('athletes_counts', $ttl, function() {
+        return \App\Services\DashboardCache::athletesCounts();
+    });
+    $payload = ['cadastros' => $cad, 'athletes' => $ath];
+    $etag = md5(json_encode($payload));
+    if ($request->headers->get('If-None-Match') === $etag) {
+        return response()->noContent(304)->setEtag($etag)->header('Cache-Control', 'private, max-age=60');
+    }
+    return response()->json($payload)
+        ->setEtag($etag)
+        ->header('Cache-Control', 'private, max-age=60');
+})->middleware(['auth','verified'])->name('dashboard.counts');
 
 // Refresh counters cache (cadastros / atletas)
 Route::post('/dashboard/refresh-counters', function() {

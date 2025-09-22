@@ -268,9 +268,11 @@
                                                 <button id="backup-ftp-btn" class="btn btn-outline-primary btn-sm mb-1">
                                                     Backup Storage → FTP
                                                 </button>
-                                                <a href="{{ url('/backup/ftp-logs') }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm mb-1">
-                                                    Ver logs FTP
-                                                </a>
+                                                @can('backup.logs.view')
+                                                    <a href="{{ url('/backup/ftp-logs') }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm mb-1">
+                                                        Ver logs FTP
+                                                    </a>
+                                                @endcan
                                                 <span id="backup-ftp-status" style="margin-left:10px;"></span>
                                             @endcan
                                         </div>
@@ -330,6 +332,37 @@
                             document.addEventListener('DOMContentLoaded', function() {
                                 const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
                                 tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
+
+                                // Carregar contadores via AJAX (versão AJA)
+                                fetch("{{ route('dashboard.counts') }}", {
+                                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                                })
+                                .then(resp => resp.json())
+                                .then(data => {
+                                    const cad = data.cadastros || {};
+                                    const ath = data.athletes || {};
+                                    const setText = (id, val) => {
+                                        const el = document.getElementById(id);
+                                        if (el) el.textContent = (val === null || typeof val === 'undefined') ? '-' : String(val);
+                                    };
+                                    // Cadastros
+                                    setText('count-representantes', cad.representantes);
+                                    setText('count-preparadores', cad.preparadores);
+                                    setText('count-funcao', cad.funcao);
+                                    setText('count-categorias', cad.categorias);
+                                    setText('count-posicoes', cad.posicoes);
+                                    setText('count-tipoarquivo', cad.tipoarquivo);
+                                    setText('count-tipoesporte', cad.tipoesporte);
+                                    // Atletas
+                                    setText('count-formandos', ath.formandos);
+                                    setText('count-flow', ath.flow);
+                                    setText('count-percentuais', ath.percentuais);
+                                })
+                                .catch(() => {
+                                    // Em caso de erro, substitui "…" por "-" para não ficar carregando infinito
+                                    ['count-representantes','count-preparadores','count-funcao','count-categorias','count-posicoes','count-tipoarquivo','count-tipoesporte','count-formandos','count-flow','count-percentuais']
+                                      .forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '-'; });
+                                });
                             });
                         </script>
                         @endpush
