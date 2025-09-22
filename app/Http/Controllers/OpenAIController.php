@@ -860,6 +860,32 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
         return back()->with('success', 'Ordem registrada com sucesso.');
     }
 
+    /**
+     * Verifica se já existe ao menos uma ordem cadastrada para o chat/código do usuário.
+     * Parâmetros: chat_id (int, obrigatório), code (opcional quando o chat já possui code).
+     * Retorna JSON: { exists: bool, count: int }
+     */
+    public function checkCodeOrderExists(Request $request)
+    {
+        $chatId = (int) $request->input('chat_id');
+        if ($chatId <= 0) {
+            return response()->json(['exists' => false, 'count' => 0]);
+        }
+        $chat = \App\Models\OpenAIChat::select('id','user_id','code')->where('id', $chatId)->first();
+        if (!$chat || (int)$chat->user_id !== (int)Auth::id()) {
+            // Não revelar existência se não pertencer
+            return response()->json(['exists' => false, 'count' => 0]);
+        }
+        $code = trim((string)$request->input('code', ''));
+        if ($chat->code) { $code = (string)$chat->code; }
+
+        $q = \App\Models\OpenAICodeOrder::where('user_id', Auth::id())
+            ->where(function($w) use ($chatId){ $w->where('chat_id', $chatId)->orWhereNull('chat_id'); });
+        if ($code !== '') { $q->where('code', $code); }
+        $count = (int) $q->count();
+        return response()->json(['exists' => $count > 0, 'count' => $count]);
+    }
+
     public function editCodeOrder(\App\Models\OpenAICodeOrder $order)
     {
         if ((int)$order->user_id !== (int)Auth::id()) { abort(403); }

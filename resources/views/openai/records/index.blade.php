@@ -112,7 +112,7 @@
             </span>
           @endif
           <a href="{{ route('openai.chat.load', $selectedChat->id) }}" class="btn btn-sm btn-outline-danger" title="Ir para o chat desta conversa">Ir para Chat</a>
-          <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#codeOrderModal">
+          <button type="button" id="btnOpenCodeOrder" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#codeOrderModal">
             Cadastrar Código (Compra/Venda)
           </button>
         </div>
@@ -815,6 +815,49 @@ function prepQuickAdd(chatId){
     // Aguarda a máscara/DOM estabilizar antes de preencher
     window.addEventListener('DOMContentLoaded', () => setTimeout(fetchQuoteAndPrefill, 50));
   }
+})();
+</script>
+@endpush
+
+@push('scripts')
+<script>
+// Verifica existência de ordem para o chat/código antes de abrir o modal
+(function(){
+  const btn = document.getElementById('btnOpenCodeOrder');
+  const modalEl = document.getElementById('codeOrderModal');
+  const chatId = {{ ($selectedChat->id ?? $chatId ?? 0) ?: 0 }};
+  const code = @json(trim($selectedChat->code ?? ''));
+  if (!btn || !modalEl || !chatId) return;
+  btn.addEventListener('click', async function(ev){
+    ev.preventDefault();
+    ev.stopPropagation();
+    try {
+      const url = @json(route('openai.records.codeOrder.check')) + `?chat_id=${encodeURIComponent(chatId)}&code=${encodeURIComponent(code||'')}`;
+      const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+      if (!resp.ok) throw new Error('HTTP '+resp.status);
+      const data = await resp.json();
+      if (data && data.exists) {
+        // Já existe: não abre modal e alerta
+        const msg = code ? `Já existe ${data.count} ordem(ns) para o código ${code} nesta conversa.` : `Já existe ${data.count} ordem(ns) nesta conversa.`;
+        window.alert(msg);
+        return;
+      }
+      // Não existe: abre o modal programaticamente
+      if (window.bootstrap && bootstrap.Modal) {
+        const m = bootstrap.Modal.getOrCreateInstance(modalEl);
+        m.show();
+      } else {
+        // fallback: aciona atributo data-bs-*
+        modalEl.classList.add('show');
+      }
+    } catch (_e) {
+      // Em caso de falha, abre o modal normalmente (não bloquear a ação)
+      if (window.bootstrap && bootstrap.Modal) {
+        const m = bootstrap.Modal.getOrCreateInstance(modalEl);
+        m.show();
+      }
+    }
+  });
 })();
 </script>
 @endpush
