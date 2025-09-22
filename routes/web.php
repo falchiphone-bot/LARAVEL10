@@ -1324,6 +1324,7 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     Route::delete('/openai/chat/attachment/{attachment}', [OpenAIController::class, 'deleteAttachment'])->name('openai.chat.attachment.delete');
     // Registrar ordem de código (compra/venda)
     Route::post('/openai/records/code-order', [OpenAIController::class, 'storeCodeOrder'])->name('openai.records.codeOrder.store');
+    Route::get('/openai/records/code-order/check', [OpenAIController::class, 'checkCodeOrderExists'])->name('openai.records.codeOrder.check');
     Route::get('/openai/records/code-order/{order}/edit', [OpenAIController::class, 'editCodeOrder'])->name('openai.records.codeOrder.edit');
     Route::match(['put','patch'],'/openai/records/code-order/{order}', [OpenAIController::class, 'updateCodeOrder'])->name('openai.records.codeOrder.update');
     Route::delete('/openai/records/code-order/{order}', [OpenAIController::class, 'destroyCodeOrder'])->name('openai.records.codeOrder.destroy');
