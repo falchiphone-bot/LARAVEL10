@@ -209,6 +209,9 @@ Route::get('/', function () {
         return view('tanabisaf.index');
     } elseif ($dominio === 'vec.org.br') {
         return view('vec.index');
+    } elseif ($dominio === 'contabilidade.falchi.com.br') {
+        // Redireciona a raiz do subdomínio para o dashboard específico de Contabilidade
+        return redirect()->route('dashboardContabilidade');
     }
 
     return redirect('/dashboard'); // Caso não seja nenhum dos domínios específicos

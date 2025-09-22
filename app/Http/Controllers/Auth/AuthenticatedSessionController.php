@@ -43,6 +43,9 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        // Após logout, direciona para a página de login (em qualquer domínio).
+        // Isso evita cair em páginas públicas diferentes por subdomínio e
+        // simplifica a UX (especialmente em contabilidade.falchi.com.br).
+        return redirect('/login');
     }
 }
