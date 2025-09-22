@@ -9,39 +9,21 @@ use App\Models\Lancamento;
 use App\Models\MoedasValores;
 use App\Models\SolicitacaoExclusao;
 use Carbon\Carbon;
-use DateTime;
-use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Dompdf\Dompdf;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Facades\Route;
-use LancamentoExport as GlobalLancamentoExport;
 use Maatwebsite\Excel\Facades\Excel;
-
-use function JmesPath\search;
 
 class Extrato extends Component
 {
-    //mudança de empresas e contas
+    // Propriedades do componente (restauradas conforme uso no código)
     public $selEmpresa;
     public $selConta;
-
-    //models carregadas
-    public $Conta;
-
-
-    public $Lancamentos;
-
-    public $LancamentosPDF;
-
     public $Empresa;
-
-    //criando lista de exclusão
-    public $listaExclusao = [];
-    public $listaSoma = [];
-
-    //configurações de pesquisa
+    public $Conta;
+    public $Lancamentos;
     public $De;
     public $Ate;
     public $Descricao;
@@ -50,38 +32,15 @@ class Extrato extends Component
     public $SaidasGeral;
     public $EntradasGeral;
     public $Notificacao;
-    public $DataBloqueio;
+    public $Investimentos;
+    public $Transferencias;
+    public $SemDefinir;
     public $data_bloqueio_conta;
     public $data_bloqueio_empresa;
-
-    public $exibicao_pesquisa;
-    public $editar_lancamento = false;
-    //resolvendo problema do select2
-    public $modal = false;
-
-    protected $listeners = ['selectedSelEmpresaItem', 'selectedSelContaItem', 'search', 'alterarData'];
-
-    public function editarLancamento($lancamento_id, $empresa_id = null)
-    {
-        $this->editar_lancamento = $lancamento_id;
-        $this->emitTo('lancamento.editar-lancamento', 'alterarIdLancamento', $lancamento_id, $empresa_id);
-        $this->emitTo('lancamento.arquivo-lancamento', 'resetData', $lancamento_id);
-        $this->dispatchBrowserEvent('abrir-modal');
-        $this->modal = true;
-
-        // dd('Editanto Lancamento');
-    }
-
-    public function alterarData($date)
-    {
-        $novadadata = Carbon::parse($date);
-        foreach ($this->Lancamentos as $lancamento) {
-            if (!$this->temBloqueio($lancamento->ID, $date)) {
-                $lancamento->DataContabilidade = $novadadata->format('d-m-Y');
-                $lancamento->save();
-            }
-        }
-    }
+    public $listaExclusao = [];
+    public $listaSoma = [];
+    public $exibicao_pesquisa = '';
+    public $editar_lancamento = null;
 
     public function selectedSelEmpresaItem($item)
     {
@@ -135,18 +94,15 @@ class Extrato extends Component
         $this->selConta = $this->Conta->ID;
 
 
-        $de = Carbon::createFromDate($this->De)->format('d-m-Y 00:00:00');
-        $ate = Carbon::createFromDate($this->Ate)->format('d-m-Y 23:59:59');
+    $de = Carbon::parse($this->De)->startOfDay();
+    $ate = Carbon::parse($this->Ate)->endOfDay();
 
-        $lancamentos = Lancamento::where(function ($query) use ($contaID) {
-            return $query->where('ContaDebitoID', $contaID)->orWhere('ContaCreditoID', $contaID);
-        })
-            ->whereDoesntHave('SolicitacaoExclusao')
-            ->where(function ($where) use ($de, $ate) {
-                return $where->where('DataContabilidade', '>=', $de)->where('DataContabilidade', '<=', $ate);
-            });
+        $lancamentos = Lancamento::query()
+            ->daConta($contaID)
+            ->naoExcluido()
+            ->periodo($de, $ate);
 
-        $this->Lancamentos = $lancamentos->orderBy('DataContabilidade')->get();
+        $this->Lancamentos = $lancamentos->orderByData()->get();
 
 
     }
@@ -213,17 +169,15 @@ class Extrato extends Component
             });
 
             if ($this->De) {
-                if ($this->Descricao && $this->DescricaoApartirDe) {
-                    $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
-                } else {
-                    $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
-                }
-                $lancamentos->where('DataContabilidade', '>=', $de);
+                $start = $this->Descricao && $this->DescricaoApartirDe
+                    ? Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->startOfDay()
+                    : Carbon::createFromFormat('Y-m-d', $this->De)->startOfDay();
+                $lancamentos->where('DataContabilidade', '>=', $start);
                 session(['Extrato_De' => $this->De]);
             }
             if ($this->Ate) {
-                $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
-                $lancamentos->where('DataContabilidade', '<=', $ate);
+                $end = Carbon::createFromFormat('Y-m-d', $this->Ate)->endOfDay();
+                $lancamentos->where('DataContabilidade', '<=', $end);
                 session(['Extrato_Ate' => $this->Ate]);
             }
 
@@ -278,7 +232,8 @@ class Extrato extends Component
             }
 
             if ($this->Conferido === 'SaidasGeral' || $this->Conferido === 'EntradasGeral') {
-                dd('VERIFICAR A SELEÇÃO');
+                $this->addError('conferido', 'Seleção inválida para o filtro Conferido.');
+                return;
             }
 
             // $this->Lancamentos = $lancamentos
@@ -290,10 +245,9 @@ class Extrato extends Component
             //      'Conferido', 'SaidasGeral', 'EntradasGeral', 'Investimentos', 'Transferencias', 'SemDefinir']);
 
             $this->Lancamentos = $lancamentos
+            ->whereDoesntHave('SolicitacaoExclusao')
             ->leftJoin('Contabilidade.Empresas as Emp', 'Emp.ID', '=', 'Lancamentos.EmpresaID')
             ->leftJoin('Contabilidade.Historicos', 'Historicos.ID', '=', 'Lancamentos.HistoricoID')
-            ->leftJoin('Contabilidade.Solicitacoes', 'Solicitacoes.TableID', '=', 'Lancamentos.ID')
-            ->whereNull('Solicitacoes.ID')
             ->orderBy('DataContabilidade')
             ->get([
                 'Lancamentos.EmpresaID',
@@ -313,9 +267,6 @@ class Extrato extends Component
                 'Investimentos',
                 'Transferencias',
                 'SemDefinir',
-                // Campos adicionais da tabela Solicitacoes (adicione conforme necessário)
-                'Solicitacoes.ID as SolicitacaoID',
-                'Solicitacoes.Tipo as SolicitacaoTipo',
             ]);
 
 
@@ -331,61 +282,47 @@ class Extrato extends Component
     public function searchSaidasGeral()
     {
         if ($this->Conferido !== 'SaidasGeral') {
-            dd('VERIFICAR A SELEÇÃO');
+            $this->addError('conferido', 'Seleção inválida para Saídas Gerais.');
+            return;
         }
 
-        $contaID = session('extrato_ContaID') ?? $this->selConta;
-        $SaidasGeral = 1;
-
-        $lancamentos = Lancamento::where(function ($query) use ($SaidasGeral) {
-            return $query->where('Lancamentos.SaidasGeral', 1);
-        });
-
+        $start = null; $end = null;
         if ($this->De) {
-            if ($this->Descricao && $this->DescricaoApartirDe) {
-                $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
-            } else {
-                $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
-            }
-            $lancamentos->where('DataContabilidade', '>=', $de);
+            $start = $this->Descricao && $this->DescricaoApartirDe
+                ? Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->startOfDay()
+                : Carbon::createFromFormat('Y-m-d', $this->De)->startOfDay();
             session(['Extrato_De' => $this->De]);
         }
         if ($this->Ate) {
-            $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
-            $lancamentos->where('DataContabilidade', '<=', $ate);
+            $end = Carbon::createFromFormat('Y-m-d', $this->Ate)->endOfDay();
             session(['Extrato_Ate' => $this->Ate]);
         }
 
-        if ($this->Conferido != '') {
-            if ($this->Conferido == 'false') {
-                $lancamentos->where(function ($q) {
-                    return $q->whereNull('Conferido')->orWhere('Conferido', 0);
-                });
-            }
-            if ($this->Conferido == 'SaidasGeral') {
-                $lancamentos->where(function ($q) {
-                    return $q->whereNull('SaidasGeral')->orWhere('SaidasGeral', 1);
-                });
-            } else {
-                $lancamentos->where('Conferido', $this->Conferido);
-            }
-        }
+        $lancamentos = Lancamento::query()
+            ->leftJoin('Contabilidade.Historicos', 'Historicos.ID', '=', 'Lancamentos.HistoricoID')
+            ->saidasGeral()
+            ->periodo($start, $end)
+            ->conferido($this->Conferido)
+            ->naoExcluido()
+            ->orderByData();
 
-        if ($this->Conferido == 'SaidasGeral') {
-            $this->Lancamentos = $lancamentos
-                ->orderBy('DataContabilidade')
-                ->whereDoesntHave('SolicitacaoExclusao')
-                ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
-                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral']);
-        }
-
-        $SaidasGeral = 0;
+        $this->Lancamentos = $lancamentos->get([
+            'Lancamentos.ID',
+            'Lancamentos.Valor',
+            'DataContabilidade',
+            'Lancamentos.ContaCreditoID',
+            'Lancamentos.Descricao',
+            'Historicos.Descricao as HistoricoDescricao',
+            'Conferido',
+            'SaidasGeral'
+        ]);
     }
 
     public function searchSaidasGeralExcel()
     {
         if ($this->Conferido !== 'SaidasGeral') {
-            dd('VERIFICAR A SELEÇÃO PARA EXCEL');
+            $this->addError('conferido', 'Seleção inválida para exportação de Saídas Gerais.');
+            return;
         }
 
         $contaID = session('extrato_ContaID') ?? $this->selConta;
@@ -395,18 +332,17 @@ class Extrato extends Component
             return $query->where('Lancamentos.SaidasGeral', 1);
         });
 
+        $start = null; $end = null;
         if ($this->De) {
-            if ($this->Descricao && $this->DescricaoApartirDe) {
-                $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
-            } else {
-                $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
-            }
-            $lancamentos->where('DataContabilidade', '>=', $de);
+            $start = $this->Descricao && $this->DescricaoApartirDe
+                ? Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->startOfDay()
+                : Carbon::createFromFormat('Y-m-d', $this->De)->startOfDay();
+            $lancamentos->where('DataContabilidade', '>=', $start);
             session(['Extrato_De' => $this->De]);
         }
         if ($this->Ate) {
-            $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
-            $lancamentos->where('DataContabilidade', '<=', $ate);
+            $end = Carbon::createFromFormat('Y-m-d', $this->Ate)->endOfDay();
+            $lancamentos->where('DataContabilidade', '<=', $end);
             session(['Extrato_Ate' => $this->Ate]);
         }
 
@@ -429,8 +365,8 @@ class Extrato extends Component
             $this->Lancamentos = $lancamentos
                 ->orderBy('DataContabilidade')
                 ->whereDoesntHave('SolicitacaoExclusao')
-                ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
-                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaDebitoID', 'Lancamentos.ContaCreditoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral']);
+                ->with(['ContaDebito.PlanoConta', 'ContaCredito.PlanoConta', 'Historico'])
+                ->get();
         }
 
         //  DD($this->Lancamentos);
@@ -453,12 +389,12 @@ class Extrato extends Component
             $ExportarLinha[] = $exportarItem;
         }
 
-        $exportarUnir = collect($ExportarLinha);
+    $exportarUnir = collect($ExportarLinha);
 
-        // dd($ExportarUnir);
+    $deDisplay = $start ? $start->format('d/m/Y 00:00:00') : Carbon::now()->startOfDay()->format('d/m/Y 00:00:00');
+    $ateDisplay = $end ? $end->format('d/m/Y 23:59:59') : Carbon::now()->endOfDay()->format('d/m/Y 23:59:59');
 
-        // Caminho do arquivo .csv que você deseja criar na pasta "storage"
-        $Arquivo = 'Pagamentos por PEDRO ROBERTO FALCHI E SANDRA ELISA MAGOSSI FALCHI' . '-' . str_replace('/', '', $de) . '-a-' . str_replace('/', '', $ate) . '.xlsx';
+    $Arquivo = 'Pagamentos por PEDRO ROBERTO FALCHI E SANDRA ELISA MAGOSSI FALCHI' . '-' . str_replace('/', '', $deDisplay) . '-a-' . str_replace('/', '', $ateDisplay) . '.xlsx';
 
         return Excel::download(new LancamentoExport($exportarUnir), "$Arquivo");
     }
@@ -480,25 +416,25 @@ class Extrato extends Component
         session(['Extrato_De' => $this->De]);
         session(['Extrato_Ate' => $this->Ate]);
         if ($this->De) {
-            if ($this->Descricao && $this->DescricaoApartirDe) {
-                $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
-            } else {
-                $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
-            }
-            $lancamentosSaida->where('DataContabilidade', '>=', $de);
-            $lancamentosEntrada->where('DataContabilidade', '>=', $de);
+            $start = $this->Descricao && $this->DescricaoApartirDe
+                ? Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->startOfDay()
+                : Carbon::createFromFormat('Y-m-d', $this->De)->startOfDay();
+            $lancamentosSaida->where('DataContabilidade', '>=', $start);
+            $lancamentosEntrada->where('DataContabilidade', '>=', $start);
         }
         if ($this->Ate) {
-            $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
-            $lancamentosSaida->where('DataContabilidade', '<=', $ate);
-            $lancamentosEntrada->where('DataContabilidade', '<=', $ate);
+            $end = Carbon::createFromFormat('Y-m-d', $this->Ate)->endOfDay();
+            $lancamentosSaida->where('DataContabilidade', '<=', $end);
+            $lancamentosEntrada->where('DataContabilidade', '<=', $end);
         }
 
         $totalsomadoSAIDAS = $lancamentosSaida->sum('Valor');
 
         $totalsomadoEntradas = $lancamentosEntrada->sum('Valor');
 
-        dd(' TOTAL SOMADO DE TODAS ENTRADAS EM GERAL: ', $totalsomadoEntradas, ' TOTAL SOMADO DE TODAS SAIDAS EM GERAL: ', $totalsomadoSAIDAS, ' RESULTADO ENTRE ENTRADAS E SAIDAS: ', $totalsomadoEntradas - $totalsomadoSAIDAS, ' PERÍODO DE: ' . $de, ' A ' . $ate);
+    $msg = 'TOTAL ENTRADAS: ' . number_format($totalsomadoEntradas, 2, ',', '.') . ' | TOTAL SAÍDAS: ' . number_format($totalsomadoSAIDAS, 2, ',', '.') . ' | RESULTADO: ' . number_format(($totalsomadoEntradas - $totalsomadoSAIDAS), 2, ',', '.');
+    session()->flash('info', $msg);
+    return;
 
         $SaidasGeral = 0;
     }
@@ -506,54 +442,40 @@ class Extrato extends Component
     public function searchEntradasGeral()
     {
         if ($this->Conferido !== 'EntradasGeral') {
-            dd('VERIFICAR A SELEÇÃO');
+            $this->addError('conferido', 'Seleção inválida para Entradas Gerais.');
+            return;
         }
 
-        $contaID = session('extrato_ContaID') ?? $this->selConta;
-        $EntradasGeral = 1;
-
-        $lancamentos = Lancamento::where(function ($query) use ($EntradasGeral) {
-            return $query->where('Lancamentos.EntradasGeral', 1);
-        });
-
+        $start = null; $end = null;
         if ($this->De) {
-            if ($this->Descricao && $this->DescricaoApartirDe) {
-                $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
-            } else {
-                $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
-            }
-            $lancamentos->where('DataContabilidade', '>=', $de);
+            $start = $this->Descricao && $this->DescricaoApartirDe
+                ? Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->startOfDay()
+                : Carbon::createFromFormat('Y-m-d', $this->De)->startOfDay();
             session(['Extrato_De' => $this->De]);
         }
         if ($this->Ate) {
-            $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
-            $lancamentos->where('DataContabilidade', '<=', $ate);
+            $end = Carbon::createFromFormat('Y-m-d', $this->Ate)->endOfDay();
             session(['Extrato_Ate' => $this->Ate]);
         }
 
-        if ($this->Conferido != '') {
-            if ($this->Conferido == 'false') {
-                $lancamentos->where(function ($q) {
-                    return $q->whereNull('Conferido')->orWhere('Conferido', 0);
-                });
-            }
-            if ($this->Conferido == 'EntradasGeral') {
-                $lancamentos->where(function ($q) {
-                    return $q->whereNull('EntradasGeral')->orWhere('EntradasGeral', 1);
-                });
-            } else {
-                $lancamentos->where('Conferido', $this->Conferido);
-            }
-        }
-        if ($this->Conferido == 'EntradasGeral') {
-            $this->Lancamentos = $lancamentos
-                ->orderBy('DataContabilidade')
-                ->whereDoesntHave('SolicitacaoExclusao')
-                ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
-                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaCreditoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral', 'EntradasGeral']);
-        }
+        $lancamentos = Lancamento::query()
+            ->leftJoin('Contabilidade.Historicos', 'Historicos.ID', '=', 'Lancamentos.HistoricoID')
+            ->entradasGeral()
+            ->periodo($start, $end)
+            ->conferido($this->Conferido)
+            ->naoExcluido()
+            ->orderByData();
 
-        $EntradasGeral = 0;
+        $this->Lancamentos = $lancamentos->get([
+            'Lancamentos.ID',
+            'Lancamentos.Valor',
+            'DataContabilidade',
+            'Lancamentos.ContaCreditoID',
+            'Lancamentos.Descricao',
+            'Historicos.Descricao as HistoricoDescricao',
+            'Conferido',
+            'EntradasGeral',
+        ]);
     }
 
 
@@ -664,7 +586,8 @@ class Extrato extends Component
     public function searchEntradasGeralExcel()
     {
         if ($this->Conferido !== 'EntradasGeral') {
-            dd('VERIFICAR A SELEÇÃO');
+            $this->addError('conferido', 'Seleção inválida para exportação de Entradas Gerais.');
+            return;
         }
 
         $contaID = session('extrato_ContaID') ?? $this->selConta;
@@ -674,18 +597,17 @@ class Extrato extends Component
             return $query->where('Lancamentos.EntradasGeral', 1);
         });
 
+        $start = null; $end = null;
         if ($this->De) {
-            if ($this->Descricao && $this->DescricaoApartirDe) {
-                $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
-            } else {
-                $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
-            }
-            $lancamentos->where('DataContabilidade', '>=', $de);
+            $start = $this->Descricao && $this->DescricaoApartirDe
+                ? Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->startOfDay()
+                : Carbon::createFromFormat('Y-m-d', $this->De)->startOfDay();
+            $lancamentos->where('DataContabilidade', '>=', $start);
             session(['Extrato_De' => $this->De]);
         }
         if ($this->Ate) {
-            $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
-            $lancamentos->where('DataContabilidade', '<=', $ate);
+            $end = Carbon::createFromFormat('Y-m-d', $this->Ate)->endOfDay();
+            $lancamentos->where('DataContabilidade', '<=', $end);
             session(['Extrato_Ate' => $this->Ate]);
         }
 
@@ -707,8 +629,8 @@ class Extrato extends Component
             $this->Lancamentos = $lancamentos
                 ->orderBy('DataContabilidade')
                 ->whereDoesntHave('SolicitacaoExclusao')
-                ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
-                ->get(['Lancamentos.ID', 'Lancamentos.Valor', 'DataContabilidade', 'Lancamentos.ContaDebitoID', 'Lancamentos.ContaCreditoID', 'Lancamentos.Descricao', 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral', 'EntradasGeral']);
+                ->with(['ContaDebito.PlanoConta', 'ContaCredito.PlanoConta', 'Historico'])
+                ->get();
         }
 
         $EntradasGeral = 0;
@@ -729,37 +651,36 @@ class Extrato extends Component
             $ExportarLinha[] = $exportarItem;
         }
 
-        $exportarUnir = collect($ExportarLinha);
+    $exportarUnir = collect($ExportarLinha);
 
-        // dd($ExportarUnir);
+    $deDisplay = $start ? $start->format('d/m/Y 00:00:00') : Carbon::now()->startOfDay()->format('d/m/Y 00:00:00');
+    $ateDisplay = $end ? $end->format('d/m/Y 23:59:59') : Carbon::now()->endOfDay()->format('d/m/Y 23:59:59');
 
-        // Caminho do arquivo .csv que você deseja criar na pasta "storage"
-        $Arquivo = 'Entradas para PEDRO ROBERTO FALCHI E SANDRA ELISA MAGOSSI FALCHI' . '-' . str_replace('/', '', $de) . '-a-' . str_replace('/', '', $ate) . '.xlsx';
+    $Arquivo = 'Entradas para PEDRO ROBERTO FALCHI E SANDRA ELISA MAGOSSI FALCHI' . '-' . str_replace('/', '', $deDisplay) . '-a-' . str_replace('/', '', $ateDisplay) . '.xlsx';
 
         return Excel::download(new LancamentoExport($exportarUnir), "$Arquivo");
     }
 
     public function searchPDF()
     {
-        $contaID = cache('extrato_ContaID') ?? $this->selConta;
+    $contaID = session('extrato_ContaID') ?? $this->selConta;
         if ($contaID) {
             $lancamentos = Lancamento::where(function ($query) use ($contaID) {
                 return $query->where('Lancamentos.ContaDebitoID', $contaID)->orWhere('Lancamentos.ContaCreditoID', $contaID);
             });
 
+            $start = null; $end = null;
             if ($this->De) {
-                if ($this->Descricao && $this->DescricaoApartirDe) {
-                    $de = Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->format('d/m/Y 00:00:00');
-                } else {
-                    $de = Carbon::createFromFormat('Y-m-d', $this->De)->format('d/m/Y 00:00:00');
-                }
-                $lancamentos->where('DataContabilidade', '>=', $de);
-                cache(['Extrato_De' => $this->De]);
+                $start = $this->Descricao && $this->DescricaoApartirDe
+                    ? Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->startOfDay()
+                    : Carbon::createFromFormat('Y-m-d', $this->De)->startOfDay();
+                $lancamentos->where('DataContabilidade', '>=', $start);
+                session(['Extrato_De' => $this->De]);
             }
             if ($this->Ate) {
-                $ate = Carbon::createFromFormat('Y-m-d', $this->Ate)->format('d/m/Y 23:59:59');
-                $lancamentos->where('DataContabilidade', '<=', $ate);
-                cache(['Extrato_Ate' => $this->Ate]);
+                $end = Carbon::createFromFormat('Y-m-d', $this->Ate)->endOfDay();
+                $lancamentos->where('DataContabilidade', '<=', $end);
+                session(['Extrato_Ate' => $this->Ate]);
             }
 
             if ($this->Descricao) {
@@ -802,8 +723,8 @@ class Extrato extends Component
                 ->route('Extrato.gerarpdf')
                 ->with('LancamentosPDF', [
                     'DadosExtrato' => $this->Lancamentos,
-                    'de' => $de,
-                    'ate' => $ate,
+                    'de' => ($start ? $start->format('d/m/Y 00:00:00') : Carbon::now()->startOfDay()->format('d/m/Y 00:00:00')),
+                    'ate' => ($end ? $end->format('d/m/Y 23:59:59') : Carbon::now()->endOfDay()->format('d/m/Y 23:59:59')),
                     'descricaoconta' => $this->Conta->Planoconta->Descricao,
                     'conta' => $this->Conta->ID,
                     'empresa' => $this->Conta->EmpresaID,
@@ -828,6 +749,25 @@ class Extrato extends Component
 
     public function confirmarAtualizar($lancamento_id)
     {
+        $this->search();
+    }
+
+    public function editarLancamento($lancamentoId, $empresaId = null)
+    {
+        // Define o registro a editar (ou 'novo') e abre o modal no front
+        $this->editar_lancamento = $lancamentoId;
+        if (!empty($empresaId)) {
+            // Ajusta empresa selecionada quando informado (útil para novo)
+            $this->selEmpresa = $empresaId;
+        }
+        $this->dispatchBrowserEvent('abrir-modal');
+    }
+
+    public function fecharEdicao()
+    {
+        // Limpa seleção e solicita fechar o modal no front
+        $this->editar_lancamento = null;
+        $this->dispatchBrowserEvent('fechar-modal');
         $this->search();
     }
 
@@ -860,9 +800,10 @@ class Extrato extends Component
         ->first();
 
 
-        if ($dataCalcular == null) {
-          dd('Não existe valor para a data informada', $ProximaData, $Data);
-        }
+                if ($dataCalcular == null) {
+                    $this->addError('poupanca', 'Não existe valor para a data informada: ' . $ProximaData);
+                    return;
+                }
 
 
         $NovaDescricao = $dataCalcular->valor . '% sobre saldo de '. $Saldo   . '. ';
@@ -1407,7 +1348,8 @@ class Extrato extends Component
         // return;
 
         if ($lancamento->EntradasGeral) {
-            dd('REGISTRO JÁ MARCADO COMO SAIDA GERAL');
+            $this->addError('conflito', 'Registro já marcado como Entrada Geral.');
+            return;
         }
 
         $funcao = __FUNCTION__;
@@ -1443,7 +1385,7 @@ class Extrato extends Component
             $this->addError('alteraDataVencimenotRapido', 'Nenhuma ação selecionada');
         }
 
-        $lancamento->DataContabilidade = $novaData->format('d-m-Y');
+    $lancamento->DataContabilidade = $novaData;
 
         $lancamento->save();
         $this->search();
@@ -1574,7 +1516,23 @@ class Extrato extends Component
         //    dd($contaDolar);
 
 
-        return view('livewire.conta.extrato', compact('empresas', 'contas', 'saldoAnterior', 'saldoAnteriorDolar'));
+        // Cabeçalho de exibição (título) seguro caso filtros não estejam definidos
+        $periodo = '';
+        if (!empty($this->De) && !empty($this->Ate)) {
+            try {
+                $periodo = Carbon::parse($this->De)->format('d/m/Y') . ' a ' . Carbon::parse($this->Ate)->format('d/m/Y');
+            } catch (\Throwable $e) {
+                $periodo = '';
+            }
+        }
+        $filtro = '';
+        if (!empty($this->Conferido)) {
+            $filtro = ' | Filtro: ' . (string) $this->Conferido;
+        }
+        $this->exibicao_pesquisa = trim('Extrato ' . ($periodo ? "($periodo)" : '') . $filtro);
+
+        return view('livewire.conta.extrato', compact('empresas', 'contas', 'saldoAnterior', 'saldoAnteriorDolar'))
+            ->with('exibicao_pesquisa', $this->exibicao_pesquisa);
     }
 
     public function gerarExtratoPdf_sempaginacao()

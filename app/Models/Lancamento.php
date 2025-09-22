@@ -47,7 +47,7 @@ class Lancamento extends Model
         'Investimentos' => 'boolean',
         'Transferencias' => 'boolean',
         'SemDefinir' => 'boolean',
- 
+
     ];
 
     public function Empresa(): HasOne
@@ -114,6 +114,87 @@ class Lancamento extends Model
         }
 
         return (float) $query->sum('ValorQuantidadeDolar');
+    }
+
+    // Scopes reutilizáveis
+    public function scopeDaConta($query, $contaId)
+    {
+        return $query->where(function ($q) use ($contaId) {
+            $q->where('ContaDebitoID', $contaId)
+              ->orWhere('ContaCreditoID', $contaId);
+        });
+    }
+
+    public function scopePeriodo($query, ?\DateTimeInterface $de, ?\DateTimeInterface $ate)
+    {
+        if ($de) {
+            $query->where('DataContabilidade', '>=', $de);
+        }
+        if ($ate) {
+            $query->where('DataContabilidade', '<=', $ate);
+        }
+        return $query;
+    }
+
+    public function scopeNaoExcluido($query)
+    {
+        return $query->whereDoesntHave('SolicitacaoExclusao');
+    }
+
+    public function scopeTexto($query, ?string $descricao)
+    {
+        if ($descricao === null || $descricao === '') return $query;
+        return $query->where(function ($q) use ($descricao) {
+            $q->where('Lancamentos.Descricao', 'like', "%$descricao%")
+              ->orWhere('Historicos.Descricao', 'like', "%$descricao%");
+        });
+    }
+
+    public function scopeConferido($query, $valor)
+    {
+        if ($valor === '' || $valor === null) return $query;
+        if ($valor === 'false') {
+            return $query->where(function ($q) {
+                $q->whereNull('Conferido')->orWhere('Conferido', 0);
+            });
+        }
+        if ($valor === 'SaidasGeral' || $valor === 'EntradasGeral') {
+            // Deixar validação para camada superior
+            return $query;
+        }
+        return $query->where('Conferido', $valor);
+    }
+
+    public function scopeSaidasGeral($query)
+    {
+        return $query->where('Lancamentos.SaidasGeral', 1);
+    }
+
+    public function scopeEntradasGeral($query)
+    {
+        return $query->where('Lancamentos.EntradasGeral', 1);
+    }
+
+    public function scopeNotificacao($query, $valor)
+    {
+        if ($valor === '' || $valor === null) return $query;
+        return $query->where('notificacao', $valor);
+    }
+
+    public function scopeEmpresa($query, $empresaId)
+    {
+        if (!$empresaId) return $query;
+        return $query->where('EmpresaID', $empresaId);
+    }
+
+    public function scopeOrderByData($query)
+    {
+        return $query->orderBy('DataContabilidade');
+    }
+
+    public function scopeComRelacoesPadrao($query)
+    {
+        return $query->with(['ContaDebito.PlanoConta', 'ContaCredito.PlanoConta', 'Historico', 'Empresa']);
     }
 
 

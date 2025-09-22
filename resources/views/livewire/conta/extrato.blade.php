@@ -887,6 +887,12 @@
             })
         });
 
+        window.addEventListener('fechar-modal', event => {
+            var myModalEl = document.getElementById('editarLancamentoModal');
+            var modalInstance = bootstrap.Modal.getInstance(myModalEl) || new bootstrap.Modal(myModalEl);
+            modalInstance.hide();
+        });
+
         document.addEventListener("DOMContentLoaded", () => {
             Livewire.hook('message.processed', (message, component) => {
                 $(document).ready(function() {
