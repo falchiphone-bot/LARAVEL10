@@ -514,7 +514,13 @@ class OpenAIChatRecordController extends Controller
         $invAccId = $request->input('investment_account_id');
     $sort = $request->input('sort', 'code'); // code|title|date|amount|account|qty
     $dir = strtolower($request->input('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
-        // Carregar contas de investimento do usuário para o filtro
+    // Configs de tendência (opcionais)
+    $trendDays = (int) max(0, (int)$request->input('trend_days', 0)); // 0 = desabilitado
+    $trendEpsPct = (float) $request->input('trend_epsilon', 0.1); // percentual mínimo para considerar sobe/desce
+    if (!is_finite($trendEpsPct)) { $trendEpsPct = 0.1; }
+    $trendEps = max(0.0, $trendEpsPct);
+
+    // Carregar contas de investimento do usuário para o filtro
         $investmentAccounts = InvestmentAccount::where('user_id', $userId)
             ->orderBy('account_name')
             ->get(['id','account_name','broker']);
@@ -789,6 +795,68 @@ class OpenAIChatRecordController extends Controller
         }
         $totalSelected = collect($rows)->sum(function($r){ return (int)($r->qty ?? 0); });
 
+        // Tendências por grupo com base na baseline (se informada) e offset de dias (trendDays)
+        $trends = collect();
+        $trendsSummary = ['up'=>0,'down'=>0,'flat'=>0,'total'=>0];
+        if ($baseline && $trendDays > 0 && $records->isNotEmpty() && $baselines->isNotEmpty()) {
+            try { $baseStart = \Carbon\Carbon::parse($baseline)->startOfDay(); } catch (\Throwable $e) { $baseStart = null; }
+            if ($baseStart) {
+                $targetDay = $baseStart->clone()->addDays($trendDays)->endOfDay();
+                // Para cada grupo, pegar o primeiro registro com occurred_at >= targetDay
+                $grpKeys = collect($rows)->pluck('grp')->unique()->values();
+                if ($grpKeys->isNotEmpty()) {
+                    $tQuery = DB::table('openai_chat_records as r')
+                        ->join('open_a_i_chats as cc', 'cc.id', '=', 'r.chat_id')
+                        ->where('r.user_id', $userId)
+                        ->where('r.occurred_at', '>=', $targetDay);
+                    if ($assetCode !== '') { $tQuery->whereRaw($codeExpr . ' = ?', [$assetCode]); }
+                    if ($invAccId !== null && $invAccId !== '') {
+                        if ((string)$invAccId === '0') { $tQuery->whereNull('r.investment_account_id'); }
+                        else { $tQuery->where('r.investment_account_id', (int)$invAccId); }
+                    }
+                    // Seleciona o primeiro por data para cada grupo
+                    $tRows = $tQuery
+                        ->selectRaw($groupExpr . ' as grp, r.amount, r.occurred_at')
+                        ->orderBy('r.occurred_at','asc')
+                        ->get();
+                    // Mapear primeiro após target por grupo
+                    $firstAfter = [];
+                    foreach ($tRows as $tr) {
+                        $g = $tr->grp; if (!$grpKeys->contains($g)) continue;
+                        if (!isset($firstAfter[$g])) { $firstAfter[$g] = $tr; }
+                    }
+                    // Calcular tendência com baseAmount da baseline
+                    foreach ($grpKeys as $g) {
+                        $baseInfo = $baselines->get($g) ?? null;
+                        if (!$baseInfo || !isset($baseInfo['amount'])) continue;
+                        $baseAmt = (float)$baseInfo['amount'];
+                        $next = $firstAfter[$g] ?? null;
+                        if (!$next) continue;
+                        $cur = (float)($next->amount ?? 0);
+                        $dif = $cur - $baseAmt;
+                        $pct = (abs($baseAmt) > 0.0000001) ? ($dif / $baseAmt * 100.0) : null;
+                        $label = 'flat';
+                        if ($pct !== null) {
+                            if ($pct > $trendEps) $label = 'up';
+                            elseif ($pct < -$trendEps) $label = 'down';
+                        } else {
+                            // sem base para %, usa epsilon absoluto
+                            if ($dif > 0) $label = 'up';
+                            elseif ($dif < 0) $label = 'down';
+                        }
+                        $trends[$g] = [
+                            'label' => $label,
+                            'diff' => $dif,
+                            'pct' => $pct,
+                            'at' => $next->occurred_at,
+                        ];
+                        $trendsSummary['total']++;
+                        if (isset($trendsSummary[$label])) { $trendsSummary[$label]++; }
+                    }
+                }
+            }
+        }
+
         // Ordenação dinâmica conforme solicitação
         $recordsSorted = $records->sortBy(function($r) use ($sort, $counts, $baselines, $averages, $baselineStats, $overallStats){
             $code = trim((string)($r->chat->code ?? ''));
@@ -853,7 +921,11 @@ class OpenAIChatRecordController extends Controller
             'baselines' => $baselines,
         'averages' => $averages, // média completa (sem baseline) – usada fallback
         'baselineStats' => $baselineStats, // estatísticas limitadas até baseline
-        'overallStats' => $overallStats, // estatísticas gerais sem limite baseline
+    'overallStats' => $overallStats, // estatísticas gerais sem limite baseline
+    'trends' => $trends,
+    'trendsSummary' => $trendsSummary,
+    'trendDays' => $trendDays,
+    'trendEpsPct' => $trendEps,
         ]);
     }
 
@@ -872,17 +944,19 @@ class OpenAIChatRecordController extends Controller
     $baselineStats = $data['baselineStats'] ?? collect();
     $overallStats = $data['overallStats'] ?? collect();
     $counts = $data['counts'] ?? collect();
+    $trends = $data['trends'] ?? collect();
         $baseline = $data['baseline'] ?? null;
         $locale = strtolower((string)$request->input('locale'));
         $ptBR = $locale === 'br' || $locale === 'pt-br';
-        $callback = function() use ($records, $baselines, $baselineStats, $counts, $baseline, $overallStats, $ptBR){
+        $callback = function() use ($records, $baselines, $baselineStats, $counts, $baseline, $overallStats, $ptBR, $trends){
             $out = fopen('php://output', 'w');
             // Cabeçalho
             fputcsv($out, [
                 'Codigo','Conversa','DataUltimo','ValorUltimo','Qtd',
                 'BaseValor','BaseData','VarPercent','Dif',
                 'MediaBase','MedianaBase','MaxBase','MinBase','CountBase',
-                'MediaTotal','MedianaTotal','MaxTotal','MinTotal','CountTotal'
+                'MediaTotal','MedianaTotal','MaxTotal','MinTotal','CountTotal',
+                'TendenciaLabel','TendenciaVarPercent','TendenciaDataAlvo'
             ], ';');
             foreach ($records as $r) {
                 $code = trim($r->chat->code ?? '') ?: trim($r->chat->title ?? '');
@@ -894,6 +968,26 @@ class OpenAIChatRecordController extends Controller
                 $var = ($baseAmount !== null && abs((float)$baseAmount) > 0.0000001) ? ($dif / (float)$baseAmount * 100.0) : null;
                 $stats = $baselineStats->get($code) ?? [];
                 $statsAll = $overallStats->get($code) ?? [];
+                // Tendência
+                $trend = is_array($trends) ? ($trends[$code] ?? null) : ($trends->get($code) ?? null);
+                $trendLabel = '';
+                $trendPct = '';
+                $trendDate = '';
+                if ($trend) {
+                    $lab = (string)($trend['label'] ?? '');
+                    // traduz para pt-br simples
+                    $trendLabel = match($lab){
+                        'up' => 'sobe',
+                        'down' => 'desce',
+                        default => 'mantem',
+                    };
+                    if (isset($trend['pct']) && $trend['pct'] !== null) {
+                        $trendPct = (float)$trend['pct'];
+                    }
+                    if (!empty($trend['at'])) {
+                        $trendDate = (string)$trend['at'];
+                    }
+                }
                 // Função util formatação pt-BR opcional
                 $fmt = function($n, $dec=6) use ($ptBR){
                     if ($n === '' || $n === null) return '';
@@ -931,6 +1025,9 @@ class OpenAIChatRecordController extends Controller
                     isset($statsAll['max']) ? $fmt($statsAll['max']) : '',
                     isset($statsAll['min']) ? $fmt($statsAll['min']) : '',
                     isset($statsAll['count']) ? (int)$statsAll['count'] : '',
+                    $trendLabel,
+                    $trendPct !== '' ? $fmt($trendPct) : '',
+                    $fmtDate($trendDate),
                 ];
                 fputcsv($out, $row, ';');
             }
@@ -939,6 +1036,199 @@ class OpenAIChatRecordController extends Controller
         $fileName = 'assets_export_' . date('Ymd_His') . '.csv';
         return response()->streamDownload($callback, $fileName, [
             'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
+    /**
+     * Exporta um resumo agregado (contagem sobe/desce/mantém) em CSV, baseado nos mesmos filtros de assets().
+     */
+    public function assetsExportSummary(Request $request)
+    {
+        $responseView = $this->assets($request);
+        $data = $responseView->getData();
+        $trendsSummary = $data['trendsSummary'] ?? ['up'=>0,'down'=>0,'flat'=>0,'total'=>0];
+        $trendDays = $data['trendDays'] ?? (int)($request->input('trend_days', 0));
+        $baseline = $data['baseline'] ?? (string)$request->input('baseline');
+        $callback = function() use ($trendsSummary, $trendDays, $baseline){
+            $out = fopen('php://output', 'w');
+            // Cabeçalho
+            fputcsv($out, ['Baseline','DiasApos','Total','Sobe','Desce','Mantem'], ';');
+            $row = [
+                $baseline ?: '',
+                (int)$trendDays,
+                (int)($trendsSummary['total'] ?? 0),
+                (int)($trendsSummary['up'] ?? 0),
+                (int)($trendsSummary['down'] ?? 0),
+                (int)($trendsSummary['flat'] ?? 0),
+            ];
+            fputcsv($out, $row, ';');
+            fclose($out);
+        };
+        $fileName = 'assets_trend_summary_' . date('Ymd_His') . '.csv';
+        return response()->streamDownload($callback, $fileName, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
+    /**
+     * Exporta XLSX com duas abas: "Ativos" (linhas detalhadas) e "Resumo" (tendências agregadas).
+     */
+    public function assetsExportXlsx(Request $request)
+    {
+        // Reaproveita assets() para preparar os dados
+        $responseView = $this->assets($request);
+        $data = $responseView->getData();
+        $records = $data['records'] ?? collect();
+        $baselines = $data['baselines'] ?? collect();
+        $baselineStats = $data['baselineStats'] ?? collect();
+        $overallStats = $data['overallStats'] ?? collect();
+        $counts = $data['counts'] ?? collect();
+        $trends = $data['trends'] ?? collect();
+        $trendsSummary = $data['trendsSummary'] ?? ['up'=>0,'down'=>0,'flat'=>0,'total'=>0];
+        $trendDays = $data['trendDays'] ?? (int)$request->input('trend_days', 0);
+
+        // Monta planilha
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet1 = $spreadsheet->getActiveSheet();
+        $sheet1->setTitle('Ativos');
+        $sheet2 = new \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet($spreadsheet, 'Resumo');
+        $spreadsheet->addSheet($sheet2, 1);
+
+    // Cabeçalho Ativos
+        $headers = [
+            'Codigo','Conversa','DataUltimo','ValorUltimo','Qtd',
+            'BaseValor','BaseData','VarPercent','Dif',
+            'MediaBase','MedianaBase','MaxBase','MinBase','CountBase',
+            'MediaTotal','MedianaTotal','MaxTotal','MinTotal','CountTotal',
+            'TendenciaLabel','TendenciaVarPercent','TendenciaDataAlvo'
+        ];
+        $sheet1->fromArray($headers, null, 'A1');
+
+        $row = 2;
+        foreach ($records as $r) {
+            $code = trim($r->chat->code ?? '') ?: trim($r->chat->title ?? '');
+            $b = is_array($baselines) ? ($baselines[$code] ?? null) : ($baselines->get($code) ?? null);
+            $baseAmount = $b['amount'] ?? null;
+            $baseDate = isset($b['occurred_at']) ? (optional($b['occurred_at'])->format('Y-m-d')) : null;
+            $cur = (float)($r->amount ?? 0);
+            $dif = ($baseAmount !== null) ? ($cur - (float)$baseAmount) : null;
+            $var = ($baseAmount !== null && abs((float)$baseAmount) > 0.0000001) ? ($dif / (float)$baseAmount * 100.0) : null;
+            $stats = is_array($baselineStats) ? ($baselineStats[$code] ?? []) : ($baselineStats->get($code) ?? []);
+            $statsAll = is_array($overallStats) ? ($overallStats[$code] ?? []) : ($overallStats->get($code) ?? []);
+            $trend = is_array($trends) ? ($trends[$code] ?? null) : ($trends->get($code) ?? null);
+            $trendLabel = '';
+            $trendPct = '';
+            $trendDate = '';
+            if ($trend) {
+                $lab = (string)($trend['label'] ?? '');
+                $trendLabel = match($lab){ 'up'=>'sobe','down'=>'desce', default=>'mantem' };
+                if (isset($trend['pct']) && $trend['pct'] !== null) { $trendPct = (float)$trend['pct']; }
+                if (!empty($trend['at'])) { $trendDate = (string)$trend['at']; }
+            }
+            $sheet1->fromArray([
+                $code,
+                $r->chat->title ?? '',
+                optional($r->occurred_at)->format('Y-m-d H:i:s'),
+                $cur,
+                (int)($counts[$code] ?? 0),
+                $baseAmount !== null ? (float)$baseAmount : null,
+                $baseDate,
+                $var !== null ? (float)$var : null,
+                $dif !== null ? (float)$dif : null,
+                $stats['avg'] ?? null,
+                $stats['median'] ?? null,
+                $stats['max'] ?? null,
+                $stats['min'] ?? null,
+                $stats['count'] ?? null,
+                $statsAll['avg'] ?? null,
+                $statsAll['median'] ?? null,
+                $statsAll['max'] ?? null,
+                $statsAll['min'] ?? null,
+                $statsAll['count'] ?? null,
+                $trendLabel,
+                $trendPct !== '' ? (float)$trendPct : null,
+                $trendDate,
+            ], null, 'A'.$row);
+            // Converter datas em números do Excel para permitir formatação
+            try {
+                $colDateUlt = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(3); // C
+                $rawDt = optional($r->occurred_at)->format('Y-m-d H:i:s');
+                if ($rawDt) {
+                    $dt = new \DateTime($rawDt);
+                    $excelDate = \PhpOffice\PhpSpreadsheet\Shared\Date::dateTimeToExcel($dt);
+                    $sheet1->setCellValueExplicit($colDateUlt.$row, $excelDate, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC);
+                }
+            } catch (\Throwable $e) { /* noop */ }
+            try {
+                if (!empty($trendDate)) {
+                    $colTrendDate = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(22); // V
+                    // aceitar YYYY-MM-DD ou YYYY-MM-DD HH:MM:SS
+                    $td = new \DateTime($trendDate);
+                    $excelDate2 = \PhpOffice\PhpSpreadsheet\Shared\Date::dateTimeToExcel($td);
+                    $sheet1->setCellValueExplicit($colTrendDate.$row, $excelDate2, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC);
+                }
+            } catch (\Throwable $e) { /* noop */ }
+            $row++;
+        }
+
+        // Aba Resumo
+        $sheet2->fromArray(['Baseline','DiasApos','Total','Sobe','Desce','Mantem'], null, 'A1');
+        $sheet2->fromArray([
+            $data['baseline'] ?? (string)$request->input('baseline', ''),
+            (int)$trendDays,
+            (int)($trendsSummary['total'] ?? 0),
+            (int)($trendsSummary['up'] ?? 0),
+            (int)($trendsSummary['down'] ?? 0),
+            (int)($trendsSummary['flat'] ?? 0),
+        ], null, 'A2');
+
+        // Estilos e formatos
+        $endColIndex = count($headers);
+        $endCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($endColIndex);
+        $lastRow = max(2, $row-1);
+        // Cabeçalho em negrito e fundo
+        $sheet1->getStyle("A1:{$endCol}1")->getFont()->setBold(true);
+        $sheet1->getStyle("A1:{$endCol}1")->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('F2F2F2');
+        // Autosize colunas
+        for ($i=1; $i<=$endColIndex; $i++) {
+            $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i);
+            $sheet1->getColumnDimension($col)->setAutoSize(true);
+        }
+        // Freeze header
+        $sheet1->freezePane('A2');
+        // Formatos numéricos
+        // Decimais
+        foreach (['D','F','I','J','J','K','L','M','O','P','Q','R','U'] as $col) {
+            if (in_array($col, ['H','U'], true)) continue; // percentuais tratados abaixo
+            $sheet1->getStyle($col.'2:'.$col.$lastRow)->getNumberFormat()->setFormatCode('0.00');
+        }
+        // Percentuais (não escala; apenas exibe %)
+        foreach (['H','U'] as $colPct) {
+            $sheet1->getStyle($colPct.'2:'.$colPct.$lastRow)->getNumberFormat()->setFormatCode('0.00" %"');
+        }
+        // Inteiros
+        foreach (['E','N','S'] as $colInt) {
+            $sheet1->getStyle($colInt.'2:'.$colInt.$lastRow)->getNumberFormat()->setFormatCode('0');
+        }
+        // Datas
+        $sheet1->getStyle('C2:C'.$lastRow)->getNumberFormat()->setFormatCode('yyyy-mm-dd hh:mm:ss');
+        $sheet1->getStyle('V2:V'.$lastRow)->getNumberFormat()->setFormatCode('yyyy-mm-dd');
+
+        // Resumo: estilos e autosize
+        $sheet2EndCol = 'F';
+        $sheet2->getStyle('A1:'.$sheet2EndCol.'1')->getFont()->setBold(true);
+        $sheet2->getStyle('A1:'.$sheet2EndCol.'1')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('F2F2F2');
+        foreach (['A','B','C','D','E','F'] as $c) { $sheet2->getColumnDimension($c)->setAutoSize(true); }
+        // Inteiros linha 2 B..F
+        $sheet2->getStyle('B2:F2')->getNumberFormat()->setFormatCode('0');
+
+        // Saída
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $fileName = 'assets_export_' . date('Ymd_His') . '.xlsx';
+        return response()->streamDownload(function() use ($writer){
+            $writer->save('php://output');
+        }, $fileName, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ]);
     }
 

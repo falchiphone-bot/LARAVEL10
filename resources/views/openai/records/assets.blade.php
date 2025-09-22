@@ -72,6 +72,14 @@
           <input type="number" min="0" step="50" name="auto_prev_reload_delay" value="{{ request('auto_prev_reload_delay') }}" class="form-control form-control-sm" placeholder="ex: 250">
           <small class="text-muted d-block mt-1">Espera antes de aplicar o filtro após inserir. Padrão 250 ms.</small>
         </div>
+        <div class="col-sm-3 col-md-2">
+          <label class="form-label small mb-1" title="Dias após a baseline para comparar tendência (0 desativa)">Trend (dias)</label>
+          <input type="number" min="0" step="1" name="trend_days" value="{{ request('trend_days', $trendDays ?? 0) }}" class="form-control form-control-sm" placeholder="ex: 5">
+        </div>
+        <div class="col-sm-3 col-md-2">
+          <label class="form-label small mb-1" title="Variação mínima (em %) para considerar sobe/desce (padrão 0.1%)">Epsilon (%)</label>
+          <input type="number" min="0" step="0.01" name="trend_epsilon" value="{{ request('trend_epsilon', $trendEpsPct ?? 0.1) }}" class="form-control form-control-sm" placeholder="ex: 0.2">
+        </div>
         <div class="col-sm-3 col-md-2 d-grid">
           <button class="btn btn-sm btn-outline-primary">Filtrar</button>
         </div>
@@ -86,6 +94,8 @@
         <div class="d-flex align-items-center gap-2">
           @php $exportParams = request()->all(); @endphp
           <a href="{{ route('openai.records.assets.exportCsv', $exportParams) }}" class="btn btn-sm btn-outline-success" title="Exportar visão atual em CSV">Exportar CSV</a>
+          <a href="{{ route('openai.records.assets.exportSummaryCsv', $exportParams) }}" class="btn btn-sm btn-outline-success" title="Exportar resumo de tendências em CSV">CSV Resumo</a>
+          <a href="{{ route('openai.records.assets.exportXlsx', $exportParams) }}" class="btn btn-sm btn-outline-success" title="Exportar XLSX com abas (Ativos e Resumo)">XLSX</a>
           <a href="{{ route('openai.records.assets.exportCsv', array_merge($exportParams, ['locale'=>'br'])) }}" class="btn btn-sm btn-outline-success" title="Exportar CSV com formatação brasileira (vírgula decimal)">CSV (pt-BR)</a>
           <button type="button" id="btn-batch-quotes" class="btn btn-sm btn-outline-primary">
             Consultar todos
@@ -114,6 +124,14 @@
           <br>• Estatísticas com “≤Base” consideram apenas registros até o final do dia da baseline.
           <br>• Use o botão “Stats Totais” para alternar a exibição das estatísticas gerais (todo intervalo filtrado).
           <br>• Para exportar com vírgula decimal e datas dd/mm/aaaa use o botão “CSV (pt-BR)”.
+        </div>
+      @endif
+      @if(($trendsSummary['total'] ?? 0) > 0)
+        <div class="mb-2 small">
+          <span class="badge bg-success">Sobe: {{ $trendsSummary['up'] }}</span>
+          <span class="badge bg-danger ms-1">Desce: {{ $trendsSummary['down'] }}</span>
+          <span class="badge bg-secondary ms-1">Mantém: {{ $trendsSummary['flat'] }}</span>
+          <span class="text-muted ms-2">em {{ $trendsSummary['total'] }} ativo(s) (Δ em {{ $trendDays }} dia(s))</span>
         </div>
       @endif
       <div class="mb-2 small text-muted">
@@ -184,6 +202,7 @@
             <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'count_total','dir'=>$toggle('count_total')])) }}">N Tot {{ $icon('count_total') }}</a>
           </th>
           <th style="width:10%" class="text-center" title="Itens empilhados: consultar, valor, horário e ações. O botão ‘Aplicar’ aparece quando a data da cotação coincide com a do registro.">Cotação</th>
+          <th style="width:10%" class="text-end" title="Tendência do valor após a baseline + N dias">Tendência</th>
         </tr>
       </thead>
       <tbody>
@@ -321,6 +340,25 @@
             <td class="text-end stats-total d-none">@if(isset($statsAll['max'])) {{ number_format($statsAll['max'], 2, ',', '.') }} @else — @endif</td>
             <td class="text-end stats-total d-none">@if(isset($statsAll['min'])) {{ number_format($statsAll['min'], 2, ',', '.') }} @else — @endif</td>
             <td class="text-end stats-total d-none">@if(isset($statsAll['count'])) {{ $statsAll['count'] }} @else — @endif</td>
+            @php
+              $grpKey = trim($r->chat?->code ?? '') ?: trim($r->chat?->title ?? '');
+              $trend = ($trends ?? collect())->get($grpKey) ?? null;
+              $tLabel = $trend['label'] ?? null; $tPct = $trend['pct'] ?? null; $tAt = $trend['at'] ?? null;
+              $tCls = $tLabel==='up' ? 'text-success' : ($tLabel==='down' ? 'text-danger' : 'text-muted');
+            @endphp
+            <td class="text-end">
+              @if($trend)
+                <span class="{{ $tCls }}">
+                  @if($tLabel==='up') ▲ @elseif($tLabel==='down') ▼ @else → @endif
+                  @if($tPct !== null) {{ number_format((float)$tPct, 2, ',', '.') }} % @endif
+                </span>
+                @if($tAt)
+                  <small class="text-muted">({{ \Carbon\Carbon::parse($tAt)->format('d/m/Y') }})</small>
+                @endif
+              @else
+                —
+              @endif
+            </td>
             <td class="text-center" data-ref="{{ number_format((float)$r->amount, 6, '.', '') }}" data-occurred="{{ optional($r->occurred_at)->format('Y-m-d') }}" data-apply-url="{{ route('openai.records.applyQuote', $r) }}">
               @php $symbol = strtoupper(trim($r->chat?->code ?? '')); @endphp
               @if($symbol !== '')
