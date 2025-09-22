@@ -127,64 +127,16 @@ class BackupToFtp extends Command
                         // Padroniza caminho remoto absoluto
                         $remoteFile = '/' . ltrim($file, '/');
 
-                        // verificar se arquivo remoto existe e é idêntico (size -> md5)
-                        $remoteSize = @ftp_size($conn, $remoteFile);
-                        $localSize = filesize($tmp);
-                        $identical = false;
-                        $canCompare = false;
-                        if ($remoteSize !== -1 && $remoteSize == $localSize) {
-                            // tentar obter hash MD5 remoto via comando FTP
-                            $remoteMd5 = null;
-                            $md5Resp = @ftp_raw($conn, "XMD5 $remoteFile");
-                            if (!$md5Resp || !is_array($md5Resp) || stripos($md5Resp[0], '502') !== false) {
-                                // Tenta comando alternativo MD5
-                                $md5Resp = @ftp_raw($conn, "MD5 $remoteFile");
-                            }
-                            if ($md5Resp && is_array($md5Resp) && preg_match('/([a-fA-F0-9]{32})/', $md5Resp[0], $matches)) {
-                                $remoteMd5 = $matches[1];
-                                if ($debugFile) {
-                                    $this->info("[debug] MD5 remoto de $remoteFile: $remoteMd5");
-                                }
-                            }
-                            $localMd5 = md5_file($tmp);
-                            if ($remoteMd5 && $localMd5 === $remoteMd5) {
-                                $identical = true;
-                                $canCompare = true;
-                            } else if ($remoteMd5 === null) {
-                                // Se não conseguiu obter MD5 remoto, faz download para comparar
-                                $tmpRemote = tempnam(sys_get_temp_dir(), 'bkftp_r');
-                                $ftpGetOk = @ftp_get($conn, $tmpRemote, $remoteFile, FTP_BINARY);
-                                if ($debugFile) {
-                                    $this->info("[debug] ftp_size($remoteFile) = $remoteSize");
-                                    $this->info('[debug] ftp_get returned: ' . ($ftpGetOk ? 'true' : 'false'));
-                                    $this->info('[debug] last_error: ' . json_encode(error_get_last()));
-                                }
-                                if ($ftpGetOk) {
-                                    $canCompare = true;
-                                    if (md5_file($tmpRemote) === $localMd5) {
-                                        $identical = true;
-                                    }
-                                } else {
-                                    $this->warn("Não foi possível baixar arquivo remoto para comparar: $remoteFile");
-                                    Log::warning('Não foi possível baixar arquivo remoto para comparar: ' . $remoteFile);
-                                }
-                                @unlink($tmpRemote);
-                            }
-                        }
 
-                        if ($identical) {
-                            $this->comment("Ignorado (idêntico): $remoteFile");
-                            Log::info('Ignorado (idêntico): ' . $remoteFile);
+                        // Verifica apenas se o arquivo remoto já existe pelo tamanho (ftp_size)
+                        $remoteSize = @ftp_size($conn, $remoteFile);
+                        if ($remoteSize !== -1) {
+                            $this->comment("Ignorado (já existe): $remoteFile");
+                            Log::info('Ignorado (já existe): ' . $remoteFile);
                             $skipped++;
                             @unlink($tmp);
                             if ($delayMs > 0) usleep($delayMs * 1000);
                             continue;
-                        }
-
-                        // Se não foi possível comparar, logar
-                        if ($remoteSize !== -1 && !$canCompare) {
-                            $this->warn("Não foi possível comparar conteúdo de $remoteFile, tentando enviar mesmo assim.");
-                            Log::warning('Não foi possível comparar conteúdo de ' . $remoteFile . ', tentando enviar mesmo assim.');
                         }
 
                         // enviar via ftp_put
