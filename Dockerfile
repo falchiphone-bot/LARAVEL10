@@ -53,7 +53,9 @@ RUN chmod -R ug+w storage bootstrap/cache
 # Configs
 RUN cp docker/supervisor.conf /etc/supervisord.conf \
  && cp docker/php.ini /usr/local/etc/php/conf.d/app.ini \
- && cp docker/nginx.conf /etc/nginx/sites-enabled/default
+ && cp docker/php-fpm-www.conf /usr/local/etc/php-fpm.d/www.conf \
+ && cp docker/nginx.conf /etc/nginx/sites-enabled/default \
+ && cp docker/nginx-fcgi-cache.conf /etc/nginx/conf.d/fcgi_cache.conf
 
 # Logs PHP
 RUN mkdir -p /var/log/php && touch /var/log/php/errors.log && chmod 777 /var/log/php/errors.log

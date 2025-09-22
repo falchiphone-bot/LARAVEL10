@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 use App\Services\MarketDataService;
 use App\Services\HolidayService;
 use Carbon\Carbon;
@@ -12,7 +13,8 @@ class MarketDataController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
+        // Status é público (não sensível) para permitir cache/CDN e reduzir CPU; demais exigem auth
+        $this->middleware('auth')->except(['status']);
     }
 
     public function quote(Request $request): JsonResponse
@@ -85,8 +87,17 @@ class MarketDataController extends Controller
         if (is_string($at) && trim($at) !== '') {
             try { $now = new Carbon($at); } catch (\Throwable $e) { $now = null; }
         }
-        $svc = app(HolidayService::class);
-        $info = $svc->marketSessionInfoNY($now);
-        return response()->json($info);
+
+        // Cache de curta duração para evitar recomputar várias vezes por minuto em múltiplas telas
+        $cacheKey = 'market:status:nyse:' . md5((string)($now ? $now->toIso8601String() : 'now'));
+        $info = Cache::remember($cacheKey, 60, function() use ($now) {
+            $svc = app(HolidayService::class);
+            return $svc->marketSessionInfoNY($now);
+        });
+
+        $resp = response()->json($info);
+        // Cabeçalhos de cache para o client/proxy — podem ser ajustados conforme necessidade
+        $resp->headers->set('Cache-Control', 'public, max-age=30, s-maxage=30, stale-while-revalidate=30');
+        return $resp;
     }
 }

@@ -1331,11 +1331,7 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     // View dedicada das ordens
     Route::get('/openai/orders', [OpenAIController::class, 'ordersIndex'])->name('openai.orders.index');
 
-    // Market Data (cotações)
-    Route::get('/api/market/quote', [\App\Http\Controllers\MarketDataController::class, 'quote'])->name('api.market.quote');
-    Route::get('/api/market/historical-quote', [\App\Http\Controllers\MarketDataController::class, 'historicalQuote'])->name('api.market.historical');
-    Route::get('/api/market/usage', [\App\Http\Controllers\MarketDataController::class, 'usage'])->name('api.market.usage');
-    Route::get('/api/market/status', [\App\Http\Controllers\MarketDataController::class, 'status'])->name('api.market.status');
+    // (migradas para fora do grupo auth) Market Data routes
 
     // Investment accounts (data, total investido, conta, corretora)
     Route::get('/openai/investments', [InvestmentAccountController::class, 'index'])->name('openai.investments.index');
@@ -1366,3 +1362,15 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
 });
 
 require __DIR__ . '/auth.php';
+
+// Market Data (fora do grupo auth, conforme middleware no controller)
+Route::get('/api/market/quote', [\App\Http\Controllers\MarketDataController::class, 'quote'])->name('api.market.quote');
+Route::get('/api/market/historical-quote', [\App\Http\Controllers\MarketDataController::class, 'historicalQuote'])->name('api.market.historical');
+// Aplicar um throttling leve para evitar estouros de CPU causados por polling em múltiplas telas
+Route::middleware('throttle:60,1')->group(function(){
+    Route::get('/api/market/usage', [\App\Http\Controllers\MarketDataController::class, 'usage'])->name('api.market.usage');
+    // Até 6 hits por 30s por IP (além do cache no controller) — reduz fan-out em múltiplas telas abertas
+    Route::get('/api/market/status', [\App\Http\Controllers\MarketDataController::class, 'status'])
+        ->middleware('simple.limit:status,6,30')
+        ->name('api.market.status');
+});
