@@ -116,9 +116,25 @@
           <th style="width:18%" class="{{ (($sort ?? 'created_at') === 'created_at') ? 'active-sort' : '' }}">
             <a class="text-decoration-none text-light" href="{{ route('openai.orders.index', array_merge($base,['sort'=>'created_at','dir'=>$flip('created_at')])) }}">Criado em {{ $icon('created_at') }}</a>
           </th>
-          <th style="width:16%" class="text-center">Ações</th>
+      <th style="width:16%" class="text-center">
+            Ações
+            <div class="mt-1">
+        <button type="button" id="btn_refresh_all_quotes" class="btn btn-sm btn-warning">Atualizar todas</button>
+        <button type="button" id="btn_stop_refresh_all" class="btn btn-sm btn-outline-danger ms-1" disabled>Parar</button>
+            </div>
+          </th>
         </tr>
       </thead>
+      @php
+        // Total da coluna Diferença (com base nos valores salvos)
+        $totalDiff = 0.0; $hasDiff = false;
+        foreach ($orders as $o) {
+          if (!is_null($o->quote_value) && !is_null($o->value) && !is_null($o->quantity) && (float)$o->quantity > 0 && (float)$o->value > 1.0) {
+            $hasDiff = true;
+            $totalDiff += ((float)$o->quote_value - (float)$o->value) * (float)$o->quantity;
+          }
+        }
+      @endphp
       <tbody>
         @forelse($orders as $o)
           <tr>
@@ -197,7 +213,7 @@
               <div id="cell_quote_diff_{{ $o->id }}" class="small">
                 @if(!is_null($diff))
                   @php $cls = $diff >= 0 ? 'text-success' : 'text-danger'; $sign = $diff >= 0 ? '+' : ''; @endphp
-                  <span class="{{ $cls }}">{{ $sign }}{{ number_format($diff, 2, ',', '.') }}</span>
+                  <span class="{{ $cls }}">US$ {{ $sign }}{{ number_format($diff, 2, ',', '.') }}</span>
                 @else
                   <span class="text-muted">—</span>
                 @endif
@@ -232,6 +248,28 @@
           <tr><td colspan="11" class="text-center text-muted">Nenhuma ordem.</td></tr>
         @endforelse
       </tbody>
+      <tfoot>
+        <tr>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td class="text-end fw-bold">Total:</td>
+          <td class="fw-bold" id="diff_total_cell">
+            @if($hasDiff)
+              @php $cls = $totalDiff >= 0 ? 'text-success' : 'text-danger'; $sign = $totalDiff >= 0 ? '+' : ''; @endphp
+              <span class="{{ $cls }}">US$ {{ $sign }}{{ number_format($totalDiff, 2, ',', '.') }}</span>
+            @else
+              <span class="text-muted">—</span>
+            @endif
+          </td>
+          <td></td>
+          <td></td>
+        </tr>
+      </tfoot>
     </table>
   </div>
 
@@ -316,6 +354,109 @@ document.addEventListener('DOMContentLoaded', function(){
 
   // Botões de cotação por linha
   const rowBtns = document.querySelectorAll('.row-quote-btn');
+  // Soma dinâmica da diferença
+  function recomputeDiffTotal() {
+    const cells = document.querySelectorAll('[id^="cell_quote_diff_"]');
+    let total = 0;
+    let found = false;
+    cells.forEach((c) => {
+      const txt = c.textContent || '';
+      const raw = txt.replace(/[^0-9,\.-]/g, '').replace(/\./g,'').replace(/,/g,'.');
+      const num = parseFloat(raw);
+      if (!isNaN(num)) { total += num; found = true; }
+    });
+    const target = document.getElementById('diff_total_cell');
+    if (target) {
+      if (found) {
+        const cls = total >= 0 ? 'text-success' : 'text-danger';
+        const sign = total >= 0 ? '+' : '';
+        target.innerHTML = `<span class="${cls}">US$ ${sign}${total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>`;
+      } else {
+        target.innerHTML = '<span class="text-muted">—</span>';
+      }
+    }
+  }
+  async function processRowQuote(rb, options = { autoSave: false }){
+    const symbol = (rb.getAttribute('data-symbol') || '').trim();
+    const id = rb.getAttribute('data-order-id');
+    const out = document.getElementById('row_quote_result_' + id);
+    const saveForm = document.getElementById('row_save_quote_' + id);
+    const cellVar = document.getElementById('cell_quote_var_' + id);
+    const diffCell = document.getElementById('cell_quote_diff_' + id);
+    const orderValue = parseFloat(rb.getAttribute('data-order-value') || '');
+    const orderQty = parseFloat(rb.getAttribute('data-order-quantity') || '');
+    if (!symbol || !out) return;
+    out.textContent = 'Consultando…';
+    try {
+      const url = '{{ route('api.market.quote') }}' + '?symbol=' + encodeURIComponent(symbol);
+      const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const data = await resp.json();
+      if (data && typeof data.price !== 'undefined' && data.price !== null) {
+        const price = Number(data.price);
+        const display = price.toLocaleString('en-US', { style: 'currency', currency: (data.currency||'USD') });
+        out.innerHTML = `<span class="text-success">${display}</span>` + (data.updated_at ? ` <small class=\"text-muted\">(${data.updated_at})</small>` : '');
+        if (saveForm) saveForm.classList.remove('d-none');
+        // Atualiza variação/diferença inline
+        if (!isNaN(orderValue) && orderValue > 1 && cellVar) {
+          const pct = ((price - orderValue) / orderValue) * 100;
+          const sign = pct >= 0 ? '+' : '';
+          const cls = pct >= 0 ? 'text-success' : 'text-danger';
+          cellVar.innerHTML = `<span class=\"${cls}\">${sign}${pct.toFixed(2)}%</span>`;
+        }
+        if (!isNaN(orderValue) && orderValue > 1 && !isNaN(orderQty) && orderQty > 0 && diffCell) {
+          const diff = (price - orderValue) * orderQty;
+          const sign = diff >= 0 ? '+' : '';
+          const cls = diff >= 0 ? 'text-success' : 'text-danger';
+          diffCell.innerHTML = `<span class=\"${cls}\">US$ ${sign}${diff.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>`;
+          recomputeDiffTotal();
+        }
+        if (options.autoSave && saveForm) {
+          try {
+            const token = saveForm.querySelector('input[name="_token"]').value;
+            const respSave = await fetch(saveForm.action, {
+              method: 'POST',
+              headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': token },
+            });
+            if (!respSave.ok) throw new Error('HTTP ' + respSave.status);
+            // Atualiza células salvas (sem recarregar)
+            const saved = document.getElementById('cell_quote_saved_' + id);
+            if (saved) { saved.textContent = price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 6 }); }
+            let savedAt = document.getElementById('cell_quote_saved_at_' + id);
+            const now = new Date();
+            const pad = n => String(n).padStart(2,'0');
+            const formatted = `${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+            if (!savedAt) {
+              const savedEl = saved || document.getElementById('cell_quote_saved_' + id);
+              if (savedEl && savedEl.parentElement) {
+                const small = document.createElement('small');
+                small.className = 'text-muted';
+                small.id = 'cell_quote_saved_at_' + id;
+                small.textContent = `(${formatted})`;
+                small.title = formatted;
+                savedEl.insertAdjacentElement('afterend', small);
+              }
+            } else {
+              savedAt.textContent = `(${formatted})`;
+              savedAt.title = formatted;
+            }
+          } catch(_e) {
+            // mantém interação manual disponível
+          }
+        }
+      } else {
+        out.innerHTML = '<span class="text-warning">Sem dados</span>';
+        if (saveForm) saveForm.classList.add('d-none');
+        if (cellVar) cellVar.innerHTML = '';
+        if (diffCell) diffCell.innerHTML = '<span class="text-muted">—</span>';
+      }
+    } catch(_e) {
+      out.innerHTML = '<span class="text-danger">Falha ao consultar</span>';
+      if (saveForm) saveForm.classList.add('d-none');
+      if (cellVar) cellVar.innerHTML = '';
+      if (diffCell) diffCell.innerHTML = '<span class="text-muted">—</span>';
+    }
+  }
   rowBtns.forEach(function(rb){
     rb.addEventListener('click', async function(){
       const symbol = (rb.getAttribute('data-symbol') || '').trim();
@@ -380,7 +521,7 @@ document.addEventListener('DOMContentLoaded', function(){
         const diff = (current - base) * qty;
         const sign = diff >= 0 ? '+' : '';
               const cls = diff >= 0 ? 'text-success' : 'text-danger';
-        diffCell.innerHTML = `<span class=\"${cls}\">${sign}${diff.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>`;
+              diffCell.innerHTML = `<span class=\"${cls}\">US$ ${sign}${diff.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>`;
             } else {
               diffCell.innerHTML = '<span class="text-muted">—</span>';
             }
@@ -405,6 +546,35 @@ document.addEventListener('DOMContentLoaded', function(){
       }
     });
   });
+
+  // Botão: Atualizar todas as cotações
+  const btnRefreshAll = document.getElementById('btn_refresh_all_quotes');
+  const btnStopAll = document.getElementById('btn_stop_refresh_all');
+  let stopFlag = false;
+  if (btnStopAll) {
+    btnStopAll.addEventListener('click', function(){
+      stopFlag = true;
+      btnStopAll.disabled = true;
+    });
+  }
+  if (btnRefreshAll) {
+    btnRefreshAll.addEventListener('click', async function(){
+      const doAutoSave = !!window.ordersAutoSaveQuotes;
+      stopFlag = false;
+      if (btnStopAll) btnStopAll.disabled = false;
+      for (const rb of rowBtns) {
+        if (stopFlag) break;
+        await processRowQuote(rb, { autoSave: doAutoSave });
+      }
+      if (btnStopAll) btnStopAll.disabled = true;
+      if (doAutoSave && !stopFlag) {
+        window.location.reload();
+      }
+    });
+  }
+
+  // Inicializa total ao carregar
+  recomputeDiffTotal();
 
   // Intercepta 'Salvar Cotação' para atualizar UI sem recarregar
   document.querySelectorAll('form[id^="row_save_quote_"]').forEach(function(f){
