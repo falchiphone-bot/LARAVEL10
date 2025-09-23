@@ -238,6 +238,28 @@
                             </li>
                             @endcanany
 
+              {{-- Dropdown: Irmãos de Emaús --}}
+              @canany(['IRMAOS_EMAUS_NOME_SERVICO - LISTAR','IRMAOS_EMAUS_NOME_PIA - LISTAR','IRMAOS_EMAUS_FICHA_CONTROLE - LISTAR'])
+              <li class="nav-item dropdown">
+                <a href="#" class="nav-link dropdown-toggle text-white" id="dropdown-emaus" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                   data-bs-togglex="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Atalhos para módulos dos Irmãos de Emaús">
+                  <i class="fa-solid fa-people-arrows"></i>
+                  Irmãos de Emaús
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  @can('IRMAOS_EMAUS_NOME_SERVICO - LISTAR')
+                  <li><a class="dropdown-item" href="/Irmaos_EmausServicos">Serviços</a></li>
+                  @endcan
+                  @can('IRMAOS_EMAUS_NOME_PIA - LISTAR')
+                  <li><a class="dropdown-item" href="/Irmaos_EmausPia">PIA</a></li>
+                  @endcan
+                  @can('IRMAOS_EMAUS_FICHA_CONTROLE - LISTAR')
+                  <li><a class="dropdown-item" href="/Irmaos_Emaus_FichaControle">Ficha Controle</a></li>
+                  @endcan
+                </ul>
+              </li>
+              @endcanany
+
               <!-- Link: Snapshots de Investimentos -->
               @can('INVESTIMENTOS SNAPSHOTS - LISTAR')
               <li>
