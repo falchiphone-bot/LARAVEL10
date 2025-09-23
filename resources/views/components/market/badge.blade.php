@@ -21,7 +21,7 @@
 @push('scripts')
 <script>
 (function(){
-  const endpoint = "{{ route('api.market.status') }}";
+  const endpoint = @json(route('api.market.status'));
   const storageKey = @json($storageKey);
   const badgeId = @json($badgeId);
   const toggleId = @json($toggleId);

@@ -212,7 +212,7 @@
   // Preenchimento das badgess do dropdown Contabilidade, usando o mesmo endpoint de counts
   document.addEventListener('DOMContentLoaded', function() {
     try {
-      fetch("{{ route('dashboard.counts') }}", { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+  fetch(@json(route('dashboard.counts')), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(r => r.ok ? r.json() : null)
         .then(data => {
           if (!data) return;
@@ -573,7 +573,7 @@
           const badge = document.getElementById('market-status-global');
           if (!badge) return;
           try{
-            const url = "{{ route('api.market.status') }}";
+            const url = @json(route('api.market.status'));
             const resp = await fetch(url, { headers: { 'Accept':'application/json' } });
             const data = await resp.json().catch(()=>null);
             if(!resp.ok || !data) throw new Error('fail');

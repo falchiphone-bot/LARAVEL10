@@ -1342,6 +1342,10 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     Route::match(['put','patch'],'/openai/records/code-order/{order}', [OpenAIController::class, 'updateCodeOrder'])->name('openai.records.codeOrder.update');
     Route::delete('/openai/records/code-order/{order}', [OpenAIController::class, 'destroyCodeOrder'])->name('openai.records.codeOrder.destroy');
     Route::post('/openai/records/code-order/{order}/refresh-quote', [OpenAIController::class, 'refreshOrderQuote'])->name('openai.records.codeOrder.refreshQuote');
+
+    // Flags por ativo/usuário: NÃO COMPRAR
+    Route::post('/openai/assets/no-buy/toggle', [OpenAIController::class, 'toggleNoBuy'])->name('openai.assets.noBuy.toggle');
+    Route::get('/openai/assets/no-buy', [OpenAIController::class, 'getNoBuy'])->name('openai.assets.noBuy.get');
     // View dedicada das ordens
     Route::get('/openai/orders', [OpenAIController::class, 'ordersIndex'])->name('openai.orders.index');
 

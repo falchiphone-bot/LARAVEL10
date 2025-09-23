@@ -79,8 +79,10 @@ class OpenAIChatRecordController extends Controller
         $sort = $request->input('sort','occurred_at');
         $dir = strtolower($request->input('dir','desc')) === 'asc' ? 'asc' : 'desc';
     $invAccId = $request->input('investment_account_id'); // '' | '0' (sem) | id
-        $query = OpenAIChatRecord::with(['chat:id,title,code','user:id,name','investmentAccount:id,account_name,broker']);
+    $query = OpenAIChatRecord::with(['chat:id,title,code','user:id,name','investmentAccount:id,account_name,broker']);
         $showAll = (bool)$request->input('all');
+    // Filtro por status de compra (COMPRAR/NÃO COMPRAR) baseado em flags do usuário
+    $buy = $request->input('buy'); // '' | 'compra' | 'nao'
 
         if ($chatId > 0) {
             $query->where('chat_id', $chatId);
@@ -162,7 +164,45 @@ class OpenAIChatRecordController extends Controller
             }
         }
 
-        if ($showAll) {
+        if (in_array($buy, ['compra','nao'], true)) {
+            // Aplica filtro considerando padrão: sem flag => COMPRAR
+            $userId = (int) Auth::id();
+            if ($buy === 'nao') {
+                // Somente onde existir flag de não comprar = 1
+        $query->whereHas('chat', function($qc) use ($userId){
+                    $qc->whereNotNull('code')->whereRaw("LTRIM(RTRIM(code)) <> ''")
+                       ->whereExists(function($sub) use ($userId){
+                           $sub->select(DB::raw(1))
+                               ->from('user_asset_flags as f')
+                   ->whereRaw('UPPER(LTRIM(RTRIM(f.code))) = UPPER(LTRIM(RTRIM(open_a_i_chats.code)))')
+                               ->where('f.user_id', $userId)
+                               ->where('f.no_buy', 1);
+                       });
+                });
+            } else { // compra
+                // Incluir onde NÃO exista flag OU exista com no_buy = 0
+                $query->whereHas('chat', function($qc) use ($userId){
+                    $qc->whereNotNull('code')->whereRaw("LTRIM(RTRIM(code)) <> ''")
+                       ->where(function($qq) use ($userId){
+                           $qq->whereNotExists(function($sub) use ($userId){
+                                   $sub->select(DB::raw(1))
+                                       ->from('user_asset_flags as f')
+                       ->whereRaw('UPPER(LTRIM(RTRIM(f.code))) = UPPER(LTRIM(RTRIM(open_a_i_chats.code)))')
+                                       ->where('f.user_id', $userId);
+                               })
+                              ->orWhereExists(function($sub) use ($userId){
+                                   $sub->select(DB::raw(1))
+                                       ->from('user_asset_flags as f')
+                       ->whereRaw('UPPER(LTRIM(RTRIM(f.code))) = UPPER(LTRIM(RTRIM(open_a_i_chats.code)))')
+                                       ->where('f.user_id', $userId)
+                                       ->where('f.no_buy', 0);
+                               });
+                       });
+                });
+            }
+        }
+
+    if ($showAll) {
             $maxAll = 2000;
             $records = $query->limit($maxAll)->get();
         } else {
@@ -175,8 +215,30 @@ class OpenAIChatRecordController extends Controller
                 'all' => $showAll ? 1 : null,
                 'investment_account_id' => ($invAccId !== null && $invAccId !== '') ? $invAccId : null,
                 'asset' => $asset !== '' ? $asset : null,
+                'buy' => in_array($buy, ['compra','nao'], true) ? $buy : null,
             ]));
         }
+
+        // Mapa de flags por código (para renderizar estado inicial por linha)
+        $flagsMap = collect();
+        try {
+            $list = $records instanceof \Illuminate\Pagination\AbstractPaginator ? collect($records->items()) : collect($records);
+            $codes = $list->map(function($r){
+                    $c = strtoupper(trim((string) optional($r->chat)->code));
+                    return $c !== '' ? $c : null;
+                })
+                ->filter()
+                ->unique()
+                ->values();
+            if ($codes->isNotEmpty()) {
+                $flags = \App\Models\UserAssetFlag::where('user_id', Auth::id())
+                    ->whereIn('code', $codes->all())
+                    ->get();
+                $flagsMap = $flags->mapWithKeys(function($f){
+                    return [ strtoupper(trim((string)$f->code)) => (bool)$f->no_buy ];
+                });
+            }
+        } catch (\Throwable $e) { /* silencioso */ }
 
         // Dados auxiliares - chats somente do tipo "BOLSA DE VALORES AMERICANA"
         $chats = OpenAIChat::where('user_id', Auth::id())
@@ -223,7 +285,7 @@ class OpenAIChatRecordController extends Controller
             ->unique('label')
             ->values();
 
-    return view('openai.records.index', compact('records','chats','chatId','selectedChat','from','to','showAll','sort','dir','savedFilters','varMode','codeOrders','investmentAccounts','invAccId','lastInvestmentAccountId','datesReapplied','assetOptions','asset'));
+    return view('openai.records.index', compact('records','chats','chatId','selectedChat','from','to','showAll','sort','dir','savedFilters','varMode','codeOrders','investmentAccounts','invAccId','lastInvestmentAccountId','datesReapplied','assetOptions','asset','buy','flagsMap'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -514,6 +576,8 @@ class OpenAIChatRecordController extends Controller
         $invAccId = $request->input('investment_account_id');
     $sort = $request->input('sort', 'code'); // code|title|date|amount|account|qty
     $dir = strtolower($request->input('dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+    // Filtro de status de compra (null=todos, 'compra' = somente permitidos, 'nao' = somente NÃO COMPRAR)
+    $buyStatus = $request->input('buy');
     // Configs de tendência (opcionais)
     $trendDays = (int) max(0, (int)$request->input('trend_days', 0)); // 0 = desabilitado
     $trendEpsPct = (float) $request->input('trend_epsilon', 0.1); // percentual mínimo para considerar sobe/desce
@@ -609,8 +673,29 @@ class OpenAIChatRecordController extends Controller
 
         // Seleção final: apenas colunas do registro (r.*) + agregados necessários (grp, qty)
         $rows = $latest
-            ->select('r.*', DB::raw('agg.grp as grp'), DB::raw('agg.qty as qty'), DB::raw('agg.avg_amt as avg_amt'))
+            ->select('r.*', DB::raw('agg.grp as grp'), DB::raw('agg.qty as qty'), DB::raw('agg.avg_amt as avg_amt'), DB::raw('cc.code as code'))
             ->get();
+
+        // Aplica filtro por flags (user_asset_flags) se solicitado
+        if (in_array($buyStatus, ['compra','nao'], true) && $rows->isNotEmpty()) {
+            $codes = $rows->map(function($row){ return strtoupper(trim((string)($row->code ?? ''))); })
+                          ->filter(fn($c) => $c !== '')
+                          ->unique()->values();
+            if ($codes->isNotEmpty()) {
+                $flags = \App\Models\UserAssetFlag::where('user_id', $userId)
+                    ->whereIn(DB::raw('UPPER(code)'), $codes->all())
+                    ->get()
+                    ->keyBy(function($f){ return strtoupper($f->code); });
+                $rows = $rows->filter(function($row) use ($flags, $buyStatus){
+                    $code = strtoupper(trim((string)($row->code ?? '')));
+                    $noBuy = (bool) optional($flags->get($code))->no_buy;
+                    return $buyStatus === 'nao' ? $noBuy === true : $noBuy === false;
+                })->values();
+            } else {
+                // Sem códigos, se pediu filtro específico, zera
+                $rows = collect();
+            }
+        }
 
         // Filtro por código já aplicado nas consultas; não é mais necessário filtrar por título/parcial aqui
 
@@ -913,6 +998,7 @@ class OpenAIChatRecordController extends Controller
             'exclude_date' => $excludeDate,
             'invAccId' => $invAccId,
         'asset' => $assetFilter,
+        'buy' => $buyStatus,
             'investmentAccounts' => $investmentAccounts,
             'assetOptions' => $assetOptions,
             'totalSelected' => $totalSelected,

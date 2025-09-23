@@ -37,6 +37,14 @@
           <input type="date" name="to" value="{{ request('to') }}" class="form-control form-control-sm">
         </div>
         <div class="col-sm-3 col-md-2">
+          <label class="form-label small mb-1">Status de compra</label>
+          <select name="buy" class="form-select form-select-sm">
+            <option value="" {{ (string)request('buy')==='' ? 'selected' : '' }}>Todos</option>
+            <option value="compra" {{ request('buy')==='compra' ? 'selected' : '' }}>COMPRAR</option>
+            <option value="nao" {{ request('buy')==='nao' ? 'selected' : '' }}>NÃO COMPRAR</option>
+          </select>
+        </div>
+        <div class="col-sm-3 col-md-2">
           <label class="form-label small mb-1" title="Inclui apenas ativos cujo último registro não é posterior a esta data">Sem registros após</label>
           <input type="date" name="no_after" value="{{ request('no_after') }}" class="form-control form-control-sm">
           <small class="text-muted d-block mt-1">Mostra somente grupos cujo último registro <= data.</small>
@@ -202,6 +210,7 @@
             <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'count_total','dir'=>$toggle('count_total')])) }}">N Tot {{ $icon('count_total') }}</a>
           </th>
           <th style="width:10%" class="text-center" title="Itens empilhados: consultar, valor, horário e ações. O botão ‘Aplicar’ aparece quando a data da cotação coincide com a do registro.">Cotação</th>
+          <th style="width:8%" class="text-center" title="Marca por usuário se o ativo está como NÃO COMPRAR">Flag</th>
           <th style="width:10%" class="text-end" title="Tendência do valor após a baseline + N dias">Tendência</th>
         </tr>
       </thead>
@@ -379,6 +388,14 @@
                 <span class="text-muted">—</span>
               @endif
             </td>
+            @php $flagCode = strtoupper(trim($r->chat?->code ?? '')); @endphp
+            <td class="text-center">
+              @if($flagCode)
+                <span class="badge bg-secondary" data-flag-code="{{ $flagCode }}">—</span>
+              @else
+                <span class="text-muted">—</span>
+              @endif
+            </td>
           </tr>
         @empty
           <tr><td colspan="9" class="text-center text-muted">Nenhum ativo encontrado.</td></tr>
@@ -396,10 +413,10 @@
 @push('scripts')
 <script>
   (function(){
-    const endpoint = "{{ route('api.market.quote') }}";
-  const endpointHist = "{{ route('api.market.historical') }}";
-  const endpointUsage = "{{ route('api.market.usage') }}";
-  const endpointStatus = "{{ route('api.market.status') }}";
+    const endpoint = @json(route('api.market.quote'));
+  const endpointHist = @json(route('api.market.historical'));
+  const endpointUsage = @json(route('api.market.usage'));
+  const endpointStatus = @json(route('api.market.status'));
     let batchAbort = false;
     // Utilitário: obtém número de querystring ou localStorage com fallback
     function getConfigNumber(paramName, defaultValue){
@@ -1032,6 +1049,29 @@
     }
     btn?.addEventListener('click', ()=>{ set(!get()); apply(); });
     apply();
+  })();
+</script>
+@endpush
+@push('scripts')
+<script>
+  // Hidrata as badges de Flag (COMPRAR/NÃO COMPRAR) por código
+  (async function(){
+    try{
+    const els = Array.from(document.querySelectorAll('[data-flag-code]'));
+      const codes = Array.from(new Set(els.map(e => e.getAttribute('data-flag-code')).filter(Boolean)));
+    const NO_BUY_GET = @json(route('openai.assets.noBuy.get'));
+      for (const code of codes){
+        try{
+      const resp = await fetch(`${NO_BUY_GET}?code=${encodeURIComponent(code)}`, { headers: { 'Accept':'application/json' } });
+          const data = await resp.json().catch(()=>null);
+          const noBuy = !!(data && data.no_buy);
+          els.filter(e => e.getAttribute('data-flag-code')===code).forEach(e => {
+            e.className = 'badge ' + (noBuy ? 'bg-danger' : 'bg-success');
+            e.textContent = noBuy ? 'NÃO COMPRAR' : 'COMPRAR';
+          });
+        }catch(_e){/* noop */}
+      }
+    }catch(_e){/* noop */}
   })();
 </script>
 @endpush

@@ -41,6 +41,64 @@ class OpenAIController extends Controller
     }
 
     /**
+     * Marca/atualiza o flag de NÃO COMPRAR para um código (por usuário logado).
+     */
+    public function toggleNoBuy(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $request->validate([
+            'code' => 'nullable|string|max:50',
+            'chat_id' => 'nullable|integer',
+            'no_buy' => 'required|boolean',
+        ]);
+        $rawCode = (string)$request->input('code', '');
+        $chatId = (int)$request->input('chat_id');
+        $code = strtoupper(trim($rawCode));
+        // Se não veio code, tenta resolver via chat_id
+        if ($code === '' && $chatId > 0) {
+            $chat = \App\Models\OpenAIChat::where('id', $chatId)->where('user_id', auth()->id())->first();
+            if ($chat) {
+                $code = strtoupper(trim((string)($chat->code ?? '')));
+            }
+        }
+        $noBuy = (bool)$request->boolean('no_buy');
+        if ($code === '') {
+            return response()->json(['ok' => false, 'message' => 'Código ausente para salvar preferência. Vincule um código ao chat.'], 422);
+        }
+        $rec = \App\Models\UserAssetFlag::updateOrCreate(
+            ['user_id' => auth()->id(), 'code' => $code],
+            ['no_buy' => $noBuy]
+        );
+        return response()->json(['ok' => true, 'code' => $rec->code, 'no_buy' => $rec->no_buy]);
+    }
+
+    /**
+     * Obtém o flag atual de NÃO COMPRAR para um código do usuário logado.
+     */
+    public function getNoBuy(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $request->validate([
+            'code' => 'nullable|string|max:50',
+            'chat_id' => 'nullable|integer',
+        ]);
+        $rawCode = (string)$request->input('code', '');
+        $chatId = (int)$request->input('chat_id');
+        $code = strtoupper(trim($rawCode));
+        if ($code === '' && $chatId > 0) {
+            $chat = \App\Models\OpenAIChat::where('id', $chatId)->where('user_id', auth()->id())->first();
+            if ($chat) {
+                $code = strtoupper(trim((string)($chat->code ?? '')));
+            }
+        }
+        if ($code === '') {
+            return response()->json(['ok' => true, 'code' => '', 'no_buy' => false]);
+        }
+        $rec = \App\Models\UserAssetFlag::where('user_id', auth()->id())
+            ->whereRaw('UPPER(code) = ?', [$code])
+            ->first();
+        return response()->json(['ok' => true, 'code' => $code, 'no_buy' => (bool) ($rec->no_buy ?? false)]);
+    }
+
+    /**
      * Converte número em formato BR (1.234,56) para string com ponto (1234.56).
      * Mantém null/'' quando vazio.
      */

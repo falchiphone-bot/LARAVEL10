@@ -60,6 +60,14 @@
             @endisset
           </select>
         </div>
+        <div class="col-sm-4 col-md-3">
+          <label class="form-label small mb-1">Status de compra</label>
+          <select name="buy" class="form-select form-select-sm">
+            <option value="" {{ (string)request('buy')==='' ? 'selected' : '' }}>Todos</option>
+            <option value="compra" {{ request('buy')==='compra' ? 'selected' : '' }}>COMPRAR</option>
+            <option value="nao" {{ request('buy')==='nao' ? 'selected' : '' }}>NÃO COMPRAR</option>
+          </select>
+        </div>
         <div class="col-sm-3 col-md-2">
           <label class="form-label small mb-1">De</label>
           <input type="date" name="from" value="{{ $from ?? '' }}" class="form-control form-control-sm">
@@ -71,15 +79,15 @@
         <div class="col-sm-2 col-md-2 d-grid gap-2">
           <button class="btn btn-sm btn-outline-primary" type="submit">Filtrar</button>
           @if(!($showAll ?? false))
-            <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'asset'=>($asset??'')!==''?$asset:null,'all'=>1,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null])) }}">Todos</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'asset'=>($asset??'')!==''?$asset:null,'all'=>1,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,'buy'=>request('buy')?:null])) }}">Todos</a>
           @else
-            <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'asset'=>($asset??'')!==''?$asset:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null])) }}">Paginar</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'asset'=>($asset??'')!==''?$asset:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,'buy'=>request('buy')?:null])) }}">Paginar</a>
           @endif
           @if(!empty($savedFilters))
-            <a class="btn btn-sm btn-outline-warning" href="{{ route('openai.records.index', array_filter(['clear_saved'=>1,'chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'asset'=>($asset??'')!==''?$asset:null, 'all'=>($showAll??false)?1:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null])) }}" title="Remover filtro salvo">Limpar Salvo</a>
+            <a class="btn btn-sm btn-outline-warning" href="{{ route('openai.records.index', array_filter(['clear_saved'=>1,'chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'asset'=>($asset??'')!==''?$asset:null, 'all'=>($showAll??false)?1:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,'buy'=>request('buy')?:null])) }}" title="Remover filtro salvo">Limpar Salvo</a>
           @endif
         </div>
-        @if(request()->hasAny(['chat_id','from','to','investment_account_id','asset']) && (request('chat_id')||request('from')||request('to')||request('investment_account_id')!==null||request('asset')))
+        @if(request()->hasAny(['chat_id','from','to','investment_account_id','asset','buy']) && (request('chat_id')||request('from')||request('to')||request('investment_account_id')!==null||request('asset')||request('buy')!==null))
           <div class="col-sm-2 col-md-2">
             <a href="{{ route('openai.records.index') }}" class="btn btn-sm btn-outline-dark w-100">Limpar</a>
           </div>
@@ -87,7 +95,7 @@
       </form>
       @if(!empty($datesReapplied))
         <div class="mt-2 small text-muted">
-          Datas reaplicadas automaticamente do último filtro. <a href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'asset'=>($asset??'')!==''?$asset:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null])) }}" class="text-decoration-none">Limpar datas</a>
+          Datas reaplicadas automaticamente do último filtro. <a href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'asset'=>($asset??'')!==''?$asset:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,'buy'=>request('buy')?:null])) }}" class="text-decoration-none">Limpar datas</a>
         </div>
       @endif
     </div>
@@ -114,6 +122,9 @@
           <a href="{{ route('openai.chat.load', $selectedChat->id) }}" class="btn btn-sm btn-outline-danger" title="Ir para o chat desta conversa">Ir para Chat</a>
           <button type="button" id="btnOpenCodeOrder" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#codeOrderModal">
             Cadastrar Código (Compra/Venda)
+          </button>
+          <button type="button" id="btnToggleCanBuy" class="btn btn-sm btn-success text-white" aria-pressed="false" title="Alternar entre COMPRAR e NÃO COMPRAR">
+            COMPRAR
           </button>
         </div>
       @endif
@@ -347,6 +358,143 @@
   })();
   </script>
   @endpush
+  @push('scripts')
+  <script>
+  // Toggle por linha na tabela (por código)
+  (function(){
+    try {
+      const TOGGLE_URL = @json(route('openai.assets.noBuy.toggle'));
+      function applyBtn(btn, noBuy){
+        btn.classList.remove('btn-success','btn-danger');
+        btn.classList.add(noBuy ? 'btn-danger' : 'btn-success');
+        btn.setAttribute('aria-pressed', noBuy ? 'true' : 'false');
+        btn.textContent = noBuy ? 'NÃO COMPRAR' : 'COMPRAR';
+        if (!btn.classList.contains('text-white')) btn.classList.add('text-white');
+      }
+      document.querySelectorAll('.btn-toggle-row[data-code]').forEach(btn => {
+        btn.addEventListener('click', async function(){
+          const code = this.getAttribute('data-code');
+          if (!code) return;
+          const prev = this.getAttribute('aria-pressed') === 'true';
+          const next = !prev; // true = NÃO COMPRAR
+          applyBtn(this, next);
+          try {
+            const resp = await fetch(TOGGLE_URL, {
+              method: 'POST',
+              headers: { 'Content-Type':'application/json', 'Accept':'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'X-Requested-With':'XMLHttpRequest' },
+              credentials: 'same-origin',
+              body: JSON.stringify({ code, no_buy: next })
+            });
+            if (!resp.ok) throw new Error('HTTP '+resp.status);
+            const data = await resp.json().catch(()=>null);
+            if (!data || data.ok !== true) throw new Error('Bad payload');
+          } catch(e){
+            // reverte
+            applyBtn(this, prev);
+            try { window.alert('Falha ao salvar preferência do código '+code+'.'); } catch(_ee){}
+          }
+        });
+      });
+    } catch(_e){}
+  })();
+  // Toggle "Não comprar" por conversa/ativo
+  (function(){
+    try {
+      @php
+        $safeChatId = isset($selectedChat) && $selectedChat ? (int)$selectedChat->id : (int)($chatId ?? 0);
+        $safeCode = isset($selectedChat) && $selectedChat ? strtoupper(trim((string)($selectedChat->code ?? ''))) : '';
+      @endphp
+  var chatId = {{ $safeChatId }};
+      var btn = document.getElementById('btnToggleCanBuy');
+  if (!btn) return;
+  var code = (@json($safeCode) || '').toString();
+  var KEY = code ? ('records.cantBuy.code.' + code) : ('records.cantBuy.chat.' + chatId); // usa code quando disponível
+      var OLD_KEY = 'records.canBuy.chat.' + chatId; // migração
+      function get(){
+        // Sempre tenta backend no init(); aqui apenas sinalizamos async
+        return null;
+      }
+  async function set(v){
+        // Tenta backend primeiro (se ao menos um identificador existir)
+        if (code || chatId){
+          const TOGGLE_URL = @json(route('openai.assets.noBuy.toggle'));
+          const resp = await fetch(TOGGLE_URL, {
+              method: 'POST',
+              headers: { 'Content-Type':'application/json', 'Accept':'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'X-Requested-With':'XMLHttpRequest' },
+              credentials: 'same-origin',
+              body: JSON.stringify({ code: code || '', chat_id: chatId || 0, no_buy: !!v })
+            });
+          if (resp.status === 422) {
+            // Sem código no chat -> salva no localStorage
+            try { localStorage.setItem(KEY, v ? '1' : '0'); try { localStorage.removeItem(OLD_KEY); } catch(_e){} } catch(_e){}
+            return;
+          }
+          if (!resp.ok) { throw new Error('HTTP '+resp.status); }
+          const data = await resp.json().catch(()=>null);
+          if (!data || data.ok !== true) { throw new Error('Save failed'); }
+          return;
+        }
+        // Fallback: sem identificador, só localStorage
+        try { localStorage.setItem(KEY, v ? '1' : '0'); try { localStorage.removeItem(OLD_KEY); } catch(_e){} } catch(_e){}
+      }
+      function apply(v){
+        // Reset classes relevantes
+        btn.classList.remove('btn-success','btn-outline-success','btn-danger','btn-outline-danger','btn-outline-secondary','text-white');
+        // Estado visual: verde = pode comprar, vermelho = não comprar
+        if (v) { // NÃO comprar
+          btn.classList.add('btn-danger');
+        } else { // pode comprar
+          btn.classList.add('btn-success');
+        }
+        // Texto sempre em branco
+        if (!btn.classList.contains('text-white')) btn.classList.add('text-white');
+        btn.textContent = v ? 'NÃO COMPRAR' : 'COMPRAR';
+        btn.setAttribute('aria-pressed', v ? 'true' : 'false');
+      }
+      var val = get();
+  (async function init(){
+        // Busca backend se possível; se 422 (sem código), cai pro localStorage
+        try {
+          const GET_URL = @json(route('openai.assets.noBuy.get'));
+          const params = new URLSearchParams();
+          if (code) params.set('code', code);
+          if (chatId) params.set('chat_id', String(chatId));
+          const canBackend = (code || chatId) && params.toString() !== '';
+          if (val === null && canBackend){
+            const resp = await fetch(GET_URL + "?" + params.toString(), { headers: { 'Accept':'application/json', 'X-Requested-With':'XMLHttpRequest' }, credentials: 'same-origin' });
+            if (resp.status === 422) {
+              // usa localStorage
+              try { var lv = localStorage.getItem(KEY); if (lv !== null) val = (lv === '1'); else { var old = localStorage.getItem(OLD_KEY); if (old !== null) val = (old !== '1'); } } catch(_e){}
+              if (typeof val === 'undefined' || val === null) val = false;
+            } else if (resp.ok) {
+              const data = await resp.json().catch(()=>null);
+              val = !!(data && data.no_buy);
+            } else {
+              val = false;
+            }
+          }
+        } catch(_e){ if (val === null) val = false; }
+        try { apply(!!val); } catch(_e) {}
+      })();
+      btn.addEventListener('click', async function(){
+        const prev = !!val;
+        try {
+          val = !val;
+          apply(val);
+          await set(val);
+        } catch(_e){
+          // Reverte visual e estado se falhar persistência
+          val = prev;
+          apply(val);
+          const hasCode = !!code;
+          const msg = hasCode ? 'Falha ao salvar preferência (NÃO COMPRAR/COMPRAR). Tente novamente.' : 'Este chat não tem código vinculado. Cadastre um código para salvar no banco. A preferência atual foi salva apenas neste navegador.';
+          try { window.alert(msg); } catch(_ee){}
+        }
+      });
+    } catch(_e){ /* noop */ }
+  })();
+  </script>
+  @endpush
     @if($selectedChat)
       @php
         $ticker = trim($selectedChat->code ?? '');
@@ -422,6 +570,7 @@
         'asset'=>($asset??'')!==''?$asset:null,
         'all'=>($showAll??false)?1:null,
         'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,
+        'buy'=>request('buy')?:null,
       ]);
     @endphp
     @php
@@ -440,7 +589,8 @@
             'sort'=>$sort!=='occurred_at'?$sort:null,
             'dir'=>$dir!=='desc'?$dir:null,
             'var_mode'=>$isSeq?'acum':'seq',
-            'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null
+            'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,
+            'buy'=>request('buy')?:null
           ]);
         @endphp
         <a href="{{ route('openai.records.index',$modeParams) }}" class="btn btn-sm btn-outline-secondary" title="Alternar modo de variação">
@@ -546,7 +696,7 @@
             <td>
               @if($r->chat)
                 @php $day = $r->occurred_at->format('Y-m-d'); @endphp
-                <a href="{{ route('openai.records.index', array_filter(['chat_id'=>$r->chat_id,'from'=>$day,'to'=>$day,'remember'=>1,'sort'=>$sort!=='occurred_at'?$sort:null,'dir'=>$dir!=='desc'?$dir:null,'all'=>($showAll??false)?1:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null])) }}" class="text-decoration-none">
+                <a href="{{ route('openai.records.index', array_filter(['chat_id'=>$r->chat_id,'from'=>$day,'to'=>$day,'remember'=>1,'sort'=>$sort!=='occurred_at'?$sort:null,'dir'=>$dir!=='desc'?$dir:null,'all'=>($showAll??false)?1:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,'buy'=>request('buy')?:null])) }}" class="text-decoration-none">
                   {{ $r->chat->title }}
                 </a>
               @else
@@ -604,6 +754,17 @@
             </td>
             <td>{{ $r->user?->name }}</td>
             <td class="text-center">
+              @php $rowCode = strtoupper(trim((string)($r->chat?->code ?? ''))); @endphp
+              @if($rowCode !== '')
+                @php $rowNoBuy = (bool) (($flagsMap ?? collect())->get($rowCode, false)); @endphp
+                <button type="button"
+                        class="btn btn-xs {{ $rowNoBuy ? 'btn-danger' : 'btn-success' }} text-white me-1 btn-toggle-row"
+                        data-code="{{ $rowCode }}"
+                        aria-pressed="{{ $rowNoBuy ? 'true' : 'false' }}"
+                        title="Alternar entre COMPRAR e NÃO COMPRAR">
+                  {{ $rowNoBuy ? 'NÃO COMPRAR' : 'COMPRAR' }}
+                </button>
+              @endif
               <button type="button" class="btn btn-sm btn-success me-1" onclick="prepQuickAdd({{ $r->chat_id }})" title="Adicionar novo registro desta conversa">➕</button>
               <a href="{{ route('openai.records.edit', $r) }}" class="btn btn-sm btn-outline-primary me-1">Editar</a>
               @if($r->investmentAccount)
@@ -644,12 +805,12 @@
         <span class="badge bg-info text-dark me-2" title="Filtro salvo em sessão">Filtro salvo</span>
       @endif
       @if(!($showAll ?? false))
-  <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'all'=>1,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null])) }}">Ver Todos</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'all'=>1,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,'buy'=>request('buy')?:null])) }}">Ver Todos</a>
       @else
-  <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null])) }}">Voltar à Paginação</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,'buy'=>request('buy')?:null])) }}">Voltar à Paginação</a>
       @endif
       @if(!empty($savedFilters))
-  <a class="btn btn-sm btn-outline-warning ms-2" href="{{ route('openai.records.index', array_filter(['clear_saved'=>1,'all'=>($showAll??false)?1:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null])) }}" title="Remover filtro salvo da sessão">Limpar Filtro Salvo</a>
+        <a class="btn btn-sm btn-outline-warning ms-2" href="{{ route('openai.records.index', array_filter(['clear_saved'=>1,'all'=>($showAll??false)?1:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,'buy'=>request('buy')?:null])) }}" title="Remover filtro salvo da sessão">Limpar Filtro Salvo</a>
       @endif
     </div>
   </div>
@@ -744,7 +905,7 @@ function prepQuickAdd(chatId){
   const btn = document.getElementById('mdq_btn');
   const out = document.getElementById('mdq_result');
   const amountInput = document.querySelector('#newRecordForm input[name="amount"]');
-  const symbol = '{{ $selectedChat->code ?? '' }}'.trim();
+  const symbol = @json($selectedChat->code ?? '');
   const dateEl = document.getElementById('new_date_br');
   const timeEl = document.getElementById('new_time_br');
   const hiddenDT = document.getElementById('new_occurred_at_hidden');
@@ -782,7 +943,8 @@ function prepQuickAdd(chatId){
     if (!symbol || !out) return;
     out.textContent = 'Consultando…';
     try {
-      const url = '{{ route('api.market.quote') }}' + '?symbol=' + encodeURIComponent(symbol);
+  const QUOTE_URL = @json(route('api.market.quote'));
+  const url = QUOTE_URL + '?symbol=' + encodeURIComponent(symbol);
       const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
       if (!resp.ok) throw new Error('HTTP ' + resp.status);
       const data = await resp.json();
