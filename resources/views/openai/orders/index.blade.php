@@ -120,7 +120,7 @@
             Ações
             <div class="mt-1">
         <button type="button" id="btn_refresh_all_quotes" class="btn btn-sm btn-warning">Atualizar todas</button>
-        <button type="button" id="btn_stop_refresh_all" class="btn btn-sm btn-outline-danger ms-1" disabled>Parar</button>
+              <button type="button" id="btn_stop_refresh_all" class="btn btn-sm btn-outline-danger ms-1" style="background-color:#fff" disabled>Parar</button>
             </div>
           </th>
         </tr>
