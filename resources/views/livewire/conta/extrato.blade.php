@@ -1,3 +1,25 @@
+@push('styles')
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
+    <style>
+    /* Foco vermelho para os selects nativos (conta e empresa) */
+    #selConta:focus, #selConta:focus-visible,
+    #selEmpresa:focus, #selEmpresa:focus-visible {
+            border-color: #dc3545 !important; /* vermelho Bootstrap danger */
+            box-shadow: 0 0 0 .2rem rgba(220, 53, 69, .25) !important;
+            outline: none !important;
+        }
+        /* Foco vermelho para Select2 com tema Bootstrap 5 */
+        .select2-container--bootstrap-5.select2-container--focus .select2-selection,
+        .select2-container--bootstrap-5 .select2-selection:focus,
+        .select2-container .select2-selection:focus {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 .2rem rgba(220, 53, 69, .25) !important;
+            outline: none !important;
+        }
+    </style>
+@endpush
+
 
     <div class="card">
         <div class="card-body">
@@ -109,17 +131,17 @@
                     <div class="row">
                         <div class="form-group col-sm-12 col-md-3">
                             <label for="de" class="pr-1  form-control-label">De</label>
-                            <input type="date" value="" id="de" name="De" wire:model.defer='De'
+                            <input type="date" value="" id="de" name="De" wire:model='De'
                                 class="required form-control " autocomplete="off">
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
                             <label for="ate" class="px-1  form-control-label">Até</label>
                             <input type="date" value="" id="ate" name="Ate" placeholder="Buscar até"
-                                wire:model.defer='Ate' class="required form-control " autocomplete="off">
+                                wire:model='Ate' class="required form-control " autocomplete="off">
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
                             <label for="ate" class="px-1  form-control-label">Conferido/Saidas em geral</label>
-                            <select name="Conferido" id="Conferido" class="form-control" wire:model.defer='Conferido'>
+                            <select name="Conferido" id="Conferido" class="form-control" wire:model='Conferido'>
                                 <option value="">Todos</option>
                                 <option value="true">Conferido</option>
                                 <option value="false">Não conferido</option>
@@ -133,8 +155,8 @@
                         <div class="form-group col-sm-12 col-md-3">
                             <label for="Notificacao" class="px-1  form-control-label">Notificação</label>
                             <select name="Notificacao" id="Notificacao" class="form-control"
-                                wire:model.defer='Notificacao'>
-                                <option selected="" value="todos">Todos</option>
+                                wire:model='Notificacao'>
+                                <option selected value="">Todos</option>
                                 <option value="1">Notificar</option>
                                 <option value="0">Não notificar</option>
                             </select>
@@ -840,10 +862,30 @@
                 console.log(e.target.value);
 
                 Livewire.emit('selectedSelEmpresaItem', e.target.value);
+                // Fecha modal (se aberto) e dispara busca automática
+                var myModalEl = document.getElementById('editarLancamentoModal');
+                if (myModalEl) {
+                    var modalInstance = bootstrap.Modal.getInstance(myModalEl);
+                    if (modalInstance) modalInstance.hide();
+                }
+                Livewire.emit('search');
+                // Mover foco para o select de conta (e container Select2, se presente)
+                setTimeout(function() {
+                    var selConta = document.getElementById('selConta');
+                    if (selConta) {
+                        selConta.focus();
+                        var sel2 = $(selConta).siblings('.select2');
+                        if (sel2 && sel2.length) {
+                            sel2.find('.select2-selection').addClass('select2-container--focus');
+                        }
+                    }
+                }, 0);
             });
             $('#selConta').on('change', function(e) {
                 Livewire.emit('selectedSelContaItem', e.target.value);
                 // @this.set('selConta', e.target.value);
+                // Dispara uma busca imediata no front também
+                Livewire.emit('search');
             });
 
             //scripts para troca de empresa
@@ -893,6 +935,32 @@
             modalInstance.hide();
         });
 
+        window.addEventListener('limpar-selConta', event => {
+            // Limpa valor do select nativo
+            var selConta = document.getElementById('selConta');
+            if (selConta) {
+                selConta.value = '';
+            }
+            // Limpa via Select2, se presente
+            try {
+                if ($('#selConta').data('select2')) {
+                    $('#selConta').val(null).trigger('change');
+                }
+            } catch (e) { /* noop */ }
+        });
+
+        window.addEventListener('desabilitar-selConta', event => {
+            var selConta = document.getElementById('selConta');
+            if (selConta) {
+                selConta.setAttribute('disabled', 'disabled');
+            }
+            try {
+                if ($('#selConta').data('select2')) {
+                    $('#selConta').prop('disabled', true);
+                }
+            } catch (e) { /* noop */ }
+        });
+
         document.addEventListener("DOMContentLoaded", () => {
             Livewire.hook('message.processed', (message, component) => {
                 $(document).ready(function() {
@@ -913,6 +981,31 @@
                     });
 
                 }
+
+                // Reabilitar select de conta após render (contas carregadas para a nova empresa)
+                try {
+                    var selConta = document.getElementById('selConta');
+                    if (selConta) {
+                        selConta.removeAttribute('disabled');
+                    }
+                    if ($('#selConta').data('select2')) {
+                        $('#selConta').prop('disabled', false);
+                    }
+                } catch (e) { /* noop */ }
+
+                // Aplicar foco visual vermelho ao Select2 de empresa ao abrir/fechar
+                try {
+                    $('#selEmpresa')
+                        .off('select2:open.focusred select2:close.focusred')
+                        .on('select2:open.focusred', function() {
+                            var sel2 = $(this).siblings('.select2');
+                            sel2.find('.select2-selection').addClass('select2-container--focus');
+                        })
+                        .on('select2:close.focusred', function() {
+                            var sel2 = $(this).siblings('.select2');
+                            sel2.find('.select2-selection').removeClass('select2-container--focus');
+                        });
+                } catch (e) { /* noop */ }
             })
 
 

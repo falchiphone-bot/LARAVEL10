@@ -79,7 +79,7 @@
 
                             </li>
 <!-- Font Awesome CDN (adicione no <head>) -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-papNV2f7SUl+Yw9vFQ3Y2AuykUytJzZJr+gYw4E3aVqwnC5Cq2tv/x2aWg1o2UDNKXPYQj3gVWaV+Pk7uw6K4w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
 <!-- Botão Toggle -->
 <button id="toggle-menu" class="toggle-button" title="Menu">

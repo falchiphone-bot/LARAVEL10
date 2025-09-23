@@ -18,6 +18,12 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class Extrato extends Component
 {
+    protected $listeners = [
+        'selectedSelEmpresaItem' => 'selectedSelEmpresaItem',
+        'selectedSelContaItem' => 'selectedSelContaItem',
+    // Permite disparar busca via Livewire.emit('search') do JS
+    'search' => 'search',
+    ];
     // Propriedades do componente (restauradas conforme uso no código)
     public $selEmpresa;
     public $selConta;
@@ -49,12 +55,35 @@ class Extrato extends Component
             session(['conta.extrato.empresa.id' => $this->selEmpresa]);
             $this->Empresa = Empresa::find($item);
             $this->data_bloqueio_empresa = $this->Empresa->Bloqueiodataanterior?->format('Y-m-d');
+            // Limpa seleção de conta e sessão vinculada para evitar busca com conta antiga
             $this->selConta = null;
+            $this->Conta = null;
+            $this->data_bloqueio_conta = null;
+            session()->forget('extrato_ContaID');
             $this->Lancamentos = null;
+            // Limpeza visual extra: fechar modais e limpar erros
+            $this->dispatchBrowserEvent('fechar-modal');
+            $this->dispatchBrowserEvent('desabilitar-selConta');
+            $this->dispatchBrowserEvent('limpar-selConta');
+            $this->resetErrorBag();
+            $this->resetValidation();
+            // Atualiza visualização executando uma busca (sem conta, zera resultado)
+            $this->search();
         } else {
             $this->selEmpresa = null;
             session(['conta.extrato.empresa.id' => $this->selEmpresa]);
+            // Limpa seleção de conta e sessão vinculada
             $this->selConta = null;
+            $this->Conta = null;
+            $this->data_bloqueio_conta = null;
+            session()->forget('extrato_ContaID');
+            // Limpeza visual extra e atualização
+            $this->dispatchBrowserEvent('fechar-modal');
+            $this->dispatchBrowserEvent('desabilitar-selConta');
+            $this->dispatchBrowserEvent('limpar-selConta');
+            $this->resetErrorBag();
+            $this->resetValidation();
+            $this->search();
         }
         $this->updated();
     }
@@ -66,6 +95,8 @@ class Extrato extends Component
             $this->Conta = Conta::find($item);
             $this->data_bloqueio_conta = $this->Conta->Bloqueiodataanterior?->format('Y-m-d');
             // $this->emit('search');
+            // Executa busca automaticamente ao selecionar a conta
+            $this->search();
         } else {
             $this->selConta = null;
         }
@@ -78,20 +109,79 @@ class Extrato extends Component
         $this->resetValidation();
     }
 
+    // Hook para chamadas internas e para evitar erro em $this->updated()
+    public function updated($name = null, $value = null)
+    {
+        $this->resetErrorBag();
+        $this->resetValidation();
+    }
+
+    // Garante datas padrão e grava em sessão
+    protected function ensureDatesDefault(): void
+    {
+        $today = date('Y-m-d');
+        if (empty($this->De)) {
+            $this->De = $today;
+            session(['Extrato_De' => $this->De]);
+        }
+        if (empty($this->Ate)) {
+            $this->Ate = $today;
+            session(['Extrato_Ate' => $this->Ate]);
+        }
+    }
+
+    // Persistir datas quando o usuário alterar nos inputs
+    public function updatedDe($value): void
+    {
+        if (empty($value)) {
+            $this->De = date('Y-m-d');
+        }
+        session(['Extrato_De' => $this->De]);
+    // Atualiza automaticamente a visualização ao alterar a data inicial
+    $this->search();
+    }
+
+    public function updatedAte($value): void
+    {
+        if (empty($value)) {
+            $this->Ate = date('Y-m-d');
+        }
+        session(['Extrato_Ate' => $this->Ate]);
+    // Atualiza automaticamente a visualização ao alterar a data final
+    $this->search();
+    }
+
     public function mount($contaID)
     {
-        session(['extrato_ContaID' => $contaID]);
-        $this->De = session('Extrato_De') ?? date('Y-m-d');
-        $this->Ate = session('Extrato_Ate') ?? date('Y-m-d');
+        // Restaurar filtros da sessão
+        $this->De = session('Extrato_De');
+        $this->Ate = session('Extrato_Ate');
+        $this->ensureDatesDefault();
 
-        $this->Conta = Conta::find($contaID);
-        $this->selEmpresa = $this->Conta->EmpresaID;
-        session(['conta.extrato.empresa.id' => $this->selEmpresa]);
+        // Restaurar empresa/conta da sessão se existirem; caso contrário usar $contaID inicial
+        $sessConta = session('extrato_ContaID');
+        $sessEmpresa = session('conta.extrato.empresa.id');
 
-        $this->Empresa = Empresa::find($this->selEmpresa);
+        if ($sessConta) {
+            $this->Conta = Conta::find($sessConta);
+            $this->selConta = $this->Conta?->ID;
+        } else {
+            // fallback ao parâmetro
+            session(['extrato_ContaID' => $contaID]);
+            $this->Conta = Conta::find($contaID);
+            $this->selConta = $this->Conta?->ID;
+        }
+
+        if ($sessEmpresa) {
+            $this->selEmpresa = $sessEmpresa;
+        } else {
+            $this->selEmpresa = $this->Conta?->EmpresaID;
+            session(['conta.extrato.empresa.id' => $this->selEmpresa]);
+        }
+
+        $this->Empresa = $this->selEmpresa ? Empresa::find($this->selEmpresa) : null;
         $this->data_bloqueio_conta = $this->Conta->Bloqueiodataanterior?->format('Y-m-d');
-        $this->data_bloqueio_empresa = $this->Empresa->Bloqueiodataanterior?->format('Y-m-d');
-        $this->selConta = $this->Conta->ID;
+        $this->data_bloqueio_empresa = $this->Empresa?->Bloqueiodataanterior?->format('Y-m-d');
 
 
     $de = Carbon::parse($this->De)->startOfDay();
@@ -102,7 +192,7 @@ class Extrato extends Component
             ->naoExcluido()
             ->periodo($de, $ate);
 
-        $this->Lancamentos = $lancamentos->orderByData()->get();
+    $this->Lancamentos = $lancamentos->orderByData()->get();
 
 
     }
@@ -160,6 +250,12 @@ class Extrato extends Component
 
     public function search()
     {
+    // Garante datas padrão e sessão
+    $this->ensureDatesDefault();
+        // Garante que a conta selecionada esteja na sessão
+        if (!empty($this->selConta)) {
+            session(['extrato_ContaID' => $this->selConta]);
+        }
         $contaID = session('extrato_ContaID') ?? $this->selConta;
 
         // dd($contaID);
@@ -227,7 +323,8 @@ class Extrato extends Component
             //     }
             // }
 
-            if ($this->Notificacao != '') {
+            // Filtro de notificação: aplica apenas quando for 0 ou 1
+            if (in_array((string) $this->Notificacao, ['0', '1'], true)) {
                 $lancamentos->where('notificacao', $this->Notificacao);
             }
 
@@ -281,6 +378,7 @@ class Extrato extends Component
 
     public function searchSaidasGeral()
     {
+    $this->ensureDatesDefault();
         if ($this->Conferido !== 'SaidasGeral') {
             $this->addError('conferido', 'Seleção inválida para Saídas Gerais.');
             return;
@@ -320,6 +418,7 @@ class Extrato extends Component
 
     public function searchSaidasGeralExcel()
     {
+    $this->ensureDatesDefault();
         if ($this->Conferido !== 'SaidasGeral') {
             $this->addError('conferido', 'Seleção inválida para exportação de Saídas Gerais.');
             return;
@@ -401,6 +500,7 @@ class Extrato extends Component
 
     public function searchSaidasGeralSoma()
     {
+    $this->ensureDatesDefault();
         $contaID = session('extrato_ContaID') ?? $this->selConta;
         $SaidasGeral = 1;
         $EntraddasGeral = 1;
@@ -441,6 +541,7 @@ class Extrato extends Component
 
     public function searchEntradasGeral()
     {
+    $this->ensureDatesDefault();
         if ($this->Conferido !== 'EntradasGeral') {
             $this->addError('conferido', 'Seleção inválida para Entradas Gerais.');
             return;
@@ -708,7 +809,8 @@ class Extrato extends Component
                 }
             }
 
-            if ($this->Notificacao != '') {
+            // Filtro de notificação: aplica apenas quando for 0 ou 1
+            if (in_array((string) $this->Notificacao, ['0', '1'], true)) {
                 $lancamentos->where('notificacao', $this->Notificacao);
             }
             $this->Lancamentos = $lancamentos
@@ -1446,22 +1548,62 @@ class Extrato extends Component
 
     public function render()
     {
-        $de = Carbon::createFromDate($this->De)->format('d/m/Y');
-        $contaID = $this->selConta;
-        $totalCredito = Lancamento::where(function ($q) use ($de, $contaID) {
+        // Normaliza data e ids antes de consultas
+        $this->ensureDatesDefault();
+        $contaID = session('extrato_ContaID') ?? $this->selConta;
+        $empresaID = $this->selEmpresa;
+        $deDT = Carbon::parse($this->De)->startOfDay();
+        $deSQL = $deDT->format('Y-m-d H:i:s');
+
+        // Se faltar empresa ou conta, evita consultas inválidas
+        if (empty($contaID) || empty($empresaID)) {
+            $saldoAnterior = 0;
+            $saldoAnteriorDolar = 0;
+            $empresas = Empresa::whereHas('EmpresaUsuario', function ($query) {
+                return $query->where('UsuarioID', Auth::user()->id);
+            })
+                ->select(DB::raw("CONCAT(Descricao,' - ',Cnpj) as Descricao"), 'ID')
+                ->orderBy('Descricao')
+                ->pluck('Descricao', 'ID');
+
+            $contas = Conta::where('EmpresaID', $empresaID)
+                ->where('Grau', 5)
+                ->join('Contabilidade.PlanoContas', 'PlanoContas.ID', 'Planocontas_id',)
+                ->orderBy('PlanoContas.Descricao')
+                ->get(['PlanoContas.Descricao', 'Contas.ID','PlanoContas.UsarDolar']);
+
+            $periodo = '';
+            if (!empty($this->De) && !empty($this->Ate)) {
+                try {
+                    $periodo = Carbon::parse($this->De)->format('d/m/Y') . ' a ' . Carbon::parse($this->Ate)->format('d/m/Y');
+                } catch (\Throwable $e) {
+                    $periodo = '';
+                }
+            }
+            $filtro = '';
+            if (!empty($this->Conferido)) {
+                $filtro = ' | Filtro: ' . (string) $this->Conferido;
+            }
+            $this->exibicao_pesquisa = trim('Extrato ' . ($periodo ? "($periodo)" : '') . $filtro);
+
+            return view('livewire.conta.extrato', compact('empresas', 'contas', 'saldoAnterior', 'saldoAnteriorDolar'))
+                ->with('exibicao_pesquisa', $this->exibicao_pesquisa);
+        }
+
+        $totalCredito = Lancamento::where(function ($q) use ($deSQL, $contaID, $empresaID) {
             return $q
                 ->where('ContaCreditoID', $contaID)
-                ->where('EmpresaID', $this->selEmpresa)
-                ->where('DataContabilidade', '<', $de);
+                ->where('EmpresaID', $empresaID)
+                ->where('DataContabilidade', '<', $deSQL);
         })
             ->whereDoesntHave('SolicitacaoExclusao')
             ->sum('Lancamentos.Valor');
 
-        $totalDebito = Lancamento::where(function ($q) use ($de, $contaID) {
+        $totalDebito = Lancamento::where(function ($q) use ($deSQL, $contaID, $empresaID) {
             return $q
                 ->where('ContaDebitoID', $contaID)
-                ->where('EmpresaID', $this->selEmpresa)
-                ->where('DataContabilidade', '<', $de);
+                ->where('EmpresaID', $empresaID)
+                ->where('DataContabilidade', '<', $deSQL);
         })
             ->whereDoesntHave('SolicitacaoExclusao')
             ->sum('Lancamentos.Valor');
@@ -1469,20 +1611,20 @@ class Extrato extends Component
         $saldoAnterior = $totalDebito - $totalCredito;
 
 
-        $totalCreditoDolar = Lancamento::where(function ($q) use ($de, $contaID) {
+        $totalCreditoDolar = Lancamento::where(function ($q) use ($deSQL, $contaID, $empresaID) {
             return $q
                 ->where('ContaCreditoID', $contaID)
-                ->where('EmpresaID', $this->selEmpresa)
-                ->where('DataContabilidade', '<', $de);
+                ->where('EmpresaID', $empresaID)
+                ->where('DataContabilidade', '<', $deSQL);
         })
             ->whereDoesntHave('SolicitacaoExclusao')
             ->sum('Lancamentos.ValorQuantidadeDolar');
 
-        $totalDebitoDolar = Lancamento::where(function ($q) use ($de, $contaID) {
+        $totalDebitoDolar = Lancamento::where(function ($q) use ($deSQL, $contaID, $empresaID) {
             return $q
                 ->where('ContaDebitoID', $contaID)
-                ->where('EmpresaID', $this->selEmpresa)
-                ->where('DataContabilidade', '<', $de);
+                ->where('EmpresaID', $empresaID)
+                ->where('DataContabilidade', '<', $deSQL);
         })
             ->whereDoesntHave('SolicitacaoExclusao')
             ->sum('Lancamentos.ValorQuantidadeDolar');
