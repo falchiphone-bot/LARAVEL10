@@ -47,6 +47,7 @@ class Extrato extends Component
     public $listaSoma = [];
     public $exibicao_pesquisa = '';
     public $editar_lancamento = null;
+    public $pdfSelecionado = 'completo';
 
     public function selectedSelEmpresaItem($item)
     {
@@ -852,16 +853,17 @@ class Extrato extends Component
                 'Lancamentos.ContaCreditoID', 'Lancamentos.ContaDebitoID', 'Lancamentos.Descricao',
                 'Historicos.Descricao as HistoricoDescricao', 'Conferido', 'SaidasGeral', 'EntradasGeral']);
 
-            return redirect()
-                ->route('Extrato.gerarpdf')
-                ->with('LancamentosPDF', [
-                    'DadosExtrato' => $this->Lancamentos,
-                    'de' => ($start ? $start->format('d/m/Y 00:00:00') : Carbon::now()->startOfDay()->format('d/m/Y 00:00:00')),
-                    'ate' => ($end ? $end->format('d/m/Y 23:59:59') : Carbon::now()->endOfDay()->format('d/m/Y 23:59:59')),
-                    'descricaoconta' => $this->Conta->Planoconta->Descricao,
-                    'conta' => $this->Conta->ID,
-                    'empresa' => $this->Conta->EmpresaID,
-                ]);
+            // Salva o payload na sessão e aciona evento para abrir em nova guia
+            session()->put('LancamentosPDF', [
+                'DadosExtrato' => $this->Lancamentos,
+                'de' => ($start ? $start->format('d/m/Y 00:00:00') : Carbon::now()->startOfDay()->format('d/m/Y 00:00:00')),
+                'ate' => ($end ? $end->format('d/m/Y 23:59:59') : Carbon::now()->endOfDay()->format('d/m/Y 23:59:59')),
+                'descricaoconta' => $this->Conta->Planoconta->Descricao,
+                'conta' => $this->Conta->ID,
+                'empresa' => $this->Conta->EmpresaID,
+            ]);
+            $this->dispatchBrowserEvent('open-pdf', ['url' => route('Extrato.gerarpdf')]);
+            return;
         } else {
             $this->Lancamentos = null;
         }
@@ -880,9 +882,115 @@ class Extrato extends Component
         $this->search();
     }
 
+    /**
+     * Gera PDF resumido por dia (detalhe ou total) sem saldo anterior.
+     * @param string $modo 'detalhe' ou 'total'
+     */
+    public function searchPDFResumo($modo = 'total')
+    {
+        $modo = in_array($modo, ['detalhe', 'total']) ? $modo : 'total';
+        $contaID = session('extrato_ContaID') ?? $this->selConta;
+        if ($contaID) {
+            $lancamentos = Lancamento::where(function ($query) use ($contaID) {
+                return $query->where('Lancamentos.ContaDebitoID', $contaID)
+                    ->orWhere('Lancamentos.ContaCreditoID', $contaID);
+            });
+            $start = null;
+            $end = null;
+            if ($this->De) {
+                $start = $this->Descricao && $this->DescricaoApartirDe
+                    ? Carbon::createFromFormat('Y-m-d', $this->DescricaoApartirDe)->startOfDay()
+                    : Carbon::createFromFormat('Y-m-d', $this->De)->startOfDay();
+                $lancamentos->where('DataContabilidade', '>=', $start);
+                session(['Extrato_De' => $this->De]);
+            }
+            if ($this->Ate) {
+                $end = Carbon::createFromFormat('Y-m-d', $this->Ate)->endOfDay();
+                $lancamentos->where('DataContabilidade', '<=', $end);
+                session(['Extrato_Ate' => $this->Ate]);
+            }
+            if ($this->Descricao) {
+                $lancamentos->where(function ($q) {
+                    $q->where('Lancamentos.Descricao', 'like', "%$this->Descricao%")
+                        ->orWhere('Historicos.Descricao', 'like', "%$this->Descricao%");
+                });
+            }
+            if ($this->Conferido !== '' && $this->Conferido !== null) {
+                $conf = $this->Conferido;
+                if ($conf === 'false' || $conf === false || $conf === 0 || $conf === '0') {
+                    $lancamentos->where(function ($q) {
+                        return $q->whereNull('Conferido')->orWhere('Conferido', 0);
+                    });
+                } elseif ($conf === 'true' || $conf === true || $conf === 1 || $conf === '1') {
+                    $lancamentos->where('Conferido', 1);
+                } else {
+                    $lancamentos->where('Conferido', $conf);
+                }
+            }
+            if ($this->SaidasGeral != '') {
+                if ($this->SaidasGeral == 'false') {
+                    $lancamentos->where(function ($q) {
+                        return $q->whereNull('SaidasGeral')->orWhere('SaidasGeral', 0);
+                    });
+                } else {
+                    $lancamentos->where('SaidasGeral', $this->SaidasGeral);
+                }
+            }
+            if (in_array((string) $this->Notificacao, ['0', '1'], true)) {
+                $lancamentos->where('notificacao', $this->Notificacao);
+            }
+            $this->Lancamentos = $lancamentos
+                ->orderBy('DataContabilidade')
+                ->whereDoesntHave('SolicitacaoExclusao')
+                ->leftjoin('Contabilidade.Historicos', 'Historicos.ID', 'HistoricoID')
+                ->get([
+                    'Lancamentos.EmpresaID',
+                    'Lancamentos.ID',
+                    'Lancamentos.Valor',
+                    'DataContabilidade',
+                    'Lancamentos.ContaCreditoID',
+                    'Lancamentos.ContaDebitoID',
+                    'Lancamentos.Descricao',
+                    'Historicos.Descricao as HistoricoDescricao',
+                    'Conferido',
+                    'SaidasGeral',
+                    'EntradasGeral',
+                ]);
+            // Salva o payload na sessão e aciona evento para abrir em nova guia (resumo)
+            session()->put('LancamentosPDF', [
+                'DadosExtrato' => $this->Lancamentos,
+                'de' => ($start ? $start->format('d/m/Y 00:00:00') : Carbon::now()->startOfDay()->format('d/m/Y 00:00:00')),
+                'ate' => ($end ? $end->format('d/m/Y 23:59:59') : Carbon::now()->endOfDay()->format('d/m/Y 23:59:59')),
+                'descricaoconta' => $this->Conta->Planoconta->Descricao,
+                'conta' => $this->Conta->ID,
+                'empresa' => $this->Conta->EmpresaID,
+                'pdf_tipo' => 'resumo',
+                'pdf_modo' => $modo,
+            ]);
+            $this->dispatchBrowserEvent('open-pdf', ['url' => route('Extrato.gerarpdf')]);
+            return;
+        } else {
+            $this->Lancamentos = null;
+        }
+    }
+
     public function confirmarAtualizar($lancamento_id)
     {
         $this->search();
+    }
+
+    // Dispara a geração de PDF conforme a seleção do usuário
+    public function gerarPDFSelecionado()
+    {
+        switch ($this->pdfSelecionado) {
+            case 'resumo_total':
+                return $this->searchPDFResumo('total');
+            case 'resumo_detalhe':
+                return $this->searchPDFResumo('detalhe');
+            case 'completo':
+            default:
+                return $this->searchPDF();
+        }
     }
 
     public function editarLancamento($lancamentoId, $empresaId = null)
@@ -1887,6 +1995,8 @@ class Extrato extends Component
 
                 // Salvar ou exibir o PDF
                 $dompdf->stream('lancamentos.pdf', ['Attachment' => false]);
+                // Limpa payload para não reutilizar na próxima abertura
+                try { session()->forget('LancamentosPDF'); } catch (\Throwable $e) { /* noop */ }
 
                 // Obter o conteúdo do PDF
                 // $output = $dompdf->output();
@@ -1895,7 +2005,114 @@ class Extrato extends Component
                 // return response($output)
                 //     ->header('Content-Type', 'application/pdf')
                 //     ->header('Content-Disposition', 'inline; filename="lancamentos.pdf"');
-    }
+            }
+
+            // Gera PDF resumido por dia sem saldo anterior
+            private function gerarExtratoPdf_resumo($lancamentosPDF)
+            {
+                $lancamentos = $lancamentosPDF['DadosExtrato'];
+                $de = $lancamentosPDF['de'];
+                $ate = $lancamentosPDF['ate'];
+                $descricaoconta = $lancamentosPDF['descricaoconta'];
+                $conta = $lancamentosPDF['conta'];
+                $modo = $lancamentosPDF['pdf_modo'] ?? 'total';
+
+                $deformatada = explode(' ', $de)[0] ?? $de;
+                $ateformatada = explode(' ', $ate)[0] ?? $ate;
+
+                // Agrupa por data e calcula débitos/créditos do dia
+                $porDia = [];
+                foreach ($lancamentos as $l) {
+                    $dia = $l->DataContabilidade->format('Y-m-d');
+                    if (!isset($porDia[$dia])) {
+                        $porDia[$dia] = ['itens' => [], 'debito' => 0.0, 'credito' => 0.0];
+                    }
+                    $valor = (float) $l->Valor;
+                    if ($conta == $l->ContaDebitoID) { $porDia[$dia]['debito'] += $valor; }
+                    if ($conta == $l->ContaCreditoID) { $porDia[$dia]['credito'] += $valor; }
+                    $porDia[$dia]['itens'][] = $l;
+                }
+
+                $html = '<style>table{width:100%;border-collapse:collapse}th,td{padding:6px;border-bottom:1px solid #ddd}th{background:#f2f2f2}.total{font-weight:bold}.sub{font-weight:bold;background:#fafafa}</style>';
+                $html .= '<table><thead>'
+                    . '<tr style="background-color:#eaf2ff;"><th colspan="2"><h4>Período de: ' . $deformatada . ' à ' . $ateformatada . '</h4></th></tr>'
+                    . '<tr style="background-color:#eaf2ff;"><th colspan="2"><h4>Conta: ' . e($descricaoconta) . '</h4></th></tr>';
+                if ($modo === 'total') {
+                    $html .= '<tr><th>Data</th><th>Saldo do dia</th></tr>';
+                } else {
+                    $html .= '<tr><th>Data</th><th>Descrição</th><th>Débito</th><th>Crédito</th></tr>';
+                }
+                $html .= '</thead><tbody>';
+
+                $debitoGeral = 0.0; $creditoGeral = 0.0;
+                ksort($porDia);
+                foreach ($porDia as $dia => $dados) {
+                    $debitoDia = $dados['debito'];
+                    $creditoDia = $dados['credito'];
+                    $debitoGeral += $debitoDia; $creditoGeral += $creditoDia;
+
+                    if ($modo === 'total') {
+                        // Linha do dia: apenas Data e Saldo líquido do dia (sem saldo anterior)
+                        $html .= '<tr class="sub">'
+                            . '<td>' . Carbon::parse($dia)->format('d/m/Y') . '</td>'
+                            . '<td style="text-align:right;">' . number_format($debitoDia - $creditoDia, 2, ',', '.') . '</td>'
+                            . '</tr>';
+                    } else {
+                        // Cabeçalho do dia com totais
+                        $html .= '<tr class="sub">'
+                            . '<td colspan="4">' . Carbon::parse($dia)->format('d/m/Y') . ' - Débito: '
+                            . number_format($debitoDia, 2, ',', '.') . ' | Crédito: '
+                            . number_format($creditoDia, 2, ',', '.') . ' | Líquido: '
+                            . number_format($debitoDia - $creditoDia, 2, ',', '.') . '</td>'
+                            . '</tr>';
+                        // Linhas detalhadas do dia
+                        foreach ($dados['itens'] as $l) {
+                            $valorFmt = number_format($l->Valor, 2, ',', '.');
+                            $descricao = ($l['HistoricoDescricao'] ?? '') . ' ' . ($l->Descricao ?? '');
+                            $descricaoQuebrada = wordwrap($descricao, 60, '<br>', true);
+                            $deb = $conta == $l->ContaDebitoID ? $valorFmt : '';
+                            $cred = $conta == $l->ContaCreditoID ? $valorFmt : '';
+                            $html .= '<tr>'
+                                . '<td>' . $l->DataContabilidade->format('d/m/Y') . '</td>'
+                                . '<td>' . $descricaoQuebrada . '</td>'
+                                . '<td style="text-align:right;">' . $deb . '</td>'
+                                . '<td style="text-align:right;">' . $cred . '</td>'
+                                . '</tr>';
+                        }
+                        // Subtotal do dia
+                        $html .= '<tr>'
+                            . '<td colspan="2" style="text-align:right;"><strong>Subtotal do dia</strong></td>'
+                            . '<td style="text-align:right;"><strong>' . number_format($debitoDia, 2, ',', '.') . '</strong></td>'
+                            . '<td style="text-align:right;"><strong>' . number_format($creditoDia, 2, ',', '.') . '</strong></td>'
+                            . '</tr>';
+                    }
+                }
+
+                // Total do período
+                if ($modo === 'total') {
+                    $html .= '<tr class="total"><td colspan="2"><hr></td></tr>';
+                    $html .= '<tr class="total">'
+                        . '<td>Total do período</td>'
+                        . '<td style="text-align:right;">' . number_format($debitoGeral - $creditoGeral, 2, ',', '.') . '</td>'
+                        . '</tr>';
+                } else {
+                    $html .= '<tr class="total"><td colspan="4"><hr></td></tr>';
+                    $html .= '<tr class="total">'
+                        . '<td colspan="2">Total do período</td>'
+                        . '<td style="text-align:right;">' . number_format($debitoGeral, 2, ',', '.') . '</td>'
+                        . '<td style="text-align:right;">' . number_format($creditoGeral, 2, ',', '.') . '</td>'
+                        . '</tr>';
+                }
+
+                $html .= '</tbody></table>';
+
+                $dompdf = new Dompdf();
+                $dompdf->loadHtml($html);
+                $dompdf->render();
+            $out = $dompdf->stream('lancamentos_resumo.pdf', ['Attachment' => false]);
+            try { session()->forget('LancamentosPDF'); } catch (\Throwable $e) { /* noop */ }
+            return $out;
+            }
 
     public function gerarExtratoPdf_Bordas_Tabelas()
     {
@@ -2093,6 +2310,11 @@ class Extrato extends Component
 
         $lancamentosPDF = session('LancamentosPDF');
 
+        // Se a requisição for para PDF resumido, delega imediatamente
+        if (!empty($lancamentosPDF['pdf_tipo']) && $lancamentosPDF['pdf_tipo'] === 'resumo') {
+            return $this->gerarExtratoPdf_resumo($lancamentosPDF);
+        }
+
         $lancamentos = $lancamentosPDF['DadosExtrato'];
 
         $de = $lancamentosPDF['de'];
@@ -2140,28 +2362,12 @@ class Extrato extends Component
                 margin: 10px 0;
             }
 
-            table {
-                width: 100%;
-                border-collapse: collapse;
-            }
-
-            th, td {
-                padding: 8px;
-                text-align: left;
-                border-bottom: 1px solid #ddd;
-            }
-
             th {
                 background-color: #f2f2f2;
             }
 
-            .saldo-anterior {
-                font-weight: bold;
-            }
-
-            .total {
-                font-weight: bold;
-            }
+            .saldo-anterior { font-weight: bold; }
+            .total { font-weight: bold; }
 
             .header {
                 position: fixed;

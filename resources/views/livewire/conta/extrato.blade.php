@@ -295,10 +295,16 @@
 
                     @endcan
 
-                    <button id="buscar" wire:click='searchPDF()' type="button" class="btn btn-danger btn-sm"
-                        target="_blank">
-                        <i class="fa fa-dot-circle-o"></i> Buscar informações e gerar PDF
-                    </button>
+                    <div class="d-inline-flex align-items-center gap-2">
+                        <select class="form-select form-select-sm" style="width:auto" wire:model="pdfSelecionado">
+                            <option value="completo">PDF completo (com saldo anterior)</option>
+                            <option value="resumo_total">PDF resumido: total do dia (sem saldo anterior)</option>
+                            <option value="resumo_detalhe">PDF resumido: detalhe por dia (sem saldo anterior)</option>
+                        </select>
+                        <button id="btn-gerar-pdf" wire:click='gerarPDFSelecionado' type="button" class="btn btn-danger btn-sm" target="_blank">
+                            <i class="fa fa-file-pdf-o"></i> Gerar PDF
+                        </button>
+                    </div>
                     <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
                         <a class="btn btn-success" href="/lancamentos/ExportarExtratoExcel">Exportar lançamentos para
                             extrato por período e empresa selecionada no formato EXCEL</a>
@@ -844,6 +850,20 @@
         window.addEventListener('alert', event => {
             alert(event.detail.message);
         });
+    </script>
+
+    <script>
+        // Abre a URL do PDF em nova guia quando o Livewire disparar o evento
+        // Lock simples evita abrir mais de uma aba por evento
+        (function(){
+            let opening = false;
+            window.addEventListener('open-pdf', event => {
+                if (opening) return; opening = true;
+                const url = event.detail.url;
+                if (!url) { opening = false; return; }
+                setTimeout(() => { window.open(url, '_blank'); opening = false; }, 80);
+            });
+        })();
     </script>
 
     <script>
