@@ -166,12 +166,14 @@
                         <div class="form-group col-sm-12 col-md-3">
                             <label for="de" class="pr-1  form-control-label">Buscar Descrição</label>
                             <input type="text" value="" id="descricao" class="form-control"
-                                autocomplete="off" wire:model.lazy='Descricao'>
+                                autocomplete="off" wire:model.debounce.500ms='Descricao'
+                                wire:keydown.enter.prevent="search">
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
                             <label for="de" class="pr-1  form-control-label">A partir De:</label>
                             <input type="date" value="" id="a_partir_de" class="form-control"
-                                autocomplete="off" wire:model.lazy='DescricaoApartirDe'>
+                                autocomplete="off" wire:model.debounce.500ms='DescricaoApartirDe'
+                                wire:keydown.enter.prevent="search">
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
 
@@ -807,7 +809,7 @@
                         <div class="modal-content">
                             <div class="modal-body">
                                 @if ($editar_lancamento)
-                                    @livewire('lancamento.editar-lancamento', ['lancamento_id' => $editar_lancamento, 'contas' => $contas, 'empresas' => $empresas])
+                                    @livewire('lancamento.editar-lancamento', ['lancamento_id' => $editar_lancamento, 'contas' => $contas, 'empresas' => $empresas], key('editar-'.$editar_lancamento.'-'.$selEmpresa))
                                 @endif
                             </div>
                         </div>

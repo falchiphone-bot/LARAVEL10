@@ -55,6 +55,12 @@ class Extrato extends Component
             session(['conta.extrato.empresa.id' => $this->selEmpresa]);
             $this->Empresa = Empresa::find($item);
             $this->data_bloqueio_empresa = $this->Empresa->Bloqueiodataanterior?->format('Y-m-d');
+            // Se o modal estiver aberto, atualizar a empresa também no componente filho
+            if ($this->editar_lancamento) {
+                try {
+                    $this->emitTo('lancamento.editar-lancamento', 'changeEmpresaID', (int) $this->selEmpresa);
+                } catch (\Throwable $e) { /* noop */ }
+            }
             // Limpa seleção de conta e sessão vinculada para evitar busca com conta antiga
             $this->selConta = null;
             $this->Conta = null;
@@ -159,6 +165,18 @@ class Extrato extends Component
 
     // Atualiza lista ao mudar filtro de notificação
     public function updatedNotificacao($value): void
+    {
+        $this->search();
+    }
+
+    // Atualiza lista ao mudar filtro de descrição
+    public function updatedDescricao($value): void
+    {
+        $this->search();
+    }
+
+    // Atualiza lista ao mudar filtro de data a partir de
+    public function updatedDescricaoApartirDe($value): void
     {
         $this->search();
     }
@@ -875,6 +893,15 @@ class Extrato extends Component
             // Ajusta empresa selecionada quando informado (útil para novo)
             $this->selEmpresa = $empresaId;
         }
+        // Garante que o componente filho (modal) atualize o lançamento antes de abrir
+        try {
+            $this->emitTo(
+                'lancamento.editar-lancamento',
+                'alterarIdLancamento',
+                $lancamentoId,
+                $empresaId ?? $this->selEmpresa
+            );
+        } catch (\Throwable $e) { /* noop */ }
         $this->dispatchBrowserEvent('abrir-modal');
     }
 
