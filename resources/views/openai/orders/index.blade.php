@@ -107,6 +107,12 @@
             <a class="text-decoration-none text-light" href="{{ route('openai.orders.index', array_merge($base,['sort'=>'chat','dir'=>$flip('chat')])) }}">Conversa {{ $icon('chat') }}</a>
           </th>
           <th style="width:12%">Cotação</th>
+          <th style="width:10%" class="{{ (($sort ?? 'created_at') === 'variation') ? 'active-sort' : '' }}">
+            <a class="text-decoration-none text-light" href="{{ route('openai.orders.index', array_merge($base,['sort'=>'variation','dir'=>$flip('variation')])) }}">Variação {{ $icon('variation') }}</a>
+          </th>
+          <th style="width:14%" class="{{ (($sort ?? 'created_at') === 'difference') ? 'active-sort' : '' }}">
+            <a class="text-decoration-none text-light" href="{{ route('openai.orders.index', array_merge($base,['sort'=>'difference','dir'=>$flip('difference')])) }}">Diferença {{ $icon('difference') }}</a>
+          </th>
           <th style="width:18%" class="{{ (($sort ?? 'created_at') === 'created_at') ? 'active-sort' : '' }}">
             <a class="text-decoration-none text-light" href="{{ route('openai.orders.index', array_merge($base,['sort'=>'created_at','dir'=>$flip('created_at')])) }}">Criado em {{ $icon('created_at') }}</a>
           </th>
@@ -116,7 +122,17 @@
       <tbody>
         @forelse($orders as $o)
           <tr>
-            <td><span class="badge bg-dark">{{ $o->code }}</span></td>
+            <td>
+              <span class="badge bg-dark">{{ $o->code }}</span>
+              @php
+                $flag = isset($flagsMap) ? ($flagsMap[strtoupper((string)$o->code)] ?? false) : false;
+              @endphp
+              @if($flag)
+                <span class="badge bg-danger ms-1" title="Alerta de compra">NÃO COMPRAR</span>
+              @else
+                <span class="badge bg-success ms-1" title="Alerta de compra">COMPRAR</span>
+              @endif
+            </td>
             <td>
               @php $cls = $o->type === 'compra' ? 'success' : 'danger'; @endphp
               <span class="badge bg-{{ $cls }}">{{ ucfirst($o->type) }}</span>
@@ -151,7 +167,41 @@
               @else
                 <span class="text-muted">—</span>
               @endif
-              <div id="cell_quote_var_{{ $o->id }}" class="small mt-1"></div>
+            </td>
+            @php
+              $pct = null;
+              if (!is_null($o->quote_value) && !is_null($o->value) && (float)$o->value > 1.0) {
+                $base = (float)$o->value;
+                $cur  = (float)$o->quote_value;
+                $pct = (($cur - $base) / $base) * 100.0;
+              }
+            @endphp
+            @php
+              $diff = null;
+              if (!is_null($o->quote_value) && !is_null($o->value) && !is_null($o->quantity) && (float)$o->quantity > 0 && (float)$o->value > 1.0) {
+                // Espelha a variação: diferença positiva quando cotação acima do valor
+                $diff = ((float)$o->quote_value - (float)$o->value) * (float)$o->quantity;
+              }
+            @endphp
+            <td>
+              <div id="cell_quote_var_{{ $o->id }}" class="small">
+                @if(!is_null($pct))
+                  @php $cls = $pct >= 0 ? 'text-success' : 'text-danger'; $sign = $pct >= 0 ? '+' : ''; @endphp
+                  <span class="{{ $cls }}">{{ $sign }}{{ number_format($pct, 2, ',', '.') }}%</span>
+                @else
+                  <span class="text-muted">—</span>
+                @endif
+              </div>
+            </td>
+            <td>
+              <div id="cell_quote_diff_{{ $o->id }}" class="small">
+                @if(!is_null($diff))
+                  @php $cls = $diff >= 0 ? 'text-success' : 'text-danger'; $sign = $diff >= 0 ? '+' : ''; @endphp
+                  <span class="{{ $cls }}">{{ $sign }}{{ number_format($diff, 2, ',', '.') }}</span>
+                @else
+                  <span class="text-muted">—</span>
+                @endif
+              </div>
             </td>
             <td>
               @php $cdt = $o->created_at ? $o->created_at->timezone(config('app.timezone')) : null; @endphp
@@ -160,7 +210,7 @@
               @else — @endif
             </td>
             <td class="text-center">
-              <button type="button" class="btn btn-sm btn-outline-info me-1 row-quote-btn" data-symbol="{{ $o->code }}" data-order-id="{{ $o->id }}" data-saved-quote="{{ is_null($o->quote_value) ? '' : (float)$o->quote_value }}">Cotação</button>
+              <button type="button" class="btn btn-sm btn-outline-info me-1 row-quote-btn" data-symbol="{{ $o->code }}" data-order-id="{{ $o->id }}" data-saved-quote="{{ is_null($o->quote_value) ? '' : (float)$o->quote_value }}" data-order-value="{{ is_null($o->value) ? '' : (float)$o->value }}" data-order-quantity="{{ is_null($o->quantity) ? '' : (float)$o->quantity }}">Cotação</button>
               <a href="{{ route('openai.records.index', ['chat_id' => $o->chat_id]) }}" class="btn btn-sm btn-outline-secondary">Registros</a>
               <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editOrderModal_{{ $o->id }}">Editar</button>
               <form action="{{ route('openai.records.codeOrder.destroy', $o->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Excluir esta ordem?');">
@@ -179,7 +229,7 @@
           </tr>
           @include('openai.partials.code_order_modal', ['order' => $o])
         @empty
-          <tr><td colspan="8" class="text-center text-muted">Nenhuma ordem.</td></tr>
+          <tr><td colspan="11" class="text-center text-muted">Nenhuma ordem.</td></tr>
         @endforelse
       </tbody>
     </table>
@@ -275,6 +325,10 @@ document.addEventListener('DOMContentLoaded', function(){
       const cellVar = document.getElementById('cell_quote_var_' + id);
       const savedQuoteAttr = rb.getAttribute('data-saved-quote');
       const savedQuote = savedQuoteAttr ? parseFloat(savedQuoteAttr) : null;
+  const orderValueAttr = rb.getAttribute('data-order-value');
+  const orderValue = orderValueAttr ? parseFloat(orderValueAttr) : null;
+  const orderQtyAttr = rb.getAttribute('data-order-quantity');
+  const orderQty = orderQtyAttr ? parseFloat(orderQtyAttr) : null;
       if (!symbol || !out) return;
       out.textContent = 'Consultando…';
       try {
@@ -295,46 +349,40 @@ document.addEventListener('DOMContentLoaded', function(){
                 headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': token },
               });
               if (respSave.ok) {
-                // Atualiza UI como se o usuário tivesse clicado para salvar
-                const saved = document.getElementById('cell_quote_saved_' + id);
-                if (saved) { saved.textContent = Number(data.price).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 6 }); }
-                let savedAt = document.getElementById('cell_quote_saved_at_' + id);
-                const now = new Date();
-                const pad = n => String(n).padStart(2,'0');
-                const formatted = `${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-                if (!savedAt) {
-                  const savedEl = saved || document.getElementById('cell_quote_saved_' + id);
-                  if (savedEl && savedEl.parentElement) {
-                    const small = document.createElement('small');
-                    small.className = 'text-muted';
-                    small.id = 'cell_quote_saved_at_' + id;
-                    small.textContent = `(${formatted})`;
-                    small.title = formatted;
-                    savedEl.insertAdjacentElement('afterend', small);
-                  }
-                } else {
-                  savedAt.textContent = `(${formatted})`;
-                  savedAt.title = formatted;
-                }
-                // Atualiza referência para futuras variações
-                const btn = document.querySelector(`.row-quote-btn[data-order-id="${id}"]`);
-                if (btn) { btn.setAttribute('data-saved-quote', String(Number(data.price))); }
-                // Oculta o botão manual após autosave
-                saveForm.classList.add('d-none');
+                // Refresh para refletir a nova cotação persistida
+                window.location.reload();
+                return;
               }
             } catch(_e) {
               // Se falhar autosave, mantém o botão visível para ação manual
             }
           }
-          // Calcula variação percentual se houver valor salvo
+          // Calcula variação percentual com base no Valor da ordem (> 1,00)
           if (cellVar) {
-            if (savedQuote !== null && !isNaN(savedQuote) && Number(data.price) > 0) {
-              const pct = ((Number(data.price) - savedQuote) / savedQuote) * 100;
+            const base = (orderValue !== null && !isNaN(orderValue) && orderValue > 1) ? orderValue : null;
+            const current = Number(data.price);
+            if (base !== null && current > 0) {
+              const pct = ((current - base) / base) * 100;
               const sign = pct >= 0 ? '+' : '';
               const cls = pct >= 0 ? 'text-success' : 'text-danger';
               cellVar.innerHTML = `<span class=\"${cls}\">${sign}${pct.toFixed(2)}%</span>`;
             } else {
               cellVar.innerHTML = '';
+            }
+          }
+      // Calcula diferença (Cotação - Valor) * Qtd com base no Valor (>1) e Qtd (>0)
+          const diffCell = document.getElementById('cell_quote_diff_' + id);
+          if (diffCell) {
+            const base = (orderValue !== null && !isNaN(orderValue) && orderValue > 1) ? orderValue : null;
+            const qty = (orderQty !== null && !isNaN(orderQty) && orderQty > 0) ? orderQty : null;
+            const current = Number(data.price);
+            if (base !== null && qty !== null && current > 0) {
+        const diff = (current - base) * qty;
+        const sign = diff >= 0 ? '+' : '';
+              const cls = diff >= 0 ? 'text-success' : 'text-danger';
+        diffCell.innerHTML = `<span class=\"${cls}\">${sign}${diff.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>`;
+            } else {
+              diffCell.innerHTML = '<span class="text-muted">—</span>';
             }
           }
           // Preenche o input de Valor no modal correspondente, se aberto
@@ -370,59 +418,9 @@ document.addEventListener('DOMContentLoaded', function(){
           headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': form.querySelector('input[name="_token"]').value },
         });
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
-        // Atualiza UI: pega o último valor mostrado em out (ou mantém salvo)
-        const out = document.getElementById('row_quote_result_' + id);
-        // extrai número do out (em en-US currency) preservando ponto decimal
-        let lastPrice = null;
-        if (out && out.textContent) {
-          // remove tudo que não for dígito, ponto, vírgula ou sinal
-          let raw = out.textContent.replace(/[^0-9,\.\-]/g, '');
-          if (raw) {
-            if (raw.indexOf('.') !== -1) {
-              // Formato en-US provável: 1,234.56 -> remove vírgulas (milhar), mantém ponto como decimal
-              raw = raw.replace(/,/g, '');
-              lastPrice = parseFloat(raw);
-            } else if (raw.indexOf(',') !== -1) {
-              // Formato pt-BR provável: 1.234,56 -> troca vírgula por ponto (e remove pontos se houver)
-              raw = raw.replace(/\./g, '').replace(/,/g, '.');
-              lastPrice = parseFloat(raw);
-            } else {
-              lastPrice = parseFloat(raw);
-            }
-          }
-        }
-        // Atualiza valores salvos na célula
-        if (lastPrice !== null && !isNaN(lastPrice)) {
-          const saved = document.getElementById('cell_quote_saved_' + id);
-          if (saved) { saved.textContent = lastPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 6 }); }
-          const savedAt = document.getElementById('cell_quote_saved_at_' + id);
-          {
-            const now = new Date();
-            const pad = n => String(n).padStart(2,'0');
-            const formatted = `${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-            let savedAt = document.getElementById('cell_quote_saved_at_' + id);
-            if (!savedAt) {
-              // cria o elemento se não existir ainda
-              const savedEl = document.getElementById('cell_quote_saved_' + id);
-              if (savedEl && savedEl.parentElement) {
-                const small = document.createElement('small');
-                small.className = 'text-muted';
-                small.id = 'cell_quote_saved_at_' + id;
-                small.textContent = `(${formatted})`;
-                small.title = formatted;
-                savedEl.insertAdjacentElement('afterend', small);
-              }
-            } else {
-              savedAt.textContent = `(${formatted})`;
-              savedAt.title = formatted;
-            }
-          }
-          // Atualiza o data-saved-quote no botão para futuras variações
-          const btn = document.querySelector(`.row-quote-btn[data-order-id="${id}"]`);
-          if (btn) { btn.setAttribute('data-saved-quote', String(lastPrice)); }
-        }
-        // Oculta o botão após salvar para evitar engano
-        form.classList.add('d-none');
+  // Refresh após salvar para refletir imediatamente as mudanças
+  window.location.reload();
+  return;
       } catch(_e) {
         // fallback: recarrega em caso de erro para exibir flash message
         form.submit();

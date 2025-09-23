@@ -1046,7 +1046,7 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
         $chatId = (int) $request->input('chat_id');
         $code = trim((string)$request->input('code'));
         $type = $request->input('type');
-        $sort = $request->input('sort', 'created_at');
+    $sort = $request->input('sort', 'created_at');
         $dir = strtolower($request->input('dir','desc')) === 'asc' ? 'asc' : 'desc';
         // Subqueries para descobrir a primeira conta de investimento associada a registros do chat
         $subAccName = DB::table('openai_chat_records as r')
@@ -1083,10 +1083,23 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
             'value' => 'value',
             'account' => 'derived_account_name',
             'chat' => null, // dependerá de subselect
+            'variation' => null, // calculada
+            'difference' => null, // calculada
             'created_at' => 'created_at',
         ];
         $orderKey = $allowed[$sort] ?? 'created_at';
-        if ($orderKey === 'created_at') {
+        if ($sort === 'variation') {
+            // SQL Server: calcula variação quando value > 1 e ambos não nulos
+            $expr = "CASE WHEN open_a_i_code_orders.value IS NOT NULL AND open_a_i_code_orders.quote_value IS NOT NULL AND open_a_i_code_orders.value > 1 THEN ((open_a_i_code_orders.quote_value - open_a_i_code_orders.value) / open_a_i_code_orders.value) * 100 ELSE NULL END";
+            // Ordena nulos por último quando asc/desc usando chave auxiliar
+            $q->orderByRaw("CASE WHEN ($expr) IS NULL THEN 1 ELSE 0 END ASC");
+            $q->orderByRaw("$expr $dir");
+        } elseif ($sort === 'difference') {
+            // Diferença monetária: (quote_value - value) * quantity, apenas se value > 1 e quantity > 0
+            $expr = "CASE WHEN open_a_i_code_orders.value IS NOT NULL AND open_a_i_code_orders.quote_value IS NOT NULL AND open_a_i_code_orders.quantity IS NOT NULL AND open_a_i_code_orders.quantity > 0 AND open_a_i_code_orders.value > 1 THEN (open_a_i_code_orders.quote_value - open_a_i_code_orders.value) * open_a_i_code_orders.quantity ELSE NULL END";
+            $q->orderByRaw("CASE WHEN ($expr) IS NULL THEN 1 ELSE 0 END ASC");
+            $q->orderByRaw("$expr $dir");
+        } elseif ($orderKey === 'created_at') {
             $q->orderBy('created_at', $dir);
         } elseif ($orderKey) {
             $q->orderBy($orderKey, $dir);
@@ -1112,7 +1125,23 @@ public function convertOpusToMp3(string $inputPath, string $outputPath): void
         $firstUserAccount = \App\Models\InvestmentAccount::where('user_id', Auth::id())
             ->orderBy('id', 'asc')
             ->first(['id','account_name','broker']);
-        return view('openai.orders.index', compact('orders','chats','chatId','code','type','firstUserAccount','sort','dir'));
+        // Mapa de alerta de compra por código (NÃO COMPRAR/COMPRAR)
+        $codes = collect($orders->items())
+            ->pluck('code')
+            ->filter(fn($c) => is_string($c) && trim($c) !== '')
+            ->map(fn($c) => strtoupper(trim($c)))
+            ->unique()
+            ->values();
+        $flagsMap = [];
+        if ($codes->isNotEmpty()) {
+            $flags = \App\Models\UserAssetFlag::where('user_id', Auth::id())
+                ->whereIn('code', $codes)
+                ->get(['code','no_buy']);
+            $flagsMap = $flags->mapWithKeys(function($f){
+                return [strtoupper((string)$f->code) => (bool)$f->no_buy];
+            })->toArray();
+        }
+        return view('openai.orders.index', compact('orders','chats','chatId','code','type','firstUserAccount','sort','dir','flagsMap'));
     }
 
     /**
