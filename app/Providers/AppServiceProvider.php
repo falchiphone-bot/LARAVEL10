@@ -24,16 +24,12 @@ class AppServiceProvider extends ServiceProvider
         // Usar paginação com estilos do Bootstrap 5
         Paginator::useBootstrapFive();
 
-        // Forçar HTTPS apenas em ambientes não-locais (ex.: produção/staging)
-        // e SOMENTE quando a requisição já vier sob HTTPS (direto ou via proxy).
-        // Isso evita redirecionar usuários para a porta 443 quando ela não está exposta,
-        // o que causaria ERR_CONNECTION_TIMED_OUT após o login.
-        if ($this->app->environment(['production', 'staging'])) {
-            $isSecure = request()->isSecure();
-            $forwardedProto = request()->header('X-Forwarded-Proto');
-            if ($isSecure || strtolower((string) $forwardedProto) === 'https') {
-                URL::forceScheme('https');
-            }
+        // Controle de HTTPS via variável de ambiente (sem forçar por padrão)
+        // Defina FORCE_HTTPS=true no .env para obrigar geração de URLs https.
+        // Mantemos isso desligado por padrão para evitar timeouts quando 443 não estiver disponível.
+        $forceHttps = filter_var(env('FORCE_HTTPS', false), FILTER_VALIDATE_BOOL);
+        if ($forceHttps) {
+            URL::forceScheme('https');
         }
     }
 }

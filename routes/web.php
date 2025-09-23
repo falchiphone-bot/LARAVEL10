@@ -382,14 +382,30 @@ Route::get('/storage/arquivospublicos/{filename}', function ($filename) {
 Route::get('/dashboard', function () {
     $user = auth()->user();
     if ($user) {
-        $hasServ = Gate::allows('IRMAOS_EMAUS_NOME_SERVICO - LISTAR');
-        $hasPia  = Gate::allows('IRMAOS_EMAUS_NOME_PIA - LISTAR');
-        $hasFicha= Gate::allows('IRMAOS_EMAUS_FICHA_CONTROLE - LISTAR');
+        // Super Admin deve ir para o dashboard principal, sem redirecionar
+        $isSuperAdmin = false;
+        try {
+            if (method_exists($user, 'hasAnyRole')) {
+                $isSuperAdmin = (bool) call_user_func([$user, 'hasAnyRole'], ['super-admin','Super-Admin','Super Admin','SuperAdmin']);
+            } elseif (method_exists($user, 'hasRole')) {
+                $isSuperAdmin = (
+                    (bool) call_user_func([$user, 'hasRole'], 'super-admin') ||
+                    (bool) call_user_func([$user, 'hasRole'], 'Super-Admin') ||
+                    (bool) call_user_func([$user, 'hasRole'], 'Super Admin')
+                );
+            }
+        } catch (\Throwable $e) { /* noop */ }
 
-        if ($hasServ || $hasPia || $hasFicha) {
-            if ($hasServ) { return redirect('/Irmaos_EmausServicos'); }
-            if ($hasPia)  { return redirect('/Irmaos_EmausPia'); }
-            if ($hasFicha){ return redirect('/Irmaos_Emaus_FichaControle'); }
+        if (!$isSuperAdmin) {
+            $hasServ = Gate::allows('IRMAOS_EMAUS_NOME_SERVICO - LISTAR');
+            $hasPia  = Gate::allows('IRMAOS_EMAUS_NOME_PIA - LISTAR');
+            $hasFicha= Gate::allows('IRMAOS_EMAUS_FICHA_CONTROLE - LISTAR');
+
+            if ($hasServ || $hasPia || $hasFicha) {
+                if ($hasServ) { return redirect('/Irmaos_EmausServicos'); }
+                if ($hasPia)  { return redirect('/Irmaos_EmausPia'); }
+                if ($hasFicha){ return redirect('/Irmaos_Emaus_FichaControle'); }
+            }
         }
     }
     return view('dashboard');

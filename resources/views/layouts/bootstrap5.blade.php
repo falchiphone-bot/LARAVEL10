@@ -25,6 +25,21 @@
         .custom-tooltip {
             --bs-tooltip-bg: var(--bs-danger);
         }
+
+    /* Quebrar a navegação em linhas com 5 itens por linha */
+    #main-nav-links {
+      width: 100%;
+      flex-wrap: wrap; /* permite quebrar linha */
+    }
+    #main-nav-links > li {
+      flex: 0 0 20%; /* 5 por linha */
+      max-width: 20%;
+      display: flex; /* manter altura uniforme */
+      align-items: stretch;
+    }
+    #main-nav-links > li > .nav-link {
+      width: 100%;
+    }
     </style>
     @livewireStyles
 </head>
@@ -61,7 +76,7 @@
                             </svg>
                         </a>
 
-                        <ul class="nav col-12 col-lg-auto my-2 justify-content-center my-md-0 text-small">
+                        <ul id="main-nav-links" class="nav col-12 col-lg-auto my-2 justify-content-center my-md-0 text-small">
 
                             <li>
                                 <style>
@@ -243,19 +258,35 @@
 
 
 
-              @canany(['IRMAOS_EMAUS_NOME_SERVICO - LISTAR','IRMAOS_EMAUS_NOME_PIA - LISTAR','IRMAOS_EMAUS_FICHA_CONTROLE - LISTAR'])
-                {{-- Usuários com permissões de Emaús não veem o link do Início --}}
+              @php
+                  // Super Admin sempre deve ver o link de Início do sistema
+                  $isSuperAdmin = auth()->check() && auth()->user()->hasAnyRole(['super-admin','Super-Admin','Super Admin','SuperAdmin']);
+              @endphp
+              @if($isSuperAdmin)
+                <li>
+                  <a href="{{ route('dashboard') }}" data-bs-toggle="tooltip" data-bs-placement="top" . . .
+                     data-bs-custom-class="custom-tooltip"
+                     data-bs-title="Ir para o início do sistema com as opções disponíveis"
+                     class="nav-link text-white">
+                     <i class="fa-solid fa-house"></i>
+                     Início do sistema
+                  </a>
+                </li>
               @else
-              <li>
-                <a href="/dashboard" data-bs-toggle="tooltip" data-bs-placement="top" . . .
-                   data-bs-custom-class="custom-tooltip"
-                   data-bs-title="Ir para o início do sistema com as opções disponíveis"
-                   class="nav-link text-white">
-                   <i class="fa-solid fa-house"></i>
-                   Início do sistema
-                </a>
-              </li>
-              @endcanany
+                @canany(['IRMAOS_EMAUS_NOME_SERVICO - LISTAR','IRMAOS_EMAUS_NOME_PIA - LISTAR','IRMAOS_EMAUS_FICHA_CONTROLE - LISTAR'])
+                  {{-- Usuários com permissões de Emaús não veem o link do Início --}}
+                @else
+                  <li>
+                    <a href="{{ route('dashboard') }}" data-bs-toggle="tooltip" data-bs-placement="top" . . .
+                       data-bs-custom-class="custom-tooltip"
+                       data-bs-title="Ir para o início do sistema com as opções disponíveis"
+                       class="nav-link text-white">
+                       <i class="fa-solid fa-house"></i>
+                       Início do sistema
+                    </a>
+                  </li>
+                @endcanany
+              @endif
               @can('MERCADO - VER STATUS')
               <li class="ms-2 d-none d-md-flex align-items-center">
                 <span id="market-status-global" class="badge rounded-pill bg-secondary" title="Status do mercado (NYSE)">Mercado: carregando…</span>
@@ -324,6 +355,28 @@
                                   </a>
                                 </li>
                                 <li><a class="dropdown-item" href="{{ route('CentroCustos.dashboard') }}">Dashboard Centro de Custos</a></li>
+                                @endcan
+                              </ul>
+                            </li>
+                            @endcanany
+
+                            {{-- Dropdown: Permissões & Usuários --}}
+                            @canany(['PERMISSOES - LISTAR','USUARIOS - LISTAR','FUNCOES - LISTAR'])
+                            <li class="nav-item dropdown">
+                              <a href="#" class="nav-link dropdown-toggle text-white" id="dropdown-permissoes-usuarios" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                 data-bs-togglex="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Atalhos de Permissões & Usuários">
+                                <i class="fa-solid fa-users-gear"></i>
+                                Permissões & Usuários
+                              </a>
+                              <ul class="dropdown-menu dropdown-menu-end">
+                                @can('PERMISSOES - LISTAR')
+                                <li><a class="dropdown-item" href="/Permissoes">Permissões</a></li>
+                                @endcan
+                                @can('USUARIOS - LISTAR')
+                                <li><a class="dropdown-item" href="/Usuarios">Usuários</a></li>
+                                @endcan
+                                @can('FUNCOES - LISTAR')
+                                <li><a class="dropdown-item" href="/Funcoes">Funções</a></li>
                                 @endcan
                               </ul>
                             </li>
