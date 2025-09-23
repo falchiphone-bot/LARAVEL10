@@ -183,7 +183,24 @@ class MoedaValoresController extends Controller
                     'provider' => $externo['provider'] ?? 'exchangerate.host',
                 ];
 
-
+                // Persistir aviso se a data utilizada for anterior a hoje
+                try {
+                    $isOutdated = \Carbon\Carbon::parse($dataUsada)->lt(now()->startOfDay());
+                    if ($isOutdated) {
+                        session()->put('moedas.cotacao_aviso', [
+                            'moeda_id' => $moeda->id,
+                            'moeda_nome' => $moeda->nome,
+                            'data_utilizada' => \Carbon\Carbon::parse($dataUsada)->format('d/m/Y'),
+                            'fonte' => 'api',
+                            'provider' => $externo['provider'] ?? null,
+                            'created_at' => now()->toDateTimeString(),
+                        ]);
+                    } else {
+                        session()->forget('moedas.cotacao_aviso');
+                    }
+                } catch (\Throwable $e) {
+                    // silencioso
+                }
 
                 return view('MoedasValores.consultar', compact('resultado', 'moeda', 'dataRef', 'fonte'));
             }
@@ -229,6 +246,27 @@ class MoedaValoresController extends Controller
             'moeda_nome' => $registro->ValoresComMoeda->nome ?? $moeda->nome,
             'data_formatada' => optional($registro->data)->format('d/m/Y'),
         ];
+        // Persistir aviso se a data utilizada for anterior a hoje (base local)
+        try {
+            $dataUsadaLocal = optional($registro->data)->toDateString();
+            if ($dataUsadaLocal) {
+                $isOutdated = \Carbon\Carbon::parse($dataUsadaLocal)->lt(now()->startOfDay());
+                if ($isOutdated) {
+                    session()->put('moedas.cotacao_aviso', [
+                        'moeda_id' => $moeda->id,
+                        'moeda_nome' => $registro->ValoresComMoeda->nome ?? $moeda->nome,
+                        'data_utilizada' => \Carbon\Carbon::parse($dataUsadaLocal)->format('d/m/Y'),
+                        'fonte' => 'local',
+                        'provider' => null,
+                        'created_at' => now()->toDateTimeString(),
+                    ]);
+                } else {
+                    session()->forget('moedas.cotacao_aviso');
+                }
+            }
+        } catch (\Throwable $e) {
+            // silencioso
+        }
 
         return view('MoedasValores.consultar', compact('resultado', 'moeda', 'dataRef', 'fonte'));
     }
@@ -245,6 +283,7 @@ class MoedaValoresController extends Controller
         ]);
 
         // Checar duplicidade: já existe registro para a mesma moeda e data?
+
         $exists = MoedasValores::where('idmoeda', $validated['idmoeda'])
             ->whereDate('data', $validated['data'])
             ->exists();

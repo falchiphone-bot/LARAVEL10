@@ -208,18 +208,54 @@
 
 </script>
 
+<script>
+  // Preenchimento das badgess do dropdown Contabilidade, usando o mesmo endpoint de counts
+  document.addEventListener('DOMContentLoaded', function() {
+    try {
+      fetch("{{ route('dashboard.counts') }}", { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (!data) return;
+          // Se futuramente adicionarmos financeCounts à resposta do endpoint, usamos aqui
+          const fin = data.finance || {};
+          const setBadge = (id, val) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (val === null || typeof val === 'undefined') {
+              // se não há valor, oculta badge para não poluir
+              el.style.display = 'none';
+            } else {
+              el.textContent = String(val);
+              el.style.display = '';
+            }
+          };
+
+          setBadge('count-contaspagar', fin.contaspagar);
+          setBadge('count-empresas', fin.empresas);
+          setBadge('count-centro_custos', fin.centro_custos);
+          setBadge('count-contas_centro_custos', fin.contas_centro_custos);
+        })
+        .catch(() => {/* silencioso */});
+    } catch (e) { /* noop */ }
+  });
+</script>
 
 
 
+
+              @canany(['IRMAOS_EMAUS_NOME_SERVICO - LISTAR','IRMAOS_EMAUS_NOME_PIA - LISTAR','IRMAOS_EMAUS_FICHA_CONTROLE - LISTAR'])
+                {{-- Usuários com permissões de Emaús não veem o link do Início --}}
+              @else
               <li>
-                                <a href="/dashboard" data-bs-toggle="tooltip" data-bs-placement="top" . . .
-                                    data-bs-custom-class="custom-tooltip"
-                                    data-bs-title="Ir para o início do sistema com as opções disponíveis"
-                                    class="nav-link text-white">
-                                    <i class="fa-solid fa-house"></i>
-                                    Início do sistema
-                                </a>
-                            </li>
+                <a href="/dashboard" data-bs-toggle="tooltip" data-bs-placement="top" . . .
+                   data-bs-custom-class="custom-tooltip"
+                   data-bs-title="Ir para o início do sistema com as opções disponíveis"
+                   class="nav-link text-white">
+                   <i class="fa-solid fa-house"></i>
+                   Início do sistema
+                </a>
+              </li>
+              @endcanany
               @can('MERCADO - VER STATUS')
               <li class="ms-2 d-none d-md-flex align-items-center">
                 <span id="market-status-global" class="badge rounded-pill bg-secondary" title="Status do mercado (NYSE)">Mercado: carregando…</span>
@@ -235,6 +271,61 @@
                                     <i class="fa-brands fa-openai"></i>
                                     OpenAI
                                 </a>
+                            </li>
+                            @endcanany
+
+                            {{-- Dropdown: Contabilidade / Financeiro --}}
+                            @canany(['CONTABILIDADE - LISTAR','CONTABILIDADE - LISTAR-AQUI-TAMBEM','CONTASPAGAR - LISTAR','COBRANCA - LISTAR','LANCAMENTOS DOCUMENTOS - LISTAR','EMPRESAS - LISTAR','CENTROCUSTOS - LISTAR'])
+                            <li class="nav-item dropdown">
+                              <a href="#" class="nav-link dropdown-toggle text-white" id="dropdown-contabilidade" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                 data-bs-togglex="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Atalhos de Contabilidade & Financeiro">
+                                <i class="fa-solid fa-file-invoice-dollar"></i>
+                                Contabilidade
+                              </a>
+                              <ul class="dropdown-menu dropdown-menu-end">
+                                @can('CONTABILIDADE - LISTAR')
+                                <li><a class="dropdown-item" href="/Contabilidade">Contabilidade</a></li>
+                                @endcan
+                                @canany(['COBRANCA - LISTAR','CONTABILIDADE - LISTAR-AQUI-TAMBEM'])
+                                <li><a class="dropdown-item" href="/Cobranca">Cobrança</a></li>
+                                @endcanany
+                                @can('CONTASPAGAR - LISTAR')
+                                <li>
+                                  <a class="dropdown-item d-flex justify-content-between align-items-center" href="/ContasPagar">
+                                    <span>Contas a pagar</span>
+                                    <span id="count-contaspagar" class="badge rounded-pill text-bg-secondary">…</span>
+                                  </a>
+                                </li>
+                                @endcan
+                                @can('LANCAMENTOS DOCUMENTOS - LISTAR')
+                                <li><a class="dropdown-item" href="/LancamentosDocumentos">Documentos</a></li>
+                                @endcan
+                                @can('EMPRESAS - LISTAR')
+                                <li>
+                                  <a class="dropdown-item d-flex justify-content-between align-items-center" href="/Empresas">
+                                    <span>Empresas</span>
+                                    <span id="count-empresas" class="badge rounded-pill text-bg-secondary">…</span>
+                                  </a>
+                                </li>
+                                @endcan
+                                @can('CENTROCUSTOS - LISTAR')
+                                <li><hr class="dropdown-divider"></li>
+                                <li class="dropdown-header">Centro de Custos</li>
+                                <li>
+                                  <a class="dropdown-item d-flex justify-content-between align-items-center" href="/CentroCustos">
+                                    <span>Centro de Custos</span>
+                                    <span id="count-centro_custos" class="badge rounded-pill text-bg-secondary">…</span>
+                                  </a>
+                                </li>
+                                <li>
+                                  <a class="dropdown-item d-flex justify-content-between align-items-center" href="/ContasCentroCustos">
+                                    <span>Contas por Centro de Custos</span>
+                                    <span id="count-contas_centro_custos" class="badge rounded-pill text-bg-secondary">…</span>
+                                  </a>
+                                </li>
+                                <li><a class="dropdown-item" href="{{ route('CentroCustos.dashboard') }}">Dashboard Centro de Custos</a></li>
+                                @endcan
+                              </ul>
                             </li>
                             @endcanany
 
@@ -420,6 +511,25 @@
               <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
           </div>
+        @endif
+
+        @php($cotacaoAviso = session('moedas.cotacao_aviso'))
+        @if ($cotacaoAviso)
+        <div class="container mt-3">
+          <div class="alert alert-warning d-flex align-items-center fw-bold border-2 border-warning shadow-sm alert-dismissible fade show" role="alert">
+            <span class="me-2" aria-hidden="true">🕒</span>
+            <div>
+              Cotação utilizada é anterior ao dia atual:
+              <strong>{{ $cotacaoAviso['moeda_nome'] ?? 'Moeda' }}</strong>
+              em <strong>{{ $cotacaoAviso['data_utilizada'] ?? '-' }}</strong>
+              <span class="badge bg-secondary ms-2">{{ strtoupper($cotacaoAviso['fonte'] ?? 'LOCAL') }}</span>
+              @if(!empty($cotacaoAviso['provider']))
+                <span class="badge bg-info ms-2">{{ $cotacaoAviso['provider'] }}</span>
+              @endif
+            </div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        </div>
         @endif
 
         @yield('content')

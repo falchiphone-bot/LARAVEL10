@@ -103,6 +103,7 @@
                         <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 @endif
+                {{-- Aviso global de cotação desatualizada é exibido no layout --}}
                 @if (session('error'))
                     <div class="alert alert-danger d-flex align-items-center mt-3 fw-bold border-2 border-danger shadow-sm alert-dismissible fade show" role="alert">
                         <span class="me-2" aria-hidden="true">⚠️</span>

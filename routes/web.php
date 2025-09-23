@@ -23,6 +23,7 @@ use App\Http\Controllers\PixController;
 use App\Http\Controllers\FormaPagamentoController;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 // Rota para backup do storage para o HD externo
 Route::get('/backup/storage-to-external', [BackupController::class, 'backupAll'])->middleware('can:backup.executar');
@@ -379,6 +380,18 @@ Route::get('/storage/arquivospublicos/{filename}', function ($filename) {
 })->where('filename', '.*');
 
 Route::get('/dashboard', function () {
+    $user = auth()->user();
+    if ($user) {
+        $hasServ = Gate::allows('IRMAOS_EMAUS_NOME_SERVICO - LISTAR');
+        $hasPia  = Gate::allows('IRMAOS_EMAUS_NOME_PIA - LISTAR');
+        $hasFicha= Gate::allows('IRMAOS_EMAUS_FICHA_CONTROLE - LISTAR');
+
+        if ($hasServ || $hasPia || $hasFicha) {
+            if ($hasServ) { return redirect('/Irmaos_EmausServicos'); }
+            if ($hasPia)  { return redirect('/Irmaos_EmausPia'); }
+            if ($hasFicha){ return redirect('/Irmaos_Emaus_FichaControle'); }
+        }
+    }
     return view('dashboard');
 })
     ->middleware(['profile', 'auth', 'verified'])

@@ -31,4 +31,18 @@ class DashboardCache
             'percentuais' => class_exists(\App\Models\TanabiAthletePercentage::class) ? \App\Models\TanabiAthletePercentage::count() : null,
         ];
     }
+
+    /**
+     * Retorna contadores do bloco Financeiro & Contabilidade.
+     */
+    public static function financeCounts(): array
+    {
+        return [
+            'contaspagar'          => class_exists(\App\Models\ContasPagar::class) ? \App\Models\ContasPagar::count() : null,
+            'cobranca'             => class_exists(\App\Models\ContaCobranca::class) ? \App\Models\ContaCobranca::count() : null,
+            'empresas'             => class_exists(\App\Models\Empresa::class) ? \App\Models\Empresa::count() : null,
+            'centro_custos'        => class_exists(\App\Models\CentroCustos::class) ? \App\Models\CentroCustos::count() : null,
+            'contas_centro_custos' => class_exists(\App\Models\ContasCentroCustos::class) ? \App\Models\ContasCentroCustos::count() : null,
+        ];
+    }
 }
