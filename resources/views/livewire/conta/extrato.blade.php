@@ -143,8 +143,8 @@
                             <label for="ate" class="px-1  form-control-label">Conferido/Saidas em geral</label>
                             <select name="Conferido" id="Conferido" class="form-control" wire:model='Conferido'>
                                 <option value="">Todos</option>
-                                <option value="true">Conferido</option>
-                                <option value="false">Não conferido</option>
+                                <option value="1">Conferido</option>
+                                <option value="0">Não conferido</option>
                                 <option value="SaidasGeral">Saidas em geral</option>
                                 <option value="EntradasGeral">Entradas em geral</option>
                                 <option value="Transferencias">Transferencias</option>

@@ -151,6 +151,18 @@ class Extrato extends Component
     $this->search();
     }
 
+    // Atualiza lista ao mudar filtro de conferência
+    public function updatedConferido($value): void
+    {
+        $this->search();
+    }
+
+    // Atualiza lista ao mudar filtro de notificação
+    public function updatedNotificacao($value): void
+    {
+        $this->search();
+    }
+
     public function mount($contaID)
     {
         // Restaurar filtros da sessão
@@ -282,25 +294,22 @@ class Extrato extends Component
                     $q->where('Lancamentos.Descricao', 'like', "%$this->Descricao%")->orWhere('Historicos.Descricao', 'like', "%$this->Descricao%");
                 });
             }
-            if ($this->Conferido != '') {
-                if ($this->Conferido == 'false') {
+            // Filtro Conferido robusto para string/boolean/numérico
+            if ($this->Conferido !== '' && $this->Conferido !== null) {
+                $conf = $this->Conferido;
+                // Não conferido: null ou 0
+                if ($conf === 'false' || $conf === false || $conf === 0 || $conf === '0') {
                     $lancamentos->where(function ($q) {
                         return $q->whereNull('Conferido')->orWhere('Conferido', 0);
                     });
                 }
-
-                // if ($this->Conferido == 'SaidasGeral') {
-                //     $lancamentos->where(function ($q) {
-                //         return $q->whereNull('SaidasGeral')->orWhere('SaidasGeral', 1);
-                //     });
-                // }
-                // if ($this->Conferido == 'EntradasGeral') {
-                //     $lancamentos->where(function ($q) {
-                //         return $q->whereNull('EntradasGeral')->orWhere('EntradasGeral', 1);
-                //     });
-                // }
+                // Conferido: 1
+                elseif ($conf === 'true' || $conf === true || $conf === 1 || $conf === '1') {
+                    $lancamentos->where('Conferido', 1);
+                }
+                // Outros valores especiais são tratados mais abaixo (Saidas/Entradas Geral)
                 else {
-                    $lancamentos->where('Conferido', $this->Conferido);
+                    $lancamentos->where('Conferido', $conf);
                 }
             }
             // if ($this->SaidasGeral != '') {
@@ -789,13 +798,17 @@ class Extrato extends Component
                     $q->where('Lancamentos.Descricao', 'like', "%$this->Descricao%")->orWhere('Historicos.Descricao', 'like', "%$this->Descricao%");
                 });
             }
-            if ($this->Conferido != '') {
-                if ($this->Conferido == 'false') {
+            // Filtro Conferido robusto para string/boolean/numérico
+            if ($this->Conferido !== '' && $this->Conferido !== null) {
+                $conf = $this->Conferido;
+                if ($conf === 'false' || $conf === false || $conf === 0 || $conf === '0') {
                     $lancamentos->where(function ($q) {
                         return $q->whereNull('Conferido')->orWhere('Conferido', 0);
                     });
+                } elseif ($conf === 'true' || $conf === true || $conf === 1 || $conf === '1') {
+                    $lancamentos->where('Conferido', 1);
                 } else {
-                    $lancamentos->where('Conferido', $this->Conferido);
+                    $lancamentos->where('Conferido', $conf);
                 }
             }
 
