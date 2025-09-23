@@ -14,8 +14,8 @@ class MarketDataService
     public function __construct(?Client $client = null)
     {
         $this->http = $client ?: new Client([
-            'timeout' => (float) env('RAPIDAPI_HTTP_TIMEOUT', 3.5),
-            'connect_timeout' => (float) env('RAPIDAPI_HTTP_CONNECT_TIMEOUT', 2.0),
+            'timeout' => (float) config('market.http_timeout', 3.5),
+            'connect_timeout' => (float) config('market.http_connect_timeout', 2.0),
         ]);
     }
 
@@ -57,18 +57,17 @@ class MarketDataService
     public function getUsageSnapshot(bool $probeRapid = false): array
     {
         $date = $this->todayKey();
-        $alphaConfigured = (bool) (env('ALPHAVANTAGE_KEY') ?: env('ALPHAVANTAGE_API_KEY'));
-        $rapidHostsEnv = env('RAPIDAPI_YH_HOSTS') ?: (env('RAPIDAPI_YH_HOST') ?: env('RAPIDAPI_HOST'));
-        $rapidHosts = array_values(array_filter(array_map('trim', explode(',', (string) $rapidHostsEnv))));
-        $rapidKey = env('RAPIDAPI_KEY');
+    $alphaConfigured = (bool) config('market.alpha_key');
+    $rapidHosts = (array) config('market.rapidapi_hosts', []);
+    $rapidKey = config('market.rapidapi_key');
         $rapidConfigured = $rapidKey && !empty($rapidHosts);
 
         $alpha = [
             'provider' => 'alpha_vantage',
             'configured' => $alphaConfigured,
             'used_today' => (int) \Illuminate\Support\Facades\Cache::get($this->usageKey('alpha_vantage'), 0),
-            'daily_limit' => (int) env('ALPHAVANTAGE_DAILY_LIMIT', 500),
-            'per_minute_limit' => (int) env('ALPHAVANTAGE_PER_MINUTE', 5),
+            'daily_limit' => (int) config('market.alpha_daily_limit', 500),
+            'per_minute_limit' => (int) config('market.alpha_per_minute', 5),
             'last_reason' => \Illuminate\Support\Facades\Cache::get($this->statusKey('alpha_vantage', 'last_reason')),
             'last_detail' => \Illuminate\Support\Facades\Cache::get($this->statusKey('alpha_vantage', 'last_detail')),
         ];
@@ -88,8 +87,8 @@ class MarketDataService
             'configured' => (bool) $rapidConfigured,
             'used_today' => (int) \Illuminate\Support\Facades\Cache::get($this->usageKey('yahoo_rapidapi'), 0),
             // Fallback configurável via env quando headers não estão disponíveis
-            'daily_limit' => (function(){ $v = env('RAPIDAPI_DAILY_LIMIT'); return is_numeric($v) && (int)$v > 0 ? (int)$v : null; })(),
-            'per_minute_limit' => (function(){ $v = env('RAPIDAPI_PER_MINUTE'); return is_numeric($v) && (int)$v > 0 ? (int)$v : null; })(),
+            'daily_limit' => config('market.rapidapi_daily_limit'),
+            'per_minute_limit' => config('market.rapidapi_per_minute'),
             'headers' => null,
             'host' => null,
             // Normalização de headers comuns de rate limit
@@ -103,7 +102,7 @@ class MarketDataService
                 try {
                     // Probe simples: pedir um símbolo conhecido para capturar headers; evitar contabilizar logical usage
                     $resp = $this->http->get('https://' . $host . '/v6/finance/quote', [
-                        'query' => ['region' => env('RAPIDAPI_YH_REGION', 'US'), 'symbols' => 'AAPL'],
+                        'query' => ['region' => config('market.rapidapi_region', 'US'), 'symbols' => 'AAPL'],
                         'headers' => [
                             'X-RapidAPI-Key' => $rapidKey,
                             'X-RapidAPI-Host' => $host,
@@ -165,9 +164,9 @@ class MarketDataService
             ];
         }
 
-        $hasRapid = (bool) (env('RAPIDAPI_KEY') && (env('RAPIDAPI_YH_HOST') ?: env('RAPIDAPI_HOST')));
+        $hasRapid = (bool) (config('market.rapidapi_key') && !empty(config('market.rapidapi_hosts')));
     $cacheKey = 'md.quote.' . ($hasRapid ? 'yh.' : 'av.') . $symbol;
-    $ttl = (int) env('MARKET_QUOTE_CACHE_TTL', 60);
+    $ttl = (int) config('market.quote_cache_ttl', 60);
 
         return Cache::remember($cacheKey, $ttl > 0 ? $ttl : 60, function () use ($symbol, $hasRapid) {
             if ($hasRapid) {
@@ -309,7 +308,7 @@ class MarketDataService
 
     protected function getHistoricalAlpha(string $symbol, \DateTimeImmutable $base, ?string $preferred = null): array
     {
-        $apiKey = env('ALPHAVANTAGE_KEY') ?: env('ALPHAVANTAGE_API_KEY');
+    $apiKey = config('market.alpha_key');
         if (!$apiKey) {
             return ['symbol'=>$symbol,'price'=>null,'currency'=>null,'date'=>null,'source'=>'alpha_vantage','reason'=>'missing_api_key','detail'=>'Alpha Vantage: missing API key'];
         }
@@ -379,10 +378,9 @@ class MarketDataService
      */
     protected function getQuoteYahoo(string $symbol): array
     {
-    $hostEnv = env('RAPIDAPI_YH_HOSTS') ?: (env('RAPIDAPI_YH_HOST') ?: env('RAPIDAPI_HOST'));
-    $hosts = array_values(array_filter(array_map('trim', explode(',', (string) $hostEnv))));
-        $key  = env('RAPIDAPI_KEY');
-        $region = env('RAPIDAPI_YH_REGION', 'US');
+    $hosts = (array) config('market.rapidapi_hosts', []);
+        $key  = config('market.rapidapi_key');
+        $region = config('market.rapidapi_region', 'US');
     if (empty($hosts) || !$key) {
             return [
                 'symbol' => $symbol,
@@ -489,8 +487,8 @@ class MarketDataService
                             'X-RapidAPI-Host' => $host,
                         ],
                         'http_errors' => false,
-                        'timeout' => (float) env('RAPIDAPI_HTTP_TIMEOUT', 3.5),
-                        'connect_timeout' => (float) env('RAPIDAPI_HTTP_CONNECT_TIMEOUT', 2.0),
+                        'timeout' => (float) config('market.http_timeout', 3.5),
+                        'connect_timeout' => (float) config('market.http_connect_timeout', 2.0),
                     ]);
                     $code = $resp->getStatusCode();
                     $raw = (string) $resp->getBody();
@@ -603,7 +601,7 @@ class MarketDataService
      */
     protected function getQuoteAlpha(string $symbol): array
     {
-        $apiKey = env('ALPHAVANTAGE_KEY') ?: env('ALPHAVANTAGE_API_KEY');
+    $apiKey = config('market.alpha_key');
         if (!$apiKey) {
             return [
                 'symbol' => $symbol,
