@@ -27,6 +27,11 @@ use Illuminate\Support\Facades\Gate;
 
 // Rota para backup do storage para o HD externo
 Route::get('/backup/storage-to-external', [BackupController::class, 'backupAll'])->middleware('can:backup.executar.hd');
+// Backup para HD externo com retorno em view detalhada
+Route::get('/backup/storage-to-external/view', [BackupController::class, 'backupAllView'])->middleware(['auth','verified','can:backup.executar.hd'])->name('backup.external.view');
+
+// View interativa para backup FTP (assíncrono)
+Route::get('/backup/storage-to-ftp/view', [BackupController::class, 'backupFtpView'])->middleware(['auth','verified','can:backup.executar.ftp'])->name('backup.ftp.view');
 
 // Rota para backup do storage local para o FTP
 Route::get('/backup/storage-to-ftp', [BackupController::class, 'backupAllToFtp'])->middleware('can:backup.executar.ftp');
@@ -437,6 +442,11 @@ Route::get('/backup/ftp-test', function () {
         return response()->json(['ok' => false, 'message' => $e->getMessage()], 500);
     }
 })->middleware(['auth', 'verified', 'can:backup.executar.ftp'])->name('backup.ftp-test');
+
+// View para testar FTP visualmente (consome o endpoint JSON acima via fetch)
+Route::get('/backup/ftp-test/view', function () {
+    return view('backup.ftp-test');
+})->middleware(['auth','verified','can:backup.executar.ftp'])->name('backup.ftp-test.view');
 
 // Refresh counters cache (cadastros / atletas)
 Route::post('/dashboard/refresh-counters', function() {

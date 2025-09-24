@@ -9,55 +9,143 @@ use Illuminate\Support\Facades\Log;
 class BackupController extends Controller
 {
     /**
+     * Executa a cópia dos arquivos do disk local para o disk external e retorna
+     * uma estrutura com arrays de copiados / ignorados e detalhes, para ser
+     * usada tanto por respostas JSON quanto por views.
+     *
+     * @return array{copied: array<int,array>, skipped: array<int,array>, errors: array<int,array>, started_at: float, finished_at: float}
+     */
+    protected function runExternalBackup(): array
+    {
+        $started = microtime(true);
+        Log::info('Backup EXTERNAL iniciado');
+        $externalLogPath = storage_path('logs/backup_external.jsonl');
+        $copied = [];
+        $skipped = [];
+        $errors = [];
+        try {
+            $localFiles = Storage::disk('local')->allFiles();
+            Log::info('Backup EXTERNAL - total de arquivos encontrados: '.count($localFiles));
+            foreach ($localFiles as $file) {
+                try {
+                    $size = Storage::disk('local')->size($file);
+                    $content = Storage::disk('local')->get($file);
+                    $destPath = $file;
+                    $shouldCopy = true;
+                    $action = 'copied';
+                    $hashLocal = md5($content);
+                    $hashExternal = null;
+                    if (Storage::disk('external')->exists($destPath)) {
+                        $externalContent = Storage::disk('external')->get($destPath);
+                        $hashExternal = md5($externalContent);
+                        if ($hashLocal === $hashExternal) {
+                            $shouldCopy = false;
+                            $action = 'skipped';
+                        }
+                    }
+                    if ($shouldCopy) {
+                        Storage::disk('external')->put($destPath, $content);
+                        $copied[] = [
+                            'file' => $destPath,
+                            'size' => $size,
+                            'hash' => $hashLocal,
+                        ];
+                        Log::info('Backup EXTERNAL copiado: '.$destPath.' ('.number_format($size).' bytes)');
+                        @file_put_contents($externalLogPath, json_encode([
+                            'ts' => now()->toIso8601String(),
+                            'event' => 'copied',
+                            'file' => $destPath,
+                            'size' => $size,
+                            'hash' => $hashLocal,
+                        ], JSON_UNESCAPED_UNICODE)."\n", FILE_APPEND | LOCK_EX);
+                    } else {
+                        $skipped[] = [
+                            'file' => $destPath,
+                            'size' => $size,
+                            'hash' => $hashLocal,
+                            'hash_existing' => $hashExternal,
+                        ];
+                        Log::info('Backup EXTERNAL ignorado (sem alteração): '.$destPath);
+                        @file_put_contents($externalLogPath, json_encode([
+                            'ts' => now()->toIso8601String(),
+                            'event' => 'skipped',
+                            'file' => $destPath,
+                            'size' => $size,
+                            'hash' => $hashLocal,
+                        ], JSON_UNESCAPED_UNICODE)."\n", FILE_APPEND | LOCK_EX);
+                    }
+                } catch (\Throwable $fe) {
+                    Log::error('Backup EXTERNAL erro ao copiar '.$file.' => '.$fe->getMessage());
+                    $errors[] = [
+                        'file' => $file,
+                        'error' => $fe->getMessage(),
+                        'line' => $fe->getLine(),
+                    ];
+                    @file_put_contents($externalLogPath, json_encode([
+                        'ts' => now()->toIso8601String(),
+                        'event' => 'error',
+                        'file' => $file,
+                        'message' => $fe->getMessage(),
+                    ], JSON_UNESCAPED_UNICODE)."\n", FILE_APPEND | LOCK_EX);
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::error('Backup EXTERNAL falha global: '.$e->getMessage());
+            $errors[] = [ 'file' => null, 'error' => $e->getMessage(), 'line' => $e->getLine() ];
+            @file_put_contents($externalLogPath, json_encode([
+                'ts' => now()->toIso8601String(),
+                'event' => 'fatal',
+                'message' => $e->getMessage(),
+            ], JSON_UNESCAPED_UNICODE)."\n", FILE_APPEND | LOCK_EX);
+        }
+        $finished = microtime(true);
+        Log::info('Backup EXTERNAL finalizado. Copiados='.count($copied).' Skipped='.count($skipped).' Erros='.count($errors));
+        @file_put_contents($externalLogPath, json_encode([
+            'ts' => now()->toIso8601String(),
+            'event' => 'end',
+            'copied' => count($copied),
+            'skipped' => count($skipped),
+            'errors' => count($errors),
+            'duration_ms' => (int) (($finished-$started)*1000),
+        ], JSON_UNESCAPED_UNICODE)."\n", FILE_APPEND | LOCK_EX);
+        return [
+            'copied' => $copied,
+            'skipped' => $skipped,
+            'errors' => $errors,
+            'started_at' => $started,
+            'finished_at' => $finished,
+        ];
+    }
+
+    /**
      * Copia todos os arquivos do storage local para o HD externo (disk external).
      * @return \Illuminate\Http\JsonResponse
      */
     public function backupAll()
     {
-        Log::info('BackupController@backupAll INICIADO');
-        try {
-            $localFiles = Storage::disk('local')->allFiles();
-            Log::info('Arquivos encontrados no storage local: ' . count($localFiles));
-            $copied = [];
-            $skipped = [];
-            foreach ($localFiles as $file) {
-                try {
-                    $content = Storage::disk('local')->get($file);
-                    $destPath = $file;
-                    $shouldCopy = true;
-                    if (Storage::disk('external')->exists($destPath)) {
-                        $externalContent = Storage::disk('external')->get($destPath);
-                        if (md5($content) === md5($externalContent)) {
-                            $shouldCopy = false;
-                            $skipped[] = $destPath;
-                            Log::info('Arquivo já existe e é idêntico, ignorando: ' . $destPath);
-                        }
-                    }
-                    if ($shouldCopy) {
-                        Log::info('Copiando arquivo: ' . $file);
-                        Storage::disk('external')->put($destPath, $content);
-                        $copied[] = $destPath;
-                        Log::info('Arquivo copiado com sucesso: ' . $destPath);
-                    }
-                } catch (\Exception $fe) {
-                    Log::error('Falha ao copiar arquivo: ' . $file . ' - ' . $fe->getMessage() . ' | Linha: ' . $fe->getLine() . ' | Arquivo: ' . $fe->getFile());
-                }
-            }
-            Log::info('Backup FINALIZADO. Total copiados: ' . count($copied) . ' | Ignorados (sem alteração): ' . count($skipped));
-            return response()->json([
-                'status' => 'ok',
-                'copiados' => $copied,
-                'ignorados' => $skipped,
-                'total' => count($copied),
-                'total_ignorados' => count($skipped),
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Backup error: ' . $e->getMessage() . ' | Linha: ' . $e->getLine() . ' | Arquivo: ' . $e->getFile());
-            return response()->json([
-                'status' => 'erro',
-                'mensagem' => $e->getMessage() . ' (Linha: ' . $e->getLine() . ')',
-            ], 500);
-        }
+        $res = $this->runExternalBackup();
+        return response()->json([
+            'status' => 'ok',
+            'copiados' => array_column($res['copied'], 'file'), // legado (apenas nomes)
+            'ignorados' => array_column($res['skipped'], 'file'), // legado (apenas nomes)
+            'copied_detailed' => $res['copied'],
+            'skipped_detailed' => $res['skipped'],
+            'total' => count($res['copied']),
+            'total_ignorados' => count($res['skipped']),
+            'erros' => $res['errors'],
+            'duracao_ms' => (int) (($res['finished_at'] - $res['started_at']) * 1000),
+        ]);
+    }
+
+    /**
+     * Executa o backup e apresenta uma view detalhada com os arquivos copiados/ignorados.
+     */
+    public function backupAllView()
+    {
+        // Exibe apenas a view interativa; a execução ocorrerá via AJAX chamando /backup/storage-to-external
+        return view('backup.external_run', [
+            'initial' => true,
+        ]);
     }
 
     /**
@@ -261,5 +349,14 @@ class BackupController extends Controller
             }
             return response()->json($arr);
         }
+    }
+
+    /**
+     * View interativa para executar backup FTP e acompanhar em tempo real via polling dos logs.
+     * A execução (cópia) é assíncrona através de job enfileirado em /backup/storage-to-ftp.
+     */
+    public function backupFtpView()
+    {
+        return view('backup.ftp_run');
     }
 }

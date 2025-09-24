@@ -408,6 +408,76 @@
                             </li>
                             @endcanany
 
+                            {{-- Dropdown: Backup --}}
+                            @canany(['backup.executar.hd','backup.executar.ftp','backup.logs.view','backup.logs.download','backup.logs.clear'])
+                            <li class="nav-item dropdown">
+                              <a href="#" class="nav-link dropdown-toggle text-white" id="dropdown-backup" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                 data-bs-togglex="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Ações de Backup e Logs">
+                                <i class="fa-solid fa-database"></i>
+                                Backup
+                              </a>
+                              <ul class="dropdown-menu dropdown-menu-end">
+                                @can('backup.executar.hd')
+                                <li>
+                                  <a class="dropdown-item" href="{{ route('backup.external.view') }}">
+                                    <i class="fa-solid fa-hard-drive me-2"></i>Backup: Storage → HD externo (view)
+                                  </a>
+                                </li>
+                                @endcan
+
+                                @can('backup.executar.ftp')
+                                <li>
+                                  <a class="dropdown-item" href="{{ route('backup.ftp.view') }}">
+                                    <i class="fa-solid fa-cloud-arrow-up me-2"></i>Backup: Storage → FTP (view)
+                                  </a>
+                                </li>
+                                <li>
+                                  <a class="dropdown-item" href="{{ route('backup.ftp-test.view') }}">
+                                    <i class="fa-solid fa-plug-circle-check me-2"></i>Testar conexão FTP (dry-run)
+                                  </a>
+                                </li>
+                                @endcan
+
+                                @canany(['backup.logs.view','backup.logs.download','backup.logs.clear'])
+                                <li><hr class="dropdown-divider"></li>
+                                <li class="dropdown-header">Logs do Backup FTP</li>
+                                @endcanany
+
+                                @can('backup.logs.view')
+                                <li>
+                                  <a class="dropdown-item" href="/backup/ftp-logs">
+                                    <i class="fa-solid fa-list-ul me-2"></i>Ver logs
+                                  </a>
+                                </li>
+                                @endcan
+
+                                @can('backup.logs.download')
+                                <li>
+                                  <a class="dropdown-item" href="/backup/ftp-logs/download">
+                                    <i class="fa-solid fa-file-arrow-down me-2"></i>Baixar logs (todos)
+                                  </a>
+                                </li>
+                                <li>
+                                  <a class="dropdown-item" href="/backup/ftp-logs/download-last">
+                                    <i class="fa-solid fa-file-circle-down me-2"></i>Baixar último log
+                                  </a>
+                                </li>
+                                @endcan
+
+                                @can('backup.logs.clear')
+                                <li>
+                                  <form action="/backup/ftp-logs/clear" method="POST" onsubmit="return confirm('Limpar/arquivar os logs atuais de backup FTP?');">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item text-danger">
+                                      <i class="fa-solid fa-trash-can me-2"></i>Limpar/Arquivar logs
+                                    </button>
+                                  </form>
+                                </li>
+                                @endcan
+                              </ul>
+                            </li>
+                            @endcanany
+
               {{-- Dropdown: Irmãos de Emaús --}}
               @canany(['IRMAOS_EMAUS_NOME_SERVICO - LISTAR','IRMAOS_EMAUS_NOME_PIA - LISTAR','IRMAOS_EMAUS_FICHA_CONTROLE - LISTAR'])
               <li class="nav-item dropdown">

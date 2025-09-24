@@ -18,6 +18,7 @@ use Spatie\Permission\Models\Permission;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 
 require_once app_path('helpers.php');
 
@@ -44,17 +45,12 @@ class PacpieController extends Controller
 
     public function index()
     {
-        // $model = Pacpie::join('Contabilidade.EmpresasUsuarios', 'Representantes.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
-        //     ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
-        //     ->orderBy('nome')
-        //     ->get();
-        //
-
-        $model = Pacpie::limit(0);
-
-        // dd('PACPIE INDEX', $Pacpie);
-
-        return view('Pacpie.index', compact('model'));
+        $perPage = (int) request()->query('perPage', 50);
+        if ($perPage < 1) $perPage = 10;
+        if ($perPage > 500) $perPage = 500;
+        $query = Pacpie::query()->orderByDesc('id');
+        $model = $query->paginate($perPage)->appends(['perPage' => $perPage]);
+        return view('Pacpie.index', compact('model','perPage'));
     }
 
     public function BuscarTexto(Request $request)
@@ -83,59 +79,37 @@ class PacpieController extends Controller
             $selecaoFiltro = $request['emailprimeirocontato'] ?? null;
         }
 //    dd($request->all());
-        if ($selecaoFiltro == 'SemPrimeiroContatoEmail') {
-
-            $model = Pacpie::whereNotNull('email')
-            ->whereNull('emailprimeirocontato')
-            ->whereNull('emailcomfalhas')
-            ->orderByDesc('id')
-            ->get();
-
-
-// dd($model->count());
-
+        $perPage = (int) $request->query('perPage', 100);
+        if ($perPage < 1) $perPage = 25;
+        if ($perPage > 1000) $perPage = 1000;
+        $q = Pacpie::query();
+        switch ($selecaoFiltro) {
+            case 'SemPrimeiroContatoEmail':
+                $q->whereNotNull('email')->whereNull('emailprimeirocontato')->whereNull('emailcomfalhas');
+                break;
+            case 'RetornoPrimeiroContatoEmail':
+                $q->where('retornoemailprimeirocontato', true); break;
+            case 'SemEmail':
+                $q->whereNull('email'); break;
+            case 'PromessaAporte':
+                $q->where('promessa_aporte', true); break;
+            case 'PromessaAporteValor':
+                $q->where('promessa_aporte_valor', '>', 0); break;
+            case 'Aportou':
+                $q->where('aportou', true); break;
+            case 'emailComFalha':
+                $q->where('emailcomfalhas', true); break;
+            case 'AportouValor':
+                $q->where('aportou_valor', '>', 0); break;
+            case 'SemNome':
+                $q->where(function($sub){ $sub->whereNull('nome')->orWhere('nome',''); }); break;
+            default:
+                // sem filtro
+                break;
         }
-        elseif ($selecaoFiltro == 'RetornoPrimeiroContatoEmail') {
-            $model = Pacpie::where('retornoemailprimeirocontato', '=', true)->get();
-        }
-        elseif ($selecaoFiltro == 'SemEmail') {
-            $model = Pacpie::where('email', '=', null)->get();
-        }
-        elseif ($selecaoFiltro == 'PromessaAporte') {
-            $model = Pacpie::where('promessa_aporte', '=', true)->get();
-
-        }
-        elseif ($selecaoFiltro == 'PromessaAporteValor') {
-            $model = Pacpie::where('promessa_aporte_valor', '>', 0)->get();
-            // dd(
-            //     'promessa_aporte_valor'
-            // );
-        }
-        elseif ($selecaoFiltro == 'Aportou') {
-            $model = Pacpie::where('aportou', '=', true)->get();
-
-        }
-        elseif ($selecaoFiltro == 'emailComFalha') {
-            $model = Pacpie::where('emailcomfalhas', '=', true)->get();
-
-        }
-
-        elseif ($selecaoFiltro == 'AportouValor') {
-            $model = Pacpie::where('aportou_valor', '>', 0)->get();
-            // dd(
-            //     'aportou_valor'
-            // );
-
-        }
-        elseif ($selecaoFiltro == 'SemNome') {
-            $model = Pacpie::whereNull('nome')->orWhere('nome', '=', '')->orderBy('nome', 'desc')->get();
-        } else {
-            $model = Pacpie::all();
-        }
-
-        // dd('PACPIE INDEX', $Pacpie);
-
-        return view('Pacpie.index', compact('model', 'selecaoFiltro' ));
+        $q->orderByDesc('id');
+        $model = $q->paginate($perPage)->appends(['perPage'=>$perPage,'Selecao'=>$selecaoFiltro]);
+        return view('Pacpie.index', compact('model','selecaoFiltro','perPage'));
     }
 
     public function create()
@@ -199,33 +173,21 @@ class PacpieController extends Controller
 
     public function AjustaCampos()
     {
-
-        $model = Pacpie::whereNotNull('email')->get();
-
-        foreach ($model as $item) {
-            $item->email = strtolower($item->email);
-            $item->nome = strtoupper($item->nome);
-
-
-
-            if (empty($item->email)) {
-
-                $item->email = null;
-            }
-
-
-            try {
-                $item->save();
-            } catch (Exception $e) {
-                // Handle the exception as needed
-                echo 'Falha ao salvar: ',  $e->getMessage(), "\n";
-                session(['error' => 'Falha ao salvar: ',  $e->getMessage(), "\n"]);
-            }
-        }
-
-        session(['success' => 'ATUALIZADO COM SUCESSO! Campo email para tudo minúsculo como padrão e campo nome para tudo maiusculo como padrão' ]);
-        return redirect(route('Pacpie.index', compact('model')));
-        // return view('Pacpie.index', compact('model'));
+        // Processa em chunks para não estourar memória
+        Pacpie::whereNotNull('email')
+            ->orderBy('id')
+            ->chunkById(1000, function($registros){
+                foreach ($registros as $item) {
+                    $item->email = strtolower($item->email);
+                    $item->nome = strtoupper($item->nome);
+                    if (empty($item->email)) { $item->email = null; }
+                    try { $item->save(); } catch (\Exception $e) {
+                        Log::warning('AjustaCampos Pacpie falha', ['id'=>$item->id,'erro'=>$e->getMessage()]);
+                    }
+                }
+            });
+        session(['success' => 'Normalização concluída em lotes (chunk 1000).']);
+        return redirect()->route('Pacpie.index');
 
     }
 
