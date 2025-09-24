@@ -72,5 +72,13 @@ class AuthServiceProvider extends ServiceProvider
         Gate::define('backup.logs.clear', function ($user) {
             return $user->can('backup.logs.clear') || $user->can('backup.executar');
         });
+
+        // Abilities específicas de execução
+        Gate::define('backup.executar.hd', function ($user) {
+            return $user->can('backup.executar.hd') || $user->can('backup.executar');
+        });
+        Gate::define('backup.executar.ftp', function ($user) {
+            return $user->can('backup.executar.ftp') || $user->can('backup.executar');
+        });
     }
 }

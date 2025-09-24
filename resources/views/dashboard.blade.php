@@ -307,28 +307,32 @@
                                 @endcanany
 
                                 {{-- Backups (card dedicado) --}}
-                                @canany(['backup.executar','backup.logs.view','backup.logs.clear','backup.logs.download'])
+                                @canany(['backup.executar','backup.executar.hd','backup.executar.ftp','backup.logs.view','backup.logs.clear','backup.logs.download'])
                                 <div class="col-12 col-md-6 col-xl-4 col-xxl-3">
                                     <div class="card h-100">
                                         <div class="card-header py-2">Backups</div>
                                         <div class="card-body py-2 d-flex flex-column gap-2">
-                                            @can('backup.executar')
+                                            @canany(['backup.executar','backup.executar.hd','backup.executar.ftp'])
                                                 <div class="d-flex flex-wrap align-items-center gap-2">
+                                                    @canany(['backup.executar','backup.executar.hd'])
                                                     <button id="backup-btn" class="btn btn-outline-danger btn-sm">
                                                         Storage → HD Externo
                                                     </button>
+                                                    @endcanany
                                                     <span id="backup-status" class="small text-muted"></span>
                                                 </div>
                                                 <div class="d-flex flex-wrap align-items-center gap-2">
+                                                    @canany(['backup.executar','backup.executar.ftp'])
                                                     <button id="backup-ftp-btn" class="btn btn-outline-primary btn-sm">
                                                         Storage → FTP
                                                     </button>
                                                     <button id="backup-ftp-test-btn" class="btn btn-outline-secondary btn-sm" title="Testa conexão FTP (dry-run)">
                                                         Testar FTP (dry-run)
                                                     </button>
+                                                    @endcanany
                                                     <span id="backup-ftp-status" class="small text-muted"></span>
                                                 </div>
-                                            @endcan
+                                            @endcanany
 
                                             <div class="d-flex flex-wrap align-items-center gap-2">
                                                 @can('backup.logs.view')

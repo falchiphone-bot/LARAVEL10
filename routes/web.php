@@ -26,10 +26,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 // Rota para backup do storage para o HD externo
-Route::get('/backup/storage-to-external', [BackupController::class, 'backupAll'])->middleware('can:backup.executar');
+Route::get('/backup/storage-to-external', [BackupController::class, 'backupAll'])->middleware('can:backup.executar.hd');
 
 // Rota para backup do storage local para o FTP
-Route::get('/backup/storage-to-ftp', [BackupController::class, 'backupAllToFtp'])->middleware('can:backup.executar');
+Route::get('/backup/storage-to-ftp', [BackupController::class, 'backupAllToFtp'])->middleware('can:backup.executar.ftp');
 
 // View para consultar logs JSON do backup FTP
 Route::get('/backup/ftp-logs', [BackupController::class, 'viewFtpLogs'])->middleware('can:backup.logs.view');
@@ -436,7 +436,7 @@ Route::get('/backup/ftp-test', function () {
     } catch (\Throwable $e) {
         return response()->json(['ok' => false, 'message' => $e->getMessage()], 500);
     }
-})->middleware(['auth', 'verified', 'can:backup.executar'])->name('backup.ftp-test');
+})->middleware(['auth', 'verified', 'can:backup.executar.ftp'])->name('backup.ftp-test');
 
 // Refresh counters cache (cadastros / atletas)
 Route::post('/dashboard/refresh-counters', function() {

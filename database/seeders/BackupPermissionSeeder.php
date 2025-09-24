@@ -15,6 +15,8 @@ class BackupPermissionSeeder extends Seeder
         // Permissões granulares de backup
         $perms = [
             'backup.executar',
+            'backup.executar.hd',
+            'backup.executar.ftp',
             'backup.logs.view',
             'backup.logs.download',
             'backup.logs.clear',
