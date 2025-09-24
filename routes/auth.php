@@ -16,7 +16,7 @@ Route::middleware('guest')->group(function () {
 
     Route::post('register', [RegisteredUserController::class, 'store']);
 
-    Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');
+    Route::get('login', [AuthenticatedSessionController::class, 'create'])->middleware('nocache')->name('login');
 
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
 
@@ -30,6 +30,11 @@ Route::middleware('guest')->group(function () {
     Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
 
     Route::post('reset-password', [NewPasswordController::class, 'store'])->name('password.store');
+
+    // Página de despedida pós-logout que tenta fechar a aba e oferece fallback
+    Route::get('goodbye', function () {
+        return view('auth.goodbye');
+    })->middleware('nocache')->name('logout.goodbye');
 });
 
 Route::middleware('auth')->group(function () {
@@ -49,5 +54,5 @@ Route::middleware('auth')->group(function () {
 
     Route::put('password', [PasswordController::class, 'update'])->name('password.update');
 
-    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->middleware('nocache')->name('logout');
 });

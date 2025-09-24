@@ -69,5 +69,6 @@ class Kernel extends HttpKernel
         'role_or_permission' => \Spatie\Permission\Middlewares\RoleOrPermissionMiddleware::class,
         'profile' => \App\Http\Middleware\RequestProfiler::class,
         'simple.limit' => \App\Http\Middleware\SimpleIpRateLimit::class,
+        'nocache' => \App\Http\Middleware\NoCache::class,
     ];
 }

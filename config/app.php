@@ -70,7 +70,7 @@ return [
     */
 
     'timezone' => 'America/Sao_Paulo',
-     
+
 
     /*
     |--------------------------------------------------------------------------
@@ -222,5 +222,16 @@ return [
         // 'ExampleClass' => App\Example\ExampleClass::class,
         'Socialite' => Laravel\Socialite\Facades\Socialite::class,
     ])->toArray(),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Login timing logs (diagnóstico)
+    |--------------------------------------------------------------------------
+    | Quando true, o fluxo de login registra tempos (auth, session, total) no log
+    | Útil para diagnosticar lentidão no botão Entrar. Controlado via .env
+    | LOG_LOGIN_TIMING=true
+    */
+    'log_login_timing' => env('LOG_LOGIN_TIMING', false),
+
 
 ];

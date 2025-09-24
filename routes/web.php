@@ -380,42 +380,14 @@ Route::get('/storage/arquivospublicos/{filename}', function ($filename) {
 })->where('filename', '.*');
 
 Route::get('/dashboard', function () {
-    $user = auth()->user();
-    if ($user) {
-        // Super Admin deve ir para o dashboard principal, sem redirecionar
-        $isSuperAdmin = false;
-        try {
-            if (method_exists($user, 'hasAnyRole')) {
-                $isSuperAdmin = (bool) call_user_func([$user, 'hasAnyRole'], ['super-admin','Super-Admin','Super Admin','SuperAdmin']);
-            } elseif (method_exists($user, 'hasRole')) {
-                $isSuperAdmin = (
-                    (bool) call_user_func([$user, 'hasRole'], 'super-admin') ||
-                    (bool) call_user_func([$user, 'hasRole'], 'Super-Admin') ||
-                    (bool) call_user_func([$user, 'hasRole'], 'Super Admin')
-                );
-            }
-        } catch (\Throwable $e) { /* noop */ }
-
-        if (!$isSuperAdmin) {
-            $hasServ = Gate::allows('IRMAOS_EMAUS_NOME_SERVICO - LISTAR');
-            $hasPia  = Gate::allows('IRMAOS_EMAUS_NOME_PIA - LISTAR');
-            $hasFicha= Gate::allows('IRMAOS_EMAUS_FICHA_CONTROLE - LISTAR');
-
-            if ($hasServ || $hasPia || $hasFicha) {
-                if ($hasServ) { return redirect('/Irmaos_EmausServicos'); }
-                if ($hasPia)  { return redirect('/Irmaos_EmausPia'); }
-                if ($hasFicha){ return redirect('/Irmaos_Emaus_FichaControle'); }
-            }
-        }
-    }
     return view('dashboard');
-})
-    ->middleware(['profile', 'auth', 'verified'])
-    ->name('dashboard');
+})->middleware(['auth', 'verified', 'nocache'])->name('dashboard');
 
 // Endpoint AJAX: contadores do dashboard (cadastros e atletas) com ETag e Cache-Control
 Route::get('/dashboard/counts', function (\Illuminate\Http\Request $request) {
-    $ttl = (int) env('DASHBOARD_COUNTS_TTL', 900);
+    // TTL maior por padrão para reduzir processamento no carregamento do Dashboard.
+    // Pode ser alterado via env DASHBOARD_COUNTS_TTL.
+    $ttl = (int) env('DASHBOARD_COUNTS_TTL', 3600);
     $cad = \Illuminate\Support\Facades\Cache::remember('cadastros_counts', $ttl, function() {
         return \App\Services\DashboardCache::cadastrosCounts();
     });

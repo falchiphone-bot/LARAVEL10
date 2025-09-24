@@ -235,33 +235,44 @@
         'count-centro_custos',
         'count-contas_centro_custos'
       ];
-      const hasAnyBadge = badgeIds.some(id => document.getElementById(id));
-      if (!hasAnyBadge) return; // nada a preencher nesta página
 
-      fetch(@json(route('dashboard.counts')), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-          if (!data) return;
-          // Se futuramente adicionarmos financeCounts à resposta do endpoint, usamos aqui
-          const fin = data.finance || {};
-          const setBadge = (id, val) => {
-            const el = document.getElementById(id);
-            if (!el) return;
-            if (val === null || typeof val === 'undefined') {
-              // se não há valor, oculta badge para não poluir
-              el.style.display = 'none';
-            } else {
-              el.textContent = String(val);
-              el.style.display = '';
-            }
-          };
+      let loaded = false;
+      function fillBadges() {
+        if (loaded) return;
+        const hasAnyBadge = badgeIds.some(id => document.getElementById(id));
+        if (!hasAnyBadge) return;
+        loaded = true;
+        fetch(@json(route('dashboard.counts')), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (!data) return;
+            const fin = data.finance || {};
+            const setBadge = (id, val) => {
+              const el = document.getElementById(id);
+              if (!el) return;
+              if (val === null || typeof val === 'undefined') {
+                el.style.display = 'none';
+              } else {
+                el.textContent = String(val);
+                el.style.display = '';
+              }
+            };
+            setBadge('count-contaspagar', fin.contaspagar);
+            setBadge('count-empresas', fin.empresas);
+            setBadge('count-centro_custos', fin.centro_custos);
+            setBadge('count-contas_centro_custos', fin.contas_centro_custos);
+          })
+          .catch(() => {/* silencioso */});
+      }
 
-          setBadge('count-contaspagar', fin.contaspagar);
-          setBadge('count-empresas', fin.empresas);
-          setBadge('count-centro_custos', fin.centro_custos);
-          setBadge('count-contas_centro_custos', fin.contas_centro_custos);
-        })
-        .catch(() => {/* silencioso */});
+      // Adia a carga até interação no menu (mouseover ou click do dropdown Contabilidade)
+  const contabMenu = document.getElementById('dropdown-contabilidade');
+      if (contabMenu) {
+        contabMenu.addEventListener('mouseenter', fillBadges, { once: true });
+        contabMenu.addEventListener('click', fillBadges, { once: true });
+      } else {
+        // Fallback: se o elemento não existir, não faz fetch algum
+      }
     } catch (e) { /* noop */ }
   });
   </script>
@@ -483,13 +494,10 @@
                   Perfil do usuário: {{ optional(Auth::user())->name ?? 'Visitante' }}
                 </a>
                 @auth
-                <form method="POST" action="{{ route('logout') }}" class="ms-1">
-                  @csrf
-                  <button type="submit" class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1" title="Desconectar">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                    <span>Desconectar</span>
-                  </button>
-                </form>
+                <button type="button" class="btn btn-sm btn-outline-light d-inline-flex align-items-center gap-1 ms-1 js-force-logout-close" data-logout-url="{{ route('logout') }}" title="Desconectar">
+                  <i class="fa-solid fa-right-from-bracket"></i>
+                  <span>Desconectar</span>
+                </button>
                 @endauth
               </li>
 
@@ -673,6 +681,59 @@
           }
         }
         try{ loadMarketStatus(); setInterval(loadMarketStatus, 60000); }catch(_e){}
+      })();
+    </script>
+    <script>
+      // Logout silencioso: POST /logout (AJAX) e fechar a guia sem navegação.
+      (function(){
+        function showDisconnectedToast(){
+          try{
+            const div = document.createElement('div');
+            div.style.position='fixed';
+            div.style.left='50%';
+            div.style.top='20px';
+            div.style.transform='translateX(-50%)';
+            div.style.zIndex='2147483647';
+            div.style.background='#dc3545';
+            div.style.color='#fff';
+            div.style.padding='12px 20px';
+            div.style.borderRadius='8px';
+            div.style.boxShadow='0 2px 10px rgba(0,0,0,0.2)';
+            div.style.fontWeight='600';
+            div.style.fontFamily='system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, sans-serif';
+            div.style.fontSize='20px';
+            div.textContent='VOCÊ SE DESCONECTOU!';
+            document.body.appendChild(div);
+            setTimeout(()=>{ try{ div.remove(); }catch(_e){} }, 2500);
+          }catch(_e){}
+        }
+        function tryClose(){
+          try{ window.open('', '_self'); }catch(_e){}
+          try{ window.close(); }catch(_e){}
+        }
+        async function doLogoutAndClose(url){
+          showDisconnectedToast();
+          try{
+            const token = document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '';
+            await fetch(url, { method: 'POST', headers: { 'X-CSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
+          }catch(_e){}
+          // Não navegar para nenhuma página; fechar silenciosamente
+          tryClose();
+        }
+        document.addEventListener('click', function(ev){
+          const btn = ev.target.closest('.js-force-logout-close');
+          if (!btn) return;
+          const url = btn.getAttribute('data-logout-url');
+          if (url){ ev.preventDefault(); doLogoutAndClose(url); }
+        });
+        // Intercepta qualquer formulário legado de logout, se presente
+        document.addEventListener('submit', function(ev){
+          const form = ev.target;
+          if (form && form.matches('form[action="{{ route('logout') }}"][method="POST"]')){
+            ev.preventDefault();
+            doLogoutAndClose(form.getAttribute('action'));
+          }
+        }, true);
       })();
     </script>
     @stack('scripts')

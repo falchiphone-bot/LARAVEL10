@@ -59,8 +59,9 @@
                         </div>
 
                         <div class="d-flex flex-wrap gap-2 justify-content-end align-items-center">
-                            <button type="submit" class="btn btn-danger">
-                                Entrar
+                            <button id="login-submit" type="submit" class="btn btn-danger">
+                                <span class="label">Entrar</span>
+                                <span class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
                             </button>
 
                             @if (config('services.google.enabled'))
@@ -82,3 +83,22 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form[action="{{ route('login') }}"]');
+    if (!form) return;
+    const btn = document.getElementById('login-submit');
+    if (!btn) return;
+    form.addEventListener('submit', function() {
+        // feedback imediato: desabilita e mostra spinner
+        btn.disabled = true;
+        const spinner = btn.querySelector('.spinner-border');
+        if (spinner) spinner.classList.remove('d-none');
+        const label = btn.querySelector('.label');
+        if (label) label.textContent = 'Entrando…';
+    }, { once: true });
+});
+</script>
+@endpush

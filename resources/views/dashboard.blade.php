@@ -160,10 +160,13 @@
                                                                     <div class="alert alert-success py-2 mb-2">{{ session('status') }}</div>
                                                                 </div>
                                                             @endif
-                                                            <div class="col-12 d-flex justify-content-end mb-1">
+                                                            <div class="col-12 d-flex justify-content-end gap-2 mb-1">
+                                                                <button id="load-counts-btn" type="button" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="Carregar os contadores desta página sob demanda (evita processar ao abrir o Dashboard)">
+                                                                    Carregar contadores
+                                                                </button>
                                                                 <form method="POST" action="{{ route('dashboard.refresh-counters') }}" class="d-inline">
                                                                     @csrf
-                                                                    <button type="submit" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Recalcular imediatamente os contadores em cache">
+                                                                    <button type="submit" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Limpa o cache dos contadores para recalcular na próxima carga">
                                                                         Atualizar contadores
                                                                     </button>
                                                                 </form>
@@ -364,36 +367,48 @@
                                 const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
                                 tooltipTriggerList.map(el => new bootstrap.Tooltip(el));
 
-                                // Carregar contadores via AJAX (versão AJA)
-                                fetch("{{ route('dashboard.counts') }}", {
-                                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                                })
-                                .then(resp => resp.json())
-                                .then(data => {
-                                    const cad = data.cadastros || {};
-                                    const ath = data.athletes || {};
-                                    const setText = (id, val) => {
-                                        const el = document.getElementById(id);
-                                        if (el) el.textContent = (val === null || typeof val === 'undefined') ? '-' : String(val);
-                                    };
-                                    // Cadastros
-                                    setText('count-representantes', cad.representantes);
-                                    setText('count-preparadores', cad.preparadores);
-                                    setText('count-funcao', cad.funcao);
-                                    setText('count-categorias', cad.categorias);
-                                    setText('count-posicoes', cad.posicoes);
-                                    setText('count-tipoarquivo', cad.tipoarquivo);
-                                    setText('count-tipoesporte', cad.tipoesporte);
-                                    // Atletas
-                                    setText('count-formandos', ath.formandos);
-                                    setText('count-flow', ath.flow);
-                                    setText('count-percentuais', ath.percentuais);
-                                })
-                                .catch(() => {
-                                    // Em caso de erro, substitui "…" por "-" para não ficar carregando infinito
-                                    ['count-representantes','count-preparadores','count-funcao','count-categorias','count-posicoes','count-tipoarquivo','count-tipoesporte','count-formandos','count-flow','count-percentuais']
-                                      .forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '-'; });
-                                });
+                                let countsLoaded = false;
+                                const idsAll = ['count-representantes','count-preparadores','count-funcao','count-categorias','count-posicoes','count-tipoarquivo','count-tipoesporte','count-formandos','count-flow','count-percentuais'];
+                                const setText = (id, val) => {
+                                    const el = document.getElementById(id);
+                                    if (el) el.textContent = (val === null || typeof val === 'undefined') ? '-' : String(val);
+                                };
+
+                                function loadDashboardCounts() {
+                                    if (countsLoaded) return; // evita chamadas repetidas
+                                    countsLoaded = true;
+                                    fetch("{{ route('dashboard.counts') }}", {
+                                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                                    })
+                                    .then(resp => resp.json())
+                                    .then(data => {
+                                        const cad = data.cadastros || {};
+                                        const ath = data.athletes || {};
+                                        // Cadastros
+                                        setText('count-representantes', cad.representantes);
+                                        setText('count-preparadores', cad.preparadores);
+                                        setText('count-funcao', cad.funcao);
+                                        setText('count-categorias', cad.categorias);
+                                        setText('count-posicoes', cad.posicoes);
+                                        setText('count-tipoarquivo', cad.tipoarquivo);
+                                        setText('count-tipoesporte', cad.tipoesporte);
+                                        // Atletas
+                                        setText('count-formandos', ath.formandos);
+                                        setText('count-flow', ath.flow);
+                                        setText('count-percentuais', ath.percentuais);
+                                    })
+                                    .catch(() => {
+                                        idsAll.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '-'; });
+                                    });
+                                }
+
+                                // Botão para carregar sob demanda
+                                const btn = document.getElementById('load-counts-btn');
+                                if (btn) {
+                                    btn.addEventListener('click', function() {
+                                        loadDashboardCounts();
+                                    });
+                                }
                             });
                         </script>
                         @endpush
