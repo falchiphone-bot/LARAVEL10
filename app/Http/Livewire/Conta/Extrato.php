@@ -534,6 +534,8 @@ class Extrato extends Component
         $EntraddasGeral = 1;
         $totalsomadoSAIDAS = 0;
         $totalsomadoEntradas = 0;
+        $start = null;
+        $end = null;
 
         $lancamentosSaida = Lancamento::where('Lancamentos.SaidasGeral', 1);
 
@@ -560,11 +562,22 @@ class Extrato extends Component
 
         $totalsomadoEntradas = $lancamentosEntrada->sum('Valor');
 
-    $msg = 'TOTAL ENTRADAS: ' . number_format($totalsomadoEntradas, 2, ',', '.') . ' | TOTAL SAÍDAS: ' . number_format($totalsomadoSAIDAS, 2, ',', '.') . ' | RESULTADO: ' . number_format(($totalsomadoEntradas - $totalsomadoSAIDAS), 2, ',', '.');
-    session()->flash('info', $msg);
-    return;
+        $resultado = $totalsomadoEntradas - $totalsomadoSAIDAS;
 
-        $SaidasGeral = 0;
+        // Prepara período para exibição
+        $deDisplay = $start ? $start->format('d/m/Y 00:00:00') : Carbon::createFromFormat('Y-m-d', $this->De)->startOfDay()->format('d/m/Y 00:00:00');
+        $ateDisplay = $end ? $end->format('d/m/Y 23:59:59') : Carbon::createFromFormat('Y-m-d', $this->Ate)->endOfDay()->format('d/m/Y 23:59:59');
+
+        // Armazena na sessão para exibir na view dedicada
+        session()->put('EntradasSaidasSoma', [
+            'entradas' => $totalsomadoEntradas,
+            'saidas' => $totalsomadoSAIDAS,
+            'resultado' => $resultado,
+            'de' => $deDisplay,
+            'ate' => $ateDisplay,
+        ]);
+
+        return redirect()->route('lancamentos.entradassaidas.calculos');
     }
 
     public function searchEntradasGeral()

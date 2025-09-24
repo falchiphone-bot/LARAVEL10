@@ -1171,6 +1171,7 @@ Route::resource('RedeSocialUsuarios', App\Http\Controllers\RedeSocialUsuarioCont
     Route::get('lancamentos/solicitacoes',[App\Http\Controllers\LancamentosController::class,'Solicitacoes'])->name('lancamentos.solicitacoes');
     Route::get('lancamentos/solicitacoesexcluir{id}',[App\Http\Controllers\LancamentosController::class,'SolicitacoesExcluir'])->name('lancamentos.solicitacoesexcluir');
     Route::get('lancamentos/solicitacoesTransferir{id}',[App\Http\Controllers\LancamentosController::class,'solicitacoesTransferir'])->name('lancamentos.solicitacoestransferir');
+    Route::get('Lancamentos/EntradasSaidasCalculos', [App\Http\Controllers\LancamentosController::class, 'EntradasSaidasCalculos'])->name('lancamentos.entradassaidas.calculos');
 
 
     #Contas

@@ -150,6 +150,22 @@ class LancamentosController extends Controller
          return view('Lancamentos.DadosGabrielMagossiFalchi', compact('dados', 'Débito', 'Crédito', 'Saldo'));
      }
 
+     public function EntradasSaidasCalculos()
+     {
+        $payload = session('EntradasSaidasSoma');
+        if (!$payload) {
+            return redirect()->back()->with('error', 'Não há dados para exibir. Execute a soma novamente.');
+        }
+        // Evita erro se vier parcialmente
+        $entradas = (float)($payload['entradas'] ?? 0);
+        $saidas = (float)($payload['saidas'] ?? 0);
+        $resultado = (float)($payload['resultado'] ?? ($entradas - $saidas));
+        $de = $payload['de'] ?? null;
+        $ate = $payload['ate'] ?? null;
+
+        return view('Lancamentos.DadosEntradasSaidas', compact('entradas','saidas','resultado','de','ate'));
+     }
+
      public function exibirDadosAvenuePoupanca()
        {
         $EmpresaID = 11;

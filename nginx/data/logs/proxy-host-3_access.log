@@ -538,3 +538,6 @@
 [24/Sep/2025:11:43:25 +0000] - 200 200 - GET https vec.org.br "/info.php" [Client 172.18.0.1] [Length 24206] [Gzip -] [Sent-to laravel10] "Go-http-client/1.1" "-"
 [24/Sep/2025:11:43:26 +0000] - 200 200 - GET https vec.org.br "/?rest_route=/wp/v2/users/" [Client 172.18.0.1] [Length 1312] [Gzip -] [Sent-to laravel10] "Go-http-client/1.1" "-"
 [24/Sep/2025:12:55:09 +0000] - 404 404 - GET http vec.org.br "/sftp-config.json" [Client 172.18.0.1] [Length 2125] [Gzip -] [Sent-to laravel10] "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:77.0) Gecko/20100101 Firefox/77.0" "-"
+[24/Sep/2025:13:50:55 +0000] - 206 206 - GET http vec.org.br "/robots.txt" [Client 172.18.0.1] [Length 24] [Gzip -] [Sent-to laravel10] "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)" "-"
+[24/Sep/2025:13:50:55 +0000] - 200 200 - GET http vec.org.br "/robots.txt" [Client 172.18.0.1] [Length 24] [Gzip -] [Sent-to laravel10] "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)" "-"
+[24/Sep/2025:14:34:01 +0000] - 404 404 - GET http vec.org.br "/wp-login.php" [Client 172.18.0.1] [Length 2125] [Gzip -] [Sent-to laravel10] "Mozilla/5.0" "-"
