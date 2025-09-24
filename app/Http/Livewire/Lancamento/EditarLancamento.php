@@ -52,7 +52,8 @@ class EditarLancamento extends Component
     }
     protected $rules = [
         'lancamento.Valor' => 'required|decimal:2|gt:0',
-        'lancamento.ValorQuantidadeDolar' => 'decimal:2|gt:0',
+        // Pode ser vazio; quando informado deve ser numérico com 2 casas e > 0
+        'lancamento.ValorQuantidadeDolar' => 'nullable|decimal:2|gt:0',
         'lancamento.EmpresaID' => 'required|integer',
         'lancamento.ContaCreditoID' => 'required|integer',
         'lancamento.ContaDebitoID' => 'required|integer',
@@ -83,9 +84,9 @@ class EditarLancamento extends Component
 
 
         if ($this->lancamento->ContaDebitoID === $this->lancamento->ContaCreditoID) {
-            // $this->resetErrorBag();
-            // $this->resetValidation();
-            $this->hidrate();
+            // Evita salvar quando as contas são iguais e apenas exibe o erro de validação
+            $this->resetErrorBag();
+            $this->resetValidation();
             $this->addError('ContaDebitoID', 'Conta Débito e Conta Crédito não podem ser iguais. Feche esta guia e abra novamente.');
             return;
         }
@@ -116,6 +117,15 @@ class EditarLancamento extends Component
 
         $this->validate();
 
+        // Garantias explícitas pós-validação para evitar inserts nulos
+        if (empty($this->lancamento->ContaDebitoID) || empty($this->lancamento->ContaCreditoID)) {
+            $this->addError('ContaDebitoID', 'Conta Débito e Conta Crédito são obrigatórias.');
+            return;
+        }
+        if (empty($this->lancamento->EmpresaID)) {
+            $this->lancamento->EmpresaID = session('conta.extrato.empresa.id');
+        }
+
         // if($this->lancamento->ValorQuantidadeDolar == '0.01'){
         //     $this->lancamento->ValorQuantidadeDolar =  'null';
         // }
@@ -129,13 +139,18 @@ class EditarLancamento extends Component
         if ($novo) {
             $novoLancamento = $this->lancamento->replicate();
             if (!$this->temBloqueio()) {
-                $novoLancamento->DataContabilidade = $this->lancamento->DataContabilidade->format('d/m/Y');
-                $novoLancamento->ValorQuantidadeDolar = null;
+                // Manter DataContabilidade como data válida; usar formato do cast (Y-m-d)
+                if ($this->lancamento->DataContabilidade instanceof \Carbon\CarbonInterface) {
+                    $novoLancamento->DataContabilidade = $this->lancamento->DataContabilidade->format('Y-m-d');
+                } else {
+                    $novoLancamento->DataContabilidade = $this->lancamento->DataContabilidade; // string yyyy-mm-dd
+                }
+                $novoLancamento->ValorQuantidadeDolar = $novoLancamento->ValorQuantidadeDolar ?? null;
                 $novoLancamento->save();
                 session()->flash('message', 'Lançamento Criado.');
             }
-        } elseif (!$this->temBloqueio($this->lancamento->ID, $this->lancamento->DataContabilidade)) {
-            $this->lancamento['DataContabilidade'] = $this->lancamento->DataContabilidade->format('d-m-Y');
+        } elseif (!$this->temBloqueio($this->lancamento->ID)) {
+            // Manter DataContabilidade como Carbon/Date; Eloquent fará o cast ao salvar
             $this->lancamento['EmpresaID'] = $this->lancamento['EmpresaID'] ?? session('conta.extrato.empresa.id');
             $this->lancamento['Usuarios_id'] = $this->lancamento['Usuarios_id'] ?? Auth::user()->id;
 
@@ -186,10 +201,7 @@ class EditarLancamento extends Component
 
     }
 
-    public function acao($value)
-    {
-        $this->metodo = $value;
-    }
+    // Método 'acao' removido por não ser utilizado
 
     public function salvarComentario()
     {
@@ -292,7 +304,7 @@ class EditarLancamento extends Component
         }
     }
 
-    public function mount($lancamento_id = null)
+    public function mount($lancamento_id = null, $empresa_id = null)
     {
 
         $this->resetErrorBag();
@@ -307,6 +319,16 @@ class EditarLancamento extends Component
             $this->comentarios = LancamentoComentario::where('LancamentoID', $lancamento_id)->get();
         } else {
             $this->lancamento = new Lancamento();
+            // Se a abertura for 'novo' e houver empresa informada (vinda do extrato), setá-la
+            if ($empresa_id) {
+                $this->empresa = Empresa::find($empresa_id);
+                $this->lancamento->EmpresaID = $empresa_id;
+            } elseif (session('conta.extrato.empresa.id')) {
+                $this->lancamento->EmpresaID = session('conta.extrato.empresa.id');
+            }
+            // Garantir selects vazios ao abrir como "novo"
+            $this->lancamento->ContaDebitoID = null;
+            $this->lancamento->ContaCreditoID = null;
         }
 
         $this->atualizarContasHistoricos($this->lancamento->EmpresaID);

@@ -815,7 +815,12 @@
                         <div class="modal-content">
                             <div class="modal-body">
                                 @if ($editar_lancamento)
-                                    @livewire('lancamento.editar-lancamento', ['lancamento_id' => $editar_lancamento, 'contas' => $contas, 'empresas' => $empresas], key('editar-'.$editar_lancamento.'-'.$selEmpresa))
+                                    @livewire('lancamento.editar-lancamento', [
+                                        'lancamento_id' => $editar_lancamento,
+                                        'empresa_id' => $selEmpresa,
+                                        'contas' => $contas,
+                                        'empresas' => $empresas
+                                    ], key('editar-'.$editar_lancamento.'-'.$selEmpresa))
                                 @endif
                             </div>
                         </div>
