@@ -20,6 +20,16 @@
   </div>
 
   <div id="ftp-runtime" class="d-none">
+    <div id="progress-wrapper" class="mb-3 d-none">
+      <div class="d-flex justify-content-between small mb-1">
+        <span id="progress-label">Progresso</span>
+        <span id="progress-percent">0%</span>
+      </div>
+      <div class="progress" style="height:20px;">
+        <div class="progress-bar progress-bar-striped progress-bar-animated" id="progress-bar" role="progressbar" style="width:0%">0%</div>
+      </div>
+      <div class="small text-muted mt-1" id="progress-detail"></div>
+    </div>
     <div class="row g-3 mb-3" id="cards-summary-ftp">
       <div class="col-md-2">
         <div class="card shadow-sm h-100"><div class="card-body text-center"><div class="fw-semibold text-muted">Enviados</div><div id="card-sent" class="display-6 fw-bold text-success">0</div></div></div>
@@ -100,6 +110,33 @@
   let pollTimer = null;
   let sessionEvents = [];
   let lastCountSent = 0, lastCountSkipped = 0, lastCountErr = 0, lastCountFatal = 0;
+  let lastActivityTs = Date.now();
+  let inactivityTimer = null;
+  let totalPlanned = null; // vindo de evento start.total ou end.total
+  let processedCount = 0;  // enviados + ignorados (erros não contam como concluído)
+  let recentProcessedTs = []; // timestamps dos últimos enviados/ignorados para calcular taxa
+  const RATE_WINDOW_MS = 90 * 1000; // janela de 90s para suavizar ETA
+
+  function showProgress(){
+    const wrap = document.getElementById('progress-wrapper');
+    if(wrap.classList.contains('d-none')) wrap.classList.remove('d-none');
+  }
+  function updateProgress(){
+    if(!totalPlanned || totalPlanned <= 0) return;
+    // processedCount = enviados + ignorados; calculado continuamente
+    const pct = Math.min(100, Math.round((processedCount/totalPlanned)*100));
+    const bar = document.getElementById('progress-bar');
+    const pctSpan = document.getElementById('progress-percent');
+    bar.style.width = pct+'%';
+    bar.textContent = pct+'%';
+    pctSpan.textContent = pct+'%';
+    const eta = computeEta();
+    document.getElementById('progress-detail').textContent = `${processedCount} de ${totalPlanned} | Enviados: ${lastCountSent} | Ignorados: ${lastCountSkipped} | Erros: ${lastCountErr}` + (eta ? ` | ETA: ${eta}` : '');
+    if(pct >= 100){
+      bar.classList.remove('progress-bar-animated');
+      bar.classList.remove('progress-bar-striped');
+    }
+  }
 
   function setStatus(txt, cls){
     const el = document.getElementById('card-status');
@@ -124,6 +161,7 @@
 
   function processEvents(newEvents){
     if(!Array.isArray(newEvents)) return;
+    if(newEvents.length) lastActivityTs = Date.now();
     let addedSent=0, addedSkipped=0, addedErr=0, addedFatal=0;
     const tSent = document.querySelector('#tbl-enviados tbody');
     const tSkipped = document.querySelector('#tbl-ignorados-ftp tbody');
@@ -139,10 +177,14 @@
         addedSent++;
         ensureTableVisible('enviados-empty','tbl-enviados');
         appendRow(tSent, `<tr><td class="small"><code>${ev.file||''}</code></td><td class="small"><code>${ev.remote||''}</code></td><td class="text-end small">${fmtSize(ev.size||0)}</td><td class="small"><code>${ev.hash||''}</code></td><td class="small">${ts}</td></tr>`);
+        processedCount++; // conta concluído
+        recentProcessedTs.push(Date.now());
       } else if(evt==='skipped'){
         addedSkipped++;
         ensureTableVisible('ignorados-empty-ftp','tbl-ignorados-ftp');
         appendRow(tSkipped, `<tr><td class="small"><code>${ev.file||''}</code></td><td class="small"><code>${ev.remote||''}</code></td><td class="text-end small">${fmtSize(ev.size||0)}</td><td class="small">${ev.reason||'—'}</td><td class="small">${ts}</td></tr>`);
+        processedCount++;
+        recentProcessedTs.push(Date.now());
       } else if(evt==='error'){
         addedErr++;
         ensureTableVisible('erros-empty-ftp','tbl-erros-ftp');
@@ -151,6 +193,18 @@
         addedFatal++;
         ensureTableVisible('fatais-empty','tbl-fatais');
         appendRow(tFatal, `<tr class="table-danger"><td class="small">${ev.message||'Fatal'}</td><td class="small">${ts}</td></tr>`);
+      } else if(evt==='job_start') {
+        // marcador de início do job
+        ensureTableVisible('todos-empty','tbl-todos');
+      } else if(evt==='start') {
+        if(ev.total && ev.total>0){ totalPlanned = ev.total; recentProcessedTs = []; showProgress(); updateProgress(); }
+      } else if(evt==='job_end') {
+        setStatus('Finalizado','text-success');
+      } else if(evt==='job_fatal') {
+        addedFatal++;
+        ensureTableVisible('fatais-empty','tbl-fatais');
+        appendRow(tFatal, `<tr class="table-danger"><td class="small">Job fatal: ${ev.message||'Erro'}</td><td class="small">${ts}</td></tr>`);
+        setStatus('Falhou','text-danger');
       }
       // Todos
       ensureTableVisible('todos-empty','tbl-todos');
@@ -174,6 +228,26 @@
     // classes de alerta
     document.getElementById('card-error').classList.toggle('text-danger', lastCountErr>0);
     document.getElementById('card-fatal').classList.toggle('text-danger', lastCountFatal>0);
+
+    // Se recebemos evento end e ainda não tínhamos total, pegar dele
+    if(newEvents.some(e => e.event==='end')){
+      const endEv = newEvents.find(e => e.event==='end');
+      if(endEv && !totalPlanned && endEv.total){ totalPlanned = endEv.total; showProgress(); }
+    }
+    updateProgress();
+
+    // Se recebemos job_end mas ainda não end (alguns modos já escrevem end) avaliar parada
+    if(newEvents.some(e => e.event==='job_end')){
+      if(!sessionEvents.some(e => e.event==='end')){
+        // aguardar mais uma rodada para ver se 'end' aparece; se não, parar após 3s
+        setTimeout(()=>{
+          if(polling && !sessionEvents.some(e => e.event==='end')){
+            setStatus('Finalizado','text-success');
+            stopPolling();
+          }
+        }, 3000);
+      }
+    }
   }
 
   async function pollLogs(){
@@ -202,6 +276,7 @@
       setStatus('Erro Poll','text-danger');
       pollTimer = setTimeout(pollLogs, 5000); // tenta de novo
     }
+    monitorInactivity();
   }
 
   function startPolling(){
@@ -212,6 +287,8 @@
     setPollStatus('iniciando...');
     setStatus('Em execução','text-warning');
     pollLogs();
+    lastActivityTs = Date.now();
+    monitorInactivity();
   }
   function stopPolling(){
     polling = false;
@@ -219,10 +296,20 @@
     reiniciarBtn.disabled = false;
     if(pollTimer) clearTimeout(pollTimer);
     setPollStatus('parado');
+    if(inactivityTimer) clearTimeout(inactivityTimer);
   }
   function resetSession(){
     sessionEvents = [];
     lastCountSent=lastCountSkipped=lastCountErr=lastCountFatal=0;
+    lastActivityTs = Date.now();
+  totalPlanned = null; processedCount = 0; recentProcessedTs = [];
+    // reset progress bar
+    const wrap = document.getElementById('progress-wrapper');
+    wrap.classList.add('d-none');
+    document.getElementById('progress-bar').style.width='0%';
+    document.getElementById('progress-bar').textContent='0%';
+    document.getElementById('progress-percent').textContent='0%';
+    document.getElementById('progress-detail').textContent='';
     ['sent','skipped','error','fatal'].forEach(k=>{
       document.getElementById('card-'+k).textContent='0';
     });
@@ -256,21 +343,93 @@
       initial.classList.add('d-none');
       resetSession();
       exportBtn.disabled = true;
-      const resp = await fetch(endpointStart, { headers:{ 'Accept':'application/json' } });
-      if(!resp.ok) throw new Error('Falha HTTP '+resp.status);
-      await resp.json();
-      // Inicia polling
+      let resp, data = null;
+      try {
+        resp = await fetch(endpointStart, { headers:{ 'Accept':'application/json' } });
+        if(resp.ok){
+          data = await resp.json().catch(()=>null);
+        } else {
+          // Mesmo com HTTP !=200 vamos iniciar polling porque o job provavelmente foi disparado
+          console.warn('Resposta inicial não OK ao iniciar backup FTP:', resp.status);
+        }
+      } catch(fetchErr){
+        console.warn('Falha fetch inicial backup FTP', fetchErr);
+      }
+      // Inicia polling independente do resultado para evitar que 504 de proxy impeça acompanhamento
+      const warnId = 'ftp-warn-start';
+      if(resp && !resp.ok){
+        showNonBlockingWarning('O servidor retornou HTTP '+resp.status+' ao enfileirar. Tentando acompanhar mesmo assim...');
+      } else if(!resp){
+        showNonBlockingWarning('Não foi possível confirmar o enfileiramento (erro de rede). Tentando acompanhar mesmo assim...');
+      }
+      if(data && data.mensagem){ setStatus('Em execução','text-warning'); }
       startPolling();
       exportBtn.disabled = false;
       stopBtn.disabled = false;
     } catch(e){
-      alert('Falha ao iniciar backup FTP: ' + (e.message||e));
-      initial.classList.remove('d-none');
-      runtime.classList.add('d-none');
+      showNonBlockingWarning('Falha ao iniciar backup FTP: '+(e.message||e)+'. Tentando polling mesmo assim.');
+      runtime.classList.remove('d-none');
+      initial.classList.add('d-none');
+      startPolling();
     } finally {
       startBtn.disabled = false;
       startBtn.innerHTML = '<span class="me-2"><i class="fa-solid fa-play"></i></span>Iniciar backup agora';
     }
+  }
+
+  function showNonBlockingWarning(msg){
+    let area = document.getElementById('ftp-warn-area');
+    if(!area){
+      area = document.createElement('div');
+      area.id = 'ftp-warn-area';
+      area.className = 'mt-3';
+      runtime.prepend(area);
+    }
+    const div = document.createElement('div');
+    div.className = 'alert alert-warning py-2 small d-flex justify-content-between align-items-center';
+    div.innerHTML = '<div><i class="fa-solid fa-triangle-exclamation me-1"></i>'+msg+'</div><button type="button" class="btn-close btn-sm" style="font-size: .6rem;"></button>';
+    div.querySelector('button').addEventListener('click', ()=> div.remove());
+    area.appendChild(div);
+  }
+
+  function monitorInactivity(){
+    if(inactivityTimer) clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(()=>{
+      if(!polling) return;
+      const diff = Date.now() - lastActivityTs;
+      // 60s sem novos eventos e status não concluído
+      if(diff > 60000 && document.getElementById('card-status').textContent.startsWith('Em execução')){
+        showNonBlockingWarning('Nenhum novo evento há mais de 60s. O job pode estar processando arquivos grandes ou parado.');
+      }
+      monitorInactivity();
+    }, 15000);
+  }
+
+  function computeEta(){
+    if(!totalPlanned || totalPlanned <= 0) return '';
+    const remaining = totalPlanned - processedCount;
+    if(remaining <= 0) return '0s';
+    const now = Date.now();
+    const cutoff = now - RATE_WINDOW_MS;
+    // mantém apenas timestamps recentes
+    recentProcessedTs = recentProcessedTs.filter(t => t >= cutoff);
+    if(recentProcessedTs.length < 3) return 'calculando...';
+    const spanSec = (now - Math.min(...recentProcessedTs)) / 1000;
+    if(spanSec <= 0) return 'calculando...';
+    const rate = recentProcessedTs.length / spanSec; // itens/seg
+    if(rate <= 0) return '';
+    const etaSec = remaining / rate;
+    return formatDuration(etaSec);
+  }
+
+  function formatDuration(seconds){
+    const s = Math.max(0, Math.round(seconds));
+    const h = Math.floor(s/3600);
+    const m = Math.floor((s%3600)/60);
+    const sec = s%60;
+    if(h>0) return `${h}h ${m}m ${sec}s`;
+    if(m>0) return `${m}m ${sec}s`;
+    return `${sec}s`;
   }
 
   if(startBtn) startBtn.addEventListener('click', startBackup);

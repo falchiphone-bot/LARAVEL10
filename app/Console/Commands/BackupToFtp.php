@@ -227,6 +227,7 @@ class BackupToFtp extends Command
                 $totalAnalisado = count($files);
                 $this->info("Finalizado (raw). Copiados: $copied | Ignorados: $skipped | Total analisado: $totalAnalisado");
                 Log::info("BackupToFtpJob: Finalizado (raw). Copiados: $copied | Ignorados: $skipped | Total analisado: $totalAnalisado");
+                $jsonLog(['event' => 'end', 'copied' => $copied, 'skipped' => $skipped, 'total' => $totalAnalisado, 'mode' => 'raw']);
                 return 0;
             }
             foreach ($files as $file) {

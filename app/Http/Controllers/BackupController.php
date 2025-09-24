@@ -163,27 +163,12 @@ class BackupController extends Controller
             Log::error('Backup FTP dispatch error: ' . $e->getMessage() . ' | Linha: ' . $e->getLine() . ' | Arquivo: ' . $e->getFile());
             // Mesmo em caso de erro, retorna sucesso para o frontend, mas loga o erro
         }
-
-        // Buscar o último resumo do log
-        $logPath = storage_path('logs/laravel.log');
-        $mensagemResumo = 'Backup enfileirado. Verifique o worker (php artisan queue:work) para acompanhar o progresso.';
-        if (file_exists($logPath)) {
-            $lines = @file($logPath);
-            if ($lines) {
-                $lines = array_reverse($lines);
-                foreach ($lines as $line) {
-                    if (strpos($line, 'Finalizado (raw). Copiados:') !== false) {
-                        $mensagemResumo = trim($line);
-                        break;
-                    }
-                }
-            }
-        }
+        // Retorno rápido para evitar timeouts de proxy (anteriormente lia o laravel.log inteiro causando lentidão)
         return response()->json([
             'status' => 'ok',
-            'mensagem' => $mensagemResumo,
-            'total' => 0,
-        ]);
+            'mensagem' => 'Backup FTP enfileirado. Acompanhe os eventos em tempo real abaixo.',
+            'queued_at' => now()->toIso8601String(),
+        ], 200, [ 'Cache-Control' => 'no-store' ]);
     }
 
     /**
