@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             MarketPermissionsSeeder::class,
             ProfilePermissionsSeeder::class,
             BackupPermissionSeeder::class,
+            GoogleSearchPermissionsSeeder::class,
         ]);
 
         // \App\Models\User::factory()->create([

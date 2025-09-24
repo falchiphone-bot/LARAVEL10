@@ -58,12 +58,14 @@
 
     <main>
         <header>
+@can('GOOGLE - PESQUISA')
 <div class="px-3 py-2 text-bg-primary text-center">
   <h3 class="m-0">PESQUISAR NO GOOGLE</h3>
 
   <script async src="https://cse.google.com/cse.js?cx=6766aee62d05f4aa7"></script>
   <div class="gcse-search"></div>
 </div>
+@endcan
 
 
             <div class="px-3 py-2 text-bg-primary">
