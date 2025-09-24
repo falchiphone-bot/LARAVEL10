@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  app:
+    container_name: laravel10
+    restart: always
+    build: .
+    ports:
+      - "82:80"
+      - "83:83"
+      - "4040:4040"
+    # Sem bind mounts — imagem imutável
+    # volumes: []
+    environment:
+      # Sinalizar que é produção para futuros ajustes condicionais
+      - APP_ENV=production
+      - APP_DEBUG=false
+    # Limites locais (docker-compose):
+    cpus: "2.0"
+    mem_limit: 2g
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true

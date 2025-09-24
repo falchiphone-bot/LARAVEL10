@@ -16,7 +16,7 @@
                         style="width: 100%; height: 50px;
                     ; font-size: 24px;align=˜Center˜ ">
                         Menu Principal do sistema administrativo e contábil -
-                        versão: 19.09.2025 13:15
+                        versão: 24.09.2025 00:50
                     </div>
                 </div>
                 <div class="card-body">

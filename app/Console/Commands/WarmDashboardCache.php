@@ -19,6 +19,13 @@ class WarmDashboardCache extends Command
         $ath = DashboardCache::athletesCounts();
         Cache::put('athletes_counts', $ath, 300);
 
+        try {
+            $fin = DashboardCache::financeCounts();
+            Cache::put('finance_counts', $fin, 300);
+        } catch (\Throwable $e) {
+            // opcional: logar se necessário
+        }
+
         $this->info('Dashboard caches aquecidos com sucesso.');
         return self::SUCCESS;
     }

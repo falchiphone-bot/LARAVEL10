@@ -422,7 +422,13 @@ Route::get('/dashboard/counts', function (\Illuminate\Http\Request $request) {
     $ath = \Illuminate\Support\Facades\Cache::remember('athletes_counts', $ttl, function() {
         return \App\Services\DashboardCache::athletesCounts();
     });
-    $payload = ['cadastros' => $cad, 'athletes' => $ath];
+    // Financeiro & contabilidade (quando disponível)
+    $fin = \Illuminate\Support\Facades\Cache::remember('finance_counts', $ttl, function() {
+        try {
+            return \App\Services\DashboardCache::financeCounts();
+        } catch (\Throwable $e) { return []; }
+    });
+    $payload = ['cadastros' => $cad, 'athletes' => $ath, 'finance' => $fin];
     $etag = md5(json_encode($payload));
     if ($request->headers->get('If-None-Match') === $etag) {
         return response()->noContent(304)->setEtag($etag)->header('Cache-Control', 'private, max-age=60');

@@ -224,10 +224,21 @@
 </script>
 
 <script>
-  // Preenchimento das badgess do dropdown Contabilidade, usando o mesmo endpoint de counts
+  // Preenchimento das badges do dropdown Contabilidade.
+  // Observação: só buscamos o endpoint se houver ao menos um badge-alvo no DOM
+  // para evitar requisições desnecessárias em todas as páginas.
   document.addEventListener('DOMContentLoaded', function() {
     try {
-  fetch(@json(route('dashboard.counts')), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      const badgeIds = [
+        'count-contaspagar',
+        'count-empresas',
+        'count-centro_custos',
+        'count-contas_centro_custos'
+      ];
+      const hasAnyBadge = badgeIds.some(id => document.getElementById(id));
+      if (!hasAnyBadge) return; // nada a preencher nesta página
+
+      fetch(@json(route('dashboard.counts')), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(r => r.ok ? r.json() : null)
         .then(data => {
           if (!data) return;
@@ -253,7 +264,7 @@
         .catch(() => {/* silencioso */});
     } catch (e) { /* noop */ }
   });
-</script>
+  </script>
 
 
 
@@ -264,10 +275,11 @@
               @endphp
               @if($isSuperAdmin)
                 <li>
-                  <a href="{{ route('dashboard') }}" data-bs-toggle="tooltip" data-bs-placement="top" . . .
+                  <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" . . .
                      data-bs-custom-class="custom-tooltip"
-                     data-bs-title="Ir para o início do sistema com as opções disponíveis"
-                     class="nav-link text-white">
+                     data-bs-title="Início do sistema desativado no momento"
+                     class="nav-link text-white disabled" aria-disabled="true" tabindex="-1"
+                     style="pointer-events: none; opacity: 0.5;">
                      <i class="fa-solid fa-house"></i>
                      Início do sistema
                   </a>
@@ -277,10 +289,11 @@
                   {{-- Usuários com permissões de Emaús não veem o link do Início --}}
                 @else
                   <li>
-                    <a href="{{ route('dashboard') }}" data-bs-toggle="tooltip" data-bs-placement="top" . . .
+                    <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" . . .
                        data-bs-custom-class="custom-tooltip"
-                       data-bs-title="Ir para o início do sistema com as opções disponíveis"
-                       class="nav-link text-white">
+                       data-bs-title="Início do sistema desativado no momento"
+                       class="nav-link text-white disabled" aria-disabled="true" tabindex="-1"
+                       style="pointer-events: none; opacity: 0.5;">
                        <i class="fa-solid fa-house"></i>
                        Início do sistema
                     </a>
