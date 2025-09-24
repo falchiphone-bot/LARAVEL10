@@ -197,6 +197,7 @@
             <table class="table">
 
                 <tr>
+                    <th scope="col" class="px-6 py-4">Linha</th>
                     <th scope="col" class="px-6 py-4">Empresa</th>
 
                     <th scope="col" class="px-6 py-4">Programado/Contabilidade</th>
@@ -209,10 +210,16 @@
 
                 </tr>
 
+                @php
+                    $start = method_exists($contasPagar, 'firstItem') ? (int)$contasPagar->firstItem() : 1;
+                    $totalLinhas = method_exists($contasPagar, 'total') ? (int)$contasPagar->total() : (int)$contasPagar->count();
+                    $totalValor = 0;
+                @endphp
 
                 @foreach ($contasPagar as $conta)
 
                 <tr>
+                    <td class="text-end text-muted">{{ $start + $loop->index }} / {{ $totalLinhas }}</td>
                     <td class="">
                         {{ $conta->Empresa->Descricao }}
                     </td>
@@ -222,7 +229,8 @@
 
                     </td>
                     <td class="text-end">
-                        {{ number_format($conta->Valor, 2, ',', '.') }}
+                        @php $valorLinha = (float) ($conta->Valor ?? 0); $totalValor += $valorLinha; @endphp
+                        {{ number_format($valorLinha, 2, ',', '.') }}
                     </td>
                     </td>
                     <td class="">
@@ -261,6 +269,14 @@
 
 
                 @endforeach
+
+                {{-- Linha de total da coluna Valor (soma da página atual) --}}
+                <tr>
+                    <td></td>
+                    <td colspan="2" class="text-end fw-semibold">Total:</td>
+                    <td class="text-end fw-semibold">{{ number_format($totalValor, 2, ',', '.') }}</td>
+                    <td colspan="6"></td>
+                </tr>
 
             </table>
 
