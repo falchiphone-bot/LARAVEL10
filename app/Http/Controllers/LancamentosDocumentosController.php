@@ -11,6 +11,7 @@ use App\Models\TipoArquivo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Nette\Utils\Strings;
@@ -41,9 +42,14 @@ class LancamentosDocumentosController extends Controller
 
     public function index()
     {
-
-        $documentos = LancamentoDocumento::Limit(100)->OrderBy('ID','DESC' )->get();
-        $tipoarquivo = TipoArquivo::get();
+    $perPage = (int) request()->query('Limite', 25); // paginação padrão
+    if ($perPage <= 0 || $perPage > 1000) { $perPage = 25; }
+        $documentos = LancamentoDocumento::with('TipoArquivoNome')
+            ->select(['ID','Rotulo','Created','ArquivoFisico','TipoArquivo','Nome','NomeLocalTimeStamps','Ext','LancamentoID','Publico'])
+            ->orderBy('ID','DESC')
+            ->paginate($perPage)
+            ->withQueryString();
+        $tipoarquivo = Cache::remember('tipoarquivo_all', 600, fn() => TipoArquivo::orderBy('nome')->get());
         $retorno['TipoArquivo'] = null;
 
 
@@ -149,12 +155,19 @@ class LancamentosDocumentosController extends Controller
     {
 
         if($id){
-            $documentos = LancamentoDocumento::Where('ID',$id)->get();
+            $documentos = LancamentoDocumento::with('TipoArquivoNome')
+                ->select(['ID','Rotulo','Created','ArquivoFisico','TipoArquivo','Nome','NomeLocalTimeStamps','Ext','LancamentoID','Publico'])
+                ->where('ID',$id)
+                ->get();
         }else
         {
-            $documentos = LancamentoDocumento::Limit(100)->OrderBy('ID','DESC' )->get();
+            $documentos = LancamentoDocumento::with('TipoArquivoNome')
+                ->select(['ID','Rotulo','Created','ArquivoFisico','TipoArquivo','Nome','NomeLocalTimeStamps','Ext','LancamentoID','Publico'])
+                ->limit(100)
+                ->orderBy('ID','DESC')
+                ->get();
         }
-        $tipoarquivo = TipoArquivo::get();
+        $tipoarquivo = Cache::remember('tipoarquivo_all', 600, fn() => TipoArquivo::orderBy('nome')->get());
         $retorno['TipoArquivo'] = null;
         return view('LancamentosDocumentos.index',compact('documentos','tipoarquivo','retorno'));
     }
@@ -162,8 +175,11 @@ class LancamentosDocumentosController extends Controller
     public function pesquisaavancada(Request $Request)
     {
         $CompararDataInicial = $Request->DataInicial;
-        $tipoarquivo = TipoArquivo::get();
-        $pesquisa =  LancamentoDocumento::Limit($Request->Limite ?? 100);
+        $tipoarquivo = Cache::remember('tipoarquivo_all', 600, fn() => TipoArquivo::orderBy('nome')->get());
+        $limit = (int)($Request->Limite ?? 25); // usa como itens por página
+        if ($limit <= 0 || $limit > 1000) { $limit = 25; }
+        $pesquisa =  LancamentoDocumento::with('TipoArquivoNome')
+            ->select(['ID','Rotulo','Created','ArquivoFisico','TipoArquivo','Nome','NomeLocalTimeStamps','Ext','LancamentoID','Publico']);
 
         // $pesquisa = Lancamento::Limit($Request->Limite ?? 100)
         //     ->join('Contabilidade.EmpresasUsuarios', 'Lancamentos.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
@@ -260,8 +276,7 @@ class LancamentosDocumentosController extends Controller
 
         }
 
-        $pesquisaFinal = $pesquisa->get();
-        $documentos = $pesquisaFinal;
+    $documentos = $pesquisa->paginate($limit)->appends($Request->all());
 
         $retorno['TipoArquivo'] = $Request->SelecionarTipoArquivo;
         // dd($pesquisa->first()->ContaDebito->PlanoConta);
@@ -270,7 +285,7 @@ class LancamentosDocumentosController extends Controller
 
     public function edit(string $id)
     {
-        $documento = LancamentoDocumento::find($id);
+        $documento = LancamentoDocumento::with('TipoArquivoNome')->find($id);
 
 
 
@@ -285,16 +300,12 @@ class LancamentosDocumentosController extends Controller
         $tipoarquivo = TipoArquivo::OrderBy('nome')->get();
 
 
-        $arquivoExiste = null;
-        $DocumentoArquivo = DocumentosArquivoVinculo::where('documento_id','=', $id)
-             ->Orwhere('arquivo_id_vinculo','=', $id)
-             ->orderBy('id')
-             ->get();
-
-             foreach ($DocumentoArquivo as $DocumentoArquivos) {
-                 $arquivoExiste = $DocumentoArquivos->id;
-
-             }
+       $DocumentoArquivo = DocumentosArquivoVinculo::with(['MostraLancamentoDocumento','MostraLancamentoDocumento.TipoArquivoNome'])
+           ->where('documento_id','=', $id)
+           ->orWhere('arquivo_id_vinculo','=', $id)
+           ->orderBy('id')
+           ->get();
+       $arquivoExiste = $DocumentoArquivo->isNotEmpty() ? optional($DocumentoArquivo->last())->id : null;
 
 
 
@@ -316,7 +327,7 @@ class LancamentosDocumentosController extends Controller
         if($cadastro->NomeLocalTimeStamps == null){
             $currentTimestamp = time();
             // dd($currentTimestamp);
-            $cadastro->NomeLocalTimestamps = $currentTimestamp;
+            $cadastro->NomeLocalTimeStamps = $currentTimestamp;
         }
 
 

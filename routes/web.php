@@ -913,7 +913,7 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
  Route::match(['get', 'post'], 'contaspagar/index', [App\Http\Controllers\ContasPagarController::class, 'index'])->name('contaspagar.index');
  Route::post('ContasPagar/CreateArquivoContasPagar', [App\Http\Controllers\ContasPagarController::class, 'CreateArquivoContasPagar'])->name('contaspagar.ArquivoContasPagar');
  Route::resource('ContasPagar', App\Http\Controllers\ContasPagarController::class);
- Route::post('ContasPagar/indexpost', [App\Http\Controllers\ContasPagarController::class, 'indexpost'])->name('contaspagar.index.post');
+ Route::match(['get','post'], 'ContasPagar/indexpost', [App\Http\Controllers\ContasPagarController::class, 'indexpost'])->name('contaspagar.index.post');
  Route::post('ContasPagar/alterarvalormultiplos', [App\Http\Controllers\ContasPagarController::class, 'alterarvalormultiplos'])->name('contaspagar.alterarvalormultiplos');
  Route::get('ContasPagar/IncluirLancamentoContasPagar/{id}',[App\Http\Controllers\ContasPagarController::class,'IncluirLancamentoContasPagar'])->name('contaspagar.IncluirLancamentoContasPagar');
 
@@ -1249,7 +1249,7 @@ Route::get('Lancamentos.AtualizarPoupanca', [LancamentosController::class, 'Atua
 Route::get('Lancamentos.DadosMes', [LancamentosController::class, 'DadosMes'])->name('lancamentos.DadosMes');
 // Route::get('Lancamentos.DadosGabrielMagossiFalchi', function () { return view('Lancamentos.DadosGabrielMagossiFalchi');})->name('Lancamentos.DadosGabrielMagossiFalchi');
 Route::post('Lancamentos/createArquivoDocumentos', [App\Http\Controllers\LancamentosDocumentosController::class, 'createArquivoDocumentos'])->name('lancamentos.ArquivoLancamentoDocumentos');
-Route::post('LancamentosDocumentos/pesquisaavancada', [App\Http\Controllers\LancamentosDocumentosController::class, 'pesquisaavancada'])->name('lancamentosdocumentos.pesquisaavancada');
+Route::match(['get','post'], 'LancamentosDocumentos/pesquisaavancada', [App\Http\Controllers\LancamentosDocumentosController::class, 'pesquisaavancada'])->name('lancamentosdocumentos.pesquisaavancada');
 Route::get('/lancamentosdocumentos/{id}',[App\Http\Controllers\LancamentosDocumentosController::class,'indexpost'])->name('LancamentosDocumentosID.index');
 Route::resource('LancamentosDocumentos', App\Http\Controllers\LancamentosDocumentosController::class);
 

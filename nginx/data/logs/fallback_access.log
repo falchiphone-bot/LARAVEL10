@@ -3648,3 +3648,8 @@
 [24/Sep/2025:03:43:03 +0000] 404 - POST http 186.237.225.6 "/boaform/admin/formLogin" [Client 172.18.0.1] [Length 122] [Gzip 1.35] "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:71.0) Gecko/20100101 Firefox/71.0" "http://186.237.225.6:80/admin/login.asp"
 [24/Sep/2025:03:43:03 +0000] 400 - - http localhost-nginx-proxy-manager "-" [Client 172.18.0.1] [Length 0] [Gzip -] "-" "-"
 [24/Sep/2025:03:44:45 +0000] 200 - GET http 186.237.225.6 "/" [Client 172.18.0.1] [Length 568] [Gzip 1.86] "Mozilla/5.0 (compatible; ModatScanner/1.1; +https://modat.io/)" "-"
+[24/Sep/2025:03:57:01 +0000] 200 - GET http 186.237.225.6 "/" [Client 172.18.0.1] [Length 568] [Gzip 1.86] "Mozilla/5.0 (Windows NT 5.1; rv:9.0.1) Gecko/20100101 Firefox/9.0.1" "-"
+[24/Sep/2025:03:57:04 +0000] 404 - GET http 186.237.225.6 "/HNAP1/" [Client 172.18.0.1] [Length 122] [Gzip 1.35] "Mozilla/5.0 (Windows NT 5.1; rv:9.0.1) Gecko/20100101 Firefox/9.0.1" "http://186.237.225.6/"
+[24/Sep/2025:03:57:37 +0000] 200 - GET http 186.237.225.6 "/" [Client 172.18.0.1] [Length 568] [Gzip 1.86] "Mozilla/5.0 (Windows NT 5.1; rv:9.0.1) Gecko/20100101 Firefox/9.0.1" "-"
+[24/Sep/2025:03:57:37 +0000] 404 - GET http 186.237.225.6 "/HNAP1/" [Client 172.18.0.1] [Length 122] [Gzip 1.35] "Mozilla/5.0 (Windows NT 5.1; rv:9.0.1) Gecko/20100101 Firefox/9.0.1" "http://186.237.225.6/"
+[24/Sep/2025:04:18:42 +0000] 404 - GET http 186.237.225.6 "/login.rsp" [Client 172.18.0.1] [Length 150] [Gzip -] "Hello World" "-"

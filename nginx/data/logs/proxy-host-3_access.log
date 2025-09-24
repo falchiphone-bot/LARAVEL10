@@ -505,3 +505,4 @@
 [24/Sep/2025:00:47:03 +0000] - 200 200 - GET https vec.org.br "/" [Client 172.18.0.1] [Length 1302] [Gzip -] [Sent-to laravel10] "Mozilla/5.0 (X11; U; NetBSD amd64; en-US; rv:1.9.2.15) Gecko/20110308 Namoroka/3.6.15" "-"
 [24/Sep/2025:02:54:53 +0000] - 419 419 - POST http vec.org.br "/register" [Client 172.18.0.1] [Length 6622] [Gzip -] [Sent-to laravel10] "python-requests/2.32.3" "-"
 [24/Sep/2025:02:54:55 +0000] - 404 404 - GET http vec.org.br "/laravel-filemanager/js/filemanager.js" [Client 172.18.0.1] [Length 2100] [Gzip -] [Sent-to laravel10] "python-requests/2.32.3" "-"
+[24/Sep/2025:04:05:09 +0000] - 200 200 - GET https vec.org.br "/vec.historia1" [Client 172.18.0.1] [Length 1880] [Gzip -] [Sent-to laravel10] "Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)" "-"

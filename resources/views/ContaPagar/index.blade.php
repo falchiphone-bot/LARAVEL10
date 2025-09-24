@@ -64,7 +64,10 @@
                 </div>
                 @endif
                 <div class="card-header mix-blend-color-burn">
-                    <p>Total de Contas a pagar: {{ $contasPagar->count() }}</p>
+                    <p>
+                        Total nesta página: {{ $contasPagar->count() }}
+                        | Total geral: {{ method_exists($contasPagar, 'total') ? $contasPagar->total() : $contasPagar->count() }}
+                    </p>
                 </div>
                 <div class="card-header">
                     <div class="badge bg-warning text-wrap" style="width: 100%;">
@@ -148,9 +151,13 @@
                             </div>
 
                             <div class="col-3">
-
-                                <label for="Limite" style="color: black;">Limite de registros para retorno</label>
-                                <input class="form-control @error('limite') is-invalid @else is-valid @enderror" name="Limite" size="30" type="number" step="1" id="Limite" value="{{ $retorno['Limite'] ?? null }}">
+                                <label for="Limite" style="color: black;">Itens por página</label>
+                                <select class="form-control" name="Limite" id="Limite">
+                                    @php $lim = (int)($retorno['Limite'] ?? request('Limite', 25)); @endphp
+                                    @foreach ([10,25,50,100,200] as $opt)
+                                        <option value="{{ $opt }}" @if($lim===$opt) selected @endif>{{ $opt }}</option>
+                                    @endforeach
+                                </select>
                             </div>
 
 
@@ -256,6 +263,12 @@
                 @endforeach
 
             </table>
+
+            @if(method_exists($contasPagar, 'links'))
+                <div class="d-flex justify-content-center mt-3">
+                    {!! $contasPagar->links() !!}
+                </div>
+            @endif
 
         </div>
 

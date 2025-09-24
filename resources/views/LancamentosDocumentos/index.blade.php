@@ -78,9 +78,9 @@
                                     <select class="form-control select2" id="SelecionarTipoArquivo"
                                         name="SelecionarTipoArquivo">
                                         <option value="">Selecionar tipo de arquivo</option>
+                                        @php $tipoSel = $retorno['TipoArquivo'] ?? request('SelecionarTipoArquivo'); @endphp
                                         @foreach ($tipoarquivo as $Tipoarquivo)
-                                            <option @if ($retorno['TipoArquivo'] == $Tipoarquivo->id) selected @endif
-                                                value="{{ $Tipoarquivo->id }}">
+                                            <option value="{{ $Tipoarquivo->id }}" @if ((string)($tipoSel ?? '') === (string)$Tipoarquivo->id) selected @endif>
                                                 {{ $Tipoarquivo->nome }}
                                             </option>
                                         @endforeach
@@ -88,13 +88,18 @@
 
                                     <div class="row">
                                         <div class="col-6">
-                                            <input type="checkbox" name="SelecionarSemContabilidade" value="1">
+                                            @php
+                                                $chkSem = (int) ($retorno['SelecionarSemContabilidade'] ?? request('SelecionarSemContabilidade')) === 1;
+                                                $chkCom = (int) ($retorno['SelecionarComContabilidade'] ?? request('SelecionarComContabilidade')) === 1;
+                                                $chkClube = (int) ($retorno['SelecionarClubeComContabilidade'] ?? request('SelecionarClubeComContabilidade')) === 1;
+                                            @endphp
+                                            <input type="checkbox" name="SelecionarSemContabilidade" value="1" @if($chkSem) checked @endif>
                                             <label for="checkbox_enviar">Documento sem vínculo contábil</label>
                                             <br>
-                                            <input type="checkbox" name="SelecionarComContabilidade" value="1">
+                                            <input type="checkbox" name="SelecionarComContabilidade" value="1" @if($chkCom) checked @endif>
                                             <label for="checkbox_enviar">Documento com vínculo contábil</label>
                                             <br>
-                                            <input type="checkbox" name="SelecionarClubeComContabilidade" value="1">
+                                            <input type="checkbox" name="SelecionarClubeComContabilidade" value="1" @if($chkClube) checked @endif>
                                             <label for="checkbox_enviar">Documento com vínculo contábil via CLUBE</label>
                                             <br>
                                             <br>
@@ -103,9 +108,10 @@
                                     <div class="row">
                                         <div class="col-6">
                                             <label for="ordem">Ordem:</label>
+                                            @php $ordemSel = $retorno['ordem'] ?? request('ordem', 'decrescente'); @endphp
                                             <select name="ordem" id="ordem">
-                                                <option value="decrescente">Ordem decrescente</option>
-                                                <option value="crescente">Ordem crescente</option>
+                                                <option value="decrescente" @if($ordemSel==='decrescente') selected @endif>Ordem decrescente</option>
+                                                <option value="crescente" @if($ordemSel==='crescente') selected @endif>Ordem crescente</option>
                                             </select>
                                         </div>
                                     </div>
@@ -113,11 +119,13 @@
                                     <br>
                                     <div class="row">
                                         <div class="col-3">
-                                            <label for="Limite" style="color: black;">Limite de registros para
-                                                retorno</label>
-                                            <input class="form-control @error('limite') is-invalid @else is-valid @enderror"
-                                                name="Limite" size="30" type="number" step="1" id="Limite"
-                                                value="{{ $retorno['Limite'] ?? null }}">
+                                            <label for="Limite" style="color: black;">Itens por página</label>
+                                            <select class="form-control" name="Limite" id="Limite">
+                                                @php $lim = (int)($retorno['Limite'] ?? request('Limite', 25)); @endphp
+                                                @foreach ([10,25,50,100,200] as $opt)
+                                                    <option value="{{ $opt }}" @if($lim===$opt) selected @endif>{{ $opt }}</option>
+                                                @endforeach
+                                            </select>
                                         </div>
                                     </div>
                                     <div class="row mt-2">
@@ -136,8 +144,10 @@
 
                     <div class="card-header">
                         <div class="badge bg-info text-wrap" style="width: 100%;font-size: 24px">
-                            <p>Total de documentos listados no sistema de gerenciamento administrativo e contábil:
-                                {{ $documentos->count() ?? 0 }}</p>
+                            <p>
+                                Total nesta página: {{ $documentos->count() }}
+                                | Total geral: {{ method_exists($documentos, 'total') ? $documentos->total() : $documentos->count() }}
+                            </p>
                         </div>
                     </div>
 
@@ -268,6 +278,11 @@
                             @endforeach
                         </tbody>
                     </table>
+                    @if(method_exists($documentos, 'links'))
+                        <div class="d-flex justify-content-center mt-3">
+                            {!! $documentos->links() !!}
+                        </div>
+                    @endif
                 </div>
             </div>
 

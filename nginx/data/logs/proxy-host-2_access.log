@@ -4905,3 +4905,6 @@
 [24/Sep/2025:02:54:31 +0000] - - 301 - POST http tanabisaf.com.br "/register" [Client 172.18.0.1] [Length 166] [Gzip -] [Sent-to laravel10] "python-requests/2.32.3" "-"
 [24/Sep/2025:02:54:35 +0000] - 200 200 - GET https tanabisaf.com.br "/register" [Client 172.18.0.1] [Length 5517] [Gzip -] [Sent-to laravel10] "python-requests/2.32.3" "-"
 [24/Sep/2025:02:54:41 +0000] - - 301 - GET http tanabisaf.com.br "/laravel-filemanager/js/filemanager.js" [Client 172.18.0.1] [Length 166] [Gzip -] [Sent-to laravel10] "python-requests/2.32.3" "-"
+[24/Sep/2025:04:02:21 +0000] - - 301 - GET http tanabisaf.com.br "/" [Client 172.18.0.1] [Length 166] [Gzip -] [Sent-to laravel10] "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0" "-"
+[24/Sep/2025:04:09:19 +0000] - 200 200 - GET https tanabisaf.com.br "/" [Client 172.18.0.1] [Length 4858] [Gzip -] [Sent-to laravel10] "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0" "-"
+[24/Sep/2025:04:10:14 +0000] - - 301 - GET http tanabisaf.com.br "/favicon.ico" [Client 172.18.0.1] [Length 166] [Gzip -] [Sent-to laravel10] "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0" "-"

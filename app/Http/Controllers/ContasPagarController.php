@@ -25,6 +25,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon as SupportCarbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
 use Dompdf\Dompdf;
 use PhpOffice\PhpSpreadsheet\Calculation\Engineering\ConvertDecimal;
@@ -50,16 +51,19 @@ class ContasPagarController extends Controller
 
         $Texto =  session('Texto');
 
-
-        $contasPagar = ContasPagar::Limit('1')        ->join('Contabilidade.EmpresasUsuarios', 'ContasPagar.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
-        ->Where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
-         ->select(['ContasPagar.ID', 'DataProgramacao', 'ContasPagar.Descricao', 'ContasPagar.LancamentoID', 'ContasPagar.Created',
-          'ContasPagar.EmpresaID', 'ContasPagar.Valor', 'ContasPagar.DataVencimento',
-           'ContasPagar.DataDocumento', 'ContasPagar.NumTitulo', 'ContasPagar.ContaFornecedorID', 'ContasPagar.ContaPagamentoID'])
-        ->orderBy('Created', 'desc')
-        ->OrderBy('Valor', 'desc')
-
-         ->get();
+    $perPage = (int) ($request->query('Limite', 25)); // paginação padrão (ajustável via query)
+    if ($perPage <= 0 || $perPage > 1000) { $perPage = 25; }
+        $contasPagar = ContasPagar::with([
+        'Empresa',
+        'ContaDebito.PlanoConta',
+        'ContaCredito.PlanoConta',
+        ])
+        ->join('Contabilidade.EmpresasUsuarios', 'ContasPagar.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
+        ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+        ->select(['ContasPagar.*'])
+            ->orderBy('ContasPagar.Created', 'desc')
+            ->paginate($perPage)
+            ->withQueryString();
 
 
         if ($contasPagar->count() > 0) {
@@ -97,13 +101,17 @@ class ContasPagarController extends Controller
     {
         $CompararDataInicial = $Request->DataInicial;
 
-        $contasPagar = ContasPagar::Limit($Request->Limite ?? 100)
+    $limit = (int) ($Request->Limite ?? 25); // itens por página
+    if ($limit <= 0 || $limit > 1000) { $limit = 25; }
+
+        $contasPagar = ContasPagar::with([
+                'Empresa',
+                'ContaDebito.PlanoConta',
+                'ContaCredito.PlanoConta',
+            ])
             ->join('Contabilidade.EmpresasUsuarios', 'ContasPagar.EmpresaID', '=', 'EmpresasUsuarios.EmpresaID')
-            ->Where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
-             ->select(['ContasPagar.ID', 'DataProgramacao', 'ContasPagar.Descricao', 'ContasPagar.LancamentoID','ContasPagar.Created',
-              'ContasPagar.EmpresaID', 'ContasPagar.Valor', 'ContasPagar.DataVencimento',
-              'ContasPagar.DataDocumento', 'ContasPagar.NumTitulo', 'ContasPagar.ContaFornecedorID',
-              'ContasPagar.ContaPagamentoID']);
+            ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+            ->select(['ContasPagar.*']);
 
         if ($Request->Texto) {
             $texto = $Request->Texto;
@@ -118,12 +126,12 @@ class ContasPagarController extends Controller
 
         if ($Request->DataInicial) {
             $DataInicial = Carbon::createFromFormat('Y-m-d', $Request->DataInicial);
-            $contasPagar->where('ContasPagar.DataProgramacao', '>=', $DataInicial->format('d/m/Y'));
+            $contasPagar->whereDate('ContasPagar.DataProgramacao', '>=', $DataInicial->format('Y-m-d'));
         }
 
         if ($Request->DataFinal) {
             $DataFinal = Carbon::createFromFormat('Y-m-d', $Request->DataFinal);
-            $contasPagar->where('ContasPagar.DataProgramacao', '<=', $DataFinal->format('d/m/Y'));
+            $contasPagar->whereDate('ContasPagar.DataProgramacao', '<=', $DataFinal->format('Y-m-d'));
         }
 
         $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
@@ -143,27 +151,25 @@ class ContasPagarController extends Controller
         if ($Request->DataInicial && $Request->DataFinal) {
             if ($DataInicial > $DataFinal) {
                 session(['error' => 'Data de início MAIOR que a final. VERIFIQUE!']);
-                return view('ContasPagar.index', compact('$contasPagar', 'retorno', 'Empresas'));
+                // Retorna com paginação mesmo em caso de erro de datas
+                $contasPagar = $contasPagar->orderBy('ContasPagar.Created', 'desc')
+                    ->paginate($limit)
+                    ->appends($Request->all());
+                return view('ContaPagar.index', compact('contasPagar', 'retorno', 'Empresas'));
             }
         }
 
         if ($Request->EmpresaSelecionada) {
             $contasPagar->where('ContasPagar.EmpresaID', $Request->EmpresaSelecionada);
         }
-
-
-       if($Request->Valor)
-        {
-            $contasPagar = $contasPagar
-            ->orderBy('Valor', 'asc')
-            ->get();
+        // Ordenação e limite aplicados por último
+        if ($Request->Valor) {
+            $contasPagar = $contasPagar->orderBy('ContasPagar.Valor', 'asc');
+        } else {
+            $contasPagar = $contasPagar->orderBy('ContasPagar.Created', 'desc');
         }
-        else
-        {
-            $contasPagar = $contasPagar
-            ->orderBy('Created', 'desc')
-            ->get();
-        }
+
+        $contasPagar = $contasPagar->paginate($limit)->appends($Request->all());
 
 
 
@@ -310,33 +316,10 @@ class ContasPagarController extends Controller
 
         /////////////////////////////////////////////////////////////////////////////////////////////// feriado e dia da semana
         $DataContabilidade = $request->input('DataProgramacao');
-
-
         if ($DataContabilidade) {
-            $carbonData = Carbon::createFromFormat('Y-m-d', $DataContabilidade);
-            $dataContabilidade = $carbonData->format('d/m/Y');
-        } else {
-            $dataContabilidade = null;
+            // Ajusta para próximo dia útil com cache de feriados por ano (reduz roundtrips)
+            $DataContabilidade = $this->nextBusinessDay($DataContabilidade);
         }
-
-        $feriado = Feriado::where('data', $carbonData)->first();
-        while ($feriado) {
-            $carbonData->addDay(1);
-            $feriado = Feriado::where('data', $carbonData->format('Y-m-d'))->first();
-        }
-
-
-        $diasemana = date('l', strtotime($DataContabilidade));
-
-
-        if ($diasemana == 'Saturday') {
-            $carbonData->addDay(2);
-        }
-        if ($diasemana == 'Sunday') {
-            $carbonData->addDay(1);
-        }
-
-        $DataContabilidade = $carbonData->format('Y-m-d');
 
         ///////////////////////////////////////////////////////////////////////////////////////////////
         $ContaDebito = Conta::find($request->ContaFornecedorID);
@@ -461,6 +444,40 @@ class ContasPagarController extends Controller
         return redirect()->route('ContasPagar.index');
     }
 
+    /**
+     * Calcula o próximo dia útil (pula fins de semana e feriados) com cache anual de feriados.
+     * Entrada/saída no formato 'Y-m-d'.
+     */
+    private function nextBusinessDay(string $dateYmd): string
+    {
+        $carbon = Carbon::createFromFormat('Y-m-d', $dateYmd);
+
+        // Função para carregar feriados de um ano, cacheando por 1h
+        $loadYear = function (int $year) {
+            return Cache::remember("feriados_{$year}", 3600, function () use ($year) {
+                return Feriado::whereYear('data', $year)
+                    ->pluck('data')
+                    ->map(fn($d) => Carbon::parse($d)->format('Y-m-d'))
+                    ->toArray();
+            });
+        };
+
+        $feriados = $loadYear((int)$carbon->year);
+
+        while (in_array($carbon->format('Y-m-d'), $feriados, true) || $carbon->isWeekend()) {
+            $carbon->addDay();
+            // Se virar o ano, recarrega feriados
+            if (!array_key_exists($carbon->year, [ (int)$carbon->year => true ])) {
+                // no-op, apenas para clareza
+            }
+            if ($carbon->isStartOfYear()) {
+                $feriados = $loadYear((int)$carbon->year);
+            }
+        }
+
+        return $carbon->format('Y-m-d');
+    }
+
     public function show($id)
     {
         // Lógica para exibir um registro específico
@@ -475,7 +492,12 @@ class ContasPagarController extends Controller
         // dd(trim(session('ContaPagarID')));
 
         // $id = $request->ID;
-        $contasPagar = ContasPagar::find($id);
+        // Eager load to avoid N+1 on view (ContaDebito/ContaCredito -> PlanoConta)
+        $contasPagar = ContasPagar::with([
+            'ContaDebito.PlanoConta',
+            'ContaCredito.PlanoConta',
+            'Empresa',
+        ])->find($id);
 
         if ($contasPagar == null) {
 
@@ -486,54 +508,62 @@ class ContasPagarController extends Controller
 
 
 
-        $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
-            ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
-            ->OrderBy('Descricao')
-            ->select(['Empresas.ID', 'Empresas.Descricao'])
-            ->get();
+        // Observação: a listagem de empresas não é utilizada nesta view; evitando consulta adicional
 
 
-        $ContaFornecedor = Conta::join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.Planocontas_id')
-            ->join('Contabilidade.Empresas', 'Empresas.ID', '=', 'Contas.EmpresaID')
-            ->where('Contas.EmpresaID', '=', $contasPagar->EmpresaID)
-            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%Aplicação%')
-            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%Subscricao%')
-            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%transferencia%')
-            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%modobank%')
-            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%poupanca%')
-            ->select('Contas.ID', DB::raw("CONCAT(PlanoContas.Descricao,' | ', Empresas.Descricao) as Descricao"))
-            ->orderby('PlanoContas.Descricao')
-            ->get();
+        // Dropdowns de contas: adicionar filtro de Grau=5 e cache leve para reduzir latência
+        $empresaId = $contasPagar->EmpresaID;
+        $ContaFornecedor = Cache::remember("contas_fornecedor_{$empresaId}", 300, function () use ($empresaId) {
+            return Conta::join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.Planocontas_id')
+                ->join('Contabilidade.Empresas', 'Empresas.ID', '=', 'Contas.EmpresaID')
+                ->where('Contas.EmpresaID', '=', $empresaId)
+                ->where('Contabilidade.PlanoContas.Grau', '=', '5')
+                ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%Aplicação%')
+                ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%Subscricao%')
+                ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%transferencia%')
+                ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%modobank%')
+                ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%poupanca%')
+                ->select('Contas.ID', DB::raw("CONCAT(PlanoContas.Descricao,' | ', Empresas.Descricao) as Descricao"))
+                ->orderBy('PlanoContas.Descricao')
+                ->get();
+        });
 
 
-        $ContaPagamento = Conta::join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.Planocontas_id')
-            ->join('Contabilidade.Empresas', 'Empresas.ID', '=', 'Contas.EmpresaID')
-            ->where('Contas.EmpresaID', '=', $contasPagar->EmpresaID)
-            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%Aplicação%')
-            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%Subscricao%')
-            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%transferencia%')
-            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%modobank%')
-            ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%poupanca%')
-            ->select('Contas.ID', DB::raw("CONCAT(PlanoContas.Descricao,' | ', Empresas.Descricao) as Descricao"))
-            ->orderby('PlanoContas.Descricao')
-            ->get();
+        $ContaPagamento = Cache::remember("contas_pagamento_{$empresaId}", 300, function () use ($empresaId) {
+            return Conta::join('Contabilidade.PlanoContas', 'PlanoContas.ID', '=', 'Contas.Planocontas_id')
+                ->join('Contabilidade.Empresas', 'Empresas.ID', '=', 'Contas.EmpresaID')
+                ->where('Contas.EmpresaID', '=', $empresaId)
+                ->where('Contabilidade.PlanoContas.Grau', '=', '5')
+                ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%Aplicação%')
+                ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%Subscricao%')
+                ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%transferencia%')
+                ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%modobank%')
+                ->where('Contabilidade.PlanoContas.Descricao', 'not like', '%poupanca%')
+                ->select('Contas.ID', DB::raw("CONCAT(PlanoContas.Descricao,' | ', Empresas.Descricao) as Descricao"))
+                ->orderBy('PlanoContas.Descricao')
+                ->get();
+        });
 
-            $documento = LancamentoDocumento::where('tipoarquivo','>',0)->orderBy('ID', 'desc')->get();
-            $arquivoExiste = null;
-            $ContasPagarArquivo = ContasPagarArquivo::where('contaspagar_id','=', $id)
-                 ->orderBy('id')
-                 ->get();
+            // Tipos de documentos: cache reduz reprocessamento; carregar apenas colunas necessárias
+            $documento = Cache::remember('lancamento_documentos_tipo_ativos', 300, function () {
+                return LancamentoDocumento::with('TipoArquivoNome')
+                    ->select('ID', 'Rotulo', 'tipoarquivo')
+                    ->where('tipoarquivo', '>', 0)
+                    ->orderBy('ID', 'desc')
+                    ->get();
+            });
+
+            // Anexos do Contas a Pagar: eager load para evitar N+1 no blade
+            $ContasPagarArquivo = ContasPagarArquivo::with(['MostraLancamentoDocumento', 'MostraLancamentoDocumento.TipoArquivoNome'])
+                ->where('contaspagar_id', '=', $id)
+                ->orderBy('id')
+                ->get();
+
+            // Sinalizar se há algum arquivo já associado (evita loop manual)
+            $arquivoExiste = $ContasPagarArquivo->isNotEmpty() ? optional($ContasPagarArquivo->last())->id : null;
 
 
-
-                 foreach ($ContasPagarArquivo as $ContasPagarArquivos) {
-                     $arquivoExiste = $ContasPagarArquivos->id;
-                    //  DD($ContasPagarArquivos->MostraLancamentoDocumento);
-
-                 }
-
-
-        return view('ContaPagar.edit', compact('contasPagar', 'Empresas', 'id', 'ContaFornecedor', 'ContaPagamento','documento','arquivoExiste', 'ContasPagarArquivo'));
+    return view('ContaPagar.edit', compact('contasPagar', 'id', 'ContaFornecedor', 'ContaPagamento','documento','arquivoExiste', 'ContasPagarArquivo'));
     }
 
     public function update(Request $request, string $id)
@@ -551,7 +581,9 @@ class ContasPagarController extends Controller
 
             $contasPagar->save();
 
-            return redirect()->route('ContasPagar.edit', $id)->with('success', 'Conta a pagar atualizada com sucesso! Não foi localizado o ID do lançamento! VERIFICAR LINHA 464', 'error');
+            return redirect()->route('ContasPagar.edit', $id)
+                ->with('success', 'Conta a pagar atualizada com sucesso! Não foi localizado o ID do lançamento! VERIFICAR LINHA 464')
+                ->with('error', null);
         }
 
 
@@ -722,7 +754,9 @@ class ContasPagarController extends Controller
 
         $contasPagar->save();
 
-        return redirect()->route('ContasPagar.edit', $id)->with('success', 'Conta a pagar atualizada com sucesso!', 'error');
+        return redirect()->route('ContasPagar.edit', $id)
+            ->with('success', 'Conta a pagar atualizada com sucesso!')
+            ->with('error', null);
     }
 
     public function destroy($id)
