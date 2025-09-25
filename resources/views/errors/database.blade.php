@@ -31,7 +31,7 @@
     <main class="card" role="main" aria-labelledby="titulo-erro-db">
         <h1 id="titulo-erro-db">
             <span class="badge">DB</span>
-            {{ ($breaker ?? false) ? 'Banco Temporariamente Indisponível' : 'Falha na Conexão com o Banco de Dados' }}
+            {{ ($breaker ?? false) ? 'Banco de dados temporariamente Indisponível. Avise o administrador do sistema.' : 'Falha na Conexão com o Banco de Dados' }}
         </h1>
 
         @if(!empty($exceptionMessage))
