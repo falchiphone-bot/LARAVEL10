@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\DatabaseDownAlert;
+use GuzzleHttp\Client;
 
 class DatabaseCircuitBreaker
 {
@@ -108,7 +109,7 @@ class DatabaseCircuitBreaker
                                 'retry_after_seconds' => $ttl,
                             ], 503)->withHeaders($headers);
                         }
-                        // Envia e-mail de alerta (com supressão) na primeira detecção via pré-checagem
+                        // Envia alertas (e-mail e WhatsApp) com supressão, na primeira detecção via pré-checagem
                         $alertTo = env('DB_ALERT_EMAIL');
                         if ($alertTo) {
                             $suppressMinutes = (int) env('DB_ALERT_SUPPRESS_MINUTES', 30);
@@ -129,6 +130,69 @@ class DatabaseCircuitBreaker
                                 } catch (\Throwable $mailEx) {
                                     Log::error('DATABASE ALERT MAIL FAIL (preflight)', [
                                         'error' => $mailEx->getMessage(),
+                                        'connection' => $connection,
+                                    ]);
+                                }
+
+                                // WhatsApp (usa credenciais via env para não depender do DB)
+                                try {
+                                    $waPhoneId   = trim((string) env('DB_ALERT_WHATSAPP_PHONE_ID', ''));
+                                    $waToken     = trim((string) env('DB_ALERT_WHATSAPP_TOKEN', ''));
+                                    $waToRaw     = (string) env('DB_ALERT_WHATSAPP_TO', ''); // "+5511999999999,+5511888888888"
+                                    $waRecipients = array_values(array_filter(array_map('trim', explode(',', $waToRaw))));
+
+                                    if ($waPhoneId && $waToken && !empty($waRecipients)) {
+                                        $client = new Client();
+                                        $tplName = trim((string) env('DB_ALERT_WHATSAPP_TEMPLATE_NAME', 'trabalhando_para_mais_opcoes'));
+                                        $tplLang = trim((string) env('DB_ALERT_WHATSAPP_TEMPLATE_LANG', 'pt_BR'));
+                                        $tplParamsRaw = (string) env('DB_ALERT_WHATSAPP_TEMPLATE_BODY_PARAMS', '');
+                                        $tplParams = array_values(array_filter(array_map('trim', explode('|', $tplParamsRaw))));
+
+                                        $msg = sprintf('[%s] ALERTA: Banco indisponível (preflight).', config('app.name'));
+
+                                        foreach ($waRecipients as $to) {
+                                            try {
+                                                // Preferir template aprovado; se faltar nome, cai em texto simples
+                                                $payload = [
+                                                    'messaging_product' => 'whatsapp',
+                                                    'to' => $to,
+                                                ];
+                                                if ($tplName) {
+                                                    $payload['type'] = 'template';
+                                                    $payload['template'] = [
+                                                        'name' => $tplName,
+                                                        'language' => ['code' => $tplLang ?: 'pt_BR'],
+                                                    ];
+                                                    if (!empty($tplParams)) {
+                                                        $payload['template']['components'] = [
+                                                            [
+                                                                'type' => 'body',
+                                                                'parameters' => array_map(fn($p) => ['type' => 'text', 'text' => $p], $tplParams),
+                                                            ],
+                                                        ];
+                                                    }
+                                                } else {
+                                                    $payload['type'] = 'text';
+                                                    $payload['text'] = ['body' => $msg];
+                                                }
+
+                                                $client->post('https://graph.facebook.com/v18.0/' . $waPhoneId . '/messages', [
+                                                    'headers' => [
+                                                        'Authorization' => 'Bearer ' . $waToken,
+                                                        'Content-Type' => 'application/json',
+                                                    ],
+                                                    'json' => $payload,
+                                                    'timeout' => 5,
+                                                    'connect_timeout' => 3,
+                                                ]);
+                                            } catch (\Throwable $wex) {
+                                                Log::warning('DATABASE ALERT WHATSAPP FAIL (preflight) para '.$to, ['error' => $wex->getMessage()]);
+                                            }
+                                        }
+                                    }
+                                } catch (\Throwable $wex) {
+                                    Log::error('DATABASE ALERT WHATSAPP FAIL (preflight - setup)', [
+                                        'error' => $wex->getMessage(),
                                         'connection' => $connection,
                                     ]);
                                 }

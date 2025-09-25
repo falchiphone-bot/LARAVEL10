@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Mail\DatabaseDownAlert;
+use GuzzleHttp\Client;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -126,7 +127,7 @@ class Handler extends ExceptionHandler
                 'X-DB-Connection-Error' => '1',
             ];
 
-            // Envio de e-mail de alerta (primeira ocorrência dentro da janela de supressão)
+            // Envio de alertas (e-mail e WhatsApp) na primeira ocorrência dentro da janela de supressão
             $alertTo = env('DB_ALERT_EMAIL');
             if ($alertTo) {
                 $suppressMinutes = (int) env('DB_ALERT_SUPPRESS_MINUTES', 30);
@@ -149,6 +150,69 @@ class Handler extends ExceptionHandler
                         Log::error('DATABASE ALERT MAIL FAIL (handler)', [
                             'connection' => $connectionName,
                             'error' => $mailEx->getMessage(),
+                        ]);
+                    }
+
+                    // WhatsApp (usa variáveis de ambiente para não depender de DB durante pane)
+                    try {
+                        $waPhoneId   = trim((string) env('DB_ALERT_WHATSAPP_PHONE_ID', ''));
+                        $waToken     = trim((string) env('DB_ALERT_WHATSAPP_TOKEN', ''));
+                        $waToRaw     = (string) env('DB_ALERT_WHATSAPP_TO', '');
+                        $waRecipients = array_values(array_filter(array_map('trim', explode(',', $waToRaw))));
+
+                        if ($waPhoneId && $waToken && !empty($waRecipients)) {
+                            $client = new Client();
+                            $tplName = trim((string) env('DB_ALERT_WHATSAPP_TEMPLATE_NAME', 'trabalhando_para_mais_opcoes'));
+                            $tplLang = trim((string) env('DB_ALERT_WHATSAPP_TEMPLATE_LANG', 'pt_BR'));
+                            $tplParamsRaw = (string) env('DB_ALERT_WHATSAPP_TEMPLATE_BODY_PARAMS', '');
+                            $tplParams = array_values(array_filter(array_map('trim', explode('|', $tplParamsRaw))));
+
+                            $msg = sprintf('[%s] ALERTA: Falha na conexão com o banco.', config('app.name'));
+
+                            foreach ($waRecipients as $to) {
+                                try {
+                                    $payload = [
+                                        'messaging_product' => 'whatsapp',
+                                        'to' => $to,
+                                    ];
+                                    if ($tplName) {
+                                        $payload['type'] = 'template';
+                                        $payload['template'] = [
+                                            'name' => $tplName,
+                                            'language' => ['code' => $tplLang ?: 'pt_BR'],
+                                        ];
+                                        if (!empty($tplParams)) {
+                                            $payload['template']['components'] = [
+                                                [
+                                                    'type' => 'body',
+                                                    'parameters' => array_map(fn($p) => ['type' => 'text', 'text' => $p], $tplParams),
+                                                ],
+                                            ];
+                                        }
+                                    } else {
+                                        $payload['type'] = 'text';
+                                        $payload['text'] = ['body' => $msg];
+                                    }
+
+                                    $client->post('https://graph.facebook.com/v18.0/' . $waPhoneId . '/messages', [
+                                        'headers' => [
+                                            'Authorization' => 'Bearer ' . $waToken,
+                                            'Content-Type' => 'application/json',
+                                        ],
+                                        'json' => $payload,
+                                        'timeout' => 5,
+                                        'connect_timeout' => 3,
+                                    ]);
+                                } catch (\Throwable $wex) {
+                                    Log::warning('DATABASE ALERT WHATSAPP FAIL (handler) para '.$to, ['error' => $wex->getMessage()]);
+                                }
+                            }
+                            $headers['X-DB-Alert-WhatsApp'] = '1';
+                        }
+                    } catch (\Throwable $wex) {
+                        Log::error('DATABASE ALERT WHATSAPP FAIL (handler - setup)', [
+                            'connection' => $connectionName,
+                            'error' => $wex->getMessage(),
                         ]);
                     }
                 }
