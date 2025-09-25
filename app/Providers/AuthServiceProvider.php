@@ -64,21 +64,71 @@ class AuthServiceProvider extends ServiceProvider
 
         // Abilities granulares para logs do backup FTP
         Gate::define('backup.logs.view', function ($user) {
-            return $user->can('backup.logs.view') || $user->can('backup.executar');
+            try {
+                if (method_exists($user, 'hasAnyPermission')) {
+                    return $user->hasAnyPermission(['backup.logs.view', 'backup.executar']);
+                }
+                if (method_exists($user, 'hasPermissionTo')) {
+                    return $user->hasPermissionTo('backup.logs.view') || $user->hasPermissionTo('backup.executar');
+                }
+            } catch (\Throwable $e) {
+                // fallback seguro
+            }
+            return false;
         });
         Gate::define('backup.logs.download', function ($user) {
-            return $user->can('backup.logs.download') || $user->can('backup.executar');
+            try {
+                if (method_exists($user, 'hasAnyPermission')) {
+                    return $user->hasAnyPermission(['backup.logs.download', 'backup.executar']);
+                }
+                if (method_exists($user, 'hasPermissionTo')) {
+                    return $user->hasPermissionTo('backup.logs.download') || $user->hasPermissionTo('backup.executar');
+                }
+            } catch (\Throwable $e) {
+                // fallback seguro
+            }
+            return false;
         });
         Gate::define('backup.logs.clear', function ($user) {
-            return $user->can('backup.logs.clear') || $user->can('backup.executar');
+            try {
+                if (method_exists($user, 'hasAnyPermission')) {
+                    return $user->hasAnyPermission(['backup.logs.clear', 'backup.executar']);
+                }
+                if (method_exists($user, 'hasPermissionTo')) {
+                    return $user->hasPermissionTo('backup.logs.clear') || $user->hasPermissionTo('backup.executar');
+                }
+            } catch (\Throwable $e) {
+                // fallback seguro
+            }
+            return false;
         });
 
         // Abilities específicas de execução
         Gate::define('backup.executar.hd', function ($user) {
-            return $user->can('backup.executar.hd') || $user->can('backup.executar');
+            try {
+                if (method_exists($user, 'hasAnyPermission')) {
+                    return $user->hasAnyPermission(['backup.executar.hd', 'backup.executar']);
+                }
+                if (method_exists($user, 'hasPermissionTo')) {
+                    return $user->hasPermissionTo('backup.executar.hd') || $user->hasPermissionTo('backup.executar');
+                }
+            } catch (\Throwable $e) {
+                // fallback seguro
+            }
+            return false;
         });
         Gate::define('backup.executar.ftp', function ($user) {
-            return $user->can('backup.executar.ftp') || $user->can('backup.executar');
+            try {
+                if (method_exists($user, 'hasAnyPermission')) {
+                    return $user->hasAnyPermission(['backup.executar.ftp', 'backup.executar']);
+                }
+                if (method_exists($user, 'hasPermissionTo')) {
+                    return $user->hasPermissionTo('backup.executar.ftp') || $user->hasPermissionTo('backup.executar');
+                }
+            } catch (\Throwable $e) {
+                // fallback seguro
+            }
+            return false;
         });
     }
 }
