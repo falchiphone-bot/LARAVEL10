@@ -24,6 +24,31 @@ use App\Http\Controllers\FormaPagamentoController;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+// Página estática de indisponibilidade de banco (para redirect do Handler)
+Route::get('/db-indisponivel', function () {
+    $connection = config('database.default');
+    $cfg = config("database.connections.$connection", []);
+    $breakerData = Cache::get('db:down:'.$connection);
+    $retryAfter = null;
+    if (is_array($breakerData) && isset($breakerData['until'])) {
+        $retryAfter = max(1, $breakerData['until'] - now()->timestamp);
+    }
+    $payload = [
+        'exceptionMessage' => null,
+        'connectionName' => $connection,
+        'host' => $cfg['host'] ?? ($cfg['read']['host'] ?? null),
+        'database' => $cfg['database'] ?? null,
+        'driver' => $cfg['driver'] ?? null,
+        'requestId' => request()->header('X-Request-ID'),
+        'breaker' => true,
+        'retryAfter' => $retryAfter,
+    ];
+    $response = response()->view('errors.database', $payload, 503);
+    if ($retryAfter) {
+        $response->headers->set('Retry-After', (string) $retryAfter);
+    }
+    return $response;
+})->name('db.down');
 
 // Rota para backup do storage para o HD externo
 Route::get('/backup/storage-to-external', [BackupController::class, 'backupAll'])->middleware('can:backup.executar.hd');

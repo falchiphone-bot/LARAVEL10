@@ -10,6 +10,9 @@ use Illuminate\Database\QueryException;
 use PDOException;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use App\Mail\DatabaseDownAlert;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -52,6 +55,9 @@ class Handler extends ExceptionHandler
             //
         });
 
+
+
+
         // Retorna JSON padronizado quando faltar permissão e o client espera JSON
         $this->renderable(function (SpatieUnauthorizedException $e, $request) {
             if ($request->expectsJson()) {
@@ -78,8 +84,11 @@ class Handler extends ExceptionHandler
         });
 
         // Falhas de conexão com banco de dados (MySQL, Postgres, etc.)
-        $this->renderable(function (PDOException|QueryException $e, $request) {
+
+    $this->renderable(function (PDOException|QueryException $e, $request) {
+
             if (!$this->isDatabaseConnectionError($e)) {
+
                 return null; // deixa fluxo normal (pode ser outro tipo de erro SQL)
             }
 
@@ -110,11 +119,41 @@ class Handler extends ExceptionHandler
                 'requestId'        => request()->header('X-Request-ID') ?? null,
             ];
 
+
             $status = 500; // Erro interno (primeira detecção). Middleware poderá devolver 503 durante janela.
 
             $headers = [
                 'X-DB-Connection-Error' => '1',
             ];
+
+            // Envio de e-mail de alerta (primeira ocorrência dentro da janela de supressão)
+            $alertTo = env('DB_ALERT_EMAIL');
+            if ($alertTo) {
+                $suppressMinutes = (int) env('DB_ALERT_SUPPRESS_MINUTES', 30);
+                $alertKey = 'db:alert:sent:'.$connectionName; // mesmo key usado no middleware para não duplicar
+                if (!Cache::has($alertKey)) {
+                    Cache::put($alertKey, 1, now()->addMinutes($suppressMinutes));
+                    try {
+                        $recipients = array_filter(array_map('trim', explode(',', $alertTo)));
+                        if (!empty($recipients)) {
+                            Mail::to($recipients)->send(new DatabaseDownAlert(
+                                $connectionName,
+                                $connectionConfig['driver'] ?? null,
+                                $connectionConfig['host'] ?? ($connectionConfig['read']['host'] ?? null),
+                                $connectionConfig['database'] ?? null,
+                                Str::limit($e->getMessage(), 800)
+                            ));
+                            $headers['X-DB-Alert-Email'] = '1';
+                        }
+                    } catch (\Throwable $mailEx) {
+                        Log::error('DATABASE ALERT MAIL FAIL (handler)', [
+                            'connection' => $connectionName,
+                            'error' => $mailEx->getMessage(),
+                        ]);
+                    }
+                }
+            }
+
 
             if ($request->expectsJson()) {
                 return response()->json([

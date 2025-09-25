@@ -6,6 +6,8 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\DatabaseDownAlert;
 
 class DatabaseCircuitBreaker
 {
@@ -51,7 +53,6 @@ class DatabaseCircuitBreaker
                     'retry_after_seconds' => $retryAfter,
                 ], 503)->withHeaders($headers);
             }
-
             return response()->view('errors.database', [
                 'exceptionMessage' => null,
                 'connectionName' => $connection,
@@ -106,6 +107,32 @@ class DatabaseCircuitBreaker
                                 'probe_elapsed_ms' => (int) $elapsed,
                                 'retry_after_seconds' => $ttl,
                             ], 503)->withHeaders($headers);
+                        }
+                        // Envia e-mail de alerta (com supressão) na primeira detecção via pré-checagem
+                        $alertTo = env('DB_ALERT_EMAIL');
+                        if ($alertTo) {
+                            $suppressMinutes = (int) env('DB_ALERT_SUPPRESS_MINUTES', 30);
+                            $alertKey = 'db:alert:sent:'.$connection;
+                            if (!Cache::has($alertKey)) {
+                                Cache::put($alertKey, 1, now()->addMinutes($suppressMinutes));
+                                try {
+                                    $recipients = array_filter(array_map('trim', explode(',', $alertTo)));
+                                    if (!empty($recipients)) {
+                                        Mail::to($recipients)->send(new DatabaseDownAlert(
+                                            $connection,
+                                            $driver,
+                                            $host,
+                                            $connConfig['database'] ?? null,
+                                            $errstr ?: ('Erro pré-checagem socket (código: '.$errno.')')
+                                        ));
+                                    }
+                                } catch (\Throwable $mailEx) {
+                                    Log::error('DATABASE ALERT MAIL FAIL (preflight)', [
+                                        'error' => $mailEx->getMessage(),
+                                        'connection' => $connection,
+                                    ]);
+                                }
+                            }
                         }
                         return response()->view('errors.database', [
                             'exceptionMessage' => null,
