@@ -199,6 +199,30 @@
     </div>
   </div>
 
+  @if(($chatId ?? 0) > 0 && $selectedChat && ($selectedChat->code ?? '') !== '')
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h2 class="h6 mb-0">Fechado do dia na Tabela de Projeções</h2>
+          <span class="small text-muted">Código: <span class="badge bg-dark">{{ strtoupper($selectedChat->code) }}</span></span>
+        </div>
+        <div class="row g-2 align-items-end">
+          <div class="col-sm-4 col-md-3">
+            <label class="form-label small mb-1">Data</label>
+            <input type="date" id="fill_stat_date" class="form-control form-control-sm" value="{{ $from ?: now()->format('Y-m-d') }}">
+          </div>
+          <div class="col-sm-8 col-md-6 d-flex gap-2">
+            <button type="button" id="btnFillCloseOne" class="btn btn-sm btn-outline-primary">Checar e preencher (dia)</button>
+            <button type="button" id="btnFillClosePeriod" class="btn btn-sm btn-outline-secondary" title="Usa os filtros De/Até atuais">Preencher período (filtros)</button>
+          </div>
+          <div class="col-12 mt-2">
+            <div id="fillCloseResult" class="small text-muted" aria-live="polite"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  @endif
+
   <!-- Modal: Cadastrar ordem de código -->
   <div class="modal fade" id="codeOrderModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
@@ -881,6 +905,71 @@
 @endsection
 @push('scripts')
 <script>
+// Preencher Fechado (AssetDailyStat) a partir da conversa selecionada
+(function(){
+  try {
+    const chatId = {{ ($selectedChat->id ?? $chatId ?? 0) ?: 0 }};
+    const hasCode = @json(($selectedChat->code ?? '') !== '');
+    if (!chatId || !hasCode) return;
+    const oneBtn = document.getElementById('btnFillCloseOne');
+    const periodBtn = document.getElementById('btnFillClosePeriod');
+    const dateInput = document.getElementById('fill_stat_date');
+    const out = document.getElementById('fillCloseResult');
+    const FILL_URL = @json(route('openai.records.fillAssetClose'));
+    const PERIOD_URL = @json(route('openai.records.fillAssetClosePeriod'));
+
+    async function postJSON(url, payload){
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': '{{ csrf_token() }}',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify(payload)
+      });
+      let data = null; try { data = await resp.json(); } catch(_e){}
+      if (!resp.ok) {
+        const msg = data?.error || ('HTTP '+resp.status);
+        throw new Error(msg);
+      }
+      return data || {};
+    }
+
+    oneBtn?.addEventListener('click', async function(){
+      try {
+        if (!dateInput?.value) { out.textContent = 'Informe a data.'; return; }
+        out.textContent = 'Processando…';
+        const data = await postJSON(FILL_URL, { chat_id: chatId, date: dateInput.value });
+        if (data.ok) {
+          const acc = (data.is_accurate === true) ? ' (acertou dentro do intervalo)' : (data.is_accurate === false ? ' (fora do intervalo)' : '');
+          out.innerHTML = `<span class="text-success">${data.message || 'OK'} — Fechado: <strong>${Number(data.close).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 6 })}</strong>${acc}</span>`;
+        } else {
+          out.innerHTML = `<span class="text-danger">${data.error || 'Falha'}</span>`;
+        }
+      } catch(e){ out.innerHTML = `<span class="text-danger">${e.message||'Erro'}</span>`; }
+    });
+
+    periodBtn?.addEventListener('click', async function(){
+      try {
+        out.textContent = 'Processando período…';
+        const payload = { chat_id: chatId };
+        const from = @json($from ?? '');
+        const to = @json($to ?? '');
+        if (from) payload.from = from;
+        if (to) payload.to = to;
+        const data = await postJSON(PERIOD_URL, payload);
+        if (data.ok) {
+          out.innerHTML = `<span class="text-success">Atualizados: ${data.updated} — Sem cotação: ${data.skipped} — Erros: ${data.errors}</span>`;
+        } else {
+          out.innerHTML = `<span class="text-danger">${data.error || 'Falha'}</span>`;
+        }
+      } catch(e){ out.innerHTML = `<span class="text-danger">${e.message||'Erro'}</span>`; }
+    });
+  } catch(_e){}
+})();
 function prepQuickAdd(chatId){
   const sel = document.querySelector('#newRecordForm select[name="chat_id"]');
   if(sel){ sel.value = chatId; }

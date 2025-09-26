@@ -514,6 +514,20 @@
               </li>
               @endcan
 
+              <!-- Link: Estatísticas de Ativos -->
+              @can('ASSET STATS - LISTAR')
+              <li>
+                <a href="{{ route('asset-stats.index') }}"
+                   class="nav-link text-white"
+                   data-bs-toggle="tooltip" data-bs-placement="top"
+                   data-bs-custom-class="custom-tooltip"
+                   data-bs-title="Gerenciar estatísticas diárias por ativo (importar tabela/CSV)">
+                  <i class="fa-solid fa-database"></i>
+                  Estatísticas de Ativos
+                </a>
+              </li>
+              @endcan
+
               {{-- Link: SAF - Colaboradores --}}
               @can('SAF_COLABORADORES - LISTAR')
               <li>

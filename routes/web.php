@@ -1352,6 +1352,9 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     Route::get('/openai/records/assets/export-csv', [\App\Http\Controllers\OpenAIChatRecordController::class, 'assetsExport'])->name('openai.records.assets.exportCsv');
     Route::get('/openai/records/assets/export-summary-csv', [\App\Http\Controllers\OpenAIChatRecordController::class, 'assetsExportSummary'])->name('openai.records.assets.exportSummaryCsv');
     Route::get('/openai/records/assets/export-xlsx', [\App\Http\Controllers\OpenAIChatRecordController::class, 'assetsExportXlsx'])->name('openai.records.assets.exportXlsx');
+    // Preencher Fechado em AssetDailyStat a partir de Registros
+    Route::post('/openai/records/fill-asset-close', [\App\Http\Controllers\OpenAIChatRecordController::class, 'fillAssetStatClose'])->name('openai.records.fillAssetClose');
+    Route::post('/openai/records/fill-asset-close-period', [\App\Http\Controllers\OpenAIChatRecordController::class, 'fillAssetStatClosePeriod'])->name('openai.records.fillAssetClosePeriod');
     // Aplicar cotação ao valor do registro
     Route::patch('/openai/records/{record}/apply-quote', [\App\Http\Controllers\OpenAIChatRecordController::class, 'applyQuote'])->name('openai.records.applyQuote');
     // Criar novo registro a partir da cotação
@@ -1414,5 +1417,22 @@ require __DIR__ . '/auth.php';
 // Market Data (fora do grupo auth, conforme middleware no controller)
 Route::get('/api/market/quote', [\App\Http\Controllers\MarketDataController::class, 'quote'])->name('api.market.quote');
 Route::get('/api/market/historical-quote', [\App\Http\Controllers\MarketDataController::class, 'historicalQuote'])->name('api.market.historical');
+// Asset Daily Stats CRUD
+Route::resource('asset-stats', \App\Http\Controllers\AssetDailyStatController::class)->parameters([
+    'asset-stats' => 'asset_stat'
+]);
+Route::get('asset-stats-import', [\App\Http\Controllers\AssetDailyStatController::class, 'importForm'])->name('asset-stats.importForm');
+Route::post('asset-stats-import', [\App\Http\Controllers\AssetDailyStatController::class, 'importStore'])->name('asset-stats.importStore');
+Route::post('asset-stats/{asset_stat}/refresh-close', [\App\Http\Controllers\AssetDailyStatController::class, 'refreshClose'])
+    ->name('asset-stats.refreshClose');
+Route::post('asset-stats/recompute-accuracy', [\App\Http\Controllers\AssetDailyStatController::class, 'recomputeAccuracy'])
+    ->name('asset-stats.recomputeAccuracy');
+Route::post('asset-stats/{asset_stat}/recompute-accuracy', [\App\Http\Controllers\AssetDailyStatController::class, 'recomputeAccuracyOne'])
+    ->name('asset-stats.recomputeAccuracyOne');
+// Preencher Fechado a partir dos Registros (busca invertida)
+Route::post('asset-stats/{asset_stat}/fill-close-from-records', [\App\Http\Controllers\AssetDailyStatController::class, 'fillCloseFromRecords'])
+    ->name('asset-stats.fillCloseFromRecords');
+Route::post('asset-stats/fill-close-from-records-bulk', [\App\Http\Controllers\AssetDailyStatController::class, 'fillCloseFromRecordsBulk'])
+    ->name('asset-stats.fillCloseFromRecordsBulk');
 // usage permanece em web por exigir sessão/menus
 Route::get('/api/market/usage', [\App\Http\Controllers\MarketDataController::class, 'usage'])->name('api.market.usage');

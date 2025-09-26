@@ -10,6 +10,12 @@
       <a href="{{ route('openai.records.index') }}" class="btn btn-outline-secondary">← Registros</a>
       <a href="{{ route('openai.chat') }}" class="btn btn-outline-dark">Chat</a>
   <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newAccountModal">Nova Conta</button>
+      @can('ASSET STATS - LISTAR')
+      <a href="{{ route('asset-stats.index', ['symbol'=>'OKLO']) }}" class="btn btn-outline-primary" title="Ver estatísticas de ativos">Estatísticas Ativos</a>
+      @endcan
+      @can('ASSET STATS - CRIAR')
+      <a href="{{ route('asset-stats.importForm', ['symbol'=>'OKLO']) }}" class="btn btn-outline-secondary" title="Importar tabela/CSV de estatísticas">Importar Estatísticas</a>
+      @endcan
     </div>
   </div>
 

@@ -18,7 +18,7 @@ class OpenAIChatRecordController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-    $this->middleware(['permission:OPENAI - CHAT'])->only('index','store','destroy','edit','update','assets','applyQuote','createFromQuote');
+    $this->middleware(['permission:OPENAI - CHAT'])->only('index','store','destroy','edit','update','assets','applyQuote','createFromQuote','fillAssetStatClose','fillAssetStatClosePeriod');
     }
 
     public function index(Request $request): View
@@ -1148,6 +1148,142 @@ class OpenAIChatRecordController extends Controller
         return response()->streamDownload($callback, $fileName, [
             'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
+    }
+
+    /**
+     * Verifica o AssetDailyStat por símbolo (código do chat) e data; se existir e close_value estiver nulo,
+     * busca o fechamento histórico do dia e salva. Retorna JSON com status e mensagens.
+     */
+    public function fillAssetStatClose(Request $request)
+    {
+    // Permissão já garantida por middleware no construtor
+        $chatId = (int) $request->input('chat_id');
+        $dateRaw = trim((string)$request->input('date'));
+        if ($chatId <= 0 || $dateRaw === '') {
+            return response()->json(['ok' => false, 'error' => 'Parâmetros inválidos.'], 422);
+        }
+        // Garantir ownership do chat e obter código
+        $chat = OpenAIChat::where('id', $chatId)->where('user_id', Auth::id())->first();
+        if (!$chat) {
+            return response()->json(['ok' => false, 'error' => 'Conversa não encontrada.'], 404);
+        }
+        $symbol = strtoupper(trim((string)($chat->code ?? '')));
+        if ($symbol === '') {
+            return response()->json(['ok' => false, 'error' => 'Conversa não possui código vinculado.'], 422);
+        }
+        $dateIso = $this->parseDateOnlyIso($dateRaw);
+        if (!$dateIso) {
+            return response()->json(['ok' => false, 'error' => 'Data inválida. Use dd/mm/aaaa ou yyyy-mm-dd.'], 422);
+        }
+        // Buscar registro na tabela asset_daily_stats
+        try {
+            $stat = \App\Models\AssetDailyStat::where('symbol', $symbol)
+                ->whereDate('date', $dateIso)
+                ->first();
+        } catch (\Throwable $e) {
+            // Fallback SQL Server: CAST datetime2
+            $stat = \App\Models\AssetDailyStat::where('symbol', $symbol)
+                ->whereRaw('[date] = CAST(? AS DATETIME2(7))', [$dateIso.' 00:00:00.0000000'])
+                ->first();
+        }
+        if (!$stat) {
+            return response()->json(['ok' => false, 'error' => 'Nenhum AssetDailyStat para o código/data.'], 404);
+        }
+        if ($stat->close_value !== null) {
+            return response()->json(['ok' => true, 'message' => 'Fechado já preenchido.', 'close' => (float)$stat->close_value]);
+        }
+        // Buscar fechamento via serviço
+        try {
+            $svc = app(\App\Services\MarketDataService::class);
+            $hq = $svc->getHistoricalQuote($symbol, $dateIso);
+            $close = ($hq && isset($hq['price']) && is_numeric($hq['price'])) ? (float)$hq['price'] : null;
+            if ($close === null) {
+                return response()->json(['ok' => false, 'error' => 'Sem cotação histórica disponível.'], 404);
+            }
+            // Atualizar close_value e is_accurate
+            $isAcc = $this->computeAccuracyCompat($stat->p5, $stat->p95, $close, null);
+            $driver = DB::getDriverName();
+            if ($driver === 'sqlsrv') {
+                DB::update('UPDATE [asset_daily_stats] SET [close_value]=?, [is_accurate]=? WHERE [id]=?', [$close, $isAcc, $stat->id]);
+            } else {
+                $stat->update(['close_value' => $close, 'is_accurate' => $isAcc]);
+            }
+            return response()->json(['ok' => true, 'message' => 'Fechado preenchido.', 'close' => $close, 'is_accurate' => $isAcc]);
+        } catch (\Throwable $e) {
+            return response()->json(['ok' => false, 'error' => 'Erro ao preencher: '.$e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Para um intervalo [from,to], para o chat/símbolo indicado, preenche close_value vazio em AssetDailyStat.
+     * Retorna contagem de atualizações realizadas.
+     */
+    public function fillAssetStatClosePeriod(Request $request)
+    {
+    // Permissão já garantida por middleware no construtor
+        $chatId = (int) $request->input('chat_id');
+        $fromRaw = trim((string)$request->input('from'));
+        $toRaw = trim((string)$request->input('to'));
+        if ($chatId <= 0) {
+            return response()->json(['ok' => false, 'error' => 'Conversa obrigatória.'], 422);
+        }
+        $chat = OpenAIChat::where('id', $chatId)->where('user_id', Auth::id())->first();
+        if (!$chat) {
+            return response()->json(['ok' => false, 'error' => 'Conversa não encontrada.'], 404);
+        }
+        $symbol = strtoupper(trim((string)($chat->code ?? '')));
+        if ($symbol === '') {
+            return response()->json(['ok' => false, 'error' => 'Conversa não possui código vinculado.'], 422);
+        }
+        $from = $fromRaw !== '' ? $this->parseDateOnlyIso($fromRaw) : null;
+        $to = $toRaw !== '' ? $this->parseDateOnlyIso($toRaw) : null;
+        $q = \App\Models\AssetDailyStat::query()->where('symbol', $symbol)->whereNull('close_value');
+        if ($from) { $q->where('date', '>=', $from.' 00:00:00'); }
+        if ($to) { $q->where('date', '<=', $to.' 23:59:59'); }
+        $svc = app(\App\Services\MarketDataService::class);
+        $driver = DB::getDriverName();
+        $updated = 0; $skipped = 0; $errors = 0;
+        foreach ($q->cursor() as $stat) {
+            try {
+                $dateIso = optional($stat->date)->format('Y-m-d');
+                if (!$dateIso) { $skipped++; continue; }
+                $hq = $svc->getHistoricalQuote($symbol, $dateIso);
+                $close = ($hq && isset($hq['price']) && is_numeric($hq['price'])) ? (float)$hq['price'] : null;
+                if ($close === null) { $skipped++; continue; }
+                $isAcc = $this->computeAccuracyCompat($stat->p5, $stat->p95, $close, null);
+                if ($driver === 'sqlsrv') {
+                    DB::update('UPDATE [asset_daily_stats] SET [close_value]=?, [is_accurate]=? WHERE [id]=?', [$close, $isAcc, $stat->id]);
+                } else {
+                    $stat->update(['close_value' => $close, 'is_accurate' => $isAcc]);
+                }
+                $updated++;
+            } catch (\Throwable $e) {
+                $errors++;
+            }
+        }
+        return response()->json(['ok' => true, 'updated' => $updated, 'skipped' => $skipped, 'errors' => $errors]);
+    }
+
+    // Helpers locais (evitam depender do controller de stats)
+    private function parseDateOnlyIso(string $raw): ?string
+    {
+        $raw = trim($raw);
+        if ($raw === '') return null;
+        if (preg_match('/^(\d{2})\/(\d{2})\/(\d{4})$/', $raw, $m)) {
+            return $m[3].'-'.$m[2].'-'.$m[1];
+        }
+        if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $raw)) {
+            return $raw;
+        }
+        try { return \Carbon\Carbon::parse($raw)->format('Y-m-d'); } catch (\Throwable $e) { return null; }
+    }
+    private function computeAccuracyCompat($p5, $p95, $close, $manual = null): ?bool
+    {
+        if ($p5 !== null && $p95 !== null && $close !== null) {
+            return ($close >= $p5 && $close <= $p95);
+        }
+        if ($manual === true || $manual === false) { return (bool)$manual; }
+        return null;
     }
 
     /**
