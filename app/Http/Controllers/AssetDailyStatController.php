@@ -404,11 +404,33 @@ class AssetDailyStatController extends Controller
     public function importStore(Request $request)
     {
         $request->validate([
-            'symbol' => ['required','string','max:32'],
-            'payload' => ['required','string'],
+            'symbol' => ['nullable','string','max:32'],
+            'payload' => ['nullable','string'],
+            'file' => ['nullable','file','mimetypes:text/plain,text/csv,text/tsv,text/*,application/vnd.ms-excel','max:5120'],
         ]);
         $symbol = strtoupper(trim((string)$request->input('symbol')));
-        $payload = trim((string)$request->input('payload'));
+        $payload = '';
+        // Se arquivo enviado, prioriza conteúdo do arquivo
+        if ($request->hasFile('file') && $request->file('file')->isValid()) {
+            try {
+                $payload = (string) file_get_contents($request->file('file')->getRealPath());
+            } catch (\Throwable $e) {
+                return back()->withErrors(['file' => 'Não foi possível ler o arquivo: '.$e->getMessage()])->withInput();
+            }
+            // Detecta símbolo se não informado manualmente
+            if ($symbol === '') {
+                $detected = $this->detectSymbolFromFilename($request->file('file')->getClientOriginalName());
+                if ($detected) { $symbol = $detected; }
+            }
+        } else {
+            $payload = trim((string)$request->input('payload'));
+        }
+        if ($payload === '') {
+            return back()->withErrors(['payload' => 'Informe um arquivo ou cole o conteúdo.'])->withInput();
+        }
+        if ($symbol === '') {
+            return back()->withErrors(['symbol' => 'Símbolo não informado e não foi possível detectar pelo nome do arquivo.'])->withInput();
+        }
         $rows = $this->parseTablePayload($payload);
         // Garante ordem ascendente por data na importação
         usort($rows, function($a, $b){
@@ -462,6 +484,34 @@ class AssetDailyStatController extends Controller
             return back()->withErrors(['payload' => 'Erro ao importar: '.$e->getMessage()]);
         }
         return redirect()->route('asset-stats.index', ['symbol'=>$symbol])->with('success', 'Importação concluída com '.count($rows).' linhas.');
+    }
+
+    private function detectSymbolFromFilename(string $filename): ?string
+    {
+        // Remove path se houver
+        $base = basename($filename);
+        // Remove extensão
+        $base = preg_replace('/\.[^.]+$/','',$base);
+        $tokens = preg_split('/[_\-]/',$base) ?: [];
+        $candidates = [];
+        foreach ($tokens as $i => $tok) {
+            $raw = trim($tok);
+            if ($raw === '') continue;
+            $lower = strtolower($raw);
+            if (in_array($lower, ['projecoes','projecoes','dados','serie','seriehistorica','a'])) continue;
+            // Pula coisas que parecem datas ou números puros
+            if (preg_match('/^\d{1,4}$/',$raw)) continue;
+            if (!preg_match('/[a-zA-Z]/',$raw)) continue; // precisa ter letra
+            if (strlen($raw) < 2 || strlen($raw) > 16) continue;
+            $candidates[] = $raw;
+        }
+        if (empty($candidates)) return null;
+        // Se primeira palavra era 'projecoes', tenta a próxima candidata após ela
+        if (isset($tokens[0]) && strtolower($tokens[0]) === 'projecoes') {
+            // Já estamos pegando todas candidatas acima; prioriza a primeira
+            return strtoupper($candidates[0]);
+        }
+        return strtoupper($candidates[0]);
     }
 
     private function validateData(Request $request): array

@@ -5,7 +5,6 @@
     <h1 class="h5 mb-0">Estatísticas Diárias de Ativos</h1>
     <div class="d-flex gap-2">
       <a href="{{ route('asset-stats.create') }}" class="btn btn-outline-primary">Novo</a>
-      <a href="{{ route('asset-stats.importForm') }}" class="btn btn-outline-secondary">Importar Tabela/CSV</a>
     </div>
   </div>
 
@@ -13,7 +12,10 @@
     <div class="row g-2 align-items-end">
       <div class="col-auto">
         <label class="form-label">Símbolo</label>
-        <input type="text" class="form-control" name="symbol" value="{{ $symbol }}" placeholder="Ex: OKLO">
+        <div class="input-group">
+          <input type="text" class="form-control" name="symbol" id="symbolFilterInput" value="{{ $symbol }}" placeholder="Ex: PETR4" maxlength="16" style="max-width:120px;">
+          <a href="{{ route('asset-stats.importForm') }}" data-base="{{ route('asset-stats.importForm') }}" id="importFromFilterBtn" class="btn btn-outline-secondary" title="Importar Tabela/CSV para este símbolo">Importar</a>
+        </div>
       </div>
       <div class="col-auto">
         <label class="form-label">De</label>
@@ -261,3 +263,20 @@
   {{ $stats->links() }}
 </div>
 @endsection
+
+@push('scripts')
+<script>
+  (function(){
+    const input = document.getElementById('symbolFilterInput');
+    const btn = document.getElementById('importFromFilterBtn');
+    if(!input || !btn) return;
+    function updateLink(){
+      const base = btn.getAttribute('data-base');
+      const val = (input.value||'').trim();
+      btn.href = val ? base + '?symbol=' + encodeURIComponent(val) : base;
+    }
+    input.addEventListener('input', updateLink);
+    updateLink();
+  })();
+</script>
+@endpush

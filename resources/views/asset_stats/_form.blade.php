@@ -1,7 +1,7 @@
 <div class="row g-3">
   <div class="col-md-3">
     <label class="form-label">Símbolo</label>
-    <input type="text" name="symbol" value="{{ old('symbol', $model->symbol ?? request('symbol')) }}" class="form-control" placeholder="OKLO" required>
+  <input type="text" name="symbol" value="{{ old('symbol', $model->symbol ?? request('symbol')) }}" class="form-control" placeholder="Ex: PETR4" maxlength="16" style="max-width:140px;" required>
     @error('symbol')<div class="text-danger small">{{ $message }}</div>@enderror
   </div>
   <div class="col-md-3">

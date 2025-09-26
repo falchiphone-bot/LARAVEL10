@@ -6,16 +6,21 @@
       Contas / Investimentos
       <x-market.badge storageKey="investments.localBadge.visible" idPrefix="inv" />
     </h1>
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 align-items-center flex-wrap">
       <a href="{{ route('openai.records.index') }}" class="btn btn-outline-secondary">← Registros</a>
       <a href="{{ route('openai.chat') }}" class="btn btn-outline-dark">Chat</a>
   <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newAccountModal">Nova Conta</button>
-      @can('ASSET STATS - LISTAR')
-      <a href="{{ route('asset-stats.index', ['symbol'=>'OKLO']) }}" class="btn btn-outline-primary" title="Ver estatísticas de ativos">Estatísticas Ativos</a>
-      @endcan
-      @can('ASSET STATS - CRIAR')
-      <a href="{{ route('asset-stats.importForm', ['symbol'=>'OKLO']) }}" class="btn btn-outline-secondary" title="Importar tabela/CSV de estatísticas">Importar Estatísticas</a>
-      @endcan
+      @canany(['ASSET STATS - LISTAR','ASSET STATS - CRIAR'])
+        <div class="input-group" style="width:210px;">
+          <input type="text" id="invSymbolInput" class="form-control" placeholder="Símbolo" maxlength="12" style="max-width:90px;">
+          @can('ASSET STATS - LISTAR')
+          <a id="invStatsBtn" data-base="{{ route('asset-stats.index') }}" class="btn btn-outline-primary" title="Ver estatísticas" href="{{ route('asset-stats.index') }}">Stats</a>
+          @endcan
+          @can('ASSET STATS - CRIAR')
+          <a id="invImportBtn" data-base="{{ route('asset-stats.importForm') }}" class="btn btn-outline-secondary" title="Importar estatísticas" href="{{ route('asset-stats.importForm') }}">Imp</a>
+          @endcan
+        </div>
+      @endcanany
     </div>
   </div>
 
@@ -188,6 +193,24 @@
   </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+  (function(){
+    const sym = document.getElementById('invSymbolInput');
+    if(!sym) return;
+    const statsBtn = document.getElementById('invStatsBtn');
+    const importBtn = document.getElementById('invImportBtn');
+    function upd(btn){
+      if(!btn) return;
+      const base = btn.getAttribute('data-base');
+      const v = (sym.value||'').trim();
+      btn.href = v ? base + '?symbol=' + encodeURIComponent(v) : base;
+    }
+    sym.addEventListener('input', function(){ upd(statsBtn); upd(importBtn); });
+  })();
+</script>
+@endpush
 
 @push('scripts')
 <script>
