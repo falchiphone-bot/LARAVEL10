@@ -407,6 +407,7 @@ class AssetDailyStatController extends Controller
             'symbol' => ['nullable','string','max:32'],
             'payload' => ['nullable','string'],
             'file' => ['nullable','file','mimetypes:text/plain,text/csv,text/tsv,text/*,application/vnd.ms-excel','max:5120'],
+            'overwrite' => ['nullable','boolean'],
         ]);
         $symbol = strtoupper(trim((string)$request->input('symbol')));
         $payload = '';
@@ -439,6 +440,8 @@ class AssetDailyStatController extends Controller
         if (count($rows) === 0) {
             return back()->withErrors(['payload' => 'Nenhuma linha reconhecida.'])->withInput();
         }
+        $overwrite = (bool)$request->boolean('overwrite');
+        $inserted = 0; $updated = 0; $skipped = 0;
         DB::beginTransaction();
         try {
             $driver = DB::getDriverName();
@@ -450,32 +453,52 @@ class AssetDailyStatController extends Controller
                 $close = ($hq && isset($hq['price']) && is_numeric($hq['price'])) ? (float)$hq['price'] : null;
                 $isAcc = $this->computeAccuracy($r['p5'] ?? null, $r['p95'] ?? null, $close, null);
                 if ($driver === 'sqlsrv') {
+                    // Verifica existência
+                    $existing = DB::select('SELECT [id] FROM [asset_daily_stats] WHERE [symbol]=? AND [date]=CAST(? AS DATETIME2(7))', [$symbol,$date]);
+                    if ($existing && !$overwrite) { $skipped++; continue; }
                     $ts = $this->nowStampSqlsrv();
-                    $affected = DB::update(
-                        'UPDATE [asset_daily_stats]
-                         SET [mean]=?,[median]=?,[p5]=?,[p95]=?,[close_value]=?,[is_accurate]=?,[updated_at]=CAST(? AS DATETIME2(7))
-                         WHERE [symbol]=? AND [date]=CAST(? AS DATETIME2(7))',
-                        [$r['mean'],$r['median'],$r['p5'],$r['p95'],$close,$isAcc,$ts,$symbol,$date]
-                    );
-                    if ($affected === 0) {
+                    if ($existing) {
+                        DB::update(
+                            'UPDATE [asset_daily_stats]
+                             SET [mean]=?,[median]=?,[p5]=?,[p95]=?,[close_value]=?,[is_accurate]=?,[updated_at]=CAST(? AS DATETIME2(7))
+                             WHERE [id]=?',
+                            [$r['mean'],$r['median'],$r['p5'],$r['p95'],$close,$isAcc,$ts,$existing[0]->id]
+                        );
+                        $updated++;
+                    } else {
                         DB::insert(
                             'INSERT INTO [asset_daily_stats]([symbol],[date],[mean],[median],[p5],[p95],[close_value],[is_accurate],[created_at],[updated_at])
                              VALUES(?,CAST(? AS DATETIME2(7)),?,?,?,?,?,?,CAST(? AS DATETIME2(7)),CAST(? AS DATETIME2(7)))',
                             [$symbol,$date,$r['mean'],$r['median'],$r['p5'],$r['p95'],$close,$isAcc,$ts,$ts]
                         );
+                        $inserted++;
                     }
                 } else {
-                    AssetDailyStat::updateOrCreate(
-                        ['symbol'=>$symbol, 'date'=>$date],
-                        [
+                    $existing = AssetDailyStat::where('symbol',$symbol)->where('date',$date)->first();
+                    if ($existing && !$overwrite) { $skipped++; continue; }
+                    if ($existing) {
+                        $existing->update([
                             'mean'=>$r['mean'],
                             'median'=>$r['median'],
                             'p5'=>$r['p5'],
                             'p95'=>$r['p95'],
                             'close_value'=>$close,
                             'is_accurate'=>$isAcc,
-                        ]
-                    );
+                        ]);
+                        $updated++;
+                    } else {
+                        AssetDailyStat::create([
+                            'symbol'=>$symbol,
+                            'date'=>$date,
+                            'mean'=>$r['mean'],
+                            'median'=>$r['median'],
+                            'p5'=>$r['p5'],
+                            'p95'=>$r['p95'],
+                            'close_value'=>$close,
+                            'is_accurate'=>$isAcc,
+                        ]);
+                        $inserted++;
+                    }
                 }
             }
             DB::commit();
@@ -483,7 +506,12 @@ class AssetDailyStatController extends Controller
             DB::rollBack();
             return back()->withErrors(['payload' => 'Erro ao importar: '.$e->getMessage()]);
         }
-        return redirect()->route('asset-stats.index', ['symbol'=>$symbol])->with('success', 'Importação concluída com '.count($rows).' linhas.');
+        $msg = 'Importação concluída. Linhas lidas: '.count($rows)." — Inseridas: {$inserted} — Atualizadas: {$updated}";
+        if ($skipped > 0) { $msg .= " — Ignoradas (já existiam): {$skipped}"; }
+        if (!$overwrite && $updated === 0 && $skipped > 0) {
+            $msg .= ' (Marque "Substituir existentes" para atualizar)';
+        }
+        return redirect()->route('asset-stats.index', ['symbol'=>$symbol])->with('success', $msg);
     }
 
     private function detectSymbolFromFilename(string $filename): ?string
