@@ -208,7 +208,14 @@
                 <span class="ms-1" title="Atualizável (hoje ou futuro)">⏳</span>
               @endif
             </td>
-            <td>{{ $s->symbol }}</td>
+            <td>
+              <a href="{{ route('asset-stats.index', array_filter(['symbol' => $s->symbol, 'date_start' => $dateStart ?? null, 'date_end' => $dateEnd ?? null, 'acc' => $acc ?? null, 'has_close' => !empty($hasClose) ? 1 : null, 'sort' => $sort ?? null, 'dir' => $dir ?? null])) }}" 
+                 class="text-decoration-none fw-bold text-primary symbol-link" 
+                 title="Clique para filtrar por {{ $s->symbol }}">
+                {{ $s->symbol }}
+                <i class="fa-solid fa-filter ms-1 opacity-50" style="font-size: 0.75em;"></i>
+              </a>
+            </td>
             <td class="text-end">{{ number_format((float)$s->mean, 6, ',', '.') }}</td>
             <td class="text-end">{{ number_format((float)$s->median, 6, ',', '.') }}</td>
             <td class="text-end">{{ number_format((float)$s->p5, 6, ',', '.') }}</td>
@@ -279,4 +286,23 @@
     updateLink();
   })();
 </script>
+
+<style>
+  /* Estilo para os links de símbolos */
+  .symbol-link {
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    padding: 2px 6px;
+    display: inline-block;
+  }
+  .symbol-link:hover {
+    background-color: #e3f2fd;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .symbol-link:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+</style>
 @endpush
