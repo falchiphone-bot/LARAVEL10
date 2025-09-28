@@ -68,7 +68,7 @@
                                     <div class="col-sm-12">
                                         <label for="empresaid">Nova Empresa</label>
                                         <select wire:model='lancamento.EmpresaID'
-                                            id="novaEmpresaID" class="form-control select2">
+                                            id="novaEmpresaID" class="form-control">
                                             <option value="">Selecione</option>
                                             @foreach ($empresas as $empresaID => $empresaDescricao)
                                                 <option value="{{ $empresaID }}">{{ $empresaDescricao }}</option>
@@ -80,7 +80,7 @@
                                     <label for="historicoID" class=" form-control-label">
                                         Histórico
                                     </label>
-                                    <select id="historicoID" name="HistoricoID" class="form-control select2"
+                                    <select id="historicoID" name="HistoricoID" class="form-control"
                                         wire:model='lancamento.HistoricoID'>
                                         <option value=""></option>
                                         @foreach ($historicos as $historico)
@@ -102,7 +102,7 @@
                                                 <a href="{{ $this->lancamento->ContaDebitoID }}">Conta Debito</a>
                                             </label>
                                             <select id="contadebito" wire:model.lazy='lancamento.ContaDebitoID'
-                                                class="form-control select2">
+                                                class="form-control">
                                                 <option value="">Selecione</option>
                                                 @foreach ($contas as $contaID => $contaDescricao)
                                                     <option value="{{ $contaID }}">
@@ -120,7 +120,7 @@
                                                 <a href="{{ $this->lancamento->ContaCreditoID }}">Conta Crédito</a>
                                             </label>
                                             <select id="contacredito" wire:model.lazy='lancamento.ContaCreditoID'
-                                                class="form-control select2">
+                                                class="form-control">
                                                 <option value="">Selecione</option>
                                                 @foreach ($contas as $contaID => $contaDescricao)
                                                     <option value="{{ $contaID }}">

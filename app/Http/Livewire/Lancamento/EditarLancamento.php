@@ -329,13 +329,26 @@ class EditarLancamento extends Component
         $this->resetErrorBag();
         $this->resetValidation();
 
+        \Log::debug('[Livewire] mount EditarLancamento', [
+            'lancamento_id' => $lancamento_id,
+            'empresa_id' => $empresa_id,
+            'request' => request()->all(),
+            'session_empresa' => session('conta.extrato.empresa.id'),
+        ]);
+
         $this->emitTo('lancamento.troca-empresa', 'setLancamentoID', $lancamento_id);
         $this->currentTab = 'lancamento';
 
-        if ($lancamento_id != 'novo') {
-            $this->lancamento = Lancamento::find($lancamento_id);
-            $this->lancamento->Valor = number_format($this->lancamento->Valor, 2, ',', '.');
-            $this->comentarios = LancamentoComentario::where('LancamentoID', $lancamento_id)->get();
+        if ($lancamento_id && $lancamento_id != 'novo') {
+            $lancamento = Lancamento::find($lancamento_id);
+            if ($lancamento) {
+                $this->lancamento = $lancamento;
+                $this->lancamento->Valor = number_format($this->lancamento->Valor, 2, ',', '.');
+                $this->comentarios = LancamentoComentario::where('LancamentoID', $lancamento_id)->get();
+            } else {
+                // Se não encontrar, cria novo
+                $this->lancamento = new Lancamento();
+            }
         } else {
             $this->lancamento = new Lancamento();
             // Se a abertura for 'novo' e houver empresa informada (vinda do extrato), setá-la

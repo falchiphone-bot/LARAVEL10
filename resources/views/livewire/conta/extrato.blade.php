@@ -814,14 +814,13 @@
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
                             <div class="modal-body">
-                                @if ($editar_lancamento)
-                                    @livewire('lancamento.editar-lancamento', [
-                                        'lancamento_id' => $editar_lancamento,
-                                        'empresa_id' => $selEmpresa,
-                                        'contas' => $contas,
-                                        'empresas' => $empresas
-                                    ], key('editar-'.$editar_lancamento.'-'.$selEmpresa))
-                                @endif
+                                {{-- Força renderização do modal para debug --}}
+                                @livewire('lancamento.editar-lancamento', [
+                                    'lancamento_id' => $editar_lancamento,
+                                    'empresa_id' => $selEmpresa,
+                                    'contas' => $contas,
+                                    'empresas' => $empresas
+                                ], key('editar-'.$editar_lancamento.'-'.$selEmpresa))
                             </div>
                         </div>
                     </div>
@@ -949,12 +948,14 @@
         function setInertOnPageExceptModal(modalId, enable) {
             const modal = document.getElementById(modalId);
             if (!modal) return;
-            // Seleciona todos os elementos filhos diretos do body exceto o modal
+            // Seleciona todos os elementos filhos diretos do body exceto o modal E seus ancestrais
             document.querySelectorAll('body > *').forEach(el => {
-                if (el !== modal && enable) {
+                // Não aplica inert/aria-hidden no modal nem em nenhum ancestral do modal
+                if ((el === modal || el.contains(modal) || modal.contains(el))) return;
+                if (enable) {
                     el.setAttribute('inert', '');
                     el.setAttribute('aria-hidden', 'true');
-                } else if (el !== modal && !enable) {
+                } else {
                     el.removeAttribute('inert');
                     el.removeAttribute('aria-hidden');
                 }
@@ -967,14 +968,19 @@
             myModal.show();
             var myModalEl = document.getElementById('editarLancamentoModal');
 
+            // Força blur no elemento ativo antes de aplicar aria-hidden/inert
+            if (document.activeElement) {
+                document.activeElement.blur();
+            }
+
             // Aplica 'inert' ao conteúdo fora do modal
             setInertOnPageExceptModal('editarLancamentoModal', true);
 
-            // Foca o primeiro campo input visível do modal
+            // Foca o primeiro campo input, select ou textarea visível do modal
             setTimeout(function() {
-                var firstInput = myModalEl.querySelector('input:not([type=hidden]):not([disabled]):not([tabindex="-1"])');
-                if (firstInput) firstInput.focus();
-            }, 200);
+                var firstField = myModalEl.querySelector('input:not([type=hidden]):not([disabled]):not([tabindex="-1"]), select:not([disabled]):not([tabindex="-1"]), textarea:not([disabled]):not([tabindex="-1"])');
+                if (firstField) firstField.focus();
+            }, 300);
 
             // Remove 'inert' ao fechar
             myModalEl.addEventListener('hidden.bs.modal', function(event) {
