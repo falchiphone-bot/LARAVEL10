@@ -70,7 +70,7 @@
                     </style>
                         <tr>
                             {{-- SERVIÇO --}}
-                            <th class="@if(request('sort_by') == 'Irmaos_EmausServicos.nomeServico') th-ordenada @endif">
+                            <th class="@if(request('sort_by', 'created_at') == 'Irmaos_EmausServicos.nomeServico') th-ordenada @endif">
                                 <a href="{{ route('Irmaos_Emaus_FichaControle.index', array_merge(request()->all(), ['sort_by' => 'Irmaos_EmausServicos.nomeServico', 'sort_dir' => (request('sort_by') == 'Irmaos_EmausServicos.nomeServico' && request('sort_dir') == 'asc') ? 'desc' : 'asc'])) }}" class="text-white text-decoration-none">
                                     SERVIÇO
                                     @if(request('sort_by') == 'Irmaos_EmausServicos.nomeServico')
@@ -84,7 +84,7 @@
                             </th>
 
                             {{-- NOME --}}
-                            <th class="@if(request('sort_by') == 'Nome') th-ordenada @endif">
+                            <th class="@if(request('sort_by', 'created_at') == 'Nome') th-ordenada @endif">
                                 <a href="{{ route('Irmaos_Emaus_FichaControle.index', array_merge(request()->all(), ['sort_by' => 'Nome', 'sort_dir' => (request('sort_by') == 'Nome' && request('sort_dir') == 'asc') ? 'desc' : 'asc'])) }}" class="text-white text-decoration-none">
                                     NOME
                                     @if(request('sort_by') == 'Nome')
@@ -98,7 +98,7 @@
                             </th>
 
                             {{-- CADASTRADO POR --}}
-                            <th class="@if(request('sort_by') == 'user_created') th-ordenada @endif">
+                            <th class="@if(request('sort_by', 'created_at') == 'user_created') th-ordenada @endif">
                                 <a href="{{ route('Irmaos_Emaus_FichaControle.index', array_merge(request()->all(), ['sort_by' => 'user_created', 'sort_dir' => (request('sort_by') == 'user_created' && request('sort_dir') == 'asc') ? 'desc' : 'asc'])) }}" class="text-white text-decoration-none">
                                     CADASTRADO POR
                                     @if(request('sort_by') == 'user_created')
@@ -112,7 +112,7 @@
                             </th>
 
                             {{-- CADASTRADO EM --}}
-                            <th class="@if(request('sort_by') == 'created_at') th-ordenada @endif">
+                            <th class="@if(request('sort_by', 'created_at') == 'created_at') th-ordenada @endif">
                                 <a href="{{ route('Irmaos_Emaus_FichaControle.index', array_merge(request()->all(), ['sort_by' => 'created_at', 'sort_dir' => (request('sort_by') == 'created_at' && request('sort_dir') == 'asc') ? 'desc' : 'asc'])) }}" class="text-white text-decoration-none">
                                     CADASTRADO EM
                                     @if(request('sort_by') == 'created_at')
@@ -126,7 +126,7 @@
                             </th>
 
                             {{-- ALTERADO POR --}}
-                            <th class="@if(request('sort_by') == 'user_updated') th-ordenada @endif">
+                            <th class="@if(request('sort_by', 'created_at') == 'user_updated') th-ordenada @endif">
                                 <a href="{{ route('Irmaos_Emaus_FichaControle.index', array_merge(request()->all(), ['sort_by' => 'user_updated', 'sort_dir' => (request('sort_by') == 'user_updated' && request('sort_dir') == 'asc') ? 'desc' : 'asc'])) }}" class="text-white text-decoration-none">
                                     ALTERADO POR
                                     @if(request('sort_by') == 'user_updated')
@@ -140,7 +140,7 @@
                             </th>
 
                             {{-- ALTERADO EM --}}
-                            <th class="@if(request('sort_by') == 'updated_at') th-ordenada @endif">
+                            <th class="@if(request('sort_by', 'created_at') == 'updated_at') th-ordenada @endif">
                                 <a href="{{ route('Irmaos_Emaus_FichaControle.index', array_merge(request()->all(), ['sort_by' => 'updated_at', 'sort_dir' => (request('sort_by') == 'updated_at' && request('sort_dir') == 'asc') ? 'desc' : 'asc'])) }}" class="text-white text-decoration-none">
                                     ALTERADO EM
                                     @if(request('sort_by') == 'updated_at')
