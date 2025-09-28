@@ -1,4 +1,5 @@
 <?php
+use App\Models\LancamentoDocumento;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\ArquivosPublicos;
 use App\Http\Controllers\Irmaos_Emaus_FichaControleArquivoController;
@@ -996,13 +997,22 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
 
 Route::get('/storage/arquivos/{filename}', function ($filename) {
     $path = storage_path('app/arquivos/' . $filename);
+    // Busca o documento pelo nome do arquivo (ajuste conforme sua lógica de banco)
+    $nomeSemExt = pathinfo($filename, PATHINFO_FILENAME);
+    $documento = LancamentoDocumento::where('NomeLocalTimeStamps', $nomeSemExt)->first();
     try {
         return response()->file($path);
     } catch (\Exception $e) {
         if (str_contains($e->getMessage(), 'does not exist')) {
-            return response()->json([
-                'error' => 'Arquivo não encontrado no servidor.'
-            ], 404);
+            $dados = [
+                'nome' => $filename,
+                'rotulo' => $documento->Rotulo ?? $nomeSemExt,
+                'caminho' => $path,
+                'tamanho' => null,
+                'data_tentativa' => now()->format('d/m/Y H:i:s'),
+                'documento' => $documento,
+            ];
+            return response()->view('arquivo_nao_encontrado', $dados, 404);
         }
         throw $e;
     }
