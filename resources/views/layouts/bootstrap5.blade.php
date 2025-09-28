@@ -472,11 +472,11 @@ if (window.Livewire) {
                                 {{-- Download FTP (navegação e download de arquivos) --}}
                                 <li><hr class="dropdown-divider"></li>
                                 <li class="dropdown-header">Download</li>
-                                {{-- <li>
-                                  <a class="dropdown-item" href="#">
+                                <li>
+                                  <a class="dropdown-item" href="{{ url('/ftp-browser') }}">
                                     <i class="fa-solid fa-download me-2"></i>Download FTP
                                   </a>
-                                </li> --}}
+                                </li>
                                 @endcan
 
                                 @canany(['backup.logs.view','backup.logs.download','backup.logs.clear'])
