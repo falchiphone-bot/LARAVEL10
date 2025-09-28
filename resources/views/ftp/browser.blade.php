@@ -4,109 +4,123 @@
 @php(/** @var array<int,array{basename:string,path:string,size:int|null,size_human:?string}> $files */ '')
 @php(/** @var callable $encoded */ '')
 
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Navegação FTP
-        </h2>
-    </x-slot>
+@extends('layouts.bootstrap5')
 
-    <div class="py-6">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <p class="text-sm text-gray-600">Diretório atual: <span class="font-mono">/{{ $dir === '' ? '' : $dir }}</span></p>
-                        @if($parent !== null)
-                            <a href="?p={{ $encoded($parent) }}" class="text-indigo-600 text-sm hover:underline">&larr; Voltar</a>
-                        @endif
-                    </div>
-                    <div class="text-right text-xs text-gray-500">
-                        <p>Downloads bloqueados a partir do IP 186.237.225.6</p>
-                    </div>
+@section('content')
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-start flex-wrap mb-3">
+        <div class="mb-2">
+            <h1 class="h4 mb-1">Navegação FTP</h1>
+            <div class="small text-muted">Diretório atual: <code class="fw-semibold">/{{ $dir === '' ? '' : $dir }}</code></div>
+            @if($parent !== null)
+                <div class="mt-1">
+                    <a href="?p={{ $encoded($parent) }}" class="link-primary small"><i class="fa fa-arrow-left me-1"></i>Voltar</a>
                 </div>
+            @endif
+        </div>
+        <div class="text-end small text-secondary mb-2">
+            Downloads bloqueados a partir do IP <span class="fw-bold">186.237.225.6</span>
+        </div>
+    </div>
 
-                @can('backup.executar.ftp')
-                <div class="mb-6 border border-indigo-200 rounded p-4 bg-indigo-50">
-                    <div class="flex flex-wrap items-center gap-3">
-                        <button id="run-backup-btn" class="px-3 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed">
-                            Iniciar Backup (Storage → FTP)
-                        </button>
-                        <button id="refresh-logs-btn" class="px-3 py-2 bg-white border border-indigo-400 text-indigo-700 text-sm rounded hover:bg-indigo-100">
-                            Atualizar Logs
-                        </button>
-                        <span id="backup-status" class="text-sm text-indigo-700"></span>
-                    </div>
-                    <div class="mt-4">
-                        <h3 class="text-xs font-semibold text-indigo-900 uppercase tracking-wide">Últimos eventos (log)</h3>
-                        <div id="logs-box" class="mt-2 max-h-48 overflow-auto text-[11px] font-mono bg-white border border-indigo-100 rounded p-2 space-y-0.5"></div>
-                        <div class="mt-2 text-right">
-                            <a href="{{ url('/backup/ftp-logs') }}" target="_blank" class="text-indigo-600 hover:underline text-xs">Ver log completo &rarr;</a>
-                        </div>
-                    </div>
-                </div>
-                @endcan
+    @can('backup.executar.ftp')
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header py-2 d-flex align-items-center gap-2">
+            <i class="fa fa-cloud-upload-alt text-primary"></i>
+            <span class="fw-semibold">Ações de Backup</span>
+            <span id="backup-status" class="ms-auto small text-primary"></span>
+        </div>
+        <div class="card-body">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                <button id="run-backup-btn" class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1">
+                    <i class="fa fa-play"></i><span>Iniciar Backup (Storage → FTP)</span>
+                </button>
+                <button id="refresh-logs-btn" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
+                    <i class="fa fa-rotate"></i><span>Atualizar Logs</span>
+                </button>
+                <a href="{{ url('/backup/ftp-logs') }}" target="_blank" class="btn btn-sm btn-outline-info">Ver log completo</a>
+            </div>
+            <div>
+                <h6 class="text-uppercase small text-muted mb-2">Últimos eventos (log)</h6>
+                <div id="logs-box" class="border rounded bg-light p-2" style="max-height: 210px; overflow:auto; font-size:11px; font-family: monospace;"></div>
+            </div>
+        </div>
+    </div>
+    @endcan
 
-                @if(!empty($error))
-                    <div class="mb-4 p-3 rounded border border-red-300 bg-red-50 text-sm text-red-700">
-                        <strong>Não foi possível listar o diretório raiz do FTP.</strong><br>
-                        <span class="block mt-1">Mensagem técnica: {{ $error }}</span>
-                        <span class="block mt-2 text-xs text-red-600">Verifique se a pasta definida como ROOT existe no servidor FTP.
-                            <br>Pasta (ROOT) atual: <code>{{ config('filesystems.disks.ftp.root') }}</code>
-                            <br>Opções:
-                            <ul class="list-disc ml-5 mt-1">
-                                <li>Criar a pasta no FTP manualmente</li>
-                                <li>Alterar a variável FTP_ROOT no .env e executar config:cache</li>
-                                <li>Deixar FTP_ROOT vazio no .env para usar raiz</li>
-                            </ul>
-                        </span>
-                    </div>
-                @endif
+    @if(!empty($error))
+        <div class="alert alert-danger border-2 border-danger-subtle">
+            <strong>Não foi possível listar o diretório raiz do FTP.</strong><br>
+            <span class="d-block mt-1">Mensagem técnica: <code>{{ $error }}</code></span>
+            <div class="small mt-2">
+                Verifique se a pasta definida como ROOT existe no servidor FTP.<br>
+                Pasta (ROOT) atual: <code>{{ config('filesystems.disks.ftp.root') }}</code>
+                <ul class="mt-2 mb-0 ps-3">
+                    <li>Criar a pasta no FTP manualmente</li>
+                    <li>Alterar a variável <code>FTP_ROOT</code> no .env e executar <code>config:cache</code></li>
+                    <li>Deixar <code>FTP_ROOT</code> vazio no .env para usar raiz</li>
+                </ul>
+            </div>
+        </div>
+    @endif
 
-                <table class="min-w-full text-sm border">
-                    <thead class="bg-gray-100">
+    @if(empty($error))
+    <div class="card shadow-sm">
+        <div class="card-header py-2 d-flex align-items-center gap-2">
+            <i class="fa fa-folder-open text-secondary"></i>
+            <span class="fw-semibold">Conteúdo</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0 align-middle">
+                    <thead class="table-light">
                         <tr>
-                            <th class="px-3 py-2 text-left">Nome</th>
-                            <th class="px-3 py-2 text-left w-32">Tamanho</th>
-                            <th class="px-3 py-2 w-20">Ações</th>
+                            <th>Nome</th>
+                            <th class="text-start" style="width:140px;">Tamanho</th>
+                            <th class="text-center" style="width:90px;">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($directories as $d)
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-3 py-2">
-                                    <a href="?p={{ $encoded($d['path']) }}" class="text-indigo-600 font-semibold">📁 {{ $d['basename'] }}</a>
+                            <tr>
+                                <td>
+                                    <a href="?p={{ $encoded($d['path']) }}" class="text-decoration-none">
+                                        <i class="fa fa-folder text-warning me-1"></i><strong>{{ $d['basename'] }}</strong>
+                                    </a>
                                 </td>
-                                <td class="px-3 py-2 text-gray-400">—</td>
-                                <td class="px-3 py-2 text-center">—</td>
+                                <td class="text-muted">—</td>
+                                <td class="text-center text-muted">—</td>
                             </tr>
                         @empty
-                            <tr>
-                                <td colspan="3" class="px-3 py-2 text-gray-400">Nenhum diretório</td>
-                            </tr>
+                            <tr><td colspan="3" class="text-muted">Nenhum diretório</td></tr>
                         @endforelse
+
                         @foreach($files as $f)
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-3 py-2 font-mono">📄 {{ $f['basename'] }}</td>
-                                <td class="px-3 py-2">{{ $f['size_human'] ?? '—' }}</td>
-                                <td class="px-3 py-2 text-center">
-                                    <a href="{{ route('ftp.download', ['f' => $encoded($f['path'])]) }}" class="text-indigo-600 hover:underline">Baixar</a>
+                            <tr>
+                                <td class="font-monospace"><i class="fa fa-file text-secondary me-1"></i>{{ $f['basename'] }}</td>
+                                <td>{{ $f['size_human'] ?? '—' }}</td>
+                                <td class="text-center">
+                                    <a href="{{ route('ftp.download', ['f' => $encoded($f['path'])]) }}" class="btn btn-sm btn-outline-primary" title="Baixar">
+                                        <i class="fa fa-download"></i>
+                                    </a>
                                 </td>
                             </tr>
                         @endforeach
+
                         @if(empty($files) && empty($directories))
-                            <tr>
-                                <td colspan="3" class="px-3 py-2 text-gray-400">Diretório vazio</td>
-                            </tr>
+                            <tr><td colspan="3" class="text-muted">Diretório vazio</td></tr>
                         @endif
                     </tbody>
                 </table>
-
-                <p class="mt-4 text-xs text-gray-500">As listagens são obtidas diretamente do FTP a cada requisição. Para otimizar, poderemos adicionar cache posteriormente.</p>
             </div>
         </div>
+        <div class="card-footer small text-muted">
+            As listagens são obtidas diretamente do FTP a cada requisição (sem cache).
+        </div>
     </div>
-</x-app-layout>
+    @endif
+</div>
+@endsection
 
 @can('backup.executar.ftp')
 <script>
@@ -183,6 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadLastLogs();
     startPolling();
+});
 });
 </script>
 @endcan
