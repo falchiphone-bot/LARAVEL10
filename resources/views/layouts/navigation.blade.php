@@ -17,7 +17,7 @@
                     </x-nav-link>
                     @can('backup.executar.ftp')
                         <x-nav-link :href="route('ftp.index')" :active="request()->routeIs('ftp.*')">
-                            {{ __('FTP') }}
+                            {{ __('Download FTP') }}
                         </x-nav-link>
                     @endcan
                 </div>
@@ -71,7 +71,7 @@
             </x-responsive-nav-link>
             @can('backup.executar.ftp')
                 <x-responsive-nav-link :href="route('ftp.index')" :active="request()->routeIs('ftp.*')">
-                    {{ __('FTP') }}
+                    {{ __('Download FTP') }}
                 </x-responsive-nav-link>
             @endcan
         </div>
