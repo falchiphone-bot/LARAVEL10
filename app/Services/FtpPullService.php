@@ -213,6 +213,8 @@ class FtpPullService
             'bytes_downloaded' => $counters['bytes_downloaded'] ?? 0,
             'avg_bytes_per_sec' => 0,
             'eta_seconds' => null,
+            'duration_ms' => null,
+            'duration_human' => null,
         ];
         // Tentar preservar started_at da primeira gravação
         if (is_file($this->statusFile)) {
@@ -237,6 +239,12 @@ class FtpPullService
             if ($ratio > 0 && $elapsed > 1) {
                 $payload['eta_seconds'] = (int) floor($elapsed * (1/$ratio - 1));
             }
+        }
+        // Duração final quando terminou ou cancelou/limit
+        if (in_array($state, ['finished','cancelled','limit'])) {
+            $durationMs = (int) round(($startedAt !== null ? (microtime(true) - $startedAt) : $elapsed) * 1000);
+            $payload['duration_ms'] = $durationMs;
+            $payload['duration_human'] = $this->formatDuration($durationMs);
         }
         $this->updateStatus($payload);
     }
@@ -271,5 +279,23 @@ class FtpPullService
     {
         if (is_file($this->statusFile)) @unlink($this->statusFile);
         if (is_file($this->cancelFile)) @unlink($this->cancelFile);
+    }
+
+    protected function formatDuration(int $ms): string
+    {
+        $seconds = (int) floor($ms / 1000);
+        $msRemainder = $ms % 1000;
+        $h = intdiv($seconds, 3600);
+        $seconds %= 3600;
+        $m = intdiv($seconds, 60);
+        $s = $seconds % 60;
+        $parts = [];
+        if ($h > 0) $parts[] = $h.'h';
+        if ($m > 0) $parts[] = $m.'m';
+        $parts[] = $s.'s';
+        if ($h === 0 && $m === 0) {
+            $parts[count($parts)-1] = $s.'s '.str_pad((string)$msRemainder,3,'0',STR_PAD_LEFT).'ms';
+        }
+        return implode(' ', $parts);
     }
 }

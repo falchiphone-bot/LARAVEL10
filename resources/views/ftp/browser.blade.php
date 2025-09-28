@@ -67,6 +67,7 @@
                         <div><span class="text-muted">Dirs:</span> <span id="stat-dirs">0</span></div>
                         <div><span class="text-muted">Velocidade:</span> <span id="stat-speed" class="text-monospace">0 B/s</span></div>
                         <div><span class="text-muted">ETA:</span> <span id="stat-eta" class="text-monospace">--</span></div>
+                        <div><span class="text-muted">Duração:</span> <span id="stat-duration" class="text-monospace">--</span></div>
                         <div class="col-12"><span class="text-muted">Atual:</span> <span id="stat-current" class="text-monospace"></span></div>
                     </div>
                 </div>
@@ -189,6 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const statCurrent = document.getElementById('stat-current');
     const statSpeed = document.getElementById('stat-speed');
     const statEta = document.getElementById('stat-eta');
+    const statDuration = document.getElementById('stat-duration');
 
     function updateProgressUI(data){
         if(!data) return;
@@ -210,10 +212,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (statCurrent) statCurrent.textContent = data.current||'';
     if (statSpeed) statSpeed.textContent = humanSpeed(data.avg_bytes_per_sec||0);
     if (statEta) statEta.textContent = humanEta(data.eta_seconds);
+    if (statDuration) statDuration.textContent = data.duration_human || (data.state==='running' ? '--' : statDuration.textContent);
         if (pullStatus){
             if (data.state==='finished') pullStatus.textContent = 'Concluído';
             else if (data.state==='running') pullStatus.textContent = 'Em execução';
             else if (data.state==='limit') pullStatus.textContent = 'Limite atingido';
+            else if (data.state==='cancelled') pullStatus.textContent = 'Cancelado';
             else pullStatus.textContent = '';
         }
     }
