@@ -157,6 +157,8 @@ Route::middleware(['auth','verified','can:backup.executar.ftp'])
     ->group(function () {
         Route::get('/', [FtpDownloadController::class, 'index'])->name('index');
         Route::get('/download', [FtpDownloadController::class, 'download'])->name('download');
+        Route::post('/pull-start', [FtpDownloadController::class, 'pullStart'])->name('pull.start');
+        Route::get('/pull-logs', [FtpDownloadController::class, 'pullLogs'])->name('pull.logs');
     });
 /*
 |--------------------------------------------------------------------------

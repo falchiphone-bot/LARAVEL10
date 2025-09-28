@@ -82,6 +82,48 @@ class FtpDownloadController extends Controller
         }, $filename);
     }
 
+    /**
+     * Dispara job para sincronizar (baixar) arquivos do FTP para storage local.
+     */
+    public function pullStart(Request $request)
+    {
+        $this->denyIfBlockedIp($request);
+        try {
+            \App\Jobs\FtpPullJob::dispatch('');
+        } catch (\Throwable $e) {
+            Log::error('FtpPullJob dispatch erro: ' . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => 'Falha ao enfileirar sync', 'error' => $e->getMessage()], 500);
+        }
+        return response()->json(['status' => 'ok', 'message' => 'Sincronização enfileirada']);
+    }
+
+    /**
+     * Retorna as últimas N linhas do log ftp_pull.jsonl (default 80)
+     */
+    public function pullLogs(Request $request)
+    {
+        $this->denyIfBlockedIp($request);
+        $n = (int) $request->query('n', 80);
+        if ($n < 1) $n = 80; if ($n > 500) $n = 500;
+        $path = storage_path('logs/ftp_pull.jsonl');
+        $rows = [];
+        if (file_exists($path)) {
+            try {
+                $lines = @file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
+                $lines = array_slice($lines, -$n);
+                foreach ($lines as $line) {
+                    $obj = json_decode($line, true);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($obj)) {
+                        $rows[] = $obj;
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::error('pullLogs leitura falhou: ' . $e->getMessage());
+            }
+        }
+        return response()->json($rows, 200, ['Cache-Control' => 'no-store']);
+    }
+
     protected function denyIfBlockedIp(Request $request): void
     {
         if ($request->ip() === $this->blockedIp) {
