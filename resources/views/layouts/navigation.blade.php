@@ -15,29 +15,11 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    @can('backup.executar.ftp')
-                        <x-nav-link :href="route('ftp.index')" :active="request()->routeIs('ftp.*')">
-                            <span class="inline-flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0 5-5m-5 5V4" />
-                                </svg>
-                                {{ __('Download FTP') }}
-                            </span>
-                        </x-nav-link>
-                    @endcan
                 </div>
             </div>
 
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ml-6">
-                @can('backup.executar.ftp')
-                    <a href="{{ route('ftp.index') }}" class="mr-4 inline-flex items-center px-3 py-2 text-sm font-medium border border-indigo-500 text-indigo-600 rounded-md hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0 5-5m-5 5V4" />
-                        </svg>
-                        <span>Download FTP</span>
-                    </a>
-                @endcan
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
@@ -82,16 +64,6 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
-            @can('backup.executar.ftp')
-                <x-responsive-nav-link :href="route('ftp.index')" :active="request()->routeIs('ftp.*')">
-                    <span class="inline-flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-2 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0 5-5m-5 5V4" />
-                        </svg>
-                        {{ __('Download FTP') }}
-                    </span>
-                </x-responsive-nav-link>
-            @endcan
         </div>
 
         <!-- Responsive Settings Options -->

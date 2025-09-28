@@ -436,6 +436,14 @@
                                     <i class="fa-solid fa-plug-circle-check me-2"></i>Testar conexão FTP (dry-run)
                                   </a>
                                 </li>
+                                {{-- Download FTP (navegação e download de arquivos) --}}
+                                <li><hr class="dropdown-divider"></li>
+                                <li class="dropdown-header">Download</li>
+                                <li>
+                                  <a class="dropdown-item" href="{{ route('ftp.index') }}">
+                                    <i class="fa-solid fa-download me-2"></i>Download FTP
+                                  </a>
+                                </li>
                                 @endcan
 
                                 @canany(['backup.logs.view','backup.logs.download','backup.logs.clear'])
