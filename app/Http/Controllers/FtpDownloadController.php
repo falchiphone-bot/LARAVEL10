@@ -272,9 +272,31 @@ class FtpDownloadController extends Controller
 
     protected function denyIfBlockedIp(Request $request): void
     {
-        if ($request->ip() === $this->blockedIp) {
-            Log::warning('Tentativa de uso de FTP Browser a partir de IP bloqueado: '.$request->ip());
-            abort(403, 'Este servidor não está autorizado a efetuar downloads via FTP. Utilize outra máquina.');
+        if ($request->ip() === $this->blockedIp || $this->isBlockedServerEnvironment($request)) {
+            Log::warning('Acesso FTP Browser bloqueado. Client IP: '.$request->ip().' ServerAddr: '.($request->server('SERVER_ADDR') ?? 'n/a'));
+            abort(403, 'Ambiente bloqueado para esta funcionalidade. Execute a partir de outra máquina.');
+        }
+    }
+
+    /**
+     * Verifica se o próprio servidor (ambiente onde o código executa) corresponde ao IP bloqueado.
+     * Isso cobre cenários onde o request vem de outro IP mas a política exige bloquear quando a aplicação
+     * está hospedada especificamente em um dado host.
+     */
+    protected function isBlockedServerEnvironment(Request $request): bool
+    {
+        try {
+            $serverAddr = $request->server('SERVER_ADDR'); // pode ser interno (ex: 172.x docker)
+            $hostIp = @gethostbyname(gethostname());
+            // Também tenta HTTP_HOST resolvido
+            $resolvedHost = null;
+            if ($request->server('HTTP_HOST')) {
+                $resolvedHost = @gethostbyname(preg_replace('/:\\d+$/', '', $request->server('HTTP_HOST')));
+            }
+            $candidates = array_filter([$serverAddr, $hostIp, $resolvedHost]);
+            return in_array($this->blockedIp, $candidates, true);
+        } catch (\Throwable $e) {
+            return false; // Em caso de falha, não bloquear silenciosamente
         }
     }
 }
