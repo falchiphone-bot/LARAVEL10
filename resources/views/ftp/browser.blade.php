@@ -35,9 +35,19 @@
                     <button id="run-pull-btn" class="btn btn-sm btn-success d-inline-flex align-items-center gap-1">
                         <i class="fa fa-download"></i><span>Iniciar Sincronização</span>
                     </button>
+                    <button id="cancel-pull-btn" class="btn btn-sm btn-warning d-inline-flex align-items-center gap-1">
+                        <i class="fa fa-stop"></i><span>Cancelar</span>
+                    </button>
+                    <button id="reset-pull-btn" class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1">
+                        <i class="fa fa-rotate-left"></i><span>Reset</span>
+                    </button>
                     <button id="refresh-pull-logs-btn" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
                         <i class="fa fa-rotate"></i><span>Atualizar Logs</span>
                     </button>
+                    <div class="form-check form-switch ms-2">
+                        <input class="form-check-input" type="checkbox" checked id="autoscroll-toggle">
+                        <label class="form-check-label small" for="autoscroll-toggle">Auto-scroll</label>
+                    </div>
                     <small class="text-muted">Copia apenas arquivos novos ou alterados (comparação por tamanho).</small>
                 </div>
                 <div class="mb-3">
@@ -55,6 +65,8 @@
                         <div><span class="text-muted">Pulados:</span> <span id="stat-skipped">0</span></div>
                         <div><span class="text-muted">Erros:</span> <span id="stat-errors" class="text-danger">0</span></div>
                         <div><span class="text-muted">Dirs:</span> <span id="stat-dirs">0</span></div>
+                        <div><span class="text-muted">Velocidade:</span> <span id="stat-speed" class="text-monospace">0 B/s</span></div>
+                        <div><span class="text-muted">ETA:</span> <span id="stat-eta" class="text-monospace">--</span></div>
                         <div class="col-12"><span class="text-muted">Atual:</span> <span id="stat-current" class="text-monospace"></span></div>
                     </div>
                 </div>
@@ -127,6 +139,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const pullStatus = document.getElementById('pull-status');
     const pullLogsBox = document.getElementById('pull-logs-box');
     const pullRefreshBtn = document.getElementById('refresh-pull-logs-btn');
+    const cancelBtn = document.getElementById('cancel-pull-btn');
+    const resetBtn = document.getElementById('reset-pull-btn');
+    const autoScrollToggle = document.getElementById('autoscroll-toggle');
     let pullPolling = null;
     let pullStatusTimer = null;
 
@@ -145,7 +160,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const local = line.local ? (' → ' + line.local) : '';
         div.textContent = '['+evt+'] ' + remote + local;
         pullLogsBox.appendChild(div);
-        pullLogsBox.scrollTop = pullLogsBox.scrollHeight;
+        if (autoScrollToggle?.checked) {
+            pullLogsBox.scrollTop = pullLogsBox.scrollHeight;
+        }
         if (pullLogsBox.children.length > 400) pullLogsBox.removeChild(pullLogsBox.firstChild);
     }
 
@@ -170,6 +187,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const statErrors = document.getElementById('stat-errors');
     const statDirs = document.getElementById('stat-dirs');
     const statCurrent = document.getElementById('stat-current');
+    const statSpeed = document.getElementById('stat-speed');
+    const statEta = document.getElementById('stat-eta');
 
     function updateProgressUI(data){
         if(!data) return;
@@ -188,7 +207,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (statSkipped) statSkipped.textContent = data.skipped||0;
         if (statErrors) statErrors.textContent = data.errors||0;
         if (statDirs) statDirs.textContent = data.dirs||0;
-        if (statCurrent) statCurrent.textContent = data.current||'';
+    if (statCurrent) statCurrent.textContent = data.current||'';
+    if (statSpeed) statSpeed.textContent = humanSpeed(data.avg_bytes_per_sec||0);
+    if (statEta) statEta.textContent = humanEta(data.eta_seconds);
         if (pullStatus){
             if (data.state==='finished') pullStatus.textContent = 'Concluído';
             else if (data.state==='running') pullStatus.textContent = 'Em execução';
@@ -214,6 +235,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (pullStatusTimer) return; pullStatusTimer = setInterval(fetchStatus, 3000); fetchStatus();
     }
 
+    function humanSpeed(b){
+        const units=['B/s','KB/s','MB/s','GB/s'];
+        let u=0; let val=b;
+        while(val>1024 && u<units.length-1){ val/=1024; u++; }
+        return (val>10?val.toFixed(0):val.toFixed(1))+' '+units[u];
+    }
+    function humanEta(s){
+        if(s==null) return '--';
+        if(s<0) return '--';
+        const h=Math.floor(s/3600); s%=3600; const m=Math.floor(s/60); const sec=s%60;
+        if(h>0) return `${h}h ${m}m`; if(m>0) return `${m}m ${sec}s`; return `${sec}s`;
+    }
+
     if (pullRefreshBtn){ pullRefreshBtn.addEventListener('click', e=>{ e.preventDefault(); loadPullLogs(); }); }
 
     if (pullBtn){
@@ -235,6 +269,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 })
                 .catch(()=>{ pullStatus.textContent = 'Erro na requisição.'; pullBtn.disabled = false; });
+        });
+    }
+
+    if (cancelBtn){
+        cancelBtn.addEventListener('click', ()=>{
+            fetch("{{ route('ftp.pull.cancel') }}", { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest','X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content || '' } })
+                .then(()=>fetchStatus());
+        });
+    }
+    if (resetBtn){
+        resetBtn.addEventListener('click', ()=>{
+            fetch("{{ route('ftp.pull.reset') }}", { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest','X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content || '' } })
+                .then(()=>{ fetchStatus(); pullLogsBox.innerHTML=''; });
         });
     }
 

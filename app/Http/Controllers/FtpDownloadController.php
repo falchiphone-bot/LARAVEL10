@@ -144,6 +144,28 @@ class FtpDownloadController extends Controller
         return response()->json($data, 200, ['Cache-Control' => 'no-store']);
     }
 
+    public function pullCancel(Request $request)
+    {
+        $this->denyIfBlockedIp($request);
+        try {
+            app(\App\Services\FtpPullService::class)->triggerCancel();
+        } catch (\Throwable $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+        return response()->json(['status' => 'ok']);
+    }
+
+    public function pullReset(Request $request)
+    {
+        $this->denyIfBlockedIp($request);
+        try {
+            app(\App\Services\FtpPullService::class)->resetStatus();
+        } catch (\Throwable $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+        return response()->json(['status' => 'ok']);
+    }
+
     protected function denyIfBlockedIp(Request $request): void
     {
         if ($request->ip() === $this->blockedIp) {

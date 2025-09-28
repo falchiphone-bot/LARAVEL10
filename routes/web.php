@@ -160,6 +160,8 @@ Route::middleware(['auth','verified','can:backup.executar.ftp'])
         Route::post('/pull-start', [FtpDownloadController::class, 'pullStart'])->name('pull.start');
         Route::get('/pull-logs', [FtpDownloadController::class, 'pullLogs'])->name('pull.logs');
         Route::get('/pull-status', [FtpDownloadController::class, 'pullStatus'])->name('pull.status');
+        Route::post('/pull-cancel', [FtpDownloadController::class, 'pullCancel'])->name('pull.cancel');
+        Route::post('/pull-reset', [FtpDownloadController::class, 'pullReset'])->name('pull.reset');
     });
 /*
 |--------------------------------------------------------------------------
