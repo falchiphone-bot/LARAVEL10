@@ -194,35 +194,68 @@
 
 <!-- Script -->
 <script>
-  const toggleButton = document.getElementById('toggle-menu');
-  const menu = document.getElementById('menu-lateral');
-
-  toggleButton.addEventListener('click', () => {
-    menu.classList.toggle('fechado');
+  // Garante que só exista UM script aberto e tudo execute corretamente
+  document.addEventListener('DOMContentLoaded', function() {
+    var toggleButton = document.getElementById('toggle-menu');
+    var menu = document.getElementById('menu-lateral');
+    if (toggleButton && menu) {
+      toggleButton.addEventListener('click', function() {
+        menu.classList.toggle('fechado');
+      });
+    }
+    // Funções globais para rolar
+    window.scrollToBottom = function() {
+      window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+    window.scrollByLines = function(lines) {
+      const lineHeight = 30;
+      window.scrollBy({
+        top: lines * lineHeight,
+        behavior: 'smooth'
+      });
+    }
   });
+</script>
 
-  function scrollToBottom() {
-    window.scrollTo({
-      top: document.body.scrollHeight,
-      behavior: 'smooth'
+
+
+
+
+<script>
+
+function aplicarMascaraValor() {
+  var input = document.getElementById('valor');
+  if (input && !input.hasAttribute('data-mascara')) {
+    input.setAttribute('data-mascara', 'true');
+    input.addEventListener('blur', function () {
+      var val = input.value.replace(/\D/g, ''); // só números
+      if (val.length > 2) {
+        var inteiro = val.slice(0, -2);
+        var centavos = val.slice(-2);
+        var novoValor = parseInt(inteiro, 10).toLocaleString('pt-BR') + ',' + centavos;
+        input.value = novoValor;
+      } else if (val.length === 2) {
+        input.value = '0,' + val;
+      } else if (val.length === 1) {
+        input.value = '0,0' + val;
+      }
+      if (input.cleave) {
+        input.cleave.setRawValue(input.value);
+      }
+      input.dispatchEvent(new Event('input', { bubbles: true }));
     });
   }
+}
 
-
-
-  // Função para rolar a página para cima ou para baixo por um número "lines" de linhas
-  function scrollByLines(lines) {
-    const lineHeight = 30; // altura aproximada de uma linha em pixels (ajuste conforme sua fonte/estilo)
-    window.scrollBy({
-      top: lines * lineHeight, // positivo para descer, negativo para subir
-      behavior: 'smooth'       // rolagem suave
-    });
-  }
-
-
-
-
-
+document.addEventListener('DOMContentLoaded', aplicarMascaraValor);
+if (window.Livewire) {
+  window.Livewire.hook('message.processed', function () {
+    aplicarMascaraValor();
+  });
+}
 </script>
 
 <script>
@@ -439,11 +472,11 @@
                                 {{-- Download FTP (navegação e download de arquivos) --}}
                                 <li><hr class="dropdown-divider"></li>
                                 <li class="dropdown-header">Download</li>
-                                <li>
-                                  <a class="dropdown-item" href="{{ route('ftp.index') }}">
+                                {{-- <li>
+                                  <a class="dropdown-item" href="#">
                                     <i class="fa-solid fa-download me-2"></i>Download FTP
                                   </a>
-                                </li>
+                                </li> --}}
                                 @endcan
 
                                 @canany(['backup.logs.view','backup.logs.download','backup.logs.clear'])
@@ -867,6 +900,39 @@
     {{-- https://fontawesome.com/search?q=money&o=r&m=free --}}
 
     @livewireScripts
+</script>
+<script>
+function aplicarMascaraValor() {
+  var inputs = document.querySelectorAll('input[name="Valor"]');
+  inputs.forEach(function(input) {
+    if (!input.hasAttribute('data-mascara')) {
+      input.setAttribute('data-mascara', 'true');
+      input.addEventListener('blur', function () {
+        var val = input.value.replace(/\D/g, ''); // só números
+        if (val.length > 2) {
+          var inteiro = val.slice(0, -2);
+          var centavos = val.slice(-2);
+          var novoValor = parseInt(inteiro, 10).toLocaleString('pt-BR') + ',' + centavos;
+          input.value = novoValor;
+        } else if (val.length === 2) {
+          input.value = '0,' + val;
+        } else if (val.length === 1) {
+          input.value = '0,0' + val;
+        }
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', aplicarMascaraValor);
+if (window.Livewire) {
+  window.Livewire.hook('message.processed', function () {
+    aplicarMascaraValor();
+  });
+}
+</script>
+</script>
 </body>
 
 </html>

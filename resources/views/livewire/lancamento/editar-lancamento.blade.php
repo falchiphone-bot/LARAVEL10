@@ -142,12 +142,14 @@
                                     <span class="oculto badge badge-danger">Informação obrigatória</span>
                                 </div>
 
+
                                 <div class="form-group col-sm-2">
                                     <label for="valor" class=" form-control-label">Valor</label>
                                     <input type="text" id="valor" name="Valor" placeholder="R$"
-                                        class="form-control required money" wire:model.lazy="lancamento.Valor">
+                                        class="form-control required" wire:model="lancamento.Valor" autocomplete="off">
                                     <span class="oculto badge badge-danger">Informação obrigatória</span>
                                 </div>
+
 
                                     @if($UsarDolarDebito == 1 || $UsarDolarCredito == 1)
                                         <div class="form-group col-sm-2">
@@ -167,10 +169,9 @@
                                     {{-- <button type="submit" wire:click="acao('limpar')" class="btn btn-seconday">Limpar</button> --}}
 
 
-                                    <button type="button" class="btn btn-primary"
-                                    onclick="confirmar()"
+                                    <button type="submit" class="btn btn-primary"
                                     @if($errors->has('ContaDebitoID')) disabled @endif>
-                                Salvar Lancamento
+                                Salvar Lançamento
                             </button>
 
                             @if ($lancamento->ID)

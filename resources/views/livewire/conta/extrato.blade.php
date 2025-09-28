@@ -944,22 +944,60 @@
             console.log(event.detail.lancamento_id);
         });
 
+
+        // Função para aplicar/remover 'inert' no conteúdo fora do modal
+        function setInertOnPageExceptModal(modalId, enable) {
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+            // Seleciona todos os elementos filhos diretos do body exceto o modal
+            document.querySelectorAll('body > *').forEach(el => {
+                if (el !== modal && enable) {
+                    el.setAttribute('inert', '');
+                    el.setAttribute('aria-hidden', 'true');
+                } else if (el !== modal && !enable) {
+                    el.removeAttribute('inert');
+                    el.removeAttribute('aria-hidden');
+                }
+            });
+        }
+
         window.addEventListener('abrir-modal', event => {
             var myModal = new bootstrap.Modal(document.getElementById('editarLancamentoModal'));
             modal = true;
             myModal.show();
             var myModalEl = document.getElementById('editarLancamentoModal');
 
+            // Aplica 'inert' ao conteúdo fora do modal
+            setInertOnPageExceptModal('editarLancamentoModal', true);
+
+            // Foca o primeiro campo input visível do modal
+            setTimeout(function() {
+                var firstInput = myModalEl.querySelector('input:not([type=hidden]):not([disabled]):not([tabindex="-1"])');
+                if (firstInput) firstInput.focus();
+            }, 200);
+
+            // Remove 'inert' ao fechar
             myModalEl.addEventListener('hidden.bs.modal', function(event) {
                 modal = false;
+                setInertOnPageExceptModal('editarLancamentoModal', false);
+                // Força blur em qualquer elemento focado dentro do modal
+                if (document.activeElement && myModalEl.contains(document.activeElement)) {
+                    document.activeElement.blur();
+                }
                 Livewire.emit('search');
-            })
+            }, { once: true });
         });
 
         window.addEventListener('fechar-modal', event => {
             var myModalEl = document.getElementById('editarLancamentoModal');
             var modalInstance = bootstrap.Modal.getInstance(myModalEl) || new bootstrap.Modal(myModalEl);
             modalInstance.hide();
+            // Remove 'inert' ao fechar por evento externo
+            setInertOnPageExceptModal('editarLancamentoModal', false);
+            // Força blur em qualquer elemento focado dentro do modal
+            if (document.activeElement && myModalEl.contains(document.activeElement)) {
+                document.activeElement.blur();
+            }
         });
 
         window.addEventListener('limpar-selConta', event => {

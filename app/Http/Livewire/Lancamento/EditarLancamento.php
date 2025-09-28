@@ -14,6 +14,7 @@ use Livewire\Component;
 
 class EditarLancamento extends Component
 {
+    public $teste;
     public $contas;
     public $empresa_id;
 
@@ -46,8 +47,28 @@ class EditarLancamento extends Component
 
     protected function prepareForValidation($attributes)
     {
-        $attributes['lancamento']->Valor = str_replace(',', '.', str_replace('.', '', $attributes['lancamento']->Valor));
-        $attributes['lancamento']->ValorQuantidadeDolar = str_replace(',', '.', str_replace('.', '', $attributes['lancamento']->ValorQuantidadeDolar));
+        // Conversão robusta para float, aceitando formatos com ponto, vírgula e milhar
+        $valor = $attributes['lancamento']->Valor;
+        if (is_string($valor)) {
+            $valor = preg_replace('/[^\d,.-]/', '', $valor); // remove tudo exceto dígitos, vírgula, ponto, menos
+            // Se tem vírgula, assume que é separador decimal
+            if (strpos($valor, ',') !== false) {
+                $valor = str_replace('.', '', $valor); // remove milhar
+                $valor = str_replace(',', '.', $valor); // vírgula vira decimal
+            }
+        }
+        $attributes['lancamento']->Valor = is_numeric($valor) ? (float)$valor : null;
+
+        $valorDolar = $attributes['lancamento']->ValorQuantidadeDolar;
+        if (is_string($valorDolar)) {
+            $valorDolar = preg_replace('/[^\d,.-]/', '', $valorDolar);
+            if (strpos($valorDolar, ',') !== false) {
+                $valorDolar = str_replace('.', '', $valorDolar);
+                $valorDolar = str_replace(',', '.', $valorDolar);
+            }
+        }
+        $attributes['lancamento']->ValorQuantidadeDolar = is_numeric($valorDolar) ? (float)$valorDolar : null;
+
         return $attributes;
     }
     protected $rules = [
@@ -131,7 +152,7 @@ class EditarLancamento extends Component
         // }
         if($Dolar == 01)
         {
-            $this->lancamento->ValorQuantidadeDolar =  '';
+            $this->lancamento->ValorQuantidadeDolar =  null;
             // dd(113,$this->lancamento->ValorQuantidadeDolar);
         }
 
@@ -145,7 +166,9 @@ class EditarLancamento extends Component
                 } else {
                     $novoLancamento->DataContabilidade = $this->lancamento->DataContabilidade; // string yyyy-mm-dd
                 }
-                $novoLancamento->ValorQuantidadeDolar = $novoLancamento->ValorQuantidadeDolar ?? null;
+                if (empty($novoLancamento->ValorQuantidadeDolar)) {
+                    $novoLancamento->ValorQuantidadeDolar = null;
+                }
                 $novoLancamento->save();
                 session()->flash('message', 'Lançamento Criado.');
             }
@@ -169,10 +192,8 @@ class EditarLancamento extends Component
 
 
 
-            if($this->lancamento->ValorQuantidadeDolar == null || $this->lancamento->ValorQuantidadeDolar == "" || $this->lancamento->ValorQuantidadeDolar == 0 || $Dolar == '0,01'){
-                //  dd($this->lancamento->ValorQuantidadeDolar);
-                $this->lancamento->ValorQuantidadeDolar =  '0.00';
-                // dd($this->lancamento->ValorQuantidadeDolar);
+            if($this->lancamento->ValorQuantidadeDolar === null || $this->lancamento->ValorQuantidadeDolar === "" || $this->lancamento->ValorQuantidadeDolar === 0 || $Dolar === '0,01'){
+                $this->lancamento->ValorQuantidadeDolar = null;
             }
 
 
@@ -299,9 +320,7 @@ class EditarLancamento extends Component
     }
     public function dehydrate()
     {
-        if (!strpos($this->lancamento['Valor'], ",")) {
-            $this->lancamento['Valor'] = number_format($this->lancamento->Valor,2,',','.');
-        }
+    // Não formata o campo Valor aqui; Cleave.js já faz a máscara visual e o backend converte corretamente.
     }
 
     public function mount($lancamento_id = null, $empresa_id = null)
