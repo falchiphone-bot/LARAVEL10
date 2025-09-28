@@ -35,6 +35,7 @@ class FtpDownloadController extends Controller
             'parent' => $data['parent'],
             'directories' => $data['directories'],
             'files' => $data['files'],
+            'error' => $data['error'] ?? null,
             'encoded' => fn(string $p) => rtrim(strtr(base64_encode($p), '+/=', '._-'), '='),
         ]);
     }

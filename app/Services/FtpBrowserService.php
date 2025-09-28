@@ -33,26 +33,32 @@ class FtpBrowserService
         }
 
         $disk = Storage::disk($this->disk);
+        $directories = [];
+        $files = [];
+        $error = null;
+        try {
+            // Diretórios
+            $directories = collect($disk->directories($dir))->map(function ($path) use ($dir) {
+                return [
+                    'basename' => basename($path),
+                    'path' => ltrim($path, '/'),
+                ];
+            })->sortBy('basename', SORT_NATURAL | SORT_FLAG_CASE)->values()->all();
 
-        // Diretórios
-        $directories = collect($disk->directories($dir))->map(function ($path) use ($dir) {
-            return [
-                'basename' => basename($path),
-                'path' => ltrim($path, '/'),
-            ];
-        })->sortBy('basename', SORT_NATURAL | SORT_FLAG_CASE)->values()->all();
-
-        // Arquivos
-        $files = collect($disk->files($dir))->map(function ($path) use ($disk) {
-            $size = null;
-            try { $size = $disk->size($path); } catch (\Throwable $e) { /* alguns servidores podem falhar */ }
-            return [
-                'basename' => basename($path),
-                'path' => ltrim($path, '/'),
-                'size' => $size,
-                'size_human' => $size !== null ? $this->humanBytes($size) : null,
-            ];
-        })->sortBy('basename', SORT_NATURAL | SORT_FLAG_CASE)->values()->all();
+            // Arquivos
+            $files = collect($disk->files($dir))->map(function ($path) use ($disk) {
+                $size = null;
+                try { $size = $disk->size($path); } catch (\Throwable $e) { /* alguns servidores podem falhar */ }
+                return [
+                    'basename' => basename($path),
+                    'path' => ltrim($path, '/'),
+                    'size' => $size,
+                    'size_human' => $size !== null ? $this->humanBytes($size) : null,
+                ];
+            })->sortBy('basename', SORT_NATURAL | SORT_FLAG_CASE)->values()->all();
+        } catch (\Throwable $e) {
+            $error = $e->getMessage();
+        }
 
         $parent = null;
         if ($dir !== '') {
@@ -65,6 +71,7 @@ class FtpBrowserService
             'parent' => $parent,
             'directories' => $directories,
             'files' => $files,
+            'error' => $error,
         ];
     }
 

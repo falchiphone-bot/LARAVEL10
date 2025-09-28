@@ -47,6 +47,22 @@
                 </div>
                 @endcan
 
+                @if(!empty($error))
+                    <div class="mb-4 p-3 rounded border border-red-300 bg-red-50 text-sm text-red-700">
+                        <strong>Não foi possível listar o diretório raiz do FTP.</strong><br>
+                        <span class="block mt-1">Mensagem técnica: {{ $error }}</span>
+                        <span class="block mt-2 text-xs text-red-600">Verifique se a pasta definida como ROOT existe no servidor FTP.
+                            <br>Pasta (ROOT) atual: <code>{{ config('filesystems.disks.ftp.root') }}</code>
+                            <br>Opções:
+                            <ul class="list-disc ml-5 mt-1">
+                                <li>Criar a pasta no FTP manualmente</li>
+                                <li>Alterar a variável FTP_ROOT no .env e executar config:cache</li>
+                                <li>Deixar FTP_ROOT vazio no .env para usar raiz</li>
+                            </ul>
+                        </span>
+                    </div>
+                @endif
+
                 <table class="min-w-full text-sm border">
                     <thead class="bg-gray-100">
                         <tr>
