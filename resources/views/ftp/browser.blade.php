@@ -52,79 +52,55 @@
         <div class="alert alert-danger border-2 border-danger-subtle">
             <strong>Não foi possível listar o diretório raiz do FTP.</strong><br>
             <span class="d-block mt-1">Mensagem técnica: <code>{{ $error }}</code></span>
-            {{-- Card de backup removido conforme solicitação --}}
-    let polling = null;
+        </div>
+    @endif
 
-    function appendLog(lineObj) {
-        if (!logsBox) return;
-        const div = document.createElement('div');
-        const evt = lineObj.event || 'evt';
-        let color = 'text-gray-700';
-        if (evt === 'sent') color = 'text-green-700';
-        else if (evt === 'skipped') color = 'text-yellow-700';
-        else if (evt === 'error' || evt === 'fatal') color = 'text-red-700';
-        else if (evt === 'dry-run') color = 'text-blue-700';
-        div.className = color;
-        div.textContent = `[${evt}] ${lineObj.file || lineObj.remote || ''}`;
-        logsBox.appendChild(div);
-        logsBox.scrollTop = logsBox.scrollHeight;
-        // Limitar a 300 linhas
-        if (logsBox.children.length > 300) logsBox.removeChild(logsBox.firstChild);
-    }
-
-    function loadLastLogs() {
-        fetch("{{ url('/backup/ftp-logs/download-last?n=40') }}")
-            .then(r => r.json())
-            .then(arr => {
-                if (!Array.isArray(arr)) return;
-                logsBox.innerHTML = '';
-                arr.slice(-40).forEach(o => appendLog(o));
-            })
-            .catch(() => {});
-    }
-
-    function startPolling() {
-        if (polling) return;
-        polling = setInterval(loadLastLogs, 4000);
-    }
-
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', e => {
-            e.preventDefault();
-            loadLastLogs();
-        });
-    }
-
-    if (btn) {
-        btn.addEventListener('click', () => {
-            if (btn.disabled) return;
-            btn.disabled = true;
-            statusEl.textContent = 'Enfileirando backup...';
-            fetch("{{ url('/backup/storage-to-ftp') }}", { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.status === 'ok') {
-                        statusEl.textContent = data.mensagem || 'Backup enfileirado.';
-                        startPolling();
-                        setTimeout(() => { btn.disabled = false; }, 4000);
-                    } else {
-                        statusEl.textContent = 'Falha ao enfileirar backup.';
-                        btn.disabled = false;
-                    }
-                })
-                .catch(() => {
-                    statusEl.textContent = 'Erro na requisição.';
-                    btn.disabled = false;
-                });
-        });
-    }
-
-    loadLastLogs();
-    startPolling();
-});
-});
-</script>
-@endcan
+    @if(empty($error))
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header py-2 d-flex align-items-center gap-2">
+                <i class="fa fa-folder-open text-primary"></i>
+                <span class="fw-semibold">Conteúdo</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Nome</th>
+                            <th class="text-end">Tamanho</th>
+                            <th class="text-end" style="width: 120px;">Ações</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @forelse($directories as $d)
+                            <tr>
+                                <td><i class="fa fa-folder text-warning me-1"></i> <a href="?p={{ $encoded($d['path']) }}" class="text-decoration-none">{{ $d['basename'] }}</a></td>
+                                <td class="text-end text-muted">—</td>
+                                <td class="text-end small text-muted">&nbsp;</td>
+                            </tr>
+                        @empty
+                        @endforelse
+                        @forelse($files as $f)
+                            <tr>
+                                <td><i class="fa fa-file text-secondary me-1"></i> {{ $f['basename'] }}</td>
+                                <td class="text-end"><span class="text-monospace small">{{ $f['size_human'] ?? $f['size'] ?? '' }}</span></td>
+                                <td class="text-end">
+                                    <a href="{{ route('ftp.browser.download', ['path' => $f['path']]) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fa fa-download"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="3" class="text-center text-muted small py-3">Nenhum arquivo encontrado.</td>
+                            </tr>
+                        @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    @endif
 
 @can('backup.executar.ftp')
 <script>
