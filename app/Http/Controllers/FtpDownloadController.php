@@ -166,6 +166,110 @@ class FtpDownloadController extends Controller
         return response()->json(['status' => 'ok']);
     }
 
+    /**
+     * Exporta relatório da última execução (entre último 'start' e 'end').
+     * /ftp-browser/pull-report?format=json|csv (default json)
+     */
+    public function pullReport(Request $request)
+    {
+        $this->denyIfBlockedIp($request);
+        $format = strtolower($request->query('format', 'json'));
+        $logPath = storage_path('logs/ftp_pull.jsonl');
+        if (!is_file($logPath)) {
+            abort(404, 'Log não encontrado.');
+        }
+        try {
+            $lines = @file($logPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
+        } catch (\Throwable $e) {
+            abort(500, 'Falha ao ler log.');
+        }
+        if (empty($lines)) abort(404, 'Sem registros.');
+
+        $segment = [];
+        $foundEnd = false; $foundStart = false;
+        for ($i = count($lines)-1; $i >=0; $i--) {
+            $raw = $lines[$i];
+            $obj = json_decode($raw, true);
+            if (!is_array($obj)) continue;
+            if (!$foundEnd) {
+                if (($obj['event'] ?? null) === 'end') { $foundEnd = true; $segment[] = $obj; }
+                continue; // até achar end ignoramos start logs anteriores
+            }
+            // Já achou end, agora acumula até o start correspondente
+            $segment[] = $obj;
+            if (($obj['event'] ?? null) === 'start') { $foundStart = true; break; }
+        }
+        if (!$foundEnd || !$foundStart) {
+            abort(404, 'Execução completa não encontrada (start/end).');
+        }
+        $segment = array_reverse($segment);
+
+        // Extrair dados
+        $startLine = null; $endLine = null; $downloads = []; $errors=[]; $skips=[]; $mkdirs=[];
+        foreach ($segment as $entry) {
+            switch ($entry['event'] ?? '') {
+                case 'start': $startLine = $entry; break;
+                case 'end': $endLine = $entry; break;
+                case 'download': $downloads[] = $entry; break;
+                case 'error': $errors[] = $entry; break;
+                case 'skip': $skips[] = $entry; break;
+                case 'mkdir': $mkdirs[] = $entry; break;
+            }
+        }
+        if (!$startLine || !$endLine) abort(404, 'Segmento inválido.');
+
+        $summary = [
+            'started_at' => $startLine['ts'] ?? null,
+            'ended_at' => $endLine['ts'] ?? null,
+            'duration_ms' => $endLine['duration_ms'] ?? null,
+            'downloaded' => $endLine['downloaded'] ?? count($downloads),
+            'skipped' => $endLine['skipped'] ?? count($skips),
+            'errors' => $endLine['errors'] ?? count($errors),
+            'dirs' => $endLine['dirs'] ?? null,
+            'files_total' => $endLine['files_total'] ?? null,
+            'bytes_downloaded' => $endLine['bytes_downloaded'] ?? array_sum(array_map(fn($d)=>$d['size'] ?? 0, $downloads)),
+            'remote_root' => $startLine['remote_root'] ?? null,
+            'local_base' => $startLine['local_base'] ?? null,
+        ];
+
+        if ($format === 'csv') {
+            // CSV de downloads
+            $fh = fopen('php://temp', 'w+');
+            fputcsv($fh, ['remote','local','size','ts']);
+            foreach ($downloads as $d) {
+                fputcsv($fh, [
+                    $d['remote'] ?? '',
+                    $d['local'] ?? '',
+                    $d['size'] ?? '',
+                    $d['ts'] ?? '',
+                ]);
+            }
+            rewind($fh);
+            $csv = stream_get_contents($fh);
+            fclose($fh);
+            $filename = 'ftp_pull_downloads_' . date('Ymd_His') . '.csv';
+            return response($csv, 200, [
+                'Content-Type' => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => 'attachment; filename="'.$filename.'"'
+            ]);
+        }
+
+        // JSON completo
+        $payload = [
+            'summary' => $summary,
+            'downloads' => $downloads,
+            'errors' => $errors,
+            'skipped' => $skips,
+            'mkdir' => $mkdirs,
+            'raw_events' => $segment, // pode ser pesado, mas útil. Se quiser podemos remover depois.
+        ];
+        $filename = 'ftp_pull_report_' . date('Ymd_His') . '.json';
+        return response(json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), 200, [
+            'Content-Type' => 'application/json; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"'
+        ]);
+    }
+
     protected function denyIfBlockedIp(Request $request): void
     {
         if ($request->ip() === $this->blockedIp) {

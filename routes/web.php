@@ -162,6 +162,7 @@ Route::middleware(['auth','verified','can:backup.executar.ftp'])
         Route::get('/pull-status', [FtpDownloadController::class, 'pullStatus'])->name('pull.status');
         Route::post('/pull-cancel', [FtpDownloadController::class, 'pullCancel'])->name('pull.cancel');
         Route::post('/pull-reset', [FtpDownloadController::class, 'pullReset'])->name('pull.reset');
+        Route::get('/pull-report', [FtpDownloadController::class, 'pullReport'])->name('pull.report');
     });
 /*
 |--------------------------------------------------------------------------

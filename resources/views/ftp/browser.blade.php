@@ -44,6 +44,15 @@
                     <button id="refresh-pull-logs-btn" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
                         <i class="fa fa-rotate"></i><span>Atualizar Logs</span>
                     </button>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-primary dropdown-toggle" id="exportMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa fa-file-export"></i> Exportar
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="exportMenu">
+                            <li><a class="dropdown-item" id="export-json" href="#">Relatório JSON</a></li>
+                            <li><a class="dropdown-item" id="export-csv" href="#">Downloads CSV</a></li>
+                        </ul>
+                    </div>
                     <div class="form-check form-switch ms-2">
                         <input class="form-check-input" type="checkbox" checked id="autoscroll-toggle">
                         <label class="form-check-label small" for="autoscroll-toggle">Auto-scroll</label>
@@ -143,6 +152,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const cancelBtn = document.getElementById('cancel-pull-btn');
     const resetBtn = document.getElementById('reset-pull-btn');
     const autoScrollToggle = document.getElementById('autoscroll-toggle');
+    const exportJson = document.getElementById('export-json');
+    const exportCsv = document.getElementById('export-csv');
     let pullPolling = null;
     let pullStatusTimer = null;
 
@@ -331,6 +342,15 @@ document.addEventListener('DOMContentLoaded', () => {
             fetch("{{ route('ftp.pull.reset') }}", { method:'POST', headers:{'X-Requested-With':'XMLHttpRequest','X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content || '' } })
                 .then(()=>{ fetchStatus(); pullLogsBox.innerHTML=''; });
         });
+    }
+    function triggerDownload(url){
+        const a=document.createElement('a'); a.href=url; a.target='_blank'; a.rel='noopener'; document.body.appendChild(a); a.click(); setTimeout(()=>a.remove(),1000);
+    }
+    if (exportJson){
+        exportJson.addEventListener('click', (e)=>{ e.preventDefault(); triggerDownload("{{ route('ftp.pull.report') }}?format=json"); });
+    }
+    if (exportCsv){
+        exportCsv.addEventListener('click', (e)=>{ e.preventDefault(); triggerDownload("{{ route('ftp.pull.report') }}?format=csv"); });
     }
 
     loadPullLogs();
