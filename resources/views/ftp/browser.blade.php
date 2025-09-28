@@ -191,6 +191,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const statSpeed = document.getElementById('stat-speed');
     const statEta = document.getElementById('stat-eta');
     const statDuration = document.getElementById('stat-duration');
+    let liveTimer = null;
+    let liveStart = null;
 
     function updateProgressUI(data){
         if(!data) return;
@@ -212,7 +214,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (statCurrent) statCurrent.textContent = data.current||'';
     if (statSpeed) statSpeed.textContent = humanSpeed(data.avg_bytes_per_sec||0);
     if (statEta) statEta.textContent = humanEta(data.eta_seconds);
-    if (statDuration) statDuration.textContent = data.duration_human || (data.state==='running' ? '--' : statDuration.textContent);
+        if (statDuration) {
+            if (['finished','cancelled','limit'].includes(data.state)) {
+                stopLiveTimer();
+                statDuration.textContent = data.duration_human || '--';
+            } else if (data.state === 'running') {
+                if (data.started_at) {
+                    const startMs = Date.parse(data.started_at);
+                    if (!isNaN(startMs)) {
+                        if (!liveStart) liveStart = startMs;
+                        startLiveTimer();
+                    }
+                }
+            } else if (data.state === 'idle') {
+                stopLiveTimer();
+                statDuration.textContent = '--';
+            }
+        }
         if (pullStatus){
             if (data.state==='finished') pullStatus.textContent = 'Concluído';
             else if (data.state==='running') pullStatus.textContent = 'Em execução';
@@ -250,6 +268,32 @@ document.addEventListener('DOMContentLoaded', () => {
         if(s<0) return '--';
         const h=Math.floor(s/3600); s%=3600; const m=Math.floor(s/60); const sec=s%60;
         if(h>0) return `${h}h ${m}m`; if(m>0) return `${m}m ${sec}s`; return `${sec}s`;
+    }
+
+    function formatElapsed(ms){
+        const totalSec = Math.floor(ms/1000);
+        const h = Math.floor(totalSec/3600);
+        const m = Math.floor((totalSec%3600)/60);
+        const s = totalSec%60;
+        if (h>0) return `${h}h ${m}m ${s}s`;
+        if (m>0) return `${m}m ${s}s`;
+        return `${s}s ${(ms%1000).toString().padStart(3,'0')}ms`;
+    }
+
+    function tickLive(){
+        if (!liveStart || !statDuration) return;
+        const now = Date.now();
+        const elapsed = now - liveStart;
+        statDuration.textContent = formatElapsed(elapsed);
+    }
+    function startLiveTimer(){
+        if (liveTimer) return;
+        liveTimer = setInterval(tickLive, 500);
+        tickLive();
+    }
+    function stopLiveTimer(){
+        if (liveTimer) { clearInterval(liveTimer); liveTimer=null; }
+        liveStart = null;
     }
 
     if (pullRefreshBtn){ pullRefreshBtn.addEventListener('click', e=>{ e.preventDefault(); loadPullLogs(); }); }
