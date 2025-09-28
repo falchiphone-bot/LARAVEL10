@@ -24,6 +24,7 @@ use App\Http\Controllers\FormaPagamentoController;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use App\Http\Controllers\FtpDownloadController;
 // Página estática de indisponibilidade de banco (para redirect do Handler)
 Route::get('/db-indisponivel', function () {
     $connection = config('database.default');
@@ -148,6 +149,15 @@ Route::get('/healthz', function (\Illuminate\Http\Request $request) {
 
     return response()->json($payload);
 });
+
+// Navegação e download FTP (bloqueio de execução a partir do IP do servidor principal)
+Route::middleware(['auth','verified','can:backup.executar.ftp'])
+    ->prefix('ftp-browser')
+    ->name('ftp.')
+    ->group(function () {
+        Route::get('/', [FtpDownloadController::class, 'index'])->name('index');
+        Route::get('/download', [FtpDownloadController::class, 'download'])->name('download');
+    });
 /*
 |--------------------------------------------------------------------------
 | Web Routes
