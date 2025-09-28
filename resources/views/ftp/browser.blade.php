@@ -169,3 +169,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 @endcan
+
+@endsection
