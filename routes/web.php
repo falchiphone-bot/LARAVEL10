@@ -992,10 +992,20 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
     return response()->file('../storage/whatsapp/' . $filename);
 })->where('filename', '.*');
 
+
+
 Route::get('/storage/arquivos/{filename}', function ($filename) {
-    // Coloque aqui a lógica para lidar com a requisição, como o envio do arquivo ou redirecionamento para ele.
-    // Você pode usar a função `response()->file()` para enviar o arquivo.
-    return response()->file('../storage/app/arquivos/' . $filename);
+    $path = storage_path('app/arquivos/' . $filename);
+    try {
+        return response()->file($path);
+    } catch (\Exception $e) {
+        if (str_contains($e->getMessage(), 'does not exist')) {
+            return response()->json([
+                'error' => 'Arquivo não encontrado no servidor.'
+            ], 404);
+        }
+        throw $e;
+    }
 })->where('filename', '.*');
 
 
