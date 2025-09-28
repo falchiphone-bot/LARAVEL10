@@ -85,7 +85,7 @@
                                 <td><i class="fa fa-file text-secondary me-1"></i> {{ $f['basename'] }}</td>
                                 <td class="text-end"><span class="text-monospace small">{{ $f['size_human'] ?? $f['size'] ?? '' }}</span></td>
                                 <td class="text-end">
-                                    <a href="{{ route('ftp.browser.download', ['path' => $f['path']]) }}" class="btn btn-sm btn-outline-primary">
+                                    <a href="{{ route('ftp.download', ['path' => $f['path']]) }}" class="btn btn-sm btn-outline-primary">
                                         <i class="fa fa-download"></i>
                                     </a>
                                 </td>
