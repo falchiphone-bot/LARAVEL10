@@ -14,8 +14,12 @@ class FtpPullService
 
     public function __construct()
     {
-        $this->localBase = trim(env('FTP_PULL_LOCAL_BASE', 'ftp_mirror'), '/');
-        if ($this->localBase === '') { $this->localBase = 'ftp_mirror'; }
+        // Se a variável existir e estiver vazia, respeitamos (root). Se não existir, usamos ftp_mirror.
+        $cfg = env('FTP_PULL_LOCAL_BASE');
+        if ($cfg === null) {
+            $cfg = 'ftp_mirror';
+        }
+        $this->localBase = trim($cfg, '/'); // pode ficar '' para root
         $this->logFile = storage_path('logs/ftp_pull.jsonl');
         $this->maxFiles = (int) env('FTP_PULL_MAX_FILES', 10000);
         if ($this->maxFiles < 1) $this->maxFiles = 10000;
@@ -43,20 +47,22 @@ class FtpPullService
             $seenDirs[$dirNorm] = true;
 
             // cria diretório local correspondente
-            $localDirRel = $this->localBase . ($dirNorm ? '/' . $dirNorm : '');
-            $this->ensureLocalDir($localDirRel);
+            $localDirRel = $this->buildLocalDirRel($dirNorm);
+            if ($localDirRel !== '') { // root não precisa criar explicitamente
+                $this->ensureLocalDir($localDirRel);
+            }
             $counters['dirs']++;
 
             try {
                 $disk = Storage::disk($this->ftpDisk);
                 $subDirs = $disk->directories($dirNorm ?: '/');
                 foreach ($subDirs as $sd) {
-                    $normalized = ltrim($sd, '/');
+                    $normalized = trim($sd, '/');
                     if ($normalized !== '') { $queue[] = $normalized; }
                 }
                 $files = $disk->files($dirNorm ?: '/');
                 foreach ($files as $filePath) {
-                    $pathNorm = ltrim($filePath, '/');
+                    $pathNorm = trim($filePath, '/');
                     $counters['files_total']++;
                     if ($processedFiles >= $this->maxFiles) {
                         $this->logLine(['event' => 'limit_reached', 'message' => 'Limite maxFiles atingido', 'max_files' => $this->maxFiles]);
@@ -78,9 +84,9 @@ class FtpPullService
 
     protected function handleFile(string $remotePath, array &$counters): void
     {
-        $remotePath = ltrim($remotePath, '/');
-        $localRel = $this->localBase . '/' . $remotePath;
-        $localAbs = storage_path('app/' . $localRel);
+    $remotePath = trim($remotePath, '/');
+    $localRel = $this->buildLocalFileRel($remotePath);
+    $localAbs = storage_path('app/' . $localRel);
 
         // Skip se já existe mesmo size
         try {
@@ -123,6 +129,22 @@ class FtpPullService
             @mkdir($abs, 0775, true);
             $this->logLine(['event' => 'mkdir', 'local' => $rel]);
         }
+    }
+
+    protected function buildLocalDirRel(string $dirNorm): string
+    {
+        if ($this->localBase === '') {
+            return trim($dirNorm, '/'); // root
+        }
+        return $this->localBase . ($dirNorm ? '/' . $dirNorm : '');
+    }
+
+    protected function buildLocalFileRel(string $remotePath): string
+    {
+        if ($this->localBase === '') {
+            return $remotePath; // direto na raiz de storage/app
+        }
+        return $this->localBase . '/' . $remotePath;
     }
 
     protected function logLine(array $data): void
