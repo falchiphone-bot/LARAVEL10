@@ -124,6 +124,26 @@ class FtpDownloadController extends Controller
         return response()->json($rows, 200, ['Cache-Control' => 'no-store']);
     }
 
+    /**
+     * Retorna JSON com status progressivo (arquivo ftp_pull_status.json) para UI exibir barra.
+     */
+    public function pullStatus(Request $request)
+    {
+        $this->denyIfBlockedIp($request);
+        $file = storage_path('logs/ftp_pull_status.json');
+        if (!is_file($file)) {
+            return response()->json(['state' => 'idle'], 200, ['Cache-Control' => 'no-store']);
+        }
+        try {
+            $json = @file_get_contents($file);
+            $data = @json_decode($json, true);
+            if (!is_array($data)) { $data = ['state' => 'idle']; }
+        } catch (\Throwable $e) {
+            $data = ['state' => 'error', 'message' => $e->getMessage()];
+        }
+        return response()->json($data, 200, ['Cache-Control' => 'no-store']);
+    }
+
     protected function denyIfBlockedIp(Request $request): void
     {
         if ($request->ip() === $this->blockedIp) {

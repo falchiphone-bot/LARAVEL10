@@ -40,6 +40,24 @@
                     </button>
                     <small class="text-muted">Copia apenas arquivos novos ou alterados (comparação por tamanho).</small>
                 </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span>Progresso</span>
+                        <span id="pull-progress-label" class="text-muted">0%</span>
+                    </div>
+                    <div class="progress" style="height:14px;">
+                        <div id="pull-progress-bar" class="progress-bar progress-bar-striped" role="progressbar" style="width:0%">&nbsp;</div>
+                    </div>
+                    <div class="row row-cols-2 row-cols-md-4 g-2 mt-2" style="font-size:11px;">
+                        <div><span class="text-muted">Total:</span> <span id="stat-total">0</span></div>
+                        <div><span class="text-muted">Processados:</span> <span id="stat-processed">0</span></div>
+                        <div><span class="text-muted">Baixados:</span> <span id="stat-downloaded">0</span></div>
+                        <div><span class="text-muted">Pulados:</span> <span id="stat-skipped">0</span></div>
+                        <div><span class="text-muted">Erros:</span> <span id="stat-errors" class="text-danger">0</span></div>
+                        <div><span class="text-muted">Dirs:</span> <span id="stat-dirs">0</span></div>
+                        <div class="col-12"><span class="text-muted">Atual:</span> <span id="stat-current" class="text-monospace"></span></div>
+                    </div>
+                </div>
                 <div>
                     <h6 class="text-uppercase small text-muted mb-2">Últimos eventos (pull)</h6>
                     <div id="pull-logs-box" class="border rounded bg-light p-2" style="max-height: 210px; overflow:auto; font-size:11px; font-family: monospace;"></div>
@@ -110,6 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const pullLogsBox = document.getElementById('pull-logs-box');
     const pullRefreshBtn = document.getElementById('refresh-pull-logs-btn');
     let pullPolling = null;
+    let pullStatusTimer = null;
 
     function pullAppend(line){
         if (!pullLogsBox) return;
@@ -141,6 +160,60 @@ document.addEventListener('DOMContentLoaded', () => {
         if (pullPolling) return; pullPolling = setInterval(loadPullLogs, 5000);
     }
 
+    // ---- Status / Progresso ----
+    const bar = document.getElementById('pull-progress-bar');
+    const label = document.getElementById('pull-progress-label');
+    const statTotal = document.getElementById('stat-total');
+    const statProcessed = document.getElementById('stat-processed');
+    const statDownloaded = document.getElementById('stat-downloaded');
+    const statSkipped = document.getElementById('stat-skipped');
+    const statErrors = document.getElementById('stat-errors');
+    const statDirs = document.getElementById('stat-dirs');
+    const statCurrent = document.getElementById('stat-current');
+
+    function updateProgressUI(data){
+        if(!data) return;
+        const total = Number(data.files_total||0);
+        const processed = Number(data.processed||0);
+        const pct = total>0 ? Math.min(100, Math.round(processed*100/total)) : (data.state==='finished'?100:0);
+        if (bar){
+            bar.style.width = pct+'%';
+            bar.classList.toggle('bg-success', data.state==='finished');
+            bar.classList.toggle('progress-bar-animated', data.state==='running');
+        }
+        if (label) label.textContent = pct+'%';
+        if (statTotal) statTotal.textContent = total;
+        if (statProcessed) statProcessed.textContent = processed;
+        if (statDownloaded) statDownloaded.textContent = data.downloaded||0;
+        if (statSkipped) statSkipped.textContent = data.skipped||0;
+        if (statErrors) statErrors.textContent = data.errors||0;
+        if (statDirs) statDirs.textContent = data.dirs||0;
+        if (statCurrent) statCurrent.textContent = data.current||'';
+        if (pullStatus){
+            if (data.state==='finished') pullStatus.textContent = 'Concluído';
+            else if (data.state==='running') pullStatus.textContent = 'Em execução';
+            else if (data.state==='limit') pullStatus.textContent = 'Limite atingido';
+            else pullStatus.textContent = '';
+        }
+    }
+
+    function fetchStatus(){
+        fetch("{{ route('ftp.pull.status') }}")
+            .then(r=>r.json())
+            .then(js => {
+                updateProgressUI(js);
+                // Se concluído, parar timer
+                if (js && (js.state==='finished' || js.state==='idle')) {
+                    if (pullStatusTimer){ clearInterval(pullStatusTimer); pullStatusTimer=null; }
+                }
+            })
+            .catch(()=>{});
+    }
+
+    function startStatusTimer(){
+        if (pullStatusTimer) return; pullStatusTimer = setInterval(fetchStatus, 3000); fetchStatus();
+    }
+
     if (pullRefreshBtn){ pullRefreshBtn.addEventListener('click', e=>{ e.preventDefault(); loadPullLogs(); }); }
 
     if (pullBtn){
@@ -154,6 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (data && data.status === 'ok') {
                         pullStatus.textContent = data.message || 'Sincronização iniciada.';
                         startPullPolling();
+                        startStatusTimer();
                         setTimeout(()=>{ pullBtn.disabled = false; }, 4000);
                     } else {
                         pullStatus.textContent = 'Falha ao iniciar.';
@@ -166,6 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadPullLogs();
     startPullPolling();
+    startStatusTimer();
 });
 </script>
 @endcan
