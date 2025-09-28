@@ -243,6 +243,12 @@ Route::get('/', function () {
     } elseif ($dominio === 'contabilidade.falchi.com.br') {
         // Redireciona a raiz do subdomínio para o dashboard específico de Contabilidade
         return redirect()->route('dashboardContabilidade');
+    } elseif ($dominio === 'emaus.falchi.com.br') {
+        // Redireciona a raiz do subdomínio para a página inicial de Emaus
+        return view('emaus.index');
+    } elseif ($dominio === 'saf.falchi.com.br') {
+        // Redireciona a raiz do subdomínio para a página inicial de SAF
+        return view('saf.index');
     }
 
     return redirect('/dashboard'); // Caso não seja nenhum dos domínios específicos
@@ -1314,6 +1320,11 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     Route::get('/Contabilidade', function () {
         return view('Contabilidade.dashboard');
     })->name('dashboardContabilidade');
+
+    #Emaus
+    Route::get('/Emaus', function () {
+        return view('emaus.index');
+    })->name('dashboardEmaus');
 
     Route::get('/ContasCarro', function () {
         return view('Contas.carros');

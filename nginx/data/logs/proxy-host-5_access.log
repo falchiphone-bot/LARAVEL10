@@ -1,0 +1,2 @@
+[27/Sep/2025:23:37:22 +0000] - 302 302 - GET http emaus.falchi.com.br "/" [Client 192.168.65.1] [Length 402] [Gzip -] [Sent-to laravel10] "curl/8.7.1" "-"
+[27/Sep/2025:23:42:35 +0000] - 200 200 - GET http emaus.falchi.com.br "/" [Client 192.168.65.1] [Length 4010] [Gzip -] [Sent-to laravel10] "curl/8.7.1" "-"
