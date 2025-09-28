@@ -46,43 +46,34 @@ class Irmaos_Emaus_FichaControleController extends Controller
  public function index(Request $request)
 {
     $perPage = (int) $request->input('per_page', 5); // Valor padrão 5 linhas por página
+    $sortBy = $request->input('sort_by', 'created_at');
+    $sortDir = $request->input('sort_dir', 'desc');
 
-    $query = Irmaos_Emaus_FichaControle::with('Irmaos_EmausServicos');
+    $query = Irmaos_Emaus_FichaControle::query();
+
+    // Join para ordenar por nome do serviço
+    if ($sortBy === 'Irmaos_EmausServicos.nomeServico') {
+        $query->leftJoin('Irmaos_EmausServicos', 'Irmaos_Emaus_FichaControle.idServicos', '=', 'Irmaos_EmausServicos.id')
+              ->orderBy('Irmaos_EmausServicos.nomeServico', $sortDir)
+              ->select('Irmaos_Emaus_FichaControle.*');
+    } elseif (in_array($sortBy, ['Nome', 'created_at', 'updated_at', 'user_created', 'user_updated'])) {
+        $query->orderBy($sortBy, $sortDir);
+    } else {
+        $query->orderBy('created_at', 'desc');
+    }
 
     // Filtro de busca
     if ($request->filled('search')) {
         $search = $request->input('search');
-        $query->where('Nome', 'like', "%{$search}%")
-              ->orWhereHas('Irmaos_EmausServicos', function($q) use ($search) {
-                  $q->where('nomeServico', 'like', "%{$search}%");
+        $query->where(function($q) use ($search) {
+            $q->where('Nome', 'like', "%{$search}%")
+              ->orWhereHas('Irmaos_EmausServicos', function($q2) use ($search) {
+                  $q2->where('nomeServico', 'like', "%{$search}%");
               });
-    }
-
-    // Paginação com perPage dinâmico, mantendo todos os parâmetros da query string
-    $model = $query->paginate($perPage)->appends($request->all());
-
-    // Ordenação na Collection após paginação
-    $sortBy = $request->input('sort_by', 'created_at');
-    $sortDir = $request->input('sort_dir', 'desc');
-
-    if ($sortBy == 'Irmaos_EmausServicos.nomeServico') {
-        $model->getCollection()->transform(function($item) {
-            $item->nomeServico = optional($item->Irmaos_EmausServicos)->nomeServico;
-            return $item;
         });
-
-        $model->setCollection(
-            $sortDir === 'asc'
-                ? $model->getCollection()->sortBy('nomeServico')
-                : $model->getCollection()->sortByDesc('nomeServico')
-        );
-    } elseif (in_array($sortBy, ['Nome', 'created_at', 'updated_at', 'user_created', 'user_updated'])) {
-        $model->setCollection(
-            $sortDir === 'asc'
-                ? $model->getCollection()->sortBy($sortBy)
-                : $model->getCollection()->sortByDesc($sortBy)
-        );
     }
+
+    $model = $query->with('Irmaos_EmausServicos')->paginate($perPage)->appends($request->all());
 
     return view('Irmaos_Emaus_FichaControle.index', compact('model', 'perPage', 'sortBy', 'sortDir'));
 }

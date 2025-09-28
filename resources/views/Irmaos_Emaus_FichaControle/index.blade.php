@@ -58,86 +58,96 @@
                 {{-- Tabela com cores e ícones --}}
                 <table class="table table-striped table-hover" style="background-color: #93f771;">
                     <thead class="bg-primary text-white">
+                    <style>
+                        .th-ordenada {
+                            background: #ffc107 !important;
+                            color: #212529 !important;
+                        }
+                        .icone-ordenado {
+                            color: #d35400 !important;
+                            font-weight: bold;
+                        }
+                    </style>
                         <tr>
                             {{-- SERVIÇO --}}
-                            <th>
+                            <th class="@if(request('sort_by') == 'Irmaos_EmausServicos.nomeServico') th-ordenada @endif">
                                 <a href="{{ route('Irmaos_Emaus_FichaControle.index', array_merge(request()->all(), ['sort_by' => 'Irmaos_EmausServicos.nomeServico', 'sort_dir' => (request('sort_by') == 'Irmaos_EmausServicos.nomeServico' && request('sort_dir') == 'asc') ? 'desc' : 'asc'])) }}" class="text-white text-decoration-none">
                                     SERVIÇO
                                     @if(request('sort_by') == 'Irmaos_EmausServicos.nomeServico')
                                         @if(request('sort_dir') == 'asc')
-                                            <i class="bi bi-arrow-up"></i>
+                                            <i class="bi bi-arrow-up icone-ordenado"></i>
                                         @else
-                                            <i class="bi bi-arrow-down"></i>
+                                            <i class="bi bi-arrow-down icone-ordenado"></i>
                                         @endif
                                     @endif
                                 </a>
                             </th>
 
                             {{-- NOME --}}
-                            <th>
+                            <th class="@if(request('sort_by') == 'Nome') th-ordenada @endif">
                                 <a href="{{ route('Irmaos_Emaus_FichaControle.index', array_merge(request()->all(), ['sort_by' => 'Nome', 'sort_dir' => (request('sort_by') == 'Nome' && request('sort_dir') == 'asc') ? 'desc' : 'asc'])) }}" class="text-white text-decoration-none">
                                     NOME
                                     @if(request('sort_by') == 'Nome')
                                         @if(request('sort_dir') == 'asc')
-                                            <i class="bi bi-arrow-up"></i>
+                                            <i class="bi bi-arrow-up icone-ordenado"></i>
                                         @else
-                                            <i class="bi bi-arrow-down"></i>
+                                            <i class="bi bi-arrow-down icone-ordenado"></i>
                                         @endif
                                     @endif
                                 </a>
                             </th>
 
                             {{-- CADASTRADO POR --}}
-                            <th>
+                            <th class="@if(request('sort_by') == 'user_created') th-ordenada @endif">
                                 <a href="{{ route('Irmaos_Emaus_FichaControle.index', array_merge(request()->all(), ['sort_by' => 'user_created', 'sort_dir' => (request('sort_by') == 'user_created' && request('sort_dir') == 'asc') ? 'desc' : 'asc'])) }}" class="text-white text-decoration-none">
                                     CADASTRADO POR
                                     @if(request('sort_by') == 'user_created')
                                         @if(request('sort_dir') == 'asc')
-                                            <i class="bi bi-arrow-up"></i>
+                                            <i class="bi bi-arrow-up icone-ordenado"></i>
                                         @else
-                                            <i class="bi bi-arrow-down"></i>
+                                            <i class="bi bi-arrow-down icone-ordenado"></i>
                                         @endif
                                     @endif
                                 </a>
                             </th>
 
                             {{-- CADASTRADO EM --}}
-                            <th>
+                            <th class="@if(request('sort_by') == 'created_at') th-ordenada @endif">
                                 <a href="{{ route('Irmaos_Emaus_FichaControle.index', array_merge(request()->all(), ['sort_by' => 'created_at', 'sort_dir' => (request('sort_by') == 'created_at' && request('sort_dir') == 'asc') ? 'desc' : 'asc'])) }}" class="text-white text-decoration-none">
                                     CADASTRADO EM
                                     @if(request('sort_by') == 'created_at')
                                         @if(request('sort_dir') == 'asc')
-                                            <i class="bi bi-arrow-up"></i>
+                                            <i class="bi bi-arrow-up icone-ordenado"></i>
                                         @else
-                                            <i class="bi bi-arrow-down"></i>
+                                            <i class="bi bi-arrow-down icone-ordenado"></i>
                                         @endif
                                     @endif
                                 </a>
                             </th>
 
                             {{-- ALTERADO POR --}}
-                            <th>
+                            <th class="@if(request('sort_by') == 'user_updated') th-ordenada @endif">
                                 <a href="{{ route('Irmaos_Emaus_FichaControle.index', array_merge(request()->all(), ['sort_by' => 'user_updated', 'sort_dir' => (request('sort_by') == 'user_updated' && request('sort_dir') == 'asc') ? 'desc' : 'asc'])) }}" class="text-white text-decoration-none">
                                     ALTERADO POR
                                     @if(request('sort_by') == 'user_updated')
                                         @if(request('sort_dir') == 'asc')
-                                            <i class="bi bi-arrow-up"></i>
+                                            <i class="bi bi-arrow-up icone-ordenado"></i>
                                         @else
-                                            <i class="bi bi-arrow-down"></i>
+                                            <i class="bi bi-arrow-down icone-ordenado"></i>
                                         @endif
                                     @endif
                                 </a>
                             </th>
 
                             {{-- ALTERADO EM --}}
-                            <th>
+                            <th class="@if(request('sort_by') == 'updated_at') th-ordenada @endif">
                                 <a href="{{ route('Irmaos_Emaus_FichaControle.index', array_merge(request()->all(), ['sort_by' => 'updated_at', 'sort_dir' => (request('sort_by') == 'updated_at' && request('sort_dir') == 'asc') ? 'desc' : 'asc'])) }}" class="text-white text-decoration-none">
                                     ALTERADO EM
                                     @if(request('sort_by') == 'updated_at')
                                         @if(request('sort_dir') == 'asc')
-                                            <i class="bi bi-arrow-up"></i>
+                                            <i class="bi bi-arrow-up icone-ordenado"></i>
                                         @else
-                                            <i class="bi bi-arrow-down"></i>
+                                            <i class="bi bi-arrow-down icone-ordenado"></i>
                                         @endif
                                     @endif
                                 </a>
