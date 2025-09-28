@@ -110,11 +110,45 @@ class DatabaseCircuitBreaker
                             ], 503)->withHeaders($headers);
                         }
                         // Envia alertas (e-mail e WhatsApp) com supressão, na primeira detecção via pré-checagem
+                        // Mas primeiro faz um re-teste para confirmar se realmente está down
                         $alertTo = env('DB_ALERT_EMAIL');
                         if ($alertTo) {
-                            $suppressMinutes = (int) env('DB_ALERT_SUPPRESS_MINUTES', 30);
+                            // Re-teste antes de enviar alerta: aguarda e tenta conectar novamente
+                            $retestDelay = (float) env('DB_PREFLIGHT_RETEST_DELAY', 2.0);
+                            $retestTimeout = (float) env('DB_PREFLIGHT_RETEST_TIMEOUT', 1.5);
+                            
+                            if ($retestDelay > 0) {
+                                sleep($retestDelay);
+                            }
+                            
+                            $retestStart = microtime(true);
+                            $retestErrno = 0; $retestErrstr = '';
+                            $retestConn = @fsockopen($host, (int)$port, $retestErrno, $retestErrstr, $retestTimeout);
+                            $retestElapsed = (microtime(true) - $retestStart) * 1000;
+                            
+                            $shouldSendAlert = true;
+                            if ($retestConn) {
+                                fclose($retestConn);
+                                $shouldSendAlert = false;
+                                Log::info('DATABASE PREFLIGHT RETEST SUCCESS - Alerta cancelado', [
+                                    'host' => $host,
+                                    'port' => $port,
+                                    'initial_elapsed_ms' => round($elapsed,1),
+                                    'retest_elapsed_ms' => round($retestElapsed,1),
+                                ]);
+                            } else {
+                                Log::warning('DATABASE PREFLIGHT RETEST CONFIRMED DOWN', [
+                                    'host' => $host,
+                                    'port' => $port,
+                                    'initial_elapsed_ms' => round($elapsed,1),
+                                    'retest_elapsed_ms' => round($retestElapsed,1),
+                                    'retest_error' => $retestErrstr ?: $retestErrno,
+                                ]);
+                            }
+
+                            $suppressMinutes = (int) env('DB_ALERT_SUPPRESS_MINUTES', 60);
                             $alertKey = 'db:alert:sent:'.$connection;
-                            if (!Cache::has($alertKey)) {
+                            if ($shouldSendAlert && !Cache::has($alertKey)) {
                                 Cache::put($alertKey, 1, now()->addMinutes($suppressMinutes));
                                 try {
                                     $recipients = array_filter(array_map('trim', explode(',', $alertTo)));
