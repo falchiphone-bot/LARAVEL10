@@ -3,6 +3,7 @@
 <div class="py-4 bg-light"><div class="container">
   <div class="card"><div class="card-body">
     <h5 class="mb-3">Editar Envio</h5>
+  {{-- Formulário de filtro de representantes removido daqui. Utilize a tela de listagem para gerar PDF por representante/período. --}}
     @if (session()->has('public_links_created') || session()->has('public_link'))
       @php
         $pl = session('public_links_created');
@@ -166,11 +167,6 @@
     @endif
     <hr>
     <h6>Custos de Registro</h6>
-    @can('ENVIOS - CUSTOS - LISTAR')
-    <a href="{{ route('Envios.custos.pdf', ['Envio'=>$envio->getKey()]) }}" class="btn btn-outline-secondary btn-sm mb-2" target="_blank">
-        <i class="fa fa-file-pdf"></i> Baixar PDF dos Custos
-    </a>
-    @endcan
     <div class="row g-3 mb-3">
       <div class="col-12 col-lg-6">
       @can('ENVIOS - CUSTOS - INCLUIR')

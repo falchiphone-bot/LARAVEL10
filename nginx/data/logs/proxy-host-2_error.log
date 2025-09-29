@@ -1,1 +1,3 @@
 2025/09/28 19:34:17 [warn] 224#224: *2363 using uninitialized "server" variable while logging request, client: 172.18.0.1, server: tanabisaf.com.br
+2025/09/29 19:21:07 [warn] 193#193: *571 using uninitialized "server" variable while logging request, client: 172.18.0.1, server: tanabisaf.com.br, request: "GET //wp-includes/wlwmanifest.xml HTTP/1.1", host: "tanabisaf.com.br"
+2025/09/29 19:21:14 [warn] 193#193: *572 using uninitialized "server" variable while logging request, client: 172.18.0.1, server: tanabisaf.com.br

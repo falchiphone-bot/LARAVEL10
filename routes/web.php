@@ -427,6 +427,8 @@ Route::delete('Envios/{Envio}/custos/{custo}', [App\Http\Controllers\EnvioCustoC
 // PDF dos custos de um envio
 Route::get('Envios/{Envio}/custos/pdf', [App\Http\Controllers\EnvioCustoController::class, 'pdf'])
     ->name('Envios.custos.pdf');
+Route::get('Envios/custos/pdf/filtro', [App\Http\Controllers\EnvioCustoController::class, 'pdfFiltro'])
+    ->name('Envios.custos.pdf.filtro');
 
 // Diagnóstico de arquivo (apenas para admins com ENVIOS - VER)
 Route::get('Envios/{Envio}/arquivos/{arquivo}/diagnose', [App\Http\Controllers\EnvioController::class, 'diagnose'])

@@ -9,6 +9,30 @@
           <a href="{{ route('Envios.create') }}" class="btn btn-primary btn-sm">Novo Envio</a>
         @endcan
       </div>
+      @can('ENVIOS - CUSTOS - LISTAR')
+      <form method="GET" action="{{ route('Envios.custos.pdf.filtro') }}" class="row g-2 align-items-end mb-3">
+          <div class="col-md-4">
+              <label class="form-label small mb-1">Representante</label>
+              <select name="representante_id" class="form-select form-select-sm" required>
+          <option value="">Selecione...</option>
+          @foreach(\App\Models\Representantes::orderBy('nome')->get() as $rep)
+            <option value="{{ $rep->id }}">{{ $rep->nome }}</option>
+          @endforeach
+              </select>
+          </div>
+          <div class="col-md-3">
+              <label class="form-label small mb-1">Data inicial</label>
+              <input type="date" name="data_ini" class="form-control form-control-sm" required>
+          </div>
+          <div class="col-md-3">
+              <label class="form-label small mb-1">Data final</label>
+              <input type="date" name="data_fim" class="form-control form-control-sm" required>
+          </div>
+          <div class="col-md-2 d-grid">
+              <button class="btn btn-outline-primary btn-sm"><i class="fa fa-file-pdf"></i> PDF por Representante</button>
+          </div>
+      </form>
+      @endcan
       <form method="GET" class="row g-2 mb-3 align-items-end">
         <div class="col-md-4">
           <label class="form-label">Buscar</label>

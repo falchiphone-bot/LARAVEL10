@@ -134,6 +134,27 @@ class EnvioCustoController extends Controller
         return $pdf->download('custos-envio-' . $envio->id . '.pdf');
     }
 
+    public function pdfFiltro(Request $request)
+    {
+        $request->validate([
+            'representante_id' => 'required|exists:representantes,id',
+            'data_ini' => 'required|date',
+            'data_fim' => 'required|date|after_or_equal:data_ini',
+        ]);
+        $rep = \App\Models\Representantes::findOrFail($request->representante_id);
+        $custos = \App\Models\EnvioCusto::with('envio')
+            ->whereHas('envio', function($q) use ($rep) {
+                $q->where('representante_id', $rep->id);
+            })
+            ->whereBetween('data', [$request->data_ini, $request->data_fim])
+            ->orderBy('data')
+            ->get();
+
+        $totalGeral = $custos->sum('valor');
+        $pdf = \PDF::loadView('Envios.custos.pdf_filtro', compact('rep', 'custos', 'totalGeral', 'request'));
+        return $pdf->download('custos-representante-'.$rep->id.'-'.$request->data_ini.'-a-'.$request->data_fim.'.pdf');
+    }
+
     protected function authorizeEnvio(Envio $envio)
     {
         // Usa mesma lógica de edição de envio: permissões ou ser dono
