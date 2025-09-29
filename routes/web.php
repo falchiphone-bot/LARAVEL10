@@ -429,6 +429,9 @@ Route::get('Envios/{Envio}/custos/pdf', [App\Http\Controllers\EnvioCustoControll
     ->name('Envios.custos.pdf');
 Route::get('Envios/custos/pdf/filtro', [App\Http\Controllers\EnvioCustoController::class, 'pdfFiltro'])
     ->name('Envios.custos.pdf.filtro');
+// PDF de custos por faixa salarial SAF
+Route::get('Envios/custos/pdf-faixa', [\App\Http\Controllers\EnvioCustoController::class, 'pdfFaixa'])->name('Envios.custos.pdf.faixa');
+Route::get('Envios/faixas/pdf-filtro', [\App\Http\Controllers\EnvioCustoController::class, 'pdfFaixasFiltro'])->name('Envios.faixas.pdf.filtro');
 
 // Diagnóstico de arquivo (apenas para admins com ENVIOS - VER)
 Route::get('Envios/{Envio}/arquivos/{arquivo}/diagnose', [App\Http\Controllers\EnvioController::class, 'diagnose'])
@@ -902,7 +905,7 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
     Route::post('drive/google-drive/file-delete', [App\Http\Controllers\GoogleDriveController::class, 'googleDriveFileDelete'])->name('google.drive.file.delete');
     Route::post('drive/google-drive/file-deletedefinitivo', [App\Http\Controllers\GoogleDriveController::class, 'googleDriveFileDeleteDefinitivo'])->name('google.drive.file.deletedefinitivo');
     Route::post('drive/google-drive/file-consultar', [App\Http\Controllers\GoogleDriveController::class, 'googleDriveFileConsultar'])->name('google.drive.file.consultar');
-    Route::get('drive/google-drive/file-consultardocumento/{id}', [App\Http\Controllers\GoogleDriveController::class, 'googleDriveFileConsultarDocumento'])->name('google.drive.file.consultardocumento');
+    // Route::get('
 
 
     Route::post('drive/google-drive/file-comentario', [App\Http\Controllers\GoogleDriveController::class, 'googleDriveFileComentario'])->name('google.drive.file.comentario');
@@ -1481,7 +1484,6 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     Route::patch('/openai/types/{type}', [\App\Http\Controllers\OpenAIChatTypeController::class, 'update'])->name('openai.types.update');
     Route::delete('/openai/types/{type}', [\App\Http\Controllers\OpenAIChatTypeController::class, 'destroy'])->name('openai.types.destroy');
 });
-
 require __DIR__ . '/auth.php';
 
 // Market Data (fora do grupo auth, conforme middleware no controller)

@@ -48,4 +48,12 @@ class SafFaixaSalarial extends Model
     {
         return $this->belongsTo(\App\Models\SafTipoPrestador::class, 'saf_tipo_prestador_id');
     }
+
+    /**
+     * Envios vinculados a esta faixa salarial (pivot envio_saf_faixa_salarial)
+     */
+    public function envios()
+    {
+        return $this->belongsToMany(\App\Models\Envio::class, 'envio_saf_faixa_salarial', 'saf_faixa_salarial_id', 'envio_id');
+    }
 }

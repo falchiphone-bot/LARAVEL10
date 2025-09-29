@@ -1,3 +1,16 @@
+@php
+  $faixasList = $faixasSalariais ?? collect();
+  $selectedFaixas = old('saf_faixas_salariais', isset($envio) ? $envio->safFaixasSalariais->pluck('id')->toArray() : []);
+@endphp
+<div class="mb-3">
+  <label class="form-label">Faixas Salariais SAF</label>
+  <select name="saf_faixas_salariais[]" class="form-select" multiple>
+    @foreach($faixasList as $faixa)
+      <option value="{{ $faixa->id }}" @selected(in_array($faixa->id, $selectedFaixas))>{{ $faixa->nome }}</option>
+    @endforeach
+  </select>
+  <div class="form-text">Selecione as faixas salariais relacionadas a este envio.</div>
+</div>
 @csrf
 <div class="mb-3">
   <label class="form-label">Nome</label>

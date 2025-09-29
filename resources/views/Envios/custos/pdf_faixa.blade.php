@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Custos por Representante</title>
+    <title>Custos por Faixa Salarial</title>
     <style>
         body { font-family: DejaVu Sans, sans-serif; font-size: 12px; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -14,37 +14,33 @@
     </style>
 </head>
 <body>
-    <h2>PDF de custos por representante</h2>
-    <p><strong>Representante:</strong> {{ $rep->nome }}</p>
-    <p><strong>Período:</strong> {{ \Carbon\Carbon::parse($request->data_ini)->format('d/m/Y') }} a {{ \Carbon\Carbon::parse($request->data_fim)->format('d/m/Y') }}</p>
+    <h2>PDF de custos por faixa salarial</h2>
+    <p><strong>Período:</strong> {{ $periodo ?? '-' }}</p>
     <hr>
-    @php
-        $custosPorEnvio = $custos->groupBy(function($c) {
-            return $c->envio_id;
-        });
-    @endphp
-    @foreach($custosPorEnvio as $envioId => $custosDoEnvio)
-        @php $envio = $custosDoEnvio->first()->envio; @endphp
-        <h3>{{ $envio->nome ?? ('Envio #' . $envio->id) }} <span style="font-weight:normal;">({{ $envio->created_at ? $envio->created_at->format('d/m/Y') : '-' }})</span></h3>
+    @foreach($faixas as $faixa)
+        <h3>{{ $faixa->nome }}</h3>
+        @php $custos = $faixa->custos ?? collect(); @endphp
         <table>
             <thead>
                 <tr>
-                    <th>Data</th>
+                    <th>Envio</th>
+                    <th>Data do Custo</th>
                     <th>Nome do Custo</th>
                     <th class="text-end">Valor (R$)</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($custosDoEnvio as $c)
+                @foreach($custos as $c)
                 <tr>
+                    <td>{{ $c->envio->nome ?? '-' }}</td>
                     <td>{{ optional($c->data)->format('d/m/Y') }}</td>
                     <td>{{ $c->nome }}</td>
                     <td class="text-end">{{ number_format($c->valor,2,',','.') }}</td>
                 </tr>
                 @endforeach
                 <tr class="total">
-                    <td colspan="2">Total deste envio</td>
-                    <td class="text-end">R$ {{ number_format($custosDoEnvio->sum('valor'),2,',','.') }}</td>
+                    <td colspan="3">Total desta faixa</td>
+                    <td class="text-end">R$ {{ number_format($custos->sum('valor'),2,',','.') }}</td>
                 </tr>
             </tbody>
         </table>

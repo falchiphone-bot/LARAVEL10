@@ -28,12 +28,17 @@ class Envio extends Model
     {
         return $this->belongsTo(Representantes::class,'representante_id');
     }
-    
+
     public function custos()
     {
         return $this->hasMany(EnvioCusto::class)
             ->whereNull('deleted_at')
             ->orderByDesc('data')
             ->orderByDesc('id');
+    }
+
+    public function safFaixasSalariais()
+    {
+        return $this->belongsToMany(\App\Models\SafFaixaSalarial::class, 'envio_saf_faixa_salarial', 'envio_id', 'saf_faixa_salarial_id');
     }
 }

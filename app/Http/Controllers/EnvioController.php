@@ -226,12 +226,17 @@ class EnvioController extends Controller
 
     public function store(EnvioRequest $request)
     {
+
         $envio = Envio::create([
             'nome' => $request->input('nome'),
             'descricao' => $request->input('descricao'),
             'user_id' => auth()->id(),
             'representante_id' => $request->input('representante_id'),
         ]);
+
+        // Sincroniza faixas salariais SAF selecionadas
+        $faixas = $request->input('saf_faixas_salariais', []);
+        $envio->safFaixasSalariais()->sync($faixas);
 
         if ($request->hasFile('files')) {
             foreach ($request->file('files') as $file) {
@@ -309,17 +314,27 @@ class EnvioController extends Controller
     {
     $isAdmin = $this->isAdmin();
     if (!$isAdmin && (int)$Envio->user_id !== (int)auth()->id()) { abort(404); }
-    $Envio->load(['arquivos.sharedUsers','arquivos.tokens','custos']);
+    $Envio->load(['arquivos.sharedUsers','arquivos.tokens','custos', 'safFaixasSalariais']);
     $representantes = Representantes::orderBy('nome','asc')->limit(500)->get(['id','nome']);
-    return view('Envios.edit', ['envio' => $Envio,'representantes'=>$representantes]);
+    $faixasSalariais = \App\Models\SafFaixaSalarial::orderBy('nome')->get();
+    return view('Envios.edit', [
+        'envio' => $Envio,
+        'representantes' => $representantes,
+        'faixasSalariais' => $faixasSalariais
+    ]);
     }
 
     public function update(EnvioRequest $request, Envio $Envio)
     {
+
     $isAdmin = $this->isAdmin();
     if (!$isAdmin && (int)$Envio->user_id !== (int)auth()->id()) { abort(404); }
     $Envio->fill($request->only(['nome','descricao','representante_id']));
-        $Envio->save();
+    $Envio->save();
+
+    // Sincroniza faixas salariais SAF selecionadas
+    $faixas = $request->input('saf_faixas_salariais', []);
+    $Envio->safFaixasSalariais()->sync($faixas);
 
         if ($request->hasFile('files')) {
             foreach ($request->file('files') as $file) {

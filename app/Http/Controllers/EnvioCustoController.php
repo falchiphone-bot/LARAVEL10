@@ -10,6 +10,59 @@ use Illuminate\Support\Facades\Gate;
 
 class EnvioCustoController extends Controller
 {
+    /**
+     * Gera PDF de custos agrupados por faixa salarial SAF.
+     */
+    public function pdfFaixa(Request $request)
+    {
+        // Novo requisito: PDF simples listando faixas salariais com valor mínimo, inspirado no layout de custos.
+        $faixas = \App\Models\SafFaixaSalarial::orderBy('nome')->get();
+        $totalMinimos = $faixas->sum(function($f){ return (float)$f->valor_minimo; });
+        $pdf = \PDF::loadView('Envios.custos.pdf_faixa_minimo', [
+            'faixas' => $faixas,
+            'totalMinimos' => $totalMinimos,
+        ]);
+        return $pdf->download('faixas-salariais-valores-minimos.pdf');
+    }
+
+    /**
+     * Novo PDF: faixas salariais vinculadas aos envios de um representante em um período,
+     * seguindo o layout do PDF de custos por representante.
+     */
+    public function pdfFaixasFiltro(Request $request)
+    {
+        $request->validate([
+            'representante_id' => 'required|exists:representantes,id',
+            'data_ini' => 'required|date',
+            'data_fim' => 'required|date|after_or_equal:data_ini',
+        ]);
+
+        $rep = \App\Models\Representantes::findOrFail($request->representante_id);
+        // Filtra envios do representante pelo created_at (assumido como critério de período)
+        $envios = \App\Models\Envio::with('safFaixasSalariais')
+            ->where('representante_id', $rep->id)
+            ->whereBetween('created_at', [$request->data_ini.' 00:00:00', $request->data_fim.' 23:59:59'])
+            ->orderBy('created_at')
+            ->get();
+
+        $totalGeralMin = 0; $totalGeralMax = 0; $totalLinhas = 0;
+        foreach ($envios as $e) {
+            $totalGeralMin += $e->safFaixasSalariais->sum('valor_minimo');
+            $totalGeralMax += $e->safFaixasSalariais->sum('valor_maximo');
+            $totalLinhas += $e->safFaixasSalariais->count();
+        }
+
+        $pdf = \PDF::loadView('Envios.custos.pdf_filtro_faixas', [
+            'rep' => $rep,
+            'envios' => $envios,
+            'request' => $request,
+            'totalGeralMin' => $totalGeralMin,
+            'totalGeralMax' => $totalGeralMax,
+            'totalLinhas' => $totalLinhas,
+        ]);
+        return $pdf->download('faixas-representante-'.$rep->id.'-'.$request->data_ini.'-a-'.$request->data_fim.'.pdf');
+    }
+
     public function store(Request $request, Envio $envio)
     {
         $this->authorizeEnvio($envio);
