@@ -423,7 +423,16 @@ class LeituraArquivoController extends Controller
 
             $rowData = $cellData;
 
-            $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
+            // Corrige formato da data para SQL Server (Y-m-d)
+            $dataSql = null;
+            if (!empty($arraydatanova['Data'])) {
+                try {
+                    $dataSql = \Carbon\Carbon::createFromFormat('d/m/Y', $arraydatanova['Data'])->format('Y-m-d');
+                } catch (\Exception $e) {
+                    $dataSql = $arraydatanova['Data']; // fallback
+                }
+            }
+            $lancamento = Lancamento::where('DataContabilidade', $dataSql)
                 ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
                 ->where('EmpresaID', $Empresa)
                 ->where('ContaCreditoID', $ContaCartao)
@@ -1573,7 +1582,16 @@ else {
             $lancamento = null;
 
             if ($Valor_Positivo) {
-                $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
+                // Corrige formato da data para SQL Server (Y-m-d)
+                $dataSql = null;
+                if (!empty($arraydatanova['Data'])) {
+                    try {
+                        $dataSql = \Carbon\Carbon::createFromFormat('d/m/Y', $arraydatanova['Data'])->format('Y-m-d');
+                    } catch (\Exception $e) {
+                        $dataSql = $arraydatanova['Data']; // fallback
+                    }
+                }
+                $lancamento = Lancamento::where('DataContabilidade', $dataSql)
                     ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
                     ->where('EmpresaID', $Empresa)
                     ->where('ContaDebitoID', $Conta)
@@ -1585,7 +1603,16 @@ else {
                 //     ]);
                 //     return redirect(route('LeituraArquivo.index'));
                 // }
-                $lancamentoCobranca = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
+                // Corrige formato da data para SQL Server (Y-m-d)
+                $dataSqlCobranca = null;
+                if (!empty($arraydatanova['Data'])) {
+                    try {
+                        $dataSqlCobranca = \Carbon\Carbon::createFromFormat('d/m/Y', $arraydatanova['Data'])->format('Y-m-d');
+                    } catch (\Exception $e) {
+                        $dataSqlCobranca = $arraydatanova['Data']; // fallback
+                    }
+                }
+                $lancamentoCobranca = Lancamento::where('DataContabilidade', $dataSqlCobranca)
                     ->where('EmpresaID', $Empresa)
                     ->where('ContaDebitoID', $Conta)
                     ->First();
@@ -1618,7 +1645,16 @@ else {
 
 
             if ($Valor_Negativo) {
-                $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
+                // Corrige formato da data para SQL Server (Y-m-d)
+                $dataSql = null;
+                if (!empty($arraydatanova['Data'])) {
+                    try {
+                        $dataSql = \Carbon\Carbon::createFromFormat('d/m/Y', $arraydatanova['Data'])->format('Y-m-d');
+                    } catch (\Exception $e) {
+                        $dataSql = $arraydatanova['Data']; // fallback
+                    }
+                }
+                $lancamento = Lancamento::where('DataContabilidade', $dataSql)
                     ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
                     ->where('EmpresaID', $Empresa)
                     ->where('ContaCreditoID', $Conta)
@@ -1818,6 +1854,15 @@ else {
                 }
 
                 if ($historico) {
+                    // Corrige formato da data para SQL Server (Y-m-d)
+                    $dataSql = null;
+                    if (!empty($Data)) {
+                        try {
+                            $dataSql = \Carbon\Carbon::createFromFormat('d/m/Y', $Data)->format('Y-m-d');
+                        } catch (\Exception $e) {
+                            $dataSql = $Data; // fallback
+                        }
+                    }
                     Lancamento::create([
                         'Valor' => ($valorString = $valor_formatado),
                         'EmpresaID' => $Empresa,
@@ -1825,7 +1870,7 @@ else {
                         'ContaCreditoID' => $historico->ContaCreditoID,
                         'Descricao' => $Parcela,
                         'Usuarios_id' => auth()->user()->id,
-                        'DataContabilidade' => $Data,
+                        'DataContabilidade' => $dataSql,
                         'Conferido' => true,
                         'HistoricoID' => $historico->ID,
                     ]);

@@ -811,7 +811,7 @@
 
                 <div class="modal fade" id="editarLancamentoModal" tabindex="-1"
                     aria-labelledby="editarLancamentoModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-lg">
+                    <div class="modal-dialog modal-dialog-scrollable modal-md editar-lancamento-dialog">
                         <div class="modal-content">
                             <div class="modal-body">
                                 {{-- Força renderização do modal para debug --}}
@@ -839,6 +839,13 @@
     <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
+    <style>
+        /* Redução específica do modal de edição de lançamento */
+        .editar-lancamento-dialog { max-width: 720px; }
+        @media (max-width: 768px){
+            .editar-lancamento-dialog { max-width: 95%; margin: 0 auto; }
+        }
+    </style>
 @endpush
 @push('scripts')
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.js"></script>

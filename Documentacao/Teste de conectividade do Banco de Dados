@@ -1,0 +1,36 @@
+28 de setembro de 2025 as 08:57
+Melhorias Implementadas no Sistema de Alertas de Banco
+🔧 Configurações Atualizadas no .env:
+
+DB_ALERT_SUPPRESS_MINUTES=60
+# Aumentado de 30 para 60 minutos
+DB_PREFLIGHT_RETEST_DELAY=2
+# Pausa antes do re-teste (segundos)
+DB_PREFLIGHT_RETEST_TIMEOUT=1.5
+# Timeout do re-teste (segundos)
+🚀 Melhorias no Middleware DatabaseCircuitBreaker:
+Re-teste Automático: Antes de enviar alertas, o sistema agora:
+
+Aguarda 2 segundos (configurável)
+Faz um novo teste de conectividade
+Só envia alerta se a falha for confirmada no re-teste
+Logging Detalhado:
+
+Log de sucesso quando re-teste confirma que está funcionando
+Log de falha confirmada com métricas de ambos os testes
+Supressão Aumentada: Tempo de supressão aumentado para 60 minutos
+
+🛠️ Novo Comando de Diagnóstico:
+
+# Testar conectividade completadocker exec -t laravel10 php artisan db:test# Limpar cache do circuit breaker se necessáriodocker exec -t laravel10 php artisan db:test --clear-breaker
+📊 Benefícios das Melhorias:
+❌ Redução de Falsos Positivos: Re-teste evita alertas desnecessários
+⏰ Menos Spam: Supressão de 60 minutos reduz notificações repetidas
+🔍 Melhor Diagnóstico: Comando permite verificação manual da conectividade
+📈 Métricas Detalhadas: Logs com tempos de resposta de ambos os testes
+🎯 Como Funciona Agora:
+Primeira Falha Detectada → Sistema aguarda 2 segundos
+Re-teste Automático → Nova tentativa de conexão
+Se Re-teste OK → Alerta cancelado, apenas log informativo
+Se Re-teste Falha → Alerta enviado com confirmação dupla
+Supressão Ativa → Próximos alertas bloqueados por 60 minutos

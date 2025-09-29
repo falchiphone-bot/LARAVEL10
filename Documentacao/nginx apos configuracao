@@ -1,0 +1,36 @@
+28 de setembro de 2025 as 09:10
+CHECKLIST: Alterações no nginx.conf
+✅ Passos Obrigatórios:
+🔄 Reiniciar Container:
+
+
+docker restart laravel10
+✅ Verificar Status:
+
+
+docker ps | grep laravel10
+📋 Verificar Logs:
+
+
+docker logs laravel10 --tail=20
+🧪 Testar Configuração:
+
+
+docker exec laravel10 nginx -t
+🌐 Testar Conectividade:
+
+
+curl -I http://localhost:82
+⚠️ Se Houver Erros:
+Erro de Sintaxe: nginx -t mostrará exatamente onde está o erro
+Container não Sobe: Verificar docker logs laravel10 para detalhes
+502 Bad Gateway: Problema com PHP-FPM, verificar configuração do upstream
+🚀 Comandos Úteis Adicionais:
+
+# Recarregar nginx sem reiniciar container (se possível)docker exec laravel10 nginx -s reload# Ver configuração ativa do nginxdocker exec laravel10 nginx -T# Verificar processos rodando no containerdocker exec laravel10 supervisorctl status
+📊 Status Atual:
+✅ Nginx: Funcionando (sintaxe OK)
+✅ PHP-FPM: Funcionando
+✅ Container: Up and running
+✅ HTTP Response: 302 (redirecionamento normal)
+Resultado: Todas as alterações no nginx.conf foram aplicadas com sucesso! 

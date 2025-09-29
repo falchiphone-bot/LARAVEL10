@@ -67,26 +67,30 @@
                                 @if ($empresa)
                                     <div class="col-sm-12">
                                         <label for="empresaid">Nova Empresa</label>
+                                            <div wire:ignore>
                                         <select wire:model='lancamento.EmpresaID'
-                                            id="novaEmpresaID" class="form-control">
+                                            id="novaEmpresaID" class="form-control select2" data-placeholder="Selecione">
                                             <option value="">Selecione</option>
                                             @foreach ($empresas as $empresaID => $empresaDescricao)
                                                 <option value="{{ $empresaID }}">{{ $empresaDescricao }}</option>
                                             @endforeach
                                         </select>
+                                            </div>
                                     </div>
                                 @endif
                                 <div class="form-group col-sm-12 mb-2">
                                     <label for="historicoID" class=" form-control-label">
                                         Histórico
                                     </label>
-                                    <select id="historicoID" name="HistoricoID" class="form-control"
+                                        <div wire:ignore>
+                                    <select id="historicoID" name="HistoricoID" class="form-control select2" data-placeholder="Selecione"
                                         wire:model='lancamento.HistoricoID'>
                                         <option value=""></option>
                                         @foreach ($historicos as $historico)
                                             <option value="{{ $historico->ID }}">{{ $historico->Descricao }}</option>
                                         @endforeach
                                     </select>
+                                        </div>
                                 </div>
                                 <hr>
                                 <div class="form-group col-sm-12">
@@ -101,8 +105,9 @@
                                             <label for="contadebito" class=" form-control-label">
                                                 <a href="{{ $this->lancamento->ContaDebitoID }}">Conta Debito</a>
                                             </label>
+                                                <div wire:ignore>
                                             <select id="contadebito" wire:model.lazy='lancamento.ContaDebitoID'
-                                                class="form-control">
+                                                class="form-control select2" data-placeholder="Selecione">
                                                 <option value="">Selecione</option>
                                                 @foreach ($contas as $contaID => $contaDescricao)
                                                     <option value="{{ $contaID }}">
@@ -111,20 +116,23 @@
 
                                                 @endforeach
                                             </select>
+                                                </div>
                                             Usar dolar {{ $UsarDolarDebito = $this->lancamento->ContaDebito->PlanoConta->UsarDolar ?? "NÃO USAR" }}
                                             <input type="hidden" wire:model="UsarDolarDebito">
 
                                         </div>
                                         <div class="form-group col-sm-12">
+                                                <div wire:ignore>
                                             <label for="contacredito" class=" form-control-label">
                                                 <a href="{{ $this->lancamento->ContaCreditoID }}">Conta Crédito</a>
                                             </label>
                                             <select id="contacredito" wire:model.lazy='lancamento.ContaCreditoID'
-                                                class="form-control">
+                                                class="form-control select2" data-placeholder="Selecione">
                                                 <option value="">Selecione</option>
                                                 @foreach ($contas as $contaID => $contaDescricao)
                                                     <option value="{{ $contaID }}">
                                                         {{-- {{ $contaDescricao . ' <=>'. $contas->UsarDolar }}</option> --}}
+                                                </div>
                                                           {{ $contaDescricao  }}</option>
                                                 @endforeach
                                             </select>
@@ -134,6 +142,49 @@
                                     </div>
                                 </div>
 
+                                        @push('scripts')
+                                        <script>
+                                            document.addEventListener('livewire:load', function() {
+                                                function initModalSelect2(){
+                                                    const parent = $('#editarLancamentoModal');
+                                                    ['#novaEmpresaID','#historicoID','#contadebito','#contacredito'].forEach(id => {
+                                                        const el = $(id);
+                                                        if(el.length){
+                                                            if(el.hasClass('select2-hidden-accessible')){ el.select2('destroy'); }
+                                                            el.select2({
+                                                                dropdownParent: parent.length ? parent : undefined,
+                                                                theme: 'bootstrap-5',
+                                                                width: '100%',
+                                                                allowClear: true,
+                                                                placeholder: el.data('placeholder') || 'Selecione'
+                                                            }).off('change.sync').on('change.sync', function(e){
+                                                                const val = $(this).val();
+                                                                if(this.id === 'historicoID') {
+                                                                    Livewire.emitTo('lancamento.editar-lancamento','selectHistorico', val);
+                                                                } else if(this.id === 'contadebito') {
+                                                                    Livewire.emitTo('lancamento.editar-lancamento','changeContaDebitoID', val);
+                                                                } else if(this.id === 'contacredito') {
+                                                                    Livewire.emitTo('lancamento.editar-lancamento','changeContaCreditoID', val);
+                                                                } else if(this.id === 'novaEmpresaID') {
+                                                                    Livewire.emitTo('lancamento.editar-lancamento','changeEmpresaID', val);
+                                                                }
+                                                            });
+                                                        }
+                                                    });
+                                                }
+                                                // Inicializa ao abrir modal (evento já disparado no extrato)
+                                                window.addEventListener('abrir-modal', function(){
+                                                    setTimeout(initModalSelect2, 250);
+                                                });
+                                                // Re-init após updates Livewire
+                                                Livewire.hook('message.processed', (m,c)=>{
+                                                    if($('#editarLancamentoModal').hasClass('show')){
+                                                        initModalSelect2();
+                                                    }
+                                                });
+                                            });
+                                        </script>
+                                        @endpush
                                 <div class="form-group col-sm-3">
                                     <label for="datacontabilidade" class=" form-control-label">Data
                                         Contabilidade</label>
