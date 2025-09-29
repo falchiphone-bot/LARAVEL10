@@ -28,4 +28,12 @@ class Envio extends Model
     {
         return $this->belongsTo(Representantes::class,'representante_id');
     }
+    
+    public function custos()
+    {
+        return $this->hasMany(EnvioCusto::class)
+            ->whereNull('deleted_at')
+            ->orderByDesc('data')
+            ->orderByDesc('id');
+    }
 }

@@ -18,6 +18,9 @@ use App\Http\Controllers\PDFController;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+
+// Rotas de custos de envios
+// require __DIR__.'/envios_custos.php';
 use App\Http\Controllers\SafTipoPrestadorController;
 use App\Http\Controllers\SafColaboradorController;
 use App\Http\Controllers\PixController;
@@ -51,6 +54,11 @@ Route::get('/db-indisponivel', function () {
     }
     return $response;
 })->name('db.down');
+
+
+// Rota para editar custo de um envio
+Route::get('Envios/{Envio}/custos/{custo}/edit', [\App\Http\Controllers\EnvioCustoController::class, 'edit'])
+    ->name('Envios.custos.edit');
 
 // Rota para backup do storage para o HD externo
 Route::get('/backup/storage-to-external', [BackupController::class, 'backupAll'])->middleware('can:backup.executar.hd');
@@ -408,6 +416,18 @@ Route::delete('Envios/{Envio}/arquivos/{arquivo}', [App\Http\Controllers\EnvioCo
     ->name('Envios.arquivos.destroy');
 Route::get('Envios/{Envio}/zip', [App\Http\Controllers\EnvioController::class, 'zip'])
     ->name('Envios.zip');
+// Custos (registro de custos por envio)
+Route::post('Envios/{Envio}/custos', [App\Http\Controllers\EnvioCustoController::class, 'store'])
+    ->name('Envios.custos.store');
+Route::put('Envios/{Envio}/custos/{custo}', [App\Http\Controllers\EnvioCustoController::class, 'update'])
+    ->whereNumber('custo')
+    ->name('Envios.custos.update');
+Route::delete('Envios/{Envio}/custos/{custo}', [App\Http\Controllers\EnvioCustoController::class, 'destroy'])
+    ->name('Envios.custos.destroy');
+// PDF dos custos de um envio
+Route::get('Envios/{Envio}/custos/pdf', [App\Http\Controllers\EnvioCustoController::class, 'pdf'])
+    ->name('Envios.custos.pdf');
+
 // Diagnóstico de arquivo (apenas para admins com ENVIOS - VER)
 Route::get('Envios/{Envio}/arquivos/{arquivo}/diagnose', [App\Http\Controllers\EnvioController::class, 'diagnose'])
     ->name('Envios.arquivos.diagnose');
@@ -846,8 +866,8 @@ Route::delete('ficha-controle/arquivo/{id}', [Irmaos_Emaus_FichaControleArquivoC
     ->name('Irmaos_Emaus_FichaControle.RelatorioPia');
     Route::post('Irmaos_Emaus_ListaRelatorioPiaTopico/{id}',  [App\Http\Controllers\Irmaos_Emaus_FichaControleController::class, 'ListaRelatorioPiaTopico'])
     ->name('Irmaos_Emaus_FichaControle.ListaRelatorioPiaTopico');
-    Route::get('Irmaos_Emaus_ListaRelatorioPia/{id}',  [App\Http\Controllers\Irmaos_Emaus_FichaControleController::class,
-        'ListaRelatorioPia'])->name('Irmaos_Emaus_FichaControle.ListaRelatorioPia');
+    Route::get('Irmaos_Emaus_ListaRelatorioPia/{id}',  [App\Http\Controllers\Irmaos_Emaus_FichaControleController::class, 'ListaRelatorioPia'])
+    ->name('Irmaos_Emaus_FichaControle.ListaRelatorioPia');
     Route::post('GravaRelatorioPia', [App\Http\Controllers\Irmaos_Emaus_FichaControleController::class, 'GravaRelatorioPia'])
    ->name('Irmaos_Emaus_FichaControle.GravaRelatorioPia');
 

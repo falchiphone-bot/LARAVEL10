@@ -309,7 +309,7 @@ class EnvioController extends Controller
     {
     $isAdmin = $this->isAdmin();
     if (!$isAdmin && (int)$Envio->user_id !== (int)auth()->id()) { abort(404); }
-    $Envio->load(['arquivos.sharedUsers','arquivos.tokens']);
+    $Envio->load(['arquivos.sharedUsers','arquivos.tokens','custos']);
     $representantes = Representantes::orderBy('nome','asc')->limit(500)->get(['id','nome']);
     return view('Envios.edit', ['envio' => $Envio,'representantes'=>$representantes]);
     }

@@ -164,6 +164,107 @@
       </tbody>
     </table>
     @endif
+    <hr>
+    <h6>Custos de Registro</h6>
+    @can('ENVIOS - CUSTOS - LISTAR')
+    <a href="{{ route('Envios.custos.pdf', ['Envio'=>$envio->getKey()]) }}" class="btn btn-outline-secondary btn-sm mb-2" target="_blank">
+        <i class="fa fa-file-pdf"></i> Baixar PDF dos Custos
+    </a>
+    @endcan
+    <div class="row g-3 mb-3">
+      <div class="col-12 col-lg-6">
+      @can('ENVIOS - CUSTOS - INCLUIR')
+  <form method="POST" action="{{ route('Envios.custos.store', ['Envio'=>$envio->getKey()]) }}" class="row g-2 align-items-end">
+          @csrf
+          <div class="col-12 col-md-4">
+            <label class="form-label small mb-1">Data</label>
+            <input type="date" name="data" class="form-control form-control-sm" value="{{ old('data', now()->format('Y-m-d')) }}" required>
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label small mb-1">Nome do Custo</label>
+            <input type="text" name="nome" class="form-control form-control-sm" maxlength="150" required placeholder="Ex: Taxa cartório" value="{{ old('nome') }}">
+          </div>
+            <div class="col-12 col-md-3">
+            <label class="form-label small mb-1">Valor (R$)</label>
+            <input type="number" step="0.01" min="0" name="valor" class="form-control form-control-sm" required value="{{ old('valor','0.00') }}">
+          </div>
+          <div class="col-12 col-md-1 d-grid">
+            <button class="btn btn-sm btn-primary">Adicionar</button>
+          </div>
+        </form>
+      @endcan
+      </div>
+      <div class="col-12 col-lg-6">
+        @php $totalCustos = $envio->custos?->sum('valor') ?? 0; @endphp
+        <div class="alert alert-info py-2 mb-0 small"><strong>Total:</strong> R$ {{ number_format($totalCustos,2,',','.') }}</div>
+      </div>
+    </div>
+    <table class="table table-sm align-middle">
+      <thead><tr><th>Data</th><th>Nome</th><th class="text-end">Valor (R$)</th><th></th></tr></thead>
+      <tbody>
+        @forelse(($envio->custos ?? []) as $c)
+          <tr data-custo-id="{{ $c->id }}">
+            <td class="c-data" data-value="{{ optional($c->data)->format('Y-m-d') }}">{{ optional($c->data)->format('d/m/Y') }}</td>
+            <td class="c-nome">{{ $c->nome }}</td>
+            <td class="text-end c-valor" data-raw="{{ $c->valor }}">{{ number_format($c->valor,2,',','.') }}</td>
+            <td class="text-end c-acoes">
+                <div class="btn-group btn-group-sm" role="group">
+                  @can('ENVIOS - CUSTOS - EDITAR')
+                  <a href="{{ route('Envios.custos.edit', ['Envio'=>$envio->getKey(),'custo'=>$c->getKey()]) }}" class="btn btn-outline-secondary">Editar</a>
+                  @endcan
+                  @can('ENVIOS - CUSTOS - EXCLUIR')
+                  <form method="POST" action="{{ route('Envios.custos.destroy', ['Envio'=>$envio->getKey(),'custo'=>$c->getKey()]) }}" onsubmit="return confirm('Remover este custo?')" class="d-inline">
+                    @csrf @method('DELETE')
+                    <button class="btn btn-outline-danger">Excluir</button>
+                  </form>
+                  @endcan
+                </div>
+            </td>
+          </tr>
+        @empty
+          <tr><td colspan="4" class="text-muted small">Nenhum custo registrado.</td></tr>
+        @endforelse
+      </tbody>
+    </table>
   </div></div>
 </div></div>
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const table = document.querySelector('table.table');
+  if(!table) return;
+  table.addEventListener('submit', async function(ev){
+    const form = ev.target;
+    if(!form.matches('form[action*="/custos/"]')) return;
+    // Já confirmou via onsubmit; impedir submit padrão
+    ev.preventDefault();
+    const row = form.closest('tr');
+    const id = row?.getAttribute('data-custo-id');
+    try{
+      const resp = await fetch(form.action, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content || ''
+        },
+        body: new URLSearchParams([['_method','DELETE']])
+      });
+      const data = await resp.json().catch(()=>null);
+      if(resp.ok && data?.ok){
+        if(row) row.remove();
+        const totalBox = document.querySelector('.alert.alert-info');
+        if(totalBox && data.total_formatted){
+          totalBox.innerHTML = '<strong>Total:</strong> R$ ' + data.total_formatted;
+        }
+      } else {
+        alert(data?.message || 'Falha ao remover custo.');
+      }
+    }catch(e){
+      alert('Erro de rede ao remover custo.');
+    }
+  });
+});
+</script>
+@endpush
 @endsection

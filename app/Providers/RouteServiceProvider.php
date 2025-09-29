@@ -26,6 +26,8 @@ class RouteServiceProvider extends ServiceProvider
     {
         $this->configureRateLimiting();
 
+    // (Removido binding customizado de {custo}; resolveremos manualmente no controller)
+
         $this->routes(function () {
             Route::middleware('api')
                 ->prefix('api')
