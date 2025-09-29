@@ -357,3 +357,4 @@
 [29/Sep/2025:22:35:09 +0000] 400 - - http localhost-nginx-proxy-manager "-" [Client 172.18.0.1] [Length 0] [Gzip -] "-" "-"
 [29/Sep/2025:22:36:42 +0000] 404 - POST http 186.237.225.6 "/boaform/admin/formLogin" [Client 172.18.0.1] [Length 122] [Gzip 1.35] "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:71.0) Gecko/20100101 Firefox/71.0" "http://186.237.225.6:80/admin/login.asp"
 [29/Sep/2025:22:36:42 +0000] 400 - - http localhost-nginx-proxy-manager "-" [Client 172.18.0.1] [Length 0] [Gzip -] "-" "-"
+[29/Sep/2025:22:53:52 +0000] 200 - GET http 186.237.225.6 "/" [Client 172.18.0.1] [Length 568] [Gzip 1.86] "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.85 Safari/537.36 Edg/90.0.818.46" "-"
