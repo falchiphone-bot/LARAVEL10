@@ -31,6 +31,8 @@ class PlanoConta extends Model
 
     protected $casts = [
         'UsarDolar' => 'boolean',
+    'Created' => 'datetime',
+    'Modified' => 'datetime',
 
     ];
 

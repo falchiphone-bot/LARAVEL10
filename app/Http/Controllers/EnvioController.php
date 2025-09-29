@@ -13,6 +13,7 @@ use App\Jobs\TranscodeEnvioVideo;
 use App\Models\EnvioArquivoShare;
 use App\Models\User;
 use App\Models\EnvioArquivoToken;
+use App\Models\Representantes;
 use Illuminate\Support\Facades\URL;
 
 class EnvioController extends Controller
@@ -219,7 +220,8 @@ class EnvioController extends Controller
 
     public function create()
     {
-        return view('Envios.create');
+    $representantes = Representantes::orderBy('nome','asc')->limit(500)->get(['id','nome']);
+    return view('Envios.create', compact('representantes'));
     }
 
     public function store(EnvioRequest $request)
@@ -228,6 +230,7 @@ class EnvioController extends Controller
             'nome' => $request->input('nome'),
             'descricao' => $request->input('descricao'),
             'user_id' => auth()->id(),
+            'representante_id' => $request->input('representante_id'),
         ]);
 
         if ($request->hasFile('files')) {
@@ -307,14 +310,15 @@ class EnvioController extends Controller
     $isAdmin = $this->isAdmin();
     if (!$isAdmin && (int)$Envio->user_id !== (int)auth()->id()) { abort(404); }
     $Envio->load(['arquivos.sharedUsers','arquivos.tokens']);
-        return view('Envios.edit', ['envio' => $Envio]);
+    $representantes = Representantes::orderBy('nome','asc')->limit(500)->get(['id','nome']);
+    return view('Envios.edit', ['envio' => $Envio,'representantes'=>$representantes]);
     }
 
     public function update(EnvioRequest $request, Envio $Envio)
     {
     $isAdmin = $this->isAdmin();
     if (!$isAdmin && (int)$Envio->user_id !== (int)auth()->id()) { abort(404); }
-        $Envio->fill($request->only(['nome','descricao']));
+    $Envio->fill($request->only(['nome','descricao','representante_id']));
         $Envio->save();
 
         if ($request->hasFile('files')) {

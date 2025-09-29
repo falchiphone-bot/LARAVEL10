@@ -1239,9 +1239,10 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
     public function store(PlanoContasCreateRequest $request)
     {
         $dados = $request->all();
-
-        $dados['Created'] = Carbon::now()->format('d/m/Y H:i:s');
-        $dados['Modified'] = Carbon::now()->format('d/m/Y H:i:s');
+    // Importante: salvar como objeto Carbon (ou formato ISO) para evitar erro de conversão nvarchar -> datetime no SQL Server
+    // Evitar format('d/m/Y H:i:s') pois esse padrão (DD/MM/YYYY) pode não ser reconhecido dependendo do LANGUAGE da conexão
+    $dados['Created'] = now();
+    $dados['Modified'] = now();
         $dados['UsuarioID'] = auth()->user()->id;
 
         //dd($dados);
@@ -1302,8 +1303,9 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
                 return redirect(route('PlanoContas.edit', $Registro));
             }
 
-            $Created = Carbon::now()->format('d/m/Y H:i:s');
-            $Modified = Carbon::now()->format('d/m/Y H:i:s');
+            // Usar objetos Carbon diretamente para evitar problemas de conversão no SQL Server
+            $Created = now();
+            $Modified = now();
             $UsuarioID = auth()->user()->id;
             $InseridoPor = auth()->user()->email;
 

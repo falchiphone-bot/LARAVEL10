@@ -9,7 +9,7 @@ class Envio extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nome','descricao','user_id'];
+    protected $fillable = ['nome','descricao','user_id','representante_id'];
 
     // Usa microssegundos para compatibilidade com datetime2(7)
     protected $dateFormat = 'Y-m-d H:i:s.u';
@@ -22,5 +22,10 @@ class Envio extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function representante()
+    {
+        return $this->belongsTo(Representantes::class,'representante_id');
     }
 }

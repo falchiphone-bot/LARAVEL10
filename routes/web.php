@@ -261,8 +261,9 @@ Route::get('/', function () {
         // Redireciona a raiz do subdomínio para o dashboard específico de Contabilidade
         return redirect()->route('dashboardContabilidade');
     } elseif ($dominio === 'emaus.falchi.com.br') {
-        // Redireciona a raiz do subdomínio para a página inicial de Emaus
-        return view('emaus.index');
+    // Antes: retornava view('emaus.index')
+    // Agora: enviar para dashboard principal conforme solicitado
+    return redirect()->route('dashboard');
     } elseif ($dominio === 'saf.falchi.com.br') {
         // Redireciona a raiz do subdomínio para a página inicial de SAF
         return view('saf.index');

@@ -321,11 +321,11 @@ if (window.Livewire) {
               @endphp
               @if($isSuperAdmin)
                 <li>
-                  <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" . . .
+                  <!-- Super Admin: link ativo -->
+                  <a href="/" data-bs-toggle="tooltip" data-bs-placement="top"
                      data-bs-custom-class="custom-tooltip"
-                     data-bs-title="Início do sistema desativado no momento"
-                     class="nav-link text-white disabled" aria-disabled="true" tabindex="-1"
-                     style="pointer-events: none; opacity: 0.5;">
+                     data-bs-title="Ir para a página inicial (Super Admin)"
+                     class="nav-link text-white">
                      <i class="fa-solid fa-house"></i>
                      Início do sistema
                   </a>
@@ -335,11 +335,9 @@ if (window.Livewire) {
                   {{-- Usuários com permissões de Emaús não veem o link do Início --}}
                 @else
                   <li>
-                    <a href="#" data-bs-toggle="tooltip" data-bs-placement="top" . . .
-                       data-bs-custom-class="custom-tooltip"
-                       data-bs-title="Início do sistema desativado no momento"
-                       class="nav-link text-white disabled" aria-disabled="true" tabindex="-1"
-                       style="pointer-events: none; opacity: 0.5;">
+              <a href="/" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip"
+                data-bs-title="Ir para a página inicial"
+                class="nav-link text-white">
                        <i class="fa-solid fa-house"></i>
                        Início do sistema
                     </a>
