@@ -102,13 +102,14 @@ class ListarLiquidacao extends Component
                 // dd($contaCobranca->Credito_Cobranca,$contaCobranca->Tarifa_Cobranca);
                 $historico = Historicos::find($contaCobranca->Credito_Cobranca);
 
+                // Armazena DataContabilidade em formato ISO para o SQL Server
                 $lc = Lancamento::create([
                     'Valor' => $valorLiquido,
                     'EmpresaID' => $contaCobranca->EmpresaID,
                     'ContaDebitoID' => $historico->ContaDebitoID,
                     'ContaCreditoID' => $historico->ContaCreditoID,
                     'Usuarios_id' => auth()->user()->id,
-                    'DataContabilidade' => $dataLiquidacao->format('d/m/Y'),
+                    'DataContabilidade' => $dataLiquidacao->format('Y-m-d'),
                     'HistoricoID' => $historico->ID,
                 ]);
             }
@@ -128,7 +129,7 @@ class ListarLiquidacao extends Component
                     'ContaDebitoID' => $historicoTarifa->ContaDebitoID,
                     'ContaCreditoID' => $historicoTarifa->ContaCreditoID,
                     'Usuarios_id' => auth()->user()->id,
-                    'DataContabilidade' =>  $dataTarifa->format('d/m/Y'),
+                    'DataContabilidade' =>  $dataTarifa->format('Y-m-d'),
                     'HistoricoID' => $historicoTarifa->ID,
                 ]);
                 session()->flash('message', 'Lançamentos criado.');
@@ -153,18 +154,29 @@ class ListarLiquidacao extends Component
                 if ($verificar) {
                     $nossonumeroCadastrado++;
                 } else {
+                    // Parse e normalização de datas (evita erro de conversão NVARCHAR -> DATETIME no SQL Server)
+                    $dataPagamentoBr = explode(' ', $item['dataPagamento'])[0] ?? '';
+                    $dataPagamento = null;
+                    try {
+                        $dataPagamento = $dataPagamentoBr ? Carbon::createFromFormat('d/m/Y', $dataPagamentoBr) : null;
+                    } catch (\Throwable $t) {
+                        // fallback: tenta Y-m-d
+                        try { $dataPagamento = Carbon::createFromFormat('Y-m-d', $dataPagamentoBr); } catch(\Throwable $t2) { $dataPagamento = null; }
+                    }
+                    $agora = Carbon::now();
                     $cs = CobrancaSicredi::create([
                         'NossoNumero' => $item['nossoNumero'],
                         'Carteira' => 'SIMPLES',
                         'NumeroDocumento' => $item['seuNumero'],
                         'Pagador' => '',
-                        'DataEmissao' => '',
-                        'DataVencimento' => '',
+                        // Armazena datas em formato ISO (ou vazio se não informado) para compatibilidade com SQL Server
+                        'DataEmissao' => null,
+                        'DataVencimento' => null,
                         'Valor' => $item['valor'],
                         'Liquidacao' => $item['valorLiquidado'],
-                        'DataLiquidacao' => Carbon::createFromDate(explode(' ', $item['dataPagamento'])[0])->format('d/m/Y'),
+                        'DataLiquidacao' => $dataPagamento ? $dataPagamento->format('Y-m-d') : null,
                         'SituacaoTitulo' => 'LIQUIDADO',
-                        'Motivo' => date('d/m/Y H:i:s'),
+                        'Motivo' => $agora->format('Y-m-d H:i:s'),
                         'Associado' => $conta->associadobeneficiario,
                         'Conta' => $conta->conta,
                         'Beneficiario' => $conta->associadobeneficiario,
@@ -172,8 +184,8 @@ class ListarLiquidacao extends Component
                         'CobrandoEm' => '',
                         'PrevisaoPgto' => '',
                         'MovimentoPorUser' => '',
-                        'MovimentoEm' => '',
-                        'Atualizado' => date('d/m/Y H:i:s'),
+                        'MovimentoEm' => null,
+                        'Atualizado' => $agora->format('Y-m-d H:i:s'),
                         'QuitadoIXC' => '',
                         'status_internet' => '',
                         'BaixarBanco' => '0',
