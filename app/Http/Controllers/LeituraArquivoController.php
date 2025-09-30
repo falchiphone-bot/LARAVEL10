@@ -1530,22 +1530,46 @@ else {
                 //     ]);
                 //     return redirect(route('LeituraArquivo.index'));
             } elseif (strpos($Descricao, 'TARIFA COM R LIQUIDACAO') !== false) {
-                //// se contiver, conter o texto na variável
-                $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
-                    ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
-                    ->where('EmpresaID', $Empresa)
-                    ->where('ContaCreditoID', $Conta)
-                    ->First();
 
-                if ($lancamento) {
-                    $idDoLancamento = $lancamento->ID;
+                    // Normaliza data BR (d/m/Y) -> ISO (Y-m-d) antes da consulta
+                    $dataBr = $arraydatanova['Data'] ?? null;
+                    $dataSql = null;
+                    if ($dataBr) {
+                        // Evita espaços e garante formato válido
+                        $dataBr = trim($dataBr);
+                        if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $dataBr)) {
+                            try {
+                                $dataSql = \Carbon\Carbon::createFromFormat('d/m/Y', $dataBr)->format('Y-m-d');
+                            } catch (\Exception $e) {
+                                // Data inválida – não prossegue
+                                $dataSql = null;
+                            }
+                        } elseif (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dataBr)) {
+                            // Já está em ISO
+                            $dataSql = $dataBr;
+                        }
+                    }
 
-                    Lancamento::where('id', $idDoLancamento)->update([
-                        'Conferido' => true,
-                    ]);
+                    if (!$dataSql) {
+                        // Não consegue interpretar a data – evita lançar consulta que geraria erro
+                        continue;
+                    }
+
+                    $valorString = $arraydatanova['valor_formatado'];
+
+                    $lancamento = Lancamento::where('DataContabilidade', $dataSql)
+                        ->where('Valor', $valorString)
+                        ->where('EmpresaID', $Empresa)
+                        ->where('ContaCreditoID', $Conta)
+                        ->first();
+
+                    if ($lancamento) {
+                        // Exemplo de marcação (ajuste conforme necessidade real)
+                        $lancamento->update(['Conferido' => 1]);
+                    }
+
+                    continue;
                 }
-                continue;
-            }
 
             try {
                 $carbon_data = Carbon::createFromFormat('d/m/Y', $Data);
