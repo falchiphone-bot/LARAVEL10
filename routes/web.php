@@ -430,8 +430,12 @@ Route::get('Envios/{Envio}/custos/pdf', [App\Http\Controllers\EnvioCustoControll
 Route::get('Envios/custos/pdf/filtro', [App\Http\Controllers\EnvioCustoController::class, 'pdfFiltro'])
     ->name('Envios.custos.pdf.filtro');
 // PDF de custos por faixa salarial SAF
-Route::get('Envios/custos/pdf-faixa', [\App\Http\Controllers\EnvioCustoController::class, 'pdfFaixa'])->name('Envios.custos.pdf.faixa');
+Route::get('Envios/custos/pdf-faixa', [\AppHttp\Controllers\EnvioCustoController::class, 'pdfFaixa'])->name('Envios.custos.pdf.faixa');
 Route::get('Envios/faixas/pdf-filtro', [\App\Http\Controllers\EnvioCustoController::class, 'pdfFaixasFiltro'])->name('Envios.faixas.pdf.filtro');
+// Relatórios diagnósticos de faixas
+Route::get('Envios/faixas/pdf-filtro-sem-faixa', [\App\Http\Controllers\EnvioCustoController::class, 'pdfEnviosSemFaixa'])->name('Envios.faixas.pdf.filtro.semfaixa');
+// (Opcional) rota legada sem-valor apontando para o mesmo relatório de envios sem faixa até criar relatório específico de faixas null/0
+Route::get('Envios/faixas/pdf-filtro-sem-valor', [\App\Http\Controllers\EnvioCustoController::class, 'pdfEnviosSemFaixa'])->name('Envios.faixas.pdf.filtro.semvalor');
 
 // Diagnóstico de arquivo (apenas para admins com ENVIOS - VER)
 Route::get('Envios/{Envio}/arquivos/{arquivo}/diagnose', [App\Http\Controllers\EnvioController::class, 'diagnose'])
@@ -1003,7 +1007,7 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
  'Enviar_Arquivo'])->name('whatsapp.Enviar_Arquivo');
 
  Route::get('/whatsapp/enviarMensagemAprovadaAriane',
- [App\Http\Controllers\ApiController::class, 'enviarMensagemAprovadaAriane'])
+ [App\Http\Controllers\Controllers\ApiController::class, 'enviarMensagemAprovadaAriane'])
  ->name('whatsapp.enviarMensagemAprovadaAriane');
 
  Route::get('/whatsapp/enviarMensagemAprovadaAngelica',
@@ -1253,7 +1257,7 @@ Route::resource('RedeSocialUsuarios', App\Http\Controllers\RedeSocialUsuarioCont
     Route::get('PlanoContas/Balancetes', [App\Http\Controllers\PlanoContaController::class, 'Balancetes'])->name('planocontas.balancetes');
     Route::get('PlanoContas/Balancetespdf', [App\Http\Controllers\PlanoContaController::class, 'Balancetesgerarpdf'])->name('planocontas.Balancetesgerarpdf');
     Route::resource('PlanoContas', App\Http\Controllers\PlanoContaController::class);
-    Route::post('PlanoContas/FiltroAgrupamento', [App\Http\Controllers\PlanoContaController::class, 'FiltroAgrupamento'])->name('planocontas.FiltroAgrupamento');
+    Route::post('PlanoContas/FiltroAgrupamento', [AppHttp\Controllers\PlanoContaController::class, 'FiltroAgrupamento'])->name('planocontas.FiltroAgrupamento');
 
     #Lançamentos
 

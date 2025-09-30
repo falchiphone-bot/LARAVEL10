@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Envio;
 use App\Models\EnvioCusto;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -61,6 +63,94 @@ class EnvioCustoController extends Controller
             'totalLinhas' => $totalLinhas,
         ]);
         return $pdf->download('faixas-representante-'.$rep->id.'-'.$request->data_ini.'-a-'.$request->data_fim.'.pdf');
+    }
+
+    /**
+     * PDF de faixas salariais sem valor mínimo (nulo ou zero) por representante e período.
+     */
+    // Relatório: ENVIOs sem qualquer faixa salarial vinculada
+    public function pdfEnviosSemFaixa(Request $request)
+    {
+        $request->validate([
+            'representante_id' => 'nullable|exists:representantes,id',
+            'data_ini' => 'required|date',
+            'data_fim' => 'required|date|after_or_equal:data_ini',
+        ]);
+        $rep = $request->representante_id ? \App\Models\Representantes::findOrFail($request->representante_id) : null;
+        $ini = \Carbon\Carbon::parse($request->data_ini)->startOfDay();
+        $fim = \Carbon\Carbon::parse($request->data_fim)->endOfDay();
+
+        // Estratégia 1: whereDoesntHave (mais expressiva)
+        $query1 = Envio::query()
+            ->when($rep, fn($q) => $q->where('representante_id', $rep->id))
+            ->whereBetween('created_at', [$ini, $fim])
+            ->whereDoesntHave('safFaixasSalariais');
+        $envios = $query1->orderBy('created_at')->get();
+
+        // Estratégia 2 (fallback): LEFT JOIN + whereNull (caso algum provider SQL trate microsegundos de modo diferente)
+        if ($envios->isEmpty()) {
+            $query2 = Envio::leftJoin('envio_saf_faixa_salarial as piv', 'piv.envio_id', '=', 'envios.id')
+                ->when($rep, fn($q) => $q->where('envios.representante_id', $rep->id))
+                ->whereBetween('envios.created_at', [$ini, $fim])
+                ->whereNull('piv.id')
+                ->select('envios.*');
+            $envios = $query2->orderBy('envios.created_at')->get();
+        }
+
+        // Estratégia 3 (defensiva): buscar todos e filtrar em memória
+        if ($envios->isEmpty()) {
+            $todos = Envio::with('safFaixasSalariais')
+                ->when($rep, fn($q) => $q->where('representante_id', $rep->id))
+                ->whereBetween('created_at', [$ini, $fim])
+                ->get();
+            $envios = $todos->filter(fn($e) => $e->safFaixasSalariais->isEmpty())->values();
+        }
+
+        // Log diagnóstico (apenas se app.debug = true)
+        if (config('app.debug')) {
+            try {
+                $idsSemFaixa = $envios->pluck('id')->all();
+                $candidatos = Envio::withCount('safFaixasSalariais')
+                    ->when($rep, fn($q) => $q->where('representante_id', $rep->id))
+                    ->whereBetween('created_at', [$ini, $fim])
+                    ->get()
+                    ->map(fn($e) => [
+                        'id' => $e->id,
+                        'created_at' => (string)$e->created_at,
+                        'faixas_count' => $e->saf_faixas_salariais_count,
+                    ]);
+                // Debug específico solicitado: ids 16,18,19
+                $debugIds = [16,18,19];
+                $debugData = Envio::withCount('safFaixasSalariais')
+                    ->whereIn('id', $debugIds)
+                    ->get()
+                    ->map(fn($e) => [
+                        'id'=>$e->id,
+                        'rep'=>$e->representante_id,
+                        'created_at'=>(string)$e->created_at,
+                        'faixas_count'=>$e->saf_faixas_salariais_count,
+                    ]);
+                Log::info('pdfEnviosSemFaixa diagnóstico', [
+                    'rep_id' => $rep?->id,
+                    'periodo' => [$ini->toDateTimeString(), $fim->toDateTimeString()],
+                    'retornados' => $idsSemFaixa,
+                    'candidatos' => $candidatos,
+                    'debug_ids' => $debugData,
+                ]);
+            } catch (\Throwable $t) {
+                Log::warning('Falha log diagnóstico pdfEnviosSemFaixa', ['err'=>$t->getMessage()]);
+            }
+        }
+
+        $totalLinhas = $envios->count();
+
+        $pdf = \PDF::loadView('Envios.custos.pdf_filtro_envios_sem_faixa', [
+            'rep' => $rep,
+            'envios' => $envios,
+            'request' => $request,
+            'totalLinhas' => $totalLinhas,
+        ]);
+    return $pdf->download('envios-sem-faixa-representante-'.$rep->id.'-'.$request->data_ini.'-a-'.$request->data_fim.'.pdf');
     }
 
     public function store(Request $request, Envio $envio)

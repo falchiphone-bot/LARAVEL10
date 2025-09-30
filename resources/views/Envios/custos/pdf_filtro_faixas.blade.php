@@ -86,8 +86,8 @@
     @endforeach
     <hr>
     @php
-      $totalCustosEfetivos = $totalGeralMin * 0.2916; 
-      $totalMinimoMaisEfetivos = $totalGeralMin + $totalCustosEfetivos; 
+      $totalCustosEfetivos = $totalGeralMin * 0.2916;
+      $totalMinimoMaisEfetivos = $totalGeralMin + $totalCustosEfetivos;
       // Total geral meses (soma dos meses de cada faixa) e total período geral
       $totalMesesGeral = 0;
       foreach($envios as $envioSum){

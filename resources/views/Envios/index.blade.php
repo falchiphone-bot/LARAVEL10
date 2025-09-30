@@ -64,6 +64,54 @@
           </div>
       </form>
       @endcan
+      @can('ENVIOS - CUSTOS - LISTAR')
+  <form method="GET" action="{{ route('Envios.faixas.pdf.filtro.semvalor') }}" class="row g-2 align-items-end mb-3">
+          <div class="col-md-4">
+              <label class="form-label small mb-1">Representante</label>
+              <select name="representante_id" class="form-select form-select-sm">
+                  <option value="">Selecione...</option>
+                  @foreach(\App\Models\Representantes::orderBy('nome')->get() as $rep)
+                      <option value="{{ $rep->id }}">{{ $rep->nome }}</option>
+                  @endforeach
+              </select>
+          </div>
+          <div class="col-md-3">
+              <label class="form-label small mb-1">Data inicial</label>
+              <input type="date" name="data_ini" class="form-control form-control-sm" required>
+          </div>
+          <div class="col-md-3">
+              <label class="form-label small mb-1">Data final</label>
+              <input type="date" name="data_fim" class="form-control form-control-sm" required>
+          </div>
+          <div class="col-md-2 d-grid">
+              <button class="btn btn-outline-danger btn-sm"><i class="fa fa-file-pdf"></i> PDF envios sem faixa (legado sem valor)</button>
+          </div>
+      </form>
+      @endcan
+      @can('ENVIOS - CUSTOS - LISTAR')
+  <form method="GET" action="{{ route('Envios.faixas.pdf.filtro.semfaixa') }}" class="row g-2 align-items-end mb-3">
+          <div class="col-md-4">
+              <label class="form-label small mb-1">Representante</label>
+              <select name="representante_id" class="form-select form-select-sm">
+                  <option value="">Selecione...</option>
+                  @foreach(\App\Models\Representantes::orderBy('nome')->get() as $rep)
+                      <option value="{{ $rep->id }}">{{ $rep->nome }}</option>
+                  @endforeach
+              </select>
+          </div>
+          <div class="col-md-3">
+              <label class="form-label small mb-1">Data inicial</label>
+              <input type="date" name="data_ini" class="form-control form-control-sm" required>
+          </div>
+          <div class="col-md-3">
+              <label class="form-label small mb-1">Data final</label>
+              <input type="date" name="data_fim" class="form-control form-control-sm" required>
+          </div>
+          <div class="col-md-2 d-grid">
+              <button class="btn btn-outline-warning btn-sm"><i class="fa fa-file-pdf"></i> PDF envios sem faixa</button>
+          </div>
+      </form>
+      @endcan
       <form method="GET" class="row g-2 mb-3 align-items-end">
         <div class="col-md-4">
           <label class="form-label">Buscar</label>
