@@ -322,7 +322,7 @@ if (window.Livewire) {
               @if($isSuperAdmin)
                 <li>
                   <!-- Super Admin: link ativo -->
-                  <a href="/" data-bs-toggle="tooltip" data-bs-placement="top"
+                  <a href="{{ route('dashboard') }}" data-bs-toggle="tooltip" data-bs-placement="top"
                      data-bs-custom-class="custom-tooltip"
                      data-bs-title="Ir para a página inicial (Super Admin)"
                      class="nav-link text-white">
@@ -335,7 +335,7 @@ if (window.Livewire) {
                   {{-- Usuários com permissões de Emaús não veem o link do Início --}}
                 @else
                   <li>
-              <a href="/" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip"
+              <a href="{{ route('dashboard') }}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip"
                 data-bs-title="Ir para a página inicial"
                 class="nav-link text-white">
                        <i class="fa-solid fa-house"></i>
