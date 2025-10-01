@@ -1517,7 +1517,8 @@ class Extrato extends Component
         $lancamento = Lancamento::find($lancamento_id);
 
         $funcao = __FUNCTION__;
-        include __DIR__ . '/ConfereFuncao.php';
+        include_once __DIR__ . '/../../../Helpers/ConfereFuncao.php';
+        confereFuncao($funcao, $lancamento);
 
         if ($lancamento->EntradasGeral) {
             $lancamento->EntradasGeral = 0;
@@ -1540,7 +1541,8 @@ class Extrato extends Component
         $lancamento = Lancamento::find($lancamento_id);
 
         $funcao = __FUNCTION__;
-        include __DIR__ . '/ConfereFuncao.php';
+        include_once __DIR__ . '/../../../Helpers/ConfereFuncao.php';
+        confereFuncao($funcao, $lancamento);
 
         if ($lancamento->Investimentos) {
             $lancamento->Investimentos = 0;
@@ -1563,7 +1565,8 @@ class Extrato extends Component
         $lancamento = Lancamento::find($lancamento_id);
 
         $funcao = __FUNCTION__;
-        include __DIR__ . '/ConfereFuncao.php';
+        include_once __DIR__ . '/../../../Helpers/ConfereFuncao.php';
+        confereFuncao($funcao, $lancamento);
 
         if ($lancamento->Transferencias) {
             $lancamento->Transferencias = 0;
@@ -1586,7 +1589,8 @@ class Extrato extends Component
         $lancamento = Lancamento::find($lancamento_id);
 
         $funcao = __FUNCTION__;
-        include __DIR__ . '/ConfereFuncao.php';
+        include_once __DIR__ . '/../../../Helpers/ConfereFuncao.php';
+        confereFuncao($funcao, $lancamento);
 
         if ($lancamento->SemDefinir) {
             $lancamento->SemDefinir = 0;
@@ -1616,7 +1620,8 @@ class Extrato extends Component
         }
 
         $funcao = __FUNCTION__;
-        include __DIR__ . '/ConfereFuncao.php';
+        include_once __DIR__ . '/../../../Helpers/ConfereFuncao.php';
+        confereFuncao($funcao, $lancamento);
 
         if ($lancamento->SaidasGeral) {
             $lancamento->SaidasGeral = 0;
