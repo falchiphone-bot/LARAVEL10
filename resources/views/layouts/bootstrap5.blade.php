@@ -335,7 +335,7 @@ if (window.Livewire) {
                   {{-- Usuários com permissões de Emaús não veem o link do Início --}}
                 @else
                   <li>
-              <a href="{{ route('dashboard') }}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip"
+              <a href="/" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip"
                 data-bs-title="Ir para a página inicial"
                 class="nav-link text-white">
                        <i class="fa-solid fa-house"></i>
