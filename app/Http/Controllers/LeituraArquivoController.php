@@ -499,6 +499,16 @@ class LeituraArquivoController extends Controller
 
                 // dd($arraydatanova);
 
+                // Normaliza formato da data para SQL Server (Y-m-d)
+                $dataSql = null;
+                if (!empty($Data)) {
+                    try {
+                        $dataSql = \Carbon\Carbon::createFromFormat('d/m/Y', $Data)->format('Y-m-d');
+                    } catch (\Throwable $e) {
+                        try { $dataSql = \Carbon\Carbon::parse($Data)->format('Y-m-d'); } catch (\Throwable $e2) { $dataSql = null; }
+                    }
+                }
+
                 Lancamento::create([
                     'Valor' => ($valorString = $valor_formatado),
                     'EmpresaID' => $Empresa,
@@ -506,7 +516,7 @@ class LeituraArquivoController extends Controller
                     'ContaCreditoID' => $ContaCartao,
                     'Descricao' => $DescricaoCompleta,
                     'Usuarios_id' => auth()->user()->id,
-                    'DataContabilidade' => $Data,
+                    'DataContabilidade' => $dataSql,
                     'HistoricoID' => '',
                 ]);
 
@@ -1123,6 +1133,16 @@ else {
             }
 
             if ($historico) {
+                // Normaliza formato da data para SQL Server (Y-m-d)
+                $dataSql = null;
+                if (!empty($Data)) {
+                    try {
+                        $dataSql = \Carbon\Carbon::createFromFormat('d/m/Y', $Data)->format('Y-m-d');
+                    } catch (\Throwable $e) {
+                        try { $dataSql = \Carbon\Carbon::parse($Data)->format('Y-m-d'); } catch (\Throwable $e2) { $dataSql = null; }
+                    }
+                }
+
                 Lancamento::create([
                     'Valor' => ($valorString = $valor_formatado),
                     'EmpresaID' => $Empresa,
@@ -1130,7 +1150,7 @@ else {
                     'ContaCreditoID' => $historico->ContaCreditoID,
                     'Descricao' => $Parcela,
                     'Usuarios_id' => auth()->user()->id,
-                    'DataContabilidade' => $Data,
+                    'DataContabilidade' => $dataSql,
                     'Conferido' => true,
                     'HistoricoID' => $historico->ID,
                 ]);
@@ -1150,6 +1170,16 @@ else {
                     $ContaCredito = $Conta;
                 }
 
+                // Normaliza formato da data para SQL Server (Y-m-d)
+                $dataSql = null;
+                if (!empty($Data)) {
+                    try {
+                        $dataSql = \Carbon\Carbon::createFromFormat('d/m/Y', $Data)->format('Y-m-d');
+                    } catch (\Throwable $e) {
+                        try { $dataSql = \Carbon\Carbon::parse($Data)->format('Y-m-d'); } catch (\Throwable $e2) { $dataSql = null; }
+                    }
+                }
+
                 Lancamento::create([
                     'Valor' => ($valorString = $valor_formatado),
                     'EmpresaID' => $Empresa,
@@ -1157,7 +1187,7 @@ else {
                     'ContaCreditoID' => $ContaCredito,
                     'Descricao' => $DescricaoCompleta,
                     'Usuarios_id' => auth()->user()->id,
-                    'DataContabilidade' => $Data,
+                    'DataContabilidade' => $dataSql,
                     'Conferido' => false,
                     'HistoricoID' => null,
                 ]);
@@ -1881,10 +1911,15 @@ else {
                     // Corrige formato da data para SQL Server (Y-m-d)
                     $dataSql = null;
                     if (!empty($Data)) {
+                        $DataTrim = is_string($Data) ? trim($Data) : $Data;
                         try {
-                            $dataSql = \Carbon\Carbon::createFromFormat('d/m/Y', $Data)->format('Y-m-d');
-                        } catch (\Exception $e) {
-                            $dataSql = $Data; // fallback
+                            $dataSql = \Carbon\Carbon::createFromFormat('d/m/Y', $DataTrim)->format('Y-m-d');
+                        } catch (\Throwable $e) {
+                            try {
+                                $dataSql = \Carbon\Carbon::parse($DataTrim)->format('Y-m-d');
+                            } catch (\Throwable $e2) {
+                                $dataSql = null; // evita enviar d/m/Y ao banco
+                            }
                         }
                     }
                     Lancamento::create([
@@ -1914,6 +1949,20 @@ else {
                         $ContaCredito = $Conta;
                     }
 
+                    // Normaliza formato da data para SQL Server (Y-m-d)
+                    $dataSql = null;
+                    if (!empty($Data)) {
+                        try {
+                            $dataSql = \Carbon\Carbon::createFromFormat('d/m/Y', $Data)->format('Y-m-d');
+                        } catch (\Throwable $e) {
+                            try {
+                                $dataSql = \Carbon\Carbon::parse($Data)->format('Y-m-d');
+                            } catch (\Throwable $e2) {
+                                $dataSql = null; // evita erro de conversão
+                            }
+                        }
+                    }
+
                     Lancamento::create([
                         'Valor' => ($valorString = $valor_formatado),
                         'EmpresaID' => $Empresa,
@@ -1921,7 +1970,7 @@ else {
                         'ContaCreditoID' => $ContaCredito,
                         'Descricao' => $DescricaoCompleta,
                         'Usuarios_id' => auth()->user()->id,
-                        'DataContabilidade' => $Data,
+                        'DataContabilidade' => $dataSql,
                         'Conferido' => false,
                         'HistoricoID' => null,
                     ]);
@@ -2064,6 +2113,15 @@ else {
 
         // Obter os dados da linha desejada
         $linha_data = $planilha_ativa->getCell('A' . $numero_linha)->getValue();
+        // Normaliza data da planilha (geralmente d/m/Y) para Y-m-d
+        $linhaDataSql = null;
+        if (!empty($linha_data)) {
+            try {
+                $linhaDataSql = \Carbon\Carbon::createFromFormat('d/m/Y', $linha_data)->format('Y-m-d');
+            } catch (\Throwable $e) {
+                try { $linhaDataSql = \Carbon\Carbon::parse($linha_data)->format('Y-m-d'); } catch (\Throwable $e2) { $linhaDataSql = null; }
+            }
+        }
 
         $linha_descricao = $planilha_ativa->getCell('B' . $numero_linha)->getValue();
         $linha_parcela = $planilha_ativa->getCell('C' . $numero_linha)->getValue();
@@ -2163,7 +2221,7 @@ else {
                     'ContaCreditoID' => $CashBackContaCreditoID,
                     'Descricao' => $DescricaoCompleta,
                     'Usuarios_id' => auth()->user()->id,
-                    'DataContabilidade' => $linha_data,
+                    'DataContabilidade' => $linhaDataSql,
                     'HistoricoID' => '',
                 ]);
             } else {
@@ -2175,7 +2233,7 @@ else {
                     'ContaCreditoID' => $ContaCartao,
                     'Descricao' => $DescricaoCompleta,
                     'Usuarios_id' => auth()->user()->id,
-                    'DataContabilidade' => $linha_data,
+                    'DataContabilidade' => $linhaDataSql,
                     'HistoricoID' => '',
                 ]);
             }
