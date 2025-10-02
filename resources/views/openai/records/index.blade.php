@@ -685,6 +685,10 @@
           <th style="width:15%" class="text-end">
             <a class="text-decoration-none text-light" href="{{ route('openai.records.index', array_merge($baseParams,['sort'=>'amount','dir'=>$flipDir('amount')])) }}">Valor {{ $sortIcon('amount') }}</a>
           </th>
+          <th style="width:12%" class="text-end" title="Variação do antigo → novo na ordem atual (data desc)">
+            Variação (desc)
+            <button type="button" id="toggleDescVarBtn" class="badge bg-secondary ms-1 border-0" style="font-weight:400;">base: antigo→novo (desc)</button>
+          </th>
           <th style="width:18%">
             <a class="text-decoration-none text-light" href="{{ route('openai.records.index', array_merge($baseParams,['sort'=>'investment','dir'=>$flipDir('investment')])) }}">Investimento {{ $sortIcon('investment') }}</a>
           </th>
@@ -699,6 +703,8 @@
       // Pré-processa variações se filtrado por uma conversa específica
       $variationMap = [];
       $accumMap = [];
+      // Novo: variação sequencial em ordem decrescente de data dentro de cada conversa (para as linhas exibidas)
+      $descVarMap = [];
       if(($chatId ?? 0) > 0){
         // Extrai coleção plana (pagination ou collection) e ordena por occurred_at asc
         $allList = collect($records instanceof \Illuminate\Pagination\AbstractPaginator ? $records->items() : $records);
@@ -723,9 +729,43 @@
           $prev = $cur;
         }
       }
+
+      // Calcula variação sequencial (ordem atual descendente por data) por conversa nos registros exibidos
+      $pageList = collect($records instanceof \Illuminate\Pagination\AbstractPaginator ? $records->items() : $records);
+      $byChat = $pageList->groupBy(function($r){ return $r->chat_id; });
+      foreach($byChat as $chatGroup){
+        $desc = $chatGroup->sortByDesc(fn($item)=>$item->occurred_at)->values();
+        $prevItem = null; // linha superior (mais recente)
+        foreach($desc as $idx => $item){
+          if($idx === 0){
+            // Primeira linha (mais recente) ainda não tem comparação; aguardar próxima
+            $prevItem = $item;
+            continue;
+          }
+          // item atual é a linha inferior (mais antiga) do par
+          $upper = $prevItem; // top
+          $lower = $item;     // bottom
+          $upperVal = (float)$upper->amount;
+          $lowerVal = (float)$lower->amount;
+          if($lowerVal != 0){
+            // Variação do MAIS ANTIGO (baixo) para o MAIS NOVO (cima): (novo - antigo) / antigo
+            $var = (($upperVal - $lowerVal)/$lowerVal)*100.0;
+          } else {
+            $var = null;
+          }
+          // Atribui a variação à LINHA SUPERIOR (mais recente)
+          $descVarMap[$upper->id] = $var;
+          // Avança o ponteiro superior para o próximo par
+          $prevItem = $item;
+        }
+        // Última linha (mais antiga) não tem próxima; garantir nulo se não setado
+        if($prevItem && !array_key_exists($prevItem->id, $descVarMap)){
+          $descVarMap[$prevItem->id] = null;
+        }
+      }
     @endphp
     @forelse($records as $r)
-          <tr>
+      <tr data-chat-id="{{ $r->chat_id }}" data-id="{{ $r->id }}" data-amount="{{ (float)$r->amount }}" data-occurred-at="{{ optional($r->occurred_at)->format('Y-m-d H:i:s') }}">
             <td>
               @if($r->chat)
                 @php $day = $r->occurred_at->format('Y-m-d'); @endphp
@@ -771,6 +811,20 @@
                   @else
                       <div class="small text-muted" title="Primeiro registro">—</div>
                   @endif
+              @endif
+            </td>
+            <td class="text-end">
+              @php $dval = $descVarMap[$r->id] ?? null; @endphp
+              @if(!is_null($dval))
+                @php
+                  // Agora: positivo significa AUMENTO do antigo -> novo (topo) => seta para cima/verde
+                  // negativo significa QUEDA do antigo -> novo => seta para baixo/vermelho
+                  $cls2 = $dval > 0 ? 'text-success' : ($dval < 0 ? 'text-danger' : 'text-muted');
+                  $arrow2 = $dval > 0 ? '▲' : ($dval < 0 ? '▼' : '▶');
+                @endphp
+                <span class="small desc-var-cell {{$cls2}}" data-value="{{ $dval }}" title="Variação do antigo (linha de baixo) → novo (linha atual)">{{$arrow2}} {{ number_format($dval,2,',','.') }}%</span>
+              @else
+                <span class="small desc-var-cell text-muted" data-value="" title="Sem anterior nesta ordem">—</span>
               @endif
             </td>
             <td>
@@ -847,6 +901,111 @@
       @endif
     </div>
   </div>
+
+  @push('scripts')
+  <script>
+    (function(){
+      const btn = document.getElementById('toggleDescVarBtn');
+      if(!btn) return;
+      let mode = 'old->new'; // estados: 'old->new' (antigo→novo) e 'new->old' (novo→antigo)
+
+      function fmt(n){
+        try { return (new Intl.NumberFormat('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2})).format(n); } catch(e){ return n.toFixed(2).replace('.',','); }
+      }
+
+      function recalc(){
+        // Agrupa linhas por chat
+        const rows = Array.from(document.querySelectorAll('table.table tbody tr[data-chat-id]'));
+        const byChat = new Map();
+        rows.forEach(tr=>{
+          const chat = tr.getAttribute('data-chat-id');
+          const dt = tr.getAttribute('data-occurred-at');
+          const amt = parseFloat(tr.getAttribute('data-amount'));
+          const id = tr.getAttribute('data-id');
+          if(!byChat.has(chat)) byChat.set(chat, []);
+          byChat.get(chat).push({tr, chat, dt: new Date(dt.replace(' ', 'T')), amt, id});
+        });
+
+        // Para cada chat, ordenar desc por data e calcular variação conforme modo
+        const map = new Map(); // id -> valor
+        byChat.forEach(list=>{
+          list.sort((a,b)=> b.dt - a.dt);
+          for(let i=0;i<list.length;i++){
+            const top = list[i];
+            const bottom = list[i+1];
+            if(!bottom){
+              map.set(top.id, null);
+              continue;
+            }
+            const newVal = top.amt; // mais recente
+            const oldVal = bottom.amt; // imediatamente mais antigo
+            let v = null;
+            if(mode === 'old->new'){
+              // (novo - antigo)/antigo
+              v = (oldVal !== 0) ? ((newVal - oldVal)/oldVal)*100.0 : null;
+            } else {
+              // (antigo - novo)/novo (inverso)
+              v = (newVal !== 0) ? ((oldVal - newVal)/newVal)*100.0 : null;
+            }
+            map.set(top.id, v);
+          }
+        });
+
+        // Aplicar nos spans
+        rows.forEach(tr=>{
+          const id = tr.getAttribute('data-id');
+          const span = tr.querySelector('.desc-var-cell');
+          if(!span) return;
+          const v = map.get(id);
+          if(v === undefined){
+            span.textContent = '—';
+            span.className = 'small desc-var-cell text-muted';
+            span.title = 'Sem anterior nesta ordem';
+            return;
+          }
+          if(v === null){
+            span.textContent = '—';
+            span.className = 'small desc-var-cell text-muted';
+            span.title = 'Sem anterior nesta ordem';
+            return;
+          }
+          let cls, arrow;
+          if(mode === 'old->new'){
+            // positivo => alta (verde/▲), negativo => queda (vermelho/▼)
+            cls = v > 0 ? 'text-success' : (v < 0 ? 'text-danger' : 'text-muted');
+            arrow = v > 0 ? '▲' : (v < 0 ? '▼' : '▶');
+            span.title = 'Variação do antigo (linha de baixo) → novo (linha atual)';
+          } else {
+            // positivo => queda (vermelho/▼), negativo => alta (verde/▲)
+            cls = v < 0 ? 'text-success' : (v > 0 ? 'text-danger' : 'text-muted');
+            arrow = v < 0 ? '▲' : (v > 0 ? '▼' : '▶');
+            span.title = 'Variação do novo (linha de cima) → antigo (linha de baixo)';
+          }
+          span.className = 'small desc-var-cell ' + cls;
+          span.textContent = `${arrow} ${fmt(v)}%`;
+        });
+      }
+
+      btn.addEventListener('click', function(){
+        if(mode === 'old->new'){
+          mode = 'new->old';
+          btn.textContent = 'base: novo→antigo (desc)';
+          btn.classList.remove('bg-secondary');
+          btn.classList.add('bg-info','text-dark');
+        } else {
+          mode = 'old->new';
+          btn.textContent = 'base: antigo→novo (desc)';
+          btn.classList.remove('bg-info','text-dark');
+          btn.classList.add('bg-secondary');
+        }
+        recalc();
+      });
+
+      // Inicial
+      recalc();
+    })();
+  </script>
+  @endpush
 
   @if(isset($codeOrders) && $codeOrders->count())
     <div class="card shadow-sm mt-4">
