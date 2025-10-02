@@ -95,7 +95,7 @@
         </div>
         <div class="col-sm-2 col-md-2 d-grid gap-2">
           <button class="btn btn-sm btn-outline-primary" type="submit">Filtrar</button>
-          <button class="btn btn-sm btn-outline-warning" type="submit" name="filter_exact" value="1">Filtrar Exatamente</button>
+          <button id="btnFilterExact" class="btn btn-sm btn-outline-warning" type="button" data-active="{{ $filterExact ? '1':'0' }}">Filtrar Exatamente</button>
           @if(!($showAll ?? false))
             <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'asset'=>($asset??'')!==''?$asset:null,'day'=>($day??'')!==''?$day:null,'all'=>1,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,'buy'=>request('buy')?:null])) }}">Todos</a>
           @else
@@ -121,6 +121,27 @@
 
   @push('scripts')
   <!-- Componente x-market.badge já inclui script de status/toggle -->
+  <script>
+  document.addEventListener('DOMContentLoaded', function(){
+    const btnExact = document.getElementById('btnFilterExact');
+    if(btnExact){
+      if(btnExact.dataset.active === '1'){
+        btnExact.classList.remove('btn-outline-warning');
+        btnExact.classList.add('btn-warning');
+      }
+      btnExact.addEventListener('click', function(){
+        const form = btnExact.closest('form');
+        if(!form) return;
+        if(!form.querySelector('input[name="filter_exact"]')){
+          const h = document.createElement('input');
+          h.type='hidden'; h.name='filter_exact'; h.value='1';
+          form.appendChild(h);
+        }
+        form.submit();
+      });
+    }
+  });
+  </script>
   @endpush
 
   <div class="card shadow-sm mb-4">
@@ -613,6 +634,7 @@
         'all'=>($showAll??false)?1:null,
         'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,
         'buy'=>request('buy')?:null,
+        'filter_exact'=> ($filterExact??false)?1:null,
       ]);
     @endphp
     @php
@@ -632,7 +654,8 @@
             'dir'=>$dir!=='desc'?$dir:null,
             'var_mode'=>$isSeq?'acum':'seq',
             'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,
-            'buy'=>request('buy')?:null
+            'buy'=>request('buy')?:null,
+            'filter_exact'=> ($filterExact??false)?1:null,
           ]);
         @endphp
         <a href="{{ route('openai.records.index',$modeParams) }}" class="btn btn-sm btn-outline-secondary" title="Alternar modo de variação">
@@ -772,6 +795,7 @@
           $descVarMap[$prevItem->id] = null;
         }
       }
+      $__firstVarRow = [];
     @endphp
     @forelse($records as $r)
       <tr data-chat-id="{{ $r->chat_id }}" data-id="{{ $r->id }}" data-amount="{{ (float)$r->amount }}" data-occurred-at="{{ optional($r->occurred_at)->format('Y-m-d H:i:s') }}">
@@ -831,9 +855,21 @@
                   $cls2 = $dval > 0 ? 'text-success' : ($dval < 0 ? 'text-danger' : 'text-muted');
                   $arrow2 = $dval > 0 ? '▲' : ($dval < 0 ? '▼' : '▶');
                 @endphp
-                <span class="small desc-var-cell {{$cls2}}" data-value="{{ $dval }}" title="Variação do antigo (linha de baixo) → novo (linha atual)">{{$arrow2}} {{ number_format($dval,2,',','.') }}%</span>
+                <span class="small desc-var-cell {{$cls2}}" data-value="{{ $dval }}" data-chat="{{ $r->chat_id }}" data-date="{{ $r->occurred_at->format('Y-m-d') }}" title="Variação do antigo (linha de baixo) → novo (linha atual)">
+                  <span class="desc-var-value">{{$arrow2}} {{ number_format($dval,2,',','.') }}%</span>
+                  @if(!isset($__firstVarRow[$r->chat_id]))
+                    @php $__firstVarRow[$r->chat_id] = true; @endphp
+                    <button type="button" class="btn btn-xs btn-outline-primary ms-1 save-var-btn" title="Salvar variação mensal" data-chat="{{ $r->chat_id }}" data-var="{{ number_format($dval,4,'.','') }}" data-date="{{ $r->occurred_at->format('Y-m-d') }}">💾</button>
+                  @endif
+                </span>
               @else
-                <span class="small desc-var-cell text-muted" data-value="" title="Sem anterior nesta ordem">—</span>
+                <span class="small desc-var-cell text-muted" data-value="" data-chat="{{ $r->chat_id }}" data-date="{{ $r->occurred_at->format('Y-m-d') }}" title="Sem anterior nesta ordem">
+                  <span class="desc-var-value">—</span>
+                  @if(!isset($__firstVarRow[$r->chat_id]))
+                    @php $__firstVarRow[$r->chat_id] = true; @endphp
+                    <button type="button" class="btn btn-xs btn-outline-secondary ms-1 save-var-btn" title="Salvar variação mensal (0%)" data-chat="{{ $r->chat_id }}" data-var="0" data-date="{{ $r->occurred_at->format('Y-m-d') }}">💾</button>
+                  @endif
+                </span>
               @endif
             </td>
             <td>
@@ -901,12 +937,12 @@
         <span class="badge bg-info text-dark me-2" title="Filtro salvo em sessão">Filtro salvo</span>
       @endif
       @if(!($showAll ?? false))
-        <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'all'=>1,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,'buy'=>request('buy')?:null])) }}">Ver Todos</a>
+  <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'all'=>1,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,'buy'=>request('buy')?:null,'filter_exact'=>($filterExact??false)?1:null])) }}">Ver Todos</a>
       @else
-        <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,'buy'=>request('buy')?:null])) }}">Voltar à Paginação</a>
+  <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,'buy'=>request('buy')?:null,'filter_exact'=>($filterExact??false)?1:null])) }}">Voltar à Paginação</a>
       @endif
       @if(!empty($savedFilters))
-        <a class="btn btn-sm btn-outline-warning ms-2" href="{{ route('openai.records.index', array_filter(['clear_saved'=>1,'all'=>($showAll??false)?1:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,'buy'=>request('buy')?:null])) }}" title="Remover filtro salvo da sessão">Limpar Filtro Salvo</a>
+  <a class="btn btn-sm btn-outline-warning ms-2" href="{{ route('openai.records.index', array_filter(['clear_saved'=>1,'all'=>($showAll??false)?1:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,'buy'=>request('buy')?:null,'filter_exact'=>($filterExact??false)?1:null])) }}" title="Remover filtro salvo da sessão">Limpar Filtro Salvo</a>
       @endif
     </div>
   </div>
@@ -966,16 +1002,14 @@
           const span = tr.querySelector('.desc-var-cell');
           if(!span) return;
           const v = map.get(id);
-          if(v === undefined){
-            span.textContent = '—';
-            span.className = 'small desc-var-cell text-muted';
-            span.title = 'Sem anterior nesta ordem';
-            return;
+          const valueEl = span.querySelector('.desc-var-value');
+          function setValue(text, cls, title){
+            if(valueEl) valueEl.textContent = text; else span.textContent = text;
+            span.className = 'small desc-var-cell ' + cls;
+            span.title = title;
           }
-          if(v === null){
-            span.textContent = '—';
-            span.className = 'small desc-var-cell text-muted';
-            span.title = 'Sem anterior nesta ordem';
+          if(v === undefined || v === null){
+            setValue('—','text-muted','Sem anterior nesta ordem');
             return;
           }
           let cls, arrow;
@@ -990,8 +1024,7 @@
             arrow = v < 0 ? '▲' : (v > 0 ? '▼' : '▶');
             span.title = 'Variação do novo (linha de cima) → antigo (linha de baixo)';
           }
-          span.className = 'small desc-var-cell ' + cls;
-          span.textContent = `${arrow} ${fmt(v)}%`;
+          setValue(`${arrow} ${fmt(v)}%`, cls, span.title);
         });
       }
 
@@ -1080,6 +1113,7 @@
   @endif
 {{-- </div> --}}
 @endsection
+
 @push('scripts')
 <script>
 // Preencher Fechado (AssetDailyStat) a partir da conversa selecionada
@@ -1245,6 +1279,76 @@ function prepQuickAdd(chatId){
   }
 })();
 </script>
+  <script>
+  // Mostrar botão salvar variação somente na primeira linha (mais recente) de cada chat
+  (function(){
+    const rows = Array.from(document.querySelectorAll('table.table tbody tr[data-chat-id]'));
+    const byChat = new Map();
+    rows.forEach(tr=>{
+      const chat = tr.getAttribute('data-chat-id');
+      const dt = tr.getAttribute('data-occurred-at');
+      if(!chat || !dt) return;
+      if(!byChat.has(chat)) byChat.set(chat, []);
+      byChat.get(chat).push({tr, dt: new Date(dt.replace(' ', 'T'))});
+    });
+    byChat.forEach(list=>{
+      list.sort((a,b)=> b.dt - a.dt); // mais recente primeiro
+      const first = list[0];
+      if(first){
+        const btn = first.tr.querySelector('.save-var-btn');
+        if(btn) btn.classList.remove('d-none');
+      }
+    });
+  })();
+  // Handler salvar variação
+  (function(){
+    const token = '{{ csrf_token() }}';
+    document.addEventListener('click', async function(ev){
+      const btn = ev.target.closest('.save-var-btn');
+      if(!btn) return;
+      ev.preventDefault();
+      const chatId = btn.getAttribute('data-chat');
+      const variation = btn.getAttribute('data-var');
+      const date = btn.getAttribute('data-date');
+      btn.disabled = true; const original = btn.textContent; btn.textContent='…';
+      try {
+        async function doRequest(payload){
+          const resp = await fetch(@json(route('openai.records.saveVariation')),{
+            method:'POST',
+            headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':token,'X-Requested-With':'XMLHttpRequest'},
+            body: JSON.stringify(payload)
+          });
+          const data = await resp.json().catch(()=>({}));
+          return {resp,data};
+        }
+        let {resp,data} = await doRequest({ chat_id: chatId, variation: variation, date: date });
+        if(resp.status === 409 && data?.needs_confirm){
+          const proceed = window.confirm('Já existe variação para '+data.current.month+'/'+data.current.year+' ('+data.current.variation+'). Substituir pelo novo valor?');
+            if(!proceed){
+              btn.disabled = false; btn.textContent = original; return;
+            }
+            ({resp,data} = await doRequest({ chat_id: chatId, variation: variation, date: date, confirm: 1 }));
+        }
+        if(!resp.ok || !data.ok){
+          btn.classList.remove('btn-outline-primary','btn-outline-secondary');
+          btn.classList.add('btn-outline-danger');
+          btn.textContent='Erro';
+          btn.title = (data && (data.error||data.message)) || 'Falha';
+          return;
+        }
+        btn.classList.remove('btn-outline-primary','btn-outline-secondary');
+        btn.classList.add('btn-success','text-white');
+        btn.textContent='OK';
+        btn.title=(data.message || 'Variação salva')+' ('+data.month+'/'+data.year+')';
+      } catch(e){
+        btn.classList.remove('btn-outline-primary');
+        btn.classList.add('btn-outline-danger');
+        btn.textContent='Erro';
+        btn.title = e.message || 'Erro';
+      }
+    });
+  })();
+  </script>
 @endpush
 
 @push('scripts')

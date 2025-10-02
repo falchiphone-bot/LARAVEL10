@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\OpenAIChat;
 use App\Models\OpenAIChatRecord;
 use App\Models\InvestmentAccount;
+use App\Models\AssetVariation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +24,7 @@ class OpenAIChatRecordController extends Controller
 
     public function index(Request $request): View
     {
+    $filterExact = $request->has('filter_exact');
     $chatId = (int) $request->input('chat_id');
     $from = $request->input('from');
     $to = $request->input('to');
@@ -151,12 +153,35 @@ class OpenAIChatRecordController extends Controller
                     ? Carbon::createFromFormat('d/m/Y', $to)->endOfDay()
                     : Carbon::parse($to)->endOfDay();
             }
-            if ($request->has('filter_exact') && $fromDate && $toDate) {
-                                // Filtrar registros que tenham exatamente as datas selecionadas (ignorando hora)
-                                $query->where(function($q) use ($dateExpr, $fromDate, $toDate) {
-                                        $q->whereDate($dateExpr, $fromDate->toDateString())
-                                            ->orWhereDate($dateExpr, $toDate->toDateString());
-                                });
+            if ($request->has('filter_exact') && ($fromDate || $toDate)) {
+                // Filtro exato: considerar APENAS os dias especificados (sem intervalo contínuo)
+                // Aceita 1 ou 2 datas (from/to). Remove duplicadas.
+                $dates = collect([
+                    $fromDate ? $fromDate->toDateString() : null,
+                    $toDate ? $toDate->toDateString() : null,
+                ])->filter()->unique()->values()->all();
+                if (!empty($dates)) {
+                    $driverFE = DB::getDriverName();
+                    if ($driverFE === 'sqlsrv') {
+                        // SQL Server: CAST/CONVERT para date
+                        $placeholders = implode(',', array_fill(0, count($dates), '?'));
+                        $query->whereRaw('CAST(occurred_at AS date) IN ('.$placeholders.')', $dates);
+                    } else {
+                        // MySQL/MariaDB/SQLite/PostgreSQL: usar DATE() ou whereDate direto se $dateExpr simples
+                        if (preg_match('/^[a-zA-Z0-9_\.]+$/', $dateExpr)) {
+                            // Coluna simples -> whereIn sobre extração de date não é suportado diretamente, usar whereDate em OR
+                            $query->where(function($q) use ($dates, $dateExpr){
+                                foreach ($dates as $idx => $d) {
+                                    $idx === 0 ? $q->whereDate($dateExpr, $d) : $q->orWhereDate($dateExpr, $d);
+                                }
+                            });
+                        } else {
+                            // Expressão -> embrulhar em DATE(expr)
+                            $placeholders = implode(',', array_fill(0, count($dates), '?'));
+                            $query->whereRaw('DATE('.$dateExpr.') IN ('.$placeholders.')', $dates);
+                        }
+                    }
+                }
             } elseif ($fromDate && $toDate) {
                 $query->whereRaw($dateExpr.' BETWEEN ? AND ?', [$fromDate, $toDate]);
             } elseif ($fromDate) {
@@ -259,6 +284,7 @@ class OpenAIChatRecordController extends Controller
                 'asset' => $asset !== '' ? $asset : null,
                 'day' => ($day >= 1 && $day <= 31) ? $day : null,
                 'buy' => in_array($buy, ['compra','nao'], true) ? $buy : null,
+                'filter_exact' => $request->has('filter_exact') ? 1 : null,
             ]));
         }
 
@@ -328,7 +354,7 @@ class OpenAIChatRecordController extends Controller
             ->unique('label')
             ->values();
 
-    return view('openai.records.index', compact('records','chats','chatId','selectedChat','from','to','showAll','sort','dir','savedFilters','varMode','codeOrders','investmentAccounts','invAccId','lastInvestmentAccountId','datesReapplied','assetOptions','asset','buy','flagsMap','day'));
+    return view('openai.records.index', compact('records','chats','chatId','selectedChat','from','to','showAll','sort','dir','savedFilters','varMode','codeOrders','investmentAccounts','invAccId','lastInvestmentAccountId','datesReapplied','assetOptions','asset','buy','flagsMap','day','filterExact'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -1627,5 +1653,71 @@ class OpenAIChatRecordController extends Controller
             ]);
         }
         return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Salva variação mensal (primeira linha da coluna "Variação (desc)").
+     * Campos: chat_id, variation (percentual), date (YYYY-MM-DD)
+     */
+    public function saveVariation(Request $request)
+    {
+        $this->authorize('viewAny', OpenAIChatRecord::class);
+        try {
+            $payload = $request->validate([
+                'chat_id' => 'required|integer|exists:open_a_i_chats,id',
+                'variation' => 'required|numeric',
+                'date' => 'required|date_format:Y-m-d',
+                'confirm' => 'sometimes|boolean',
+            ]);
+            $chat = OpenAIChat::find($payload['chat_id']);
+            if(!$chat){
+                return response()->json(['ok'=>false,'error'=>'Conversa não encontrada'],404);
+            }
+            $dt = Carbon::createFromFormat('Y-m-d', $payload['date']);
+            $month = (int)$dt->format('m');
+            $year = (int)$dt->format('Y');
+            // Checa existência prévia
+            $existing = AssetVariation::where('chat_id',$chat->id)->where('month',$month)->where('year',$year)->first();
+            $isConfirm = (bool)($payload['confirm'] ?? false);
+            if($existing && !$isConfirm){
+                return response()->json([
+                    'ok' => false,
+                    'needs_confirm' => true,
+                    'message' => 'Já existe variação para este mês. Confirma substituir?',
+                    'current' => [
+                        'id' => $existing->id,
+                        'variation' => $existing->variation,
+                        'month' => $existing->month,
+                        'year' => $existing->year,
+                    ]
+                ], 409);
+            }
+            if($existing){
+                $existing->variation = $payload['variation'];
+                $existing->asset_code = $chat->code ?: null;
+                $existing->save();
+                $variation = $existing;
+            } else {
+                $variation = AssetVariation::create([
+                    'chat_id' => $chat->id,
+                    'month' => $month,
+                    'year' => $year,
+                    'asset_code' => $chat->code ?: null,
+                    'variation' => $payload['variation'],
+                ]);
+            }
+            return response()->json([
+                'ok' => true,
+                'id' => $variation->id,
+                'month' => $variation->month,
+                'year' => $variation->year,
+                'variation' => $variation->variation,
+                'message' => $existing && $isConfirm ? 'Variação atualizada' : 'Variação salva'
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            return response()->json(['ok'=>false,'error'=>'Validação','details'=>$ve->errors()],422);
+        } catch (\Throwable $e) {
+            return response()->json(['ok'=>false,'error'=>'Erro ao salvar','detail'=>$e->getMessage()],500);
+        }
     }
 }
