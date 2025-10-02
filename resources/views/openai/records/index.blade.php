@@ -20,7 +20,15 @@
   <a href="{{ route('openai.orders.index', array_filter(['chat_id'=>$chatId?:null])) }}" class="btn btn-outline-success">Ordens</a>
   <a href="{{ route('openai.investments.index') }}" class="btn btn-outline-info">Investimentos</a>
       <a href="{{ route('openai.chat') }}" class="btn btn-outline-dark">Chat</a>
-  <a href="{{ route('openai.records.assets') }}" class="btn btn-outline-success">Ativos (únicos)</a>
+      <div class="btn-group">
+        <button type="button" class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+          Estatísticas
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" href="{{ route('openai.records.assets') }}">Ativos (únicos)</a></li>
+          <li><a class="dropdown-item" href="{{ route('openai.variations.index') }}">Variações Mensais</a></li>
+        </ul>
+      </div>
     </div>
   </div>
 

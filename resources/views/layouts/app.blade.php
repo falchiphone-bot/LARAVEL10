@@ -12,7 +12,23 @@
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
         <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @php
+            $viteOk = false;
+            try {
+                // Caminho relativo ao public_path
+                $manifestPath = public_path('build/manifest.json');
+                if(file_exists($manifestPath)) {
+                    $viteOk = true;
+                }
+            } catch(\Throwable $e) { $viteOk = false; }
+        @endphp
+        @if($viteOk)
+            @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @else
+            <!-- Fallback simples quando assets compilados não estão presentes -->
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous" defer></script>
+        @endif
     </head>
     <body class="font-sans antialiased">
         <div class="min-h-screen bg-gray-100 dark:bg-gray-900">

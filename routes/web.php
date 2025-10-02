@@ -58,6 +58,8 @@ Route::get('/db-indisponivel', function () {
 
 // Rota para variacoes mensais de ativos americanos
 Route::post('/openai/records/save-variation', [\App\Http\Controllers\OpenAIChatRecordController::class, 'saveVariation'])->name('openai.records.saveVariation');
+// Listagem das variações mensais salvas
+Route::get('/openai/variations', [\App\Http\Controllers\AssetVariationController::class, 'index'])->name('openai.variations.index');
 
 // ...outras rotas...
 
