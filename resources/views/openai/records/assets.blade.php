@@ -1,6 +1,6 @@
 @extends('layouts.bootstrap5')
 @section('content')
-<div class="container py-4">
+{{-- <div class="container py-4"> --}}
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <h1 class="h5 mb-0 d-flex align-items-center gap-2">
       Ativos (sem repetição)
@@ -407,7 +407,7 @@
   <div class="alert alert-info mt-3">
     Esta é uma visualização agregada. Nenhum dado é salvo nesta tela. Em breve será possível habilitar a gravação em lote via uma tag.
   </div>
-</div>
+{{-- </div> --}}
 @endsection
 
 @push('scripts')
