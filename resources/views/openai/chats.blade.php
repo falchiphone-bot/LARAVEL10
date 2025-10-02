@@ -1,6 +1,6 @@
 @extends('layouts.bootstrap5')
 @section('content')
-<div class="container py-4">
+{{-- <div class="container py-4"> --}}
   @php
     $viewMode = request('view');
     if(!in_array($viewMode, ['cards','table'])) {
@@ -296,7 +296,7 @@
     @else
         <div class="alert alert-info">Você ainda não salvou nenhuma conversa.</div>
     @endif
-</div>
+{{-- </div> --}}
 @endsection
 
 @push('scripts')

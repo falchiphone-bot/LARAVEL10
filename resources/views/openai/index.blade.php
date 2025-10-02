@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 @extends('layouts.bootstrap5')
 @section('content')
-<div class="container py-4">
+{{-- <div class="container py-4"> --}}
     <div class="mb-3">
         <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary">← Dashboard</a>
     </div>
@@ -45,5 +45,5 @@
             Você não tem permissão para acessar as ferramentas OpenAI.
         </div>
     @endif
-</div>
+{{-- </div> --}}
 @endsection

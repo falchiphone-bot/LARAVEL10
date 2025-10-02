@@ -1,6 +1,6 @@
 @extends('layouts.bootstrap5')
 @section('content')
-<div class="container py-4">
+{{-- <div class="container py-4"> --}}
     <div class="mb-3 d-flex gap-2 align-items-center flex-wrap">
         @canany(['OPENAI - CHAT', 'OPENAI - TRANSCRIBE - ESPANHOL'])
         <a href="{{ route('openai.menu') }}" class="btn btn-outline-secondary">← Voltar ao Menu</a>
@@ -442,7 +442,7 @@
             </div>
         </div>
     @endif
-</div>
+{{-- </div> --}}
 @endsection
 
 @push('scripts')

@@ -1,6 +1,6 @@
 @extends('layouts.bootstrap5')
 @section('content')
-<div class="container py-4" id="records-index">
+{{-- <div class="container py-4" id="records-index"> --}}
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <h1 class="h4 mb-0 d-flex align-items-center gap-2">
       Registros de Conversas
@@ -1069,7 +1069,7 @@
       </div>
     </div>
   @endif
-</div>
+{{-- </div> --}}
 @endsection
 @push('scripts')
 <script>

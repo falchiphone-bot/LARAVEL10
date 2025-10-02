@@ -1,7 +1,7 @@
 @extends('layouts.bootstrap5')
 @section('content')
     <div class="py-5 bg-light">
-        <div class="container">
+        {{-- <div class="container"> --}}
 
             <div class="card">
                 <div class="badge bg-primary text-wrap" style="width: 100%;font-size: 24px;lign=˜Center˜">
@@ -286,7 +286,7 @@
                 </div>
             </div>
 
-        </div>
+        {{-- </div> --}}
     </div>
 
     </div>
