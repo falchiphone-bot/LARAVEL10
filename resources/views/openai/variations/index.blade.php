@@ -26,12 +26,77 @@
       <thead>
         <tr>
           <th>ID</th>
-          <th>Código</th>
-          <th>Ano</th>
-          <th>Mês</th>
-          <th>Variação (%)</th>
-          <th>Criado</th>
-          <th>Atualizado</th>
+          @php
+            // Parâmetros base preservados para os links de ordenação
+            $baseParams = array_filter(['year'=>request('year')?:null,'code'=>$code?:null]);
+          @endphp
+          @php
+            $isCodeAsc = ($sort ?? '') === 'code_asc';
+            $isCodeDesc = ($sort ?? '') === 'code_desc';
+            $codeNext = $isCodeAsc ? 'code_desc' : ($isCodeDesc ? 'year_desc' : 'code_asc');
+            $codeIcon = $isCodeAsc ? '↑' : ($isCodeDesc ? '↓' : '↕');
+          @endphp
+          <th>
+            <a class="text-decoration-none" href="{{ route('openai.variations.index', array_merge($baseParams, ['sort'=>$codeNext])) }}" title="Ordenar / alternar ordenação por código">
+              Código {{ $codeIcon }}
+            </a>
+          </th>
+          @php
+            $isYearAsc = ($sort ?? '') === 'year_asc';
+            $isYearDesc = ($sort ?? '') === 'year_desc';
+            $yearNext = $isYearAsc ? 'year_desc' : ($isYearDesc ? 'month_desc' : 'year_asc');
+            // Nota: ciclo diferente pode confundir; manter padrão 3 estados como demais: asc->desc->padrão(year_desc). Mas year_desc é também o padrão, então: asc->desc->asc? Melhor replicar padrão: (none)->asc->desc->none. Como default já é year_desc, faremos: if default e user clica: year_asc.
+            // Ajuste: se default (year_desc) e não explicitamente setado, mostrar ícone ↕ sem link extra.
+            $yearIcon = $isYearAsc ? '↑' : ($isYearDesc ? '↓' : '↕');
+            if($isYearDesc && request('sort') !== 'year_desc'){ /* year_desc vindo explicitamente */ }
+            $yearNext = $isYearAsc ? 'year_desc' : ($isYearDesc ? 'year_asc' : 'year_asc');
+
+            $isMonthAsc = ($sort ?? '') === 'month_asc';
+            $isMonthDesc = ($sort ?? '') === 'month_desc';
+            $monthNext = $isMonthAsc ? 'month_desc' : ($isMonthDesc ? 'year_desc' : 'month_asc');
+            $monthIcon = $isMonthAsc ? '↑' : ($isMonthDesc ? '↓' : '↕');
+          @endphp
+          <th>
+            <a class="text-decoration-none" href="{{ route('openai.variations.index', array_merge($baseParams, ['sort'=>$yearNext])) }}" title="Ordenar / alternar por ano">
+              Ano {{ $yearIcon }}
+            </a>
+          </th>
+          <th>
+            <a class="text-decoration-none" href="{{ route('openai.variations.index', array_merge($baseParams, ['sort'=>$monthNext])) }}" title="Ordenar / alternar por mês">
+              Mês {{ $monthIcon }}
+            </a>
+          </th>
+          @php
+            $isVarAsc = ($sort ?? '') === 'variation_asc';
+            $isVarDesc = ($sort ?? '') === 'variation_desc';
+            $nextSort = $isVarAsc ? 'variation_desc' : ($isVarDesc ? 'year_desc' : 'variation_asc');
+            $icon = $isVarAsc ? '↑' : ($isVarDesc ? '↓' : '↕');
+          @endphp
+          <th>
+            <a class="text-decoration-none" href="{{ route('openai.variations.index', array_merge($baseParams, ['sort'=>$nextSort])) }}" title="Ordenar / alternar ordenação pela variação">
+              Variação (%) {{ $icon }}
+            </a>
+          </th>
+          @php
+            $isCreatedAsc = ($sort ?? '') === 'created_asc';
+            $isCreatedDesc = ($sort ?? '') === 'created_desc';
+            $createdNext = $isCreatedAsc ? 'created_desc' : ($isCreatedDesc ? 'year_desc' : 'created_asc');
+            $createdIcon = $isCreatedAsc ? '↑' : ($isCreatedDesc ? '↓' : '↕');
+            $isUpdatedAsc = ($sort ?? '') === 'updated_asc';
+            $isUpdatedDesc = ($sort ?? '') === 'updated_desc';
+            $updatedNext = $isUpdatedAsc ? 'updated_desc' : ($isUpdatedDesc ? 'year_desc' : 'updated_asc');
+            $updatedIcon = $isUpdatedAsc ? '↑' : ($isUpdatedDesc ? '↓' : '↕');
+          @endphp
+          <th>
+            <a class="text-decoration-none" href="{{ route('openai.variations.index', array_merge($baseParams, ['sort'=>$createdNext])) }}" title="Ordenar / alternar por data de criação">
+              Criado {{ $createdIcon }}
+            </a>
+          </th>
+          <th>
+            <a class="text-decoration-none" href="{{ route('openai.variations.index', array_merge($baseParams, ['sort'=>$updatedNext])) }}" title="Ordenar / alternar por data de atualização">
+              Atualizado {{ $updatedIcon }}
+            </a>
+          </th>
         </tr>
       </thead>
       <tbody>
