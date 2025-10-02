@@ -56,6 +56,11 @@ Route::get('/db-indisponivel', function () {
 })->name('db.down');
 
 
+// Rota para variacoes mensais de ativos americanos
+Route::post('/openai/records/save-variation', [\App\Http\Controllers\OpenAIChatRecordController::class, 'saveVariation'])->name('openai.records.saveVariation');
+
+// ...outras rotas...
+
 // Rota para editar custo de um envio
 Route::get('Envios/{Envio}/custos/{custo}/edit', [\App\Http\Controllers\EnvioCustoController::class, 'edit'])
     ->name('Envios.custos.edit');
@@ -1429,6 +1434,8 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     Route::get('/openai/records/assets/export-csv', [\App\Http\Controllers\OpenAIChatRecordController::class, 'assetsExport'])->name('openai.records.assets.exportCsv');
     Route::get('/openai/records/assets/export-summary-csv', [\App\Http\Controllers\OpenAIChatRecordController::class, 'assetsExportSummary'])->name('openai.records.assets.exportSummaryCsv');
     Route::get('/openai/records/assets/export-xlsx', [\App\Http\Controllers\OpenAIChatRecordController::class, 'assetsExportXlsx'])->name('openai.records.assets.exportXlsx');
+    // Variações de ativos salvas
+    Route::get('/openai/records/variations', [\App\Http\Controllers\OpenAIChatRecordController::class, 'showVariations'])->name('openai.records.variations');
     // Preencher Fechado em AssetDailyStat a partir de Registros
     Route::post('/openai/records/fill-asset-close', [\App\Http\Controllers\OpenAIChatRecordController::class, 'fillAssetStatClose'])->name('openai.records.fillAssetClose');
     Route::post('/openai/records/fill-asset-close-period', [\App\Http\Controllers\OpenAIChatRecordController::class, 'fillAssetStatClosePeriod'])->name('openai.records.fillAssetClosePeriod');

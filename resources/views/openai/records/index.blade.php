@@ -2,6 +2,14 @@
 @section('content')
 {{-- <div class="container py-4" id="records-index"> --}}
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <form method="POST" action="{{ route('openai.records.saveVariation') }}" class="d-flex align-items-center gap-2">
+      @csrf
+      <input type="hidden" name="chat_id" value="{{ $chatId ?? '' }}">
+      <input type="hidden" name="asset_code" value="{{ $asset ?? '' }}">
+      <input type="hidden" name="from" value="{{ $from ?? '' }}">
+      <input type="hidden" name="to" value="{{ $to ?? '' }}">
+      <button type="submit" class="btn btn-warning">Salvar Variação das Datas</button>
+    </form>
     <h1 class="h4 mb-0 d-flex align-items-center gap-2">
       Registros de Conversas
       <x-market.badge storageKey="records.localBadge.visible" idPrefix="records" />
