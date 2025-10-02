@@ -151,7 +151,13 @@ class OpenAIChatRecordController extends Controller
                     ? Carbon::createFromFormat('d/m/Y', $to)->endOfDay()
                     : Carbon::parse($to)->endOfDay();
             }
-            if ($fromDate && $toDate) {
+            if ($request->has('filter_exact') && $fromDate && $toDate) {
+                                // Filtrar registros que tenham exatamente as datas selecionadas (ignorando hora)
+                                $query->where(function($q) use ($dateExpr, $fromDate, $toDate) {
+                                        $q->whereDate($dateExpr, $fromDate->toDateString())
+                                            ->orWhereDate($dateExpr, $toDate->toDateString());
+                                });
+            } elseif ($fromDate && $toDate) {
                 $query->whereRaw($dateExpr.' BETWEEN ? AND ?', [$fromDate, $toDate]);
             } elseif ($fromDate) {
                 $query->whereRaw($dateExpr.' >= ?', [$fromDate]);

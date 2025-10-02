@@ -87,6 +87,7 @@
         </div>
         <div class="col-sm-2 col-md-2 d-grid gap-2">
           <button class="btn btn-sm btn-outline-primary" type="submit">Filtrar</button>
+          <button class="btn btn-sm btn-outline-warning" type="submit" name="filter_exact" value="1">Filtrar Exatamente</button>
           @if(!($showAll ?? false))
             <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'asset'=>($asset??'')!==''?$asset:null,'day'=>($day??'')!==''?$day:null,'all'=>1,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,'buy'=>request('buy')?:null])) }}">Todos</a>
           @else
