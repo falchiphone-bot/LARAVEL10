@@ -3,13 +3,12 @@
 namespace App\Models;
 
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Lancamento extends Model
 {
-    protected $primaryKey = "ID";
+    protected $primaryKey = 'ID';
     protected $table = 'Contabilidade.Lancamentos';
     public $timestamps = false;
 
@@ -35,7 +34,7 @@ class Lancamento extends Model
         'DiasNotificacaoAntesVencimento',
         'Investimentos',
         'Transferencias',
-        'SemDefinir'
+        'SemDefinir',
     ];
 
     protected $casts = [
@@ -47,9 +46,9 @@ class Lancamento extends Model
         'Investimentos' => 'boolean',
         'Transferencias' => 'boolean',
         'SemDefinir' => 'boolean',
-
     ];
 
+    // Relations
     public function Empresa(): HasOne
     {
         return $this->hasOne(Empresa::class, 'ID', 'EmpresaID');
@@ -70,49 +69,58 @@ class Lancamento extends Model
         return $this->hasOne(SolicitacaoExclusao::class, 'TableID', 'ID');
     }
 
-    public function getDataContabilidadeAttribute($value)
-    {
-        return Carbon::createFromDate($value);
-    }
-
-    /**
-     * Get all of the Arquivos for the Lancamento
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
     public function arquivos()
     {
         return $this->hasMany(LancamentoDocumento::class, 'LancamentoID', 'ID');
     }
+
     public function Historico(): HasOne
     {
         return $this->hasOne(Historicos::class, 'ID', 'HistoricoID');
     }
+
     public function ContasPagarArquivo(): HasOne
     {
         return $this->hasOne(ContasPagar::class, 'LancamentoID', 'ID');
     }
 
+    // Mutator para normalizar o formato ao salvar
+    public function setDataContabilidadeAttribute($value): void
+    {
+        if ($value instanceof \DateTimeInterface) {
+            $this->attributes['DataContabilidade'] = Carbon::instance($value)->format('Y-m-d');
+            return;
+        }
+        if (is_string($value)) {
+            $v = trim($value);
+            // d/m/Y
+            if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $v)) {
+                try {
+                    $this->attributes['DataContabilidade'] = Carbon::createFromFormat('d/m/Y', $v)->format('Y-m-d');
+                    return;
+                } catch (\Throwable $e) {}
+            }
+            // Y-m-d
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $v)) {
+                $this->attributes['DataContabilidade'] = $v;
+                return;
+            }
+            // Parse genérico
+            try {
+                $this->attributes['DataContabilidade'] = Carbon::parse($v)->format('Y-m-d');
+                return;
+            } catch (\Throwable $e) {}
+        }
+        $this->attributes['DataContabilidade'] = $value;
+    }
 
-    // public function setDataContabilidadeAttribute($value)
-    // {
-    //     return Carbon::createFromDate($value)->format('d/m/Y');
-    // }
-
-/**
-     * Calcula a soma de 'ValorQuantidadeDolar' para todos os registros ou um subconjunto
-     *
-     * @param array $conditions (opcional) Condições para filtrar os registros
-     * @return float
-     */
+    // Utils
     public static function somaValorQuantidadeDolar(array $conditions = []): float
     {
         $query = self::query();
-
         if (!empty($conditions)) {
             $query->where($conditions);
         }
-
         return (float) $query->sum('ValorQuantidadeDolar');
     }
 
@@ -159,8 +167,7 @@ class Lancamento extends Model
             });
         }
         if ($valor === 'SaidasGeral' || $valor === 'EntradasGeral') {
-            // Deixar validação para camada superior
-            return $query;
+            return $query; // validação em camada superior
         }
         return $query->where('Conferido', $valor);
     }
@@ -196,6 +203,4 @@ class Lancamento extends Model
     {
         return $query->with(['ContaDebito.PlanoConta', 'ContaCredito.PlanoConta', 'Historico', 'Empresa']);
     }
-
-
 }
