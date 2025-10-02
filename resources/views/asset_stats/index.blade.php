@@ -209,11 +209,18 @@
               @endif
             </td>
             <td>
-              <a href="{{ route('asset-stats.index', array_filter(['symbol' => $s->symbol, 'date_start' => $dateStart ?? null, 'date_end' => $dateEnd ?? null, 'acc' => $acc ?? null, 'has_close' => !empty($hasClose) ? 1 : null, 'sort' => $sort ?? null, 'dir' => $dir ?? null])) }}" 
-                 class="text-decoration-none fw-bold text-primary symbol-link" 
+              <a href="{{ route('asset-stats.index', array_filter(['symbol' => $s->symbol, 'date_start' => $dateStart ?? null, 'date_end' => $dateEnd ?? null, 'acc' => $acc ?? null, 'has_close' => !empty($hasClose) ? 1 : null, 'sort' => $sort ?? null, 'dir' => $dir ?? null])) }}"
+                 class="text-decoration-none fw-bold text-primary symbol-link"
                  title="Clique para filtrar por {{ $s->symbol }}">
                 {{ $s->symbol }}
                 <i class="fa-solid fa-filter ms-1 opacity-50" style="font-size: 0.75em;"></i>
+              </a>
+              <br>
+              <a href="{{ route('openai.records.index') }}?asset={{ urlencode($s->symbol) }}#gsc.tab=0"
+                 class="text-decoration-none text-secondary small"
+                 title="Ver registros OpenAI para {{ $s->symbol }}"
+                 target="_blank">
+                <i class="fa-solid fa-robot me-1"></i>Registros
               </a>
             </td>
             <td class="text-end">{{ number_format((float)$s->mean, 6, ',', '.') }}</td>

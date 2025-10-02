@@ -77,12 +77,14 @@ class OpenAIChatRecordController extends Controller
         }
 
         $sort = $request->input('sort','occurred_at');
-        $dir = strtolower($request->input('dir','desc')) === 'asc' ? 'asc' : 'desc';
+    $dir = strtolower($request->input('dir','desc')) === 'asc' ? 'asc' : 'desc';
     $invAccId = $request->input('investment_account_id'); // '' | '0' (sem) | id
     $query = OpenAIChatRecord::with(['chat:id,title,code','user:id,name','investmentAccount:id,account_name,broker']);
         $showAll = (bool)$request->input('all');
     // Filtro por status de compra (COMPRAR/NÃO COMPRAR) baseado em flags do usuário
     $buy = $request->input('buy'); // '' | 'compra' | 'nao'
+    // Filtro por dia do mês (1..31)
+    $day = (int) $request->input('day');
 
         if ($chatId > 0) {
             $query->where('chat_id', $chatId);
@@ -90,15 +92,38 @@ class OpenAIChatRecordController extends Controller
 
         // Filtro por ativo (código/título) limitado às conversas do tipo "BOLSA DE VALORES AMERICANA"
         if ($asset !== '') {
-            $like = '%'.$asset.'%';
-            $query->whereHas('chat', function($q) use ($like){
-                $q->where(function($qq) use ($like){
-                    $qq->where('code','like',$like)
-                       ->orWhere('title','like',$like);
-                })->whereHas('type', function($t){
-                    $t->whereRaw('UPPER(name) = ?', ['BOLSA DE VALORES AMERICANA']);
+            $assetTrim = strtoupper(trim((string)$asset));
+            // Tenta extrair um código de ativo no início (ex.: "ANY - Love..." => ANY)
+            $assetCode = null;
+            if (preg_match('/^([A-Z0-9]+)\s*-\s*/', $assetTrim, $m)) {
+                $assetCode = $m[1];
+            } elseif (preg_match('/^([A-Z0-9]+)$/', $assetTrim, $m)) {
+                $assetCode = $m[1];
+            } elseif (preg_match('/^([A-Z0-9]+)\b/', $assetTrim, $m)) {
+                $assetCode = $m[1];
+            }
+
+            if ($assetCode) {
+                $codeParam = strtoupper(trim($assetCode));
+                // Busca EXATA por código de conversa (case-insensitive e trim)
+                $query->whereHas('chat', function($q) use ($codeParam){
+                    $q->whereRaw('UPPER(LTRIM(RTRIM(code))) = ?', [$codeParam])
+                      ->whereHas('type', function($t){
+                          $t->whereRaw('UPPER(name) = ?', ['BOLSA DE VALORES AMERICANA']);
+                      });
                 });
-            });
+            } else {
+                // Fallback: busca textual por código/título contendo
+                $like = '%'.$asset.'%';
+                $query->whereHas('chat', function($q) use ($like){
+                    $q->where(function($qq) use ($like){
+                        $qq->where('code','like',$like)
+                           ->orWhere('title','like',$like);
+                    })->whereHas('type', function($t){
+                        $t->whereRaw('UPPER(name) = ?', ['BOLSA DE VALORES AMERICANA']);
+                    });
+                });
+            }
         }
 
         // Filtros de data com bindings seguros (evita formato inválido para SQL Server)
@@ -132,6 +157,17 @@ class OpenAIChatRecordController extends Controller
                 $query->whereRaw($dateExpr.' >= ?', [$fromDate]);
             } elseif ($toDate) {
                 $query->whereRaw($dateExpr.' <= ?', [$toDate]);
+            }
+            // Filtro por dia do mês, se informado (1..31)
+            if ($day >= 1 && $day <= 31) {
+                $driver2 = DB::getDriverName();
+                if ($driver2 === 'sqlsrv') {
+                    $query->whereRaw('DAY(' . $dateExpr . ') = ?', [$day]);
+                } elseif ($driver2 === 'pgsql') {
+                    $query->whereRaw('EXTRACT(DAY FROM ' . $dateExpr . ') = ?', [$day]);
+                } else { // mysql/mariadb e demais
+                    $query->whereRaw('DAYOFMONTH(' . $dateExpr . ') = ?', [$day]);
+                }
             }
         } catch (\Exception $e) { /* ignora datas inválidas */ }
 
@@ -215,6 +251,7 @@ class OpenAIChatRecordController extends Controller
                 'all' => $showAll ? 1 : null,
                 'investment_account_id' => ($invAccId !== null && $invAccId !== '') ? $invAccId : null,
                 'asset' => $asset !== '' ? $asset : null,
+                'day' => ($day >= 1 && $day <= 31) ? $day : null,
                 'buy' => in_array($buy, ['compra','nao'], true) ? $buy : null,
             ]));
         }
@@ -285,7 +322,7 @@ class OpenAIChatRecordController extends Controller
             ->unique('label')
             ->values();
 
-    return view('openai.records.index', compact('records','chats','chatId','selectedChat','from','to','showAll','sort','dir','savedFilters','varMode','codeOrders','investmentAccounts','invAccId','lastInvestmentAccountId','datesReapplied','assetOptions','asset','buy','flagsMap'));
+    return view('openai.records.index', compact('records','chats','chatId','selectedChat','from','to','showAll','sort','dir','savedFilters','varMode','codeOrders','investmentAccounts','invAccId','lastInvestmentAccountId','datesReapplied','assetOptions','asset','buy','flagsMap','day'));
     }
 
     public function store(Request $request): RedirectResponse

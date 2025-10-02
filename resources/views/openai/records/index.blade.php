@@ -76,18 +76,27 @@
           <label class="form-label small mb-1">Até</label>
           <input type="date" name="to" value="{{ $to ?? '' }}" class="form-control form-control-sm">
         </div>
+        <div class="col-sm-2 col-md-2">
+          <label class="form-label small mb-1">Dia do mês</label>
+          <select name="day" class="form-select form-select-sm">
+            <option value="">Todos</option>
+            @for($d=1;$d<=31;$d++)
+              <option value="{{ $d }}" {{ (int)($day ?? 0) === $d ? 'selected' : '' }}>{{ $d }}</option>
+            @endfor
+          </select>
+        </div>
         <div class="col-sm-2 col-md-2 d-grid gap-2">
           <button class="btn btn-sm btn-outline-primary" type="submit">Filtrar</button>
           @if(!($showAll ?? false))
-            <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'asset'=>($asset??'')!==''?$asset:null,'all'=>1,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,'buy'=>request('buy')?:null])) }}">Todos</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'asset'=>($asset??'')!==''?$asset:null,'day'=>($day??'')!==''?$day:null,'all'=>1,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,'buy'=>request('buy')?:null])) }}">Todos</a>
           @else
-            <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'asset'=>($asset??'')!==''?$asset:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,'buy'=>request('buy')?:null])) }}">Paginar</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{{ route('openai.records.index', array_filter(['chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'asset'=>($asset??'')!==''?$asset:null,'day'=>($day??'')!==''?$day:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,'buy'=>request('buy')?:null])) }}">Paginar</a>
           @endif
           @if(!empty($savedFilters))
-            <a class="btn btn-sm btn-outline-warning" href="{{ route('openai.records.index', array_filter(['clear_saved'=>1,'chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'asset'=>($asset??'')!==''?$asset:null, 'all'=>($showAll??false)?1:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,'buy'=>request('buy')?:null])) }}" title="Remover filtro salvo">Limpar Salvo</a>
+            <a class="btn btn-sm btn-outline-warning" href="{{ route('openai.records.index', array_filter(['clear_saved'=>1,'chat_id'=>$chatId?:null,'from'=>$from?:null,'to'=>$to?:null,'asset'=>($asset??'')!==''?$asset:null,'day'=>($day??'')!==''?$day:null,'all'=>($showAll??false)?1:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,'buy'=>request('buy')?:null])) }}" title="Remover filtro salvo">Limpar Salvo</a>
           @endif
         </div>
-        @if(request()->hasAny(['chat_id','from','to','investment_account_id','asset','buy']) && (request('chat_id')||request('from')||request('to')||request('investment_account_id')!==null||request('asset')||request('buy')!==null))
+  @if(request()->hasAny(['chat_id','from','to','investment_account_id','asset','buy','day']) && (request('chat_id')||request('from')||request('to')||request('investment_account_id')!==null||request('asset')||request('buy')!==null||request('day')!==null))
           <div class="col-sm-2 col-md-2">
             <a href="{{ route('openai.records.index') }}" class="btn btn-sm btn-outline-dark w-100">Limpar</a>
           </div>
