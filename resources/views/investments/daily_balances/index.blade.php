@@ -12,12 +12,16 @@
         </form>
         @endcan
         @can('INVESTIMENTOS SNAPSHOTS - EXPORTAR')
-        <a href="{{ route('investments.daily-balances.exportCsv', request()->only('with_deleted')) }}" class="btn btn-outline-secondary" title="Exportar CSV">Exportar CSV</a>
+        <a href="{{ route('investments.daily-balances.exportCsv', request()->only('with_deleted','latest_per_day')) }}" class="btn btn-outline-secondary" title="Exportar CSV">Exportar CSV</a>
         @endcan
-        <form method="GET" action="{{ route('investments.daily-balances.index') }}" class="ms-3">
-          <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" name="with_deleted" value="1" id="withDeletedSwitch" onchange="this.form.submit()" {{ $withDeleted ? 'checked' : '' }}>
-            <label class="form-check-label" for="withDeletedSwitch">Mostrar excluídos</label>
+        <form method="GET" action="{{ route('investments.daily-balances.index') }}" class="d-flex align-items-center ms-3 gap-3">
+          <div class="form-check form-switch m-0">
+            <input class="form-check-input" type="checkbox" name="with_deleted" value="1" id="withDeletedSwitch" onchange="this.form.submit()" {{ ($withDeleted ?? false) ? 'checked' : '' }}>
+            <label class="form-check-label" for="withDeletedSwitch" title="Mostrar também snapshots excluídos">Excluídos</label>
+          </div>
+          <div class="form-check form-switch m-0">
+            <input class="form-check-input" type="checkbox" name="latest_per_day" value="1" id="latestPerDaySwitch" onchange="this.form.submit()" {{ ($latestPerDay ?? false) ? 'checked' : '' }}>
+            <label class="form-check-label" for="latestPerDaySwitch" title="Mantém apenas o snapshot mais recente de cada dia">Mais novo/dia</label>
           </div>
         </form>
     </div>
@@ -32,10 +36,12 @@
         <tr>
           <th style="width:20%">Data/Hora</th>
           <th class="text-end" style="width:18%">Total</th>
-          <th class="text-end" style="width:16%">Dif (vs anterior)</th>
-          <th class="text-end" style="width:16%">Var %</th>
-          <th style="width:16%" class="text-end">Anterior</th>
-          <th style="width:14%" class="text-center">Ações</th>
+          <th class="text-end" style="width:14%" title="Diferença = valor desta linha (mais recente) - valor da próxima linha (mais antiga); positivo = crescimento">Dif (vs próximo)</th>
+          <th class="text-end" style="width:12%" title="Var % = (Dif / valor desta linha) * 100">Var %</th>
+          <th class="text-end" style="width:14%" title="Acumulado Dif = valor atual - valor do 1º snapshot listado">Acum Dif</th>
+          <th class="text-end" style="width:12%" title="Acum % = (Acum Dif / valor do 1º snapshot) * 100">Acum %</th>
+          <th style="width:12%" class="text-end">Anterior</th>
+          <th style="width:12%" class="text-center">Ações</th>
         </tr>
       </thead>
       <tbody>
@@ -44,6 +50,8 @@
             $m = $r['model'];
             $diff = $r['diff'];
             $var = $r['var'];
+            $accDiff = $r['acc_diff'] ?? null;
+            $accPerc = $r['acc_perc'] ?? null;
             $prevTotal = $r['prev_total'];
             $cls = '';
             if($diff !== null){ if($diff>0) $cls='text-success'; elseif($diff<0) $cls='text-danger'; else $cls='text-muted'; }
@@ -54,13 +62,25 @@
                 @if($m->trashed())<span class="badge bg-warning text-dark ms-1">Excluído</span>@endif
               </td>
               <td class="text-end">{{ number_format($m->total_amount, 2, ',', '.') }}</td>
-              <td class="text-end {{ $diff === null ? 'text-muted' : ($diff >= 0 ? 'text-success' : 'text-danger') }}">
-                @if($diff===null) — @else {{ number_format($diff, 2, ',', '.') }} @endif
+              <td class="text-end {{ $diff === null ? 'text-muted' : ($diff > 0 ? 'text-success' : ($diff < 0 ? 'text-danger' : 'text-muted')) }}">
+                @if($diff===null) — @else
+                  @if($diff>0) ↑ @elseif($diff<0) ↓ @else → @endif
+                  {{ number_format($diff, 2, ',', '.') }}
+                @endif
               </td>
-              <td class="text-end {{ $var === null ? 'text-muted' : ($var >= 0 ? 'text-success' : 'text-danger') }}">
+              <td class="text-end {{ $var === null ? 'text-muted' : ($var > 0 ? 'text-success' : ($var < 0 ? 'text-danger' : 'text-muted')) }}">
                 @if($var===null) — @else {{ number_format($var, 2, ',', '.') }}% @endif
               </td>
-              <td>{{ optional($m->created_at)->format('d/m/Y H:i') }}</td>
+              <td class="text-end {{ $accDiff === null ? 'text-muted' : ($accDiff > 0 ? 'text-success' : ($accDiff < 0 ? 'text-danger' : 'text-muted')) }}">
+                @if($accDiff===null) — @else
+                  @if($accDiff>0) ↑ @elseif($accDiff<0) ↓ @else → @endif
+                  {{ number_format($accDiff, 2, ',', '.') }}
+                @endif
+              </td>
+              <td class="text-end {{ $accPerc === null ? 'text-muted' : ($accPerc > 0 ? 'text-success' : ($accPerc < 0 ? 'text-danger' : 'text-muted')) }}">
+                @if($accPerc===null) — @else {{ number_format($accPerc, 2, ',', '.') }}% @endif
+              </td>
+              <td class="text-end">{{ optional($m->created_at)->format('d/m/Y H:i') }}</td>
               <td class="d-flex gap-1">
                 @if(!$m->trashed())
                   @can('INVESTIMENTOS SNAPSHOTS - EXCLUIR')

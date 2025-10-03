@@ -28,34 +28,56 @@ class InvestmentDailyBalanceController extends Controller
     {
         $userId = (int) Auth::id();
         $withDeleted = $request->boolean('with_deleted');
+        $latestPerDay = $request->boolean('latest_per_day');
         $query = InvestmentDailyBalance::where('user_id', $userId);
         if ($withDeleted) { $query->withTrashed(); }
-        $balances = $query->orderByDesc('snapshot_at')
-            ->limit(200)
-            ->get();
-        // Calcular métricas de evolução
+        if ($latestPerDay) {
+            $raw = $query->orderByDesc('snapshot_at')->limit(1200)->get();
+            $seenDays = []; $picked = [];
+            foreach ($raw as $b) {
+                $d = optional($b->snapshot_at)->toDateString();
+                if (!isset($seenDays[$d])) { $seenDays[$d]=true; $picked[] = $b; if (count($picked)>=200) break; }
+            }
+            $balances = collect($picked);
+        } else {
+            $balances = $query->orderByDesc('snapshot_at')->limit(200)->get();
+        }
         $rows = [];
-        $prev = null;
-        foreach ($balances as $b) {
+        $last = $balances->last(); // base acumulada = mais antigo
+        $accBaseVal = $last?->total_amount;
+        $count = $balances->count();
+        for ($i=0; $i<$count; $i++) {
+            $cur = $balances[$i];
             $diff = null; $var = null;
-            if ($prev) {
-                $diff = (float)$b->total_amount - (float)$prev->total_amount;
-                if (abs((float)$prev->total_amount) > 0.0000001) {
-                    $var = ($diff / (float)$prev->total_amount) * 100.0;
+            if ($i+1 < $count) {
+                $older = $balances[$i+1];
+                $diff = (float)$cur->total_amount - (float)$older->total_amount; // positivo=crescimento
+                $olderBase = (float)$older->total_amount;
+                if (abs($olderBase) > 1e-10) {
+                    $var = ($diff / $olderBase) * 100.0; // var % sobre valor mais antigo
+                }
+            }
+            $accDiff = null; $accPerc = null;
+            if ($last) {
+                $accDiff = (float)$cur->total_amount - (float)$accBaseVal;
+                if (abs((float)$accBaseVal) > 1e-10) {
+                    $accPerc = ($accDiff / (float)$accBaseVal) * 100.0;
                 }
             }
             $rows[] = [
-                'model' => $b,
-                'diff' => $diff,
-                'var' => $var,
-                'perc' => $var, // alias para compatibilidade com view existente
-                'prev_total' => $prev?->total_amount,
+                'model'=>$cur,
+                'diff'=>$diff,
+                'var'=>$var,
+                'perc'=>$var,
+                'prev_total'=>null,
+                'acc_diff'=>$accDiff,
+                'acc_perc'=>$accPerc,
             ];
-            $prev = $b;
         }
         return view('investments.daily_balances.index', [
             'rows' => $rows,
             'withDeleted' => $withDeleted,
+            'latestPerDay' => $latestPerDay,
         ]);
     }
 
@@ -76,7 +98,7 @@ class InvestmentDailyBalanceController extends Controller
         if (!empty($to)) { $q->whereDate('date', '<=', $to); }
         if ($account !== '') { $q->where('account_name', 'LIKE', '%'.$account.'%'); }
         if ($broker !== '') { $q->where('broker', 'LIKE', '%'.$broker.'%'); }
-        $total = (float) ($q->sum('total_invested'));
+        $total = (float)$q->sum('total_invested');
         $now = now();
         $driver = DB::getDriverName();
         if ($driver === 'sqlsrv') {
@@ -94,7 +116,7 @@ class InvestmentDailyBalanceController extends Controller
                 'created_at' => $stamp,
                 'updated_at' => $stamp,
             ]);
-            $snapshot = InvestmentDailyBalance::find($id);
+            // (nenhum cálculo aqui; lógica de evolução é só para listagem/export)
         } else {
             $snapshot = InvestmentDailyBalance::create([
                 'user_id' => $userId,
@@ -131,18 +153,66 @@ class InvestmentDailyBalanceController extends Controller
     {
         $userId = (int) Auth::id();
         $withDeleted = $request->boolean('with_deleted');
+        $latestPerDay = $request->boolean('latest_per_day');
         $q = InvestmentDailyBalance::where('user_id',$userId);
         if ($withDeleted) { $q->withTrashed(); }
-        $balances = $q->orderByDesc('snapshot_at')
-            ->get(['snapshot_at','total_amount','deleted_at']);
-        $callback = function() use ($balances){
+        if ($latestPerDay) {
+            $raw = $q->orderByDesc('snapshot_at')->limit(5000)->get(['snapshot_at','total_amount','deleted_at']);
+            $seen = []; $selected = [];
+            foreach ($raw as $b) {
+                $d = optional($b->snapshot_at)->toDateString();
+                if (!isset($seen[$d])) { $seen[$d]=true; $selected[] = $b; }
+            }
+            $balances = collect($selected);
+        } else {
+            $balances = $q->orderByDesc('snapshot_at')
+                ->get(['snapshot_at','total_amount','deleted_at']);
+        }
+    // Pré-calcular métricas igual à tela (diferença atribuída à linha mais recente usando a próxima mais antiga; acumulado baseado no snapshot mais antigo)
+        $rows = [];
+    $last = $balances->last();
+    $accBaseVal = $last?->total_amount;
+        foreach ($balances as $b) {
+            $rows[] = [
+                'snapshot_at' => optional($b->snapshot_at)->format('Y-m-d H:i:s'),
+                'total_amount' => (float)$b->total_amount,
+                'deleted_at' => $b->deleted_at?->format('Y-m-d H:i:s'),
+                'diff' => null,
+                'var' => null,
+                'acc_diff' => null,
+                'acc_perc' => null,
+            ];
+        }
+        $count = count($rows);
+        for ($i=0; $i<$count; $i++) {
+            $curVal = $rows[$i]['total_amount'];
+            // acumulado
+            if ($last) {
+                $accDiff = $curVal - (float)$accBaseVal;
+                $accPerc = (abs((float)$accBaseVal) > 1e-10) ? ($accDiff / (float)$accBaseVal) * 100.0 : null;
+                $rows[$i]['acc_diff'] = $accDiff;
+                $rows[$i]['acc_perc'] = $accPerc;
+            }
+            if ($i+1 < $count) {
+                $olderVal = $rows[$i+1]['total_amount'];
+                $diff = $curVal - $olderVal; // positivo = crescimento
+                $var = abs($olderVal) > 1e-10 ? ($diff / $olderVal) * 100.0 : null; // base = mais antigo
+                $rows[$i]['diff'] = $diff;
+                $rows[$i]['var'] = $var;
+            }
+        }
+        $callback = function() use ($rows){
             $out = fopen('php://output','w');
-            fputcsv($out, ['SnapshotAt','TotalAmount','DeletedAt'], ';');
-            foreach ($balances as $b) {
+            fputcsv($out, ['SnapshotAt','TotalAmount','Diff','VarPerc','AccDiff','AccPerc','DeletedAt'], ';');
+            foreach ($rows as $r) {
                 fputcsv($out, [
-                    optional($b->snapshot_at)->format('Y-m-d H:i:s'),
-                    number_format((float)$b->total_amount, 6, '.', ''),
-                    $b->deleted_at?->format('Y-m-d H:i:s')
+                    $r['snapshot_at'],
+                    number_format($r['total_amount'], 6, '.', ''),
+                    $r['diff'] === null ? '' : number_format($r['diff'], 6, '.', ''),
+                    $r['var'] === null ? '' : number_format($r['var'], 6, '.', ''),
+                    $r['acc_diff'] === null ? '' : number_format($r['acc_diff'], 6, '.', ''),
+                    $r['acc_perc'] === null ? '' : number_format($r['acc_perc'], 6, '.', ''),
+                    $r['deleted_at']
                 ], ';');
             }
             fclose($out);
