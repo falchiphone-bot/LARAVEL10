@@ -27,7 +27,8 @@ class AssetVariationController extends Controller
         $month = is_numeric($monthInput) ? (int)$monthInput : 0; // 1..12
         $code = trim($request->input('code',''));
         $polarity = $request->input('polarity'); // positive | negative
-        $change = $request->input('change'); // melhoria|piora|igual|null
+    $change = $request->input('change'); // melhoria|piora|igual|null
+    $trendFilter = $request->input('trend'); // códigos de tendência
         $grouped = (bool)$request->boolean('grouped');
         $sparkWindow = (int)($request->input('spark_window') ?: 6);
         if($sparkWindow < 3) $sparkWindow = 3; if($sparkWindow > 24) $sparkWindow = 24;
@@ -183,6 +184,7 @@ class AssetVariationController extends Controller
                 'sparkWindow'=>$sparkWindow,
                 'groupedData'=>$groupedData,
                 'trendData'=>[],
+                'trendFilter'=>$trendFilter,
             ]);
         }
 
@@ -328,6 +330,22 @@ class AssetVariationController extends Controller
                 'days_month' => $daysMonth,
             ];
         }
+        // Se houver filtro de tendência, filtrar coleção em memória (MVP; opcionalmente mover para persistência futura)
+        if($trendFilter){
+            $allowed = (array)explode(',', $trendFilter);
+            $items = collect($variations->items())->filter(function($row) use ($trendData,$allowed){
+                $t = $trendData[$row->id]['code'] ?? null;
+                return in_array($t, $allowed, true);
+            })->values();
+            // Recriar paginator mantendo metadados originais (simplificação: total passa a ser o count filtrado)
+            $variations = new \Illuminate\Pagination\LengthAwarePaginator(
+                $items,
+                $items->count(),
+                $variations->perPage(),
+                $variations->currentPage(),
+                ['path' => request()->url(), 'query' => request()->query()]
+            );
+        }
         $years = AssetVariation::select('year')->distinct()->orderBy('year','desc')->pluck('year');
         return view('openai.variations.index', [
             'variations'=>$variations,
@@ -343,6 +361,7 @@ class AssetVariationController extends Controller
             'sparkWindow'=>$sparkWindow,
             'groupedData'=>[],
             'trendData'=>$trendData,
+            'trendFilter'=>$trendFilter,
         ]);
     }
 

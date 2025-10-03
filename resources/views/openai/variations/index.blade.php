@@ -43,6 +43,30 @@
       </select>
     </div>
     <div class="col-auto">
+      <label class="form-label mb-0 small">Tendência</label>
+      <select name="trend" class="form-select form-select-sm" onchange="this.form.submit()" title="Filtrar por tendência calculada">
+        @php
+          $trendFilter = $trendFilter ?? '';
+          $trendOptions = [
+            '' => 'Todas',
+            'alta_acelerando' => 'Alta Acelerando',
+            'alta_estavel' => 'Alta Estável',
+            'alta_perdendo' => 'Alta Perdendo',
+            'queda_acelerando' => 'Queda Acelerando',
+            'queda_estavel' => 'Queda Estável',
+            'queda_aliviando' => 'Queda Aliviando',
+            'reversao_alta' => 'Reversão Alta',
+            'reversao_baixa' => 'Reversão Baixa',
+            'neutro' => 'Neutro',
+            'sem_historico' => 'Sem Histórico',
+          ];
+        @endphp
+        @foreach($trendOptions as $tv=>$tl)
+          <option value="{{ $tv }}" @selected($trendFilter===$tv)>{{ $tl }}</option>
+        @endforeach
+      </select>
+    </div>
+    <div class="col-auto">
       <label class="form-label mb-0 small">Agrupar</label>
       <div class="form-check form-switch mt-1">
         <input class="form-check-input" type="checkbox" value="1" name="grouped" id="groupedToggle" onchange="this.form.submit()" @checked($grouped ?? false) />
@@ -72,6 +96,7 @@
           'change' => ($change ?? '') ?: null,
           'grouped' => ($grouped ?? false) ? 1 : null,
           'spark_window' => ($grouped ?? false) ? ($sparkWindow ?? null) : null,
+          'trend' => ($trendFilter ?? '') ?: null,
         ]);
       @endphp
       <div class="btn-group btn-group-sm" role="group" aria-label="Atalhos de sinal">
@@ -97,6 +122,7 @@
           'change' => ($change ?? '') ?: null,
           'grouped' => ($grouped ?? false) ? 1 : null,
           'spark_window' => ($grouped ?? false) ? ($sparkWindow ?? null) : null,
+          'trend' => ($trendFilter ?? '') ?: null,
         ]);
         $curMonth = (int) (request('month') ?: 0);
       @endphp
@@ -121,6 +147,7 @@
       'change' => ($change ?? '') ?: null,
       'grouped' => ($grouped ?? false) ? 1 : null,
       'spark_window' => ($grouped ?? false) ? ($sparkWindow ?? null) : null,
+      'trend' => ($trendFilter ?? '') ?: null,
     ]);
   @endphp
   <div class="mb-2 d-flex gap-2">
@@ -133,6 +160,19 @@
 
   @if($grouped ?? false)
     <div class="alert alert-info py-2 small">Modo agrupado por código — mostrando últimas {{ $sparkWindow }} variações disponíveis por conversa/código. Ordenação por Diferença (%) disponível.</div>
+    <div class="mb-2 small">
+      <strong>Legenda Tendências:</strong>
+      <span class="badge bg-success">Alta Acelerando</span>
+      <span class="badge bg-success opacity-75">Alta Estável</span>
+      <span class="badge bg-warning text-dark">Alta Perdendo</span>
+      <span class="badge bg-danger">Queda Acelerando</span>
+      <span class="badge bg-danger opacity-75">Queda Estável</span>
+      <span class="badge bg-primary">Queda Aliviando</span>
+      <span class="badge bg-success border border-light">Reversão Alta</span>
+      <span class="badge bg-danger border border-light">Reversão Baixa</span>
+      <span class="badge bg-secondary">Neutro</span>
+      <span class="badge bg-secondary opacity-50">Sem Histórico</span>
+    </div>
     <div class="table-responsive">
       <table class="table table-sm table-striped align-middle">
         <thead>
@@ -345,6 +385,7 @@
               Atualizado {{ $updatedIcon }}
             </a>
           </th>
+          <th>Tendência</th>
           <th title="Flag por usuário: COMPRAR ou NÃO COMPRAR">Flag</th>
         </tr>
       </thead>
@@ -407,6 +448,17 @@
               }
             @endphp
             <td class="small {{ $clsDiff }}">@if(!is_null($diff)) {{ number_format($diff,4,',','.') }}% {!! $badge !!} @else — @endif</td>
+            @php $trend = $trendData[$v->id] ?? null; @endphp
+            <td class="small">
+              @if($trend)
+                @php
+                  $tBadge = $trend['badge'] === 'info' ? 'primary' : $trend['badge'];
+                @endphp
+                <span class="badge bg-{{ $tBadge }}" title="Tendência: {{ $trend['label'] }} | Normalizado: {{ number_format($trend['normalized'],4,',','.') }}% | Confiança: {{ number_format($trend['confidence']*100,1,',','.') }}% @if($trend['days_elapsed'] && $trend['days_month']) | Dias: {{ $trend['days_elapsed'] }}/{{ $trend['days_month'] }} @endif">{{ $trend['label'] }}</span>
+              @else
+                <span class="text-muted">—</span>
+              @endif
+            </td>
             @php $trend = $trendData[$v->id] ?? null; @endphp
             <td class="small">
               @if($trend)

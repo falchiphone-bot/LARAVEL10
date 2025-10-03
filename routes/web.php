@@ -1430,6 +1430,7 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     // Conversas salvas
     Route::get('/openai/chats', [OpenAIController::class, 'chats'])->name('openai.chats');
     Route::get('/openai/records', [\App\Http\Controllers\OpenAIChatRecordController::class, 'index'])->name('openai.records.index');
+    Route::get('/openai/records/daily-comparison-export', [\App\Http\Controllers\OpenAIChatRecordController::class, 'exportDailyComparison'])->name('openai.records.dailyComparison.export');
     Route::post('/openai/records/save-variation', [\App\Http\Controllers\OpenAIChatRecordController::class, 'saveVariation'])->name('openai.records.saveVariation');
     Route::post('/openai/records', [\App\Http\Controllers\OpenAIChatRecordController::class, 'store'])->name('openai.records.store');
     Route::get('/openai/records/{record}/edit', [\App\Http\Controllers\OpenAIChatRecordController::class, 'edit'])->name('openai.records.edit');

@@ -316,6 +316,124 @@
   </div>
 
   <div class="table-responsive">
+  @if(($chatId ?? 0) > 0)
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <form class="row g-2 align-items-end" method="GET" action="{{ route('openai.records.index') }}">
+          <input type="hidden" name="chat_id" value="{{ $chatId }}">
+          {{-- Preserva filtros principais --}}
+          @foreach(['from','to','asset','investment_account_id','buy','day','filter_exact','all','sort','dir'] as $keep)
+            @if(request()->filled($keep))
+              <input type="hidden" name="{{ $keep }}" value="{{ request($keep) }}">
+            @endif
+          @endforeach
+          <div class="col-auto">
+            <label class="form-label small mb-1">Mês atual base (YYYY-MM)</label>
+            <input type="month" name="current_month" value="{{ $currentMonthParam ?? '' }}" class="form-control form-control-sm" placeholder="YYYY-MM">
+          </div>
+          <div class="col-auto">
+            <label class="form-label small mb-1">Mês anterior custom (opcional)</label>
+            <input type="month" name="previous_month" value="{{ $previousMonthParam ?? '' }}" class="form-control form-control-sm" placeholder="YYYY-MM">
+          </div>
+          <div class="col-auto">
+            <label class="form-label small mb-1">Dia limite</label>
+            <input type="number" min="1" max="31" name="day_limit" value="{{ $dayLimitParam ?? '' }}" class="form-control form-control-sm" placeholder="Ex: 20">
+          </div>
+          <div class="col-auto">
+            <label class="form-label small mb-1">Bucket</label>
+            <select name="cmp_bucket" class="form-select form-select-sm">
+              <option value="last" {{ ($cmpBucket ?? 'last')==='last'?'selected':'' }}>Último do dia</option>
+              <option value="first" {{ ($cmpBucket ?? 'last')==='first'?'selected':'' }}>Primeiro do dia</option>
+            </select>
+          </div>
+          <div class="col-auto d-flex gap-2 mt-4 pt-1">
+            <button class="btn btn-sm btn-outline-primary" type="submit">Aplicar</button>
+            @if(request()->hasAny(['current_month','previous_month','day_limit','cmp_bucket']))
+              @php
+                $resetCmp = array_filter([
+                  'chat_id'=>$chatId,
+                  'from'=>$from?:null,'to'=>$to?:null,'asset'=>($asset??'')!==''?$asset:null,'investment_account_id'=>($invAccId!==null && $invAccId!=='')?$invAccId:null,'buy'=>request('buy')?:null,'day'=>($day??'')!==''?$day:null,'filter_exact'=>($filterExact??false)?1:null,'all'=>($showAll??false)?1:null,'sort'=>$sort!=='occurred_at'?$sort:null,'dir'=>$dir!=='desc'?$dir:null,
+                ]);
+              @endphp
+              <a href="{{ route('openai.records.index',$resetCmp) }}" class="btn btn-sm btn-outline-secondary">Limpar</a>
+            @endif
+            @if(isset($dailyMonthComparison) && $dailyMonthComparison)
+              @php
+                $exportParams = array_merge(request()->only(['chat_id','current_month','previous_month','day_limit','cmp_bucket']),[]);
+              @endphp
+              <a href="{{ route('openai.records.dailyComparison.export', $exportParams) }}" class="btn btn-sm btn-outline-success">Exportar CSV</a>
+            @endif
+          </div>
+        </form>
+      </div>
+    </div>
+  @endif
+  @if(($chatId ?? 0) > 0 && isset($dailyMonthComparison) && $dailyMonthComparison)
+    @php
+      $cmp = $dailyMonthComparison;
+      $curInfo = $cmp['current'] ?? [];
+      $prevInfo = $cmp['previous'] ?? [];
+      $daysMax = $cmp['days_max'] ?? 0;
+      $diffs = $cmp['diffs'] ?? [];
+      // Helpers
+      $fmtNum = function($n,$dec=2){ return is_numeric($n) ? number_format($n,$dec,',','.') : '—'; };
+      $fmtPct = function($n,$dec=2){ return is_numeric($n) ? number_format($n,$dec,',','.') . '%' : '—'; };
+    @endphp
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <h2 class="h6 mb-3">Comparação Diário Mês Atual vs Mês Anterior</h2>
+        <div class="small text-muted mb-2">Mostra o último valor de cada dia até o dia limite ({{ $daysMax }}). Compara valores absolutos e percentuais (base: mês anterior).</div>
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th style="width:4%">Dia</th>
+                <th style="width:12%">Anterior ({{ str_pad($prevInfo['month']??0,2,'0',STR_PAD_LEFT) }}/{{ $prevInfo['year']??'' }})</th>
+                <th style="width:12%">Atual ({{ str_pad($curInfo['month']??0,2,'0',STR_PAD_LEFT) }}/{{ $curInfo['year']??'' }})</th>
+                <th style="width:10%" class="text-end">Dif</th>
+                <th style="width:10%" class="text-end">Dif (%)</th>
+                <th style="width:10%" class="text-end" title="Seq: variação dia -> dia (mês anterior)">Seq Ant (%)</th>
+                <th style="width:10%" class="text-end" title="Acum: vs primeiro dia do mês anterior">Acum Ant (%)</th>
+                <th style="width:10%" class="text-end" title="Seq: variação dia -> dia (mês atual)">Seq At (%)</th>
+                <th style="width:10%" class="text-end" title="Acum: vs primeiro dia do mês atual">Acum At (%)</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for($d=1;$d<=$daysMax;$d++)
+                @php
+                  $prevDay = $prevInfo['days'][$d] ?? null;
+                  $curDay = $curInfo['days'][$d] ?? null;
+                  $diff = $diffs[$d] ?? null;
+                  $abs = $diff['abs'] ?? null; $pct = $diff['pct'] ?? null;
+                  $clsDiff = '';
+                  if(is_numeric($abs)) $clsDiff = $abs>0?'text-success':($abs<0?'text-danger':'text-muted');
+                  $clsPct = '';
+                  if(is_numeric($pct)) $clsPct = $pct>0?'text-success':($pct<0?'text-danger':'text-muted');
+                  $seqPrev = $prevDay['seq_pct'] ?? null; $accPrev = $prevDay['accum_pct'] ?? null;
+                  $seqCur = $curDay['seq_pct'] ?? null; $accCur = $curDay['accum_pct'] ?? null;
+                  $clsSeqPrev = is_numeric($seqPrev)?($seqPrev>0?'text-success':($seqPrev<0?'text-danger':'text-muted')):'';
+                  $clsAccPrev = is_numeric($accPrev)?($accPrev>0?'text-success':($accPrev<0?'text-danger':'text-muted')):'';
+                  $clsSeqCur = is_numeric($seqCur)?($seqCur>0?'text-success':($seqCur<0?'text-danger':'text-muted')):'';
+                  $clsAccCur = is_numeric($accCur)?($accCur>0?'text-success':($accCur<0?'text-danger':'text-muted')):'';
+                @endphp
+                <tr>
+                  <td class="text-center">{{ $d }}</td>
+                  <td>{{ isset($prevDay['amount']) ? $fmtNum($prevDay['amount']) : '—' }}</td>
+                  <td>{{ isset($curDay['amount']) ? $fmtNum($curDay['amount']) : '—' }}</td>
+                  <td class="text-end {{ $clsDiff }}">{{ is_numeric($abs)?$fmtNum($abs):'—' }}</td>
+                  <td class="text-end {{ $clsPct }}">{{ is_numeric($pct)?$fmtPct($pct):'—' }}</td>
+                  <td class="text-end {{ $clsSeqPrev }}">{{ is_numeric($seqPrev)?$fmtPct($seqPrev):'—' }}</td>
+                  <td class="text-end {{ $clsAccPrev }}">{{ is_numeric($accPrev)?$fmtPct($accPrev):'—' }}</td>
+                  <td class="text-end {{ $clsSeqCur }}">{{ is_numeric($seqCur)?$fmtPct($seqCur):'—' }}</td>
+                  <td class="text-end {{ $clsAccCur }}">{{ is_numeric($accCur)?$fmtPct($accCur):'—' }}</td>
+                </tr>
+              @endfor
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  @endif
   @push('scripts')
   <script>
   (function(){

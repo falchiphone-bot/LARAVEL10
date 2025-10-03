@@ -92,15 +92,33 @@ class AssetVariationsExport implements FromCollection, WithHeadings, WithMapping
                 $q->orderBy('year', 'desc')->orderBy('month', 'desc');
         }
 
-        return $q->get([
+        $rows = $q->get([
             'id', 'asset_code', 'year', 'month', 'variation', 'created_at', 'updated_at'
         ]);
+
+        // Calcular tendência / normalização básica para export (assume mês completo para meses passados)
+        $now = now();
+        foreach($rows as $r){
+            $firstOf = \Carbon\Carbon::create($r->year, $r->month, 1);
+            $daysMonth = $firstOf->daysInMonth;
+            $daysElapsed = ($r->year == $now->year && $r->month == $now->month) ? min($now->day, $daysMonth) : $daysMonth;
+            $normalized = $r->variation;
+            if($daysElapsed < $daysMonth){
+                $normalized = $r->variation * ($daysMonth / max(1,$daysElapsed));
+            }
+            // Placeholder simples (não temos prev_variation na export): marcar apenas parcial ou completo
+            $confidence = $daysMonth > 0 ? min(1.0, $daysElapsed / max(1, ($daysMonth * 0.5))) : 0;
+            $r->setAttribute('export_normalized', round($normalized, 6));
+            $r->setAttribute('export_confidence', round($confidence, 4));
+            $r->setAttribute('export_trend', $daysElapsed < $daysMonth ? 'PARCIAL' : 'COMPLETO');
+        }
+        return $rows;
     }
 
     public function headings(): array
     {
         return [
-            'ID', 'Código', 'Ano', 'Mês', 'Variação', 'Criado em', 'Atualizado em'
+            'ID', 'Código', 'Ano', 'Mês', 'Variação', 'Variação Normalizada', 'Confiança', 'Status/Tendência', 'Criado em', 'Atualizado em'
         ];
     }
 
@@ -115,6 +133,9 @@ class AssetVariationsExport implements FromCollection, WithHeadings, WithMapping
             $row->year,
             (int) $row->month,
             (float) $row->variation,
+            (float) ($row->export_normalized ?? $row->variation),
+            (float) ($row->export_confidence ?? 0),
+            (string) ($row->export_trend ?? ''),
             optional($row->created_at)->format('Y-m-d H:i:s'),
             optional($row->updated_at)->format('Y-m-d H:i:s'),
         ];

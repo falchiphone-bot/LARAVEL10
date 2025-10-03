@@ -354,7 +354,185 @@ class OpenAIChatRecordController extends Controller
             ->unique('label')
             ->values();
 
-    return view('openai.records.index', compact('records','chats','chatId','selectedChat','from','to','showAll','sort','dir','savedFilters','varMode','codeOrders','investmentAccounts','invAccId','lastInvestmentAccountId','datesReapplied','assetOptions','asset','buy','flagsMap','day','filterExact'));
+        // Parâmetros de comparação diária customizáveis
+        $currentMonthParam = $request->input('current_month'); // YYYY-MM
+        $previousMonthParam = $request->input('previous_month'); // YYYY-MM opcional
+        $dayLimitParam = $request->input('day_limit');
+        $cmpBucket = $request->input('cmp_bucket','last'); // last|first
+        $dailyMonthComparison = null;
+        if(($chatId ?? 0) > 0){
+            $dailyMonthComparison = $this->buildDailyMonthComparison(
+                $chatId,
+                $currentMonthParam,
+                $previousMonthParam,
+                $dayLimitParam !== null && $dayLimitParam !== '' ? (int)$dayLimitParam : null,
+                in_array($cmpBucket,['first','last']) ? $cmpBucket : 'last'
+            );
+        }
+    return view('openai.records.index', compact('records','chats','chatId','selectedChat','from','to','showAll','sort','dir','savedFilters','varMode','codeOrders','investmentAccounts','invAccId','lastInvestmentAccountId','datesReapplied','assetOptions','asset','buy','flagsMap','day','filterExact','dailyMonthComparison','currentMonthParam','previousMonthParam','dayLimitParam','cmpBucket'));
+    }
+    
+    /**
+     * Gera comparação diária entre dois meses (mês "current" e mês "previous").
+     * Parâmetros:
+     *  - $currentMonth (YYYY-MM)
+     *  - $previousMonth (YYYY-MM) opcional (se não informado usa mês anterior ao current)
+     *  - $dayLimit (int) opcional (1..31) limita a comparação até esse dia em ambos os meses
+     *  - $bucketMode: 'last' (padrão) usa último registro do dia; 'first' usa primeiro registro do dia
+     *  - Sempre alinha dias 1..dayLimit (ou lógica default) e calcula seq_pct e accum_pct dentro de cada mês
+     *  - Cache 5 minutos por combinação
+     */
+    private function buildDailyMonthComparison(
+        int $chatId,
+        ?string $currentMonth = null,
+        ?string $previousMonth = null,
+        ?int $dayLimit = null,
+        string $bucketMode = 'last'
+    ): ?array {
+        if ($chatId <= 0) return null;
+        // Normaliza mês atual
+        $now = now();
+        if (!$currentMonth || !preg_match('/^\d{4}-\d{2}$/',$currentMonth)) {
+            $currentMonth = $now->format('Y-m');
+        }
+        try { $curStart = Carbon::createFromFormat('Y-m-d', $currentMonth.'-01')->startOfDay(); }
+        catch(\Throwable $e){ return null; }
+        $curEnd = $curStart->copy()->endOfMonth();
+        // Mês anterior
+        if ($previousMonth && preg_match('/^\d{4}-\d{2}$/',$previousMonth)) {
+            try { $prevStart = Carbon::createFromFormat('Y-m-d', $previousMonth.'-01')->startOfDay(); }
+            catch(\Throwable $e){ $prevStart = $curStart->copy()->subMonthNoOverflow()->startOfMonth(); }
+        } else {
+            $prevStart = $curStart->copy()->subMonthNoOverflow()->startOfMonth();
+        }
+        $prevEnd = $prevStart->copy()->endOfMonth();
+        // Determinar dayLimit
+        $daysInCur = (int)$curEnd->format('d');
+        $daysInPrev = (int)$prevEnd->format('d');
+        if ($dayLimit !== null) {
+            $dayLimit = max(1, min(31, $dayLimit));
+        } else {
+            // se mês corrente = mês atual do calendário, usar dia de hoje; senão alinhar pelo mínimo dos dois
+            if ($curStart->format('Y-m') === $now->format('Y-m')) {
+                $dayLimit = (int)$now->format('d');
+            } else {
+                $dayLimit = min($daysInCur, $daysInPrev);
+            }
+        }
+        $dayLimit = min($dayLimit, $daysInCur); // não exceder mês corrente escolhido
+        // Cache
+        $cacheKey = 'dailyCmp:v1:' . implode(':', [
+            $chatId,$currentMonth,$previousMonth?:'auto',$dayLimit,$bucketMode
+        ]);
+        if (function_exists('cache')) {
+            $cached = cache()->get($cacheKey);
+            if (is_array($cached)) return $cached;
+        }
+        // Range de busca: meses inteiro anterior + corrente
+        $rangeStart = $prevStart->copy();
+        $rangeEnd   = $curEnd->copy();
+        $all = OpenAIChatRecord::where('chat_id',$chatId)
+            ->whereBetween('occurred_at', [$rangeStart, $rangeEnd])
+            ->orderBy('occurred_at','asc')
+            ->get(['id','occurred_at','amount']);
+        if ($all->isEmpty()) return null;
+        $perMonth = ['current'=>[], 'previous'=>[]];
+        // Pré bucket: para 'last' precisamos substituir, para 'first' registrar apenas se não existir
+        foreach($all as $rec){
+            $dt = $rec->occurred_at; if(!$dt) continue; $y = (int)$dt->format('Y'); $m = (int)$dt->format('m'); $d = (int)$dt->format('d');
+            $isCur = ($y === (int)$curStart->format('Y') && $m === (int)$curStart->format('m'));
+            $isPrev= ($y === (int)$prevStart->format('Y') && $m === (int)$prevStart->format('m'));
+            if(!$isCur && !$isPrev) continue;
+            if($d > $dayLimit) continue; // corta excedentes
+            $bucket = $isCur ? 'current' : 'previous';
+            if($bucketMode === 'first'){
+                if(!isset($perMonth[$bucket][$d])){
+                    $perMonth[$bucket][$d] = [ 'amount'=>(float)$rec->amount, 'date'=>$dt->copy() ];
+                }
+            } else { // last (default)
+                $perMonth[$bucket][$d] = [ 'amount'=>(float)$rec->amount, 'date'=>$dt->copy() ];
+            }
+        }
+        if (empty($perMonth['current']) && empty($perMonth['previous'])) return null;
+        // Calcular variações seq/acum
+        foreach(['current','previous'] as $bucket){
+            $days = array_keys($perMonth[$bucket]); sort($days,SORT_NUMERIC);
+            $prevVal = null; $firstVal = null;
+            foreach($days as $d){
+                $amt = $perMonth[$bucket][$d]['amount'];
+                if($firstVal === null) $firstVal = $amt;
+                $seq = null; if($prevVal !== null && abs($prevVal) > 1e-10){ $seq = (($amt - $prevVal)/$prevVal)*100.0; }
+                $acc = null; if($firstVal !== null && abs($firstVal) > 1e-10){ $acc = (($amt - $firstVal)/$firstVal)*100.0; }
+                $perMonth[$bucket][$d]['seq_pct'] = $seq; $perMonth[$bucket][$d]['accum_pct'] = $acc; $prevVal = $amt;
+            }
+        }
+        // Diffs alinhados
+        $diffs = [];
+        for($d=1;$d<=$dayLimit;$d++){
+            $cur = $perMonth['current'][$d]['amount'] ?? null;
+            $prev= $perMonth['previous'][$d]['amount'] ?? null;
+            if($cur === null && $prev === null){ $diffs[$d] = null; continue; }
+            $abs = null; $pct = null;
+            if($cur !== null && $prev !== null){
+                $abs = $cur - $prev;
+                if(abs($prev) > 1e-10) $pct = ($abs / $prev)*100.0;
+            }
+            $diffs[$d] = ['abs'=>$abs,'pct'=>$pct];
+        }
+        $result = [
+            'current'=>['year'=>(int)$curStart->format('Y'),'month'=>(int)$curStart->format('m'),'days'=>$perMonth['current']],
+            'previous'=>['year'=>(int)$prevStart->format('Y'),'month'=>(int)$prevStart->format('m'),'days'=>$perMonth['previous']],
+            'days_max'=>$dayLimit,
+            'diffs'=>$diffs,
+            'meta'=>[
+                'current_month'=>$currentMonth,
+                'previous_month'=>$previousMonth ?: $prevStart->format('Y-m'),
+                'bucket_mode'=>$bucketMode,
+            ],
+        ];
+        if(function_exists('cache')){ cache()->put($cacheKey, $result, 300); }
+        return $result;
+    }
+
+    /** Exporta CSV da comparação diária de meses. */
+    public function exportDailyComparison(Request $request)
+    {
+        $chatId = (int)$request->input('chat_id');
+        if($chatId <= 0){ return redirect()->back()->with('error','Conversa obrigatória para exportar comparação diária.'); }
+        $cmp = $this->buildDailyMonthComparison(
+            $chatId,
+            $request->input('current_month'),
+            $request->input('previous_month'),
+            $request->input('day_limit') ? (int)$request->input('day_limit') : null,
+            $request->input('cmp_bucket','last')
+        );
+        if(!$cmp){ return redirect()->back()->with('error','Sem dados para exportar.'); }
+        $current = $cmp['current']; $previous = $cmp['previous']; $diffs = $cmp['diffs']; $max = $cmp['days_max'];
+        $fileName = 'daily_comparison_'.$chatId.'_'.$current['year'].'-'.$current['month'].'_vs_'.$previous['year'].'-'.$previous['month'].'_'.date('Ymd_His').'.csv';
+        $callback = function() use ($current,$previous,$diffs,$max){
+            $out = fopen('php://output','w');
+            fwrite($out, "\xEF\xBB\xBF");
+            fputcsv($out, ['Dia','PrevAno','PrevMes','PrevValor','PrevSeq%','PrevAcum%','CurAno','CurMes','CurValor','CurSeq%','CurAcum%','Dif','Dif%'], ';');
+            for($d=1;$d<=$max;$d++){
+                $p = $previous['days'][$d] ?? null; $c = $current['days'][$d] ?? null; $df = $diffs[$d] ?? null;
+                $row = [
+                    $d,
+                    $previous['year'], $previous['month'],
+                    $p['amount'] ?? '',
+                    isset($p['seq_pct'])&&$p['seq_pct']!==null? round($p['seq_pct'],4):'',
+                    isset($p['accum_pct'])&&$p['accum_pct']!==null? round($p['accum_pct'],4):'',
+                    $current['year'], $current['month'],
+                    $c['amount'] ?? '',
+                    isset($c['seq_pct'])&&$c['seq_pct']!==null? round($c['seq_pct'],4):'',
+                    isset($c['accum_pct'])&&$c['accum_pct']!==null? round($c['accum_pct'],4):'',
+                    $df['abs'] ?? '',
+                    isset($df['pct'])&&$df['pct']!==null? round($df['pct'],4):'',
+                ];
+                fputcsv($out,$row,';');
+            }
+            fclose($out);
+        };
+        return response()->streamDownload($callback,$fileName,[ 'Content-Type'=>'text/csv; charset=UTF-8' ]);
     }
 
     public function store(Request $request): RedirectResponse
