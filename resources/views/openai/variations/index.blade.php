@@ -16,10 +16,51 @@
       <label class="form-label mb-0 small">Código</label>
       <input type="text" name="code" value="{{ $code }}" class="form-control form-control-sm" placeholder="TSLA" />
     </div>
+    <div class="col-auto">
+      <label class="form-label mb-0 small">Sinal</label>
+      <select name="polarity" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="" @selected(($polarity ?? '')==='')>Todos</option>
+        <option value="positive" @selected(($polarity ?? '')==='positive')>Positivos</option>
+        <option value="negative" @selected(($polarity ?? '')==='negative')>Negativos</option>
+      </select>
+    </div>
     <div class="col-auto align-self-end">
       <button class="btn btn-sm btn-primary">Filtrar</button>
     </div>
+    <div class="col-auto align-self-end">
+      @php
+        $quickBase = array_filter([
+          'year' => request('year') ?: null,
+          'code' => $code ?: null,
+          'sort' => ($sort ?? 'year_desc') !== 'year_desc' ? $sort : null,
+        ]);
+      @endphp
+      <div class="btn-group btn-group-sm" role="group" aria-label="Atalhos de sinal">
+        <a href="{{ route('openai.variations.index', $quickBase) }}"
+           class="btn btn-outline-secondary {{ (($polarity ?? '')==='' ) ? 'active' : '' }}"
+           title="Mostrar todos (positivos e negativos)">Todos</a>
+        <a href="{{ route('openai.variations.index', array_merge($quickBase, ['polarity'=>'positive'])) }}"
+           class="btn btn-outline-success {{ (($polarity ?? '')==='positive') ? 'active' : '' }}"
+           title="Mostrar apenas variações positivas">Somente positivos</a>
+        <a href="{{ route('openai.variations.index', array_merge($quickBase, ['polarity'=>'negative'])) }}"
+           class="btn btn-outline-danger {{ (($polarity ?? '')==='negative') ? 'active' : '' }}"
+           title="Mostrar apenas variações negativas">Somente negativos</a>
+      </div>
+    </div>
   </form>
+
+  @php
+    $exportParams = array_filter([
+      'year'=>request('year')?:null,
+      'code'=>$code?:null,
+      'polarity'=> ($polarity ?? null) ?: null,
+      'sort' => ($sort ?? 'year_desc') !== 'year_desc' ? $sort : null,
+    ]);
+  @endphp
+  <div class="mb-2 d-flex gap-2">
+    <a href="{{ route('openai.variations.exportCsv', $exportParams) }}" class="btn btn-sm btn-outline-secondary" title="Exportar visão atual em CSV">Exportar CSV</a>
+    <a href="{{ route('openai.variations.exportXlsx', $exportParams) }}" class="btn btn-sm btn-outline-success" title="Exportar visão atual em XLSX">Exportar XLSX</a>
+  </div>
 
   <div class="table-responsive">
     <table class="table table-sm table-striped align-middle">
@@ -28,7 +69,11 @@
           <th>ID</th>
           @php
             // Parâmetros base preservados para os links de ordenação
-            $baseParams = array_filter(['year'=>request('year')?:null,'code'=>$code?:null]);
+            $baseParams = array_filter([
+              'year'=>request('year')?:null,
+              'code'=>$code?:null,
+              'polarity'=> ($polarity ?? null) ?: null,
+            ]);
           @endphp
           @php
             $isCodeAsc = ($sort ?? '') === 'code_asc';
