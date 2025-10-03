@@ -33,6 +33,32 @@
         <option value="negative" @selected(($polarity ?? '')==='negative')>Negativos</option>
       </select>
     </div>
+    <div class="col-auto">
+      <label class="form-label mb-0 small">Mudança</label>
+      <select name="change" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="" @selected(($change ?? '')==='')>Todas</option>
+        <option value="melhoria" @selected(($change ?? '')==='melhoria')>Melhoria</option>
+        <option value="piora" @selected(($change ?? '')==='piora')>Piora</option>
+        <option value="igual" @selected(($change ?? '')==='igual')>Igual</option>
+      </select>
+    </div>
+    <div class="col-auto">
+      <label class="form-label mb-0 small">Agrupar</label>
+      <div class="form-check form-switch mt-1">
+        <input class="form-check-input" type="checkbox" value="1" name="grouped" id="groupedToggle" onchange="this.form.submit()" @checked($grouped ?? false) />
+        <label class="form-check-label small" for="groupedToggle">por código</label>
+      </div>
+    </div>
+    @if($grouped ?? false)
+      <div class="col-auto">
+        <label class="form-label mb-0 small">Meses Spark</label>
+        <select name="spark_window" class="form-select form-select-sm" onchange="this.form.submit()">
+          @foreach([3,6,9,12,18,24] as $w)
+            <option value="{{ $w }}" @selected(($sparkWindow ?? 6)===$w)>{{ $w }}</option>
+          @endforeach
+        </select>
+      </div>
+    @endif
     <div class="col-auto align-self-end">
       <button class="btn btn-sm btn-primary">Filtrar</button>
     </div>
@@ -43,6 +69,9 @@
           'month' => request('month') ?: null,
           'code' => $code ?: null,
           'sort' => ($sort ?? 'year_desc') !== 'year_desc' ? $sort : null,
+          'change' => ($change ?? '') ?: null,
+          'grouped' => ($grouped ?? false) ? 1 : null,
+          'spark_window' => ($grouped ?? false) ? ($sparkWindow ?? null) : null,
         ]);
       @endphp
       <div class="btn-group btn-group-sm" role="group" aria-label="Atalhos de sinal">
@@ -65,6 +94,9 @@
           'code' => $code ?: null,
           'polarity'=> ($polarity ?? null) ?: null,
           'sort' => ($sort ?? 'year_desc') !== 'year_desc' ? $sort : null,
+          'change' => ($change ?? '') ?: null,
+          'grouped' => ($grouped ?? false) ? 1 : null,
+          'spark_window' => ($grouped ?? false) ? ($sparkWindow ?? null) : null,
         ]);
         $curMonth = (int) (request('month') ?: 0);
       @endphp
@@ -86,6 +118,9 @@
       'code'=>$code?:null,
       'polarity'=> ($polarity ?? null) ?: null,
       'sort' => ($sort ?? 'year_desc') !== 'year_desc' ? $sort : null,
+      'change' => ($change ?? '') ?: null,
+      'grouped' => ($grouped ?? false) ? 1 : null,
+      'spark_window' => ($grouped ?? false) ? ($sparkWindow ?? null) : null,
     ]);
   @endphp
   <div class="mb-2 d-flex gap-2">
@@ -96,6 +131,103 @@
     <a href="{{ route('asset-stats.index') }}#gsc.tab=0" class="btn btn-sm btn-outline-dark" title="Ir para Asset Stats">Asset Stats</a>
   </div>
 
+  @if($grouped ?? false)
+    <div class="alert alert-info py-2 small">Modo agrupado por código — mostrando últimas {{ $sparkWindow }} variações disponíveis por conversa/código. Ordenação por Diferença (%) disponível.</div>
+    <div class="table-responsive">
+      <table class="table table-sm table-striped align-middle">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Conversa</th>
+            <th>Último (Ano/Mês)</th>
+            <th>Variação Atual (%)</th>
+            @php
+              if(!isset($baseParamsGrouped)){
+                $baseParamsGrouped = array_filter([
+                  'year'=>request('year')?:null,
+                  'month'=>request('month')?:null,
+                  'code'=>$code?:null,
+                  'polarity'=> ($polarity ?? null) ?: null,
+                  'change' => ($change ?? '') ?: null,
+                  'grouped'=>1,
+                  'spark_window'=>$sparkWindow,
+                ]);
+              }
+              $isPrevAsc = ($sort ?? '') === 'prev_asc';
+              $isPrevDesc = ($sort ?? '') === 'prev_desc';
+              $prevNext = $isPrevAsc ? 'prev_desc' : ($isPrevDesc ? 'year_desc' : 'prev_asc');
+              $prevIcon = $isPrevAsc ? '↑' : ($isPrevDesc ? '↓' : '↕');
+            @endphp
+            <th>
+              <a class="text-decoration-none" href="{{ route('openai.variations.index', array_merge($baseParamsGrouped, ['sort'=>$prevNext])) }}" title="Ordenar / alternar por Variação anterior">Anterior (%) {{ $prevIcon }}</a>
+            </th>
+            @php
+              $baseParamsGrouped = array_filter([
+                'year'=>request('year')?:null,
+                'month'=>request('month')?:null,
+                'code'=>$code?:null,
+                'polarity'=> ($polarity ?? null) ?: null,
+                'change' => ($change ?? '') ?: null,
+                'grouped'=>1,
+                'spark_window'=>$sparkWindow,
+              ]);
+              $isDiffAsc = ($sort ?? '') === 'diff_asc';
+              $isDiffDesc = ($sort ?? '') === 'diff_desc';
+              $diffNext = $isDiffAsc ? 'diff_desc' : ($isDiffDesc ? 'year_desc' : 'diff_asc');
+              $diffIcon = $isDiffAsc ? '↑' : ($isDiffDesc ? '↓' : '↕');
+            @endphp
+            <th>
+              <a class="text-decoration-none" href="{{ route('openai.variations.index', array_merge($baseParamsGrouped, ['sort'=>$diffNext])) }}" title="Ordenar / alternar por Diferença (atual - anterior)">Diferença (%) {{ $diffIcon }}</a>
+            </th>
+            <th>Sparkline</th>
+          </tr>
+        </thead>
+        <tbody>
+          @forelse($groupedData as $g)
+            @php
+              $latest = $g['latest'];
+              $pv = $g['prev_variation'];
+              $diff = $g['diff'];
+              $clsLatest = $latest->variation > 0 ? 'text-success' : ($latest->variation < 0 ? 'text-danger' : 'text-muted');
+              $clsPrev = (!is_null($pv)) ? ($pv > 0 ? 'text-success' : ($pv < 0 ? 'text-danger' : 'text-muted')) : 'text-muted';
+              $clsDiff = (!is_null($diff)) ? ($diff > 0 ? 'text-success' : ($diff < 0 ? 'text-danger' : 'text-muted')) : 'text-muted';
+              $badge = is_null($diff) ? '' : ($diff > 0 ? '<span class="badge bg-success ms-1" title="Melhoria">↑</span>' : ($diff < 0 ? '<span class="badge bg-danger ms-1" title="Piora">↓</span>' : '<span class="badge bg-secondary ms-1" title="Sem mudança">=</span>'));
+              // Sparkline data
+              $values = array_map(fn($r)=> (float)$r->variation, $g['rows']);
+              $minV = min($values); $maxV = max($values); $range = ($maxV - $minV) ?: 1;
+              $w = max( (count($values)-1)*12, 24 ); $h = 40; // largura proporcional
+              $points = [];
+              foreach($values as $i=>$val){
+                $x = ($i/(max(count($values)-1,1)))*($w-4)+2; // margem 2
+                $y = $h - 2 - (($val - $minV)/$range)*($h-4); // invertido
+                $points[] = $x.','.$y;
+              }
+              $sparkTitle = 'Valores: '.implode(', ', array_map(fn($v)=>number_format($v,2,',','.'), $values));
+            @endphp
+            <tr>
+              <td>{{ $g['asset_code'] }}</td>
+              <td>{{ $g['chat_title'] }}</td>
+              <td>{{ $latest->year }}/{{ str_pad($latest->month,2,'0',STR_PAD_LEFT) }}</td>
+              <td class="{{ $clsLatest }}">{{ number_format($latest->variation,4,',','.') }}%</td>
+              <td class="{{ $clsPrev }}">@if(!is_null($pv)) {{ number_format($pv,4,',','.') }}% @else — @endif</td>
+              <td class="{{ $clsDiff }}">@if(!is_null($diff)) {{ number_format($diff,4,',','.') }}% {!! $badge !!} @else — @endif</td>
+              <td>
+                <svg width="{{ $w }}" height="{{ $h }}" viewBox="0 0 {{ $w }} {{ $h }}" preserveAspectRatio="none" class="spark" aria-label="Sparkline" role="img" title="{{ $sparkTitle }}">
+                  <polyline fill="none" stroke="#0d6efd" stroke-width="2" points="{{ implode(' ', $points) }}" />
+                  @if(count($points))
+                    @php $lastCoords = explode(',', end($points)); @endphp
+                    <circle cx="{{ $lastCoords[0] }}" cy="{{ $lastCoords[1] }}" r="3" fill="#0d6efd" />
+                  @endif
+                </svg>
+              </td>
+            </tr>
+          @empty
+            <tr><td colspan="7" class="text-center text-muted">Nenhum dado agrupado encontrado.</td></tr>
+          @endforelse
+        </tbody>
+      </table>
+    </div>
+  @else
   <div class="table-responsive">
     <table class="table table-sm table-striped align-middle">
       <thead>
@@ -108,6 +240,7 @@
               'month'=>request('month')?:null,
               'code'=>$code?:null,
               'polarity'=> ($polarity ?? null) ?: null,
+              'change' => ($change ?? '') ?: null,
             ]);
           @endphp
           @php
@@ -155,8 +288,26 @@
           @endphp
           <th>
             <a class="text-decoration-none" href="{{ route('openai.variations.index', array_merge($baseParams, ['sort'=>$nextSort])) }}" title="Ordenar / alternar ordenação pela variação">
-              Variação (%) {{ $icon }}
+              Variação Atual (%) {{ $icon }}
             </a>
+          </th>
+          @php
+            $isPrevAsc = ($sort ?? '') === 'prev_asc';
+            $isPrevDesc = ($sort ?? '') === 'prev_desc';
+            $prevNext = $isPrevAsc ? 'prev_desc' : ($isPrevDesc ? 'year_desc' : 'prev_asc');
+            $prevIcon = $isPrevAsc ? '↑' : ($isPrevDesc ? '↓' : '↕');
+          @endphp
+          <th title="Variação do mês anterior (mesma conversa)">
+            <a class="text-decoration-none" href="{{ route('openai.variations.index', array_merge($baseParams, ['sort'=>$prevNext])) }}" title="Ordenar / alternar por variação anterior">Anterior (%) {{ $prevIcon }}</a>
+          </th>
+          @php
+            $isDiffAsc = ($sort ?? '') === 'diff_asc';
+            $isDiffDesc = ($sort ?? '') === 'diff_desc';
+            $diffNext = $isDiffAsc ? 'diff_desc' : ($isDiffDesc ? 'year_desc' : 'diff_asc');
+            $diffIcon = $isDiffAsc ? '↑' : ($isDiffDesc ? '↓' : '↕');
+          @endphp
+          <th>
+            <a class="text-decoration-none" href="{{ route('openai.variations.index', array_merge($baseParams, ['sort'=>$diffNext])) }}" title="Ordenar / alternar ordenação por Diferença (atual - anterior)">Diferença (%) {{ $diffIcon }}</a>
           </th>
           @php
             $isCreatedAsc = ($sort ?? '') === 'created_asc';
@@ -217,8 +368,31 @@
             <td>{{ $v->year }}</td>
             <td>{{ str_pad($v->month,2,'0',STR_PAD_LEFT) }}</td>
             <td>{{ number_format($v->variation, 4, ',', '.') }}</td>
-            <td>{{ $v->created_at?->format('Y-m-d H:i') }}</td>
-            <td>{{ $v->updated_at?->format('Y-m-d H:i') }}</td>
+            <td>
+              @php $pv = $prevVariationMap[$v->id] ?? null; @endphp
+              @if(!is_null($pv))
+                @php
+                  $clsPrev = $pv > 0 ? 'text-success' : ($pv < 0 ? 'text-danger' : 'text-muted');
+                  $arrowPrev = $pv > 0 ? '▲' : ($pv < 0 ? '▼' : '▶');
+                @endphp
+                <span class="small {{ $clsPrev }}" title="Variação mês anterior">{{ $arrowPrev }} {{ number_format($pv, 4, ',', '.') }}%</span>
+              @else
+                <span class="text-muted small">—</span>
+              @endif
+            </td>
+            @php
+              $diff = (!is_null($pv)) ? ($v->variation - $pv) : null;
+              $clsDiff = is_null($diff) ? 'text-muted' : ($diff > 0 ? 'text-success' : ($diff < 0 ? 'text-danger' : 'text-secondary'));
+              $badge = '';
+              if(!is_null($diff)){
+                if($diff > 0) $badge = '<span class="badge bg-success ms-1" title="Melhoria">↑</span>';
+                elseif($diff < 0) $badge = '<span class="badge bg-danger ms-1" title="Piora">↓</span>';
+                else $badge = '<span class="badge bg-secondary ms-1" title="Sem mudança">=</span>';
+              }
+            @endphp
+            <td class="small {{ $clsDiff }}">@if(!is_null($diff)) {{ number_format($diff,4,',','.') }}% {!! $badge !!} @else — @endif</td>
+            <td>{{ $v->created_at?->timezone(config('app.timezone'))->format('d/m/Y H:i') }}</td>
+            <td>{{ $v->updated_at?->timezone(config('app.timezone'))->format('d/m/Y H:i') }}</td>
             <td class="text-center">
               @php $flagCode = strtoupper(trim($v->asset_code ?? '')); @endphp
               @if($flagCode !== '')
@@ -237,9 +411,12 @@
       </tbody>
     </table>
   </div>
-  <div>
-    {{ $variations->links() }}
-  </div>
+  @endif
+  @if(!($grouped ?? false))
+    <div>
+      {{ $variations->links() }}
+    </div>
+  @endif
 </div>
 @endsection
 
@@ -252,7 +429,7 @@
       if (!confirm('Aplicar COMPRAR/NÃO COMPRAR para os códigos exibidos, conforme sinal da variação mais recente?')) return;
       const form = document.createElement('form');
       form.method = 'POST';
-      form.action = @json(route('openai.variations.batchFlags'));
+  form.action = "{{ route('openai.variations.batchFlags') }}";
       const tok = document.querySelector('meta[name="csrf-token"]');
       if (tok) {
         const inp = document.createElement('input'); inp.type = 'hidden'; inp.name = '_token'; inp.value = tok.getAttribute('content'); form.appendChild(inp);
@@ -279,7 +456,7 @@
 <script>
   (function(){
     // Hidrata badges de flag por código
-    const NO_BUY_GET = @json(route('openai.assets.noBuy.get'));
+  const NO_BUY_GET = "{{ route('openai.assets.noBuy.get') }}";
     (async function(){
       try{
         const els = Array.from(document.querySelectorAll('[data-flag-code]'));
@@ -314,7 +491,7 @@
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
       try{
-        const url = @json(route('openai.assets.noBuy.toggle'));
+  const url = "{{ route('openai.assets.noBuy.toggle') }}";
         const tok = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
         const resp = await fetch(url, {
           method: 'POST',
