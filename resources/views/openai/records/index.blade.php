@@ -44,7 +44,7 @@
   <form class="row g-2 align-items-end" method="GET" action="{{ route('openai.records.index') }}">
         <div class="col-sm-4 col-md-3">
           <label class="form-label small mb-1">Conversa</label>
-          <select name="chat_id" class="form-select form-select-sm">
+          <select name="chat_id" id="filter_chat_id" class="form-select form-select-sm">
             <option value="">Todas</option>
             @foreach($chats as $c)
               <option value="{{ $c->id }}" {{ ($chatId ?? 0) == $c->id ? 'selected' : '' }}>{{ $c->title }} @if($c->code) ({{ $c->code }}) @endif</option>
@@ -1348,6 +1348,18 @@ function prepQuickAdd(chatId){
         btn.classList.add('btn-success','text-white');
         btn.textContent='OK';
         btn.title=(data.message || 'Variação salva')+' ('+data.month+'/'+data.year+')';
+        // Após salvar com sucesso, aguarda 3s e então rola até o dropdown de conversas no topo
+        try {
+          setTimeout(()=>{
+            const sel = document.getElementById('filter_chat_id');
+            if(sel){
+              sel.scrollIntoView({behavior:'smooth', block:'center'});
+              sel.classList.add('flash-highlight');
+              setTimeout(()=> sel.classList.remove('flash-highlight'), 2500);
+              sel.focus({preventScroll:true});
+            }
+          }, 3000);
+        } catch(_e){}
       } catch(e){
         btn.classList.remove('btn-outline-primary');
         btn.classList.add('btn-outline-danger');
@@ -1357,6 +1369,76 @@ function prepQuickAdd(chatId){
     });
   })();
   </script>
+@endpush
+
+@push('scripts')
+<script>
+// Toast simples reutilizável
+(function(){
+  function ensureContainer(){
+    let c = document.getElementById('global-toast-container');
+    if(!c){
+      c = document.createElement('div');
+      c.id = 'global-toast-container';
+      c.style.position='fixed';
+      c.style.top='12px';
+      c.style.left='50%';
+      c.style.transform='translateX(-50%)';
+      c.style.zIndex='2000';
+      c.style.display='flex';
+      c.style.flexDirection='column';
+      c.style.gap='8px';
+      document.body.appendChild(c);
+    }
+    return c;
+  }
+  window.showToast = function(message, type){
+    const c = ensureContainer();
+    const box = document.createElement('div');
+    box.className = 'toast-mini';
+    box.textContent = message || '';
+    box.style.padding='8px 14px';
+    box.style.borderRadius='6px';
+    box.style.fontSize='.85rem';
+    box.style.boxShadow='0 4px 12px rgba(0,0,0,.15)';
+    box.style.background = type==='error' ? '#dc3545' : (type==='warn' ? '#ffc107' : '#198754');
+    box.style.color = type==='warn' ? '#000' : '#fff';
+    box.style.opacity='0';
+    box.style.transition='opacity .25s, transform .25s';
+    box.style.transform='translateY(-6px)';
+    c.appendChild(box);
+    requestAnimationFrame(()=>{
+      box.style.opacity='1';
+      box.style.transform='translateY(0)';
+    });
+    setTimeout(()=>{
+      box.style.opacity='0';
+      box.style.transform='translateY(-6px)';
+      setTimeout(()=> box.remove(), 400);
+    }, 3200);
+  };
+})();
+</script>
+@endpush
+
+@push('scripts')
+<script>
+// Integração: chamar toast após variação salva (hook no botão já processado)
+(function(){
+  document.addEventListener('click', function(ev){
+    const btn = ev.target.closest('.save-var-btn');
+    if(!btn) return;
+    // Observa mutação para detectar quando texto vira 'OK'
+    const observer = new MutationObserver(()=>{
+      if(btn.textContent.trim()==='OK'){
+        showToast('Variação salva');
+        observer.disconnect();
+      }
+    });
+    observer.observe(btn, {childList:true, characterData:true, subtree:true});
+  }, {capture:true});
+})();
+</script>
 @endpush
 
 @push('scripts')
@@ -1440,4 +1522,30 @@ function prepQuickAdd(chatId){
   });
 })();
 </script>
+@endpush
+
+@push('scripts')
+<script>
+// Auto-scroll para a primeira linha após aplicar "Filtrar Exatamente"
+(function(){
+  try {
+    const params = new URLSearchParams(window.location.search || '');
+    if(params.get('filter_exact') === '1') {
+      // Usar pequeno atraso para garantir que a tabela já esteja renderizada
+      setTimeout(()=>{
+        const first = document.querySelector('table.table tbody tr[data-chat-id]');
+        if(first){
+          first.scrollIntoView({behavior:'smooth', block:'start'});
+          first.classList.add('flash-highlight');
+          setTimeout(()=> first.classList.remove('flash-highlight'), 2500);
+        }
+      }, 150);
+    }
+  } catch(e) { /* silencioso */ }
+})();
+</script>
+<style>
+  .flash-highlight { animation: flashBg 2s ease-in-out; }
+  @keyframes flashBg { 0%{background:#fff3cd;} 50%{background:#ffe8a1;} 100%{background:inherit;} }
+</style>
 @endpush
