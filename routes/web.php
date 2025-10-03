@@ -62,6 +62,7 @@ Route::post('/openai/records/save-variation', [\App\Http\Controllers\OpenAIChatR
 Route::get('/openai/variations', [\App\Http\Controllers\AssetVariationController::class, 'index'])->name('openai.variations.index');
 Route::get('/openai/variations/export-csv', [\App\Http\Controllers\AssetVariationController::class, 'exportCsv'])->name('openai.variations.exportCsv');
 Route::get('/openai/variations/export-xlsx', [\App\Http\Controllers\AssetVariationController::class, 'exportXlsx'])->name('openai.variations.exportXlsx');
+Route::post('/openai/variations/batch-flags', [\App\Http\Controllers\AssetVariationController::class, 'batchFlags'])->name('openai.variations.batchFlags');
 
 // ...outras rotas...
 
@@ -1439,6 +1440,7 @@ Route::post('Caixa/ExtratoCaixa', [App\Http\Controllers\ExtratoCaixaController::
     Route::get('/openai/records/assets/export-csv', [\App\Http\Controllers\OpenAIChatRecordController::class, 'assetsExport'])->name('openai.records.assets.exportCsv');
     Route::get('/openai/records/assets/export-summary-csv', [\App\Http\Controllers\OpenAIChatRecordController::class, 'assetsExportSummary'])->name('openai.records.assets.exportSummaryCsv');
     Route::get('/openai/records/assets/export-xlsx', [\App\Http\Controllers\OpenAIChatRecordController::class, 'assetsExportXlsx'])->name('openai.records.assets.exportXlsx');
+    Route::post('/openai/records/assets/batch-flags', [\App\Http\Controllers\OpenAIChatRecordController::class, 'assetsBatchFlags'])->name('openai.records.assets.batchFlags');
     // Variações de ativos salvas
     Route::get('/openai/records/variations', [\App\Http\Controllers\OpenAIChatRecordController::class, 'showVariations'])->name('openai.records.variations');
     // Preencher Fechado em AssetDailyStat a partir de Registros

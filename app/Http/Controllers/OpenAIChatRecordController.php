@@ -19,7 +19,7 @@ class OpenAIChatRecordController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-    $this->middleware(['permission:OPENAI - CHAT'])->only('index','store','destroy','edit','update','assets','applyQuote','createFromQuote','fillAssetStatClose','fillAssetStatClosePeriod');
+    $this->middleware(['permission:OPENAI - CHAT'])->only('index','store','destroy','edit','update','assets','applyQuote','createFromQuote','fillAssetStatClose','fillAssetStatClosePeriod','assetsBatchFlags');
     }
 
     public function index(Request $request): View
@@ -1573,6 +1573,67 @@ class OpenAIChatRecordController extends Controller
         }, $fileName, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ]);
+    }
+
+    /**
+     * Aplica em lote as flags de compra por código com base no sinal da diferença (Dif) calculada contra a baseline.
+     * Regra: dif < 0 => NÃO COMPRAR (no_buy = 1); dif > 0 => COMPRAR (no_buy = 0); dif = 0 ou sem baseline => ignora.
+     * Respeita os mesmos filtros da visão assets().
+     */
+    public function assetsBatchFlags(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        // baseline obrigatória para calcular diferença
+        $baseline = (string) $request->input('baseline', '');
+        if (trim($baseline) === '') {
+            return back()->with('error', 'Informe uma Data base para aplicar as flags (Dif requer baseline).');
+        }
+
+        // Reutiliza a composição de dados da visão assets()
+        $view = $this->assets($request);
+        $data = $view->getData();
+        $records = $data['records'] ?? collect();
+        $baselines = $data['baselines'] ?? collect();
+
+        $userId = (int) auth()->id();
+        $affectedNoBuy = 0;
+        $affectedBuy = 0;
+        $skipped = 0;
+
+        foreach ($records as $r) {
+            try {
+                // Trabalhamos apenas com códigos reais (não títulos)
+                $code = strtoupper(trim((string) optional($r->chat)->code));
+                if ($code === '') { $skipped++; continue; }
+                // Buscar base do grupo pelo código
+                $b = is_array($baselines) ? ($baselines[$code] ?? null) : ($baselines->get($code) ?? null);
+                if (!$b || !isset($b['amount'])) { $skipped++; continue; }
+                $base = (float) $b['amount'];
+                $cur = (float) ($r->amount ?? 0);
+                $dif = $cur - $base;
+                if ($dif > 0) {
+                    // COMPRAR -> no_buy = 0
+                    \App\Models\UserAssetFlag::updateOrCreate(
+                        ['user_id' => $userId, 'code' => $code],
+                        ['no_buy' => 0]
+                    );
+                    $affectedBuy++;
+                } elseif ($dif < 0) {
+                    // NÃO COMPRAR -> no_buy = 1
+                    \App\Models\UserAssetFlag::updateOrCreate(
+                        ['user_id' => $userId, 'code' => $code],
+                        ['no_buy' => 1]
+                    );
+                    $affectedNoBuy++;
+                } else {
+                    $skipped++;
+                }
+            } catch (\Throwable $e) {
+                $skipped++;
+            }
+        }
+
+        $msg = sprintf('Flags aplicadas: %d COMPRAR, %d NÃO COMPRAR. Ignorados: %d.', $affectedBuy, $affectedNoBuy, $skipped);
+        return back()->with('success', $msg);
     }
 
     /**

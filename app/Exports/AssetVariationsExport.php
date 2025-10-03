@@ -31,11 +31,17 @@ class AssetVariationsExport implements FromCollection, WithHeadings, WithMapping
         $year = isset($this->filters['year']) && $this->filters['year'] !== ''
             ? (int) $this->filters['year']
             : 0;
+        $month = isset($this->filters['month']) && $this->filters['month'] !== ''
+            ? (int) $this->filters['month']
+            : 0;
         $code = isset($this->filters['code']) ? trim((string)$this->filters['code']) : '';
         $polarity = $this->filters['polarity'] ?? null; // positive|negative|null
 
         if ($year) {
             $q->where('year', $year);
+        }
+        if ($month >= 1 && $month <= 12) {
+            $q->where('month', $month);
         }
         if ($code !== '') {
             $q->whereRaw('UPPER(asset_code) = ?', [strtoupper($code)]);

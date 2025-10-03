@@ -105,6 +105,8 @@
           <a href="{{ route('openai.records.assets.exportSummaryCsv', $exportParams) }}" class="btn btn-sm btn-outline-success" title="Exportar resumo de tendências em CSV">CSV Resumo</a>
           <a href="{{ route('openai.records.assets.exportXlsx', $exportParams) }}" class="btn btn-sm btn-outline-success" title="Exportar XLSX com abas (Ativos e Resumo)">XLSX</a>
           <a href="{{ route('openai.records.assets.exportCsv', array_merge($exportParams, ['locale'=>'br'])) }}" class="btn btn-sm btn-outline-success" title="Exportar CSV com formatação brasileira (vírgula decimal)">CSV (pt-BR)</a>
+          <div class="vr mx-2 d-none d-md-block"></div>
+          <button type="button" id="btn-batch-flags" class="btn btn-sm btn-outline-warning" title="Define COMPRAR/NÃO COMPRAR conforme Dif (requer Data base)">Aplicar flags (Dif)</button>
           <button type="button" id="btn-batch-quotes" class="btn btn-sm btn-outline-primary">
             Consultar todos
           </button>
@@ -1049,6 +1051,45 @@
     }
     btn?.addEventListener('click', ()=>{ set(!get()); apply(); });
     apply();
+  })();
+</script>
+@endpush
+
+@push('scripts')
+<script>
+  (function(){
+    const btn = document.getElementById('btn-batch-flags');
+    if (!btn) return;
+    btn.addEventListener('click', function(){
+      const baselineInput = document.querySelector('input[name="baseline"]');
+      const baselineVal = baselineInput ? baselineInput.value.trim() : '';
+      if (!baselineVal) {
+        alert('Informe a Data base para calcular Dif e aplicar as flags.');
+        return;
+      }
+      if (!confirm('Aplicar COMPRAR/NÃO COMPRAR com base no sinal da Dif para os itens exibidos?')) return;
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = @json(route('openai.records.assets.batchFlags'));
+      const tok = document.querySelector('meta[name="csrf-token"]');
+      if (tok) {
+        const inp = document.createElement('input');
+        inp.type = 'hidden'; inp.name = '_token'; inp.value = tok.getAttribute('content');
+        form.appendChild(inp);
+      }
+      try{
+        const url = new URL(window.location.href);
+        url.searchParams.forEach((v,k)=>{
+          if (v !== null && v !== ''){
+            const inp = document.createElement('input');
+            inp.type = 'hidden'; inp.name = k; inp.value = v;
+            form.appendChild(inp);
+          }
+        });
+      }catch(_e){}
+      document.body.appendChild(form);
+      form.submit();
+    });
   })();
 </script>
 @endpush
