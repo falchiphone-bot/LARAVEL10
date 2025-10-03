@@ -179,6 +179,7 @@
             <th>
               <a class="text-decoration-none" href="{{ route('openai.variations.index', array_merge($baseParamsGrouped, ['sort'=>$diffNext])) }}" title="Ordenar / alternar por Diferença (atual - anterior)">Diferença (%) {{ $diffIcon }}</a>
             </th>
+            <th>Tendência</th>
             <th>Sparkline</th>
           </tr>
         </thead>
@@ -211,6 +212,20 @@
               <td class="{{ $clsLatest }}">{{ number_format($latest->variation,4,',','.') }}%</td>
               <td class="{{ $clsPrev }}">@if(!is_null($pv)) {{ number_format($pv,4,',','.') }}% @else — @endif</td>
               <td class="{{ $clsDiff }}">@if(!is_null($diff)) {{ number_format($diff,4,',','.') }}% {!! $badge !!} @else — @endif</td>
+              @php
+                $tLabel = $g['trend_label'] ?? null;
+                $tBadge = $g['trend_badge'] ?? 'secondary';
+                $tNorm = $g['normalized_variation'] ?? $latest->variation;
+                $tConf = $g['trend_confidence'] ?? 0;
+                $tDE = $g['days_elapsed'] ?? null; $tDM = $g['days_month'] ?? null;
+              @endphp
+              <td>
+                @if($tLabel)
+                  <span class="badge bg-{{ $tBadge }}" title="Tendência: {{ $tLabel }} | Normalizado: {{ number_format($tNorm,4,',','.') }}% | Confiança: {{ number_format($tConf*100,1,',','.') }}% @if($tDE && $tDM) | Dias: {{ $tDE }}/{{ $tDM }} @endif">{{ $tLabel }}</span>
+                @else
+                  <span class="text-muted">—</span>
+                @endif
+              </td>
               <td>
                 <svg width="{{ $w }}" height="{{ $h }}" viewBox="0 0 {{ $w }} {{ $h }}" preserveAspectRatio="none" class="spark" aria-label="Sparkline" role="img" title="{{ $sparkTitle }}">
                   <polyline fill="none" stroke="#0d6efd" stroke-width="2" points="{{ implode(' ', $points) }}" />
@@ -309,6 +324,7 @@
           <th>
             <a class="text-decoration-none" href="{{ route('openai.variations.index', array_merge($baseParams, ['sort'=>$diffNext])) }}" title="Ordenar / alternar ordenação por Diferença (atual - anterior)">Diferença (%) {{ $diffIcon }}</a>
           </th>
+          <th>Tendência</th>
           @php
             $isCreatedAsc = ($sort ?? '') === 'created_asc';
             $isCreatedDesc = ($sort ?? '') === 'created_desc';
@@ -391,6 +407,14 @@
               }
             @endphp
             <td class="small {{ $clsDiff }}">@if(!is_null($diff)) {{ number_format($diff,4,',','.') }}% {!! $badge !!} @else — @endif</td>
+            @php $trend = $trendData[$v->id] ?? null; @endphp
+            <td class="small">
+              @if($trend)
+                <span class="badge bg-{{ $trend['badge'] }}" title="Tendência: {{ $trend['label'] }} | Normalizado: {{ number_format($trend['normalized'],4,',','.') }}% | Confiança: {{ number_format($trend['confidence']*100,1,',','.') }}% @if($trend['days_elapsed'] && $trend['days_month']) | Dias: {{ $trend['days_elapsed'] }}/{{ $trend['days_month'] }} @endif">{{ $trend['label'] }}</span>
+              @else
+                <span class="text-muted">—</span>
+              @endif
+            </td>
             <td>{{ $v->created_at?->timezone(config('app.timezone'))->format('d/m/Y H:i') }}</td>
             <td>{{ $v->updated_at?->timezone(config('app.timezone'))->format('d/m/Y H:i') }}</td>
             <td class="text-center">

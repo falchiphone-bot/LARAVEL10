@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\AssetVariationsExport;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+use App\Models\OpenAIChatRecord;
 
 class AssetVariationController extends Controller
 {
@@ -30,6 +32,40 @@ class AssetVariationController extends Controller
         $sparkWindow = (int)($request->input('spark_window') ?: 6);
         if($sparkWindow < 3) $sparkWindow = 3; if($sparkWindow > 24) $sparkWindow = 24;
     $sort = $request->input('sort', 'year_desc'); // adiciona diff_asc|diff_desc|prev_asc|prev_desc
+
+        // Função auxiliar de classificação de tendência (compartilhada)
+        $classifyTrend = function(?float $p, ?float $c, int $daysElapsed, int $daysMonth) {
+            if ($p === null || $c === null) {
+                return ['code'=>'sem_historico','label'=>'Sem histórico','badge'=>'secondary','confidence'=>0,'normalized'=>$c];
+            }
+            $minDelta = 0.2; // diferença mínima em pontos percentuais
+            $confidence = 0.0;
+            if ($daysMonth > 0) {
+                $confidence = min(1.0, $daysElapsed / max(1, ($daysMonth * 0.5))); // meia janela => confiança ~1
+            }
+            $normalized = $c;
+            if ($daysElapsed < $daysMonth) {
+                $factor = $daysMonth / max(1,$daysElapsed);
+                $normalized = $c * $factor;
+            }
+            $pVal = $p; $cNorm = $normalized;
+            // Reversões
+            if($pVal < 0 && $cNorm > 0){ return ['code'=>'reversao_alta','label'=>'Reversão Alta','badge'=>'success','confidence'=>$confidence,'normalized'=>$normalized]; }
+            if($pVal > 0 && $cNorm < 0){ return ['code'=>'reversao_baixa','label'=>'Reversão Baixa','badge'=>'danger','confidence'=>$confidence,'normalized'=>$normalized]; }
+            // Ambos positivos
+            if($pVal >= 0 && $cNorm >= 0){
+                if($cNorm >= $pVal + $minDelta) return ['code'=>'alta_acelerando','label'=>'Alta Acelerando','badge'=>'success','confidence'=>$confidence,'normalized'=>$normalized];
+                if($cNorm <= $pVal - $minDelta) return ['code'=>'alta_perdendo','label'=>'Alta Perdendo Força','badge'=>'warning','confidence'=>$confidence,'normalized'=>$normalized];
+                return ['code'=>'alta_estavel','label'=>'Alta Estável','badge'=>'success','confidence'=>$confidence,'normalized'=>$normalized];
+            }
+            // Ambos negativos
+            if($pVal <= 0 && $cNorm <= 0){
+                if($cNorm <= $pVal - $minDelta) return ['code'=>'queda_acelerando','label'=>'Queda Acelerando','badge'=>'danger','confidence'=>$confidence,'normalized'=>$normalized];
+                if($cNorm >= $pVal + $minDelta) return ['code'=>'queda_aliviando','label'=>'Queda Aliviando','badge'=>'info','confidence'=>$confidence,'normalized'=>$normalized];
+                return ['code'=>'queda_estavel','label'=>'Queda Estável','badge'=>'danger','confidence'=>$confidence,'normalized'=>$normalized];
+            }
+            return ['code'=>'neutro','label'=>'Neutro','badge'=>'secondary','confidence'=>$confidence,'normalized'=>$normalized];
+        };
 
         // Se modo agrupado: construímos dataset agregado e retornamos sem paginação convencional.
         if ($grouped) {
@@ -63,7 +99,7 @@ class AssetVariationController extends Controller
                     $groupedData[$cid]['rows'][] = $row; // armazenar em ordem desc por enquanto
                 }
             }
-            // Processar cada grupo: ordenar cronologicamente asc para sparkline.
+            // Processar cada grupo: ordenar, calcular var anterior, diff e tendência
             foreach($groupedData as &$g){
                 usort($g['rows'], function($a,$b){
                     if($a->year === $b->year) return $a->month <=> $b->month;
@@ -81,6 +117,19 @@ class AssetVariationController extends Controller
                 $g['latest'] = $latest;
                 $g['prev_variation'] = $prev;
                 $g['diff'] = (!is_null($prev)) ? ($latest->variation - $prev) : null;
+                // Tendência (considera mês corrente parcial)
+                $firstOf = Carbon::create($latest->year, $latest->month, 1);
+                $daysMonth = $firstOf->daysInMonth;
+                $now = Carbon::now();
+                $daysElapsed = ($latest->year == $now->year && $latest->month == $now->month) ? min($now->day, $daysMonth) : $daysMonth;
+                $trend = $classifyTrend($prev, $latest->variation, $daysElapsed, $daysMonth);
+                $g['trend_code'] = $trend['code'];
+                $g['trend_label'] = $trend['label'];
+                $g['trend_badge'] = $trend['badge'];
+                $g['trend_confidence'] = $trend['confidence'];
+                $g['normalized_variation'] = $trend['normalized'];
+                $g['days_elapsed'] = $daysElapsed;
+                $g['days_month'] = $daysMonth;
                 // Filtragem por change no modo agrupado (baseada em diff)
                 $ok = true;
                 if($change === 'melhoria'){ $ok = !is_null($g['diff']) && $g['diff'] > 0; }
@@ -128,11 +177,12 @@ class AssetVariationController extends Controller
                 'code'=>$code,
                 'sort'=>$sort,
                 'polarity'=>$polarity,
-                'prevVariationMap'=>$prevVariationMap,
+                'prevVariationMap'=>[],
                 'change'=>$change,
                 'grouped'=>$grouped,
                 'sparkWindow'=>$sparkWindow,
                 'groupedData'=>$groupedData,
+                'trendData'=>[],
             ]);
         }
 
@@ -233,8 +283,50 @@ class AssetVariationController extends Controller
 
         // Map prevVariationMap a partir da coluna prev_variation já selecionada
         $prevVariationMap = [];
+        $trendData = [];
+        // Preparar auxiliar para dias atuais por chat (para mês corrente) usando última data de registro
+        $now = Carbon::now();
+        $currentMonthChatIds = [];
         foreach($variations as $row){
             $prevVariationMap[$row->id] = $row->prev_variation !== null ? (float)$row->prev_variation : null;
+            if($row->year == $now->year && $row->month == $now->month && $row->chat_id){
+                $currentMonthChatIds[$row->chat_id] = true;
+            }
+        }
+        $lastDates = [];
+        if(!empty($currentMonthChatIds)){
+            $records = OpenAIChatRecord::selectRaw('chat_id, MAX(occurred_at) as last_date')
+                ->whereIn('chat_id', array_keys($currentMonthChatIds))
+                ->whereYear('occurred_at', $now->year)
+                ->whereMonth('occurred_at', $now->month)
+                ->groupBy('chat_id')
+                ->get();
+            foreach($records as $r){
+                if($r->last_date){
+                    $lastDates[$r->chat_id] = Carbon::parse($r->last_date);
+                }
+            }
+        }
+        foreach($variations as $row){
+            $firstOf = Carbon::create($row->year, $row->month, 1);
+            $daysMonth = $firstOf->daysInMonth;
+            $daysElapsed = $daysMonth;
+            if($row->year == $now->year && $row->month == $now->month){
+                $last = $lastDates[$row->chat_id] ?? $now;
+                $daysElapsed = min($last->day, $daysMonth);
+            }
+            $prev = $prevVariationMap[$row->id];
+            $curr = (float)$row->variation;
+            $trend = $classifyTrend($prev, $curr, $daysElapsed, $daysMonth);
+            $trendData[$row->id] = [
+                'code' => $trend['code'],
+                'label' => $trend['label'],
+                'badge' => $trend['badge'],
+                'confidence' => $trend['confidence'],
+                'normalized' => $trend['normalized'],
+                'days_elapsed' => $daysElapsed,
+                'days_month' => $daysMonth,
+            ];
         }
         $years = AssetVariation::select('year')->distinct()->orderBy('year','desc')->pluck('year');
         return view('openai.variations.index', [
@@ -250,6 +342,7 @@ class AssetVariationController extends Controller
             'grouped'=>false,
             'sparkWindow'=>$sparkWindow,
             'groupedData'=>[],
+            'trendData'=>$trendData,
         ]);
     }
 
