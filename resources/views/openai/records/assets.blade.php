@@ -411,14 +411,35 @@
   </div>
 {{-- </div> --}}
 @endsection
+<div id="assets-config"
+     data-api-quote="{{ route('api.market.quote') }}"
+     data-api-historical="{{ route('api.market.historical') }}"
+     data-api-usage="{{ route('api.market.usage') }}"
+     data-api-status="{{ route('api.market.status') }}"
+     data-route-batch-flags="{{ route('openai.records.assets.batchFlags') }}"
+     data-route-no-buy-get="{{ route('openai.assets.noBuy.get') }}"
+     class="d-none"></div>
 
 @push('scripts')
 <script>
   (function(){
-    const endpoint = @json(route('api.market.quote'));
-  const endpointHist = @json(route('api.market.historical'));
-  const endpointUsage = @json(route('api.market.usage'));
-  const endpointStatus = @json(route('api.market.status'));
+    // Dispara clique sem alterar foco (evita rolagem automática)
+    function triggerClick(el){
+      if (!el) return;
+      try{
+        const evt = new MouseEvent('click', { bubbles: true, cancelable: true, view: window });
+        el.dispatchEvent(evt);
+      }catch(_e){
+        // fallback mínimo
+        try{ el.click(); }catch(_e2){}
+      }
+    }
+    const cfgEl = document.getElementById('assets-config');
+    const cfg = cfgEl ? cfgEl.dataset : {};
+    const endpoint = cfg.apiQuote || '';
+    const endpointHist = cfg.apiHistorical || '';
+    const endpointUsage = cfg.apiUsage || '';
+    const endpointStatus = cfg.apiStatus || '';
     let batchAbort = false;
     // Utilitário: obtém número de querystring ou localStorage com fallback
     function getConfigNumber(paramName, defaultValue){
@@ -750,16 +771,29 @@
         if(!resp.ok || !data || data.ok !== true){
           throw new Error((data && (data.message||data.error)) || 'Falha ao criar registro');
         }
-  // Feedback: esconder botão e reenviar filtro para atualizar a lista
-  btn.classList.add('d-none');
-  const f = document.getElementById('assets-filter-form');
-  if (f) { (typeof f.requestSubmit === 'function') ? f.requestSubmit() : f.submit(); }
-  else { window.location.reload(); }
+        // Se estamos em modo lote, não recarregamos a página por item
+        if (window.__batchCreating) {
+          try{ document.dispatchEvent(new CustomEvent('quote:create:done', { detail: { ok: true } })); }catch(_e){}
+          btn.classList.add('d-none');
+          btn.disabled = true;
+        } else {
+          // Modo manual: esconder botão e rolar para a próxima linha
+          btn.classList.add('d-none');
+          const row = cell.closest('tr');
+          const nextRow = row ? row.nextElementSibling : null;
+          if (nextRow && typeof nextRow.scrollIntoView === 'function') {
+            try {
+              nextRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              // Destaque temporário para indicar foco visual
+              nextRow.classList.add('table-primary');
+              setTimeout(()=>{ nextRow.classList.remove('table-primary'); }, 1000);
+            } catch(_e) { /* noop */ }
+          }
+        }
       }catch(err){
         alert('Erro ao criar novo registro: ' + String(err.message || err));
       }finally{
-        btn.disabled = false;
-        btn.innerHTML = prev;
+  if (!window.__batchCreating) { btn.disabled = false; btn.innerHTML = prev; }
       }
     });
 
@@ -777,19 +811,38 @@
       batchAbort = false;
       if (btnStop){ btnStop.classList.remove('d-none'); btnStop.disabled = false; }
       let ok = 0, fail = 0;
+      window.__batchCreating = true;
+      function waitCreateDone(){ return new Promise(res=>{ const h=(ev)=>{ document.removeEventListener('quote:create:done', h); res(ev?.detail?.ok!==false); }; document.addEventListener('quote:create:done', h, { once:true }); }); }
       for (let i=0;i<all.length;i++){
         if (batchAbort) { if(status){ status.textContent = `Interrompido (${i}/${all.length})`; } break; }
         const b = all[i];
         if(status){ status.textContent = `(${i+1}/${all.length})`; }
         try{
           await handleQuoteButton(b);
-          ok++;
+          // Tenta criar novo registro automaticamente quando aplicável
+          const cell = b.closest('td');
+          const btnNew = cell ? cell.querySelector('.btn-create-from-quote') : null;
+          if (btnNew && !btnNew.classList.contains('d-none') && !btnNew.disabled) {
+            triggerClick(btnNew);
+            const created = await waitCreateDone();
+            if (created) ok++; else fail++;
+          } else {
+            ok++;
+          }
         }catch(e){ fail++; }
       }
       if(!batchAbort){ if(status){ status.textContent = `Concluído: ${ok} ok, ${fail} erro(s)`; } }
       btn.disabled = false;
       btn.innerHTML = prev;
       if (btnStop){ btnStop.classList.add('d-none'); btnStop.disabled = true; }
+      // Recarrega uma única vez ao final
+      window.__batchCreating = false;
+      try{
+        if (!batchAbort) {
+          const f = document.getElementById('assets-filter-form');
+          setTimeout(()=>{ if (f) { (typeof f.requestSubmit === 'function') ? f.requestSubmit() : f.submit(); } else { window.location.reload(); } }, 200);
+        }
+      }catch(_e){}
     });
 
     // Botão Parar
@@ -834,7 +887,7 @@
       if (!btn) { updateAutoStatus('Aguardando a primeira linha…'); return; }
       window.__autoPrevBusy = true;
       updateAutoStatus('Consultando primeira linha…');
-      btn.click();
+  triggerClick(btn);
     }
     function startAutoPrev(){
       autoAbort = false;
@@ -978,7 +1031,7 @@
             // Se CHECK estiver ativo, aciona automaticamente o botão Inserir registro
             try {
               if (localStorage.getItem('assets.autoPrev.enabled') === '1' && typeof autoAbort !== 'undefined' && !autoAbort && !createBtn.disabled) {
-                setTimeout(() => { if(!createBtn.disabled) createBtn.click(); }, 50);
+                setTimeout(() => { if(!createBtn.disabled) triggerClick(createBtn); }, 50);
               }
             } catch(e) { /* noop */ }
         }
@@ -1070,7 +1123,10 @@
       if (!confirm('Aplicar COMPRAR/NÃO COMPRAR com base no sinal da Dif para os itens exibidos?')) return;
       const form = document.createElement('form');
       form.method = 'POST';
-      form.action = @json(route('openai.records.assets.batchFlags'));
+      try{
+        const ds = document.getElementById('assets-config')?.dataset;
+        form.action = (ds && ds.routeBatchFlags) ? ds.routeBatchFlags : '';
+      }catch(_e){ form.action=''; }
       const tok = document.querySelector('meta[name="csrf-token"]');
       if (tok) {
         const inp = document.createElement('input');
@@ -1100,7 +1156,7 @@
     try{
     const els = Array.from(document.querySelectorAll('[data-flag-code]'));
       const codes = Array.from(new Set(els.map(e => e.getAttribute('data-flag-code')).filter(Boolean)));
-    const NO_BUY_GET = @json(route('openai.assets.noBuy.get'));
+      const NO_BUY_GET = (document.getElementById('assets-config')?.dataset?.routeNoBuyGet) || '';
       for (const code of codes){
         try{
       const resp = await fetch(`${NO_BUY_GET}?code=${encodeURIComponent(code)}`, { headers: { 'Accept':'application/json' } });
