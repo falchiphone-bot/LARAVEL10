@@ -29,22 +29,59 @@ class InvestmentDailyBalanceController extends Controller
         $userId = (int) Auth::id();
         $withDeleted = $request->boolean('with_deleted');
         $latestPerDay = $request->boolean('latest_per_day');
+        $baseMode = $request->input('base_mode','oldest'); // oldest | recent
+        $compact = $request->boolean('compact');
+        $withSpark = $request->boolean('spark');
+        $range = $request->input('range'); // 7d | 30d | ytd
+        $from = trim((string)$request->input('from'));
+        $to = trim((string)$request->input('to'));
+        if(($from === '' && $to === '') && in_array($range, ['7d','30d','ytd'], true)) {
+            $today = now()->toDateString();
+            if($range==='7d') { $from = now()->subDays(6)->toDateString(); $to=$today; }
+            elseif($range==='30d') { $from = now()->subDays(29)->toDateString(); $to=$today; }
+            elseif($range==='ytd') { $from = now()->startOfYear()->toDateString(); $to=$today; }
+        }
+        $perPage = (int) $request->input('per_page', 50); if($perPage<10) $perPage=10; if($perPage>200) $perPage=200;
+        $page = max(1, (int)$request->input('page', 1));
         $query = InvestmentDailyBalance::where('user_id', $userId);
         if ($withDeleted) { $query->withTrashed(); }
+        if ($from !== '') {
+            // validar formato simples YYYY-MM-DD
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/',$from)) {
+                $query->whereDate('snapshot_at','>=',$from);
+            }
+        }
+        if ($to !== '') {
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/',$to)) {
+                $query->whereDate('snapshot_at','<=',$to);
+            }
+        }
         if ($latestPerDay) {
-            $raw = $query->orderByDesc('snapshot_at')->limit(1200)->get();
+            // Trazer mais registros para deduplicar dias (cap em 5000)
+            $raw = $query->orderByDesc('snapshot_at')->limit(5000)->get();
             $seenDays = []; $picked = [];
             foreach ($raw as $b) {
                 $d = optional($b->snapshot_at)->toDateString();
-                if (!isset($seenDays[$d])) { $seenDays[$d]=true; $picked[] = $b; if (count($picked)>=200) break; }
+                if (!isset($seenDays[$d])) { $seenDays[$d]=true; $picked[] = $b; }
             }
-            $balances = collect($picked);
+            $totalItems = count($picked);
+            $totalPages = (int) ceil($totalItems / $perPage);
+            $slice = array_slice($picked, ($page-1)*$perPage, $perPage);
+            $balances = collect($slice);
         } else {
-            $balances = $query->orderByDesc('snapshot_at')->limit(200)->get();
+            // Paginação via offset/limit (para não usar paginate por custom coleções posteriormente)
+            $baseQuery = clone $query;
+            $totalItems = (clone $baseQuery)->count();
+            $totalPages = (int) ceil($totalItems / $perPage);
+            $balances = $query->orderByDesc('snapshot_at')
+                ->skip(($page-1)*$perPage)
+                ->take($perPage)
+                ->get();
         }
         $rows = [];
-        $last = $balances->last(); // base acumulada = mais antigo
-        $accBaseVal = $last?->total_amount;
+    $last = $balances->last();
+    $first = $balances->first();
+    $accBaseVal = ($baseMode === 'recent') ? ($first?->total_amount) : ($last?->total_amount);
         $count = $balances->count();
         for ($i=0; $i<$count; $i++) {
             $cur = $balances[$i];
@@ -58,11 +95,9 @@ class InvestmentDailyBalanceController extends Controller
                 }
             }
             $accDiff = null; $accPerc = null;
-            if ($last) {
+            if ($accBaseVal !== null) {
                 $accDiff = (float)$cur->total_amount - (float)$accBaseVal;
-                if (abs((float)$accBaseVal) > 1e-10) {
-                    $accPerc = ($accDiff / (float)$accBaseVal) * 100.0;
-                }
+                if (abs((float)$accBaseVal) > 1e-10) { $accPerc = ($accDiff / (float)$accBaseVal) * 100.0; }
             }
             $rows[] = [
                 'model'=>$cur,
@@ -74,10 +109,23 @@ class InvestmentDailyBalanceController extends Controller
                 'acc_perc'=>$accPerc,
             ];
         }
+        // Série para sparkline (mais antigo -> mais recente)
+        $sparkSeries = $withSpark ? $balances->pluck('total_amount')->reverse()->values()->all() : [];
+
         return view('investments.daily_balances.index', [
             'rows' => $rows,
             'withDeleted' => $withDeleted,
             'latestPerDay' => $latestPerDay,
+            'baseMode' => $baseMode,
+            'compact' => $compact,
+            'sparkSeries' => $sparkSeries,
+            'from' => $from,
+            'to' => $to,
+            'range' => $range,
+            'page' => $page,
+            'perPage' => $perPage,
+            'totalItems' => $totalItems ?? count($rows),
+            'totalPages' => $totalPages ?? 1,
         ]);
     }
 
@@ -153,9 +201,14 @@ class InvestmentDailyBalanceController extends Controller
     {
         $userId = (int) Auth::id();
         $withDeleted = $request->boolean('with_deleted');
-        $latestPerDay = $request->boolean('latest_per_day');
+    $latestPerDay = $request->boolean('latest_per_day');
+    $baseMode = $request->input('base_mode','oldest');
+        $from = trim((string)$request->input('from'));
+        $to = trim((string)$request->input('to'));
         $q = InvestmentDailyBalance::where('user_id',$userId);
         if ($withDeleted) { $q->withTrashed(); }
+        if ($from !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/',$from)) { $q->whereDate('snapshot_at','>=',$from); }
+        if ($to !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/',$to)) { $q->whereDate('snapshot_at','<=',$to); }
         if ($latestPerDay) {
             $raw = $q->orderByDesc('snapshot_at')->limit(5000)->get(['snapshot_at','total_amount','deleted_at']);
             $seen = []; $selected = [];
@@ -171,7 +224,8 @@ class InvestmentDailyBalanceController extends Controller
     // Pré-calcular métricas igual à tela (diferença atribuída à linha mais recente usando a próxima mais antiga; acumulado baseado no snapshot mais antigo)
         $rows = [];
     $last = $balances->last();
-    $accBaseVal = $last?->total_amount;
+    $first = $balances->first();
+    $accBaseVal = ($baseMode === 'recent') ? ($first?->total_amount) : ($last?->total_amount);
         foreach ($balances as $b) {
             $rows[] = [
                 'snapshot_at' => optional($b->snapshot_at)->format('Y-m-d H:i:s'),
@@ -187,7 +241,7 @@ class InvestmentDailyBalanceController extends Controller
         for ($i=0; $i<$count; $i++) {
             $curVal = $rows[$i]['total_amount'];
             // acumulado
-            if ($last) {
+            if ($accBaseVal !== null) {
                 $accDiff = $curVal - (float)$accBaseVal;
                 $accPerc = (abs((float)$accBaseVal) > 1e-10) ? ($accDiff / (float)$accBaseVal) * 100.0 : null;
                 $rows[$i]['acc_diff'] = $accDiff;
