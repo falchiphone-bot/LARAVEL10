@@ -5,6 +5,13 @@
     <h1 class="h5 mb-0">Estatísticas Diárias de Ativos</h1>
     <div class="d-flex gap-2">
       <a href="{{ route('asset-stats.create') }}" class="btn btn-outline-primary">Novo</a>
+      @php
+        $varLinkParams = array_filter([
+          // tenta passar o símbolo como code quando disponível
+          'code' => ($symbol ?? '') !== '' ? $symbol : null,
+        ]);
+      @endphp
+      <a href="{{ route('openai.variations.index', $varLinkParams) }}#gsc.tab=0" class="btn btn-outline-dark" title="Ir para Variações Mensais">Variações</a>
     </div>
   </div>
 

@@ -93,6 +93,7 @@
     <a href="{{ route('openai.variations.exportXlsx', $exportParams) }}" class="btn btn-sm btn-outline-success" title="Exportar visão atual em XLSX">Exportar XLSX</a>
     <div class="vr mx-2 d-none d-md-block"></div>
     <button type="button" id="btn-var-batch-flags" class="btn btn-sm btn-outline-warning" title="Aplicar COMPRAR/NÃO COMPRAR por código conforme sinal da variação (usa a linha mais recente por código)">Aplicar flags (variação)</button>
+    <a href="{{ route('asset-stats.index') }}#gsc.tab=0" class="btn btn-sm btn-outline-dark" title="Ir para Asset Stats">Asset Stats</a>
   </div>
 
   <div class="table-responsive">

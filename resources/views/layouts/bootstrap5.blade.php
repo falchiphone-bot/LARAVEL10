@@ -344,23 +344,14 @@ if (window.Livewire) {
                   </li>
                 @endcanany
               @endif
-              @can('MERCADO - VER STATUS')
+              {{-- Market status desabilitado --}}
+              {{-- @can('MERCADO - VER STATUS')
               <li class="ms-2 d-none d-md-flex align-items-center">
                 <span id="market-status-global" class="badge rounded-pill bg-secondary" title="Status do mercado (NYSE)">Mercado: carregando…</span>
               </li>
-              @endcan
+              @endcan --}}
 
-                            @canany(['OPENAI - CHAT', 'OPENAI - TRANSCRIBE - ESPANHOL'])
-                            <li>
-                                <a href="{{ route('openai.menu') }}" data-bs-toggle="tooltip" data-bs-placement="top"
-                                   data-bs-custom-class="custom-tooltip"
-                                   data-bs-title="Acessar as ferramentas OpenAI (Chat e Transcrição)"
-                                   class="nav-link text-white">
-                                    <i class="fa-brands fa-openai"></i>
-                                    OpenAI
-                                </a>
-                            </li>
-                            @endcanany
+
 
                             {{-- Dropdown: Contabilidade / Financeiro --}}
                             @canany(['CONTABILIDADE - LISTAR','CONTABILIDADE - LISTAR-AQUI-TAMBEM','CONTASPAGAR - LISTAR','COBRANCA - LISTAR','LANCAMENTOS DOCUMENTOS - LISTAR','EMPRESAS - LISTAR','CENTROCUSTOS - LISTAR'])
@@ -539,33 +530,126 @@ if (window.Livewire) {
               </li>
               @endcanany
 
-              <!-- Link: Snapshots de Investimentos -->
-              @can('INVESTIMENTOS SNAPSHOTS - LISTAR')
-              <li>
-                <a href="{{ route('investments.daily-balances.index') }}"
-                   class="nav-link text-white"
-                   data-bs-toggle="tooltip" data-bs-placement="top"
-                   data-bs-custom-class="custom-tooltip"
-                   data-bs-title="Ver e gerar snapshots diários (saldo consolidado, variação e exportação CSV)">
-                  <i class="fa-solid fa-chart-line"></i>
-                  Investimentos (Snapshots)
-                </a>
-              </li>
-              @endcan
 
-              <!-- Link: Estatísticas de Ativos -->
-              @can('ASSET STATS - LISTAR')
-              <li>
-                <a href="{{ route('asset-stats.index') }}"
-                   class="nav-link text-white"
-                   data-bs-toggle="tooltip" data-bs-placement="top"
-                   data-bs-custom-class="custom-tooltip"
-                   data-bs-title="Gerenciar estatísticas diárias por ativo (importar tabela/CSV)">
-                  <i class="fa-solid fa-database"></i>
-                  Estatísticas de Ativos
+
+
+
+              {{-- Dropdown: OpenAI • Ativos Americanos --}}
+              @canany(['OPENAI - CHAT','ASSET STATS - LISTAR','INVESTIMENTOS SNAPSHOTS - LISTAR'])
+              <li class="nav-item dropdown">
+                <a href="#" class="nav-link dropdown-toggle text-white" id="dropdown-openai-assets" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                  <i class="fa-solid fa-robot me-1"></i>
+                  OpenAI & Ações EUA
+                  <i class="fa-solid fa-globe-americas ms-1"></i>
                 </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  @can('OPENAI - CHAT')
+                  <li>
+                    <a class="dropdown-item" href="{{ route('openai.records.index') }}" title="Conversas e registros (filtros por ativo e período)">
+                      <i class="fa-regular fa-comments me-1"></i> Conversas OpenAI
+                    </a>
+                  </li>
+                  <li><hr class="dropdown-divider"></li>
+                  @canany(['OPENAI - CHAT','ASSET STATS - LISTAR'])
+                  <!-- Desktop (md+): submenu Mercado abre à direita -->
+                  <li class="dropend d-none d-md-block">
+                    <a class="dropdown-item dropdown-toggle" href="#" id="submenu-mercado" aria-expanded="false">
+                      <i class="fa-solid fa-chart-line me-1"></i> Mercado
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="submenu-mercado">
+                      @can('OPENAI - CHAT')
+                      <li>
+                        <a class="dropdown-item" href="{{ route('openai.records.assets') }}" title="Resumo de ativos únicos, baseline e tendências">
+                          <i class="fa-solid fa-layer-group me-1"></i> Ativos (Resumo)
+                        </a>
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="{{ route('openai.variations.index') }}#gsc.tab=0" title="Variações por mês (por código)">
+                          <i class="fa-solid fa-arrow-up-right-dots me-1"></i> Variações (Mês)
+                        </a>
+                      </li>
+                      @endcan
+                      @can('ASSET STATS - LISTAR')
+                      <li>
+                        <a class="dropdown-item" href="{{ route('asset-stats.index') }}#gsc.tab=0" title="Estatísticas diárias (close, acurácia)">
+                          <i class="fa-solid fa-database me-1"></i> Estatísticas de Ativos
+                        </a>
+                      </li>
+                      @endcan
+                    </ul>
+                  </li>
+                  <!-- Mobile (< md): lista expandida -->
+                  <li class="d-block d-md-none">
+                    <h6 class="dropdown-header"><i class="fa-solid fa-chart-line me-1"></i> Mercado</h6>
+                  </li>
+                  @can('OPENAI - CHAT')
+                  <li class="d-block d-md-none">
+                    <a class="dropdown-item ps-4" href="{{ route('openai.records.assets') }}" title="Resumo de ativos únicos, baseline e tendências">
+                      <i class="fa-solid fa-layer-group me-1"></i> Ativos (Resumo)
+                    </a>
+                  </li>
+                  <li class="d-block d-md-none">
+                    <a class="dropdown-item ps-4" href="{{ route('openai.variations.index') }}#gsc.tab=0" title="Variações por mês (por código)">
+                      <i class="fa-solid fa-arrow-up-right-dots me-1"></i> Variações (Mês)
+                    </a>
+                  </li>
+                  @endcan
+                  @can('ASSET STATS - LISTAR')
+                  <li class="d-block d-md-none">
+                    <a class="dropdown-item ps-4" href="{{ route('asset-stats.index') }}#gsc.tab=0" title="Estatísticas diárias (close, acurácia)">
+                      <i class="fa-solid fa-database me-1"></i> Estatísticas de Ativos
+                    </a>
+                  </li>
+                  @endcan
+                  @endcanany
+                  @canany(['OPENAI - CHAT','INVESTIMENTOS SNAPSHOTS - LISTAR'])
+                  <!-- Desktop (md+): submenu abre à direita -->
+                  <li class="dropend d-none d-md-block">
+                    <a class="dropdown-item dropdown-toggle" href="#" id="submenu-investimentos" aria-expanded="false">
+                      <i class="fa-solid fa-wallet me-1"></i> Investimentos
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="submenu-investimentos">
+                      @can('OPENAI - CHAT')
+                      <li>
+                        <a class="dropdown-item" href="{{ route('openai.investments.index') }}" title="Contas de investimento vinculadas">
+                          <i class="fa-solid fa-wallet me-1"></i> Contas
+                        </a>
+                      </li>
+                      @endcan
+                      @can('INVESTIMENTOS SNAPSHOTS - LISTAR')
+                      <li>
+                        <a class="dropdown-item" href="{{ route('investments.daily-balances.index') }}" title="Snapshots diários (saldo e variação)">
+                          <i class="fa-solid fa-chart-line me-1"></i> Snapshots
+                        </a>
+                      </li>
+                      @endcan
+                    </ul>
+                  </li>
+                  <!-- Mobile (< md): lista expandida -->
+                  <li class="d-block d-md-none">
+                    <h6 class="dropdown-header"><i class="fa-solid fa-wallet me-1"></i> Investimentos</h6>
+                  </li>
+                  @can('OPENAI - CHAT')
+                  <li class="d-block d-md-none">
+                    <a class="dropdown-item ps-4" href="{{ route('openai.investments.index') }}" title="Contas de investimento vinculadas">
+                      <i class="fa-solid fa-wallet me-1"></i> Contas
+                    </a>
+                  </li>
+                  @endcan
+                  @can('INVESTIMENTOS SNAPSHOTS - LISTAR')
+                  <li class="d-block d-md-none">
+                    <a class="dropdown-item ps-4" href="{{ route('investments.daily-balances.index') }}" title="Snapshots diários (saldo e variação)">
+                      <i class="fa-solid fa-chart-line me-1"></i> Snapshots
+                    </a>
+                  </li>
+                  @endcan
+                  @endcanany
+                  @endcan
+
+
+                </ul>
               </li>
-              @endcan
+              @endcanany
 
               {{-- Link: SAF - Colaboradores --}}
               @can('SAF_COLABORADORES - LISTAR')
@@ -749,6 +833,55 @@ if (window.Livewire) {
     </footer>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
     <script src="https://getbootstrap.com/docs/5.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <style>
+      /* Suporte a submenus (dropend) dentro de dropdowns */
+      .dropdown-menu .dropend { position: relative; }
+      .dropdown-menu .dropend .dropdown-menu {
+        top: 0;
+        left: 100%;
+        margin-top: 0;
+        margin-left: .25rem;
+      }
+      @media (max-width: 767.98px) {
+        /* No mobile, desabilita sobreposição lateral */
+        .dropdown-menu .dropend .dropdown-menu {
+          position: static;
+          float: none;
+          display: block;
+          left: auto;
+          margin-left: 0;
+        }
+      }
+    </style>
+    <script>
+      // Habilita submenus (dropend) dentro de dropdowns no Bootstrap 5
+      document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.dropdown-menu .dropdown-toggle').forEach(function (el) {
+          el.addEventListener('click', function (e) {
+            // evita fechar o dropdown principal
+            e.preventDefault();
+            e.stopPropagation();
+            const subMenu = this.nextElementSibling;
+            if (subMenu && subMenu.classList.contains('dropdown-menu')) {
+              // fecha outros submenus no mesmo nível
+              this.closest('.dropdown-menu').querySelectorAll('.dropdown-menu.show').forEach(function (openMenu) {
+                if (openMenu !== subMenu) openMenu.classList.remove('show');
+              });
+              subMenu.classList.toggle('show');
+              // posicionamento é controlado via CSS (ver <style> acima)
+            }
+          });
+        });
+        // Fecha submenus quando fecha o dropdown principal
+        document.querySelectorAll('.dropdown').forEach(function (dropdown) {
+          dropdown.addEventListener('hide.bs.dropdown', function () {
+            this.querySelectorAll('.dropdown-menu.show').forEach(function (openMenu) {
+              openMenu.classList.remove('show');
+            });
+          });
+        });
+      });
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" crossorigin="anonymous">
     </script>
     <script>
@@ -766,48 +899,127 @@ if (window.Livewire) {
       }catch(_e){}
     })();
   </script>
-  <script>
+  {{-- Market status desabilitado --}}
+  {{-- <script>
+      // Poller compartilhado via localStorage para evitar 429 quando múltiplas abas estão abertas
       (function(){
-        async function loadMarketStatus(){
-          const badge = document.getElementById('market-status-global');
-          if (!badge) return;
+        const BADGE_ID = 'market-status-global';
+  const MARKET_STATUS_URL = new window.URL('/api/market/status', window.location.origin).toString();
+        const LS_KEY_CACHE = 'marketStatusCacheV1'; // { data, ts }
+        const LS_KEY_LEADER = 'marketStatusLeaderV1'; // { id, until }
+        const POLL_OK_MS = 60000;      // 60s normal
+        const POLL_BACKOFF_MS = 180000; // 3min quando 429
+        const CACHE_STALE_MS = 55000;  // 55s (próximo do TTL do servidor)
+
+        const myId = Math.random().toString(36).slice(2);
+        let nextMs = POLL_OK_MS;
+
+        function getBadge(){ return document.getElementById(BADGE_ID); }
+
+        function fmtBR(s){
+          if (!s) return '';
           try{
-            const url = @json(route('api.market.status'));
-            const resp = await fetch(url, { headers: { 'Accept':'application/json' } });
+            const d = new Date(String(s).replace(' ','T'));
+            if (isNaN(d.getTime())) return s;
+            const dd = String(d.getDate()).padStart(2,'0');
+            const mm = String(d.getMonth()+1).padStart(2,'0');
+            const yy = d.getFullYear();
+            const HH = String(d.getHours()).padStart(2,'0');
+            const MM = String(d.getMinutes()).padStart(2,'0');
+            return `${dd}/${mm}/${yy} ${HH}:${MM}`;
+          }catch(_e){ return s; }
+        }
+
+        function renderBadge(data, hint){
+          const badge = getBadge();
+          if (!badge || !data) return;
+          const st = String(data.status||'').toLowerCase();
+          const label = String(data.label||'Mercado');
+          const nextStr = data.next_change_at ? ` • Próx: ${fmtBR(data.next_change_at)}` : '';
+          let cls = 'bg-secondary';
+          if (st === 'open') cls = 'bg-success';
+          else if (st === 'pre') cls = 'bg-warning text-dark';
+          else if (st === 'after') cls = 'bg-info text-dark';
+          else if (st === 'closed') cls = 'bg-secondary';
+          badge.className = 'badge rounded-pill ' + cls;
+          badge.textContent = `Mercado: ${label}` + nextStr + (hint ? ` ${hint}` : '');
+          if (data.reason){ badge.title = `${label} — ${data.reason}`; }
+        }
+
+        function renderUnavailable(msg){
+          const badge = getBadge();
+          if (!badge) return;
+          badge.className='badge rounded-pill bg-secondary';
+          badge.textContent = msg || 'Mercado: indisponível';
+        }
+
+        function readCache(){
+          try{ return JSON.parse(localStorage.getItem(LS_KEY_CACHE)||'null'); }catch(_e){ return null; }
+        }
+        function writeCache(data){
+          try{ localStorage.setItem(LS_KEY_CACHE, JSON.stringify({ data, ts: Date.now() })); }catch(_e){}
+        }
+        function isCacheFresh(obj){ return obj && obj.ts && (Date.now() - obj.ts) < CACHE_STALE_MS; }
+
+        function getLeader(){
+          try{ return JSON.parse(localStorage.getItem(LS_KEY_LEADER)||'null'); }catch(_e){ return null; }
+        }
+        function becomeLeader(){
+          const until = Date.now() + Math.max(nextMs, POLL_OK_MS) + 5000; // margem
+          const me = { id: myId, until };
+          try{ localStorage.setItem(LS_KEY_LEADER, JSON.stringify(me)); }catch(_e){}
+          // verifique se permaneceu meu
+          const nowLeader = getLeader();
+          return nowLeader && nowLeader.id === myId;
+        }
+        function hasLeader(){
+          const l = getLeader();
+          return !!(l && l.until && l.until > Date.now());
+        }
+
+        async function poll(){
+          const cached = readCache();
+          if (isCacheFresh(cached)){
+            renderBadge(cached.data);
+          }
+          // Se já existe líder válido, não faz fetch
+          if (hasLeader()) return;
+          if (!becomeLeader()) return;
+          try{
+            const resp = await fetch(MARKET_STATUS_URL, { headers: { 'Accept':'application/json' } });
+            if (resp.status === 429){
+              nextMs = POLL_BACKOFF_MS;
+              renderUnavailable('Mercado: limite temporário');
+              return;
+            }
             const data = await resp.json().catch(()=>null);
             if(!resp.ok || !data) throw new Error('fail');
-            const st = String(data.status||'').toLowerCase();
-            const label = String(data.label||'Mercado');
-            function fmtBR(s){
-              if (!s) return '';
-              try{
-                const d = new Date(String(s).replace(' ','T'));
-                if (isNaN(d.getTime())) return s;
-                const dd = String(d.getDate()).padStart(2,'0');
-                const mm = String(d.getMonth()+1).padStart(2,'0');
-                const yy = d.getFullYear();
-                const HH = String(d.getHours()).padStart(2,'0');
-                const MM = String(d.getMinutes()).padStart(2,'0');
-                return `${dd}/${mm}/${yy} ${HH}:${MM}`;
-              }catch(_e){ return s; }
-            }
-            const nextStr = data.next_change_at ? ` • Próx: ${fmtBR(data.next_change_at)}` : '';
-            let cls = 'bg-secondary';
-            if (st === 'open') cls = 'bg-success';
-            else if (st === 'pre') cls = 'bg-warning text-dark';
-            else if (st === 'after') cls = 'bg-info text-dark';
-            else if (st === 'closed') cls = 'bg-secondary';
-            badge.className = 'badge rounded-pill ' + cls;
-            badge.textContent = `Mercado: ${label}` + nextStr;
-            if (data.reason){ badge.title = `${label} — ${data.reason}`; }
+            writeCache(data);
+            renderBadge(data);
+            nextMs = POLL_OK_MS;
           }catch(_e){
-            const badge = document.getElementById('market-status-global');
-            if (badge){ badge.className='badge rounded-pill bg-secondary'; badge.textContent='Mercado: indisponível'; }
+            renderUnavailable();
+            nextMs = POLL_BACKOFF_MS;
+          } finally {
+            // libera liderança após pequena janela para outros não disputarem imediatamente
+            try{ localStorage.removeItem(LS_KEY_LEADER); }catch(_e){}
           }
         }
-        try{ loadMarketStatus(); setInterval(loadMarketStatus, 60000); }catch(_e){}
+
+        // Atualiza quando outra aba atualizar o cache
+        window.addEventListener('storage', function(ev){
+          if (ev.key === LS_KEY_CACHE && ev.newValue){
+            try{ const obj = JSON.parse(ev.newValue); if (obj && obj.data){ renderBadge(obj.data); } }catch(_e){}
+          }
+        });
+
+        // Loop de agendamento com backoff
+        (function loop(){
+          try{ poll(); }catch(_e){}
+          setTimeout(loop, nextMs);
+        })();
       })();
-    </script>
+    </script> --}}
     <script>
       // Logout silencioso: POST /logout (AJAX) e fechar a guia sem navegação.
       (function(){
