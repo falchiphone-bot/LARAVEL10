@@ -13,4 +13,9 @@ class AssetVariation extends Model
         'year',
         'variation',
     ];
+
+    public function chat()
+    {
+        return $this->belongsTo(OpenAIChat::class, 'chat_id');
+    }
 }

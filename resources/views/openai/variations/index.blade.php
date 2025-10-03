@@ -121,6 +121,7 @@
               Código {{ $codeIcon }}
             </a>
           </th>
+          <th>Conversa / Ativo</th>
           @php
             $isYearAsc = ($sort ?? '') === 'year_asc';
             $isYearDesc = ($sort ?? '') === 'year_desc';
@@ -185,6 +186,34 @@
           <tr>
             <td>{{ $v->id }}</td>
             <td>{{ $v->asset_code }}</td>
+            <td>
+              @php
+           // 'from' agora é o último dia do mês anterior
+        $firstOfMonth = \Carbon\Carbon::create($v->year, $v->month, 1);
+        $fromDate = $firstOfMonth->copy()->subDay()->format('Y-m-d');
+        // Último registro (mais recente) deste chat; se existir, usar data dele como 'to'
+        $lastRecordDate = null;
+        if($v->chat && $v->chat->relationLoaded('records') && $v->chat->records->count()){
+          $lastRecordDate = optional($v->chat->records->sortByDesc('occurred_at')->first()->occurred_at)->format('Y-m-d');
+        } elseif($v->chat) {
+          try {
+            $lastRecord = \App\Models\OpenAIChatRecord::where('chat_id',$v->chat_id)
+              ->orderByDesc('occurred_at')
+              ->select('occurred_at')
+              ->first();
+            if($lastRecord){ $lastRecordDate = optional($lastRecord->occurred_at)->format('Y-m-d'); }
+          } catch(\Throwable $e) { /* silencioso */ }
+        }
+        $toDate = $lastRecordDate ?: $firstOfMonth->copy()->endOfMonth()->format('Y-m-d');
+              @endphp
+              @if($v->chat)
+                <a href="{{ route('openai.records.index', ['chat_id'=>$v->chat_id,'from'=>$fromDate,'to'=>$toDate,'filter_exact'=>1]) }}" class="text-decoration-none" title="Ver registros da conversa no mês ({{ $fromDate }} a {{ $toDate }})">
+                  {{ $v->chat->title }} @if($v->chat->code) <span class="badge bg-dark ms-1">{{ $v->chat->code }}</span> @endif
+                </a>
+              @else
+                <span class="text-muted">—</span>
+              @endif
+            </td>
             <td>{{ $v->year }}</td>
             <td>{{ str_pad($v->month,2,'0',STR_PAD_LEFT) }}</td>
             <td>{{ number_format($v->variation, 4, ',', '.') }}</td>

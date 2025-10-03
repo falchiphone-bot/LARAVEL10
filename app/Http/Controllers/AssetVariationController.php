@@ -27,7 +27,7 @@ class AssetVariationController extends Controller
         $code = trim($request->input('code',''));
         $polarity = $request->input('polarity'); // positive | negative | null
     $sort = $request->input('sort', 'year_desc'); // variation_asc|variation_desc|code_asc|code_desc|created_asc|created_desc|updated_asc|updated_desc|year_asc|year_desc|month_asc|month_desc
-        $q = AssetVariation::query();
+    $q = AssetVariation::with('chat');
         // Filtros
         if($year){ $q->where('year',$year); }
         if($month >= 1 && $month <= 12){ $q->where('month', $month); }
