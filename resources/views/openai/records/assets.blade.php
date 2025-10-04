@@ -733,6 +733,8 @@
         }
         cell.classList.remove('table-danger');
         btn.classList.add('d-none');
+        // Em modo lote, sinaliza conclusão para o orquestrador
+        try{ if (window.__batchCreating) { document.dispatchEvent(new CustomEvent('quote:apply:done', { detail: { ok: true } })); } }catch(_e){}
       }catch(err){
         alert('Erro ao aplicar cotação: ' + String(err.message || err));
       }finally{
@@ -813,6 +815,7 @@
       let ok = 0, fail = 0;
       window.__batchCreating = true;
       function waitCreateDone(){ return new Promise(res=>{ const h=(ev)=>{ document.removeEventListener('quote:create:done', h); res(ev?.detail?.ok!==false); }; document.addEventListener('quote:create:done', h, { once:true }); }); }
+      function waitApplyDone(){ return new Promise(res=>{ const h=(ev)=>{ document.removeEventListener('quote:apply:done', h); res(ev?.detail?.ok!==false); }; document.addEventListener('quote:apply:done', h, { once:true }); }); }
       for (let i=0;i<all.length;i++){
         if (batchAbort) { if(status){ status.textContent = `Interrompido (${i}/${all.length})`; } break; }
         const b = all[i];
@@ -821,8 +824,14 @@
           await handleQuoteButton(b);
           // Tenta criar novo registro automaticamente quando aplicável
           const cell = b.closest('td');
+          const btnApply = cell ? cell.querySelector('.btn-apply-quote') : null;
           const btnNew = cell ? cell.querySelector('.btn-create-from-quote') : null;
-          if (btnNew && !btnNew.classList.contains('d-none') && !btnNew.disabled) {
+          if (btnApply && !btnApply.classList.contains('d-none') && !btnApply.disabled) {
+            // Quando a data coincide, aplica automaticamente
+            triggerClick(btnApply);
+            const applied = await waitApplyDone();
+            if (applied) ok++; else fail++;
+          } else if (btnNew && !btnNew.classList.contains('d-none') && !btnNew.disabled) {
             triggerClick(btnNew);
             const created = await waitCreateDone();
             if (created) ok++; else fail++;

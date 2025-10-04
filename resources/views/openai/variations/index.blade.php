@@ -2,67 +2,19 @@
 @section('content')
 <div class="container-fluid">
   <h1 class="h4 mb-3">Variações Mensais Salvas</h1>
-  <form method="get" class="row g-2 mb-3">
+  <style>
+    .filters-bar{display:flex;flex-wrap:wrap;gap:.5rem 1rem;align-items:flex-end}
+    .filters-bar > *{display:inline-flex;flex-direction:column}
+    .filters-bar .form-label{margin-bottom:.25rem}
+    .filters-bar .form-select,.filters-bar .form-control{width:auto}
+  </style>
+  <form method="get" class="filters-bar mb-3" style="display:flex;flex-wrap:wrap;gap:.5rem 1rem;align-items:flex-end">
     <div class="col-auto">
       <label class="form-label mb-0 small">Ano</label>
-      <select name="year" class="form-select form-select-sm" onchange="this.form.submit()">
+  <select name="year" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
         <option value="">Todos</option>
         @foreach($years as $y)
           <option value="{{ $y }}" @selected((string)$y === (string)$year)>{{ $y }}</option>
-        @endforeach
-      </select>
-    </div>
-    <div class="col-auto">
-      <label class="form-label mb-0 small">Mês</label>
-      <select name="month" class="form-select form-select-sm" onchange="this.form.submit()">
-        <option value="">Todos</option>
-        @for($m=1;$m<=12;$m++)
-          <option value="{{ $m }}" @selected((int)($month ?? 0) === $m)>{{ str_pad($m,2,'0',STR_PAD_LEFT) }}</option>
-        @endfor
-      </select>
-    </div>
-    <div class="col-auto">
-      <label class="form-label mb-0 small">Código</label>
-      <input type="text" name="code" value="{{ $code }}" class="form-control form-control-sm" placeholder="TSLA" />
-    </div>
-    <div class="col-auto">
-      <label class="form-label mb-0 small">Sinal</label>
-      <select name="polarity" class="form-select form-select-sm" onchange="this.form.submit()">
-        <option value="" @selected(($polarity ?? '')==='')>Todos</option>
-        <option value="positive" @selected(($polarity ?? '')==='positive')>Positivos</option>
-        <option value="negative" @selected(($polarity ?? '')==='negative')>Negativos</option>
-      </select>
-    </div>
-    <div class="col-auto">
-      <label class="form-label mb-0 small">Mudança</label>
-      <select name="change" class="form-select form-select-sm" onchange="this.form.submit()">
-        <option value="" @selected(($change ?? '')==='')>Todas</option>
-        <option value="melhoria" @selected(($change ?? '')==='melhoria')>Melhoria</option>
-        <option value="piora" @selected(($change ?? '')==='piora')>Piora</option>
-        <option value="igual" @selected(($change ?? '')==='igual')>Igual</option>
-      </select>
-    </div>
-    <div class="col-auto">
-      <label class="form-label mb-0 small">Tendência</label>
-      <select name="trend" class="form-select form-select-sm" onchange="this.form.submit()" title="Filtrar por tendência calculada">
-        @php
-          $trendFilter = $trendFilter ?? '';
-          $trendOptions = [
-            '' => 'Todas',
-            'alta_acelerando' => 'Alta Acelerando',
-            'alta_estavel' => 'Alta Estável',
-            'alta_perdendo' => 'Alta Perdendo',
-            'queda_acelerando' => 'Queda Acelerando',
-            'queda_estavel' => 'Queda Estável',
-            'queda_aliviando' => 'Queda Aliviando',
-            'reversao_alta' => 'Reversão Alta',
-            'reversao_baixa' => 'Reversão Baixa',
-            'neutro' => 'Neutro',
-            'sem_historico' => 'Sem Histórico',
-          ];
-        @endphp
-        @foreach($trendOptions as $tv=>$tl)
-          <option value="{{ $tv }}" @selected($trendFilter===$tv)>{{ $tl }}</option>
         @endforeach
       </select>
     </div>
@@ -76,17 +28,17 @@
     @if($grouped ?? false)
       <div class="col-auto">
         <label class="form-label mb-0 small">Meses Spark</label>
-        <select name="spark_window" class="form-select form-select-sm" onchange="this.form.submit()">
+        <select name="spark_window" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
           @foreach([3,6,9,12,18,24] as $w)
             <option value="{{ $w }}" @selected(($sparkWindow ?? 6)===$w)>{{ $w }}</option>
           @endforeach
         </select>
       </div>
     @endif
-    <div class="col-auto align-self-end">
+  <div class="col-auto align-self-end">
       <button class="btn btn-sm btn-primary">Filtrar</button>
     </div>
-    <div class="col-auto align-self-end">
+  <div class="col-auto align-self-end">
       @php
         $quickBase = array_filter([
           'year' => request('year') ?: null,
@@ -101,7 +53,7 @@
       @endphp
       <div class="btn-group btn-group-sm" role="group" aria-label="Atalhos de sinal">
         <a href="{{ route('openai.variations.index', $quickBase) }}"
-           class="btn btn-outline-secondary {{ (($polarity ?? '')==='' ) ? 'active' : '' }}"
+           class="btn btn-outline-secondary {{ (($polarity ?? '')==='') ? 'active' : '' }}"
            title="Mostrar todos (positivos e negativos)">Todos</a>
         <a href="{{ route('openai.variations.index', array_merge($quickBase, ['polarity'=>'positive'])) }}"
            class="btn btn-outline-success {{ (($polarity ?? '')==='positive') ? 'active' : '' }}"
@@ -111,8 +63,8 @@
            title="Mostrar apenas variações negativas">Somente negativos</a>
       </div>
     </div>
-    <div class="col-12"></div>
-    <div class="col-auto align-self-end">
+    
+  <div class="col-auto align-self-end">
       @php
         $monthQuickBase = array_filter([
           'year' => request('year') ?: null,
@@ -135,6 +87,25 @@
         @endfor
       </div>
     </div>
+    
+    <div class="col-auto">
+      <label class="form-label mb-0 small">Capital (R$)</label>
+      <input type="text" name="capital" value="{{ request('capital') }}" class="form-control form-control-sm w-auto" placeholder="ex: 150.000,00" />
+      <small class="text-muted">Peso ∝ Diferença (%) positiva, baseado nos itens exibidos</small>
+    </div>
+    <div class="col-auto">
+      <label class="form-label mb-0 small">Máx por ativo (%)</label>
+      <input type="text" name="cap_pct" value="{{ request('cap_pct','35') }}" class="form-control form-control-sm w-auto" placeholder="ex: 35" />
+      <small class="text-muted">Limite de concentração por ativo (ex.: 35)</small>
+    </div>
+    <div class="col-auto">
+      <label class="form-label mb-0 small">Meta global (%)</label>
+      <input type="text" name="target_pct" value="{{ request('target_pct','20') }}" class="form-control form-control-sm w-auto" placeholder="ex: 20" />
+      <small class="text-muted">Retorno alvo para a carteira (ex.: 20)</small>
+    </div>
+    <div class="col-auto align-self-end">
+      <button class="btn btn-sm btn-outline-primary">Calcular alocação</button>
+    </div>
   </form>
 
   @php
@@ -150,7 +121,7 @@
       'trend' => ($trendFilter ?? '') ?: null,
     ]);
   @endphp
-  <div class="mb-2 d-flex gap-2">
+  <div class="mb-2 d-flex gap-2 align-items-center position-sticky top-0 z-3 bg-light py-2" style="top: 0; border-bottom: 1px solid rgba(0,0,0,.1);">
     <a href="{{ route('openai.variations.exportCsv', $exportParams) }}" class="btn btn-sm btn-outline-secondary" title="Exportar visão atual em CSV">Exportar CSV</a>
     <a href="{{ route('openai.variations.exportXlsx', $exportParams) }}" class="btn btn-sm btn-outline-success" title="Exportar visão atual em XLSX">Exportar XLSX</a>
     <div class="vr mx-2 d-none d-md-block"></div>
@@ -158,6 +129,229 @@
     <a href="{{ route('asset-stats.index') }}#gsc.tab=0" class="btn btn-sm btn-outline-dark" title="Ir para Asset Stats">Asset Stats</a>
   </div>
 
+  @php
+    // Parse inputs for allocation
+    $capital = null;
+    $capitalInput = request('capital');
+    if ($capitalInput !== null && $capitalInput !== '') {
+      $x = preg_replace('/[^\d,.-]/', '', (string)$capitalInput);
+      $x = str_replace(['.', ' '], '', $x);
+      $x = str_replace(',', '.', $x);
+      if (is_numeric($x)) { $capital = (float)$x; }
+    }
+    $capPctInput = request('cap_pct','35');
+    $targetPctInput = request('target_pct','20');
+    $capPct = null; $targetPct = null;
+    foreach ([[ 'src'=>$capPctInput,'ref'=>'capPct' ], [ 'src'=>$targetPctInput,'ref'=>'targetPct' ]] as $it) {
+      $v = str_replace([' ', '%'], '', (string)$it['src']);
+      $v = str_replace(',', '.', $v);
+      if (is_numeric($v)) { ${$it['ref']} = (float)$v; }
+    }
+    $cap = ($capPct !== null) ? max(0.0, min(1.0, $capPct/100.0)) : 0.35; // default 35%
+    $target = ($targetPct !== null) ? max(-1.0, min(10.0, $targetPct/100.0)) : 0.20; // default 20%
+
+    $alloc = [];
+    $sum = 0.0;
+    if ($capital && $capital > 0) {
+      // Build rows (grouped or not)
+      $rows = [];
+      if (($grouped ?? false) && isset($groupedData)) {
+        foreach ($groupedData as $g) {
+          $diff = $g['diff'] ?? null;
+          $cur = optional($g['latest'])->variation;
+          $prev = $g['prev_variation'] ?? null;
+          $rows[] = [
+            'code' => $g['asset_code'] ?? '-',
+            'title'=> $g['chat_title'] ?? '',
+            'cur'  => is_null($cur) ? null : (float)$cur,
+            'prev' => is_null($prev) ? null : (float)$prev,
+            'diff' => is_null($diff) ? null : (float)$diff,
+          ];
+        }
+      } else {
+        foreach ($variations as $v) {
+          $cur = $v->variation;
+          $pv  = $prevVariationMap[$v->id] ?? null;
+          $diff = (!is_null($pv)) ? ($cur - $pv) : null;
+          $rows[] = [
+            'code' => $v->asset_code ?? '-',
+            'title'=> $v->chat?->title ?? '',
+            'cur'  => is_null($cur) ? null : (float)$cur,
+            'prev' => is_null($pv)  ? null : (float)$pv,
+            'diff' => is_null($diff)? null : (float)$diff,
+          ];
+        }
+      }
+      // Select accelerating (positive diff)
+      $accel = array_values(array_filter($rows, function($r){ return isset($r['diff']) && $r['diff'] > 0; }));
+      if (count($accel) === 0) {
+        // fallback: top 10 by current variation
+        $accel = $rows;
+        usort($accel, function($a,$b){ return ($b['cur'] ?? -INF) <=> ($a['cur'] ?? -INF); });
+        $accel = array_slice($accel, 0, 10);
+        foreach ($accel as &$r) { if (!isset($r['diff']) || $r['diff'] === null) { $r['diff'] = max(0.0, (float)($r['cur'] ?? 0)); } }
+        unset($r);
+      }
+      // Sum scores
+      foreach ($accel as $r) { $sum += max(0.0, (float)($r['diff'] ?? 0)); }
+      if ($sum > 0) {
+        // Base weights
+        $baseW = [];
+        foreach ($accel as $r) { $baseW[] = max(0.0, (float)($r['diff'] ?? 0)) / $sum; }
+        // Apply cap via iterative water-filling
+        $n = count($accel);
+        $finalW = array_fill(0, $n, 0.0);
+        $unc = range(0, $n-1);
+        $remaining = 1.0;
+        for ($iter=0; $iter<10 && $remaining>1e-9 && count($unc)>0; $iter++) {
+          $sumBase = 0.0; foreach ($unc as $j) { $sumBase += $baseW[$j]; }
+          if ($sumBase <= 0) {
+            $eq = $remaining / max(count($unc),1);
+            foreach ($unc as $j) { $finalW[$j] += $eq; }
+            $remaining = 0.0; break;
+          }
+          $toCap = [];
+          foreach ($unc as $j) {
+            $w = $remaining * ($baseW[$j]/max($sumBase,1e-12));
+            if ($w > $cap + 1e-9) { $toCap[] = $j; }
+          }
+          if (count($toCap) === 0) {
+            foreach ($unc as $j) { $finalW[$j] += $remaining * ($baseW[$j]/$sumBase); }
+            $remaining = 0.0; break;
+          }
+          foreach ($toCap as $j) {
+            $finalW[$j] += $cap;
+            $remaining -= $cap;
+            $unc = array_values(array_filter($unc, fn($x)=> $x !== $j));
+          }
+        }
+        // small leftover to best below cap
+        if ($remaining > 1e-9) {
+          $best = -1; $bestVal = -1.0;
+          for ($i=0;$i<$n;$i++) { if ($finalW[$i] < $cap - 1e-9 && $finalW[$i] > $bestVal) { $bestVal = $finalW[$i]; $best = $i; } }
+          if ($best >= 0) { $finalW[$best] += $remaining; $remaining = 0.0; }
+        }
+        // Build allocation with targets
+        foreach ($accel as $idx=>$r) {
+          $w = max(0.0, min(1.0, $finalW[$idx]));
+          $val = $w * $capital;
+          $alloc[] = $r + [
+            'weight' => $w,
+            'amount' => $val,
+            'gain_target' => $val * $target,
+          ];
+        }
+      }
+    }
+  @endphp
+
+  @if($capital && $sum > 0 && count($alloc) > 0)
+    <div class="card mb-3 shadow-sm">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>Alocação sugerida</strong>
+        <small class="text-muted">Base: itens exibidos • Peso ∝ Diferença (%) positiva • Cap: {{ number_format($cap*100,0,',','.') }}% • Meta: {{ number_format($target*100,0,',','.') }}%</small>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm table-striped align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th style="width:14%">Código</th>
+                <th>Conversa / Ativo</th>
+                <th class="text-end" style="width:12%">Variação Atual (%)</th>
+                <th class="text-end" style="width:12%">Anterior (%)</th>
+                <th class="text-end" style="width:12%">Diferença (pp)</th>
+                <th class="text-end" style="width:12%">Peso (cap)</th>
+                <th class="text-end" style="width:16%">Valor (R$)</th>
+                <th class="text-end" style="width:16%">Ganho alvo (R$)</th>
+              </tr>
+            </thead>
+            <tbody>
+              @foreach($alloc as $r)
+                <tr>
+                  <td><strong>{{ $r['code'] ?: '—' }}</strong></td>
+                  <td class="text-truncate" style="max-width: 420px">{{ $r['title'] ?: '—' }}</td>
+                  <td class="text-end">@if(!is_null($r['cur'])) {{ number_format($r['cur'], 4, ',', '.') }} @else — @endif</td>
+                  <td class="text-end">@if(!is_null($r['prev'])) {{ number_format($r['prev'], 4, ',', '.') }} @else — @endif</td>
+                  <td class="text-end">@if(!is_null($r['diff'])) {{ number_format($r['diff'], 4, ',', '.') }} @else — @endif</td>
+                  <td class="text-end">{{ number_format($r['weight']*100, 2, ',', '.') }}%</td>
+                  <td class="text-end">{{ number_format($r['amount'], 2, ',', '.') }}</td>
+                  <td class="text-end">{{ number_format($r['gain_target'], 2, ',', '.') }}</td>
+                </tr>
+              @endforeach
+            </tbody>
+            <tfoot>
+              <tr>
+                <th colspan="6" class="text-end">Totais</th>
+                <th class="text-end">{{ number_format($capital, 2, ',', '.') }}</th>
+                <th class="text-end">{{ number_format($capital * $target, 2, ',', '.') }}</th>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  @elseif(request()->has('capital'))
+    <div class="alert alert-warning">Não foi possível calcular a alocação. Verifique o capital informado e se há Diferença (%) positiva nos itens.</div>
+  @endif
+  <!-- /////// -->
+  <div class="filters-bar mb-3">
+    <div class="col-auto">
+      <label class="form-label mb-0 small">Mês</label>
+  <select name="month" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+        <option value="">Todos</option>
+        @for($m=1;$m<=12;$m++)
+          <option value="{{ $m }}" @selected((int)($month ?? 0) === $m)>{{ str_pad($m,2,'0',STR_PAD_LEFT) }}</option>
+        @endfor
+      </select>
+    </div>
+    <div class="col-auto">
+      <label class="form-label mb-0 small">Código</label>
+  <input type="text" name="code" value="{{ $code }}" class="form-control form-control-sm w-auto" placeholder="TSLA" />
+    </div>
+    <div class="col-auto">
+      <label class="form-label mb-0 small">Sinal</label>
+  <select name="polarity" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+        <option value="" @selected(($polarity ?? '')==='')>Todos</option>
+        <option value="positive" @selected(($polarity ?? '')==='positive')>Positivos</option>
+        <option value="negative" @selected(($polarity ?? '')==='negative')>Negativos</option>
+      </select>
+    </div>
+    <div class="col-auto">
+      <label class="form-label mb-0 small">Mudança</label>
+  <select name="change" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+        <option value="" @selected(($change ?? '')==='')>Todas</option>
+        <option value="melhoria" @selected(($change ?? '')==='melhoria')>Melhoria</option>
+        <option value="piora" @selected(($change ?? '')==='piora')>Piora</option>
+        <option value="igual" @selected(($change ?? '')==='igual')>Igual</option>
+      </select>
+    </div>
+    <div class="col-auto">
+      <label class="form-label mb-0 small">Tendência</label>
+  <select name="trend" class="form-select form-select-sm w-auto" onchange="this.form.submit()" title="Filtrar por tendência calculada">
+        @php
+          $trendFilter = $trendFilter ?? '';
+          $trendOptions = [
+            '' => 'Todas',
+            'alta_acelerando' => 'Alta Acelerando',
+            'alta_estavel' => 'Alta Estável',
+            'alta_perdendo' => 'Alta Perdendo',
+            'queda_acelerando' => 'Queda Acelerando',
+            'queda_estavel' => 'Queda Estável',
+            'queda_aliviando' => 'Queda Aliviando',
+            'reversao_alta' => 'Reversão Alta',
+            'reversao_baixa' => 'Reversão Baixa',
+            'neutro' => 'Neutro',
+            'sem_historico' => 'Sem Histórico',
+          ];
+        @endphp
+        @foreach($trendOptions as $tv=>$tl)
+          <option value="{{ $tv }}" @selected($trendFilter===$tv)>{{ $tl }}</option>
+        @endforeach
+      </select>
+    </div>
+  </div>
+<!-- /////// -->
   @if($grouped ?? false)
     <div class="alert alert-info py-2 small">Modo agrupado por código — mostrando últimas {{ $sparkWindow }} variações disponíveis por conversa/código. Ordenação por Diferença (%) disponível.</div>
     <div class="mb-2 small">
