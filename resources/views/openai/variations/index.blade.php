@@ -63,7 +63,7 @@
            title="Mostrar apenas variações negativas">Somente negativos</a>
       </div>
     </div>
-    
+
   <div class="col-auto align-self-end">
       @php
         $monthQuickBase = array_filter([
@@ -87,11 +87,18 @@
         @endfor
       </div>
     </div>
-    
+
     <div class="col-auto">
       <label class="form-label mb-0 small">Capital (R$)</label>
       <input type="text" name="capital" value="{{ request('capital') }}" class="form-control form-control-sm w-auto" placeholder="ex: 150.000,00" />
       <small class="text-muted">Peso ∝ Diferença (%) positiva, baseado nos itens exibidos</small>
+    </div>
+    <div class="col-auto">
+      <label class="form-label mb-0 small">Paginação</label>
+      <div class="form-check form-switch mt-1">
+        <input class="form-check-input" type="checkbox" name="no_page" value="1" id="noPageToggle" onchange="this.form.submit()" @checked(request('no_page')) />
+        <label class="form-check-label small" for="noPageToggle">Listar tudo</label>
+      </div>
     </div>
     <div class="col-auto">
       <label class="form-label mb-0 small">Máx por ativo (%)</label>
@@ -104,7 +111,7 @@
       <small class="text-muted">Retorno alvo para a carteira (ex.: 20)</small>
     </div>
     <div class="col-auto align-self-end">
-      <button class="btn btn-sm btn-outline-primary">Calcular alocação</button>
+      <button id="filter-calc-alloc-btn" data-base-label="Calcular alocação" class="btn btn-sm btn-outline-primary position-relative" title="Usar capital e parâmetros para gerar alocação considerando (se houver) os ativos selecionados abaixo">Calcular alocação</button>
     </div>
   </form>
 
@@ -124,6 +131,9 @@
   <div class="mb-2 d-flex gap-2 align-items-center position-sticky top-0 z-3 bg-light py-2" style="top: 0; border-bottom: 1px solid rgba(0,0,0,.1);">
     <a href="{{ route('openai.variations.exportCsv', $exportParams) }}" class="btn btn-sm btn-outline-secondary" title="Exportar visão atual em CSV">Exportar CSV</a>
     <a href="{{ route('openai.variations.exportXlsx', $exportParams) }}" class="btn btn-sm btn-outline-success" title="Exportar visão atual em XLSX">Exportar XLSX</a>
+    <button type="button" id="export-selected-csv" class="btn btn-sm btn-outline-secondary" title="Exportar somente códigos selecionados em CSV" disabled>Exportar Selecionados CSV</button>
+    <button type="button" id="export-selected-xlsx" class="btn btn-sm btn-outline-success" title="Exportar somente códigos selecionados em XLSX" disabled>Exportar Selecionados XLSX</button>
+    <button type="button" class="btn btn-sm btn-outline-danger ms-2" id="var-clear-selection-allocation-top" title="Limpar seleção &amp; remover selected_codes da URL">Limpar seleção &amp; alocação</button>
     <div class="vr mx-2 d-none d-md-block"></div>
     <button type="button" id="btn-var-batch-flags" class="btn btn-sm btn-outline-warning" title="Aplicar COMPRAR/NÃO COMPRAR por código conforme sinal da variação (usa a linha mais recente por código)">Aplicar flags (variação)</button>
     <a href="{{ route('asset-stats.index') }}#gsc.tab=0" class="btn btn-sm btn-outline-dark" title="Ir para Asset Stats">Asset Stats</a>
@@ -150,7 +160,10 @@
     $cap = ($capPct !== null) ? max(0.0, min(1.0, $capPct/100.0)) : 0.35; // default 35%
     $target = ($targetPct !== null) ? max(-1.0, min(10.0, $targetPct/100.0)) : 0.20; // default 20%
 
-    $alloc = [];
+  $alloc = [];
+  $allocOrder = request('alloc_order','');
+  $selectedCodesIn = array_map(fn($c)=> strtoupper(trim((string)$c)), ($selectedCodes ?? []));
+  $selectedCodesIn = array_values(array_filter(array_unique($selectedCodesIn), fn($c)=> $c!==''));
     $sum = 0.0;
     if ($capital && $capital > 0) {
       // Build rows (grouped or not)
@@ -174,6 +187,7 @@
           $cur = $v->variation;
           $pv  = $prevVariationMap[$v->id] ?? null;
           $diff = (!is_null($pv)) ? ($cur - $pv) : null;
+          $tinfo = $trendData[$v->id] ?? null;
           $rows[] = [
             'code' => $v->asset_code ?? '-',
             'title'=> $v->chat?->title ?? '',
@@ -181,25 +195,61 @@
             'prev' => is_null($pv)  ? null : (float)$pv,
             'diff' => is_null($diff)? null : (float)$diff,
             'chat_id' => $v->chat_id ?? null,
+            'trend_code' => $tinfo['code'] ?? null,
+            'trend_label'=> $tinfo['label'] ?? null,
+            'trend_badge'=> $tinfo['badge'] ?? 'secondary',
           ];
         }
       }
-      // Select accelerating (positive diff)
-      $accel = array_values(array_filter($rows, function($r){ return isset($r['diff']) && $r['diff'] > 0; }));
-      if (count($accel) === 0) {
-        // fallback: top 10 by current variation
-        $accel = $rows;
-        usort($accel, function($a,$b){ return ($b['cur'] ?? -INF) <=> ($a['cur'] ?? -INF); });
-        $accel = array_slice($accel, 0, 10);
-        foreach ($accel as &$r) { if (!isset($r['diff']) || $r['diff'] === null) { $r['diff'] = max(0.0, (float)($r['cur'] ?? 0)); } }
-        unset($r);
+      // Filter by selection (if any selected codes passed by GET)
+      $selectedMode = false;
+      if(!empty($selectedCodesIn)) {
+        $rows = array_values(array_filter($rows, fn($r)=> in_array(strtoupper($r['code']), $selectedCodesIn)));
+        $selectedMode = true;
       }
-      // Sum scores
-      foreach ($accel as $r) { $sum += max(0.0, (float)($r['diff'] ?? 0)); }
+      if($selectedMode) {
+        // Usar todos os selecionados. Critério de score:
+        // 1) diff > 0 => score = diff
+        // 2) diff <=0 ou null: se cur > 0 usa cur; senão score = 0
+        $accel = $rows;
+        $sum = 0.0;
+        foreach($accel as &$r){
+          $d = $r['diff'] ?? null; $c = $r['cur'] ?? null;
+            $score = 0.0;
+            if(!is_null($d) && $d > 0) { $score = (float)$d; }
+            elseif(!is_null($c) && $c > 0) { $score = (float)$c; }
+            $r['_score'] = $score;
+            $sum += $score;
+        }
+        unset($r);
+        // Se todos scores forem zero, distribuir igual
+        if($sum <= 0 && count($accel)>0){
+          foreach($accel as &$r){ $r['_score'] = 1.0; }
+          unset($r); $sum = count($accel);
+        }
+      } else {
+        // Modo original: apenas positivos (acelerando) e fallback top 10
+        $accel = array_values(array_filter($rows, function($r){ return isset($r['diff']) && $r['diff'] > 0; }));
+        if (count($accel) === 0) {
+          $accel = $rows;
+          usort($accel, function($a,$b){ return ($b['cur'] ?? -INF) <=> ($a['cur'] ?? -INF); });
+          $accel = array_slice($accel, 0, 10);
+          foreach ($accel as &$r) { if (!isset($r['diff']) || $r['diff'] === null) { $r['diff'] = max(0.0, (float)($r['cur'] ?? 0)); } }
+          unset($r);
+        }
+        $sum = 0.0;
+        foreach ($accel as $r) { $sum += max(0.0, (float)($r['diff'] ?? 0)); }
+      }
       if ($sum > 0) {
         // Base weights
         $baseW = [];
-        foreach ($accel as $r) { $baseW[] = max(0.0, (float)($r['diff'] ?? 0)) / $sum; }
+        foreach ($accel as $r) {
+          if($selectedMode) {
+            $baseW[] = ($sum>0) ? (($r['_score'] ?? 0)/$sum) : (1.0/max(count($accel),1));
+          } else {
+            $baseW[] = max(0.0, (float)($r['diff'] ?? 0)) / $sum;
+          }
+        }
         // Apply cap via iterative water-filling
         $n = count($accel);
         $finalW = array_fill(0, $n, 0.0);
@@ -257,6 +307,26 @@
             'qty' => $qty,
           ];
         }
+        if($allocOrder === 'trend') {
+          $orderMap = [
+            'alta_acelerando'=>1,
+            'reversao_alta'=>2,
+            'alta_estavel'=>3,
+            'alta_perdendo'=>4,
+            'queda_aliviando'=>5,
+            'neutro'=>6,
+            'sem_historico'=>7,
+            'queda_estavel'=>8,
+            'queda_acelerando'=>9,
+            'reversao_baixa'=>10,
+          ];
+          usort($alloc, function($a,$b) use ($orderMap){
+            $oa = $orderMap[$a['trend_code'] ?? ''] ?? 100;
+            $ob = $orderMap[$b['trend_code'] ?? ''] ?? 100;
+            if ($oa === $ob) { return strcmp($a['code'] ?? '', $b['code'] ?? ''); }
+            return $oa <=> $ob;
+          });
+        }
       }
     }
   @endphp
@@ -265,18 +335,30 @@
     <div class="card mb-3 shadow-sm">
       <div class="card-header d-flex justify-content-between align-items-center">
         <strong>Alocação sugerida</strong>
-        <small class="text-muted">Base: itens exibidos • Peso ∝ Diferença (%) positiva • Cap: {{ number_format($cap*100,0,',','.') }}% • Meta: {{ number_format($target*100,0,',','.') }}%</small>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+          <small class="text-muted">Base: itens exibidos • Peso ∝ Diferença (%) positiva • Cap: {{ number_format($cap*100,0,',','.') }}% • Meta: {{ number_format($target*100,0,',','.') }}%</small>
+          <button type="button" id="alloc-select-all" class="btn btn-xs btn-outline-secondary btn-sm py-0">Marcar todos</button>
+          <button type="button" id="alloc-select-none" class="btn btn-xs btn-outline-secondary btn-sm py-0">Limpar</button>
+          <button type="button" id="alloc-recalc" class="btn btn-xs btn-primary btn-sm py-0" title="Recalcular somente com os ativos selecionados (usa os mesmos parâmetros de capital, cap e meta)">Calcular Alocação (Selecionados)</button>
+          @php $allocOrder = request('alloc_order',''); @endphp
+          <div class="btn-group btn-group-sm" role="group" aria-label="Ordenar alocação">
+            <a href="{{ request()->fullUrlWithQuery(['alloc_order'=>null]) }}" class="btn btn-outline-secondary {{ $allocOrder==='' ? 'active' : '' }}" title="Ordenar pelo fluxo padrão (diferença e cap)">Padrão</a>
+            <a href="{{ request()->fullUrlWithQuery(['alloc_order'=>'trend']) }}" class="btn btn-outline-secondary {{ $allocOrder==='trend' ? 'active' : '' }}" title="Ordenar por Tendência (Alta→Queda)">Tendência</a>
+          </div>
+        </div>
       </div>
       <div class="card-body p-0">
         <div class="table-responsive">
           <table class="table table-sm table-striped align-middle mb-0">
             <thead class="table-light">
               <tr>
+                <th style="width:2%"><input type="checkbox" id="alloc-master" /></th>
                 <th style="width:14%">Código</th>
                 <th>Conversa / Ativo</th>
                 <th class="text-end" style="width:12%">Variação Atual (%)</th>
                 <th class="text-end" style="width:12%">Anterior (%)</th>
                 <th class="text-end" style="width:12%">Diferença (pp)</th>
+                <th class="text-center" style="width:10%">Tendência</th>
                 <th class="text-end" style="width:12%">Peso (cap)</th>
                 <th class="text-end" style="width:16%">Valor (R$)</th>
                 <th class="text-end" style="width:16%">Ganho alvo (R$)</th>
@@ -290,11 +372,19 @@
               @endphp
               @foreach($alloc as $r)
                 <tr>
+                  <td><input type="checkbox" class="alloc-row" value="{{ $r['code'] }}" checked /></td>
                   <td><strong>{{ $r['code'] ?: '—' }}</strong></td>
                   <td class="text-truncate" style="max-width: 420px">{{ $r['title'] ?: '—' }}</td>
                   <td class="text-end">@if(!is_null($r['cur'])) {{ number_format($r['cur'], 4, ',', '.') }} @else — @endif</td>
                   <td class="text-end">@if(!is_null($r['prev'])) {{ number_format($r['prev'], 4, ',', '.') }} @else — @endif</td>
                   <td class="text-end">@if(!is_null($r['diff'])) {{ number_format($r['diff'], 4, ',', '.') }} @else — @endif</td>
+                  <td class="text-center">
+                    @if(!empty($r['trend_label']))
+                      <span class="badge bg-{{ $r['trend_badge'] ?? 'secondary' }}" title="{{ $r['trend_label'] }}">{{ $r['trend_label'] }}</span>
+                    @else
+                      <span class="text-muted">—</span>
+                    @endif
+                  </td>
                   <td class="text-end">{{ number_format($r['weight']*100, 2, ',', '.') }}%</td>
                   <td class="text-end">{{ number_format($r['amount'], 2, ',', '.') }}</td>
                   <td class="text-end">{{ number_format($r['gain_target'], 2, ',', '.') }}</td>
@@ -318,7 +408,7 @@
             </tbody>
             <tfoot>
               <tr>
-                <th colspan="6" class="text-end">Totais</th>
+                <th colspan="8" class="text-end">Totais</th>
                 <th class="text-end">{{ number_format($capital, 2, ',', '.') }}</th>
                 <th class="text-end">{{ number_format($capital * $target, 2, ',', '.') }}</th>
                 <th></th>
@@ -333,7 +423,21 @@
     <div class="alert alert-warning">Não foi possível calcular a alocação. Verifique o capital informado e se há Diferença (%) positiva nos itens.</div>
   @endif
   <!-- /////// -->
-  <div class="filters-bar mb-3">
+  <form method="get" class="filters-bar mb-3">
+    @php
+      // Parâmetros que precisamos preservar ao trocar Mês/Código/Sinal/Mudança/Tendência
+      $persistKeys = ['year','capital','cap_pct','target_pct','grouped','spark_window'];
+    @endphp
+    @foreach($persistKeys as $pk)
+      @if(request()->filled($pk))
+        <input type="hidden" name="{{ $pk }}" value="{{ request($pk) }}" />
+      @endif
+    @endforeach
+    @if(request()->has('selected_codes'))
+      @foreach((array)request('selected_codes') as $sc)
+        @if($sc!=='')<input type="hidden" name="selected_codes[]" value="{{ $sc }}" />@endif
+      @endforeach
+    @endif
     <div class="col-auto">
       <label class="form-label mb-0 small">Mês</label>
   <select name="month" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
@@ -388,7 +492,7 @@
         @endforeach
       </select>
     </div>
-  </div>
+  </form>
 <!-- /////// -->
   @if($grouped ?? false)
     <div class="alert alert-info py-2 small">Modo agrupado por código — mostrando últimas {{ $sparkWindow }} variações disponíveis por conversa/código. Ordenação por Diferença (%) disponível.</div>
@@ -519,6 +623,7 @@
     <table class="table table-sm table-striped align-middle">
       <thead>
         <tr>
+          <th style="width:2%">Sel</th>
           <th>ID</th>
           @php
             // Parâmetros base preservados para os links de ordenação
@@ -617,13 +722,17 @@
               Atualizado {{ $updatedIcon }}
             </a>
           </th>
-          <th>Tendência</th>
           <th title="Flag por usuário: COMPRAR ou NÃO COMPRAR">Flag</th>
         </tr>
       </thead>
       <tbody>
         @forelse($variations as $v)
-          <tr>
+          @php
+            $pv = $prevVariationMap[$v->id] ?? null;
+            $diff = (!is_null($pv)) ? ($v->variation - $pv) : null;
+          @endphp
+          <tr data-row-code="{{ strtoupper($v->asset_code) }}" data-variation="{{ $v->variation }}" @if(!is_null($diff)) data-diff="{{ $diff }}" @endif>
+            <td><input type="checkbox" class="var-select" value="{{ strtoupper($v->asset_code) }}" /></td>
             <td>{{ $v->id }}</td>
             <td>{{ $v->asset_code }}</td>
             <td>
@@ -658,7 +767,7 @@
             <td>{{ str_pad($v->month,2,'0',STR_PAD_LEFT) }}</td>
             <td>{{ number_format($v->variation, 4, ',', '.') }}</td>
             <td>
-              @php $pv = $prevVariationMap[$v->id] ?? null; @endphp
+              @php /* $pv já calculado antes da <tr> */ @endphp
               @if(!is_null($pv))
                 @php
                   $clsPrev = $pv > 0 ? 'text-success' : ($pv < 0 ? 'text-danger' : 'text-muted');
@@ -670,7 +779,7 @@
               @endif
             </td>
             @php
-              $diff = (!is_null($pv)) ? ($v->variation - $pv) : null;
+              // $diff já calculado antes da <tr>
               $clsDiff = is_null($diff) ? 'text-muted' : ($diff > 0 ? 'text-success' : ($diff < 0 ? 'text-danger' : 'text-secondary'));
               $badge = '';
               if(!is_null($diff)){
@@ -686,17 +795,9 @@
                 @php
                   $tBadge = $trend['badge'] === 'info' ? 'primary' : $trend['badge'];
                 @endphp
-                <span class="badge bg-{{ $tBadge }}" title="Tendência: {{ $trend['label'] }} | Normalizado: {{ number_format($trend['normalized'],4,',','.') }}% | Confiança: {{ number_format($trend['confidence']*100,1,',','.') }}% @if($trend['days_elapsed'] && $trend['days_month']) | Dias: {{ $trend['days_elapsed'] }}/{{ $trend['days_month'] }} @endif">{{ $trend['label'] }}</span>
+                <span class="badge bg-{{ $tBadge }}" data-trend-code="{{ $trend['code'] }}" title="Tendência: {{ $trend['label'] }} | Normalizado: {{ number_format($trend['normalized'],4,',','.') }}% | Confiança: {{ number_format($trend['confidence']*100,1,',','.') }}% @if($trend['days_elapsed'] && $trend['days_month']) | Dias: {{ $trend['days_elapsed'] }}/{{ $trend['days_month'] }} @endif">{{ $trend['label'] }}</span>
               @else
-                <span class="text-muted">—</span>
-              @endif
-            </td>
-            @php $trend = $trendData[$v->id] ?? null; @endphp
-            <td class="small">
-              @if($trend)
-                <span class="badge bg-{{ $trend['badge'] }}" title="Tendência: {{ $trend['label'] }} | Normalizado: {{ number_format($trend['normalized'],4,',','.') }}% | Confiança: {{ number_format($trend['confidence']*100,1,',','.') }}% @if($trend['days_elapsed'] && $trend['days_month']) | Dias: {{ $trend['days_elapsed'] }}/{{ $trend['days_month'] }} @endif">{{ $trend['label'] }}</span>
-              @else
-                <span class="text-muted">—</span>
+                <span class="text-muted" data-trend-code="">—</span>
               @endif
             </td>
             <td>{{ $v->created_at?->timezone(config('app.timezone'))->format('d/m/Y H:i') }}</td>
@@ -721,12 +822,262 @@
   </div>
   @endif
   @if(!($grouped ?? false))
-    <div>
-      {{ $variations->links() }}
+    <div class="mt-2 d-flex flex-wrap gap-2 align-items-center small">
+      <strong>Seleção para Alocação:</strong>
+      <button type="button" class="btn btn-sm btn-outline-secondary" id="var-select-clear">Limpar</button>
+      <button type="button" class="btn btn-sm btn-outline-secondary" id="var-select-positive" title="Selecionar códigos com variação atual > 0">Positivos</button>
+      <button type="button" class="btn btn-sm btn-outline-secondary" id="var-select-buy" title="Selecionar códigos com flag COMPRAR">COMPRAR</button>
+      <button type="button" class="btn btn-sm btn-outline-secondary" id="var-select-trend-up" title="Selecionar tendências de alta / reversão / alívio">Tendências Alta</button>
+  <button type="button" class="btn btn-sm btn-outline-success" id="var-select-trend-accelerating" title="Selecionar apenas tendência Alta Acelerando (alta_acelerando) e gerar alocação">Alta Acelerando</button>
+      <div class="input-group input-group-sm" style="width:170px;">
+        <span class="input-group-text" title="Diferença mínima (pp) para seleção de Diff +">Diff &gt;</span>
+        <input type="text" class="form-control" id="diff-threshold" value="{{ request('diff_threshold','0.20') }}" />
+      </div>
+      <button type="button" class="btn btn-sm btn-outline-primary" id="var-select-diff-positive" title="Selecionar onde Diferença (pp) excede o limiar informado">Diff + &gt; Limiar</button>
+      <span class="text-muted" id="var-selection-count"></span>
     </div>
+  @endif
+  @if(!($grouped ?? false))
+    @if(!(request('no_page')))
+      <div>
+        {{ $variations->links() }}
+      </div>
+    @endif
   @endif
 </div>
 @endsection
+@push('scripts')
+<script>
+ (function(){
+   const master = document.getElementById('alloc-master');
+   const rows = () => Array.from(document.querySelectorAll('.alloc-row'));
+   const btnAll = document.getElementById('alloc-select-all');
+   const btnNone = document.getElementById('alloc-select-none');
+   const btnRecalc = document.getElementById('alloc-recalc');
+   function syncMaster(){
+     const r = rows();
+     if(r.length===0) return;
+     master.checked = r.every(ch=>ch.checked);
+     master.indeterminate = !master.checked && r.some(ch=>ch.checked);
+   }
+   if(master){
+     master.addEventListener('change', ()=>{
+       rows().forEach(ch=>{ ch.checked = master.checked; });
+       syncMaster();
+     });
+   }
+   if(btnAll){ btnAll.addEventListener('click', ()=>{ rows().forEach(c=>c.checked=true); syncMaster(); }); }
+   if(btnNone){ btnNone.addEventListener('click', ()=>{ rows().forEach(c=>c.checked=false); syncMaster(); }); }
+   rows().forEach(c=> c.addEventListener('change', syncMaster));
+
+   // Recalcular usando somente selecionados: envia form GET preservando parâmetros e adicionando selected_codes
+   if(btnRecalc){
+     btnRecalc.addEventListener('click', ()=>{
+       const sel = rows().filter(c=>c.checked).map(c=>c.value).filter((v,i,a)=>v && a.indexOf(v)==i);
+       if(sel.length===0){ alert('Selecione ao menos um ativo.'); return; }
+       const form = document.createElement('form');
+       form.method='GET';
+       form.action = window.location.pathname;
+       const params = new URLSearchParams(window.location.search);
+       // remove paginação se houver
+       params.delete('page');
+       params.forEach((val,key)=>{
+         const inp = document.createElement('input');
+         inp.type='hidden'; inp.name=key; inp.value=val; form.appendChild(inp);
+       });
+       sel.forEach(code=>{
+         const inp = document.createElement('input');
+         inp.type='hidden'; inp.name='selected_codes[]'; inp.value=code; form.appendChild(inp);
+       });
+       document.body.appendChild(form);
+       form.submit();
+     });
+   }
+   syncMaster();
+ })();
+</script>
+@endpush
+
+@push('scripts')
+<script>
+// Integração do botão superior "Calcular alocação" com seleção de checkboxes (var-select)
+(function(){
+  const topBtn = document.getElementById('filter-calc-alloc-btn');
+  if(!topBtn) return;
+  const form = topBtn.closest('form');
+  if(!form) return;
+  function getSelected(){ return Array.from(document.querySelectorAll('.var-select:checked')).map(c=>c.value.toUpperCase()); }
+  topBtn.addEventListener('click', function(ev){
+    ev.preventDefault();
+    // Remove hidden anteriores (evitar acumular)
+    Array.from(form.querySelectorAll('input[name="selected_codes[]"]')).forEach(el=>el.remove());
+    const sel = getSelected();
+    if(sel.length){
+      sel.forEach(code=>{
+        const inp = document.createElement('input');
+        inp.type='hidden'; inp.name='selected_codes[]'; inp.value=code; form.appendChild(inp);
+      });
+    }
+    // Garantir que há capital informado para aparecer alocação
+    const capitalField = form.querySelector('input[name="capital"]');
+    if(!capitalField || capitalField.value.trim()===''){
+      if(!confirm('Capital vazio. Prosseguir mesmo assim?')) return;
+    }
+    form.submit();
+  });
+})();
+</script>
+@endpush
+
+@push('scripts')
+<script>
+// Extensões: diff threshold, persistência, auto-recalc Alta Acelerando
+(function(){
+  if(document.querySelector('[data-row-code]') === null) return; // somente modo não agrupado
+  const diffBtn = document.getElementById('var-select-diff-positive');
+  const diffInput = document.getElementById('diff-threshold');
+  const acceleratingBtn = document.getElementById('var-select-trend-accelerating');
+  const btnClear = document.getElementById('var-select-clear');
+  const btnPositive = document.getElementById('var-select-positive');
+  const btnBuy = document.getElementById('var-select-buy');
+  const selectionCount = document.getElementById('var-selection-count');
+  const btnClearAll = document.getElementById('var-clear-selection-allocation-top');
+  const topCalcBtn = document.getElementById('filter-calc-alloc-btn');
+  const exportSelCsv = document.getElementById('export-selected-csv');
+  const exportSelXlsx = document.getElementById('export-selected-xlsx');
+  const LS_KEY = 'openai_variations_selected_codes';
+  function varCheckboxes(){ return Array.from(document.querySelectorAll('.var-select')); }
+  function getSelected(){ return varCheckboxes().filter(c=>c.checked).map(c=>c.value.toUpperCase()); }
+  function updateSelectionCount(){
+    const n=getSelected().length;
+    if(selectionCount){ selectionCount.textContent = n ? (n+' selecionado(s)') : ''; }
+    if(topCalcBtn){
+      const base = topCalcBtn.getAttribute('data-base-label') || 'Calcular alocação';
+      topCalcBtn.textContent = n ? base + ' ('+n+')' : base;
+      // Tooltip dinâmica (title) com até 40 códigos (ou truncado)
+      if(n){
+        let codes = getSelected();
+        const all = codes.join(', ');
+        if(all.length > 300){
+          let truncated = '';
+          for(const c of codes){
+            if((truncated + c).length > 300){ truncated += '…'; break; }
+            truncated += (truncated ? ', ' : '') + c;
+          }
+          topCalcBtn.title = base + ': ' + truncated;
+        } else {
+          topCalcBtn.title = base + ': ' + all;
+        }
+      } else {
+        topCalcBtn.title = 'Usar capital e parâmetros para gerar alocação considerando (se houver) os ativos selecionados abaixo';
+      }
+    }
+    if(exportSelCsv){ exportSelCsv.disabled = n===0; }
+    if(exportSelXlsx){ exportSelXlsx.disabled = n===0; }
+  }
+  function setSelected(codes){ const set=new Set(codes.map(c=>c.toUpperCase())); varCheckboxes().forEach(ch=>{ ch.checked = set.has(ch.value.toUpperCase()); }); persist(); updateSelectionCount(); }
+  function persist(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(getSelected())); }catch(_e){} }
+  function restore(){ const qs = new URLSearchParams(location.search); if(qs.getAll('selected_codes[]').length>0){ updateSelectionCount(); return; } try{ const raw=localStorage.getItem(LS_KEY); if(!raw) return; const arr=JSON.parse(raw); if(Array.isArray(arr)) setSelected(arr); }catch(_e){} updateSelectionCount(); }
+  restore();
+  updateSelectionCount();
+  // Botão Limpar
+  if(btnClear){ btnClear.addEventListener('click', ()=>{ setSelected([]); try{localStorage.removeItem(LS_KEY);}catch(_e){} updateSelectionCount(); }); }
+  if(btnClearAll){
+    btnClearAll.addEventListener('click', ()=>{
+      setSelected([]);
+      try{localStorage.removeItem(LS_KEY);}catch(_e){}
+      // Remove selected_codes da URL (sem recarregar) e também paginação
+      const url = new URL(window.location.href);
+      url.searchParams.delete('page');
+      // Iterar por todas as chaves selected_codes[] (caso múltiplas instâncias)
+      const toDelete = [];
+      url.searchParams.forEach((v,k)=>{ if(k==='selected_codes[]') toDelete.push(k); });
+      toDelete.forEach(k=>url.searchParams.delete(k));
+      window.history.replaceState({}, document.title, url.pathname + (url.searchParams.toString() ? ('?'+url.searchParams.toString()) : ''));
+      updateSelectionCount();
+    });
+  }
+  function buildSelectedExportUrl(baseRoute){
+    const sel = getSelected();
+    if(!sel.length) return null;
+    const params = new URLSearchParams(window.location.search);
+    params.delete('page');
+    // Remover selected_codes existentes para evitar duplicação
+    const existing = [];
+    params.forEach((v,k)=>{ if(k==='selected_codes[]') existing.push(k); });
+    existing.forEach(k=>params.delete(k));
+    sel.forEach(code=> params.append('selected_codes[]', code));
+    return baseRoute + (params.toString() ? ('?'+params.toString()) : '');
+  }
+  function openExport(url){ window.location.href = url; }
+  if(exportSelCsv){
+    exportSelCsv.addEventListener('click', ()=>{
+      const url = buildSelectedExportUrl("{{ route('openai.variations.exportCsv') }}");
+      if(!url){ alert('Nenhum selecionado.'); return; }
+      openExport(url);
+    });
+  }
+  if(exportSelXlsx){
+    exportSelXlsx.addEventListener('click', ()=>{
+      const url = buildSelectedExportUrl("{{ route('openai.variations.exportXlsx') }}");
+      if(!url){ alert('Nenhum selecionado.'); return; }
+      openExport(url);
+    });
+  }
+  // Botão Positivos (variação atual > 0)
+  if(btnPositive){
+    btnPositive.addEventListener('click', ()=>{
+      const codes=[];
+      document.querySelectorAll('tr[data-row-code][data-variation]').forEach(tr=>{
+        const v=parseFloat(tr.getAttribute('data-variation'));
+        if(!isNaN(v) && v>0) codes.push(tr.getAttribute('data-row-code'));
+      });
+      if(!codes.length){ alert('Nenhum ativo positivo encontrado.'); return; }
+      setSelected(codes);
+    });
+  }
+  // Botão COMPRAR (badge com dataset.noBuy != 1)
+  if(btnBuy){
+    btnBuy.addEventListener('click', ()=>{
+      const codes=[];
+      document.querySelectorAll('.badge[data-flag-code]').forEach(badge=>{
+        const noBuy = badge.dataset.noBuy === '1';
+        if(!noBuy){ const code = badge.getAttribute('data-flag-code'); if(code) codes.push(code.toUpperCase()); }
+      });
+      const uniq = Array.from(new Set(codes));
+      if(!uniq.length){ alert('Nenhum ativo marcado como COMPRAR.'); return; }
+      setSelected(uniq);
+    });
+  }
+  if(diffBtn){
+    diffBtn.addEventListener('click', ()=>{
+      let thrStr = (diffInput?.value||'').trim().replace('%','').replace(',','.');
+      let thr = parseFloat(thrStr); if(isNaN(thr)) thr = 0.0;
+      const codes=[];
+      document.querySelectorAll('tr[data-row-code][data-diff]').forEach(tr=>{
+        const d = parseFloat(tr.getAttribute('data-diff'));
+        if(!isNaN(d) && d > thr) codes.push(tr.getAttribute('data-row-code'));
+      });
+      if(!codes.length){ alert('Nenhum ativo com Diferença > '+thr+' encontrado.'); return; }
+      setSelected(codes);
+    });
+  }
+  // Botão Gerar Alocação (Selecionados) - recalcula usando var-select
+  // generateBtn removido (unificado no botão superior)
+  if(acceleratingBtn){
+    acceleratingBtn.addEventListener('click', ()=>{
+      // já existe lógica anterior marcando; aqui acionamos auto geração após pequena espera
+      setTimeout(()=>{
+        const capitalFilled = !!(document.querySelector('input[name="capital"]')?.value.trim());
+  if(capitalFilled && getSelected().length){ topCalcBtn?.click(); }
+      }, 250);
+    });
+  }
+  // Persist on manual changes
+  document.addEventListener('change', e=>{ if(e.target.classList.contains('var-select')) { persist(); updateSelectionCount(); } });
+})();
+</script>
+@endpush
 
 @push('scripts')
 <script>
@@ -756,6 +1107,57 @@
       document.body.appendChild(form);
       form.submit();
     });
+
+      // Selecionar tendências de alta ampla
+      const btnTrendUp = document.getElementById('var-select-trend-up');
+      const btnTrendAccelerating = document.getElementById('var-select-trend-accelerating');
+      function getVarRows(){ return Array.from(document.querySelectorAll('table tbody tr[data-row-code]')); }
+      function markCodes(codes){
+        const set = new Set(codes.map(c=>c.toUpperCase()));
+        document.querySelectorAll('.var-select').forEach(ch=>{
+          if(set.has(ch.value.toUpperCase())) ch.checked = true; else ch.checked = false;
+        });
+        updateSelectionCount();
+      }
+      function updateSelectionCount(){
+        const lbl = document.getElementById('var-selection-count');
+        if(!lbl) return; const totalChecked = Array.from(document.querySelectorAll('.var-select:checked')).length;
+        lbl.textContent = totalChecked > 0 ? totalChecked + ' selecionado(s)' : '';
+      }
+      document.addEventListener('change', function(e){ if(e.target.classList.contains('var-select')) updateSelectionCount(); });
+      updateSelectionCount();
+      if(btnTrendUp){
+        btnTrendUp.addEventListener('click', ()=>{
+          const rows = getVarRows();
+          const desired = ['alta_acelerando','reversao_alta','alta_estavel','queda_aliviando'];
+          const codes = [];
+          rows.forEach(r=>{
+            const badge = r.querySelector('[data-trend-code]');
+              const code = r.getAttribute('data-row-code');
+              const t = badge ? badge.getAttribute('data-trend-code') : null;
+              if(code && t && desired.includes(t)) codes.push(code);
+          });
+          if(codes.length===0){ alert('Nenhum ativo com tendências de alta encontrada.'); return; }
+          markCodes(codes);
+        });
+      }
+      if(btnTrendAccelerating){
+        btnTrendAccelerating.addEventListener('click', ()=>{
+          const rows = getVarRows();
+          const codes = [];
+          rows.forEach(r=>{
+            const badge = r.querySelector('[data-trend-code]');
+            const code = r.getAttribute('data-row-code');
+            const t = badge ? badge.getAttribute('data-trend-code') : null;
+            if(code && t === 'alta_acelerando') codes.push(code);
+          });
+          if(codes.length===0){ alert('Nenhum ativo com tendência Alta Acelerando encontrado.'); return; }
+          markCodes(codes);
+          // Opcional: rolar até botão de geração para facilitar UX
+          const topBtn = document.getElementById('filter-calc-alloc-btn');
+          if(topBtn) topBtn.scrollIntoView({behavior:'smooth', block:'center'});
+        });
+      }
   })();
 </script>
 @endpush

@@ -33,6 +33,7 @@ class AssetVariationController extends Controller
         $sparkWindow = (int)($request->input('spark_window') ?: 6);
         if($sparkWindow < 3) $sparkWindow = 3; if($sparkWindow > 24) $sparkWindow = 24;
     $sort = $request->input('sort', 'year_desc'); // adiciona diff_asc|diff_desc|prev_asc|prev_desc
+        $noPage = $request->boolean('no_page');
 
         // Função auxiliar de classificação de tendência (compartilhada)
         $classifyTrend = function(?float $p, ?float $c, int $daysElapsed, int $daysMonth) {
@@ -274,13 +275,27 @@ class AssetVariationController extends Controller
                 $q->orderBy('year','desc')->orderBy('month','desc');
         }
 
-        $variations = $q->paginate(30)->appends(array_filter([
+        if($noPage){
+            // Limite de segurança para evitar estouro de memória
+            $all = $q->limit(5000)->get();
+            $variations = new \Illuminate\Pagination\LengthAwarePaginator(
+                $all,
+                $all->count(),
+                max(1,$all->count()),
+                1,
+                ['path'=>request()->url(),'query'=>request()->query()]
+            );
+        } else {
+            $variations = $q->paginate(30);
+        }
+        $variations = $variations->appends(array_filter([
             'year'=>$request->input('year'),
             'month'=> ($month >= 1 && $month <= 12) ? $month : null,
             'code'=>$code?:null,
             'polarity' => in_array($polarity, ['positive','negative']) ? $polarity : null,
             'sort'=>$sort !== 'year_desc' ? $sort : null,
             'change'=> in_array($change, ['melhoria','piora','igual']) ? $change : null,
+            'no_page' => $noPage ? 1 : null,
         ]));
 
         // Map prevVariationMap a partir da coluna prev_variation já selecionada
@@ -362,6 +377,8 @@ class AssetVariationController extends Controller
             'groupedData'=>[],
             'trendData'=>$trendData,
             'trendFilter'=>$trendFilter,
+            'selectedCodes'=> (array) $request->input('selected_codes', []),
+            'noPage'=>$noPage,
         ]);
     }
 
