@@ -166,6 +166,7 @@
             'cur'  => is_null($cur) ? null : (float)$cur,
             'prev' => is_null($prev) ? null : (float)$prev,
             'diff' => is_null($diff) ? null : (float)$diff,
+            'chat_id' => optional($g['latest'])->chat_id ?? null,
           ];
         }
       } else {
@@ -179,6 +180,7 @@
             'cur'  => is_null($cur) ? null : (float)$cur,
             'prev' => is_null($pv)  ? null : (float)$pv,
             'diff' => is_null($diff)? null : (float)$diff,
+            'chat_id' => $v->chat_id ?? null,
           ];
         }
       }
@@ -235,10 +237,24 @@
         foreach ($accel as $idx=>$r) {
           $w = max(0.0, min(1.0, $finalW[$idx]));
           $val = $w * $capital;
+          // Busca último preço (amount) do registro mais recente deste chat
+          $lastPrice = null;
+          $cid = $r['chat_id'] ?? null;
+          if ($cid) {
+            try {
+              $lp = \App\Models\OpenAIChatRecord::where('chat_id', $cid)
+                ->orderByDesc('occurred_at')
+                ->value('amount');
+              if (is_numeric($lp)) { $lastPrice = (float)$lp; }
+            } catch (\Throwable $e) { /* noop */ }
+          }
+          $qty = ($lastPrice && $lastPrice > 0) ? ($val / $lastPrice) : null;
           $alloc[] = $r + [
             'weight' => $w,
             'amount' => $val,
             'gain_target' => $val * $target,
+            'last_price' => $lastPrice,
+            'qty' => $qty,
           ];
         }
       }
@@ -264,9 +280,14 @@
                 <th class="text-end" style="width:12%">Peso (cap)</th>
                 <th class="text-end" style="width:16%">Valor (R$)</th>
                 <th class="text-end" style="width:16%">Ganho alvo (R$)</th>
+                <th class="text-end" style="width:12%">Preço atual (R$)</th>
+                <th class="text-end" style="width:12%">Qtd</th>
               </tr>
             </thead>
             <tbody>
+              @php
+                $sumQty = 0;
+              @endphp
               @foreach($alloc as $r)
                 <tr>
                   <td><strong>{{ $r['code'] ?: '—' }}</strong></td>
@@ -277,6 +298,21 @@
                   <td class="text-end">{{ number_format($r['weight']*100, 2, ',', '.') }}%</td>
                   <td class="text-end">{{ number_format($r['amount'], 2, ',', '.') }}</td>
                   <td class="text-end">{{ number_format($r['gain_target'], 2, ',', '.') }}</td>
+                  <td class="text-end">
+                    @if(isset($r['last_price']) && $r['last_price'] !== null)
+                      {{ number_format($r['last_price'], 2, ',', '.') }}
+                    @else
+                      —
+                    @endif
+                  </td>
+                  <td class="text-end">
+                    @if(isset($r['qty']) && $r['qty'] !== null)
+                      @php $sumQty += is_numeric($r['qty']) ? $r['qty'] : 0; @endphp
+                      {{ number_format($r['qty'], 4, ',', '.') }}
+                    @else
+                      —
+                    @endif
+                  </td>
                 </tr>
               @endforeach
             </tbody>
@@ -285,6 +321,8 @@
                 <th colspan="6" class="text-end">Totais</th>
                 <th class="text-end">{{ number_format($capital, 2, ',', '.') }}</th>
                 <th class="text-end">{{ number_format($capital * $target, 2, ',', '.') }}</th>
+                <th></th>
+                <th class="text-end">@if($sumQty>0) {{ number_format($sumQty, 4, ',', '.') }} @endif</th>
               </tr>
             </tfoot>
           </table>
