@@ -284,7 +284,10 @@
           if ($best >= 0) { $finalW[$best] += $remaining; $remaining = 0.0; }
         }
         // Build allocation with targets
+        $seenCodes = [];
         foreach ($accel as $idx=>$r) {
+          $codeKey = strtoupper($r['code'] ?? '');
+          if($codeKey !== '' && isset($seenCodes[$codeKey])) { continue; }
           $w = max(0.0, min(1.0, $finalW[$idx]));
           $val = $w * $capital;
           // Busca último preço (amount) do registro mais recente deste chat
@@ -306,6 +309,7 @@
             'last_price' => $lastPrice,
             'qty' => $qty,
           ];
+          if($codeKey !== '') { $seenCodes[$codeKey] = true; }
         }
         if($allocOrder === 'trend') {
           $orderMap = [
@@ -331,14 +335,30 @@
     }
   @endphp
 
-  @if($capital && $sum > 0 && count($alloc) > 0)
+  @if(request('trigger_alloc') && $capital && $sum > 0 && count($alloc) > 0)
     <div class="card mb-3 shadow-sm">
       <div class="card-header d-flex justify-content-between align-items-center">
         <strong>Alocação sugerida</strong>
         <div class="d-flex flex-wrap align-items-center gap-2">
+          @if(!empty($selectedMode))
+            <span class="badge bg-info" title="Alocação gerada em modo seleção (somente códigos escolhidos)">Modo seleção</span>
+            @php
+              $__selCodes = $selectedCodesIn ?? [];
+              $__selTotal = count($__selCodes);
+              $__selPreview = implode(', ', array_slice($__selCodes,0,12));
+              if($__selTotal>12) { $__selPreview .= '…'; }
+            @endphp
+            <small class="text-muted" id="alloc-selected-summary">
+              {{ $__selTotal }} selecionado(s): {{ $__selPreview }}
+              <button type="button" class="btn btn-xs btn-link p-0 ms-1" id="btn-toggle-selected-codes" style="font-size: .7rem">ver todos</button>
+            </small>
+          @endif
+          <small class="text-muted" id="alloc-count">Ativos: {{ count($alloc) }}</small>
           <small class="text-muted">Base: itens exibidos • Peso ∝ Diferença (%) positiva • Cap: {{ number_format($cap*100,0,',','.') }}% • Meta: {{ number_format($target*100,0,',','.') }}%</small>
           <button type="button" id="alloc-select-all" class="btn btn-xs btn-outline-secondary btn-sm py-0">Marcar todos</button>
-          <button type="button" id="alloc-select-none" class="btn btn-xs btn-outline-secondary btn-sm py-0">Limpar</button>
+          <button type="button" id="alloc-select-none" class="btn btn-xs btn-outline-secondary btn-sm py-0">Desmarcar</button>
+          <button type="button" id="alloc-clear-table" class="btn btn-xs btn-outline-danger btn-sm py-0" title="Remover todas as linhas da alocação exibida (não recalcula)">Esvaziar</button>
+          <button type="button" id="alloc-undo-clear" class="btn btn-xs btn-outline-secondary btn-sm py-0 d-none" title="Restaurar a última alocação esvaziada">Desfazer</button>
           <button type="button" id="alloc-recalc" class="btn btn-xs btn-primary btn-sm py-0" title="Recalcular somente com os ativos selecionados (usa os mesmos parâmetros de capital, cap e meta)">Calcular Alocação (Selecionados)</button>
           @php $allocOrder = request('alloc_order',''); @endphp
           <div class="btn-group btn-group-sm" role="group" aria-label="Ordenar alocação">
@@ -350,6 +370,11 @@
       <div class="card-body p-0">
         <div class="table-responsive">
           <table class="table table-sm table-striped align-middle mb-0">
+              @if(!empty($selectedMode) && !empty($selectedCodesIn))
+                <caption class="small ms-2">Códigos selecionados ({{ count($selectedCodesIn) }}):
+                  <span id="alloc-selected-full" class="d-none">{{ implode(', ', $selectedCodesIn) }}</span>
+                </caption>
+              @endif
             <thead class="table-light">
               <tr>
                 <th style="width:2%"><input type="checkbox" id="alloc-master" /></th>
@@ -419,8 +444,8 @@
         </div>
       </div>
     </div>
-  @elseif(request()->has('capital'))
-    <div class="alert alert-warning">Não foi possível calcular a alocação. Verifique o capital informado e se há Diferença (%) positiva nos itens.</div>
+  @elseif(request()->has('capital') && request('trigger_alloc'))
+    <div class="alert alert-warning">Não foi possível calcular a alocação. Verifique o capital informado e se há Diferença (%) positiva nos itens (ou itens selecionados no modo seleção).</div>
   @endif
   <!-- /////// -->
   <form method="get" class="filters-bar mb-3">
@@ -510,6 +535,7 @@
       <span class="badge bg-secondary opacity-50">Sem Histórico</span>
     </div>
     <div class="table-responsive">
+      <div class="small text-muted mb-1">Ativos: {{ isset($groupedData) ? count($groupedData) : 0 }}</div>
       <table class="table table-sm table-striped align-middle">
         <thead>
           <tr>
@@ -619,11 +645,20 @@
       </table>
     </div>
   @else
+  @php
+    // Contagem de ativos únicos na página atual (modo não agrupado)
+    $uniqueAssetCount = collect($variations instanceof \Illuminate\Contracts\Pagination\Paginator ? $variations->items() : $variations)
+      ->pluck('asset_code')
+      ->filter()
+      ->unique()
+      ->count();
+  @endphp
+  <div class="small text-muted mb-1">Ativos nesta página: {{ $uniqueAssetCount }} • Registros totais: @if(method_exists($variations,'total')) {{ $variations->total() }} @else {{ $uniqueAssetCount }} @endif</div>
   <div class="table-responsive">
     <table class="table table-sm table-striped align-middle">
       <thead>
         <tr>
-          <th style="width:2%">Sel</th>
+          <th style="width:2%"><input type="checkbox" id="var-master" title="Marcar / desmarcar todos" /></th>
           <th>ID</th>
           @php
             // Parâmetros base preservados para os links de ordenação
@@ -853,34 +888,219 @@
    const rows = () => Array.from(document.querySelectorAll('.alloc-row'));
    const btnAll = document.getElementById('alloc-select-all');
    const btnNone = document.getElementById('alloc-select-none');
+  const btnClearTable = document.getElementById('alloc-clear-table');
    const btnRecalc = document.getElementById('alloc-recalc');
+  const allocCountEl = document.getElementById('alloc-count');
    function syncMaster(){
      const r = rows();
      if(r.length===0) return;
      master.checked = r.every(ch=>ch.checked);
      master.indeterminate = !master.checked && r.some(ch=>ch.checked);
    }
+   // Disponibiliza para outros scripts
+   window._allocSyncMaster = syncMaster;
+
+  // Marca na lista de variações apenas os códigos já marcados na alocação (não desmarca nada automaticamente)
+  function propagateAllocationMarks(){
+    try {
+      const allocCodes = rows().filter(c=>c.checked).map(c=> (c.value||'').toUpperCase()).filter(Boolean);
+      if(!allocCodes.length) return;
+      const set = new Set(allocCodes);
+      const varBoxes = Array.from(document.querySelectorAll('.var-select'));
+      let changed = false;
+      varBoxes.forEach(vb=>{
+        const code = (vb.value||'').toUpperCase();
+        if(set.has(code) && !vb.checked){ vb.checked = true; changed = true; }
+      });
+      if(changed){
+        try {
+          const sel = Array.from(document.querySelectorAll('.var-select:checked')).map(x=>x.value.toUpperCase());
+          localStorage.setItem('openai_variations_selected_codes', JSON.stringify(sel));
+        } catch(_e) {}
+        document.dispatchEvent(new CustomEvent('var-selection-updated'));
+      }
+    } catch(_e) { /* noop */ }
+  }
+
+  // Flag global para evitar loops de eventos entre tabelas
+  window._allocVarSyncing = false;
+
+  function updateVarSelectionStorage(){
+    try {
+      const sel = Array.from(document.querySelectorAll('.var-select:checked')).map(x=>x.value.toUpperCase());
+      localStorage.setItem('openai_variations_selected_codes', JSON.stringify(sel));
+    } catch(_e) {}
+  }
+  function updateVarMasterState(){
+    const varMaster = document.getElementById('var-master');
+    if(!varMaster) return;
+    const boxes = Array.from(document.querySelectorAll('.var-select'));
+    if(!boxes.length) return;
+    const allChecked = boxes.every(b=>b.checked);
+    const someChecked = boxes.some(b=>b.checked);
+    varMaster.checked = allChecked;
+    varMaster.indeterminate = !allChecked && someChecked;
+  }
+  // Expor para outros blocos (sincronização em scripts posteriores)
+  window.updateVarSelectionStorage = updateVarSelectionStorage;
+  window.updateVarMasterState = updateVarMasterState;
+
+  // Sincroniza mudança de um checkbox de alocação para o correspondente na lista de variações
+  function mirrorAllocChange(ch){
+    const code = (ch.value||'').toUpperCase();
+    if(!code) return;
+    if(window._allocVarSyncing) return; // evita recursão
+    window._allocVarSyncing = true;
+    try {
+      document.querySelectorAll('.var-select').forEach(vb=>{
+        if((vb.value||'').toUpperCase() === code && vb.checked !== ch.checked){
+          vb.checked = ch.checked;
+        }
+      });
+      updateVarSelectionStorage();
+      updateVarMasterState();
+      // Dispara evento para outros ouvintes (contador, etc.)
+      try {
+        const synthetic = new Event('change', {bubbles:true});
+        document.dispatchEvent(synthetic);
+      } catch(_e) { /* noop */ }
+    } finally {
+      window._allocVarSyncing = false;
+    }
+  }
    if(master){
      master.addEventListener('change', ()=>{
        rows().forEach(ch=>{ ch.checked = master.checked; });
        syncMaster();
      });
    }
-   if(btnAll){ btnAll.addEventListener('click', ()=>{ rows().forEach(c=>c.checked=true); syncMaster(); }); }
-   if(btnNone){ btnNone.addEventListener('click', ()=>{ rows().forEach(c=>c.checked=false); syncMaster(); }); }
-   rows().forEach(c=> c.addEventListener('change', syncMaster));
+   // Modal para Marcar/Desmarcar todos na alocação
+   function ensureAllocModal(){
+     if(document.getElementById('allocBulkSelectModal')) return document.getElementById('allocBulkSelectModal');
+     const html = `\n<div class="modal fade" id="allocBulkSelectModal" tabindex="-1" aria-hidden="true">\n  <div class="modal-dialog modal-sm modal-dialog-centered">\n    <div class="modal-content">\n      <div class="modal-header py-2">\n        <h6 class="modal-title mb-0">Alocação - Seleção</h6>\n        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>\n      </div>\n      <div class="modal-body small py-3">\n        <p class="mb-2">Aplicar ação em todos os ativos alocados?</p>\n        <div class="d-grid gap-2">\n          <button type="button" class="btn btn-primary btn-sm" id="btn-alloc-select-all">Marcar todos</button>\n          <button type="button" class="btn btn-outline-danger btn-sm" id="btn-alloc-unselect-all">Desmarcar todos</button>\n        </div>\n      </div>\n      <div class="modal-footer py-2">\n        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>\n      </div>\n    </div>\n  </div>\n</div>`;
+     const wrap = document.createElement('div'); wrap.innerHTML = html; document.body.appendChild(wrap.firstElementChild); return document.getElementById('allocBulkSelectModal');
+   }
+   function showAllocModal(){
+     const el = ensureAllocModal();
+     if(typeof bootstrap !== 'undefined' && bootstrap.Modal){
+       (new bootstrap.Modal(el)).show();
+     } else {
+       // Fallback sem Bootstrap: confirm dual
+       const applyAll = confirm('Marcar todos? (Cancelar = Desmarcar todos)');
+       bulkSyncAllocation(applyAll);
+     }
+   }
+   function bulkSyncAllocation(checked){
+     const allocs = rows();
+     allocs.forEach(c=> c.checked = checked);
+     // Sincroniza para tabela de variações (somente códigos que existem lá)
+     try {
+       window._allocVarSyncing = true;
+       const codes = new Set(allocs.map(c=> (c.value||'').toUpperCase()));
+       document.querySelectorAll('.var-select').forEach(v=>{
+         const code = (v.value||'').toUpperCase();
+         if(codes.has(code)) v.checked = checked;
+       });
+       if(typeof updateVarSelectionStorage === 'function') updateVarSelectionStorage();
+       if(typeof updateVarMasterState === 'function') updateVarMasterState();
+     } catch(_e){} finally { window._allocVarSyncing = false; }
+     syncMaster();
+     try { if(typeof window._updateCalcButtonState === 'function') window._updateCalcButtonState(); } catch(_e){}
+   }
+   if(btnAll){ btnAll.addEventListener('click', (e)=>{ e.preventDefault(); showAllocModal(); }); }
+   if(btnNone){ btnNone.addEventListener('click', (e)=>{ e.preventDefault(); showAllocModal(); }); }
+   // Ações dentro do modal
+   document.addEventListener('click', function(ev){
+     const id = ev.target && ev.target.id;
+     if(id === 'btn-alloc-select-all'){ bulkSyncAllocation(true); const m = document.getElementById('allocBulkSelectModal'); if(m && typeof bootstrap!=='undefined'&&bootstrap.Modal){ bootstrap.Modal.getInstance(m)?.hide(); } }
+     else if(id === 'btn-alloc-unselect-all'){ bulkSyncAllocation(false); const m = document.getElementById('allocBulkSelectModal'); if(m && typeof bootstrap!=='undefined'&&bootstrap.Modal){ bootstrap.Modal.getInstance(m)?.hide(); } }
+   }, true);
+    if(btnClearTable){
+      const btnUndo = document.getElementById('alloc-undo-clear');
+      let lastAllocSnapshot = null; // [{code, html}]
+      btnClearTable.addEventListener('click', ()=>{
+        if(!confirm('Confirmar esvaziar a alocação atual? Esta ação pode ser desfeita enquanto permanecer na página.')) return;
+        const table = master ? master.closest('table') : null;
+        const tbody = table ? table.querySelector('tbody') : null;
+        if(!tbody) return;
+        // Snapshot
+        lastAllocSnapshot = Array.from(tbody.querySelectorAll('tr')).map(tr=>({code: (tr.querySelector('.alloc-row')?.value||'').toUpperCase(), html: tr.outerHTML}));
+        tbody.querySelectorAll('tr').forEach(tr=>tr.remove());
+        if(allocCountEl){ allocCountEl.textContent = 'Ativos: 0'; }
+        // Remover parâmetros de seleção e trigger da URL para não recriar após refresh
+        try {
+          const url = new URL(window.location.href);
+          // Apagar todos selected_codes[] e trigger_alloc
+          const toDelete = [];
+          url.searchParams.forEach((v,k)=>{ if(k==='selected_codes[]' || k==='trigger_alloc') toDelete.push(k); });
+          toDelete.forEach(k=> url.searchParams.delete(k));
+          // Atualizar histórico sem recarregar
+          window.history.replaceState({}, document.title, url.pathname + (url.searchParams.toString()?('?'+url.searchParams.toString()):''));
+        } catch(_e) { /* noop */ }
+        // Remover hidden inputs existentes para selected_codes
+        document.querySelectorAll('input[name="selected_codes[]"]').forEach(el=>el.remove());
+        document.querySelectorAll('input[name="trigger_alloc"]').forEach(el=>el.remove());
+        // Limpar seleção persistida (localStorage)
+        try { localStorage.removeItem('openai_variations_selected_codes'); } catch(_e) {}
+        // Opcional: feedback visual rápido
+        try {
+          const msg = document.createElement('div');
+          msg.className = 'alert alert-info py-1 px-2 position-fixed top-0 end-0 m-3 shadow';
+          msg.style.zIndex = 1080;
+          msg.textContent = 'Alocação esvaziada. Recalcule para gerar novamente.';
+          document.body.appendChild(msg);
+          setTimeout(()=>{ msg.remove(); }, 3500);
+        } catch(_e) {}
+        if(btnUndo){ btnUndo.classList.remove('d-none'); }
+     });
+      if(btnUndo){
+        btnUndo.addEventListener('click', ()=>{
+          if(!lastAllocSnapshot || !lastAllocSnapshot.length){ alert('Nada para restaurar.'); return; }
+          const table = master ? master.closest('table') : null;
+          const tbody = table ? table.querySelector('tbody') : null;
+          if(!tbody) return;
+          tbody.innerHTML = lastAllocSnapshot.map(r=>r.html).join('');
+          // Reativar eventos dos checkboxes restaurados
+          tbody.querySelectorAll('.alloc-row').forEach(ch=>{
+            ch.addEventListener('change', (e)=>{ syncMaster(); mirrorAllocChange(e.target); });
+          });
+          syncMaster();
+          if(allocCountEl){ allocCountEl.textContent = 'Ativos: '+tbody.querySelectorAll('.alloc-row').length; }
+          // Não restaura selected_codes automaticamente na URL para manter intenção do usuário de não persistir; fica apenas na sessão atual.
+          // Oculta botão de desfazer após uso único
+          btnUndo.classList.add('d-none');
+        });
+      }
+   }
+   rows().forEach(c=> c.addEventListener('change', (e)=>{
+     syncMaster();
+     mirrorAllocChange(e.target);
+     try { if(typeof window._updateCalcButtonState === 'function') window._updateCalcButtonState(); } catch(_e){}
+   }));
 
    // Recalcular usando somente selecionados: envia form GET preservando parâmetros e adicionando selected_codes
    if(btnRecalc){
      btnRecalc.addEventListener('click', ()=>{
        const sel = rows().filter(c=>c.checked).map(c=>c.value).filter((v,i,a)=>v && a.indexOf(v)==i);
-       if(sel.length===0){ alert('Selecione ao menos um ativo.'); return; }
+      if(sel.length===0){
+        // Fallback: tentar usar seleção da tabela principal de variações
+        const varSel = Array.from(document.querySelectorAll('.var-select:checked')).map(c=>c.value.toUpperCase());
+        if(varSel.length){
+          // Disparar geração principal (usa lógica consolidada) adicionando no_page=1 para evitar paginação
+          const topBtn = document.getElementById('filter-calc-alloc-btn');
+          if(topBtn){ topBtn.click(); return; }
+        }
+        alert('Selecione ao menos um ativo.');
+        return;
+      }
        const form = document.createElement('form');
        form.method='GET';
        form.action = window.location.pathname;
        const params = new URLSearchParams(window.location.search);
        // remove paginação se houver
        params.delete('page');
+      // Garantir no_page=1 para trazer todos os registros da seleção
+      params.set('no_page','1');
        params.forEach((val,key)=>{
          const inp = document.createElement('input');
          inp.type='hidden'; inp.name=key; inp.value=val; form.appendChild(inp);
@@ -889,11 +1109,15 @@
          const inp = document.createElement('input');
          inp.type='hidden'; inp.name='selected_codes[]'; inp.value=code; form.appendChild(inp);
        });
+      // Sinaliza que deve montar a alocação
+      const trg = document.createElement('input'); trg.type='hidden'; trg.name='trigger_alloc'; trg.value='1'; form.appendChild(trg);
        document.body.appendChild(form);
        form.submit();
      });
    }
    syncMaster();
+  // Propaga no load inicial (caso recarregue a página com alocação existente)
+  propagateAllocationMarks();
  })();
 </script>
 @endpush
@@ -909,15 +1133,26 @@
   function getSelected(){ return Array.from(document.querySelectorAll('.var-select:checked')).map(c=>c.value.toUpperCase()); }
   topBtn.addEventListener('click', function(ev){
     ev.preventDefault();
-    // Remove hidden anteriores (evitar acumular)
+    // Limpar qualquer selected_codes[] anterior (para respeitar desmarcações)
     Array.from(form.querySelectorAll('input[name="selected_codes[]"]')).forEach(el=>el.remove());
-    const sel = getSelected();
-    if(sel.length){
-      sel.forEach(code=>{
-        const inp = document.createElement('input');
-        inp.type='hidden'; inp.name='selected_codes[]'; inp.value=code; form.appendChild(inp);
-      });
+    Array.from(form.querySelectorAll('input[name="trigger_alloc"]')).forEach(el=>el.remove());
+    // Coletar seleção ATUAL (variações + alocação) sem reintroduzir desmarcados da URL
+    const currentVar = new Set(getSelected());
+    const currentAlloc = new Set(Array.from(document.querySelectorAll('.alloc-row:checked')).map(r=> (r.value||'').toUpperCase()).filter(Boolean));
+    const finalCodes = new Set();
+    currentVar.forEach(c=>finalCodes.add(c));
+    currentAlloc.forEach(c=>finalCodes.add(c));
+    // Criar novos hidden somente para os códigos efetivamente marcados agora
+    finalCodes.forEach(code=>{
+      const inp = document.createElement('input');
+      inp.type='hidden'; inp.name='selected_codes[]'; inp.value=code; form.appendChild(inp);
+    });
+    // Se houver pelo menos um selecionado, garantir no_page=1
+    if(finalCodes.size && !form.querySelector('input[name="no_page"]')){
+      const np = document.createElement('input'); np.type='hidden'; np.name='no_page'; np.value='1'; form.appendChild(np);
     }
+    // Gatilho explícito para montar a alocação
+    const trg = document.createElement('input'); trg.type='hidden'; trg.name='trigger_alloc'; trg.value='1'; form.appendChild(trg);
     // Garantir que há capital informado para aparecer alocação
     const capitalField = form.querySelector('input[name="capital"]');
     if(!capitalField || capitalField.value.trim()===''){
@@ -940,6 +1175,7 @@
   const btnClear = document.getElementById('var-select-clear');
   const btnPositive = document.getElementById('var-select-positive');
   const btnBuy = document.getElementById('var-select-buy');
+  const varMaster = document.getElementById('var-master');
   const selectionCount = document.getElementById('var-selection-count');
   const btnClearAll = document.getElementById('var-clear-selection-allocation-top');
   const topCalcBtn = document.getElementById('filter-calc-alloc-btn');
@@ -948,6 +1184,17 @@
   const LS_KEY = 'openai_variations_selected_codes';
   function varCheckboxes(){ return Array.from(document.querySelectorAll('.var-select')); }
   function getSelected(){ return varCheckboxes().filter(c=>c.checked).map(c=>c.value.toUpperCase()); }
+  // Função global para que outros scripts (primeiro bloco) possam reavaliar habilitação do botão
+  window._updateCalcButtonState = function(){
+    const n = getSelected().length;
+    if(!topCalcBtn) return;
+    const anyAllocChecked = Array.from(document.querySelectorAll('.alloc-row:checked')).length > 0;
+    if(n === 0 && !anyAllocChecked){
+      topCalcBtn.setAttribute('disabled','disabled');
+    } else {
+      topCalcBtn.removeAttribute('disabled');
+    }
+  };
   function updateSelectionCount(){
     const n=getSelected().length;
     if(selectionCount){ selectionCount.textContent = n ? (n+' selecionado(s)') : ''; }
@@ -971,15 +1218,101 @@
       } else {
         topCalcBtn.title = 'Usar capital e parâmetros para gerar alocação considerando (se houver) os ativos selecionados abaixo';
       }
+      window._updateCalcButtonState();
     }
     if(exportSelCsv){ exportSelCsv.disabled = n===0; }
     if(exportSelXlsx){ exportSelXlsx.disabled = n===0; }
   }
   function setSelected(codes){ const set=new Set(codes.map(c=>c.toUpperCase())); varCheckboxes().forEach(ch=>{ ch.checked = set.has(ch.value.toUpperCase()); }); persist(); updateSelectionCount(); }
   function persist(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(getSelected())); }catch(_e){} }
-  function restore(){ const qs = new URLSearchParams(location.search); if(qs.getAll('selected_codes[]').length>0){ updateSelectionCount(); return; } try{ const raw=localStorage.getItem(LS_KEY); if(!raw) return; const arr=JSON.parse(raw); if(Array.isArray(arr)) setSelected(arr); }catch(_e){} updateSelectionCount(); }
+  function restore(){
+    const qs = new URLSearchParams(location.search);
+    // Se vieram códigos na URL, aplicamos diretamente (não apenas contamos)
+    const urlCodes = qs.getAll('selected_codes[]').map(c=> (c||'').toUpperCase()).filter(c=>c);
+    if(urlCodes.length>0){
+      setSelected(urlCodes);
+      // Persistir no localStorage também para manter ao trocar filtros sem selected_codes
+      try{ localStorage.setItem(LS_KEY, JSON.stringify(urlCodes)); }catch(_e){}
+      updateSelectionCount();
+      return;
+    }
+    // Caso não haja na URL, tentar restaurar do localStorage
+    try{
+      const raw = localStorage.getItem(LS_KEY);
+      if(!raw) { updateSelectionCount(); return; }
+      const arr = JSON.parse(raw);
+      if(Array.isArray(arr)) setSelected(arr);
+    }catch(_e){}
+    updateSelectionCount();
+  }
   restore();
   updateSelectionCount();
+  if(varMaster){
+    // Modal de confirmação para marcar / desmarcar todos
+    // HTML do modal (injetado uma única vez)
+    if(!document.getElementById('varMasterConfirmModal')){
+      const modalHtml = `\n<div class="modal fade" id="varMasterConfirmModal" tabindex="-1" aria-hidden="true">\n  <div class="modal-dialog modal-sm modal-dialog-centered">\n    <div class="modal-content">\n      <div class="modal-header py-2">\n        <h6 class="modal-title mb-0">Seleção de Ativos</h6>\n        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>\n      </div>\n      <div class="modal-body small py-3">\n        <p class="mb-2">Aplicar ação em todos os ativos exibidos?</p>\n        <div class="d-grid gap-2">\n          <button type="button" class="btn btn-primary btn-sm" id="btn-var-select-all">Marcar todos</button>\n          <button type="button" class="btn btn-outline-danger btn-sm" id="btn-var-unselect-all">Desmarcar todos</button>\n        </div>\n      </div>\n      <div class="modal-footer py-2">\n        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>\n      </div>\n    </div>\n  </div>\n</div>`;
+      const wrap = document.createElement('div');
+      wrap.innerHTML = modalHtml;
+      document.body.appendChild(wrap.firstElementChild);
+    }
+    const modalEl = document.getElementById('varMasterConfirmModal');
+    let modalInstance = null;
+    function ensureModal(){
+      if(!modalEl) return null;
+      if(typeof bootstrap !== 'undefined' && bootstrap.Modal){
+        if(!modalInstance) modalInstance = new bootstrap.Modal(modalEl);
+        return modalInstance;
+      }
+      return null; // fallback usará confirm()
+    }
+    varMaster.addEventListener('click', (ev)=>{
+      ev.preventDefault(); ev.stopPropagation();
+      const inst = ensureModal();
+      if(inst){ inst.show(); } else {
+        // Fallback simples sem Bootstrap
+        const action = confirm('Marcar todos? (Cancelar = Desmarcar todos)');
+        const all = varCheckboxes();
+        all.forEach(ch=> ch.checked = action);
+        varMaster.checked = action;
+        varMaster.indeterminate = false;
+        persist(); updateSelectionCount();
+      }
+    });
+    // Ações dos botões do modal
+    document.addEventListener('click', (e)=>{
+      if(e.target && e.target.id === 'btn-var-select-all'){
+        const all = varCheckboxes(); all.forEach(ch=> ch.checked = true);
+        varMaster.checked = true; varMaster.indeterminate = false;
+        persist(); updateSelectionCount();
+        const inst = ensureModal(); if(inst) inst.hide();
+      } else if(e.target && e.target.id === 'btn-var-unselect-all'){
+        const all = varCheckboxes(); all.forEach(ch=> ch.checked = false);
+        varMaster.checked = false; varMaster.indeterminate = false;
+        persist(); updateSelectionCount();
+        const inst = ensureModal(); if(inst) inst.hide();
+      }
+    }, true);
+    // Estado inicial (se todos já selecionados ao restaurar)
+    setTimeout(()=>{
+      const all = varCheckboxes();
+      if(all.length){
+        const allChecked = all.every(c=>c.checked);
+        const someChecked = all.some(c=>c.checked);
+        varMaster.checked = allChecked;
+        varMaster.indeterminate = !allChecked && someChecked;
+      }
+    }, 0);
+    document.addEventListener('change', e=>{
+      const t = e && e.target;
+      if(!(t && t.classList && t.classList.contains('var-select'))) return;
+      const all = varCheckboxes();
+      const allChecked = all.every(c=>c.checked);
+      const someChecked = all.some(c=>c.checked);
+      varMaster.checked = allChecked;
+      varMaster.indeterminate = !allChecked && someChecked;
+    });
+  }
   // Botão Limpar
   if(btnClear){ btnClear.addEventListener('click', ()=>{ setSelected([]); try{localStorage.removeItem(LS_KEY);}catch(_e){} updateSelectionCount(); }); }
   if(btnClearAll){
@@ -1034,6 +1367,22 @@
       });
       if(!codes.length){ alert('Nenhum ativo positivo encontrado.'); return; }
       setSelected(codes);
+      // Sincroniza seleção também na tabela de alocação (se já existir)
+      (function(){
+        // Incluir também quaisquer novos var-select marcados que não estão na alocação ainda
+        const extraVar = Array.from(document.querySelectorAll('.var-select:checked'))
+          .map(c=>c.value.toUpperCase())
+          .filter(code=> sel.map(s=>s.toUpperCase()).indexOf(code) === -1);
+        const union = new Set(sel.map(s=>s.toUpperCase()));
+        extraVar.forEach(c=> union.add(c));
+        Array.from(union).forEach(code=>{
+          const inp = document.createElement('input');
+          inp.type='hidden'; inp.name='selected_codes[]'; inp.value=code; form.appendChild(inp);
+        });
+        const trg = document.createElement('input'); trg.type='hidden'; trg.name='trigger_alloc'; trg.value='1'; form.appendChild(trg);
+        // Se já existir botão superior e houver capital preenchido, podemos opcionalmente gerar automaticamente
+        // (desativado para evitar cálculos inesperados no clique de filtro Positivos)
+      })();
     });
   }
   // Botão COMPRAR (badge com dataset.noBuy != 1)
@@ -1073,8 +1422,26 @@
       }, 250);
     });
   }
-  // Persist on manual changes
-  document.addEventListener('change', e=>{ if(e.target.classList.contains('var-select')) { persist(); updateSelectionCount(); } });
+  // Listener único para var-select: persistência + sincronização com alocação
+  document.addEventListener('change', function(e){
+    const el = e.target;
+    if(!(el && el.classList && el.classList.contains('var-select'))) return;
+    const code = (el.value||'').toUpperCase();
+    if(!code) return;
+    try { persist(); } catch(_e){}
+    if(typeof updateSelectionCount === 'function') try{ updateSelectionCount(); }catch(_e){}
+    if(window._allocVarSyncing) return;
+    const allocBoxes = document.querySelectorAll('.alloc-row');
+    if(allocBoxes.length){
+      window._allocVarSyncing = true;
+      try {
+        allocBoxes.forEach(cb=>{ if((cb.value||'').toUpperCase() === code){ cb.checked = el.checked; } });
+        if(typeof window._allocSyncMaster === 'function') window._allocSyncMaster();
+      } finally { window._allocVarSyncing = false; }
+    }
+    updateVarSelectionStorage();
+    updateVarMasterState();
+  });
 })();
 </script>
 @endpush
@@ -1124,7 +1491,7 @@
         if(!lbl) return; const totalChecked = Array.from(document.querySelectorAll('.var-select:checked')).length;
         lbl.textContent = totalChecked > 0 ? totalChecked + ' selecionado(s)' : '';
       }
-      document.addEventListener('change', function(e){ if(e.target.classList.contains('var-select')) updateSelectionCount(); });
+  // Listener duplicado removido (já há um handler central para var-select; evitar TypeError em targets sem classList)
       updateSelectionCount();
       if(btnTrendUp){
         btnTrendUp.addEventListener('click', ()=>{
