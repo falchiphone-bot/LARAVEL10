@@ -515,7 +515,7 @@ class UserHoldingController extends Controller
         $dbgAvenueCount = 0; $dbgAvenueBlocksCount = 0; // contadores de diagnósticos
         $raw = '';
         $isExcel = false;
-        if($request->file('csv')){
+    if($request->file('csv')){
             $file = $request->file('csv');
             $ext = strtolower(pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION));
             if(in_array($ext, ['xlsx','xls'])){
@@ -541,6 +541,7 @@ class UserHoldingController extends Controller
                         $isAvenueSheet = true;
                     }
                     if($isAvenueSheet){
+                        $dbgSkipAvenueCode = 0; $dbgSkipAvenueQty = 0; $dbgSkipAvenueAvg = 0;
                         for($r=2; $r <= $highestRow; $r++){
                             $ativoCell = (string)$sheet->getCellByColumnAndRow(1,$r)->getValue();
                             if(trim($ativoCell)==='') continue;
@@ -548,7 +549,9 @@ class UserHoldingController extends Controller
                             $ativoLines = array_values(array_filter(array_map('trim', preg_split('/\r?\n/',$ativoCell))));
                             if(empty($ativoLines)) continue;
                             $code = strtoupper(end($ativoLines));
-                            if(!preg_match('/^[A-Z0-9.\-]{1,12}$/',$code)) continue;
+                            // Sanitiza removendo caracteres estranhos (aspas, espaços não quebra, etc.)
+                            $code = preg_replace('/[^A-Z0-9.\-]/','', $code);
+                            if($code === '') { $dbgSkipAvenueCode++; continue; }
                             // Coluna Cotação (3) -> procurar primeiro número
                             $cotCell = (string)$sheet->getCellByColumnAndRow(3,$r)->getValue();
                             $cotLines = array_values(array_filter(array_map('trim', preg_split('/\r?\n/',$cotCell))));
@@ -560,14 +563,14 @@ class UserHoldingController extends Controller
                             // Quantidade (4)
                             $qtyCell = (string)$sheet->getCellByColumnAndRow(4,$r)->getValue();
                             $qty = $this->parseNumber((string)$qtyCell);
-                            if($qty <= 0) continue;
+                            if($qty <= 0) { $dbgSkipAvenueQty++; continue; }
                             // Preço Médio (5)
                             $pmCell = (string)$sheet->getCellByColumnAndRow(5,$r)->getValue();
                             $pmCellNorm = preg_replace('/U\$\s*/i','',$pmCell);
                             $pmLines = array_values(array_filter(array_map('trim', preg_split('/\r?\n/',$pmCellNorm))));
                             $pmCandidate = $pmLines[0] ?? $pmCellNorm;
                             $avg = $this->parseNumber($pmCandidate,6);
-                            if($avg <= 0) continue;
+                            if($avg <= 0) { $dbgSkipAvenueAvg++; continue; }
                             $dataRows[] = [
                                 'code'=>$code,
                                 'quantity'=>$qty,
@@ -578,6 +581,11 @@ class UserHoldingController extends Controller
                             ];
                         }
                         $dbgAvenueCount = count($dataRows);
+                        // Anexa info de skip internos (apenas se nenhum inserido nessa fase)
+                        if($dbgAvenueCount === 0 && ($dbgSkipAvenueCode||$dbgSkipAvenueQty||$dbgSkipAvenueAvg)){
+                            // Guardar como pseudo-linha para relatório posterior (não influencia import)
+                            $dataRows[] = ['__dbg_skip_code'=>$dbgSkipAvenueCode,'__dbg_skip_qty'=>$dbgSkipAvenueQty,'__dbg_skip_avg'=>$dbgSkipAvenueAvg];
+                        }
                     } else {
                         // Fallback genérico: mapear colunas por nome normalizado (reutilizando normalizeHeader)
                         $normMap = [];
@@ -665,10 +673,16 @@ class UserHoldingController extends Controller
             }
         }
         $ins = 0; $upd = 0; $skip = 0; $errors = [];
+        $dbgExtra = '';
         foreach($dataRows as $r){
+            if(isset($r['__dbg_skip_code'])){ // linha de debug artificial, extrair e continuar
+                $dbgExtra = " DBG(code={$r['__dbg_skip_code']},qty={$r['__dbg_skip_qty']},avg={$r['__dbg_skip_avg']})";
+                continue;
+            }
             $codeRaw = $r['code'] ?? $r['ativo'] ?? null;
             if(!$codeRaw){ $skip++; continue; }
             $code = strtoupper(trim($codeRaw));
+            $code = preg_replace('/[^A-Z0-9.\-]/','', $code);
             if($code==='') { $skip++; continue; }
             $qty = $this->parseNumber($r['quantity'] ?? '0');
             if(abs($qty) < 1e-12){ $skip++; continue; }
@@ -717,7 +731,7 @@ class UserHoldingController extends Controller
                 }
             }
         }
-        $msg = "Importação concluída: {$ins} inseridos, {$upd} atualizados, {$skip} ignorados";
+    $msg = "Importação concluída: {$ins} inseridos, {$upd} atualizados, {$skip} ignorados".$dbgExtra;
         if($dbgAvenueCount>0 || $dbgAvenueBlocksCount>0){
             $det = [];
             if($dbgAvenueCount>0) $det[] = "AvenueTab={$dbgAvenueCount}";
