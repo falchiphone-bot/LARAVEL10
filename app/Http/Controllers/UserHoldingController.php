@@ -512,6 +512,7 @@ class UserHoldingController extends Controller
         }
         $modeMerge = $request->input('mode_merge','replace');
         $dataRows = [];
+        $dbgAvenueCount = 0; $dbgAvenueBlocksCount = 0; // contadores de diagnósticos
         $raw = '';
         $isExcel = false;
         if($request->file('csv')){
@@ -576,6 +577,7 @@ class UserHoldingController extends Controller
                                 'currency'=>'USD'
                             ];
                         }
+                        $dbgAvenueCount = count($dataRows);
                     } else {
                         // Fallback genérico: mapear colunas por nome normalizado (reutilizando normalizeHeader)
                         $normMap = [];
@@ -606,7 +608,6 @@ class UserHoldingController extends Controller
         }
         if(!$isExcel && !$raw){ return back()->withErrors(['csv'=>'Conteúdo vazio'])->withInput(); }
         // Normalizar encoding
-        $dbgAvenueCount = 0; $dbgAvenueBlocksCount = 0; // mantidos para mensagem final
         if(!$isExcel){
             $enc = mb_detect_encoding($raw, ['UTF-8','ISO-8859-1','WINDOWS-1252'], true) ?: 'UTF-8';
             if($enc !== 'UTF-8') $raw = mb_convert_encoding($raw,'UTF-8',$enc);
