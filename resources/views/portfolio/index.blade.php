@@ -30,6 +30,7 @@
       <a href="{{ $__variationsSelectedUrl }}" class="btn btn-sm btn-outline-warning" title="Abrir Variações com todos os códigos da carteira já selecionados (máx 200)">Variações (Códigos da Carteira)</a>
     @endif
     <a href="{{ route('holdings.create') }}" class="btn btn-sm btn-success" title="Adicionar nova posição">Nova Posição</a>
+    <a href="{{ route('holdings.import.form') }}" class="btn btn-sm btn-outline-dark" title="Importar ou colar CSV de holdings">Importar Holdings</a>
     @if($refresh && $updatedCodes)
       <span class="text-muted small">Atualizados: {{ implode(', ', $updatedCodes) }}</span>
     @endif

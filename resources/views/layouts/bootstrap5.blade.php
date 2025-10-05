@@ -568,6 +568,16 @@ if (window.Livewire) {
                           <i class="fa-solid fa-arrow-up-right-dots me-1"></i> Variações (Mês)
                         </a>
                       </li>
+                      <li>
+                        <a class="dropdown-item" href="{{ route('openai.portfolio.index') }}" title="Carteira atual consolidada (posições e cruzamento com variações)">
+                          <i class="fa-solid fa-briefcase me-1"></i> Carteira (Atual)
+                        </a>
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="{{ route('holdings.import.form') }}" title="Importar/colar CSV de holdings (Avenue ou genérico)">
+                          <i class="fa-solid fa-file-import me-1"></i> Importar Holdings
+                        </a>
+                      </li>
                       @endcan
                       @can('ASSET STATS - LISTAR')
                       <li>
@@ -591,6 +601,16 @@ if (window.Livewire) {
                   <li class="d-block d-md-none">
                     <a class="dropdown-item ps-4" href="{{ route('openai.variations.index') }}#gsc.tab=0" title="Variações por mês (por código)">
                       <i class="fa-solid fa-arrow-up-right-dots me-1"></i> Variações (Mês)
+                    </a>
+                  </li>
+                  <li class="d-block d-md-none">
+                    <a class="dropdown-item ps-4" href="{{ route('openai.portfolio.index') }}" title="Carteira atual consolidada (posições e cruzamento com variações)">
+                      <i class="fa-solid fa-briefcase me-1"></i> Carteira (Atual)
+                    </a>
+                  </li>
+                  <li class="d-block d-md-none">
+                    <a class="dropdown-item ps-4" href="{{ route('holdings.import.form') }}" title="Importar/colar CSV de holdings (Avenue ou genérico)">
+                      <i class="fa-solid fa-file-import me-1"></i> Importar Holdings
                     </a>
                   </li>
                   @endcan
