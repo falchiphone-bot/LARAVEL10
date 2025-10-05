@@ -16,7 +16,7 @@
             </ul>
           </div>
         @endif
-        <p class="small text-muted mb-2">Cole exatamente o bloco copiado da tela da Avenue (incluindo linhas como <code>Logo de ...</code>). O parser extrai ticker, quantidade, preço médio, investido e preço atual.</p>
+  <p class="small text-muted mb-2">Cole exatamente o bloco copiado da tela da Avenue (incluindo linhas como <code>Logo de ...</code>). O parser extrai ticker, quantidade, preço médio, investido e preço atual. Se a <strong>primeira linha não vazia</strong> for um e-mail (<code>sem@falchi.com.br</code> ou <code>falchiphone@gmail.com.br</code>) ele deve corresponder ao nome ou corretora da conta selecionada.</p>
         <div class="mb-3">
           <label class="form-label small">Conta destino</label>
           <select name="account_id" class="form-select form-select-sm" required>

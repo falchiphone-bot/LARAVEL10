@@ -277,12 +277,34 @@ class UserHoldingController extends Controller
             'account_id' => 'required|integer|exists:investment_accounts,id'
         ]);
         $raw = (string)$request->input('screen_raw');
+        // Detectar primeira linha com e-mail e validar com conta
+        $linesRaw = preg_split('/\r?\n/', $raw);
+        $emailDetected = null;
+        foreach($linesRaw as $l){
+            $t = trim($l);
+            if($t==='') continue;
+            if(filter_var($t, FILTER_VALIDATE_EMAIL)){
+                $emailDetected = strtolower($t);
+            }
+            break; // só primeira linha não vazia
+        }
+        $userId = Auth::id();
+        $accountId = (int)$request->input('account_id');
+        if($emailDetected){
+            $acc = InvestmentAccount::where('user_id',$userId)->where('id',$accountId)->first();
+            if(!$acc){
+                return back()->withErrors(['account_id'=>'Conta não encontrada para o usuário.'])->withInput();
+            }
+            $accName = strtolower($acc->account_name ?? '');
+            $accBroker = strtolower($acc->broker ?? '');
+            if($emailDetected !== $accName && $emailDetected !== $accBroker){
+                return back()->withErrors(['screen_raw'=>'E-mail da primeira linha ('.$emailDetected.') não corresponde ao nome ou corretora da conta selecionada.'])->withInput();
+            }
+        }
         $rows = $this->parseAvenueScreen($raw);
         if(empty($rows)){
             return back()->withErrors(['screen_raw'=>'Não foi possível interpretar o conteúdo colado como Avenue Screen.'])->withInput();
         }
-        $userId = Auth::id();
-        $accountId = (int)$request->input('account_id');
         $ins=0;$upd=0;$skip=0;$errors=[];
         foreach($rows as $r){
             $code = strtoupper(trim($r['code']));
