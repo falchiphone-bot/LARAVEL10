@@ -871,7 +871,16 @@ class UserHoldingController extends Controller
             $invested = isset($r['invested_value']) && $r['invested_value'] !== '' ? $this->parseNumber($r['invested_value'],2) : ($qty * $avg);
             $curr = $r['currency'] ?? null;
             $curPrice = isset($r['current_price']) && $r['current_price'] !== '' ? $this->parseNumber((string)$r['current_price']) : null;
-            $hold = UserHolding::where('user_id',$userId)->where('code',$code)->where('account_id',$accountId)->first();
+            // Incluir registros soft-deletados para reaproveitar (evita violação da unique index no banco)
+            $hold = UserHolding::withTrashed()
+                ->where('user_id',$userId)
+                ->where('code',$code)
+                ->where('account_id',$accountId)
+                ->first();
+            if($hold && $hold->trashed()){
+                // Restaurar para atualizar/inserir novamente
+                $hold->restore();
+            }
             if($hold){
                 if($modeMerge === 'sum'){
                     $newQty = $hold->quantity + $qty;
@@ -907,7 +916,30 @@ class UserHoldingController extends Controller
                     ]);
                     $ins++;
                 } catch(\Throwable $e){
-                    $errors[] = $code.': '.$e->getMessage();
+                    $msgErr = $e->getMessage();
+                    // Se violação de unique (provavelmente corrida ou soft delete não capturado), tentar atualizar
+                    if(str_contains($msgErr,'user_holdings_user_id_code_account_id_unique')){
+                        $dup = UserHolding::withTrashed()
+                            ->where('user_id',$userId)
+                            ->where('code',$code)
+                            ->where('account_id',$accountId)
+                            ->first();
+                        if($dup){
+                            if($dup->trashed()) $dup->restore();
+                            $dup->update([
+                                'quantity'=>$qty,
+                                'avg_price'=>$avg,
+                                'invested_value'=>$invested,
+                                'current_price'=>$curPrice !== null ? $curPrice : $dup->current_price,
+                                'currency'=>$curr ?: $dup->currency,
+                            ]);
+                            $upd++;
+                        } else {
+                            $errors[] = $code.': '.$msgErr;
+                        }
+                    } else {
+                        $errors[] = $code.': '.$msgErr;
+                    }
                 }
             }
         }
