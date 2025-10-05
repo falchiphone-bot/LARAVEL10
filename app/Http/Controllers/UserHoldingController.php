@@ -9,6 +9,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use Illuminate\Support\Facades\Log;
 
 class UserHoldingController extends Controller
 {
@@ -674,20 +675,23 @@ class UserHoldingController extends Controller
         }
         $ins = 0; $upd = 0; $skip = 0; $errors = [];
         $dbgExtra = '';
+        $debugSkipped = [];
+        $rowSeq = 0;
         foreach($dataRows as $r){
             if(isset($r['__dbg_skip_code'])){ // linha de debug artificial, extrair e continuar
                 $dbgExtra = " DBG(code={$r['__dbg_skip_code']},qty={$r['__dbg_skip_qty']},avg={$r['__dbg_skip_avg']})";
                 continue;
             }
+            $rowSeq++;
             $codeRaw = $r['code'] ?? $r['ativo'] ?? null;
-            if(!$codeRaw){ $skip++; continue; }
+            if(!$codeRaw){ $skip++; $debugSkipped[] = ['row'=>$rowSeq,'reason'=>'missing_code','raw'=>$r]; continue; }
             $code = strtoupper(trim($codeRaw));
             $code = preg_replace('/[^A-Z0-9.\-]/','', $code);
-            if($code==='') { $skip++; continue; }
+            if($code==='') { $skip++; $debugSkipped[] = ['row'=>$rowSeq,'reason'=>'empty_code_after_sanitize','raw'=>$r]; continue; }
             $qty = $this->parseNumber($r['quantity'] ?? '0');
-            if(abs($qty) < 1e-12){ $skip++; continue; }
+            if(abs($qty) < 1e-12){ $skip++; $debugSkipped[] = ['row'=>$rowSeq,'reason'=>'zero_quantity','code'=>$code,'raw_qty'=>($r['quantity'] ?? null)]; continue; }
             $avg = $this->parseNumber($r['avg_price'] ?? ($r['preco'] ?? $r['price'] ?? '0'));
-            if($avg <= 0){ $skip++; continue; }
+            if($avg <= 0){ $skip++; $debugSkipped[] = ['row'=>$rowSeq,'reason'=>'invalid_avg_price','code'=>$code,'raw_avg'=>($r['avg_price'] ?? $r['preco'] ?? $r['price'] ?? null)]; continue; }
             $invested = isset($r['invested_value']) && $r['invested_value'] !== '' ? $this->parseNumber($r['invested_value'],2) : ($qty * $avg);
             $curr = $r['currency'] ?? null;
             $curPrice = isset($r['current_price']) && $r['current_price'] !== '' ? $this->parseNumber((string)$r['current_price']) : null;
@@ -738,7 +742,22 @@ class UserHoldingController extends Controller
             if($dbgAvenueBlocksCount>0) $det[] = "AvenueBlocks={$dbgAvenueBlocksCount}";
             if($det) $msg .= ' ['.implode(', ',$det).']';
         }
-        if($errors){ $msg .= '. Erros: '.implode('; ',$errors); }
+        if($errors){ $msg += '. Erros: '.implode('; ',$errors); }
+        // Logging detalhado somente se nada entrou/atualizou
+        if($ins===0 && $upd===0){
+            // limitar tamanho para não explodir log
+            $sample = array_slice($debugSkipped,0,50);
+            Log::info('Holdings import sem inserções/atualizações', [
+                'user_id'=>$userId,
+                'account_id'=>$accountId,
+                'rows_total'=>count($dataRows),
+                'skipped'=>$skip,
+                'avenue_tab'=>$dbgAvenueCount,
+                'avenue_blocks'=>$dbgAvenueBlocksCount,
+                'dbg_extra'=>$dbgExtra,
+                'sample_skipped'=>$sample,
+            ]);
+        }
         return redirect()->route('openai.portfolio.index')->with('success',$msg);
     }
 }
