@@ -1,4 +1,6 @@
 @extends('layouts.bootstrap5')
+
+{{-- //Alterado --}}
 @section('content')
     <div class="py-5 bg-light">
         <div class="container">
