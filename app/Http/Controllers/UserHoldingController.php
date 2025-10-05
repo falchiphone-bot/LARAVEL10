@@ -485,6 +485,78 @@ class UserHoldingController extends Controller
         return $out;
     }
 
+    /**
+     * Parser para conteúdo copiado da TELA (sem linha de cabeçalho tabular), padrão observado:
+     *  Cotação em tempo real (descartar)
+     *  Comprar ou vender (descartar)
+     *  Logo de <TICKER> (linha opcional que antecede bloco)
+     *  <Nome da Empresa>
+     *  <TICKER>
+     *  Ações (ou outro tipo)
+     *  U$ <preço atual>
+     *  U$ <variação intraday>
+     *  <quantidade>\tU$ <preço médio>\tU$ <investido>
+     *  U$ <lucro/perda> (ignorado)
+     */
+    protected function parseAvenueScreen(string $raw): array
+    {
+        if(!str_contains($raw, 'Logo de') && !preg_match('/\n[A-Z]{2,12}\nAções/i', $raw)) return [];
+        $raw = str_replace(["\r\n","\r"], "\n", $raw);
+        $lines = array_map(fn($l)=> rtrim($l), preg_split('/\n/',$raw));
+        // remover linhas totalmente vazias exceto mantemos estrutura agrupada usando índice
+        $n = count($lines);
+        $out = [];
+        for($i=0;$i<$n;$i++){
+            $ln = trim($lines[$i]);
+            if($ln==='') continue;
+            if(str_starts_with($ln,'Cotação em tempo real') || str_starts_with($ln,'Comprar ou vender')) continue;
+            if(str_starts_with($ln,'Logo de ')){
+                // próximo deve ser nome empresa
+                $i++; if($i >= $n) break; $company = trim($lines[$i]);
+                // ticker
+                $i++; if($i >= $n) break; $tickerLine = trim($lines[$i]);
+                if(!preg_match('/^[A-Z0-9.\-]{1,12}$/',$tickerLine)) continue; // não é bloco válido
+                $ticker = strtoupper($tickerLine);
+                // tipo (Ações)
+                $i++; if($i >= $n) break; $tipoLine = trim($lines[$i]);
+                // preço atual
+                $i++; if($i >= $n) break; $priceLine = trim($lines[$i]);
+                if(!str_starts_with($priceLine,'U$')) continue;
+                $currentPrice = null;
+                if(preg_match('/U\$\s*([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/',$priceLine,$m)){
+                    $currentPrice = $this->parseNumber($m[1],6);
+                }
+                // variação (ignorar)
+                $i++; if($i >= $n) break; $variationLine = trim($lines[$i]);
+                // linha com quantidade / pm / investido
+                $i++; if($i >= $n) break; $qtyLine = trim($lines[$i]);
+                // Pode estar separado por TAB ou espaços múltiplos; padronizar substituindo tab por espaço duplo
+                $qtyNorm = str_replace(["\t"],'  ',$qtyLine);
+                // Regex: quantidade - pode ser decimal; depois U$ preço médio; depois U$ investido
+                if(!preg_match('/^([0-9][0-9\.,]*)\s+U\$\s*([0-9\.,]+)\s+U\$\s*([0-9\.,]+)/',$qtyNorm,$m2)){
+                    continue; // não conseguiu extrair
+                }
+                $quantity = $this->parseNumber($m2[1]);
+                $avg = $this->parseNumber($m2[2],6);
+                $invested = $this->parseNumber($m2[3],2);
+                if($quantity <= 0 || $avg <= 0){
+                    continue;
+                }
+                // lucro/perda (linha seguinte se existir e começa com U$) ignorado
+                if($i+1 < $n && str_starts_with(trim($lines[$i+1]),'U$')){ $i++; }
+                $out[] = [
+                    'code'=>$ticker,
+                    'quantity'=>$quantity,
+                    'avg_price'=>$avg,
+                    'invested_value'=>$invested ?: ($quantity*$avg),
+                    'current_price'=>$currentPrice,
+                    'currency'=>'USD'
+                ];
+            }
+        }
+        return $out;
+    }
+
     public function importStore(Request $request)
     {
         // Permitimos agora duas formas: upload de arquivo ou textarea csv_raw.
@@ -712,6 +784,18 @@ class UserHoldingController extends Controller
                         'current_price' => $r['current_price'] ?? null,
                     ];
                 }
+            } elseif($avenueRows = $this->parseAvenueScreen($raw)) {
+                $dbgAvenueScreenCount = count($avenueRows);
+                foreach($avenueRows as $r){
+                    $dataRows[] = [
+                        'code' => $r['code'],
+                        'quantity' => $r['quantity'],
+                        'avg_price' => $r['avg_price'],
+                        'invested_value' => $r['invested_value'],
+                        'currency' => $r['currency'],
+                        'current_price' => $r['current_price'] ?? null,
+                    ];
+                }
             } elseif($avenueRows = $this->parseAvenueBlocks($raw)) {
                 $dbgAvenueBlocksCount = count($avenueRows);
                 foreach($avenueRows as $r){
@@ -808,10 +892,12 @@ class UserHoldingController extends Controller
             }
         }
     $msg = "Importação concluída: {$ins} inseridos, {$upd} atualizados, {$skip} ignorados".$dbgExtra;
-        if($dbgAvenueCount>0 || $dbgAvenueBlocksCount>0){
+        if(!isset($dbgAvenueScreenCount)) $dbgAvenueScreenCount = 0;
+        if($dbgAvenueCount>0 || $dbgAvenueBlocksCount>0 || $dbgAvenueScreenCount>0){
             $det = [];
             if($dbgAvenueCount>0) $det[] = "AvenueTab={$dbgAvenueCount}";
             if($dbgAvenueBlocksCount>0) $det[] = "AvenueBlocks={$dbgAvenueBlocksCount}";
+            if($dbgAvenueScreenCount>0) $det[] = "AvenueScreen={$dbgAvenueScreenCount}";
             if($det) $msg .= ' ['.implode(', ',$det).']';
         }
     if($errors){ $msg .= '. Erros: '.implode('; ',$errors); }
