@@ -71,32 +71,8 @@ Route::post('/openai/portfolio/holdings', [\App\Http\Controllers\UserHoldingCont
 Route::get('/openai/portfolio/holdings/{holding}/edit', [\App\Http\Controllers\UserHoldingController::class, 'edit'])->name('holdings.edit');
 Route::put('/openai/portfolio/holdings/{holding}', [\App\Http\Controllers\UserHoldingController::class, 'update'])->name('holdings.update');
 Route::delete('/openai/portfolio/holdings/{holding}', [\App\Http\Controllers\UserHoldingController::class, 'destroy'])->name('holdings.destroy');
-// Import CSV removido em favor do fluxo Avenue Screen rápido; mantido apenas importStore se ainda houver chamadas legadas.
-// Route removida: holdings.import.form
-Route::post('/openai/portfolio/holdings/import', [\App\Http\Controllers\UserHoldingController::class, 'importStore'])->name('holdings.import.store');
-// Diagnóstico rápido de ownership de holdings (temporário - pode remover depois)
-Route::get('/openai/portfolio/holdings/diag-ownership', function(){
-    if(!auth()->check()) abort(403);
-    $uid = auth()->id();
-    $tot = \App\Models\UserHolding::count();
-    $mine = \App\Models\UserHolding::where('user_id',$uid)->count();
-    $nulls = \App\Models\UserHolding::whereNull('user_id')->count();
-    $others = $tot - $mine - $nulls;
-    return response()->json([
-        'user_id'=>$uid,
-        'total'=>$tot,
-        'mine'=>$mine,
-        'null_user_id'=>$nulls,
-        'others'=>$others,
-    ]);
-})->name('holdings.diagOwnership');
-Route::post('/openai/portfolio/holdings/fix-ownership', function(){
-    if(!auth()->check()) abort(403);
-    $uid = auth()->id();
-    // Apenas se houver holdings sem user_id; não altera de outros usuários.
-    $affected = \App\Models\UserHolding::whereNull('user_id')->update(['user_id'=>$uid]);
-    return back()->with('success', "Ownership corrigido: $affected registros agora pertencem ao usuário $uid");
-})->name('holdings.fixOwnership');
+// Rotas legacy de import e diagnóstico de ownership removidas em 2025-10 após consolidação do fluxo Screen.
+// (holdings.import.store, holdings.diagOwnership, holdings.fixOwnership)
 Route::delete('/openai/portfolio/holdings', [\App\Http\Controllers\UserHoldingController::class,'bulkDestroy'])->name('holdings.bulkDestroy');
 Route::get('/openai/portfolio/holdings/export/csv', [\App\Http\Controllers\UserHoldingController::class,'exportCsv'])->name('holdings.export.csv');
 Route::get('/openai/portfolio/holdings/export/xlsx', [\App\Http\Controllers\UserHoldingController::class,'exportXlsx'])->name('holdings.export.xlsx');
