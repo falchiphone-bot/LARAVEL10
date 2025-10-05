@@ -527,6 +527,25 @@ class UserHoldingController extends Controller
                     $highestCol = $sheet->getHighestDataColumn();
                     $highestRow = $sheet->getHighestDataRow();
                     $colCount = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($highestCol);
+                    $firstCellRaw = (string)$sheet->getCellByColumnAndRow(1,1)->getValue();
+                    $ownerEmail = null;
+                    if(filter_var(trim($firstCellRaw), FILTER_VALIDATE_EMAIL)){
+                        $ownerEmail = trim($firstCellRaw);
+                        // Validar conta selecionada obrigatória
+                        if(!$accountId){
+                            return back()->withErrors(['account_id'=>'Selecione a conta antes de importar: arquivo pertence a '.$ownerEmail])->withInput();
+                        }
+                        $accCheck = InvestmentAccount::where('user_id',$userId)->where('id',$accountId)->first();
+                        if(!$accCheck){
+                            return back()->withErrors(['account_id'=>'Conta inválida para este usuário.'])->withInput();
+                        }
+                        $accName = mb_strtolower($accCheck->account_name ?? '');
+                        $accBroker = mb_strtolower($accCheck->broker ?? '');
+                        $emailLower = mb_strtolower($ownerEmail);
+                        if($accName !== $emailLower && $accBroker !== $emailLower){
+                            return back()->withErrors(['csv'=>'E-mail do arquivo ('.$ownerEmail.') não corresponde ao nome ou corretora da conta selecionada.'])->withInput();
+                        }
+                    }
                     $headerRowIndex = 1;
                     $headerMap = [];
                     // Primeiro passa: linha 1
@@ -538,7 +557,7 @@ class UserHoldingController extends Controller
                         }
                     }
                     // Heurística: se primeira célula é 'tabela' e linha 2 contém cabeçalhos reconhecíveis
-                    if(isset($headerMap[1]) && str_starts_with($headerMap[1], 'tabela') && $highestRow >= 2){
+                    if(isset($headerMap[1]) && (str_starts_with($headerMap[1], 'tabela') || $ownerEmail) && $highestRow >= 2){
                         $possible = [];
                         for($c=1;$c<=$colCount;$c++){
                             $v2 = trim((string)$sheet->getCellByColumnAndRow($c,2)->getValue());
