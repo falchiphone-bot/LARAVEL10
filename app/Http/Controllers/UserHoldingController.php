@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class UserHoldingController extends Controller
 {
@@ -510,69 +511,156 @@ class UserHoldingController extends Controller
             $accountId = $acc->id;
         }
         $modeMerge = $request->input('mode_merge','replace');
+        $dataRows = [];
         $raw = '';
+        $isExcel = false;
         if($request->file('csv')){
             $file = $request->file('csv');
-            $raw = file_get_contents($file->getRealPath());
+            $ext = strtolower(pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION));
+            if(in_array($ext, ['xlsx','xls'])){
+                $isExcel = true;
+                try {
+                    $spreadsheet = IOFactory::load($file->getRealPath());
+                    $sheet = $spreadsheet->getActiveSheet();
+                    // Ler cabeçalho (linha 1)
+                    $headerMap = [];
+                    $highestCol = $sheet->getHighestDataColumn();
+                    $highestRow = $sheet->getHighestDataRow();
+                    $colCount = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($highestCol);
+                    for($c=1;$c<=$colCount;$c++){
+                        $val = trim((string)$sheet->getCellByColumnAndRow($c,1)->getValue());
+                        if($val==='') continue;
+                        $valNorm = mb_strtolower($val);
+                        $headerMap[$c] = $valNorm; // guardamos posição -> header original normalizado
+                    }
+                    // Detectar se é formato Avenue (Ativo, Tipo, Cotação, Quantidade, Preço ...)
+                    $isAvenueSheet = false;
+                    $valuesLower = array_values($headerMap);
+                    if(isset($valuesLower[0]) && str_starts_with($valuesLower[0], 'ativo') && in_array('quantidade', $valuesLower)){
+                        $isAvenueSheet = true;
+                    }
+                    if($isAvenueSheet){
+                        for($r=2; $r <= $highestRow; $r++){
+                            $ativoCell = (string)$sheet->getCellByColumnAndRow(1,$r)->getValue();
+                            if(trim($ativoCell)==='') continue;
+                            // Quebras de linha dentro do Excel podem ser "\n" ou "\r\n"
+                            $ativoLines = array_values(array_filter(array_map('trim', preg_split('/\r?\n/',$ativoCell))));
+                            if(empty($ativoLines)) continue;
+                            $code = strtoupper(end($ativoLines));
+                            if(!preg_match('/^[A-Z0-9.\-]{1,12}$/',$code)) continue;
+                            // Coluna Cotação (3) -> procurar primeiro número
+                            $cotCell = (string)$sheet->getCellByColumnAndRow(3,$r)->getValue();
+                            $cotLines = array_values(array_filter(array_map('trim', preg_split('/\r?\n/',$cotCell))));
+                            $cpCandidate = null;
+                            foreach($cotLines as $cl){
+                                if(preg_match('/([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/',$cl,$m)){ $cpCandidate = $m[1]; break; }
+                            }
+                            $currentPrice = $cpCandidate ? $this->parseNumber($cpCandidate,6) : null;
+                            // Quantidade (4)
+                            $qtyCell = (string)$sheet->getCellByColumnAndRow(4,$r)->getValue();
+                            $qty = $this->parseNumber((string)$qtyCell);
+                            if($qty <= 0) continue;
+                            // Preço Médio (5)
+                            $pmCell = (string)$sheet->getCellByColumnAndRow(5,$r)->getValue();
+                            $pmCellNorm = preg_replace('/U\$\s*/i','',$pmCell);
+                            $pmLines = array_values(array_filter(array_map('trim', preg_split('/\r?\n/',$pmCellNorm))));
+                            $pmCandidate = $pmLines[0] ?? $pmCellNorm;
+                            $avg = $this->parseNumber($pmCandidate,6);
+                            if($avg <= 0) continue;
+                            $dataRows[] = [
+                                'code'=>$code,
+                                'quantity'=>$qty,
+                                'avg_price'=>$avg,
+                                'invested_value'=>$qty*$avg,
+                                'current_price'=>$currentPrice,
+                                'currency'=>'USD'
+                            ];
+                        }
+                    } else {
+                        // Fallback genérico: mapear colunas por nome normalizado (reutilizando normalizeHeader)
+                        $normMap = [];
+                        foreach($headerMap as $colIdx=>$name){
+                            $normMap[$colIdx] = $this->normalizeHeader($name);
+                        }
+                        for($r=2; $r <= $highestRow; $r++){
+                            $rowAssoc = [];
+                            $empty = 0;
+                            for($c=1;$c<=$colCount;$c++){
+                                $val = (string)$sheet->getCellByColumnAndRow($c,$r)->getValue();
+                                if(trim($val)==='') $empty++;
+                                if(!isset($normMap[$c])) continue;
+                                $rowAssoc[$normMap[$c]] = $val;
+                            }
+                            if($empty >= $colCount) continue;
+                            $dataRows[] = $rowAssoc;
+                        }
+                    }
+                } catch(\Throwable $e){
+                    return back()->withErrors(['csv'=>'Falha ao ler Excel: '.$e->getMessage()])->withInput();
+                }
+            } else {
+                $raw = file_get_contents($file->getRealPath());
+            }
         } else {
             $raw = (string)$request->input('csv_raw');
         }
-        if(!$raw){ return back()->withErrors(['csv'=>'Conteúdo vazio'])->withInput(); }
+        if(!$isExcel && !$raw){ return back()->withErrors(['csv'=>'Conteúdo vazio'])->withInput(); }
         // Normalizar encoding
-        $enc = mb_detect_encoding($raw, ['UTF-8','ISO-8859-1','WINDOWS-1252'], true) ?: 'UTF-8';
-        if($enc !== 'UTF-8') $raw = mb_convert_encoding($raw,'UTF-8',$enc);
-        // Detectar delimitador predominante (; ou ,)
-        $firstLines = implode("\n", array_slice(preg_split('/\r?\n/',$raw),0,5));
-        $semi = substr_count($firstLines,';'); $comma = substr_count($firstLines,',');
-        $delim = $semi > $comma ? ';' : ',';
-        $lines = preg_split('/\r?\n/',$raw);
-        $headers = [];
-        $dataRows = [];
-        // Primeiro tenta parser Avenue específico (multi-linha/tab)
-        $avenueRows = $this->parseAvenue($raw);
-        $dbgAvenueCount = 0; $dbgAvenueBlocksCount = 0;
-        if(!empty($avenueRows)){
-            $dbgAvenueCount = count($avenueRows);
-            foreach($avenueRows as $r){
-                $dataRows[] = [
-                    'code' => $r['code'],
-                    'quantity' => $r['quantity'],
-                    'avg_price' => $r['avg_price'],
-                    'invested_value' => $r['invested_value'],
-                    'currency' => $r['currency'],
-                    'current_price' => $r['current_price'] ?? null,
-                ];
-            }
-        } elseif($avenueRows = $this->parseAvenueBlocks($raw)) {
-            $dbgAvenueBlocksCount = count($avenueRows);
-            foreach($avenueRows as $r){
-                $dataRows[] = [
-                    'code' => $r['code'],
-                    'quantity' => $r['quantity'],
-                    'avg_price' => $r['avg_price'],
-                    'invested_value' => $r['invested_value'],
-                    'currency' => $r['currency'],
-                    'current_price' => $r['current_price'] ?? null,
-                ];
-            }
-        } else {
-            foreach($lines as $ln){
-                if(trim($ln)==='') continue;
-                $cols = str_getcsv($ln, $delim);
-                $lowerJoined = mb_strtolower(implode(' ', $cols));
-                if(empty($headers) && (str_contains($lowerJoined,'preco') || str_contains($lowerJoined,'price') || str_contains($lowerJoined,'quant') || str_contains($lowerJoined,'pm') || str_contains($lowerJoined,'avg'))){
-                    $headers = array_map(fn($h)=> $this->normalizeHeader($h), $cols);
-                    continue;
+        $dbgAvenueCount = 0; $dbgAvenueBlocksCount = 0; // mantidos para mensagem final
+        if(!$isExcel){
+            $enc = mb_detect_encoding($raw, ['UTF-8','ISO-8859-1','WINDOWS-1252'], true) ?: 'UTF-8';
+            if($enc !== 'UTF-8') $raw = mb_convert_encoding($raw,'UTF-8',$enc);
+            // Detectar delimitador predominante (; ou ,)
+            $firstLines = implode("\n", array_slice(preg_split('/\r?\n/',$raw),0,5));
+            $semi = substr_count($firstLines,';'); $comma = substr_count($firstLines,',');
+            $delim = $semi > $comma ? ';' : ',';
+            $lines = preg_split('/\r?\n/',$raw);
+            $headers = [];
+            // Primeiro tenta parser Avenue específico (multi-linha/tab)
+            $avenueRows = $this->parseAvenue($raw);
+            if(!empty($avenueRows)){
+                $dbgAvenueCount = count($avenueRows);
+                foreach($avenueRows as $r){
+                    $dataRows[] = [
+                        'code' => $r['code'],
+                        'quantity' => $r['quantity'],
+                        'avg_price' => $r['avg_price'],
+                        'invested_value' => $r['invested_value'],
+                        'currency' => $r['currency'],
+                        'current_price' => $r['current_price'] ?? null,
+                    ];
                 }
-                if(!empty($headers)){
-                    if(count($cols) !== count($headers)) continue;
-                    $rowAssoc = [];
-                    foreach($headers as $i=>$h){ $rowAssoc[$h] = $cols[$i] ?? null; }
-                    $dataRows[] = $rowAssoc;
+            } elseif($avenueRows = $this->parseAvenueBlocks($raw)) {
+                $dbgAvenueBlocksCount = count($avenueRows);
+                foreach($avenueRows as $r){
+                    $dataRows[] = [
+                        'code' => $r['code'],
+                        'quantity' => $r['quantity'],
+                        'avg_price' => $r['avg_price'],
+                        'invested_value' => $r['invested_value'],
+                        'currency' => $r['currency'],
+                        'current_price' => $r['current_price'] ?? null,
+                    ];
                 }
-            }
-            if(empty($headers)){
-                return back()->withErrors(['csv'=>'Não foi possível detectar cabeçalho. Verifique se inclui linha com colunas (ex: Código;Quantidade;Preço Médio;Investido).'])->withInput();
+            } else {
+                foreach($lines as $ln){
+                    if(trim($ln)==='') continue;
+                    $cols = str_getcsv($ln, $delim);
+                    $lowerJoined = mb_strtolower(implode(' ', $cols));
+                    if(empty($headers) && (str_contains($lowerJoined,'preco') || str_contains($lowerJoined,'price') || str_contains($lowerJoined,'quant') || str_contains($lowerJoined,'pm') || str_contains($lowerJoined,'avg'))){
+                        $headers = array_map(fn($h)=> $this->normalizeHeader($h), $cols);
+                        continue;
+                    }
+                    if(!empty($headers)){
+                        if(count($cols) !== count($headers)) continue;
+                        $rowAssoc = [];
+                        foreach($headers as $i=>$h){ $rowAssoc[$h] = $cols[$i] ?? null; }
+                        $dataRows[] = $rowAssoc;
+                    }
+                }
+                if(empty($headers)){
+                    return back()->withErrors(['csv'=>'Não foi possível detectar cabeçalho. Verifique se inclui linha com colunas (ex: Código;Quantidade;Preço Médio;Investido).'])->withInput();
+                }
             }
         }
         $ins = 0; $upd = 0; $skip = 0; $errors = [];

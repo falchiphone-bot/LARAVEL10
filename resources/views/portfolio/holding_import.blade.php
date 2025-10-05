@@ -1,7 +1,7 @@
 @extends('layouts.bootstrap5')
 @section('content')
 <div class="container" style="max-width:780px">
-  <h1 class="h5 mb-3">Importar Holdings (CSV)</h1>
+  <h1 class="h5 mb-3">Importar Holdings (CSV / Excel)</h1>
   <div class="card shadow-sm">
     <form method="post" action="{{ route('holdings.import.store') }}" enctype="multipart/form-data">
       @csrf
@@ -16,12 +16,12 @@
             </ul>
           </div>
         @endif
-        <p class="small text-muted mb-2">Formato esperado (detecção automática de cabeçalho):<br><code>Codigo;Quantidade;Preço Médio;Investido;Moeda</code> ou variantes (&ldquo;Ticker&rdquo;, &ldquo;Qty&rdquo;, &ldquo;Avg Price&rdquo;, &ldquo;Investido&rdquo;, &ldquo;Currency&rdquo;). Delimitador ; ou ,. Agora também é possível colar o conteúdo direto.</p>
+  <p class="small text-muted mb-2">Formato esperado (detecção automática de cabeçalho):<br><code>Codigo;Quantidade;Preço Médio;Investido;Moeda</code> ou variantes (&ldquo;Ticker&rdquo;, &ldquo;Qty&rdquo;, &ldquo;Avg Price&rdquo;, &ldquo;Investido&rdquo;, &ldquo;Currency&rdquo;). Delimitador ; ou ,. Pode enviar arquivo CSV <strong>ou</strong> planilha Excel (.xlsx/.xls) com colunas equivalentes. Também é possível colar o conteúdo.</p>
         <div class="row g-3">
           <div class="col-md-6">
-            <label class="form-label small">Arquivo CSV</label>
-            <input type="file" name="csv" class="form-control form-control-sm" accept=".csv,text/csv" />
-            <div class="form-text">Opcional se usar campo de colar conteúdo.</div>
+            <label class="form-label small">Arquivo CSV/Excel</label>
+            <input type="file" name="csv" class="form-control form-control-sm" accept=".csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.xlsx,.xls,text/csv" />
+            <div class="form-text">Opcional se usar campo de colar conteúdo. Suporta: .csv, .xlsx, .xls</div>
           </div>
           <div class="col-md-6">
             <label class="form-label small">Conta destino</label>
