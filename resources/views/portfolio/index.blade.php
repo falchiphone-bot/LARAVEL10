@@ -31,12 +31,15 @@
     @endif
     <a href="{{ route('holdings.create') }}" class="btn btn-sm btn-success" title="Adicionar nova posição">Nova Posição</a>
     <a href="{{ route('holdings.import.form') }}" class="btn btn-sm btn-outline-dark" title="Importar ou colar CSV de holdings">Importar Holdings</a>
+    {{-- Botão Excluir Todas temporariamente desativado --}}
+    {{----
     <form action="{{ route('holdings.bulkDestroy') }}" method="POST" class="d-inline" onsubmit="return confirm('Apagar TODAS as posições? Esta ação não pode ser desfeita.')">
       @csrf
       @method('DELETE')
       <input type="hidden" name="confirm" value="yes" />
       <button class="btn btn-sm btn-outline-danger" type="submit" title="Excluir todas as posições do usuário atual">Excluir Todas</button>
     </form>
+    ----}}
     <a href="{{ route('holdings.export.csv') }}" class="btn btn-sm btn-outline-info" title="Exportar holdings atuais em CSV">Exportar CSV</a>
     <form action="{{ route('holdings.reimport') }}" method="POST" class="d-inline" onsubmit="return confirm('Limpar todas as posições (soft delete) e ir para importação?')">
       @csrf
@@ -98,11 +101,13 @@
                 <a href="{{ $varLink }}" class="btn btn-xs btn-outline-secondary" title="Ver histórico de variações">Histórico</a>
                 {{-- Edição opcional (mantida se quiser ajustar manualmente) --}}
                 {{--<a href="{{ route('holdings.edit', $r['id']) }}" class="btn btn-xs btn-outline-primary" title="Editar posição">Editar</a>--}}
+                {{-- Botão excluir individual desativado temporariamente
                 <form action="{{ route('holdings.destroy', $r['id']) }}" method="POST" onsubmit="return confirm('Excluir posição {{ $r['code'] }}?')">
                   @csrf
                   @method('DELETE')
                   <button class="btn btn-xs btn-outline-danger" title="Excluir esta posição" type="submit">Excluir</button>
                 </form>
+                --}}
               </td>
             </tr>
           @empty
