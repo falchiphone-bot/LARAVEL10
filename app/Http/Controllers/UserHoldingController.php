@@ -335,7 +335,11 @@ class UserHoldingController extends Controller
         }
         $msg = "Atualização via Screen: {$ins} inseridos, {$upd} atualizados, {$skip} ignorados (AvenueScreen=".count($rows).")";
         if($errors) $msg .= ' Erros: '.implode('; ',$errors);
-        return redirect()->route('openai.portfolio.index')->with('success',$msg);
+        if($request->boolean('stay')){
+            return redirect()->route('holdings.screen.quick.form')->with('success',$msg);
+        }
+        $portfolioUrl = route('openai.portfolio.index').'#gsc.tab=0';
+        return redirect()->to($portfolioUrl)->with('success',$msg);
     }
 
     protected function normalizeHeader(string $h): string

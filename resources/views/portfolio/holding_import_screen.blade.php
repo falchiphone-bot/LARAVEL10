@@ -40,6 +40,10 @@
             Sempre substitui quantidade / preço médio / investido / preço atual para os tickers da conta.
           </div>
         </div>
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" role="switch" id="stay-switch" name="stay" value="1">
+          <label class="form-check-label small" for="stay-switch">Permanecer nesta tela após processar (multi-import)</label>
+        </div>
       </div>
       <div class="card-footer d-flex justify-content-between">
         <a href="{{ route('openai.portfolio.index') }}" class="btn btn-sm btn-secondary">Voltar</a>

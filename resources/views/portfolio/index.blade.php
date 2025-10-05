@@ -30,6 +30,11 @@
       <a href="{{ $__variationsSelectedUrl }}" class="btn btn-sm btn-outline-warning" title="Abrir Variações com todos os códigos da carteira já selecionados (máx 200)">Variações (Códigos da Carteira)</a>
     @endif
     <a href="{{ route('holdings.create') }}" class="btn btn-sm btn-success" title="Adicionar nova posição">Nova Posição</a>
+    @can('HOLDINGS - IMPORTAR')
+      <a href="{{ route('holdings.screen.quick.form') }}" class="btn btn-sm btn-outline-primary" title="Importar/colar holdings via tela da Avenue (Screen)">
+        Importar Holdings (Avenue)
+      </a>
+    @endcan
   {{-- Rota deprecated removida: holdings.screen.quick.form --}}
   {{-- <a href="{{ route('holdings.screen.quick.form') }}" class="btn btn-sm btn-outline-primary" title="Colar rapidamente bloco de tela Avenue e atualizar">Atualizar (Avenue Screen)</a> --}}
     {{-- Botão Excluir Todas temporariamente desativado --}}

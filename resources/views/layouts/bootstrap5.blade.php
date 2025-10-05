@@ -611,6 +611,11 @@ if (window.Livewire) {
                     <ul class="dropdown-menu" aria-labelledby="submenu-investimentos">
                       @can('OPENAI - CHAT')
                       <li>
+                        <a class="dropdown-item" href="{{ route('openai.portfolio.index') }}#gsc.tab=0" title="Carteira consolidada (holdings, P/L, variações)">
+                          <i class="fa-solid fa-table-list me-1"></i> Carteira
+                        </a>
+                      </li>
+                      <li>
                         <a class="dropdown-item" href="{{ route('openai.investments.index') }}" title="Contas de investimento vinculadas">
                           <i class="fa-solid fa-wallet me-1"></i> Contas
                         </a>
@@ -638,6 +643,11 @@ if (window.Livewire) {
                     <h6 class="dropdown-header"><i class="fa-solid fa-wallet me-1"></i> Investimentos</h6>
                   </li>
                   @can('OPENAI - CHAT')
+                  <li class="d-block d-md-none">
+                    <a class="dropdown-item ps-4" href="{{ route('openai.portfolio.index') }}#gsc.tab=0" title="Carteira consolidada (holdings, P/L, variações)">
+                      <i class="fa-solid fa-table-list me-1"></i> Carteira
+                    </a>
+                  </li>
                   <li class="d-block d-md-none">
                     <a class="dropdown-item ps-4" href="{{ route('openai.investments.index') }}" title="Contas de investimento vinculadas">
                       <i class="fa-solid fa-wallet me-1"></i> Contas
