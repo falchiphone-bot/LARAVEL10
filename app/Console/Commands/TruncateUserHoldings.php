@@ -22,10 +22,13 @@ class TruncateUserHoldings extends Command
         }
 
         if(!$this->option('force')){
-            if(!$this->confirm('Isso irá APAGAR TODOS os registros de user_holdings. Continuar?')){
-                $this->info('Abortado.');
+            // confirm() já aceita yes/no; reforçamos texto claro.
+            if(!$this->confirm('Isso irá APAGAR TODOS os registros de user_holdings. Digite yes para confirmar. Continuar?')){
+                $this->warn('Operação cancelada pelo usuário (nenhuma alteração realizada).');
                 return self::SUCCESS;
             }
+        } else {
+            $this->warn('--force especificado: pulando confirmação.');
         }
 
         $this->line('Truncando tabela user_holdings (driver: '.$driver.')...');
