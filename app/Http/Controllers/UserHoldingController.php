@@ -524,26 +524,60 @@ class UserHoldingController extends Controller
                 try {
                     $spreadsheet = IOFactory::load($file->getRealPath());
                     $sheet = $spreadsheet->getActiveSheet();
-                    // Ler cabeçalho (linha 1)
-                    $headerMap = [];
                     $highestCol = $sheet->getHighestDataColumn();
                     $highestRow = $sheet->getHighestDataRow();
                     $colCount = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($highestCol);
+                    $headerRowIndex = 1;
+                    $headerMap = [];
+                    // Primeiro passa: linha 1
                     for($c=1;$c<=$colCount;$c++){
-                        $val = trim((string)$sheet->getCellByColumnAndRow($c,1)->getValue());
-                        if($val==='') continue;
-                        $valNorm = mb_strtolower($val);
-                        $headerMap[$c] = $valNorm; // guardamos posição -> header original normalizado
+                        $valRaw = (string)$sheet->getCellByColumnAndRow($c,1)->getValue();
+                        $val = trim($valRaw);
+                        if($val!==''){
+                            $headerMap[$c] = mb_strtolower($val);
+                        }
                     }
-                    // Detectar se é formato Avenue (Ativo, Tipo, Cotação, Quantidade, Preço ...)
+                    // Heurística: se primeira célula é 'tabela' e linha 2 contém cabeçalhos reconhecíveis
+                    if(isset($headerMap[1]) && str_starts_with($headerMap[1], 'tabela') && $highestRow >= 2){
+                        $possible = [];
+                        for($c=1;$c<=$colCount;$c++){
+                            $v2 = trim((string)$sheet->getCellByColumnAndRow($c,2)->getValue());
+                            if($v2!=='') $possible[$c] = mb_strtolower($v2);
+                        }
+                        $vals = array_values($possible);
+                        $matchKeywords = 0;
+                        foreach(['ativo','cotação','cotacao','quantidade','preço','preco'] as $kw){
+                            foreach($vals as $vv){ if(str_starts_with($vv,$kw)){ $matchKeywords++; break; } }
+                        }
+                        if($matchKeywords >= 2){
+                            // Reinterpretar cabeçalho como linha 2
+                            $headerMap = $possible;
+                            $headerRowIndex = 2;
+                        }
+                    }
+                    // Se ainda só temos 1 coluna de cabeçalho e ela não começa com 'ativo', tentar segunda linha mesmo sem 'tabela'
+                    if(count($headerMap) <= 1 && $highestRow >=2 && $headerRowIndex===1){
+                        $possible2 = [];
+                        for($c=1;$c<=$colCount;$c++){
+                            $v2 = trim((string)$sheet->getCellByColumnAndRow($c,2)->getValue());
+                            if($v2!=='') $possible2[$c] = mb_strtolower($v2);
+                        }
+                        if(count($possible2) > count($headerMap)){
+                            $headerMap = $possible2; $headerRowIndex = 2;
+                        }
+                    }
+                    // Detectar formato Avenue
                     $isAvenueSheet = false;
                     $valuesLower = array_values($headerMap);
-                    if(isset($valuesLower[0]) && str_starts_with($valuesLower[0], 'ativo') && in_array('quantidade', $valuesLower)){
-                        $isAvenueSheet = true;
+                    if(!empty($valuesLower)){
+                        if(str_starts_with($valuesLower[0],'ativo') && (in_array('quantidade',$valuesLower) || in_array('qtd',$valuesLower))){
+                            $isAvenueSheet = true;
+                        }
                     }
                     if($isAvenueSheet){
                         $dbgSkipAvenueCode = 0; $dbgSkipAvenueQty = 0; $dbgSkipAvenueAvg = 0;
-                        for($r=2; $r <= $highestRow; $r++){
+                        $dataStart = $headerRowIndex + 1;
+                        for($r=$dataStart; $r <= $highestRow; $r++){
                             $ativoCell = (string)$sheet->getCellByColumnAndRow(1,$r)->getValue();
                             if(trim($ativoCell)==='') continue;
                             // Quebras de linha dentro do Excel podem ser "\n" ou "\r\n"
@@ -593,7 +627,8 @@ class UserHoldingController extends Controller
                         foreach($headerMap as $colIdx=>$name){
                             $normMap[$colIdx] = $this->normalizeHeader($name);
                         }
-                        for($r=2; $r <= $highestRow; $r++){
+                        $dataStart = $headerRowIndex + 1;
+                        for($r=$dataStart; $r <= $highestRow; $r++){
                             $rowAssoc = [];
                             $empty = 0;
                             for($c=1;$c<=$colCount;$c++){
@@ -604,6 +639,24 @@ class UserHoldingController extends Controller
                             }
                             if($empty >= $colCount) continue;
                             $dataRows[] = $rowAssoc;
+                        }
+                        // Caso extremo: apenas uma coluna (ex: 'ativo') mas sem demais colunas necessárias
+                        if(count($normMap) === 1 && isset($normMap[array_key_first($normMap)]) && $normMap[array_key_first($normMap)] === 'code'){
+                            // Vamos tentar extrair de blocos se possível (cada célula contém bloco multi-linha)
+                            $converted = [];
+                            foreach($dataRows as $one){
+                                $block = (string)($one['code'] ?? '');
+                                $lines = array_values(array_filter(array_map('trim', preg_split('/\r?\n/',$block))));
+                                if(count($lines) < 2) continue;
+                                $ticker = strtoupper(end($lines));
+                                $ticker = preg_replace('/[^A-Z0-9.\-]/','',$ticker);
+                                if($ticker==='') continue;
+                                // Sem qty/avg não há como criar holding real
+                                // Apenas registra debug para orientar usuário
+                            }
+                            if(empty($converted)){
+                                return back()->withErrors(['csv'=>'Arquivo Excel contém somente uma coluna (ATIVO) sem Quantidade/Preço Médio. Exporte novamente incluindo todas as colunas (Ativo, Tipo, Cotação, Quantidade, Preço médio, Lucro/Prejuízo) ou use o CSV original.'])->withInput();
+                            }
                         }
                     }
                 } catch(\Throwable $e){
@@ -742,7 +795,7 @@ class UserHoldingController extends Controller
             if($dbgAvenueBlocksCount>0) $det[] = "AvenueBlocks={$dbgAvenueBlocksCount}";
             if($det) $msg .= ' ['.implode(', ',$det).']';
         }
-        if($errors){ $msg += '. Erros: '.implode('; ',$errors); }
+    if($errors){ $msg .= '. Erros: '.implode('; ',$errors); }
         // Logging detalhado somente se nada entrou/atualizou
         if($ins===0 && $upd===0){
             // limitar tamanho para não explodir log
