@@ -63,6 +63,39 @@ Route::get('/openai/variations', [\App\Http\Controllers\AssetVariationController
 Route::get('/openai/variations/export-csv', [\App\Http\Controllers\AssetVariationController::class, 'exportCsv'])->name('openai.variations.exportCsv');
 Route::get('/openai/variations/export-xlsx', [\App\Http\Controllers\AssetVariationController::class, 'exportXlsx'])->name('openai.variations.exportXlsx');
 Route::post('/openai/variations/batch-flags', [\App\Http\Controllers\AssetVariationController::class, 'batchFlags'])->name('openai.variations.batchFlags');
+// Carteira real do usuário
+Route::get('/openai/portfolio', [\App\Http\Controllers\PortfolioController::class, 'index'])->name('openai.portfolio.index');
+// CRUD holdings (carteira)
+Route::get('/openai/portfolio/holdings/create', [\App\Http\Controllers\UserHoldingController::class, 'create'])->name('holdings.create');
+Route::post('/openai/portfolio/holdings', [\App\Http\Controllers\UserHoldingController::class, 'store'])->name('holdings.store');
+Route::get('/openai/portfolio/holdings/{holding}/edit', [\App\Http\Controllers\UserHoldingController::class, 'edit'])->name('holdings.edit');
+Route::put('/openai/portfolio/holdings/{holding}', [\App\Http\Controllers\UserHoldingController::class, 'update'])->name('holdings.update');
+Route::delete('/openai/portfolio/holdings/{holding}', [\App\Http\Controllers\UserHoldingController::class, 'destroy'])->name('holdings.destroy');
+Route::get('/openai/portfolio/holdings/import', [\App\Http\Controllers\UserHoldingController::class, 'importForm'])->name('holdings.import.form');
+Route::post('/openai/portfolio/holdings/import', [\App\Http\Controllers\UserHoldingController::class, 'importStore'])->name('holdings.import.store');
+// Diagnóstico rápido de ownership de holdings (temporário - pode remover depois)
+Route::get('/openai/portfolio/holdings/diag-ownership', function(){
+    if(!auth()->check()) abort(403);
+    $uid = auth()->id();
+    $tot = \App\Models\UserHolding::count();
+    $mine = \App\Models\UserHolding::where('user_id',$uid)->count();
+    $nulls = \App\Models\UserHolding::whereNull('user_id')->count();
+    $others = $tot - $mine - $nulls;
+    return response()->json([
+        'user_id'=>$uid,
+        'total'=>$tot,
+        'mine'=>$mine,
+        'null_user_id'=>$nulls,
+        'others'=>$others,
+    ]);
+})->name('holdings.diagOwnership');
+Route::post('/openai/portfolio/holdings/fix-ownership', function(){
+    if(!auth()->check()) abort(403);
+    $uid = auth()->id();
+    // Apenas se houver holdings sem user_id; não altera de outros usuários.
+    $affected = \App\Models\UserHolding::whereNull('user_id')->update(['user_id'=>$uid]);
+    return back()->with('success', "Ownership corrigido: $affected registros agora pertencem ao usuário $uid");
+})->name('holdings.fixOwnership');
 
 // ...outras rotas...
 
