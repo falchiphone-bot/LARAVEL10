@@ -98,6 +98,9 @@ Route::post('/openai/portfolio/holdings/fix-ownership', function(){
 })->name('holdings.fixOwnership');
 Route::delete('/openai/portfolio/holdings', [\App\Http\Controllers\UserHoldingController::class,'bulkDestroy'])->name('holdings.bulkDestroy');
 Route::get('/openai/portfolio/holdings/export/csv', [\App\Http\Controllers\UserHoldingController::class,'exportCsv'])->name('holdings.export.csv');
+Route::get('/openai/portfolio/holdings/export/xlsx', [\App\Http\Controllers\UserHoldingController::class,'exportXlsx'])->name('holdings.export.xlsx');
+Route::get('/openai/portfolio/holdings/template', [\App\Http\Controllers\UserHoldingController::class,'templateCsv'])->name('holdings.template.csv');
+Route::get('/openai/portfolio/holdings/template/account/{accountId}', [\App\Http\Controllers\UserHoldingController::class,'templateCsvByAccount'])->name('holdings.template.account.csv');
 Route::post('/openai/portfolio/holdings/reimport', [\App\Http\Controllers\UserHoldingController::class,'reimportRedirect'])->name('holdings.reimport');
 
 // ...outras rotas...

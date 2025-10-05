@@ -41,6 +41,24 @@
     </form>
     ----}}
     <a href="{{ route('holdings.export.csv') }}" class="btn btn-sm btn-outline-info" title="Exportar holdings atuais em CSV">Exportar CSV</a>
+    <a href="{{ route('holdings.export.xlsx') }}" class="btn btn-sm btn-outline-info" title="Exportar holdings atuais em XLSX">Exportar XLSX</a>
+    <a href="{{ route('holdings.template.csv') }}" class="btn btn-sm btn-outline-secondary" title="Baixar template CSV genérico">Template CSV</a>
+    @php
+      $accountsList = collect($rows)->pluck('account')->unique()->filter();
+    @endphp
+    @if($accountsList->count())
+      <div class="btn-group btn-group-sm">
+        <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Template por Conta</button>
+        <ul class="dropdown-menu">
+          @foreach($accountsList as $accName)
+            @php $accId = collect($rows)->firstWhere('account', $accName)['id'] ?? null; @endphp
+            @if($accId)
+              <li><a class="dropdown-item" href="{{ route('holdings.template.account.csv', $accId) }}">{{ $accName }}</a></li>
+            @endif
+          @endforeach
+        </ul>
+      </div>
+    @endif
     <form action="{{ route('holdings.reimport') }}" method="POST" class="d-inline" onsubmit="return confirm('Limpar todas as posições (soft delete) e ir para importação?')">
       @csrf
       <button class="btn btn-sm btn-warning" type="submit" title="Soft delete de todas e redirecionar para importação">Reimportar (Limpar + Importar)</button>
