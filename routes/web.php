@@ -97,6 +97,8 @@ Route::post('/openai/portfolio/holdings/fix-ownership', function(){
     return back()->with('success', "Ownership corrigido: $affected registros agora pertencem ao usuário $uid");
 })->name('holdings.fixOwnership');
 Route::delete('/openai/portfolio/holdings', [\App\Http\Controllers\UserHoldingController::class,'bulkDestroy'])->name('holdings.bulkDestroy');
+Route::get('/openai/portfolio/holdings/export/csv', [\App\Http\Controllers\UserHoldingController::class,'exportCsv'])->name('holdings.export.csv');
+Route::post('/openai/portfolio/holdings/reimport', [\App\Http\Controllers\UserHoldingController::class,'reimportRedirect'])->name('holdings.reimport');
 
 // ...outras rotas...
 

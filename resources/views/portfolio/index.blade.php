@@ -37,6 +37,11 @@
       <input type="hidden" name="confirm" value="yes" />
       <button class="btn btn-sm btn-outline-danger" type="submit" title="Excluir todas as posições do usuário atual">Excluir Todas</button>
     </form>
+    <a href="{{ route('holdings.export.csv') }}" class="btn btn-sm btn-outline-info" title="Exportar holdings atuais em CSV">Exportar CSV</a>
+    <form action="{{ route('holdings.reimport') }}" method="POST" class="d-inline" onsubmit="return confirm('Limpar todas as posições (soft delete) e ir para importação?')">
+      @csrf
+      <button class="btn btn-sm btn-warning" type="submit" title="Soft delete de todas e redirecionar para importação">Reimportar (Limpar + Importar)</button>
+    </form>
     @if($refresh && $updatedCodes)
       <span class="text-muted small">Atualizados: {{ implode(', ', $updatedCodes) }}</span>
     @endif

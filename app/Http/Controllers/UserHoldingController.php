@@ -148,8 +148,43 @@ class UserHoldingController extends Controller
             return back()->withErrors(['confirm'=>'Confirmação ausente.']);
         }
         $count = UserHolding::where('user_id', $userId)->count();
-        UserHolding::where('user_id', $userId)->delete();
-        return redirect()->route('openai.portfolio.index')->with('success', "Removidas {$count} posições.");
+        UserHolding::where('user_id', $userId)->delete(); // soft delete
+        return redirect()->route('openai.portfolio.index')->with('success', "Removidas (soft) {$count} posições.");
+    }
+
+    public function exportCsv(Request $request)
+    {
+        $userId = Auth::id();
+        $rows = UserHolding::where('user_id',$userId)->orderBy('code')->get();
+        $lines = [];
+        $lines[] = 'Codigo;Conta;Corretora;Quantidade;PrecoMedio;Investido;CurrentPrice;Moeda;AtualizadoEm';
+        foreach($rows as $h){
+            $lines[] = implode(';', [
+                $h->code,
+                $h->account_id,
+                $h->account?->broker,
+                number_format((float)$h->quantity,6,',','.'),
+                number_format((float)$h->avg_price,6,',','.'),
+                number_format((float)$h->invested_value,2,',','.'),
+                $h->current_price !== null ? number_format((float)$h->current_price,6,',','.') : '',
+                $h->currency ?? '',
+                $h->updated_at?->format('Y-m-d H:i:s')
+            ]);
+        }
+        $content = implode("\n", $lines);
+        $filename = 'holdings_export_'.date('Ymd_His').'.csv';
+        return response($content, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"'
+        ]);
+    }
+
+    public function reimportRedirect(Request $request)
+    {
+        // Soft delete tudo e redireciona para import
+        $userId = Auth::id();
+        UserHolding::where('user_id',$userId)->delete();
+        return redirect()->route('holdings.import.form')->with('success','Posições limpas (soft delete). Agora importe o novo arquivo.');
     }
 
     public function importForm()
