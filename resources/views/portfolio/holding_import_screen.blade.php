@@ -28,7 +28,8 @@
         </div>
         <div class="mb-3">
           <label class="form-label small">Bloco Avenue Screen</label>
-          <textarea name="screen_raw" class="form-control form-control-sm" rows="12" placeholder="Cole aqui..." required></textarea>
+          <textarea name="screen_raw" id="screen_raw" class="form-control form-control-sm" rows="12" placeholder="Cole aqui..." required></textarea>
+          <div id="email-detect" class="form-text mt-1"></div>
         </div>
         <div class="row g-2 mb-2">
           <div class="col-md-4">
@@ -56,3 +57,65 @@
   </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+(function(){
+  const ta = document.getElementById('screen_raw');
+  const accSelect = document.querySelector('select[name="account_id"]');
+  const info = document.getElementById('email-detect');
+  if(!ta || !info) return;
+
+  function parseAccountParts(optText){
+    // Formato: "account_name (broker)" ou apenas "account_name"
+    const m = optText.match(/^\s*([^()]+?)(?:\s*\((.+)\))?\s*$/);
+    if(!m) return {name: optText.trim().toLowerCase(), broker:null};
+    return {name: (m[1]||'').trim().toLowerCase(), broker: m[2]? m[2].trim().toLowerCase(): null};
+  }
+
+  function detectEmailFromText(text){
+    const lines = text.split(/\r?\n/);
+    for(const raw of lines){
+      const l = raw.trim();
+      if(!l) continue; // pula vazias
+      const emailPattern = /^[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}$/;
+      if(emailPattern.test(l)) return l.toLowerCase();
+      return null; // primeira linha não vazia não é email -> aborta
+    }
+    return null;
+  }
+
+  function refreshStatus(){
+    const email = detectEmailFromText(ta.value || '');
+    const selOpt = accSelect && accSelect.value ? accSelect.options[accSelect.selectedIndex] : null;
+    if(!email){
+      info.innerHTML = '<span class="text-muted">Nenhum e-mail detectado na primeira linha (opcional).</span>';
+      return;
+    }
+    let matchStatus = 'pending';
+    let detail = '';
+    if(selOpt){
+      const parts = parseAccountParts(selOpt.textContent||'');
+      if(email === parts.name || (parts.broker && email === parts.broker)){
+        matchStatus = 'ok';
+      } else {
+        matchStatus = 'mismatch';
+        detail = ' (Conta: '+(parts.name || '-')+(parts.broker? ' / Broker: '+parts.broker:'')+')';
+      }
+    }
+    if(matchStatus === 'ok'){
+      info.innerHTML = '<span class="text-success">E-mail detectado: '+email+' ✔ corresponde à conta selecionada.</span>';
+    } else if(matchStatus === 'mismatch'){
+      info.innerHTML = '<span class="text-danger">E-mail detectado: '+email+' não corresponde ao nome ou corretora da conta selecionada'+detail+'.</span>';
+    } else {
+      info.innerHTML = '<span class="text-warning">E-mail detectado: '+email+' — selecione a conta correspondente.</span>';
+    }
+  }
+
+  ta.addEventListener('input', refreshStatus);
+  if(accSelect) accSelect.addEventListener('change', refreshStatus);
+  // Primeira carga
+  refreshStatus();
+})();
+</script>
+@endpush
