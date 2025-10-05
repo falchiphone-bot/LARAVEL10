@@ -500,7 +500,10 @@ class UserHoldingController extends Controller
      */
     protected function parseAvenueScreen(string $raw): array
     {
-        if(!str_contains($raw, 'Logo de') && !preg_match('/\n[A-Z]{2,12}\nAções/i', $raw)) return [];
+        // Relaxa a detecção: se não tiver nenhum 'Logo de' mas tiver muitos tickers isolados não aborta cedo.
+        if(!str_contains($raw, 'Logo de') && !preg_match('/\n[A-Z0-9]{2,12}\nAções/i', $raw)){
+            // Continua mesmo assim; tentativa heurística.
+        }
         $raw = str_replace(["\r\n","\r"], "\n", $raw);
         $lines = array_map(fn($l)=> rtrim($l), preg_split('/\n/',$raw));
         // remover linhas totalmente vazias exceto mantemos estrutura agrupada usando índice
@@ -513,22 +516,39 @@ class UserHoldingController extends Controller
             if(str_starts_with($ln,'Logo de ')){
                 // próximo deve ser nome empresa
                 $i++; if($i >= $n) break; $company = trim($lines[$i]);
-                // ticker
+                // pular linhas em branco até achar ticker
+                while($i+1 < $n && trim($lines[$i+1])===''){ $i++; }
                 $i++; if($i >= $n) break; $tickerLine = trim($lines[$i]);
+                // Se ticker ainda não válido, tentar próxima não vazia
+                if(!preg_match('/^[A-Z0-9.\-]{1,12}$/',$tickerLine)){
+                    $found = false;
+                    $seek = $i+1;
+                    while($seek < $n){
+                        $cand = trim($lines[$seek]);
+                        if($cand===''){ $seek++; continue; }
+                        if(preg_match('/^[A-Z0-9.\-]{1,12}$/',$cand)){ $tickerLine = $cand; $i = $seek; $found = true; break; }
+                        break;
+                    }
+                    if(!$found) continue; // aborta bloco
+                }
                 if(!preg_match('/^[A-Z0-9.\-]{1,12}$/',$tickerLine)) continue; // não é bloco válido
                 $ticker = strtoupper($tickerLine);
-                // tipo (Ações)
+                // pular linhas em branco até tipo
+                while($i+1 < $n && trim($lines[$i+1])===''){ $i++; }
                 $i++; if($i >= $n) break; $tipoLine = trim($lines[$i]);
-                // preço atual
+                // pular linhas em branco até preço atual
+                while($i+1 < $n && trim($lines[$i+1])===''){ $i++; }
                 $i++; if($i >= $n) break; $priceLine = trim($lines[$i]);
                 if(!str_starts_with($priceLine,'U$')) continue;
                 $currentPrice = null;
                 if(preg_match('/U\$\s*([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/',$priceLine,$m)){
                     $currentPrice = $this->parseNumber($m[1],6);
                 }
-                // variação (ignorar)
+                // pular linhas em branco até variação
+                while($i+1 < $n && trim($lines[$i+1])===''){ $i++; }
                 $i++; if($i >= $n) break; $variationLine = trim($lines[$i]);
-                // linha com quantidade / pm / investido
+                // pular linhas em branco até linha quantidade
+                while($i+1 < $n && trim($lines[$i+1])===''){ $i++; }
                 $i++; if($i >= $n) break; $qtyLine = trim($lines[$i]);
                 // Pode estar separado por TAB ou espaços múltiplos; padronizar substituindo tab por espaço duplo
                 $qtyNorm = str_replace(["\t"],'  ',$qtyLine);
@@ -585,7 +605,7 @@ class UserHoldingController extends Controller
         }
         $modeMerge = $request->input('mode_merge','replace');
         $dataRows = [];
-        $dbgAvenueCount = 0; $dbgAvenueBlocksCount = 0; // contadores de diagnósticos
+    $dbgAvenueCount = 0; $dbgAvenueBlocksCount = 0; $dbgAvenueScreenCount = 0; // contadores de diagnósticos
         $raw = '';
         $isExcel = false;
     if($request->file('csv')){
