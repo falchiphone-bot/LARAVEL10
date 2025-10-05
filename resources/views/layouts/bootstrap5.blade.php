@@ -916,127 +916,7 @@ if (window.Livewire) {
       }catch(_e){}
     })();
   </script>
-  {{-- Market status desabilitado --}}
-  {{-- <script>
-      // Poller compartilhado via localStorage para evitar 429 quando múltiplas abas estão abertas
-      (function(){
-        const BADGE_ID = 'market-status-global';
-  const MARKET_STATUS_URL = new window.URL('/api/market/status', window.location.origin).toString();
-        const LS_KEY_CACHE = 'marketStatusCacheV1'; // { data, ts }
-        const LS_KEY_LEADER = 'marketStatusLeaderV1'; // { id, until }
-        const POLL_OK_MS = 60000;      // 60s normal
-        const POLL_BACKOFF_MS = 180000; // 3min quando 429
-        const CACHE_STALE_MS = 55000;  // 55s (próximo do TTL do servidor)
-
-        const myId = Math.random().toString(36).slice(2);
-        let nextMs = POLL_OK_MS;
-
-        function getBadge(){ return document.getElementById(BADGE_ID); }
-
-        function fmtBR(s){
-          if (!s) return '';
-          try{
-            const d = new Date(String(s).replace(' ','T'));
-            if (isNaN(d.getTime())) return s;
-            const dd = String(d.getDate()).padStart(2,'0');
-            const mm = String(d.getMonth()+1).padStart(2,'0');
-            const yy = d.getFullYear();
-            const HH = String(d.getHours()).padStart(2,'0');
-            const MM = String(d.getMinutes()).padStart(2,'0');
-            return `${dd}/${mm}/${yy} ${HH}:${MM}`;
-          }catch(_e){ return s; }
-        }
-
-        function renderBadge(data, hint){
-          const badge = getBadge();
-          if (!badge || !data) return;
-          const st = String(data.status||'').toLowerCase();
-          const label = String(data.label||'Mercado');
-          const nextStr = data.next_change_at ? ` • Próx: ${fmtBR(data.next_change_at)}` : '';
-          let cls = 'bg-secondary';
-          if (st === 'open') cls = 'bg-success';
-          else if (st === 'pre') cls = 'bg-warning text-dark';
-          else if (st === 'after') cls = 'bg-info text-dark';
-          else if (st === 'closed') cls = 'bg-secondary';
-          badge.className = 'badge rounded-pill ' + cls;
-          badge.textContent = `Mercado: ${label}` + nextStr + (hint ? ` ${hint}` : '');
-          if (data.reason){ badge.title = `${label} — ${data.reason}`; }
-        }
-
-        function renderUnavailable(msg){
-          const badge = getBadge();
-          if (!badge) return;
-          badge.className='badge rounded-pill bg-secondary';
-          badge.textContent = msg || 'Mercado: indisponível';
-        }
-
-        function readCache(){
-          try{ return JSON.parse(localStorage.getItem(LS_KEY_CACHE)||'null'); }catch(_e){ return null; }
-        }
-        function writeCache(data){
-          try{ localStorage.setItem(LS_KEY_CACHE, JSON.stringify({ data, ts: Date.now() })); }catch(_e){}
-        }
-        function isCacheFresh(obj){ return obj && obj.ts && (Date.now() - obj.ts) < CACHE_STALE_MS; }
-
-        function getLeader(){
-          try{ return JSON.parse(localStorage.getItem(LS_KEY_LEADER)||'null'); }catch(_e){ return null; }
-        }
-        function becomeLeader(){
-          const until = Date.now() + Math.max(nextMs, POLL_OK_MS) + 5000; // margem
-          const me = { id: myId, until };
-          try{ localStorage.setItem(LS_KEY_LEADER, JSON.stringify(me)); }catch(_e){}
-          // verifique se permaneceu meu
-          const nowLeader = getLeader();
-          return nowLeader && nowLeader.id === myId;
-        }
-        function hasLeader(){
-          const l = getLeader();
-          return !!(l && l.until && l.until > Date.now());
-        }
-
-        async function poll(){
-          const cached = readCache();
-          if (isCacheFresh(cached)){
-            renderBadge(cached.data);
-          }
-          // Se já existe líder válido, não faz fetch
-          if (hasLeader()) return;
-          if (!becomeLeader()) return;
-          try{
-            const resp = await fetch(MARKET_STATUS_URL, { headers: { 'Accept':'application/json' } });
-            if (resp.status === 429){
-              nextMs = POLL_BACKOFF_MS;
-              renderUnavailable('Mercado: limite temporário');
-              return;
-            }
-            const data = await resp.json().catch(()=>null);
-            if(!resp.ok || !data) throw new Error('fail');
-            writeCache(data);
-            renderBadge(data);
-            nextMs = POLL_OK_MS;
-          }catch(_e){
-            renderUnavailable();
-            nextMs = POLL_BACKOFF_MS;
-          } finally {
-            // libera liderança após pequena janela para outros não disputarem imediatamente
-            try{ localStorage.removeItem(LS_KEY_LEADER); }catch(_e){}
-          }
-        }
-
-        // Atualiza quando outra aba atualizar o cache
-        window.addEventListener('storage', function(ev){
-          if (ev.key === LS_KEY_CACHE && ev.newValue){
-            try{ const obj = JSON.parse(ev.newValue); if (obj && obj.data){ renderBadge(obj.data); } }catch(_e){}
-          }
-        });
-
-        // Loop de agendamento com backoff
-        (function loop(){
-          try{ poll(); }catch(_e){}
-          setTimeout(loop, nextMs);
-        })();
-      })();
-    </script> --}}
+  {{-- Market status desabilitado (bloco extenso removido para evitar ParseError) --}}
     <script>
       // Logout silencioso: POST /logout (AJAX) e fechar a guia sem navegação.
       (function(){
@@ -1159,9 +1039,8 @@ if (window.Livewire) {
   });
 }
 </script>
-</script>
+<!-- Fim do layout -->
 </body>
-
 </html>
 <script>
     function scrollToBottom() {
