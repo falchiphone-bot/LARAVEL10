@@ -30,7 +30,8 @@
       <a href="{{ $__variationsSelectedUrl }}" class="btn btn-sm btn-outline-warning" title="Abrir Variações com todos os códigos da carteira já selecionados (máx 200)">Variações (Códigos da Carteira)</a>
     @endif
     <a href="{{ route('holdings.create') }}" class="btn btn-sm btn-success" title="Adicionar nova posição">Nova Posição</a>
-  <a href="{{ route('holdings.screen.quick.form') }}" class="btn btn-sm btn-outline-primary" title="Colar rapidamente bloco de tela Avenue e atualizar">Atualizar (Avenue Screen)</a>
+  {{-- Rota deprecated removida: holdings.screen.quick.form --}}
+  {{-- <a href="{{ route('holdings.screen.quick.form') }}" class="btn btn-sm btn-outline-primary" title="Colar rapidamente bloco de tela Avenue e atualizar">Atualizar (Avenue Screen)</a> --}}
     {{-- Botão Excluir Todas temporariamente desativado --}}
     {{----
     <form action="{{ route('holdings.bulkDestroy') }}" method="POST" class="d-inline" onsubmit="return confirm('Apagar TODAS as posições? Esta ação não pode ser desfeita.')">
@@ -42,11 +43,13 @@
     ----}}
     <a href="{{ route('holdings.export.csv') }}" class="btn btn-sm btn-outline-info" title="Exportar holdings atuais em CSV">Exportar CSV</a>
     <a href="{{ route('holdings.export.xlsx') }}" class="btn btn-sm btn-outline-info" title="Exportar holdings atuais em XLSX">Exportar XLSX</a>
-    <a href="{{ route('holdings.template.csv') }}" class="btn btn-sm btn-outline-secondary" title="Baixar template CSV genérico">Template CSV</a>
+  {{-- Rota deprecated removida: holdings.template.csv --}}
+  {{-- <a href="{{ route('holdings.template.csv') }}" class="btn btn-sm btn-outline-secondary" title="Baixar template CSV genérico">Template CSV</a> --}}
     @php
       $accountsList = collect($rows)->pluck('account')->unique()->filter();
     @endphp
-    @if($accountsList->count())
+    {{-- Bloco deprecated: templates por conta removidos --}}
+    {{-- @if($accountsList->count())
       <div class="btn-group btn-group-sm">
         <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Template por Conta</button>
         <ul class="dropdown-menu">
@@ -58,11 +61,12 @@
           @endforeach
         </ul>
       </div>
-    @endif
-    <form action="{{ route('holdings.reimport') }}" method="POST" class="d-inline" onsubmit="return confirm('Limpar todas as posições (soft delete) e ir para importação?')">
+    @endif --}}
+    {{-- Rota deprecated removida: holdings.reimport --}}
+    {{-- <form action="{{ route('holdings.reimport') }}" method="POST" class="d-inline" onsubmit="return confirm('Limpar todas as posições (soft delete) e ir para importação?')">
       @csrf
       <button class="btn btn-sm btn-warning" type="submit" title="Soft delete de todas e redirecionar para importação">Reimportar (Limpar + Importar)</button>
-    </form>
+    </form> --}}
     @if($refresh && $updatedCodes)
       <span class="text-muted small">Atualizados: {{ implode(', ', $updatedCodes) }}</span>
     @endif

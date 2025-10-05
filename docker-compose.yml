@@ -13,8 +13,8 @@ services:
     volumes:
       # Dev: bind mount com :delegated para reduzir overhead no macOS
       - .:/var/www:delegated
-      - /Volumes/SeagateDocker-21092025:/mnt/external:delegated
-      # Override de ini MÍNIMA para corrigir I/O errors
+    #   - /Volumes/SeagateDocker-21092025:/mnt/external:delegated
+    #   # Override de ini MÍNIMA para corrigir I/O errors
       - ./docker/php.minimal.ini:/usr/local/etc/php/conf.d/zz-dev.ini:ro
     networks:
       - proxy

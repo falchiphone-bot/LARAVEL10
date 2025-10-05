@@ -71,16 +71,11 @@ Route::post('/openai/portfolio/holdings', [\App\Http\Controllers\UserHoldingCont
 Route::get('/openai/portfolio/holdings/{holding}/edit', [\App\Http\Controllers\UserHoldingController::class, 'edit'])->name('holdings.edit');
 Route::put('/openai/portfolio/holdings/{holding}', [\App\Http\Controllers\UserHoldingController::class, 'update'])->name('holdings.update');
 Route::delete('/openai/portfolio/holdings/{holding}', [\App\Http\Controllers\UserHoldingController::class, 'destroy'])->name('holdings.destroy');
-// Rotas legacy de import e diagnóstico de ownership removidas em 2025-10 após consolidação do fluxo Screen.
-// (holdings.import.store, holdings.diagOwnership, holdings.fixOwnership)
-Route::delete('/openai/portfolio/holdings', [\App\Http\Controllers\UserHoldingController::class,'bulkDestroy'])->name('holdings.bulkDestroy');
+// Rotas deprecated de gestão em massa/templating de holdings removidas em 2025-10.
+// Removidas: bulkDestroy, templateCsv, templateCsvByAccount, reimport, screenQuickForm, screenQuickStore.
+// Mantidas somente rotas de export existentes e CRUD essencial.
 Route::get('/openai/portfolio/holdings/export/csv', [\App\Http\Controllers\UserHoldingController::class,'exportCsv'])->name('holdings.export.csv');
 Route::get('/openai/portfolio/holdings/export/xlsx', [\App\Http\Controllers\UserHoldingController::class,'exportXlsx'])->name('holdings.export.xlsx');
-Route::get('/openai/portfolio/holdings/template', [\App\Http\Controllers\UserHoldingController::class,'templateCsv'])->name('holdings.template.csv');
-Route::get('/openai/portfolio/holdings/template/account/{accountId}', [\App\Http\Controllers\UserHoldingController::class,'templateCsvByAccount'])->name('holdings.template.account.csv');
-Route::post('/openai/portfolio/holdings/reimport', [\App\Http\Controllers\UserHoldingController::class,'reimportRedirect'])->name('holdings.reimport');
-Route::get('/openai/portfolio/holdings/screen', [\App\Http\Controllers\UserHoldingController::class,'screenQuickForm'])->name('holdings.screen.quick.form');
-Route::post('/openai/portfolio/holdings/screen', [\App\Http\Controllers\UserHoldingController::class,'screenQuickStore'])->name('holdings.screen.quick.store');
 
 // ...outras rotas...
 
