@@ -14,7 +14,7 @@
                 <div class="card-header">
                     <div class="badge bg-warning text-wrap"
                         style="width: 100%; height: 50px;
-                    ; font-size: 24px;align=˜Center˜ ">
+                    ; font-size: 24px;">
                         Menu Principal do sistema administrativo e contábil -
                         versão: 24.09.2025 00:50
                     </div>
@@ -22,7 +22,7 @@
                 <div class="card-body">
                     <table class="table table-success table-striped">
                         @if (session('googleUser'))
-                        <div class="badge bg-success text-wrap" style="width: 100%;align=˜left˜ ">
+                        <div class="badge bg-success text-wrap" style="width: 100%;">
                             <div class="col-sm-1">
                                 <img src="{{ asset(session('googleUser')->avatar) }}" alt="Minha imagem">
 
@@ -41,7 +41,7 @@
                                 <div class="col-sm-12">
                                     <div class="badge bg-warning text-wrap"
                                         style="width: 40%; height: 30px;
-                                             ; font-size: 16px;align=˜Center˜ ">
+                                             ; font-size: 16px;">
                                         <a href="{{ session('googleUser')->user['link'] }}" target="_blank">Abrir perfil
                                             Google
                                             do usuário em uma nova aba</a>
@@ -51,12 +51,12 @@
                         </div>
 
 
-                        <div class="badge bg-warning text-wrap" style="width: 100%;align=˜Center˜ ">
-                            <div class="badge bg-success text-wrap" style="width: 100%;align=˜Center˜ ">
+                        <div class="badge bg-warning text-wrap" style="width: 100%;">
+                            <div class="badge bg-success text-wrap" style="width: 100%;">
                                 <thead class="table-light">
                                     <div class="badge bg-success text-wrap"
                                         style="width: 100%;
-                                    ; font-size: 16px;align=˜Center˜ ">
+                                    ; font-size: 16px;">
                                         Opções para o sistema
                                     </div>
                             </div>
@@ -371,8 +371,6 @@
                                 <div class="badge bg-success w-100"> . . </div>
                             </div>
                             <!-- Fim grid -->
-                        @endsection
-
                         @push('scripts')
                         <script>
                             document.addEventListener('DOMContentLoaded', function() {
@@ -536,3 +534,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 @endpush
                         {{-- Removido bloco duplicado dos botões de backup --}}
+@endsection
