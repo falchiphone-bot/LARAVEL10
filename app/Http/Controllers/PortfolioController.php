@@ -21,6 +21,9 @@ class PortfolioController extends Controller
         $missingTable = false;
         $codeFilter = strtoupper(trim((string)$request->input('code')));
         $accountFilter = $request->input('account_id');
+    $accountNameFilter = trim((string)$request->input('account'));
+        $sort = (string)$request->input('sort','');
+        $dir = strtolower((string)$request->input('dir','asc')) === 'desc' ? 'desc' : 'asc';
         if(!Schema::hasTable('user_holdings')){
             $missingTable = true;
             $holdings = collect();
@@ -32,6 +35,13 @@ class PortfolioController extends Controller
             }
             if(is_numeric($accountFilter)){
                 $q->where('account_id', (int)$accountFilter);
+            }
+            if($accountNameFilter !== ''){
+                $like = '%'.str_replace(['%','_'],['\%','\_'],$accountNameFilter).'%';
+                $q->whereHas('account', function($sub) use ($like){
+                    $sub->where('account_name','LIKE',$like)
+                        ->orWhere('broker','LIKE',$like);
+                });
             }
             $holdings = $q->orderBy('code')->get();
         }
@@ -101,6 +111,26 @@ class PortfolioController extends Controller
             ];
         }
 
+        // Ordenação em memória (colunas derivadas). Campos suportados
+        $sortable = [
+            'code','account','quantity','avg_price','invested_value','current_price','current_value','gain_loss_abs','gain_loss_pct','variation_monthly'
+        ];
+        if($sort && in_array($sort, $sortable, true)){
+            usort($rowsOut, function($a,$b) use ($sort,$dir){
+                $av = $a[$sort]; $bv = $b[$sort];
+                // Nulls sempre no fim independentemente da direção
+                $aNull = is_null($av); $bNull = is_null($bv);
+                if($aNull && $bNull) return 0;
+                if($aNull) return 1; // a depois
+                if($bNull) return -1; // b depois
+                if($av == $bv) return 0;
+                if($dir === 'asc') return ($av < $bv) ? -1 : 1;
+                return ($av > $bv) ? -1 : 1;
+            });
+        } else {
+            // default já ordenado por code na query; manter
+        }
+
         // Totais e agregados
         $agg = [
             'total_invested' => $totalInvested,
@@ -117,7 +147,10 @@ class PortfolioController extends Controller
             'missingTable' => $missingTable,
             'filter_code' => $codeFilter,
             'filter_account_id' => is_numeric($accountFilter) ? (int)$accountFilter : null,
+            'filter_account_name' => $accountNameFilter,
             'filter_accounts' => \App\Models\InvestmentAccount::where('user_id',$userId)->orderBy('account_name')->get(['id','account_name','broker']),
+            'sort' => $sort,
+            'dir' => $dir,
         ]);
     }
 }

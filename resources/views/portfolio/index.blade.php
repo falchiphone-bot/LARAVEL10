@@ -84,9 +84,13 @@
           @endforeach
         </select>
       </div>
+      <div>
+        <label class="form-label small mb-1">Conta (texto)</label>
+        <input type="text" name="account" value="{{ $filter_account_name ?? '' }}" class="form-control form-control-sm" placeholder="Nome ou corretora" />
+      </div>
       <div class="d-flex gap-2">
         <button class="btn btn-sm btn-outline-secondary" type="submit" title="Aplicar filtros"><i class="fa-solid fa-filter me-1"></i>Filtrar</button>
-        @if(($filter_code ?? '') !== '' || $filter_account_id)
+        @if(($filter_code ?? '') !== '' || $filter_account_id || ($filter_account_name ?? '') !== '')
           <a href="{{ route('openai.portfolio.index') }}" class="btn btn-sm btn-outline-dark" title="Limpar filtros"><i class="fa-solid fa-xmark me-1"></i>Limpar</a>
         @endif
       </div>
@@ -101,17 +105,32 @@
       <table class="table table-sm table-striped align-middle mb-0">
         <thead class="table-light">
           <tr>
-            <th>Código</th>
-            <th>Conta</th>
+            @php
+              $baseQuery = array_filter([
+                'code' => $filter_code ?? null,
+                'account_id' => $filter_account_id ?? null,
+              ]);
+              function sortLink($col,$label,$currentSort,$currentDir,$base){
+                $nextDir = ($currentSort === $col && $currentDir === 'asc') ? 'desc' : 'asc';
+                $qs = http_build_query(array_merge($base, ['sort'=>$col,'dir'=>$nextDir]));
+                $icon = '';
+                if($currentSort === $col){
+                  $icon = $currentDir === 'asc' ? ' <i class="fa-solid fa-caret-up small"></i>' : ' <i class="fa-solid fa-caret-down small"></i>';
+                }
+                return '<a href="?'.$qs.'" class="text-decoration-none">'.$label.$icon.'</a>';
+              }
+            @endphp
+            <th>{!! sortLink('code','Código',$sort??'', $dir??'asc',$baseQuery) !!}</th>
+            <th>{!! sortLink('account','Conta',$sort??'', $dir??'asc',$baseQuery) !!}</th>
             <th>Corretora</th>
-            <th class="text-end">Qtd</th>
-            <th class="text-end">Preço Médio</th>
-            <th class="text-end">Investido (R$)</th>
-            <th class="text-end">Cotação Atual</th>
-            <th class="text-end">Valor Atual (R$)</th>
-            <th class="text-end">P/L (R$)</th>
-            <th class="text-end">P/L (%)</th>
-            <th class="text-end" title="Variação mensal mais recente">Var. Mês (%)</th>
+            <th class="text-end">{!! sortLink('quantity','Qtd',$sort??'', $dir??'asc',$baseQuery) !!}</th>
+            <th class="text-end">{!! sortLink('avg_price','Preço Médio',$sort??'', $dir??'asc',$baseQuery) !!}</th>
+            <th class="text-end">{!! sortLink('invested_value','Investido (R$)',$sort??'', $dir??'asc',$baseQuery) !!}</th>
+            <th class="text-end">{!! sortLink('current_price','Cotação Atual',$sort??'', $dir??'asc',$baseQuery) !!}</th>
+            <th class="text-end">{!! sortLink('current_value','Valor Atual (R$)',$sort??'', $dir??'asc',$baseQuery) !!}</th>
+            <th class="text-end">{!! sortLink('gain_loss_abs','P/L (R$)',$sort??'', $dir??'asc',$baseQuery) !!}</th>
+            <th class="text-end">{!! sortLink('gain_loss_pct','P/L (%)',$sort??'', $dir??'asc',$baseQuery) !!}</th>
+            <th class="text-end" title="Variação mensal mais recente">{!! sortLink('variation_monthly','Var. Mês (%)',$sort??'', $dir??'asc',$baseQuery) !!}</th>
             <th class="text-center">Período</th>
             <th style="width:90px"></th>
           </tr>
@@ -128,8 +147,40 @@
               $varLink = $r['code'] ? route('openai.variations.index', ['code'=>$r['code']]) : null;
             @endphp
             <tr>
-              <td><strong>{{ $r['code'] }}</strong></td>
-              <td>{{ $r['account'] ?: '—' }}</td>
+              <td class="d-flex align-items-center gap-1">
+                <a href="{{ request()->fullUrlWithQuery(['code'=>$r['code'],'page'=>null]) }}" class="text-decoration-none" title="Filtrar carteira por este código"><strong>{{ $r['code'] }}</strong></a>
+                @if($varLink)
+                  @php
+                    $varTitle = 'Ver variações deste código em nova guia';
+                    if(!empty($r['variation_period'])){ $varTitle .= ' (último período '.$r['variation_period'].')'; }
+                    $varBtnClass = is_null($r['variation_monthly'])
+                        ? 'btn-outline-secondary'
+                        : ($r['variation_monthly'] > 0
+                            ? 'btn-outline-success'
+                            : ($r['variation_monthly'] < 0 ? 'btn-outline-danger' : 'btn-outline-secondary'));
+                    $varBadgeClass = is_null($r['variation_monthly'])
+                        ? 'bg-secondary'
+                        : ($r['variation_monthly'] > 0
+                            ? 'bg-success'
+                            : ($r['variation_monthly'] < 0 ? 'bg-danger' : 'bg-secondary'));
+                  @endphp
+                  <a href="{{ $varLink }}#gsc.tab=0" target="_blank" rel="noopener" class="btn btn-xs {{ $varBtnClass }} py-0 px-1" style="font-size:.7rem" title="{{ $varTitle }}">
+                    <i class="fa-solid fa-arrow-trend-up"></i>
+                  </a>
+                  @if(!is_null($r['variation_monthly']))
+                    <span class="badge {{ $varBadgeClass }}" style="font-size:.55rem" title="Variação mensal recente">
+                      {{ ($r['variation_monthly'] > 0 ? '+' : '') . number_format($r['variation_monthly'], 2, ',', '.') }}%
+                    </span>
+                  @endif
+                @endif
+              </td>
+              <td>
+                @if($r['account'])
+                  <a href="{{ request()->fullUrlWithQuery(['account'=>$r['account'],'account_id'=>null]) }}" class="text-decoration-none" title="Filtrar por conta">{{ $r['account'] }}</a>
+                @else
+                  —
+                @endif
+              </td>
               <td>{{ $r['broker'] ?: '—' }}</td>
               <td class="text-end">{{ number_format($r['quantity'], 4, ',', '.') }}</td>
               <td class="text-end">{{ number_format($r['avg_price'], 4, ',', '.') }}</td>
