@@ -155,7 +155,7 @@ class UserHoldingController extends Controller
         $map = [
             'ação'=> 'ativo','ação'=>'ativo','papel'=>'code','ticker'=>'code','symbol'=>'code','ativo'=>'code','código'=>'code','codigo'=>'code',
             'quantidade'=>'quantity','qtd'=>'quantity','qde'=>'quantity','shares'=>'quantity','posicao'=>'quantity','posição'=>'quantity',
-            'preço médio'=>'avg_price','preco medio'=>'avg_price','pm'=>'avg_price','avg price'=>'avg_price','avg_price'=>'avg_price',
+            'preço médio'=>'avg_price','preco medio'=>'avg_price','preço medio'=>'avg_price','preco médio'=>'avg_price','pm'=>'avg_price','avg price'=>'avg_price','avg_price'=>'avg_price',
             'investido'=>'invested_value','valor investido'=>'invested_value','total investido'=>'invested_value','invested'=>'invested_value','total'=>'invested_value',
             'cotação'=>'current_price','cotacao'=>'current_price','price'=>'current_price','current price'=>'current_price','current_price'=>'current_price',
             'moeda'=>'currency','currency'=>'currency'
@@ -163,6 +163,95 @@ class UserHoldingController extends Controller
         $h = str_replace([';','#','\t'],' ',$h);
         $h = preg_replace('/\s+/',' ',$h);
         return $map[$h] ?? $h;
+    }
+
+    /**
+     * Parser específico para formato exportado da Avenue:
+     * - Delimitador TAB
+     * - Células podem conter múltiplas linhas dentro de aspas
+     * - Colunas observadas: Ativo | Tipo | Cotação | Quantidade | Preço medio | Lucro ou prejuízo
+     * - A coluna Ativo possui nome + ticker (última linha é o código)
+     * - A coluna Preço medio é usada como avg_price
+     * - Quantidade diretamente
+     * - Investido não presente puro -> usamos qty * avg
+     */
+    protected function parseAvenue(string $raw): array
+    {
+        // Detecta padrão do header com TAB
+        if(!preg_match('/Ativo\tTipo\tCotação\tQuantidade/i', $raw)) return [];
+        // Normaliza quebras
+        $raw = str_replace(["\r\n","\r"], "\n", $raw);
+        $rows = [];
+        $cell = '';
+        $row = [];
+        $inQuotes = false;
+        $len = strlen($raw);
+        for($i=0;$i<$len;$i++){
+            $ch = $raw[$i];
+            if($ch === '"'){
+                $next = $i+1 < $len ? $raw[$i+1] : null;
+                if($inQuotes && $next === '"'){ // escaped ""
+                    $cell .= '"';
+                    $i++;
+                } else {
+                    $inQuotes = !$inQuotes;
+                }
+                continue;
+            }
+            if($ch === "\t" && !$inQuotes){
+                $row[] = $cell; $cell=''; continue;
+            }
+            if($ch === "\n" && !$inQuotes){
+                $row[] = $cell; $cell='';
+                // Commit row if has any non-empty cell
+                if(count(array_filter($row, fn($v)=>trim($v) !== ''))>0){
+                    $rows[] = $row;
+                }
+                $row = [];
+                continue;
+            }
+            $cell .= $ch;
+        }
+        // Final cell/row
+        if($cell !== '' || $row){ $row[]=$cell; if(count(array_filter($row, fn($v)=>trim($v) !== ''))>0) $rows[]=$row; }
+        if(empty($rows)) return [];
+        $header = $rows[0];
+        // Verifica colunas esperadas mínimas
+        if(count($header) < 5) return [];
+        $data = [];
+        for($r=1; $r<count($rows); $r++){
+            $cols = $rows[$r];
+            if(count($cols) < 5) continue; // linha incompleta
+            [$colAtivo, $colTipo, $colCotacao, $colQuantidade, $colPrecoMedio] = [$cols[0], $cols[1], $cols[2], $cols[3], $cols[4]];
+            $ativoLines = array_values(array_filter(array_map('trim', preg_split('/\n+/', (string)$colAtivo))));
+            if(empty($ativoLines)) continue;
+            $code = strtoupper(end($ativoLines));
+            if(!preg_match('/^[A-Z0-9\.\-]{1,10}$/',$code)) continue; // ticker inválido
+            $qtyRaw = trim($colQuantidade);
+            // Corrigir vírgula decimal ou ponto milhares (ex: 600.2 ou 1.030)
+            $qty = $this->parseNumber($qtyRaw);
+            if($qty <= 0) continue;
+            $pmRaw = trim($colPrecoMedio);
+            $pmRaw = preg_replace('/U\$\s*/i','',$pmRaw);
+            $pmLines = array_values(array_filter(array_map('trim', preg_split('/\n+/', $pmRaw))));
+            $pmCandidate = $pmLines[0] ?? $pmRaw;
+            $avg = $this->parseNumber($pmCandidate, 6);
+            if($avg <= 0){
+                // tentar extrair primeiro número
+                if(preg_match('/([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/',$pmRaw,$m)){
+                    $avg = $this->parseNumber($m[1],6);
+                }
+            }
+            if($avg <= 0) continue;
+            $data[] = [
+                'code' => $code,
+                'quantity' => $qty,
+                'avg_price' => $avg,
+                'invested_value' => $qty * $avg,
+                'currency' => 'USD'
+            ];
+        }
+        return $data;
     }
 
     public function importStore(Request $request)
@@ -210,24 +299,37 @@ class UserHoldingController extends Controller
         $lines = preg_split('/\r?\n/',$raw);
         $headers = [];
         $dataRows = [];
-        foreach($lines as $ln){
-            if(trim($ln)==='') continue;
-            $cols = str_getcsv($ln, $delim);
-            // Heurística: primeira linha com pelo menos 2 colunas que contenha algo tipo quantity ou preco ou price vira header
-            $lowerJoined = mb_strtolower(implode(' ', $cols));
-            if(empty($headers) && (str_contains($lowerJoined,'preco') || str_contains($lowerJoined,'price') || str_contains($lowerJoined,'quant') || str_contains($lowerJoined,'pm') || str_contains($lowerJoined,'avg'))){
-                $headers = array_map(fn($h)=> $this->normalizeHeader($h), $cols);
-                continue;
+        // Primeiro tenta parser Avenue específico (multi-linha/tab)
+        $avenueRows = $this->parseAvenue($raw);
+        if(!empty($avenueRows)){
+            foreach($avenueRows as $r){
+                $dataRows[] = [
+                    'code' => $r['code'],
+                    'quantity' => $r['quantity'],
+                    'avg_price' => $r['avg_price'],
+                    'invested_value' => $r['invested_value'],
+                    'currency' => $r['currency'],
+                ];
             }
-            if(!empty($headers)){
-                if(count($cols) !== count($headers)) continue; // ignora linhas irregulares
-                $rowAssoc = [];
-                foreach($headers as $i=>$h){ $rowAssoc[$h] = $cols[$i] ?? null; }
-                $dataRows[] = $rowAssoc;
+        } else {
+            foreach($lines as $ln){
+                if(trim($ln)==='') continue;
+                $cols = str_getcsv($ln, $delim);
+                $lowerJoined = mb_strtolower(implode(' ', $cols));
+                if(empty($headers) && (str_contains($lowerJoined,'preco') || str_contains($lowerJoined,'price') || str_contains($lowerJoined,'quant') || str_contains($lowerJoined,'pm') || str_contains($lowerJoined,'avg'))){
+                    $headers = array_map(fn($h)=> $this->normalizeHeader($h), $cols);
+                    continue;
+                }
+                if(!empty($headers)){
+                    if(count($cols) !== count($headers)) continue;
+                    $rowAssoc = [];
+                    foreach($headers as $i=>$h){ $rowAssoc[$h] = $cols[$i] ?? null; }
+                    $dataRows[] = $rowAssoc;
+                }
             }
-        }
-        if(empty($headers)){
-            return back()->withErrors(['csv'=>'Não foi possível detectar cabeçalho. Verifique se inclui linha com colunas (ex: Código;Quantidade;Preço Médio;Investido).'])->withInput();
+            if(empty($headers)){
+                return back()->withErrors(['csv'=>'Não foi possível detectar cabeçalho. Verifique se inclui linha com colunas (ex: Código;Quantidade;Preço Médio;Investido).'])->withInput();
+            }
         }
         $ins = 0; $upd = 0; $skip = 0; $errors = [];
         foreach($dataRows as $r){
