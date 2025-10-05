@@ -264,6 +264,66 @@ class UserHoldingController extends Controller
         ]);
     }
 
+    public function screenQuickForm()
+    {
+        $accounts = InvestmentAccount::where('user_id', Auth::id())->orderBy('account_name')->get();
+        return view('portfolio.holding_import_screen', [ 'accounts'=>$accounts ]);
+    }
+
+    public function screenQuickStore(Request $request)
+    {
+        $request->validate([
+            'screen_raw' => 'required|string',
+            'account_id' => 'required|integer|exists:investment_accounts,id'
+        ]);
+        $raw = (string)$request->input('screen_raw');
+        $rows = $this->parseAvenueScreen($raw);
+        if(empty($rows)){
+            return back()->withErrors(['screen_raw'=>'Não foi possível interpretar o conteúdo colado como Avenue Screen.'])->withInput();
+        }
+        $userId = Auth::id();
+        $accountId = (int)$request->input('account_id');
+        $ins=0;$upd=0;$skip=0;$errors=[];
+        foreach($rows as $r){
+            $code = strtoupper(trim($r['code']));
+            if($code===''){ $skip++; continue; }
+            $qty = (float)$r['quantity'];
+            $avg = (float)$r['avg_price'];
+            if($qty<=0 || $avg<=0){ $skip++; continue; }
+            $invested = (float)$r['invested_value'];
+            $curPrice = $r['current_price'] ?? null;
+            $hold = UserHolding::withTrashed()->where('user_id',$userId)->where('code',$code)->where('account_id',$accountId)->first();
+            if($hold){
+                if($hold->trashed()) $hold->restore();
+                $hold->update([
+                    'quantity'=>$qty,
+                    'avg_price'=>$avg,
+                    'invested_value'=>$invested,
+                    'current_price'=>$curPrice !== null ? $curPrice : $hold->current_price,
+                    'currency'=>'USD'
+                ]);
+                $upd++;
+            } else {
+                try {
+                    UserHolding::create([
+                        'user_id'=>$userId,
+                        'account_id'=>$accountId,
+                        'code'=>$code,
+                        'quantity'=>$qty,
+                        'avg_price'=>$avg,
+                        'invested_value'=>$invested,
+                        'current_price'=>$curPrice,
+                        'currency'=>'USD'
+                    ]);
+                    $ins++;
+                } catch(\Throwable $e){ $errors[] = $code.': '.$e->getMessage(); }
+            }
+        }
+        $msg = "Atualização via Screen: {$ins} inseridos, {$upd} atualizados, {$skip} ignorados (AvenueScreen=".count($rows).")";
+        if($errors) $msg .= ' Erros: '.implode('; ',$errors);
+        return redirect()->route('openai.portfolio.index')->with('success',$msg);
+    }
+
     protected function normalizeHeader(string $h): string
     {
         $h = trim(mb_strtolower($h));

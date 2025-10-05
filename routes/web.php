@@ -102,6 +102,8 @@ Route::get('/openai/portfolio/holdings/export/xlsx', [\App\Http\Controllers\User
 Route::get('/openai/portfolio/holdings/template', [\App\Http\Controllers\UserHoldingController::class,'templateCsv'])->name('holdings.template.csv');
 Route::get('/openai/portfolio/holdings/template/account/{accountId}', [\App\Http\Controllers\UserHoldingController::class,'templateCsvByAccount'])->name('holdings.template.account.csv');
 Route::post('/openai/portfolio/holdings/reimport', [\App\Http\Controllers\UserHoldingController::class,'reimportRedirect'])->name('holdings.reimport');
+Route::get('/openai/portfolio/holdings/screen', [\App\Http\Controllers\UserHoldingController::class,'screenQuickForm'])->name('holdings.screen.quick.form');
+Route::post('/openai/portfolio/holdings/screen', [\App\Http\Controllers\UserHoldingController::class,'screenQuickStore'])->name('holdings.screen.quick.store');
 
 // ...outras rotas...
 

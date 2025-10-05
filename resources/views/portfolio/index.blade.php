@@ -31,6 +31,7 @@
     @endif
     <a href="{{ route('holdings.create') }}" class="btn btn-sm btn-success" title="Adicionar nova posição">Nova Posição</a>
     <a href="{{ route('holdings.import.form') }}" class="btn btn-sm btn-outline-dark" title="Importar ou colar CSV de holdings">Importar Holdings</a>
+  <a href="{{ route('holdings.screen.quick.form') }}" class="btn btn-sm btn-outline-primary" title="Colar rapidamente bloco de tela Avenue e atualizar">Atualizar (Avenue Screen)</a>
     {{-- Botão Excluir Todas temporariamente desativado --}}
     {{----
     <form action="{{ route('holdings.bulkDestroy') }}" method="POST" class="d-inline" onsubmit="return confirm('Apagar TODAS as posições? Esta ação não pode ser desfeita.')">
