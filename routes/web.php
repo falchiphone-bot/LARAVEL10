@@ -72,6 +72,11 @@ Route::get('/openai/portfolio/holdings/{holding}/edit', [\App\Http\Controllers\U
 Route::put('/openai/portfolio/holdings/{holding}', [\App\Http\Controllers\UserHoldingController::class, 'update'])->name('holdings.update');
 Route::delete('/openai/portfolio/holdings/{holding}', [\App\Http\Controllers\UserHoldingController::class, 'destroy'])->name('holdings.destroy');
 // Rotas deprecated de gestão em massa/templating de holdings removidas em 2025-10.
+// Reintrodução controlada apenas do formulário rápido de Screen Avenue (readaptado) para atender navegação atual.
+Route::get('/openai/portfolio/holdings/import/screen', [\App\Http\Controllers\UserHoldingController::class, 'screenQuickForm'])
+    ->name('holdings.screen.quick.form');
+Route::post('/openai/portfolio/holdings/import/screen', [\App\Http\Controllers\UserHoldingController::class, 'screenQuickStore'])
+    ->name('holdings.screen.quick.store');
 // Removidas: bulkDestroy, templateCsv, templateCsvByAccount, reimport, screenQuickForm, screenQuickStore.
 // Mantidas somente rotas de export existentes e CRUD essencial.
 Route::get('/openai/portfolio/holdings/export/csv', [\App\Http\Controllers\UserHoldingController::class,'exportCsv'])->name('holdings.export.csv');

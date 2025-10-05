@@ -1,69 +1,63 @@
-## Instruções para Agentes de IA neste Repositório Laravel 10
+## Instruções para Agentes de IA (Laravel 10 Monólito)
 
-Foque em decisões já consolidadas no código. Evite sugerir reestruturações amplas sem pedido explícito. Este app é um monolito Laravel 10 com múltiplos domínios funcionais (financeiro, cadastros esportivos TANABI/vec, WhatsApp flows, OpenAI, Market Data, backups/arquivos) compartilhando autenticação e permissões.
+Foque em padrões já implementados. Não proponha re-arquitetura ampla sem pedido explícito. Domínios: financeiro, cadastros esportivos (TANABI / VEC), fluxos WhatsApp, OpenAI, Market Data, arquivos/backup — tudo sob mesma autenticação/permissões (Spatie Permission).
 
-### Arquitetura & Pastas-Chave
-- `app/Services`: lógica externa ou agregadora (ex: `MarketDataService`, `OpenAIService`, `FtpBrowserService`). Padrões: construtor injeta ou cria `GuzzleHttp\Client`; métodos retornam arrays estruturados explícitos. Preserve chaves existentes (`symbol`, `price`, `source`, `reason`, etc.).
-- `routes/web.php`: concentra MUITAS rotas (mais de 1500 linhas). Não duplique rotas; ao adicionar, considere extrair futuro módulo somente se solicitado. Rotas OpenAI, Market Data e FTP têm nomes consistentes (prefixo `openai.*`, `asset-stats.*`, `ftp.*`, etc.).
-- `config/market.php`, `config/openai.php`, `config/filesystems.php`: fornecem chaves de configuração usadas por serviços; sempre usar `config()` em vez de constantes ao acessar parâmetros.
-- `app/helpers.php`: funções utilitárias simples (CPF/CNPJ/email). Adicionar novo helper: seguir padrão procedural e registrar em `composer.json` (autoload.files) se precisar carga global.
-- `app/Services/DashboardCache.php`: (não lido aqui, mas usado intensivamente em `/dashboard/counts`). Ao alterar contadores, manter uso de Cache e ETag retornada no endpoint.
-- `storage/` + discos: manipulação de arquivos usa drivers Laravel; FTP configurado em `filesystems.php` (não coloque credenciais em código).
+### Estrutura Essencial
+- `routes/web.php` (1500+ linhas): evitar duplicação. Antes de criar rota, procure por prefixo/nome. Exemplos de padrões existentes: `openai.chat`, `api.market.quote`, `asset-stats.refreshClose`.
+- `app/Services`: integrações isoladas. Ex.: `MarketDataService` (fallback em cadeia, tracking de uso), `OpenAIService` (Guzzle direto), `FtpBrowserService` (listagem segura). Métodos retornam arrays simples com chaves estáveis (`symbol`, `price`, `currency`, `updated_at`, `source`, `reason`, `detail`).
+- Config central em `config/market.php` (timeouts, TTL cache, chaves) e `config/openai.php` (limites e tuning de chat/search/web/attachments). Sempre usar `config()` — não hardcode.
+- Helpers globais em `app/helpers.php` (autoload via composer.json). Novos helpers: função simples + idempotente.
+- Exportações usam libs já instaladas (`maatwebsite/excel`, `barryvdh/laravel-dompdf`). Nome de métodos/rotas: `exportXlsx`, `exportCsv`, `exportPdf`.
 
-### Padrões de Serviços
-- Tratamento de falhas: capturar exceções e retornar estrutura com `price => null` + campos `reason`/`detail` quando aplicável (vide `MarketDataService`). Não lançar exceção para falhas transitórias de provedores externos, exceto casos explícitos (ex: falta de chave em `OpenAIService`).
-- Cache: usar `Cache::remember` com TTL vindo de config (ex: `quote_cache_ttl`). Não codificar TTL fixo sem justificativa.
-- Normalização de símbolos/inputs: converter para maiúsculo (`strtoupper`) ou limpar (`trim`) antes de processar.
+### Padrões de Serviços & Falhas
+- Construtores definem `GuzzleHttp\Client` com `timeout` e `connect_timeout` de config (`market.http_timeout`, `market.http_connect_timeout`).
+- Fluxo de cotação em `MarketDataService::getQuote`: Yahoo RapidAPI -> Alpha Vantage -> Stooq. Histórico: Stooq -> Alpha. Cada tentativa chama `trackUsageForResult` para incrementar cache de uso.
+- Falhas transitórias retornam `price => null` + `reason` (`network_error`, `rate_limit`, `api_error`, `missing_api_key`, `no_data`). Evitar lançar exceção, exceto pré-condição (ex.: ausência de API key em `OpenAIService`).
+- Normalização de entrada: `strtoupper(trim($symbol))`, datas validadas via `DateTimeImmutable`.
 
-### Rotas & Nomenclatura
-- Rotas REST principais usam `Route::resource` e nomes explicitamente sobrepostos quando necessário para manter letra maiúscula (ex: `Pix`, `FormaPagamento`). Preserve consistência ao criar novos exports (`export`, `exportXlsx`, `exportPdf`, `exportCsv`).
-- Endpoints internos de diagnóstico / health usam JSON enxuto (`/healthz`, `/dashboard/counts`). Se adicionar campos, não quebrar chaves existentes.
-- Ao adicionar rota OpenAI/Market Data, reutilize prefixos existentes (`/openai/...`, `/api/market/...`). Decisões: Market Data público (alguns endpoints fora do middleware auth), usage permanece protegido.
+### Cache & Performance
+- Cotações: `Cache::remember('md.quote.*', ttl)` onde ttl = `config('market.quote_cache_ttl', 60)`.
+- Dashboard/contadores: manter semântica de ETag e uso de Cache (ver `DashboardCache`).
+- Listagens (FTP, etc.) ordenadas com ordenação natural case-insensitive.
 
-### Integrações Externas
-- OpenAI: `OpenAIService` usa Guzzle direto (não SDK). Autorização via header Bearer; erros de rede mapeados para `NetworkException`. Novos métodos devem seguir padrão de payload e JSON decode atual.
-- Market Data: múltiplos provedores (Yahoo via RapidAPI, Alpha Vantage, Stooq). Ordem de fallback: Yahoo -> Alpha -> Stooq em `getQuote`; Stooq -> Alpha em histórico. Respeitar contadores (`trackUsageForResult`). Qualquer novo provedor: implementar contagem de uso e campos `source`, `reason`.
-- FTP: Navegação via `FtpBrowserService::list`, cuidando de sanitização contra `..`. Ao expandir, manter retorno com arrays ordenados alfabeticamente.
-- Google Drive: driver custom em `filesystems` usa variáveis de ambiente; não hardcode tokens.
+### Rotas & Convenções
+- Prefixos preservados: `/openai/*` (chat, transcribe, records), `/api/market/*` (quote, historical, usage), `asset-stats*` (resource + ações adicionais). Evitar misturar rotas públicas e autenticadas inadvertidamente — Market Data (quote/historical) é público, usage protegido.
+- Recursos REST: `Route::resource()` com `parameters([...])` quando precisa renomear (`asset-stats` => `asset_stat`). Exports adicionados como rotas GET extras (`.../export-xlsx`).
 
-### Performance & Confiabilidade
-- Evitar loops de rede sem timeout: sempre defina `timeout` e `connect_timeout` conforme config.
-- Funções que podem rodar em dashboard devem usar cache agressivo (vide contadores, market quotes).
-- Para listas grandes (FTP, registros), ordenar natural case-insensitive (`SORT_NATURAL | SORT_FLAG_CASE`).
+### OpenAI
+- `OpenAIService` usa endpoints `chat/completions`, `audio/transcriptions`. Sempre conferir `services.openai.api_key` antes; lançar `ApiKeyMissingException` se ausente.
+- Config de enriquecimento de chat (busca, web, attachments) em `config/openai.php`. Reutilizar preâmbulos se gerar novos contextos.
 
-### Fluxo de Trabalho de Desenvolvimento
-- Dependências PHP: usar Composer (PHP 8.1+). Scripts pós-instalação já geram `.env` e `artisan key:generate` se ausente.
-- Front-end: Vite + Tailwind. Rodar `npm run dev` ou `npm run build` conforme necessário; não adicionar ferramentas front-end pesadas sem justificativa.
-- Testes: Pest + `RefreshDatabase` aplicado a testes Feature. Novo teste Feature deve residir em `tests/Feature` e usar factories. Não misturar lógica de integração externa sem mocks.
+### Market Data
+- Novos provedores: criar `getQuote<Nome>()` seguindo a assinatura de retorno e adicionar na cadeia em `getQuote` ou histórico; registrar uso via `trackUsageForResult`.
+- Respeitar limites/headers RapidAPI — probe opcional via `getUsageSnapshot(true)` já implementado.
 
-### Convenções de Código
-- Arrays de retorno de serviços são associativos simples para facilitar serialização; evitar DTOs complexos sem demanda.
-- Reutilize helpers de formatação existentes (ex: `humanBytes` em FTP) ou extraia para método privado consistente.
-- Campos booleanos/flags via env: usar funções anônimas ou coerção já vista em configs para normalizar valores.
+### Arquivos & Storage
+- Acesso a FTP/Drive via drivers configurados (`config/filesystems.php`). Nunca expor credenciais em logs ou código.
+- Sanitização contra path traversal (`..`) obrigatória (seguir padrão de `FtpBrowserService`).
 
-### Erros & Tratamento
-- Exceções somente para erros de pré-condição (ex: chave ausente, arquivo não encontrado local). Falhas de provedores externos retornam estrutura nula + `reason` para permitir UI degradar.
-- Ao adicionar novas razões, escolha slug curto (`rate_limit`, `network_error`, `api_error`, `missing_api_key`, `no_data`).
+### Testes
+- Pest instalado. Novos testes Feature: `tests/Feature/*`, usar factories e `RefreshDatabase` se mexer em modelos. Para integrações externas, mock de Client ou fakes — não realizar chamadas reais em CI.
 
-### Segurança & Privacidade
-- Nunca logar chaves API. Logs de provedores (MarketData / OpenAI) usam mensagens curtas; truncar corpo de resposta grande.
-- Evitar inserir dados sensíveis em exceções propagadas.
+### Segurança & Logs
+- Não logar chaves/segredos. Logs externos truncam corpo (ex.: MarketData loga apenas cabeçalho inicial). Use `Log::warning` já estabelecido para anomalias de provedores.
 
-### Como Estender
-- Novo provedor de cotação: criar método `getQuote<Provider>()` (padrão de retorno) + integrar na cadeia em `getQuote` respeitando fallback e `trackUsageForResult`.
-- Nova funcionalidade OpenAI (ex: embeddings): seguir padrão de autenticação e lançar `ApiKeyMissingException` se ausente.
-- Novos endpoints de exportação: preferir geração streaming ou libs já presentes (`maatwebsite/excel`, `dompdf`). Usar nomes `exportXlsx`, `exportCsv`, `exportPdf`.
+### Extensão Segura
+Ao adicionar código, valide:
+1. Usa apenas configs/env (sem valores mágicos)?
+2. Formato de retorno preserva chaves existentes?
+3. Timeouts definidos para novas chamadas HTTP?
+4. Cache aplicado quando leitura frequente ou rota de dashboard?
+5. Nome/prefixo de rota consistente com padrões atuais?
 
-### Pitfalls Já Observados
-- Rotas duplicadas podem ocorrer facilmente dado tamanho de `web.php`; antes de criar uma similar, buscar por nome/prefixo.
-- Cotações Stooq podem retornar `N/D`; validar sempre antes de converter.
-- Limites Alpha Vantage retornam mensagens em `Note` ou `Information`; tratar como `rate_limit`.
+### Exemplos Rápidos
+- Rota existente: `Route::get('/api/market/quote', MarketDataController::class.'@quote')->name('api.market.quote');`
+- Fallback de cotação: veja `MarketDataService::getQuote()` (cadeia + cache + tracking).
+- Retorno padrão de falha: `['symbol'=>$sym,'price'=>null,'currency'=>null,'updated_at'=>null,'source'=>'alpha_vantage','reason'=>'rate_limit']`.
 
-### Checklist ao Criar Código Novo
-1. Usa config/env em vez de valores mágicos?
-2. Retornos seguem estrutura existente (chaves esperadas)?
-3. Timeouts definidos para chamadas externas?
-4. Cache aplicado onde leitura é frequente?
-5. Nome de rota segue padrão de prefixo atual?
+### Pitfalls Conhecidos
+- Rotas duplicadas no `web.php` (verificar grep antes). 
+- Stooq retorna `N/D` para `Close` — validar `is_numeric` antes de cast. 
+- Alpha Vantage: mensagens em `Note` / `Information` => tratar como `rate_limit`.
 
-Feedback: Se algo aqui não refletir o padrão real ou faltar contexto, relate para ajuste incremental em próximas iterações.
+Feedback: Informe lacunas ou áreas ambíguas para refinarmos este guia.
