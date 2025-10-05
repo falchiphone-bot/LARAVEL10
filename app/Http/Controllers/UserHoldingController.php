@@ -5,6 +5,9 @@ use App\Models\UserHolding;
 use App\Models\InvestmentAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class UserHoldingController extends Controller
 {
@@ -176,6 +179,70 @@ class UserHoldingController extends Controller
         return response($content, 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="'.$filename.'"'
+        ]);
+    }
+
+    public function exportXlsx(Request $request)
+    {
+        $userId = Auth::id();
+        $rows = UserHolding::with('account')->where('user_id',$userId)->orderBy('code')->get();
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $headers = ['Codigo','Conta','Corretora','Quantidade','PrecoMedio','Investido','CurrentPrice','Moeda','AtualizadoEm'];
+        $col = 1; foreach($headers as $h){ $sheet->setCellValueByColumnAndRow($col,1,$h); $col++; }
+        $rIdx = 2;
+        foreach($rows as $h){
+            $sheet->setCellValueExplicit("A{$rIdx}", $h->code, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $sheet->setCellValue("B{$rIdx}", $h->account_id);
+            $sheet->setCellValue("C{$rIdx}", $h->account?->broker);
+            $sheet->setCellValue("D{$rIdx}", (float)$h->quantity);
+            $sheet->setCellValue("E{$rIdx}", (float)$h->avg_price);
+            $sheet->setCellValue("F{$rIdx}", (float)$h->invested_value);
+            if($h->current_price !== null) $sheet->setCellValue("G{$rIdx}", (float)$h->current_price);
+            $sheet->setCellValue("H{$rIdx}", $h->currency);
+            $sheet->setCellValue("I{$rIdx}", $h->updated_at?->format('Y-m-d H:i:s'));
+            $rIdx++;
+        }
+        foreach(range('A','I') as $c){ $sheet->getColumnDimension($c)->setAutoSize(true); }
+        $fname = 'holdings_export_'.date('Ymd_His').'.xlsx';
+        $tmp = tempnam(sys_get_temp_dir(),'xls');
+        (new Xlsx($spreadsheet))->save($tmp);
+        return response()->download($tmp, $fname)->deleteFileAfterSend(true);
+    }
+
+    public function templateCsv()
+    {
+        $lines = [
+            'Codigo;Quantidade;Preço Médio;Investido;Moeda',
+            'AAPL;10;150,25;1502,50;USD',
+            'MSFT;5;320,10;;USD',
+            'KO;51;69,12;;USD',
+        ];
+        $content = implode("\n", $lines);
+        return response($content,200,[
+            'Content-Type'=>'text/csv; charset=UTF-8',
+            'Content-Disposition'=>'attachment; filename="holdings_template.csv"'
+        ]);
+    }
+
+    public function templateCsvByAccount($accountId)
+    {
+        $userId = Auth::id();
+        $rows = UserHolding::where('user_id',$userId)->where('account_id',$accountId)->orderBy('code')->get();
+        $lines = ['Codigo;Quantidade;Preço Médio;Investido;Moeda'];
+        foreach($rows as $h){
+            $lines[] = implode(';', [
+                $h->code,
+                number_format((float)$h->quantity,6,',','.'),
+                number_format((float)$h->avg_price,6,',','.'),
+                number_format((float)$h->invested_value,2,',','.'),
+                $h->currency ?? ''
+            ]);
+        }
+        $content = implode("\n", $lines);
+        return response($content,200,[
+            'Content-Type'=>'text/csv; charset=UTF-8',
+            'Content-Disposition'=>'attachment; filename="holdings_template_conta_'.$accountId.'.csv"'
         ]);
     }
 
