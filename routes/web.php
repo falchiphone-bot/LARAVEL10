@@ -77,6 +77,20 @@ Route::get('/openai/portfolio/holdings/import/screen', [\App\Http\Controllers\Us
     ->name('holdings.screen.quick.form');
 Route::post('/openai/portfolio/holdings/import/screen', [\App\Http\Controllers\UserHoldingController::class, 'screenQuickStore'])
     ->name('holdings.screen.quick.store');
+// Importação de caixa (Avenue Screen Cash)
+Route::get('/openai/portfolio/cash/import/screen', [\App\Http\Controllers\InvestmentAccountCashImportController::class,'form'])
+    ->middleware(['auth','verified','can:CASH EVENTS - IMPORTAR'])
+    ->name('cash.import.form');
+Route::post('/openai/portfolio/cash/import/screen', [\App\Http\Controllers\InvestmentAccountCashImportController::class,'store'])
+    ->middleware(['auth','verified','can:CASH EVENTS - IMPORTAR'])
+    ->name('cash.import.store');
+// Listagem de eventos de caixa
+Route::get('/openai/portfolio/cash/events', [\App\Http\Controllers\InvestmentAccountCashEventController::class,'index'])
+    ->middleware(['auth','verified','can:CASH EVENTS - LISTAR'])
+    ->name('cash.events.index');
+Route::get('/openai/portfolio/cash/events/export/csv', [\App\Http\Controllers\InvestmentAccountCashEventController::class,'exportCsv'])
+    ->middleware(['auth','verified','can:CASH EVENTS - LISTAR'])
+    ->name('cash.events.export.csv');
 // Removidas: bulkDestroy, templateCsv, templateCsvByAccount, reimport, screenQuickForm, screenQuickStore.
 // Mantidas somente rotas de export existentes e CRUD essencial.
 Route::get('/openai/portfolio/holdings/export/csv', [\App\Http\Controllers\UserHoldingController::class,'exportCsv'])->name('holdings.export.csv');

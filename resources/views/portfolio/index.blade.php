@@ -35,6 +35,11 @@
         Importar Holdings (Avenue)
       </a>
     @endcan
+    @can('CASH EVENTS - LISTAR')
+      <a href="{{ route('cash.events.index') }}#gsc.tab=0" class="btn btn-sm btn-outline-secondary" title="Ver eventos de caixa (dividendos, impostos, depósitos, retiradas)">
+        Ver Eventos de Caixa
+      </a>
+    @endcan
   {{-- Rota deprecated removida: holdings.screen.quick.form --}}
   {{-- <a href="{{ route('holdings.screen.quick.form') }}" class="btn btn-sm btn-outline-primary" title="Colar rapidamente bloco de tela Avenue e atualizar">Atualizar (Avenue Screen)</a> --}}
     {{-- Botão Excluir Todas temporariamente desativado --}}

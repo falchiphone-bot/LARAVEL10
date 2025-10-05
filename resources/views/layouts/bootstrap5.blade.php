@@ -628,11 +628,25 @@ if (window.Livewire) {
                         </a>
                       </li>
                       @endcan
+                      @can('CASH EVENTS - LISTAR')
+                      <li>
+                        <a class="dropdown-item" href="{{ route('cash.events.index') }}#gsc.tab=0" title="Listagem de eventos de caixa (dividendos, impostos, depósitos, retiradas)">
+                          <i class="fa-solid fa-coins me-1"></i> Eventos de Caixa
+                        </a>
+                      </li>
+                      @endcan
                       @can('HOLDINGS - IMPORTAR')
                       <li><hr class="dropdown-divider"></li>
                       <li>
                         <a class="dropdown-item" href="{{ route('holdings.screen.quick.form') }}" title="Importar/colar holdings (Avenue Screen)">
                           <i class="fa-solid fa-file-import me-1"></i> Importar Holdings (Avenue)
+                        </a>
+                      </li>
+                      @endcan
+                      @can('CASH EVENTS - IMPORTAR')
+                      <li>
+                        <a class="dropdown-item" href="{{ route('cash.import.form') }}#gsc.tab=0" title="Importar bloco de caixa (saldo e eventos)">
+                          <i class="fa-solid fa-sack-dollar me-1"></i> Importar Caixa (Avenue)
                         </a>
                       </li>
                       @endcan
@@ -661,11 +675,25 @@ if (window.Livewire) {
                     </a>
                   </li>
                   @endcan
+                  @can('CASH EVENTS - LISTAR')
+                  <li class="d-block d-md-none">
+                    <a class="dropdown-item ps-4" href="{{ route('cash.events.index') }}#gsc.tab=0" title="Listagem de eventos de caixa (dividendos, impostos, depósitos, retiradas)">
+                      <i class="fa-solid fa-coins me-1"></i> Eventos de Caixa
+                    </a>
+                  </li>
+                  @endcan
                   @can('HOLDINGS - IMPORTAR')
                   <li class="d-block d-md-none"><hr class="dropdown-divider"></li>
                   <li class="d-block d-md-none">
                     <a class="dropdown-item ps-4" href="{{ route('holdings.screen.quick.form') }}" title="Importar/colar holdings (Avenue Screen)">
                       <i class="fa-solid fa-file-import me-1"></i> Importar Holdings (Avenue)
+                    </a>
+                  </li>
+                  @endcan
+                  @can('CASH EVENTS - IMPORTAR')
+                  <li class="d-block d-md-none">
+                    <a class="dropdown-item ps-4" href="{{ route('cash.import.form') }}#gsc.tab=0" title="Importar bloco de caixa (saldo e eventos)">
+                      <i class="fa-solid fa-sack-dollar me-1"></i> Importar Caixa (Avenue)
                     </a>
                   </li>
                   @endcan
