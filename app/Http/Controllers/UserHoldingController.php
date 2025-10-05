@@ -140,6 +140,18 @@ class UserHoldingController extends Controller
         return redirect()->route('openai.portfolio.index')->with('success','Posição removida.');
     }
 
+    public function bulkDestroy(Request $request)
+    {
+        $userId = Auth::id();
+        // Confirmação simples via parâmetro (evita deleção acidental por CSRF replay)
+        if($request->input('confirm') !== 'yes'){
+            return back()->withErrors(['confirm'=>'Confirmação ausente.']);
+        }
+        $count = UserHolding::where('user_id', $userId)->count();
+        UserHolding::where('user_id', $userId)->delete();
+        return redirect()->route('openai.portfolio.index')->with('success', "Removidas {$count} posições.");
+    }
+
     public function importForm()
     {
         $accounts = InvestmentAccount::where('user_id', Auth::id())->orderBy('account_name')->get();

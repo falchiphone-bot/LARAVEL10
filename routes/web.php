@@ -96,6 +96,7 @@ Route::post('/openai/portfolio/holdings/fix-ownership', function(){
     $affected = \App\Models\UserHolding::whereNull('user_id')->update(['user_id'=>$uid]);
     return back()->with('success', "Ownership corrigido: $affected registros agora pertencem ao usuário $uid");
 })->name('holdings.fixOwnership');
+Route::delete('/openai/portfolio/holdings', [\App\Http\Controllers\UserHoldingController::class,'bulkDestroy'])->name('holdings.bulkDestroy');
 
 // ...outras rotas...
 

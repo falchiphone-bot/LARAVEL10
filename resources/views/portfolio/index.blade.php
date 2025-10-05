@@ -31,6 +31,12 @@
     @endif
     <a href="{{ route('holdings.create') }}" class="btn btn-sm btn-success" title="Adicionar nova posição">Nova Posição</a>
     <a href="{{ route('holdings.import.form') }}" class="btn btn-sm btn-outline-dark" title="Importar ou colar CSV de holdings">Importar Holdings</a>
+    <form action="{{ route('holdings.bulkDestroy') }}" method="POST" class="d-inline" onsubmit="return confirm('Apagar TODAS as posições? Esta ação não pode ser desfeita.')">
+      @csrf
+      @method('DELETE')
+      <input type="hidden" name="confirm" value="yes" />
+      <button class="btn btn-sm btn-outline-danger" type="submit" title="Excluir todas as posições do usuário atual">Excluir Todas</button>
+    </form>
     @if($refresh && $updatedCodes)
       <span class="text-muted small">Atualizados: {{ implode(', ', $updatedCodes) }}</span>
     @endif
@@ -85,7 +91,13 @@
               <td class="text-center">@if($r['variation_period']) <a href="{{ $varLink }}" class="text-decoration-none">{{ $r['variation_period'] }}</a> @else — @endif</td>
               <td class="text-end d-flex flex-wrap gap-1 justify-content-end">
                 <a href="{{ $varLink }}" class="btn btn-xs btn-outline-secondary" title="Ver histórico de variações">Histórico</a>
-                <a href="{{ route('holdings.edit', $r['id']) }}" class="btn btn-xs btn-outline-primary" title="Editar posição">Editar</a>
+                {{-- Edição opcional (mantida se quiser ajustar manualmente) --}}
+                {{--<a href="{{ route('holdings.edit', $r['id']) }}" class="btn btn-xs btn-outline-primary" title="Editar posição">Editar</a>--}}
+                <form action="{{ route('holdings.destroy', $r['id']) }}" method="POST" onsubmit="return confirm('Excluir posição {{ $r['code'] }}?')">
+                  @csrf
+                  @method('DELETE')
+                  <button class="btn btn-xs btn-outline-danger" title="Excluir esta posição" type="submit">Excluir</button>
+                </form>
               </td>
             </tr>
           @empty
