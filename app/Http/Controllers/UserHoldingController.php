@@ -253,15 +253,7 @@ class UserHoldingController extends Controller
         // Soft delete tudo e redireciona para import
         $userId = Auth::id();
         UserHolding::where('user_id',$userId)->delete();
-        return redirect()->route('holdings.import.form')->with('success','Posições limpas (soft delete). Agora importe o novo arquivo.');
-    }
-
-    public function importForm()
-    {
-        $accounts = InvestmentAccount::where('user_id', Auth::id())->orderBy('account_name')->get();
-        return view('portfolio.holding_import', [
-            'accounts'=>$accounts,
-        ]);
+        return redirect()->route('holdings.screen.quick.form')->with('success','Posições limpas (soft delete). Cole o bloco Avenue Screen para atualizar.');
     }
 
     public function screenQuickForm()

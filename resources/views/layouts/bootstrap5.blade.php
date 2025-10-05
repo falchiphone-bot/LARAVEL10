@@ -233,9 +233,6 @@ function aplicarMascaraValor() {
     input.addEventListener('blur', function () {
       var val = input.value.replace(/\D/g, ''); // só números
       if (val.length > 2) {
-        var inteiro = val.slice(0, -2);
-        var centavos = val.slice(-2);
-        var novoValor = parseInt(inteiro, 10).toLocaleString('pt-BR') + ',' + centavos;
         input.value = novoValor;
       } else if (val.length === 2) {
         input.value = '0,' + val;
@@ -575,7 +572,7 @@ if (window.Livewire) {
                       </li>
                       <li>
                         <a class="dropdown-item" href="{{ route('holdings.import.form') }}" title="Importar/colar CSV de holdings (Avenue ou genérico)">
-                          <i class="fa-solid fa-file-import me-1"></i> Importar Holdings
+                          {{-- Importar Holdings removido */}
                         </a>
                       </li>
                       @endcan
@@ -610,7 +607,7 @@ if (window.Livewire) {
                   </li>
                   <li class="d-block d-md-none">
                     <a class="dropdown-item ps-4" href="{{ route('holdings.import.form') }}" title="Importar/colar CSV de holdings (Avenue ou genérico)">
-                      <i class="fa-solid fa-file-import me-1"></i> Importar Holdings
+                      {{-- Importar Holdings removido */}
                     </a>
                   </li>
                   @endcan

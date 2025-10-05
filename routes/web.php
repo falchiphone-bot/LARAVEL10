@@ -71,7 +71,8 @@ Route::post('/openai/portfolio/holdings', [\App\Http\Controllers\UserHoldingCont
 Route::get('/openai/portfolio/holdings/{holding}/edit', [\App\Http\Controllers\UserHoldingController::class, 'edit'])->name('holdings.edit');
 Route::put('/openai/portfolio/holdings/{holding}', [\App\Http\Controllers\UserHoldingController::class, 'update'])->name('holdings.update');
 Route::delete('/openai/portfolio/holdings/{holding}', [\App\Http\Controllers\UserHoldingController::class, 'destroy'])->name('holdings.destroy');
-Route::get('/openai/portfolio/holdings/import', [\App\Http\Controllers\UserHoldingController::class, 'importForm'])->name('holdings.import.form');
+// Import CSV removido em favor do fluxo Avenue Screen rápido; mantido apenas importStore se ainda houver chamadas legadas.
+// Route removida: holdings.import.form
 Route::post('/openai/portfolio/holdings/import', [\App\Http\Controllers\UserHoldingController::class, 'importStore'])->name('holdings.import.store');
 // Diagnóstico rápido de ownership de holdings (temporário - pode remover depois)
 Route::get('/openai/portfolio/holdings/diag-ownership', function(){
