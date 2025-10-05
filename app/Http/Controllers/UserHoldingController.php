@@ -243,12 +243,25 @@ class UserHoldingController extends Controller
                 }
             }
             if($avg <= 0) continue;
+            // Extrair current_price da coluna Cotação (primeira linha com número)
+            $cotRaw = trim($colCotacao);
+            $cotRaw = preg_replace('/U\$\s*/i','',$cotRaw);
+            $cotLines = array_values(array_filter(array_map('trim', preg_split('/\n+/', $cotRaw))));
+            $cpCandidate = null;
+            foreach($cotLines as $cl){
+                if(preg_match('/([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/',$cl,$m)){
+                    $cpCandidate = $m[1];
+                    break;
+                }
+            }
+            $currentPrice = $cpCandidate ? $this->parseNumber($cpCandidate,6) : null;
             $data[] = [
                 'code' => $code,
                 'quantity' => $qty,
                 'avg_price' => $avg,
                 'invested_value' => $qty * $avg,
-                'currency' => 'USD'
+                'currency' => 'USD',
+                'current_price' => $currentPrice
             ];
         }
         return $data;
@@ -309,6 +322,7 @@ class UserHoldingController extends Controller
                     'avg_price' => $r['avg_price'],
                     'invested_value' => $r['invested_value'],
                     'currency' => $r['currency'],
+                    'current_price' => $r['current_price'] ?? null,
                 ];
             }
         } else {
@@ -343,6 +357,7 @@ class UserHoldingController extends Controller
             if($avg <= 0){ $skip++; continue; }
             $invested = isset($r['invested_value']) && $r['invested_value'] !== '' ? $this->parseNumber($r['invested_value'],2) : ($qty * $avg);
             $curr = $r['currency'] ?? null;
+            $curPrice = isset($r['current_price']) && $r['current_price'] !== '' ? $this->parseNumber((string)$r['current_price']) : null;
             $hold = UserHolding::where('user_id',$userId)->where('code',$code)->where('account_id',$accountId)->first();
             if($hold){
                 if($modeMerge === 'sum'){
@@ -353,6 +368,7 @@ class UserHoldingController extends Controller
                     $hold->avg_price = $newAvg;
                     $hold->invested_value = $hold->invested_value + $invested;
                     if($curr) $hold->currency = $curr;
+                    if($curPrice !== null) $hold->current_price = $curPrice;
                     $hold->save();
                 } else { // replace
                     $hold->update([
@@ -360,6 +376,7 @@ class UserHoldingController extends Controller
                         'avg_price'=>$avg,
                         'invested_value'=>$invested,
                         'currency'=>$curr ?: $hold->currency,
+                        'current_price'=>$curPrice !== null ? $curPrice : $hold->current_price,
                     ]);
                 }
                 $upd++;
@@ -372,7 +389,7 @@ class UserHoldingController extends Controller
                         'quantity'=>$qty,
                         'avg_price'=>$avg,
                         'invested_value'=>$invested,
-                        'current_price'=>null,
+                        'current_price'=>$curPrice,
                         'currency'=>$curr,
                     ]);
                     $ins++;
