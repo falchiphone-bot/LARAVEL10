@@ -43,7 +43,7 @@
       </div>
       <div class="card-footer d-flex justify-content-between">
         <a href="{{ route('openai.portfolio.index') }}" class="btn btn-sm btn-secondary">Voltar</a>
-        <button class="btn btn-sm btn-primary">Processar</button>
+  <button class="btn btn-sm btn-primary" id="btn-process" disabled title="Necessário e-mail correspondente na primeira linha">Processar</button>
       </div>
     </form>
   </div>
@@ -85,11 +85,24 @@
     return null;
   }
 
+  const btn = document.getElementById('btn-process');
+  function setBtn(enabled, reason){
+    if(!btn) return;
+    if(enabled){
+      btn.removeAttribute('disabled');
+      btn.removeAttribute('title');
+    } else {
+      btn.setAttribute('disabled','disabled');
+      if(reason) btn.setAttribute('title', reason);
+    }
+  }
+
   function refreshStatus(){
     const email = detectEmailFromText(ta.value || '');
     const selOpt = accSelect && accSelect.value ? accSelect.options[accSelect.selectedIndex] : null;
     if(!email){
       info.innerHTML = '<span class="text-muted">Nenhum e-mail detectado na primeira linha (opcional).</span>';
+      setBtn(false, 'Informe bloco começando com e-mail correspondente');
       return;
     }
     let matchStatus = 'pending';
@@ -105,10 +118,13 @@
     }
     if(matchStatus === 'ok'){
       info.innerHTML = '<span class="text-success">E-mail detectado: '+email+' ✔ corresponde à conta selecionada.</span>';
+      setBtn(true);
     } else if(matchStatus === 'mismatch'){
       info.innerHTML = '<span class="text-danger">E-mail detectado: '+email+' não corresponde ao nome ou corretora da conta selecionada'+detail+'.</span>';
+      setBtn(false, 'E-mail não corresponde à conta');
     } else {
       info.innerHTML = '<span class="text-warning">E-mail detectado: '+email+' — selecione a conta correspondente.</span>';
+      setBtn(false, 'Selecione a conta correspondente');
     }
   }
 
