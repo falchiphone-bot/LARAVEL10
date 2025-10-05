@@ -7,7 +7,7 @@
             <div class="alert alert-danger">
                 {{ session('error') }}
             </div>
-                {{ session(['error' => null]) }}
+            @php(session(['error' => null]))
             @endif
 
             <div class="card">
@@ -20,7 +20,7 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <table class="table table-success table-striped">
+                    <div class="table-responsive">
                         @if (session('googleUser'))
                         <div class="badge bg-success text-wrap" style="width: 100%;">
                             <div class="col-sm-1">
@@ -371,6 +371,7 @@
                                 <div class="badge bg-success w-100"> . . </div>
                             </div>
                             <!-- Fim grid -->
+                        </div><!-- /table-responsive -->
                         @push('scripts')
                         <script>
                             document.addEventListener('DOMContentLoaded', function() {
