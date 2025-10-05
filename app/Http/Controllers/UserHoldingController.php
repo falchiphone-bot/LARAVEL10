@@ -416,7 +416,9 @@ class UserHoldingController extends Controller
         $dataRows = [];
         // Primeiro tenta parser Avenue específico (multi-linha/tab)
         $avenueRows = $this->parseAvenue($raw);
+        $dbgAvenueCount = 0; $dbgAvenueBlocksCount = 0;
         if(!empty($avenueRows)){
+            $dbgAvenueCount = count($avenueRows);
             foreach($avenueRows as $r){
                 $dataRows[] = [
                     'code' => $r['code'],
@@ -428,6 +430,7 @@ class UserHoldingController extends Controller
                 ];
             }
         } elseif($avenueRows = $this->parseAvenueBlocks($raw)) {
+            $dbgAvenueBlocksCount = count($avenueRows);
             foreach($avenueRows as $r){
                 $dataRows[] = [
                     'code' => $r['code'],
@@ -512,6 +515,12 @@ class UserHoldingController extends Controller
             }
         }
         $msg = "Importação concluída: {$ins} inseridos, {$upd} atualizados, {$skip} ignorados";
+        if($dbgAvenueCount>0 || $dbgAvenueBlocksCount>0){
+            $det = [];
+            if($dbgAvenueCount>0) $det[] = "AvenueTab={$dbgAvenueCount}";
+            if($dbgAvenueBlocksCount>0) $det[] = "AvenueBlocks={$dbgAvenueBlocksCount}";
+            if($det) $msg .= ' ['.implode(', ',$det).']';
+        }
         if($errors){ $msg .= '. Erros: '.implode('; ',$errors); }
         return redirect()->route('openai.portfolio.index')->with('success',$msg);
     }
