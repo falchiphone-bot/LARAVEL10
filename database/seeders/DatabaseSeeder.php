@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             PixPermissionsSeeder::class,
             MarketPermissionsSeeder::class,
             AssetDailyStatsPermissionsSeeder::class,
+            HoldingsPermissionsSeeder::class,
             ProfilePermissionsSeeder::class,
             BackupPermissionSeeder::class,
             GoogleSearchPermissionsSeeder::class,

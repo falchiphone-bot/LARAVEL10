@@ -100,6 +100,7 @@
   function refreshStatus(){
     const email = detectEmailFromText(ta.value || '');
     const selOpt = accSelect && accSelect.value ? accSelect.options[accSelect.selectedIndex] : null;
+    const whitelist = ['sem@falchi.com.br','falchiphone@gmail.com.br'];
     if(!email){
       info.innerHTML = '<span class="text-muted">Nenhum e-mail detectado na primeira linha (opcional).</span>';
       setBtn(false, 'Informe bloco começando com e-mail correspondente');
@@ -116,8 +117,12 @@
         detail = ' (Conta: '+(parts.name || '-')+(parts.broker? ' / Broker: '+parts.broker:'')+')';
       }
     }
-    if(matchStatus === 'ok'){
-      info.innerHTML = '<span class="text-success">E-mail detectado: '+email+' ✔ corresponde à conta selecionada.</span>';
+    if(matchStatus === 'ok' || whitelist.includes(email)){
+      if(whitelist.includes(email) && matchStatus !== 'ok'){
+        info.innerHTML = '<span class="text-success">E-mail detectado (whitelist): '+email+' ✔ autorizado.</span>';
+      } else {
+        info.innerHTML = '<span class="text-success">E-mail detectado: '+email+' ✔ corresponde à conta selecionada.</span>';
+      }
       setBtn(true);
     } else if(matchStatus === 'mismatch'){
       info.innerHTML = '<span class="text-danger">E-mail detectado: '+email+' não corresponde ao nome ou corretora da conta selecionada'+detail+'.</span>';

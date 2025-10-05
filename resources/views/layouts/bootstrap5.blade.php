@@ -623,14 +623,14 @@ if (window.Livewire) {
                         </a>
                       </li>
                       @endcan
-                      @canany(['OPENAI - CHAT','INVESTIMENTOS SNAPSHOTS - LISTAR'])
+                      @can('HOLDINGS - IMPORTAR')
                       <li><hr class="dropdown-divider"></li>
                       <li>
                         <a class="dropdown-item" href="{{ route('holdings.screen.quick.form') }}" title="Importar/colar holdings (Avenue Screen)">
                           <i class="fa-solid fa-file-import me-1"></i> Importar Holdings (Avenue)
                         </a>
                       </li>
-                      @endcanany
+                      @endcan
                     </ul>
                   </li>
                   <!-- Mobile (< md): lista expandida -->
@@ -651,14 +651,14 @@ if (window.Livewire) {
                     </a>
                   </li>
                   @endcan
-                  @canany(['OPENAI - CHAT','INVESTIMENTOS SNAPSHOTS - LISTAR'])
+                  @can('HOLDINGS - IMPORTAR')
                   <li class="d-block d-md-none"><hr class="dropdown-divider"></li>
                   <li class="d-block d-md-none">
                     <a class="dropdown-item ps-4" href="{{ route('holdings.screen.quick.form') }}" title="Importar/colar holdings (Avenue Screen)">
                       <i class="fa-solid fa-file-import me-1"></i> Importar Holdings (Avenue)
                     </a>
                   </li>
-                  @endcanany
+                  @endcan
                   @endcanany
                   @endcan
 
