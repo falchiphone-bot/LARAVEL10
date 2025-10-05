@@ -19,14 +19,21 @@ class PortfolioController extends Controller
     {
         $userId = Auth::id();
         $missingTable = false;
+        $codeFilter = strtoupper(trim((string)$request->input('code')));
+        $accountFilter = $request->input('account_id');
         if(!Schema::hasTable('user_holdings')){
             $missingTable = true;
             $holdings = collect();
         } else {
-            $holdings = UserHolding::with('account')
-                ->where('user_id', $userId)
-                ->orderBy('code')
-                ->get();
+            $q = UserHolding::with('account')->where('user_id', $userId);
+            if($codeFilter !== ''){
+                // filtro prefixo (mais eficiente). Se quiser substring, trocar por LIKE "%$codeFilter%".
+                $q->where('code','LIKE', $codeFilter.'%');
+            }
+            if(is_numeric($accountFilter)){
+                $q->where('account_id', (int)$accountFilter);
+            }
+            $holdings = $q->orderBy('code')->get();
         }
 
         // Atualização opcional de preços (lazy) quando faltando current_price
@@ -108,6 +115,9 @@ class PortfolioController extends Controller
             'updatedCodes' => $updatedCodes,
             'refresh' => $updateQuotes,
             'missingTable' => $missingTable,
+            'filter_code' => $codeFilter,
+            'filter_account_id' => is_numeric($accountFilter) ? (int)$accountFilter : null,
+            'filter_accounts' => \App\Models\InvestmentAccount::where('user_id',$userId)->orderBy('account_name')->get(['id','account_name','broker']),
         ]);
     }
 }

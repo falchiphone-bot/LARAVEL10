@@ -70,6 +70,27 @@
     @if($refresh && $updatedCodes)
       <span class="text-muted small">Atualizados: {{ implode(', ', $updatedCodes) }}</span>
     @endif
+    <form method="get" action="{{ route('openai.portfolio.index') }}" class="d-flex flex-wrap gap-2 align-items-end mt-2 mt-md-0">
+      <div>
+        <label class="form-label small mb-1">Código</label>
+        <input type="text" name="code" value="{{ $filter_code ?? '' }}" class="form-control form-control-sm" placeholder="Ex: AAPL" maxlength="15" />
+      </div>
+      <div>
+        <label class="form-label small mb-1">Conta</label>
+        <select name="account_id" class="form-select form-select-sm" style="min-width:160px">
+          <option value="">— Todas —</option>
+          @foreach($filter_accounts as $fa)
+            <option value="{{ $fa->id }}" @selected($filter_account_id === $fa->id)>{{ $fa->account_name }} @if($fa->broker) ({{ $fa->broker }}) @endif</option>
+          @endforeach
+        </select>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-secondary" type="submit" title="Aplicar filtros"><i class="fa-solid fa-filter me-1"></i>Filtrar</button>
+        @if(($filter_code ?? '') !== '' || $filter_account_id)
+          <a href="{{ route('openai.portfolio.index') }}" class="btn btn-sm btn-outline-dark" title="Limpar filtros"><i class="fa-solid fa-xmark me-1"></i>Limpar</a>
+        @endif
+      </div>
+    </form>
   </div>
   <div class="card shadow-sm @if(!empty($missingTable)) opacity-50 @endif">
     <div class="card-header d-flex justify-content-between align-items-center">
