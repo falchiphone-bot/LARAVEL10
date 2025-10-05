@@ -267,6 +267,108 @@ class UserHoldingController extends Controller
         return $data;
     }
 
+    /**
+     * Fallback para conteúdo colado onde tabs foram perdidos e cada registro aparece em blocos:
+     * " (linha isolada)
+     * Nome da Empresa
+     * TICKER" (fecha aspas)
+     * Ações
+     * "U$ 145,54
+     * U$ 1,08 (0,75%)"  (cotação + var intraday)
+     * 1                  (quantidade)
+     * U$ 144,35          (preço médio)
+     * "U$ 145,54         (valor atual)
+     * U$ 1,19 (0,82%)"   (lucro/perda) – ignorado
+     */
+    protected function parseAvenueBlocks(string $raw): array
+    {
+        // heurística rápida: precisa ter linhas com apenas " e linha de cabeçalho Ativo Tipo Cotação
+        if(!preg_match('/Ativo\s+Tipo\s+Cot[aã]ção/i', $raw)) return [];
+        $lines = preg_split('/\r?\n/', $raw);
+        $clean = [];
+        foreach($lines as $ln){ $clean[] = rtrim($ln); }
+        $out = [];
+        $n = count($clean);
+        for($i=0;$i<$n;$i++){
+            if(trim($clean[$i]) === '"'){
+                // bloco potencial
+                $name = null; $ticker = null; $cotLines = []; $qty = null; $avg = null; $currentPrice = null;
+                $j = $i+1;
+                if($j < $n) { $name = trim($clean[$j]); $j++; }
+                if($j < $n) {
+                    $tickerLine = trim($clean[$j]); $j++;
+                    if(str_ends_with($tickerLine, '"')){
+                        $ticker = strtoupper(trim(substr($tickerLine,0,-1)));
+                    } else {
+                        // formato inesperado; aborta este bloco
+                        continue;
+                    }
+                }
+                // Próxima linha deve ser 'Ações' (ou outro tipo). Avança.
+                if($j < $n && preg_match('/Ações|Ac[oõ]es/i', $clean[$j])){ $j++; }
+                // Cotação dentro de aspas (2 linhas + fecha)
+                if($j < $n && trim($clean[$j]) === '"'){
+                    // formato diferente, ignora
+                }
+                if($j < $n && str_starts_with(trim($clean[$j]), '"')){
+                    // linha inicial com aspas e conteúdo ou apenas abre aspas?
+                    $firstCot = ltrim(trim($clean[$j]), '"');
+                    $cotLines[] = $firstCot;
+                    $j++;
+                    // adicionar até achar linha que fecha aspas
+                    while($j < $n){
+                        $l = trim($clean[$j]);
+                        if(str_ends_with($l, '"')){
+                            $cotLines[] = substr($l,0,-1);
+                            $j++; break;
+                        } else {
+                            $cotLines[] = $l; $j++;
+                        }
+                    }
+                }
+                // Quantidade
+                if($j < $n){ $qtyLine = trim($clean[$j]); $j++; }
+                else { continue; }
+                $qtyNum = $this->parseNumber($qtyLine ?? '0');
+                // Preço médio (linha começando com U$)
+                if($j < $n){ $avgLine = trim($clean[$j]); $j++; }
+                else { continue; }
+                $avgLineNorm = preg_replace('/U\$\s*/i','',$avgLine);
+                $avgNum = $this->parseNumber($avgLineNorm,6);
+                // Valor atual + lucro/perda em bloco de aspas (opcional)
+                if($j < $n && str_starts_with(trim($clean[$j]), '"')){
+                    $j++; // ignora bloco inteiro
+                    while($j < $n){
+                        $l = trim($clean[$j]);
+                        if(str_ends_with($l,'"')){ $j++; break; }
+                        $j++;
+                    }
+                }
+                // current_price = primeira linha numérica da cotação
+                $cpCandidate = null;
+                foreach($cotLines as $cl){
+                    if(preg_match('/([0-9]{1,3}(?:\.[0-9]{3})*,[0-9]{2})/',$cl,$m)) { $cpCandidate = $m[1]; break; }
+                }
+                $cpNum = $cpCandidate ? $this->parseNumber($cpCandidate,6) : null;
+                if($ticker && $qtyNum>0 && $avgNum>0){
+                    if(preg_match('/^[A-Z0-9.\-]{1,12}$/',$ticker)){
+                        $out[] = [
+                            'code'=>$ticker,
+                            'quantity'=>$qtyNum,
+                            'avg_price'=>$avgNum,
+                            'invested_value'=>$qtyNum*$avgNum,
+                            'current_price'=>$cpNum,
+                            'currency'=>'USD'
+                        ];
+                    }
+                }
+                // mover i para antes de j-1
+                $i = $j-1;
+            }
+        }
+        return $out;
+    }
+
     public function importStore(Request $request)
     {
         // Permitimos agora duas formas: upload de arquivo ou textarea csv_raw.
@@ -315,6 +417,17 @@ class UserHoldingController extends Controller
         // Primeiro tenta parser Avenue específico (multi-linha/tab)
         $avenueRows = $this->parseAvenue($raw);
         if(!empty($avenueRows)){
+            foreach($avenueRows as $r){
+                $dataRows[] = [
+                    'code' => $r['code'],
+                    'quantity' => $r['quantity'],
+                    'avg_price' => $r['avg_price'],
+                    'invested_value' => $r['invested_value'],
+                    'currency' => $r['currency'],
+                    'current_price' => $r['current_price'] ?? null,
+                ];
+            }
+        } elseif($avenueRows = $this->parseAvenueBlocks($raw)) {
             foreach($avenueRows as $r){
                 $dataRows[] = [
                     'code' => $r['code'],
