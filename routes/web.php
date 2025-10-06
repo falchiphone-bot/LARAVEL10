@@ -84,6 +84,13 @@ Route::get('/openai/portfolio/cash/import/screen', [\App\Http\Controllers\Invest
 Route::post('/openai/portfolio/cash/import/screen', [\App\Http\Controllers\InvestmentAccountCashImportController::class,'store'])
     ->middleware(['auth','verified','can:CASH EVENTS - IMPORTAR'])
     ->name('cash.import.store');
+// Importação CSV avenue-report-statement
+Route::get('/openai/portfolio/cash/import/csv', [\App\Http\Controllers\InvestmentAccountCashImportController::class,'formCsv'])
+    ->middleware(['auth','verified','can:CASH EVENTS - IMPORTAR'])
+    ->name('cash.import.csv.form');
+Route::post('/openai/portfolio/cash/import/csv', [\App\Http\Controllers\InvestmentAccountCashImportController::class,'storeCsv'])
+    ->middleware(['auth','verified','can:CASH EVENTS - IMPORTAR'])
+    ->name('cash.import.csv.store');
 // Listagem de eventos de caixa
 Route::get('/openai/portfolio/cash/events', [\App\Http\Controllers\InvestmentAccountCashEventController::class,'index'])
     ->middleware(['auth','verified','can:CASH EVENTS - LISTAR'])
@@ -91,6 +98,9 @@ Route::get('/openai/portfolio/cash/events', [\App\Http\Controllers\InvestmentAcc
 Route::get('/openai/portfolio/cash/events/export/csv', [\App\Http\Controllers\InvestmentAccountCashEventController::class,'exportCsv'])
     ->middleware(['auth','verified','can:CASH EVENTS - LISTAR'])
     ->name('cash.events.export.csv');
+Route::post('/openai/portfolio/cash/events/truncate-user', [\App\Http\Controllers\InvestmentAccountCashEventController::class,'truncateUserData'])
+    ->middleware(['auth','verified','can:CASH EVENTS - LISTAR'])
+    ->name('cash.events.truncate.user');
 // Removidas: bulkDestroy, templateCsv, templateCsvByAccount, reimport, screenQuickForm, screenQuickStore.
 // Mantidas somente rotas de export existentes e CRUD essencial.
 Route::get('/openai/portfolio/holdings/export/csv', [\App\Http\Controllers\UserHoldingController::class,'exportCsv'])->name('holdings.export.csv');

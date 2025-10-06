@@ -649,6 +649,11 @@ if (window.Livewire) {
                           <i class="fa-solid fa-sack-dollar me-1"></i> Importar Caixa (Avenue)
                         </a>
                       </li>
+                      <li>
+                        <a class="dropdown-item" href="{{ route('cash.import.csv.form') }}#gsc.tab=0" title="Importar CSV Avenue (avenue-report-statement.csv)">
+                          <i class="fa-solid fa-file-csv me-1"></i> Importar Caixa CSV (Avenue)
+                        </a>
+                      </li>
                       @endcan
                     </ul>
                   </li>
@@ -694,6 +699,11 @@ if (window.Livewire) {
                   <li class="d-block d-md-none">
                     <a class="dropdown-item ps-4" href="{{ route('cash.import.form') }}#gsc.tab=0" title="Importar bloco de caixa (saldo e eventos)">
                       <i class="fa-solid fa-sack-dollar me-1"></i> Importar Caixa (Avenue)
+                    </a>
+                  </li>
+                  <li class="d-block d-md-none">
+                    <a class="dropdown-item ps-4" href="{{ route('cash.import.csv.form') }}#gsc.tab=0" title="Importar CSV Avenue (avenue-report-statement.csv)">
+                      <i class="fa-solid fa-file-csv me-1"></i> Importar Caixa CSV (Avenue)
                     </a>
                   </li>
                   @endcan
