@@ -27,6 +27,11 @@
         #trocaEmpresaWrapper { outline:3px dashed rgba(255,0,0,.6); background:rgba(255,255,0,.12) !important; }
         #trocaEmpresaWrapper select { outline:2px solid rgba(255,0,255,.5); }
         #trocaEmpresaWrapper .diagnostic-badge { position:absolute; top:4px; right:8px; background:#c40000; color:#fff; font-size:11px; padding:2px 6px; border-radius:3px; letter-spacing:.5px; font-weight:600; z-index:11000; }
+    /* Forçar visibilidade da tab enquanto depuramos */
+    #troca-empresa.show.active { display:block !important; visibility:visible !important; opacity:1 !important; }
+    #troca-empresa { position:relative; }
+    #troca-empresa .select2-container { visibility:visible !important; }
+    #troca-empresa .select2-container .select2-dropdown { visibility:visible !important; }
     </style>
     {{-- Success is as dangerous as failure. --}}
     <div class="card">
@@ -106,12 +111,14 @@
                 const tabPane = $('#troca-empresa');
                 const parent = $('#editarLancamentoModal');
                 if(!tabPane.length) return;
+                console.log('[TrocaEmpresa][initSelect2] start; active?', tabPane.hasClass('show') && tabPane.hasClass('active'));
                 // Cada select alvo
                 tabPane.find('select.select2-reinit').each(function(){
                     const $el = $(this);
+                    console.log('[TrocaEmpresa][initSelect2] processing select', this.id, 'visible?', $el.is(':visible'), 'value=', $el.val());
                     // Evita duplicar
                     if($el.hasClass('select2-hidden-accessible')){
-                        try { $el.select2('destroy'); } catch(e) {}
+                        try { $el.select2('destroy'); console.log('[TrocaEmpresa][initSelect2] destroy previous', this.id); } catch(e) { console.warn('[TrocaEmpresa][initSelect2] destroy error', this.id, e); }
                     }
                     $el.select2({
                         dropdownParent: parent.length ? parent : tabPane,
@@ -123,8 +130,12 @@
                         // Apenas assegura que Livewire pegue o evento
                         this.dispatchEvent(new Event('input', { bubbles:true }));
                         this.dispatchEvent(new Event('change', { bubbles:true }));
+                        console.log('[TrocaEmpresa][initSelect2] change event', this.id, 'value', $(this).val());
                     });
+                    const container = $el.next('.select2-container');
+                    console.log('[TrocaEmpresa][initSelect2] after init container exists?', container.length>0, 'z-index', container.css('z-index'));
                 });
+                console.log('[TrocaEmpresa][initSelect2] done');
             }
             // Re-init quando a aba é mostrada
             const trocaTabBtn = document.getElementById('troca-empresa-tab');
@@ -137,6 +148,7 @@
             Livewire.hook('message.processed', (m,c)=>{
                 const activePane = document.querySelector('#troca-empresa.show.active');
                 if(activePane){
+                    console.log('[TrocaEmpresa][hook message.processed] reinit');
                     initSelect2TrocaEmpresa();
                 }
             });
