@@ -8,6 +8,7 @@ use App\Models\Lancamento;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use Illuminate\Support\Facades\Log;
 
 class TrocaEmpresa extends Component
 {
@@ -17,6 +18,7 @@ class TrocaEmpresa extends Component
     public $novacontacredito;
     public $successMsg;
     public $contasnovas = [];
+    public $renderCount = 0;
 
     public $lancamento_id;
 
@@ -46,6 +48,12 @@ class TrocaEmpresa extends Component
         if(!$this->lancamento_id && request()->has('lancamento_id')){
             $this->lancamento_id = (int)request()->get('lancamento_id');
         }
+        Log::debug('[TrocaEmpresa][refreshData]', [
+            'lancamento_id' => $this->lancamento_id,
+            'novaempresa' => $this->novaempresa,
+            'empresas_count' => is_countable($this->empresas) ? count($this->empresas) : null,
+            'contasnovas_count' => is_countable($this->contasnovas) ? count($this->contasnovas) : null,
+        ]);
     }
 
     protected $rules = [
@@ -62,6 +70,10 @@ class TrocaEmpresa extends Component
         ->pluck('PlanoContas.Descricao', 'Contas.ID');
 
         // $this->emit('select2');
+        Log::debug('[TrocaEmpresa][empresaSelecionada]', [
+            'novaempresa' => $this->novaempresa,
+            'contasnovas_count' => is_countable($this->contasnovas) ? count($this->contasnovas) : null,
+        ]);
     }
 
     public function transferirLancamento()
@@ -134,9 +146,23 @@ class TrocaEmpresa extends Component
                 $this->empresaSelecionada();
             }
         }
+        Log::debug('[TrocaEmpresa][mount]', [
+            'lancamento_id' => $this->lancamento_id,
+            'empresas_count' => is_countable($this->empresas) ? count($this->empresas) : null,
+            'novaempresa' => $this->novaempresa,
+            'contasnovas_count' => is_countable($this->contasnovas) ? count($this->contasnovas) : null,
+        ]);
     }
     public function render()
     {
+        $this->renderCount++;
+        Log::debug('[TrocaEmpresa][render]', [
+            'renderCount' => $this->renderCount,
+            'lancamento_id' => $this->lancamento_id,
+            'empresas_count' => is_countable($this->empresas) ? count($this->empresas) : null,
+            'novaempresa' => $this->novaempresa,
+            'contasnovas_count' => is_countable($this->contasnovas) ? count($this->contasnovas) : null,
+        ]);
         return view('livewire.lancamento.troca-empresa');
     }
 }
