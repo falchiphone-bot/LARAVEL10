@@ -35,6 +35,7 @@
     </style>
     {{-- Success is as dangerous as failure. --}}
     <div class="card">
+        <div style="background:#ffb347;padding:6px 10px;font-weight:700;font-size:13px;color:#4b2100;border-bottom:1px solid #d98a00;">[DEBUG TROCA EMPRESA] RENDER OK - Se nada aparece abaixo, há CSS ocultando ou Select2 corrompeu o DOM.</div>
         <div class="col-sm-12">
             @if ($errors->any())
                 <div class="alert alert-danger">
@@ -58,7 +59,7 @@
                     <label for="empresaid">Nova Empresa</label>
                     @if($empresas && count($empresas))
                         <select wire:model='novaempresa' wire:change="empresaSelecionada" name="empresaid" id="empresaid"
-                            class="form-control select2 select2-troca select2-reinit" data-placeholder="Selecione" aria-label="Selecionar nova empresa">
+                            class="form-control select2-reinit" data-placeholder="Selecione" aria-label="Selecionar nova empresa">
                             <option value="">Selecione</option>
                             @foreach ($empresas as $empresaID => $empresaDescricao)
                                 <option value="{{ $empresaID }}">{{ $empresaDescricao }}</option>
@@ -73,7 +74,7 @@
                 <div class="col-sm-12 mb-3">
                     <label for="novacontadebito">Conta Debito</label>
                     @if($contasnovas && count($contasnovas))
-                        <select id="novacontadebito" class="form-control select2 select2-troca select2-reinit" wire:model='novacontadebito' data-placeholder="Selecione" aria-label="Selecionar conta débito">
+                        <select id="novacontadebito" class="form-control select2-reinit" wire:model='novacontadebito' data-placeholder="Selecione" aria-label="Selecionar conta débito">
                             <option value="">Selecione</option>
                             @foreach ($contasnovas as $contaID => $contaDescricao)
                                 <option value="{{ $contaID }}">{{ $contaDescricao }}</option>
@@ -87,7 +88,7 @@
                 <div class="col-sm-12 mb-3">
                     <label for="novacontacredito">Conta Crédito</label>
                     @if($contasnovas && count($contasnovas))
-                        <select id="novacontacredito" class="form-control select2 select2-troca select2-reinit" wire:model='novacontacredito' data-placeholder="Selecione" aria-label="Selecionar conta crédito">
+                        <select id="novacontacredito" class="form-control select2-reinit" wire:model='novacontacredito' data-placeholder="Selecione" aria-label="Selecionar conta crédito">
                             <option value="">Selecione</option>
                             @foreach ($contasnovas as $contaID => $contaDescricao)
                                 <option value="{{ $contaID }}">{{ $contaDescricao }}</option>
@@ -112,6 +113,19 @@
                 const parent = $('#editarLancamentoModal');
                 if(!tabPane.length) return;
                 console.log('[TrocaEmpresa][initSelect2] start; active?', tabPane.hasClass('show') && tabPane.hasClass('active'));
+                if(typeof $.fn.select2 !== 'function') {
+                    console.warn('[TrocaEmpresa] select2 NÃO carregado - usando selects nativos');
+                    if(!document.getElementById('alertSelect2Missing')){
+                        $('#trocaEmpresaWrapper').prepend('<div id="alertSelect2Missing" style="background:#ffe08a;border:1px solid #d3a500;padding:6px 8px;margin:6px 0;font-size:12px;font-weight:600;">Select2 não carregado - exibindo selects simples.</div>');
+                    }
+                    // Garantir que nenhum select esteja oculto por classes residuais
+                    tabPane.find('select.select2-reinit').each(function(){
+                        this.classList.remove('select2-hidden-accessible');
+                        this.style.display = 'block';
+                        this.removeAttribute('aria-hidden');
+                    });
+                    return;
+                }
                 // Cada select alvo
                 tabPane.find('select.select2-reinit').each(function(){
                     const $el = $(this);
