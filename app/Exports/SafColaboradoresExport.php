@@ -168,19 +168,19 @@ class SafColaboradoresExport implements FromQuery, WithHeadings, WithMapping, Wi
 
                 // Resumo principal
                 if ($this->aggregates) {
-                    $sheet->setCellValue("A{$start}", 'TOTAL SALÁRIOS');
+                    $sheet->setCellValue("A{$start}", 'TOTAL DESPESAS');
                     $sheet->setCellValue("H{$start}", (float)($this->aggregates->soma_salarios ?? 0));
                     $start++;
-                    $sheet->setCellValue("A{$start}", 'TOTAL SALÁRIOS (ATIVOS)');
+                    $sheet->setCellValue("A{$start}", 'TOTAL DESPESAS (ATIVOS)');
                     $sheet->setCellValue("H{$start}", (float)($this->aggregates->soma_salarios_ativos ?? 0));
                     $start++;
-                    $sheet->setCellValue("A{$start}", 'MÉDIA SALÁRIOS');
+                    $sheet->setCellValue("A{$start}", 'MÉDIA DESPESAS');
                     $sheet->setCellValue("H{$start}", (float)($this->aggregates->media_salarios ?? 0));
                     $start++;
-                    $sheet->setCellValue("A{$start}", 'MÍNIMO');
+                    $sheet->setCellValue("A{$start}", 'MÍNIMO DESPESAS');
                     $sheet->setCellValue("H{$start}", (float)($this->aggregates->min_salario ?? 0));
                     $start++;
-                    $sheet->setCellValue("A{$start}", 'MÁXIMO');
+                    $sheet->setCellValue("A{$start}", 'MÁXIMO DESPESAS');
                     $sheet->setCellValue("H{$start}", (float)($this->aggregates->max_salario ?? 0));
                     $start += 2; // espaço antes dos totais por forma
                 }

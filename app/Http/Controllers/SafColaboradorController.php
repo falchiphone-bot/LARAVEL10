@@ -290,27 +290,27 @@ class SafColaboradorController extends Controller
             // Resumo principal
             if ($aggregates) {
                 fputcsv($out, [
-                    'TOTAL SALÁRIOS','', '', '', '', '', '',
+                    'TOTAL DESPESAS','', '', '', '', '', '',
                     number_format((float)$aggregates->soma_salarios,2,',','.'),
                     '', '', '', '', '', '', '', '', ''
                 ], ';');
                 fputcsv($out, [
-                    'TOTAL SALÁRIOS (ATIVOS)','', '', '', '', '', '',
+                    'TOTAL DESPESAS (ATIVOS)','', '', '', '', '', '',
                     number_format((float)$aggregates->soma_salarios_ativos,2,',','.'),
                     '', '', '', '', '', '', '', '', ''
                 ], ';');
                 fputcsv($out, [
-                    'MÉDIA SALÁRIOS','', '', '', '', '', '',
+                    'MÉDIA DESPESAS','', '', '', '', '', '',
                     number_format((float)$aggregates->media_salarios,2,',','.'),
                     '', '', '', '', '', '', '', '', ''
                 ], ';');
                 fputcsv($out, [
-                    'MÍNIMO','', '', '', '', '', '',
+                    'MÍNIMO DESPESAS','', '', '', '', '', '',
                     number_format((float)$aggregates->min_salario,2,',','.'),
                     '', '', '', '', '', '', '', '', ''
                 ], ';');
                 fputcsv($out, [
-                    'MÁXIMO','', '', '', '', '', '',
+                    'MÁXIMO DESPESAS','', '', '', '', '', '',
                     number_format((float)$aggregates->max_salario,2,',','.'),
                     '', '', '', '', '', '', '', '', ''
                 ], ';');

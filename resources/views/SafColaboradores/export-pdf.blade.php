@@ -85,12 +85,12 @@
             <table style="width:100%; margin-bottom:10px; border:1px solid #bbb; border-collapse:collapse;">
                 <thead>
                     <tr>
-                        <th colspan="7" style="background:#f2f2f2; text-align:left;">Resumo de Salários (Registros Filtrados)</th>
+                        <th colspan="7" style="background:#f2f2f2; text-align:left;">Resumo de Despesas (Registros Filtrados)</th>
                     </tr>
                     <tr>
                         <th>Total Registros</th>
                         <th>Ativos</th>
-                        <th>Soma Salários</th>
+                        <th>Soma Despesas</th>
                         <th>Soma (Ativos)</th>
                         <th>Média</th>
                         <th>Mínimo</th>
@@ -115,11 +115,11 @@
             <table style="width:100%; margin-bottom:15px; border:1px solid #bbb; border-collapse:collapse;">
                 <thead>
                     <tr>
-                        <th colspan="2" style="background:#f2f2f2; text-align:left;">Totais por Forma de Pagamento</th>
+                        <th colspan="2" style="background:#f2f2f2; text-align:left;">Despesas por Forma de Pagamento</th>
                     </tr>
                     <tr>
                         <th>Forma de Pagamento</th>
-                        <th>Total Salários</th>
+                        <th>Total Despesas</th>
                     </tr>
                 </thead>
                 <tbody>
