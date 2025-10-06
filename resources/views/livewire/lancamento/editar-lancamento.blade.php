@@ -293,7 +293,42 @@ document.addEventListener('DOMContentLoaded', function(){
                 </div>
                 <div class="tab-pane fade @if ($currentTab == 'troca-empresa') show active @endif" id="troca-empresa"
                     role="tabpanel" aria-labelledby="troca-empresa-tab">
+                    {{-- DEBUG VISUAL TROCA EMPRESA --}}
+                    <style>
+                        #troca-empresa.show.active {position:relative !important; display:block !important; visibility:visible !important; opacity:1 !important;}
+                        #troca-empresa.show.active:before {content:'TROCA EMPRESA DEBUG VISUAL'; position:absolute; top:4px; left:8px; font-size:11px; background:#ff0066; color:#fff; padding:2px 6px; z-index:12000; letter-spacing:.5px; font-weight:700; border-radius:3px;}
+                        #troca-empresa .debug-overlay-msg {background: repeating-linear-gradient(45deg,#ffe67a,#ffe67a 8px,#ffd24d 8px,#ffd24d 16px); padding:12px; border:2px solid #ff8800; font-size:14px; font-weight:600; color:#3a1a00; margin-bottom:10px; border-radius:6px;}
+                        #troca-empresa .debug-overlay-msg ul {margin:0; padding-left:18px; font-size:12px;}
+                        #troca-empresa .debug-outline-all * {outline:1px dotted rgba(0,0,0,.15);}
+                    </style>
+                    <div class="debug-overlay-msg" id="trocaEmpresaDebugMsg">
+                        <strong>DEBUG TROCA EMPRESA</strong> – Se você vê esta caixa, o conteúdo da aba está NO DOM.<br>
+                        <ul>
+                            <li>Se os selects não aparecem, pode ser opacidade/altura herdada.</li>
+                            <li>Clique no botão abaixo para forçar bordas em todos elementos.</li>
+                            <li>Depois role a área do modal para confirmar não está fora da viewport.</li>
+                        </ul>
+                        <button type="button" class="btn btn-sm btn-warning mt-2" onclick="(function(){const pane=document.getElementById('troca-empresa');pane.classList.toggle('debug-outline-all');})();">Alternar outlines</button>
+                        <button type="button" class="btn btn-sm btn-info mt-2" onclick="(function(){const pane=document.getElementById('troca-empresa');pane.style.minHeight='480px'; pane.style.paddingBottom='40px';})();">Forçar min-height</button>
+                        <button type="button" class="btn btn-sm btn-secondary mt-2" onclick="window.__trocaEmpresaReinit && window.__trocaEmpresaReinit()">Reinit Select2 manual</button>
+                    </div>
                     @livewire('lancamento.troca-empresa', ['lancamento_id' => $lancamento->ID], key('troca-empresa-'.$lancamento->ID))
+                    <script>
+                        // Força scroll para o topo da aba ao ativar (caso esteja fora da viewport)
+                        document.addEventListener('DOMContentLoaded', function(){
+                            const btn = document.getElementById('troca-empresa-tab');
+                            if(btn){
+                                btn.addEventListener('shown.bs.tab', function(){
+                                    const pane = document.getElementById('troca-empresa');
+                                    if(pane){
+                                        pane.scrollTop = 0;
+                                        // Caso algum estilo oculte, remove atributos suspeitos
+                                        ['height','maxHeight','opacity','visibility'].forEach(p=>{ if(pane.style[p]) pane.style[p]=''; });
+                                    }
+                                });
+                            }
+                        });
+                    </script>
                 </div>
             </div>
         </div>
