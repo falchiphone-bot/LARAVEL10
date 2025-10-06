@@ -845,6 +845,11 @@
         @media (max-width: 768px){
             .editar-lancamento-dialog { max-width: 95%; margin: 0 auto; }
         }
+        /* Mantém altura mínima do container de abas para evitar "pulos" ao alternar */
+        #editarLancamentoModal .tab-content { min-height: clamp(360px, 55vh, 600px); transition: min-height .15s ease; }
+        /* Suaviza mudança de conteúdo interno */
+        #editarLancamentoModal .tab-pane { animation: fadeTab .12s ease; }
+        @keyframes fadeTab { from { opacity: .6; } to { opacity: 1; } }
     </style>
 @endpush
 @push('scripts')
@@ -1232,6 +1237,51 @@
     function scrollDown() {
       window.scrollBy({ top: 80, behavior: 'smooth' });
     }
+
+        /* Ajuste dinâmico de altura: calcula a maior altura entre as abas já renderizadas
+           e fixa como min-height para impedir encolhimento quando o usuário visita uma aba menor. */
+        (function(){
+            let maxPaneHeight = 0;
+            function measureAndLock(){
+                const tc = document.querySelector('#editarLancamentoModal .tab-content');
+                if(!tc) return;
+                const panes = tc.querySelectorAll('.tab-pane');
+                panes.forEach(p => {
+                    const wasHidden = !p.classList.contains('active');
+                    const orig = {display: p.style.display, visibility: p.style.visibility, position: p.style.position};
+                    if(wasHidden){
+                        p.style.visibility='hidden';
+                        p.style.display='block';
+                        p.style.position='absolute';
+                        p.classList.add('force-measure');
+                    }
+                    const h = p.scrollHeight;
+                    if(h > maxPaneHeight) maxPaneHeight = h;
+                    if(wasHidden){
+                        p.style.display = orig.display;
+                        p.style.visibility = orig.visibility;
+                        p.style.position = orig.position;
+                        p.classList.remove('force-measure');
+                    }
+                });
+                if(maxPaneHeight){
+                    // Limita para não extrapolar viewport (menos margem de 120px)
+                    const vp = window.innerHeight - 160;
+                    const finalH = Math.min(maxPaneHeight, vp);
+                    tc.style.minHeight = finalH + 'px';
+                }
+            }
+            document.addEventListener('shown.bs.tab', measureAndLock);
+            window.addEventListener('abrir-modal', () => setTimeout(measureAndLock, 450));
+            document.addEventListener('livewire:load', () => {
+                if(window.Livewire){
+                    Livewire.hook('message.processed', (m,c)=>{ if(document.getElementById('editarLancamentoModal')?.classList.contains('show')) measureAndLock(); });
+                }
+            });
+            window.addEventListener('resize', ()=>{ // Reaplica em resize
+                setTimeout(measureAndLock, 150);
+            });
+        })();
 
 
 
