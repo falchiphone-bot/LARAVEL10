@@ -869,6 +869,72 @@
             #editarLancamentoModal .modal-content { min-height:70vh; }
             #editarLancamentoModal .tab-content { min-height: clamp(300px, 65vh, 560px); }
         }
+
+        /* =================== THEMA AZUL COMPLETO DO MODAL =================== */
+        #editarLancamentoModal .modal-content { background:#e4f2ff; border:2px solid #0d5ca8; box-shadow:0 0 0 4px rgba(13,92,168,.15); }
+        #editarLancamentoModal .modal-header { background:linear-gradient(90deg,#0d5ca8,#1172d4); color:#fff; border-bottom:2px solid #0b4c88; }
+        #editarLancamentoModal .modal-header h5, 
+        #editarLancamentoModal .modal-header h4, 
+        #editarLancamentoModal .modal-header strong { color:#fff !important; }
+        #editarLancamentoModal .btn-close { filter: invert(1); }
+
+        /* Abas */
+        #editarLancamentoModal .nav-tabs { border-bottom:2px solid #0d5ca8; }
+        #editarLancamentoModal .nav-tabs .nav-link { background:#c5e2ff; color:#0b3d66; border:1px solid #7fb6e8; margin-right:4px; font-weight:500; }
+        #editarLancamentoModal .nav-tabs .nav-link:hover { background:#b3d9ff; color:#08314f; }
+        #editarLancamentoModal .nav-tabs .nav-link.active { background:#0d5ca8; color:#fff; border-color:#0d5ca8; box-shadow:0 0 0 2px #0d5ca8 inset; }
+
+        /* Cards internos tornam-se translúcidos para ver azul de fundo */
+        #editarLancamentoModal .card { background:#d5ecff; border:1px solid #8fc2ed; }
+        #editarLancamentoModal .card-header { background:#b8ddfb; border-bottom:1px solid #8fc2ed; }
+        #editarLancamentoModal .card-body { background:transparent; }
+        #editarLancamentoModal .card-footer { background:#b8ddfb; }
+
+        /* Inputs / selects */
+        #editarLancamentoModal input.form-control,
+        #editarLancamentoModal select.form-control,
+        #editarLancamentoModal textarea.form-control,
+        #editarLancamentoModal .select2-container .select2-selection--single { background:#ffffff; border:1px solid #6bb2ec; color:#043254; }
+        #editarLancamentoModal .select2-container .select2-selection--single .select2-selection__rendered { color:#043254; }
+        #editarLancamentoModal .select2-container--default .select2-selection--single .select2-selection__arrow { height:36px; }
+        #editarLancamentoModal input.form-control:focus,
+        #editarLancamentoModal select.form-control:focus,
+        #editarLancamentoModal textarea.form-control:focus,
+        #editarLancamentoModal .select2-container--default.select2-container--focus .select2-selection--single { background:#f0f9ff; border-color:#0d5ca8; box-shadow:0 0 0 .2rem rgba(13,92,168,.25); }
+
+        /* Botões */
+        #editarLancamentoModal .btn-primary { background:#0d5ca8; border-color:#0d5ca8; }
+        #editarLancamentoModal .btn-primary:hover { background:#0b4c88; }
+        #editarLancamentoModal .btn-outline-secondary, 
+        #editarLancamentoModal .btn-secondary { background:#c5e2ff; color:#08314f; border-color:#7fb6e8; }
+        #editarLancamentoModal .btn-outline-secondary:hover, 
+        #editarLancamentoModal .btn-secondary:hover { background:#b3d9ff; }
+        #editarLancamentoModal .btn-warning { background:#ffb347; border-color:#ffb347; color:#402600; }
+        #editarLancamentoModal .btn-warning:hover { background:#ffa326; }
+
+        /* Tabelas / listas (comentários / arquivos) */
+        #editarLancamentoModal table { background:#fff; }
+        #editarLancamentoModal table thead { background:#0d5ca8; color:#fff; }
+        #editarLancamentoModal li { color:#043254; }
+
+        /* Textos gerais */
+        #editarLancamentoModal label { color:#063a60; font-weight:600; }
+        #editarLancamentoModal .alert { background:#fff; border-color:#7fb6e8; color:#063a60; }
+        #editarLancamentoModal small, #editarLancamentoModal .text-muted { color:#063a60 !important; opacity:.85; }
+
+        /* Scrollbar personalizada dentro do modal azul */
+        #editarLancamentoModal ::-webkit-scrollbar { width:10px; }
+        #editarLancamentoModal ::-webkit-scrollbar-track { background:#c2e4ff; }
+        #editarLancamentoModal ::-webkit-scrollbar-thumb { background:#0d5ca8; border-radius:6px; }
+        #editarLancamentoModal ::-webkit-scrollbar-thumb:hover { background:#0b4c88; }
+
+        /* Links */
+        #editarLancamentoModal a { color:#0d5ca8; }
+        #editarLancamentoModal a:hover { color:#0b4c88; }
+
+        /* Mensagens placeholder na aba troca empresa (herdam tema) */
+        #editarLancamentoModal #trocaEmpresaWrapper .placeholder-msg { background:#ffffff; border:1px dashed #0d5ca8; color:#063a60; }
+    </style>
     </style>
 @endpush
 @push('scripts')
