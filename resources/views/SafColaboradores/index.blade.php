@@ -106,7 +106,80 @@
                         </div>
                     @endif
                 </form>
-                <p class="text-muted">Total: {{ $model->total() }}</p>
+                <p class="text-muted mb-2">Total registros paginados: {{ $model->total() }}</p>
+
+                @if(isset($aggregates))
+                <div class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-2">
+                            <div class="border rounded p-2 bg-white h-100 small">
+                                <strong>Registros filtrados</strong><br>
+                                {{ number_format($aggregates->total_registros ?? 0,0,',','.') }}
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="border rounded p-2 bg-white h-100 small">
+                                <strong>Soma salários</strong><br>
+                                R$ {{ number_format($aggregates->soma_salarios ?? 0,2,',','.') }}
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="border rounded p-2 bg-white h-100 small">
+                                <strong>Soma (Ativos)</strong><br>
+                                R$ {{ number_format($aggregates->soma_salarios_ativos ?? 0,2,',','.') }}
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="border rounded p-2 bg-white h-100 small">
+                                <strong>Média</strong><br>
+                                R$ {{ number_format($aggregates->media_salarios ?? 0,2,',','.') }}
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="border rounded p-2 bg-white h-100 small">
+                                <strong>Mínimo</strong><br>
+                                R$ {{ number_format($aggregates->min_salario ?? 0,2,',','.') }}
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="border rounded p-2 bg-white h-100 small">
+                                <strong>Máximo</strong><br>
+                                R$ {{ number_format($aggregates->max_salario ?? 0,2,',','.') }}
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="border rounded p-2 bg-white h-100 small">
+                                <strong>Ativos</strong><br>
+                                {{ number_format($aggregates->total_ativos ?? 0,0,',','.') }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
+                @if(isset($totalPorFormaPagamento) && $totalPorFormaPagamento->count())
+                <div class="mb-4">
+                    <h6 class="fw-bold">Top formas de pagamento (soma salários)</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Forma de Pagamento</th>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($totalPorFormaPagamento as $fp)
+                                <tr>
+                                    <td>{{ $fp->forma_pagamento_nome ?? '—' }}</td>
+                                    <td class="text-end">R$ {{ number_format($fp->total ?? 0,2,',','.') }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                @endif
 
                 <div class="table-responsive">
                     <table class="table table-striped">
@@ -174,7 +247,7 @@
                             @forelse($model as $item)
                                 <tr>
                                     <td>{{ $item->nome }}</td>
-                                    
+
                                     <td>{{ optional($item->funcaoProfissional)->nome }}</td>
                                     <td>{{ optional($item->tipoPrestador)->nome }}</td>
                                     <td>{{ optional($item->faixaSalarial)->nome }}</td>
@@ -185,7 +258,7 @@
                                     <td>{{ $item->cpf }}</td>
                                     <td>{{ $item->cidade }}</td>
                                     <td>{{ $item->uf }}</td>
-                                    
+
                                     <td>{{ $item->ativo ? 'SIM' : 'NÃO' }}</td>
                                     <td class="text-end">
                                         @can('SAF_COLABORADORES - VER')

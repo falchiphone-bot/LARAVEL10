@@ -15,6 +15,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\SafColaboradoresExport;
 use Dompdf\Dompdf;
 use Dompdf\Options;
+use Illuminate\Support\Facades\DB;
 
 class SafColaboradorController extends Controller
 {
@@ -81,6 +82,28 @@ class SafColaboradorController extends Controller
             }
         }
 
+        // Clonamos antes de aplicar ordenações/joins para cálculos agregados limpos
+        $aggregateQuery = clone $query;
+
+        // Agregados principais (antes de joins de ordenação para evitar impacto em COUNT)
+        $aggregates = $aggregateQuery->selectRaw(
+            'COUNT(*) as total_registros,'.
+            'SUM(COALESCE(valor_salario,0)) as soma_salarios,'.
+            'AVG(valor_salario) as media_salarios,'.
+            'MIN(valor_salario) as min_salario,'.
+            'MAX(valor_salario) as max_salario,'.
+            'SUM(CASE WHEN ativo = 1 THEN COALESCE(valor_salario,0) ELSE 0 END) as soma_salarios_ativos,'.
+            'SUM(CASE WHEN ativo = 1 THEN 1 ELSE 0 END) as total_ativos'
+        )->first();
+
+        // Agrupamento por forma de pagamento (top 10) – só se existir coluna
+        $totalPorFormaPagamento = (clone $query)
+            ->select('forma_pagamento_nome', DB::raw('SUM(COALESCE(valor_salario,0)) as total'))
+            ->groupBy('forma_pagamento_nome')
+            ->orderByDesc('total')
+            ->limit(10)
+            ->get();
+
         // Ordenação por campos relacionados
         if ($sort === 'representante') {
             $query->leftJoin('representantes as r', 'r.id', '=', 'saf_colaboradores.representante_id')
@@ -129,7 +152,7 @@ class SafColaboradorController extends Controller
         $formasPagamento = FormaPagamento::orderBy('nome')->get()->pluck('nome','nome');
 
         return view('SafColaboradores.index', compact(
-            'model','sort','dir','q','representanteId','funcaoId','tipoId','faixaId','representantes','funcoes','tipos','faixas','pixList','formasPagamento','diaPagamento'
+            'model','sort','dir','q','representanteId','funcaoId','tipoId','faixaId','representantes','funcoes','tipos','faixas','pixList','formasPagamento','diaPagamento','aggregates','totalPorFormaPagamento'
         ));
     }
 
