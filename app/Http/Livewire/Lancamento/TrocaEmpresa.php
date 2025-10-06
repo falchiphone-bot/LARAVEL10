@@ -20,7 +20,7 @@ class TrocaEmpresa extends Component
 
     public $lancamento_id;
 
-    protected $listeners = ['setContaDebito','setContaCredito','setLancamentoID'];
+    protected $listeners = ['setContaDebito','setContaCredito','setLancamentoID','refreshData'];
 
     public function setContaDebito($id)
     {
@@ -33,6 +33,19 @@ class TrocaEmpresa extends Component
     public function setLancamentoID($id)
     {
         $this->lancamento_id = $id;
+    }
+
+    public function refreshData()
+    {
+        // Recarrega lista de empresas/contas e mantém seleção existente
+        $this->mount(); // repopula $empresas
+        if($this->novaempresa){
+            $this->empresaSelecionada();
+        }
+        // Se já houver lançamento, garantir que id está setado
+        if(!$this->lancamento_id && request()->has('lancamento_id')){
+            $this->lancamento_id = (int)request()->get('lancamento_id');
+        }
     }
 
     protected $rules = [
@@ -108,8 +121,19 @@ class TrocaEmpresa extends Component
 
     public function mount()
     {
+        // Carrega empresas do usuário
         $this->empresas = Empresa::join('Contabilidade.EmpresasUsuarios','EmpresasUsuarios.EmpresaID','Empresas.ID')
-        ->where('EmpresasUsuarios.UsuarioID',Auth::user()->id)->orderBy('Descricao')->pluck('Descricao','Empresas.ID');
+            ->where('EmpresasUsuarios.UsuarioID',Auth::user()->id)
+            ->orderBy('Descricao')
+            ->pluck('Descricao','Empresas.ID');
+        // Se um lançamento foi definido antes do mount, tenta manter seleção padrão
+        if($this->lancamento_id && !$this->novaempresa){
+            $lanc = Lancamento::find($this->lancamento_id);
+            if($lanc){
+                $this->novaempresa = $lanc->EmpresaID;
+                $this->empresaSelecionada();
+            }
+        }
     }
     public function render()
     {

@@ -3,6 +3,26 @@
         <div class="card-header">
             <h4>
                 @if ($lancamento->ID)
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    const tabEl = document.getElementById('troca-empresa-tab');
+    if(tabEl){
+        tabEl.addEventListener('shown.bs.tab', function(){
+            try {
+                Livewire.emitTo('lancamento.troca-empresa','setLancamentoID', {{ $lancamento->ID ?? 'null' }});
+                Livewire.emitTo('lancamento.troca-empresa','refreshData');
+            } catch(e) { console.warn('refresh troca-empresa failed', e); }
+        });
+    }
+    // Caso a aba já inicie ativa (ex: retorna após ação) forçar refresh inicial
+    if(tabEl && tabEl.classList.contains('active')){
+        Livewire.emitTo('lancamento.troca-empresa','setLancamentoID', {{ $lancamento->ID ?? 'null' }});
+        Livewire.emitTo('lancamento.troca-empresa','refreshData');
+    }
+});
+</script>
+@endpush
                     <strong>{{ $lancamento->ID }} - Edição</strong> de lançamentos |
                     {{ $lancamento->Empresa->Descricao }}
                 @else
