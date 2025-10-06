@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use App\Models\InvestmentAccountCashEvent;
+use App\Models\MoedasValores;
 
 class PortfolioController extends Controller
 {
@@ -88,6 +89,13 @@ class PortfolioController extends Controller
 
         // Montar métricas
         $totalInvested = 0.0; $totalCurrent = 0.0; $rowsOut = [];
+        $totalInvestedBrl = 0.0; $totalCurrentBrl = 0.0; $totalPlAbsBrl = null; $totalGainLossAbs = null; $totalGainLossPct = null;
+        // Taxa de câmbio USD->BRL (assumindo idmoeda = 1). Futuro: mover para config('cambio.usd_id',1)
+        $usdToBrlRate = null;
+        try {
+            $usdToBrlRate = MoedasValores::where('idmoeda', 1)->orderBy('data','desc')->value('valor');
+            if($usdToBrlRate !== null){ $usdToBrlRate = (float)$usdToBrlRate; }
+        } catch(\Throwable $e){ $usdToBrlRate = null; }
         $holdingsCount = $holdings->count();
         $enableCross = $holdingsCount > 0 && $holdingsCount <= 150; // evitar N+1 pesado em carteiras grandes
         foreach ($holdings as $h){
@@ -96,6 +104,10 @@ class PortfolioController extends Controller
             $curVal = ($mktPrice !== null) ? $mktPrice * (float)$h->quantity : null;
             $totalInvested += $inv;
             if($curVal !== null) $totalCurrent += $curVal;
+            $invBrl = ($usdToBrlRate && $inv) ? $inv * $usdToBrlRate : null;
+            $curValBrl = ($usdToBrlRate && $curVal) ? $curVal * $usdToBrlRate : null;
+            if($invBrl !== null) $totalInvestedBrl += $invBrl;
+            if($curValBrl !== null) $totalCurrentBrl += $curValBrl;
             $var = $variationMap[strtoupper($h->code)] ?? null;
             // Cálculo aproximado de cobertura de caixa: soma dos fluxos de compra/venda relacionados ao código na conta.
             $cashCoverPct = null; $approxAcquiredQty = null; $remainingQty = null; $buyAmount = 0.0; $sellAmount = 0.0; $tradeEvents = 0;
@@ -148,6 +160,8 @@ class PortfolioController extends Controller
                     // Silencioso: não compromete a página
                 }
             }
+            $plAbs = ($curVal !== null) ? ($curVal - $inv) : null;
+            $plAbsBrl = ($curValBrl !== null && $invBrl !== null) ? ($curValBrl - $invBrl) : null;
             $rowsOut[] = [
                 'id' => $h->id,
                 'account_id' => $h->account_id,
@@ -159,7 +173,7 @@ class PortfolioController extends Controller
                 'invested_value' => $inv,
                 'current_price' => $mktPrice,
                 'current_value' => $curVal,
-                'gain_loss_abs' => ($curVal !== null) ? ($curVal - $inv) : null,
+                'gain_loss_abs' => $plAbs,
                 'gain_loss_pct' => ($curVal !== null && $inv>0.0) ? (($curVal/$inv)-1.0)*100.0 : null,
                 'variation_monthly' => $var['variation'] ?? null,
                 'variation_period' => $var ? sprintf('%04d-%02d',$var['year'],$var['month']) : null,
@@ -167,6 +181,9 @@ class PortfolioController extends Controller
                 'cash_cover_approx_acquired_qty' => $approxAcquiredQty,
                 'cash_cover_remaining_qty' => $remainingQty,
                 'cash_cover_trade_events' => $tradeEvents,
+                'invested_value_brl' => $invBrl,
+                'current_value_brl' => $curValBrl,
+                'gain_loss_abs_brl' => $plAbsBrl,
             ];
         }
 
@@ -191,11 +208,17 @@ class PortfolioController extends Controller
         }
 
         // Totais e agregados
+        $totalGainLossAbs = $totalCurrent ? ($totalCurrent - $totalInvested) : null;
+        $totalPlAbsBrl = ($totalCurrentBrl && $totalInvestedBrl) ? ($totalCurrentBrl - $totalInvestedBrl) : null;
+        $totalGainLossPct = ($totalCurrent>0 && $totalInvested>0) ? (($totalCurrent/$totalInvested)-1.0)*100.0 : null;
         $agg = [
             'total_invested' => $totalInvested,
             'total_current' => $totalCurrent,
-            'total_gain_loss_abs' => $totalCurrent ? ($totalCurrent - $totalInvested) : null,
-            'total_gain_loss_pct' => ($totalCurrent>0 && $totalInvested>0) ? (($totalCurrent/$totalInvested)-1.0)*100.0 : null,
+            'total_gain_loss_abs' => $totalGainLossAbs,
+            'total_gain_loss_pct' => $totalGainLossPct,
+            'total_invested_brl' => $totalInvestedBrl ?: null,
+            'total_current_brl' => $totalCurrentBrl ?: null,
+            'total_gain_loss_abs_brl' => $totalPlAbsBrl,
         ];
 
         return view('portfolio.index', [
@@ -211,6 +234,7 @@ class PortfolioController extends Controller
             'sort' => $sort,
             'dir' => $dir,
             'cross_cash_enabled' => $enableCross,
+            'usd_to_brl_rate' => $usdToBrlRate,
         ]);
     }
 }

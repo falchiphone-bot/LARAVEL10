@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use App\Models\MoedasValores;
 
 class InvestmentAccountController extends Controller
 {
@@ -26,6 +27,18 @@ class InvestmentAccountController extends Controller
 
         $totalSum = (clone $q)->sum('total_invested');
 
+        // Busca a taxa USD->BRL mais recente (idmoeda=1) para converter o total agregado
+        $usdToBrlRate = null;
+        try {
+            $lastFx = MoedasValores::where('idmoeda', 1)->orderByDesc('data')->orderByDesc('id')->first();
+            if ($lastFx && is_numeric($lastFx->valor) && (float)$lastFx->valor > 0) {
+                $usdToBrlRate = (float)$lastFx->valor;
+            }
+        } catch (\Throwable $e) {
+            // silencioso: manter nulidade se falhar
+        }
+        $totalSumBrl = $usdToBrlRate ? $totalSum * $usdToBrlRate : null;
+
         $q->orderByDesc('date')->orderByDesc('created_at');
         $accounts = $q->paginate(25)->appends(array_filter([
             'from' => $from ?: null,
@@ -34,7 +47,7 @@ class InvestmentAccountController extends Controller
             'broker' => $broker ?: null,
         ]));
 
-        return view('openai.investments.index', compact('accounts','from','to','account','broker','totalSum'));
+    return view('openai.investments.index', compact('accounts','from','to','account','broker','totalSum','usdToBrlRate','totalSumBrl'));
     }
 
     public function store(Request $request): RedirectResponse

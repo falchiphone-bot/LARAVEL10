@@ -132,7 +132,7 @@
       </tbody>
       <tfoot>
         <tr class="table-light">
-          <th colspan="1" class="text-end">Total</th>
+          <th colspan="1" class="text-end">Total (USD)</th>
           <th class="text-end">{{ number_format((float)($totalSum ?? 0), 2, ',', '.') }}</th>
           <th colspan="3" class="text-start">
             <form id="snapshot-form" method="POST" action="{{ route('investments.daily-balances.store') }}" class="d-inline">
@@ -147,6 +147,18 @@
             <small id="snapshot-status" class="text-muted ms-2"></small>
           </th>
         </tr>
+        @if(!empty($usdToBrlRate))
+        <tr class="table-light">
+          <th colspan="1" class="text-end">Total (BRL)</th>
+          <th class="text-end">
+            {{ number_format((float)($totalSumBrl ?? 0), 2, ',', '.') }}
+            <small class="text-muted d-block">Taxa {{ number_format($usdToBrlRate, 4, ',', '.') }}</small>
+          </th>
+          <th colspan="3" class="text-start">
+            <small class="text-muted">Conversão aplicada sobre o agregado filtrado.</small>
+          </th>
+        </tr>
+        @endif
       </tfoot>
     </table>
   </div>

@@ -1388,3 +1388,7 @@
 2025/10/02 17:56:54 [warn] 171#171: conflicting server name "saf.falchi.com.br" on 0.0.0.0:80, ignored
 2025/10/02 17:56:54 [warn] 171#171: conflicting server name "saf.falchi.com.br" on [::]:80, ignored
 2025/10/02 19:59:23 [error] 192#192: *7 open() "/var/www/html/openai/records" failed (2: No such file or directory), client: 172.18.0.1, server: localhost-nginx-proxy-manager, request: "GET /openai/records?chat_id=35&asset=&investment_account_id=&buy=&from=2025-09-02&to=2025-09-30&day=&filter_exact=1 HTTP/1.1", host: "localhost"
+2025/10/06 01:31:29 [warn] 172#172: conflicting server name "saf.falchi.com.br" on 0.0.0.0:80, ignored
+2025/10/06 01:31:29 [warn] 172#172: conflicting server name "saf.falchi.com.br" on [::]:80, ignored
+2025/10/06 07:31:28 [warn] 172#172: conflicting server name "saf.falchi.com.br" on 0.0.0.0:80, ignored
+2025/10/06 07:31:28 [warn] 172#172: conflicting server name "saf.falchi.com.br" on [::]:80, ignored

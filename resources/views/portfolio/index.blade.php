@@ -109,7 +109,14 @@
   <div class="card shadow-sm @if(!empty($missingTable)) opacity-50 @endif">
     <div class="card-header d-flex justify-content-between align-items-center">
       <strong>Posições</strong>
-      <small class="text-muted">Total Investido: R$ {{ number_format($agg['total_invested'],2,',','.') }} | Valor Atual: @if(!is_null($agg['total_current'])) R$ {{ number_format($agg['total_current'],2,',','.') }} @else — @endif | P/L: @if(!is_null($agg['total_gain_loss_abs'])) R$ {{ number_format($agg['total_gain_loss_abs'],2,',','.') }} ({{ number_format($agg['total_gain_loss_pct'],2,',','.') }}%) @else — @endif</small>
+      <small class="text-muted d-block">
+        USD: Investido $US {{ number_format($agg['total_invested'],2,',','.') }} | Atual @if(!is_null($agg['total_current'])) $US {{ number_format($agg['total_current'],2,',','.') }} @else — @endif | P/L @if(!is_null($agg['total_gain_loss_abs'])) $US {{ number_format($agg['total_gain_loss_abs'],2,',','.') }} ({{ number_format($agg['total_gain_loss_pct'],2,',','.') }}%) @else — @endif
+      </small>
+      @if(!is_null($usd_to_brl_rate) && !is_null($agg['total_invested_brl']))
+      <small class="text-muted d-block">
+        BRL (@ {{ number_format($usd_to_brl_rate,4,',','.') }}): Investido R$ {{ number_format($agg['total_invested_brl'],2,',','.') }} | Atual @if(!is_null($agg['total_current_brl'])) R$ {{ number_format($agg['total_current_brl'],2,',','.') }} @else — @endif | P/L @if(!is_null($agg['total_gain_loss_abs_brl'])) R$ {{ number_format($agg['total_gain_loss_abs_brl'],2,',','.') }} @else — @endif
+      </small>
+      @endif
     </div>
     <div class="table-responsive">
       <table class="table table-sm table-striped align-middle mb-0">
@@ -135,10 +142,10 @@
             <th>Corretora</th>
             <th class="text-end">{!! sortLink('quantity','Qtd',$sort??'', $dir??'asc',$baseQuery) !!}</th>
             <th class="text-end">{!! sortLink('avg_price','Preço Médio',$sort??'', $dir??'asc',$baseQuery) !!}</th>
-            <th class="text-end">{!! sortLink('invested_value','Investido (R$)',$sort??'', $dir??'asc',$baseQuery) !!}</th>
+            <th class="text-end">{!! sortLink('invested_value','Investido ($US)',$sort??'', $dir??'asc',$baseQuery) !!}</th>
             <th class="text-end">{!! sortLink('current_price','Cotação Atual',$sort??'', $dir??'asc',$baseQuery) !!}</th>
-            <th class="text-end">{!! sortLink('current_value','Valor Atual (R$)',$sort??'', $dir??'asc',$baseQuery) !!}</th>
-            <th class="text-end">{!! sortLink('gain_loss_abs','P/L (R$)',$sort??'', $dir??'asc',$baseQuery) !!}</th>
+            <th class="text-end">{!! sortLink('current_value','Valor Atual ($US)',$sort??'', $dir??'asc',$baseQuery) !!}</th>
+            <th class="text-end">{!! sortLink('gain_loss_abs','P/L ($US)',$sort??'', $dir??'asc',$baseQuery) !!}</th>
             <th class="text-end">{!! sortLink('gain_loss_pct','P/L (%)',$sort??'', $dir??'asc',$baseQuery) !!}</th>
             <th class="text-end" title="Variação mensal mais recente">{!! sortLink('variation_monthly','Var. Mês (%)',$sort??'', $dir??'asc',$baseQuery) !!}</th>
             <th class="text-center">Período</th>
