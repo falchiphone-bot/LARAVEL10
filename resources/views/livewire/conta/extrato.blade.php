@@ -850,6 +850,25 @@
         /* Suaviza mudança de conteúdo interno */
         #editarLancamentoModal .tab-pane { animation: fadeTab .12s ease; }
         @keyframes fadeTab { from { opacity: .6; } to { opacity: 1; } }
+
+        /* NOVO: estabiliza a altura do modal usando flex layout */
+        #editarLancamentoModal .modal-content { display:flex; flex-direction:column; min-height:60vh; max-height:85vh; }
+        #editarLancamentoModal .modal-body { flex:1 1 auto; display:flex; flex-direction:column; overflow:hidden; }
+        #editarLancamentoModal .modal-body > div.card { flex:1 1 auto; display:flex; flex-direction:column; margin:0; }
+        #editarLancamentoModal .modal-body > div.card > .card-body { flex:1 1 auto; display:flex; flex-direction:column; padding-top:0.75rem; }
+        #editarLancamentoModal .modal-body .nav-tabs { margin-top:.25rem; }
+        #editarLancamentoModal .modal-body .tab-content { flex:1 1 auto; display:flex; flex-direction:column; }
+        #editarLancamentoModal .modal-body .tab-content .tab-pane { flex:1 1 auto; display:flex; flex-direction:column; }
+        #editarLancamentoModal .modal-body .tab-content .tab-pane .card-body { flex:1 1 auto; overflow-y:auto; }
+        /* Scroll interno apenas na área de conteúdo evitando “pulos” no container */
+        #editarLancamentoModal .modal-body .tab-content .tab-pane .card-body::-webkit-scrollbar { width: 10px; }
+        #editarLancamentoModal .modal-body .tab-content .tab-pane .card-body::-webkit-scrollbar-track { background: #f1f1f1; }
+        #editarLancamentoModal .modal-body .tab-content .tab-pane .card-body::-webkit-scrollbar-thumb { background:#c0c0c0; border-radius:6px; }
+        #editarLancamentoModal .modal-body .tab-content .tab-pane .card-body::-webkit-scrollbar-thumb:hover { background:#a0a0a0; }
+        @media (max-height: 640px){
+            #editarLancamentoModal .modal-content { min-height:70vh; }
+            #editarLancamentoModal .tab-content { min-height: clamp(300px, 65vh, 560px); }
+        }
     </style>
 @endpush
 @push('scripts')
