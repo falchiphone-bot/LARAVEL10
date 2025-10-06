@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
+use Illuminate\Support\Facades\Auth as FacadesAuth;
 
 class EditarLancamento extends Component
 {
@@ -349,12 +350,17 @@ class EditarLancamento extends Component
         $this->emitTo('lancamento.troca-empresa', 'setLancamentoID', $lancamento_id);
         $this->currentTab = 'lancamento';
 
+        // Carrega empresas vinculadas ao usuário (e fallback geral se vazio)
+        $this->carregarEmpresas();
+
         if ($lancamento_id && $lancamento_id != 'novo') {
             $lancamento = Lancamento::find($lancamento_id);
             if ($lancamento) {
                 $this->lancamento = $lancamento;
                 $this->lancamento->Valor = number_format($this->lancamento->Valor, 2, ',', '.');
                 $this->comentarios = LancamentoComentario::where('LancamentoID', $lancamento_id)->get();
+                // Define empresa para habilitar select "Nova Empresa" na view
+                $this->empresa = Empresa::find($this->lancamento->EmpresaID);
                 // Emite eventos para garantir atualização imediata das abas dependentes
                 try { $this->emitTo('lancamento.arquivo-lancamento','resetData',$lancamento_id); } catch(\Throwable $e) {}
                 try { $this->emitTo('lancamento.troca-empresa','setLancamentoID',$lancamento_id); } catch(\Throwable $e) {}
@@ -370,6 +376,7 @@ class EditarLancamento extends Component
                 $this->lancamento->EmpresaID = $empresa_id;
             } elseif (session('conta.extrato.empresa.id')) {
                 $this->lancamento->EmpresaID = session('conta.extrato.empresa.id');
+                $this->empresa = Empresa::find($this->lancamento->EmpresaID);
             }
             // Garantir selects vazios ao abrir como "novo"
             $this->lancamento->ContaDebitoID = null;
@@ -391,6 +398,26 @@ class EditarLancamento extends Component
         $this->historicos = Historicos::where('EmpresaID', $empresa_id ?? session('conta.extrato.empresa.id'))
             ->orderBy('Descricao', 'asc')
             ->get(['Descricao', 'ID']);
+    }
+
+    protected function carregarEmpresas(): void
+    {
+        try {
+            $this->empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'EmpresasUsuarios.EmpresaID', 'Contabilidade.Empresas.ID')
+                ->where('EmpresasUsuarios.UsuarioID', Auth::user()->id)
+                ->orderBy('Descricao')
+                ->pluck('Descricao', 'Contabilidade.Empresas.ID');
+        } catch (\Throwable $e) {
+            $this->empresas = collect();
+        }
+        // Fallback: se não houver vínculo (ou erro), carrega todas (limitar para não explodir)
+        if (!$this->empresas || $this->empresas->count() === 0) {
+            try {
+                $this->empresas = Empresa::orderBy('Descricao')->limit(200)->pluck('Descricao','ID');
+            } catch (\Throwable $e) {
+                $this->empresas = collect();
+            }
+        }
     }
 
     public function render()
