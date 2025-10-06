@@ -6,19 +6,41 @@ use App\Models\SafColaborador;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\AfterSheet;
+use Illuminate\Support\Facades\DB;
 
-class SafColaboradoresExport implements FromQuery, WithHeadings, WithMapping
+class SafColaboradoresExport implements FromQuery, WithHeadings, WithMapping, WithEvents
 {
     protected array $filters;
+    protected $aggregates; // objeto com somas/médias etc
+    protected $totaisForma; // collection com total por forma_pagamento_nome
 
     public function __construct(array $filters = [])
     {
         $this->filters = $filters;
+        // Pré-calcula agregados para uso no AfterSheet
+        $base = $this->buildFilteredBaseQuery();
+        $aggBase = (clone $base)->reorder();
+        $this->aggregates = (clone $aggBase)->selectRaw(
+            'COUNT(*) as total_registros,'.
+            'SUM(COALESCE(valor_salario,0)) as soma_salarios,'.
+            'AVG(valor_salario) as media_salarios,'.
+            'MIN(valor_salario) as min_salario,'.
+            'MAX(valor_salario) as max_salario,'.
+            'SUM(CASE WHEN ativo=1 THEN COALESCE(valor_salario,0) ELSE 0 END) as soma_salarios_ativos,'.
+            'SUM(CASE WHEN ativo=1 THEN 1 ELSE 0 END) as total_ativos'
+        )->first();
+        $this->totaisForma = (clone $aggBase)
+            ->selectRaw('forma_pagamento_nome, SUM(COALESCE(valor_salario,0)) as total')
+            ->groupBy('forma_pagamento_nome')
+            ->orderByDesc('total')
+            ->get();
     }
 
-    public function query()
+    protected function buildFilteredBaseQuery()
     {
-    $query = SafColaborador::query()->with(['representante','funcaoProfissional','tipoPrestador','faixaSalarial','pix','formaPagamento']);
+        $query = SafColaborador::query()->with(['representante','funcaoProfissional','tipoPrestador','faixaSalarial','pix','formaPagamento']);
 
         $q = trim((string)($this->filters['q'] ?? ''));
         if ($q !== '') {
@@ -32,21 +54,21 @@ class SafColaboradoresExport implements FromQuery, WithHeadings, WithMapping
             });
         }
 
-    $representanteId = $this->filters['representante_id'] ?? null;
+        $representanteId = $this->filters['representante_id'] ?? null;
         $funcaoId = $this->filters['funcao_profissional_id'] ?? null;
-    $tipoId = $this->filters['saf_tipo_prestador_id'] ?? null;
+        $tipoId = $this->filters['saf_tipo_prestador_id'] ?? null;
         $faixaId = $this->filters['saf_faixa_salarial_id'] ?? null;
-    $formaPagamentoNome = $this->filters['forma_pagamento_nome'] ?? null;
-    $diaPagamento = $this->filters['dia_pagamento'] ?? null;
-    $cpfParam = isset($this->filters['cpf']) ? preg_replace('/\D/', '', (string)$this->filters['cpf']) : null;
+        $formaPagamentoNome = $this->filters['forma_pagamento_nome'] ?? null;
+        $diaPagamento = $this->filters['dia_pagamento'] ?? null;
+        $cpfParam = isset($this->filters['cpf']) ? preg_replace('/\D/', '', (string)$this->filters['cpf']) : null;
         $cpfExact = filter_var($this->filters['cpf_exact'] ?? null, FILTER_VALIDATE_BOOLEAN);
         if (!empty($representanteId)) { $query->where('representante_id', $representanteId); }
         if (!empty($funcaoId)) { $query->where('funcao_profissional_id', $funcaoId); }
         if (!empty($tipoId)) { $query->where('saf_tipo_prestador_id', $tipoId); }
-    if (!empty($faixaId)) { $query->where('saf_faixa_salarial_id', $faixaId); }
-    if (!empty($formaPagamentoNome)) { $query->where('forma_pagamento_nome', $formaPagamentoNome); }
-    if (!empty($diaPagamento)) { $query->where('dia_pagamento', (int)$diaPagamento); }
-    if (!empty($cpfParam)) {
+        if (!empty($faixaId)) { $query->where('saf_faixa_salarial_id', $faixaId); }
+        if (!empty($formaPagamentoNome)) { $query->where('forma_pagamento_nome', $formaPagamentoNome); }
+        if (!empty($diaPagamento)) { $query->where('dia_pagamento', (int)$diaPagamento); }
+        if (!empty($cpfParam)) {
             if ($cpfExact) {
                 $query->whereRaw("REGEXP_REPLACE(IFNULL(cpf,''), '[^0-9]', '') = ?", [$cpfParam]);
             } else {
@@ -54,7 +76,13 @@ class SafColaboradoresExport implements FromQuery, WithHeadings, WithMapping
             }
         }
 
-    $allowedSorts = ['nome','cidade','uf','pais','representante','funcao','tipo','faixa','pix','forma_pagamento','valor_salario','dia_pagamento'];
+        return $query;
+    }
+
+    public function query()
+    {
+        $query = $this->buildFilteredBaseQuery();
+        $allowedSorts = ['nome','cidade','uf','pais','representante','funcao','tipo','faixa','pix','forma_pagamento','valor_salario','dia_pagamento'];
         $sort = $this->filters['sort'] ?? 'nome';
         if (!in_array($sort, $allowedSorts, true)) { $sort = 'nome'; }
         $dir = strtolower($this->filters['dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
@@ -90,8 +118,13 @@ class SafColaboradoresExport implements FromQuery, WithHeadings, WithMapping
                   ->orderBy('fpag.nome', $dir)
                   ->orderBy('saf_colaboradores.nome', 'asc');
         } else {
-            $query->orderBy($sort, $dir)
-                  ->orderBy('saf_colaboradores.nome', 'asc');
+            // Evitar duplicar ORDER BY em SQL Server quando sort = nome
+            if ($sort === 'nome') {
+                $query->orderBy('saf_colaboradores.nome', $dir);
+            } else {
+                $query->orderBy('saf_colaboradores.' . $sort, $dir)
+                      ->orderBy('saf_colaboradores.nome', 'asc');
+            }
         }
 
         return $query;
@@ -122,6 +155,47 @@ class SafColaboradoresExport implements FromQuery, WithHeadings, WithMapping
             $row->uf,
             $row->pais,
             $row->ativo ? 'SIM' : 'NÃO',
+        ];
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class => function(AfterSheet $event) {
+                $sheet = $event->sheet;
+                $highestRow = $sheet->getHighestRow();
+                $start = $highestRow + 2; // linha em branco + início resumo
+
+                // Resumo principal
+                if ($this->aggregates) {
+                    $sheet->setCellValue("A{$start}", 'TOTAL SALÁRIOS');
+                    $sheet->setCellValue("H{$start}", (float)($this->aggregates->soma_salarios ?? 0));
+                    $start++;
+                    $sheet->setCellValue("A{$start}", 'TOTAL SALÁRIOS (ATIVOS)');
+                    $sheet->setCellValue("H{$start}", (float)($this->aggregates->soma_salarios_ativos ?? 0));
+                    $start++;
+                    $sheet->setCellValue("A{$start}", 'MÉDIA SALÁRIOS');
+                    $sheet->setCellValue("H{$start}", (float)($this->aggregates->media_salarios ?? 0));
+                    $start++;
+                    $sheet->setCellValue("A{$start}", 'MÍNIMO');
+                    $sheet->setCellValue("H{$start}", (float)($this->aggregates->min_salario ?? 0));
+                    $start++;
+                    $sheet->setCellValue("A{$start}", 'MÁXIMO');
+                    $sheet->setCellValue("H{$start}", (float)($this->aggregates->max_salario ?? 0));
+                    $start += 2; // espaço antes dos totais por forma
+                }
+
+                if ($this->totaisForma && $this->totaisForma->count()) {
+                    $sheet->setCellValue("A{$start}", 'Forma de Pagamento');
+                    $sheet->setCellValue("H{$start}", 'Total Salários');
+                    $start++;
+                    foreach ($this->totaisForma as $tf) {
+                        $sheet->setCellValue("A{$start}", (string)($tf->forma_pagamento_nome ?? '—'));
+                        $sheet->setCellValue("H{$start}", (float)($tf->total ?? 0));
+                        $start++;
+                    }
+                }
+            }
         ];
     }
 }
