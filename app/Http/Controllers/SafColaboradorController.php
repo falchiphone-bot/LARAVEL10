@@ -234,6 +234,25 @@ class SafColaboradorController extends Controller
             }
         }
 
+        // Clonar antes de joins de ordenação para agregados limpos
+    // Removemos qualquer ORDER BY (SQL Server não permite ORDER em agregados simples)
+    $aggBase = (clone $query)->reorder();
+
+        $aggregates = (clone $aggBase)->selectRaw(
+            'COUNT(*) as total_registros,'.
+            'SUM(COALESCE(valor_salario,0)) as soma_salarios,'.
+            'AVG(valor_salario) as media_salarios,'.
+            'MIN(valor_salario) as min_salario,'.
+            'MAX(valor_salario) as max_salario,'.
+            'SUM(CASE WHEN ativo=1 THEN COALESCE(valor_salario,0) ELSE 0 END) as soma_salarios_ativos,'.
+            'SUM(CASE WHEN ativo=1 THEN 1 ELSE 0 END) as total_ativos'
+        )->first();
+        $totaisForma = (clone $aggBase)
+            ->selectRaw('forma_pagamento_nome, SUM(COALESCE(valor_salario,0)) as total')
+            ->groupBy('forma_pagamento_nome')
+            ->orderByDesc('total')
+            ->get();
+
         $data = $query->get();
 
         $headers = [
@@ -241,7 +260,7 @@ class SafColaboradorController extends Controller
             'Content-Disposition' => 'attachment; filename="saf-colaboradores.csv"',
         ];
     $columns = ['Nome','Representante','Função Profissional','Tipo de Colaborador','Faixa Salarial','Chave PIX','Forma de Pagamento','Valor de salário','Dia do pagamento','Documento','CPF','Email','Telefone','Cidade','UF','País','Ativo'];
-        return response()->streamDownload(function () use ($data, $columns) {
+        return response()->streamDownload(function () use ($data, $columns, $aggregates, $totaisForma) {
             $out = fopen('php://output', 'w');
             fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
             fputcsv($out, $columns, ';');
@@ -265,6 +284,44 @@ class SafColaboradorController extends Controller
                     $row->pais,
                     $row->ativo ? 'SIM' : 'NÃO',
                 ], ';');
+            }
+            // Linha em branco
+            fputcsv($out, array_fill(0, count($columns), ''), ';');
+            // Resumo principal
+            if ($aggregates) {
+                fputcsv($out, [
+                    'TOTAL SALÁRIOS','', '', '', '', '', '',
+                    number_format((float)$aggregates->soma_salarios,2,',','.'),
+                    '', '', '', '', '', '', '', '', ''
+                ], ';');
+                fputcsv($out, [
+                    'TOTAL SALÁRIOS (ATIVOS)','', '', '', '', '', '',
+                    number_format((float)$aggregates->soma_salarios_ativos,2,',','.'),
+                    '', '', '', '', '', '', '', '', ''
+                ], ';');
+                fputcsv($out, [
+                    'MÉDIA SALÁRIOS','', '', '', '', '', '',
+                    number_format((float)$aggregates->media_salarios,2,',','.'),
+                    '', '', '', '', '', '', '', '', ''
+                ], ';');
+                fputcsv($out, [
+                    'MÍNIMO','', '', '', '', '', '',
+                    number_format((float)$aggregates->min_salario,2,',','.'),
+                    '', '', '', '', '', '', '', '', ''
+                ], ';');
+                fputcsv($out, [
+                    'MÁXIMO','', '', '', '', '', '',
+                    number_format((float)$aggregates->max_salario,2,',','.'),
+                    '', '', '', '', '', '', '', '', ''
+                ], ';');
+            }
+            // Totais por forma de pagamento
+            if ($totaisForma && $totaisForma->count()) {
+                fputcsv($out, array_fill(0, count($columns), ''), ';');
+                fputcsv($out, ['Forma de Pagamento','Total Salários'], ';');
+                foreach ($totaisForma as $tf) {
+                    fputcsv($out, [ $tf->forma_pagamento_nome, number_format((float)$tf->total,2,',','.') ], ';');
+                }
             }
             fclose($out);
         }, 'saf-colaboradores.csv', $headers);
@@ -352,6 +409,24 @@ class SafColaboradorController extends Controller
             }
         }
 
+        // Agregados (antes de ordenar por joins)
+    // Removemos ORDER BY antes dos agregados para compatibilidade SQL Server
+    $aggBase = (clone $query)->reorder();
+        $aggregates = (clone $aggBase)->selectRaw(
+            'COUNT(*) as total_registros,'.
+            'SUM(COALESCE(valor_salario,0)) as soma_salarios,'.
+            'AVG(valor_salario) as media_salarios,'.
+            'MIN(valor_salario) as min_salario,'.
+            'MAX(valor_salario) as max_salario,'.
+            'SUM(CASE WHEN ativo=1 THEN COALESCE(valor_salario,0) ELSE 0 END) as soma_salarios_ativos,'.
+            'SUM(CASE WHEN ativo=1 THEN 1 ELSE 0 END) as total_ativos'
+        )->first();
+        $totaisForma = (clone $aggBase)
+            ->selectRaw('forma_pagamento_nome, SUM(COALESCE(valor_salario,0)) as total')
+            ->groupBy('forma_pagamento_nome')
+            ->orderByDesc('total')
+            ->get();
+
         $registros = $query->get();
 
         $html = view('SafColaboradores.export-pdf', [
@@ -364,6 +439,8 @@ class SafColaboradorController extends Controller
             'footerLeft' => $request->query('footer_left'),
             'footerRight' => $request->query('footer_right'),
             'logoUrl' => $request->query('logo_url'),
+            'aggregates' => $aggregates,
+            'totaisForma' => $totaisForma,
         ])->render();
 
         $options = new Options();

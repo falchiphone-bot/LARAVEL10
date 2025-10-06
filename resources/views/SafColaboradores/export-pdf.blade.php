@@ -81,6 +81,58 @@
     </div>
 
     <main>
+        @if(isset($aggregates))
+            <table style="width:100%; margin-bottom:10px; border:1px solid #bbb; border-collapse:collapse;">
+                <thead>
+                    <tr>
+                        <th colspan="7" style="background:#f2f2f2; text-align:left;">Resumo de Salários (Registros Filtrados)</th>
+                    </tr>
+                    <tr>
+                        <th>Total Registros</th>
+                        <th>Ativos</th>
+                        <th>Soma Salários</th>
+                        <th>Soma (Ativos)</th>
+                        <th>Média</th>
+                        <th>Mínimo</th>
+                        <th>Máximo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ number_format($aggregates->total_registros ?? 0,0,',','.') }}</td>
+                        <td>{{ number_format($aggregates->total_ativos ?? 0,0,',','.') }}</td>
+                        <td>R$ {{ number_format($aggregates->soma_salarios ?? 0,2,',','.') }}</td>
+                        <td>R$ {{ number_format($aggregates->soma_salarios_ativos ?? 0,2,',','.') }}</td>
+                        <td>R$ {{ number_format($aggregates->media_salarios ?? 0,2,',','.') }}</td>
+                        <td>R$ {{ number_format($aggregates->min_salario ?? 0,2,',','.') }}</td>
+                        <td>R$ {{ number_format($aggregates->max_salario ?? 0,2,',','.') }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        @endif
+
+        @if(isset($totaisForma) && $totaisForma->count())
+            <table style="width:100%; margin-bottom:15px; border:1px solid #bbb; border-collapse:collapse;">
+                <thead>
+                    <tr>
+                        <th colspan="2" style="background:#f2f2f2; text-align:left;">Totais por Forma de Pagamento</th>
+                    </tr>
+                    <tr>
+                        <th>Forma de Pagamento</th>
+                        <th>Total Salários</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($totaisForma as $tf)
+                        <tr>
+                            <td>{{ $tf->forma_pagamento_nome ?? '—' }}</td>
+                            <td>R$ {{ number_format($tf->total ?? 0,2,',','.') }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
+
         @forelse($registros as $r)
             <table class="record">
                 <tbody>
