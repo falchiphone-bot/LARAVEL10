@@ -272,8 +272,8 @@
                     @livewire('lancamento.arquivo-lancamento', ['lancamento_id' => $lancamento->ID])
                 </div>
                 <div class="tab-pane fade @if ($currentTab == 'troca-empresa') show active @endif" id="troca-empresa"
-                    role="tabpanel" aria-labelledby="arquivos-tab">
-                    @livewire('lancamento.troca-empresa', ['lancamento_id' => $lancamento->ID])
+                    role="tabpanel" aria-labelledby="troca-empresa-tab">
+                    @livewire('lancamento.troca-empresa', ['lancamento_id' => $lancamento->ID], key('troca-empresa-'.$lancamento->ID))
                 </div>
             </div>
         </div>
