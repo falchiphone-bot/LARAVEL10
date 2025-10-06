@@ -49,6 +49,7 @@
           'grouped' => ($grouped ?? false) ? 1 : null,
           'spark_window' => ($grouped ?? false) ? ($sparkWindow ?? null) : null,
           'trend' => ($trendFilter ?? '') ?: null,
+          'currency' => request('currency') ?: null,
         ]);
       @endphp
       <div class="btn-group btn-group-sm" role="group" aria-label="Atalhos de sinal">
@@ -75,6 +76,7 @@
           'grouped' => ($grouped ?? false) ? 1 : null,
           'spark_window' => ($grouped ?? false) ? ($sparkWindow ?? null) : null,
           'trend' => ($trendFilter ?? '') ?: null,
+          'currency' => request('currency') ?: null,
         ]);
         $curMonth = (int) (request('month') ?: 0);
       @endphp
@@ -89,9 +91,39 @@
     </div>
 
     <div class="col-auto">
-      <label class="form-label mb-0 small">Capital (R$)</label>
-      <input type="text" name="capital" value="{{ request('capital') }}" class="form-control form-control-sm w-auto" placeholder="ex: 150.000,00" />
-      <small class="text-muted">Peso ∝ Diferença (%) positiva, baseado nos itens exibidos</small>
+      <label class="form-label mb-0 small">Capital</label>
+      @php
+        $selCurrency = strtoupper((string)request('currency','USD'));
+        if(!in_array($selCurrency, ['USD','BRL'], true)) { $selCurrency = 'USD'; }
+        // Prefill: se capital não informado, usar total da carteira na moeda selecionada
+        $capitalPrefill = request('capital');
+        if($capitalPrefill === null || $capitalPrefill === ''){
+          if($selCurrency==='BRL' && isset($portfolioBrlTotal) && $portfolioBrlTotal){
+            $capitalPrefill = number_format($portfolioBrlTotal, 2, ',', '.');
+          } elseif(isset($portfolioUsdTotal) && $portfolioUsdTotal) {
+            $capitalPrefill = number_format($portfolioUsdTotal, 2, ',', '.');
+          }
+        }
+      @endphp
+      <div class="d-flex align-items-end gap-2">
+        <select name="currency" class="form-select form-select-sm w-auto" title="Moeda de exibição e entrada do capital" data-rate="{{ isset($usdToBrlRate) && is_numeric($usdToBrlRate) ? (float)$usdToBrlRate : '' }}">
+          <option value="USD" @selected($selCurrency==='USD')>USD</option>
+          <option value="BRL" @selected($selCurrency==='BRL')>BRL</option>
+        </select>
+        <input type="text" name="capital" value="{{ $capitalPrefill }}" class="form-control form-control-sm w-auto" placeholder="ex: 150.000,00" />
+      </div>
+      <small class="text-muted">
+        Peso ∝ Diferença (%) positiva, baseado nos itens exibidos.
+        @php $showCur = ($selCurrency==='BRL') ? 'R$' : 'US$'; @endphp
+        @if($selCurrency==='BRL' && isset($portfolioBrlTotal) && $portfolioBrlTotal)
+          Total carteira: R$ {{ number_format($portfolioBrlTotal,2,',','.') }}
+        @elseif(isset($portfolioUsdTotal) && $portfolioUsdTotal)
+          Total carteira: US$ {{ number_format($portfolioUsdTotal,2,',','.') }}
+        @endif
+        @if($selCurrency==='BRL' && !(isset($usdToBrlRate) && is_numeric($usdToBrlRate) && $usdToBrlRate>0))
+          <br><span class="text-warning">Taxa USD→BRL indisponível. Valores serão tratados como USD.</span>
+        @endif
+      </small>
     </div>
     <div class="col-auto">
       <label class="form-label mb-0 small">Paginação</label>
@@ -126,11 +158,12 @@
       'grouped' => ($grouped ?? false) ? 1 : null,
       'spark_window' => ($grouped ?? false) ? ($sparkWindow ?? null) : null,
       'trend' => ($trendFilter ?? '') ?: null,
+      'currency' => request('currency') ?: null,
     ]);
   @endphp
   <div class="mb-2 d-flex gap-2 align-items-center position-sticky top-0 z-3 bg-light py-2" style="top: 0; border-bottom: 1px solid rgba(0,0,0,.1);">
-    <a href="{{ route('openai.variations.exportCsv', $exportParams) }}" class="btn btn-sm btn-outline-secondary" title="Exportar visão atual em CSV">Exportar CSV</a>
-    <a href="{{ route('openai.variations.exportXlsx', $exportParams) }}" class="btn btn-sm btn-outline-success" title="Exportar visão atual em XLSX">Exportar XLSX</a>
+  <a href="{{ route('openai.variations.exportCsv', $exportParams) }}" class="btn btn-sm btn-outline-secondary" title="Exportar visão atual em CSV">Exportar CSV</a>
+  <a href="{{ route('openai.variations.exportXlsx', $exportParams) }}" class="btn btn-sm btn-outline-success" title="Exportar visão atual em XLSX">Exportar XLSX</a>
     <button type="button" id="export-selected-csv" class="btn btn-sm btn-outline-secondary" title="Exportar somente códigos selecionados em CSV" disabled>Exportar Selecionados CSV</button>
     <button type="button" id="export-selected-xlsx" class="btn btn-sm btn-outline-success" title="Exportar somente códigos selecionados em XLSX" disabled>Exportar Selecionados XLSX</button>
     <button type="button" class="btn btn-sm btn-outline-danger ms-2" id="var-clear-selection-allocation-top" title="Limpar seleção &amp; remover selected_codes da URL">Limpar seleção &amp; alocação</button>
@@ -149,7 +182,7 @@
       $x = str_replace(',', '.', $x);
       if (is_numeric($x)) { $capital = (float)$x; }
     }
-    $capPctInput = request('cap_pct','35');
+  $capPctInput = request('cap_pct','35');
     $targetPctInput = request('target_pct','20');
     $capPct = null; $targetPct = null;
     foreach ([[ 'src'=>$capPctInput,'ref'=>'capPct' ], [ 'src'=>$targetPctInput,'ref'=>'targetPct' ]] as $it) {
@@ -159,6 +192,15 @@
     }
     $cap = ($capPct !== null) ? max(0.0, min(1.0, $capPct/100.0)) : 0.35; // default 35%
     $target = ($targetPct !== null) ? max(-1.0, min(10.0, $targetPct/100.0)) : 0.20; // default 20%
+
+  // Currency handling and conversion (normalize calculations to USD)
+  $selCurrency = strtoupper((string)request('currency','USD'));
+  if(!in_array($selCurrency,['USD','BRL'],true)) { $selCurrency='USD'; }
+  $rate = (isset($usdToBrlRate) && is_numeric($usdToBrlRate) && $usdToBrlRate>0) ? (float)$usdToBrlRate : null;
+  $calcCapital = $capital;
+  if($capital !== null && $selCurrency==='BRL' && $rate){ $calcCapital = $capital / $rate; }
+  $dispMul = ($selCurrency==='BRL' && $rate) ? $rate : 1.0;
+  $curSymbol = ($selCurrency==='BRL' && $rate) ? 'R$' : '$US';
 
   $alloc = [];
   $allocOrder = request('alloc_order','');
@@ -289,7 +331,7 @@
           $codeKey = strtoupper($r['code'] ?? '');
           if($codeKey !== '' && isset($seenCodes[$codeKey])) { continue; }
           $w = max(0.0, min(1.0, $finalW[$idx]));
-          $val = $w * $capital;
+          $val = $w * ($calcCapital ?? 0);
           // Busca último preço (amount) do registro mais recente deste chat
           $lastPrice = null;
           $cid = $r['chat_id'] ?? null;
@@ -385,9 +427,9 @@
                 <th class="text-end" style="width:12%">Diferença (pp)</th>
                 <th class="text-center" style="width:10%">Tendência</th>
                 <th class="text-end" style="width:12%">Peso (cap)</th>
-                <th class="text-end" style="width:16%">Valor (R$)</th>
-                <th class="text-end" style="width:16%">Ganho alvo (R$)</th>
-                <th class="text-end" style="width:12%">Preço atual (R$)</th>
+                <th class="text-end" style="width:16%">Valor ({{ $curSymbol }})</th>
+                <th class="text-end" style="width:16%">Ganho alvo ({{ $curSymbol }})</th>
+                <th class="text-end" style="width:12%">Preço atual ({{ $curSymbol }})</th>
                 <th class="text-end" style="width:12%">Qtd</th>
               </tr>
             </thead>
@@ -411,11 +453,11 @@
                     @endif
                   </td>
                   <td class="text-end">{{ number_format($r['weight']*100, 2, ',', '.') }}%</td>
-                  <td class="text-end">{{ number_format($r['amount'], 2, ',', '.') }}</td>
-                  <td class="text-end">{{ number_format($r['gain_target'], 2, ',', '.') }}</td>
+                  <td class="text-end">{{ $curSymbol }} {{ number_format($r['amount'] * $dispMul, 2, ',', '.') }}</td>
+                  <td class="text-end">{{ $curSymbol }} {{ number_format($r['gain_target'] * $dispMul, 2, ',', '.') }}</td>
                   <td class="text-end">
                     @if(isset($r['last_price']) && $r['last_price'] !== null)
-                      {{ number_format($r['last_price'], 2, ',', '.') }}
+                      {{ $curSymbol }} {{ number_format($r['last_price'] * $dispMul, 2, ',', '.') }}
                     @else
                       —
                     @endif
@@ -434,8 +476,8 @@
             <tfoot>
               <tr>
                 <th colspan="8" class="text-end">Totais</th>
-                <th class="text-end">{{ number_format($capital, 2, ',', '.') }}</th>
-                <th class="text-end">{{ number_format($capital * $target, 2, ',', '.') }}</th>
+                <th class="text-end">{{ $curSymbol }} {{ number_format(($calcCapital ?? 0) * $dispMul, 2, ',', '.') }}</th>
+                <th class="text-end">{{ $curSymbol }} {{ number_format((($calcCapital ?? 0) * $target) * $dispMul, 2, ',', '.') }}</th>
                 <th></th>
                 <th class="text-end">@if($sumQty>0) {{ number_format($sumQty, 4, ',', '.') }} @endif</th>
               </tr>
@@ -451,7 +493,7 @@
   <form method="get" class="filters-bar mb-3">
     @php
       // Parâmetros que precisamos preservar ao trocar Mês/Código/Sinal/Mudança/Tendência
-      $persistKeys = ['year','capital','cap_pct','target_pct','grouped','spark_window'];
+      $persistKeys = ['year','capital','cap_pct','target_pct','grouped','spark_window','currency'];
     @endphp
     @foreach($persistKeys as $pk)
       @if(request()->filled($pk))
@@ -553,6 +595,7 @@
                   'change' => ($change ?? '') ?: null,
                   'grouped'=>1,
                   'spark_window'=>$sparkWindow,
+                  'currency' => request('currency') ?: null,
                 ]);
               }
               $isPrevAsc = ($sort ?? '') === 'prev_asc';
@@ -572,6 +615,7 @@
                 'change' => ($change ?? '') ?: null,
                 'grouped'=>1,
                 'spark_window'=>$sparkWindow,
+                'currency' => request('currency') ?: null,
               ]);
               $isDiffAsc = ($sort ?? '') === 'diff_asc';
               $isDiffDesc = ($sort ?? '') === 'diff_desc';
@@ -668,6 +712,7 @@
               'code'=>$code?:null,
               'polarity'=> ($polarity ?? null) ?: null,
               'change' => ($change ?? '') ?: null,
+              'currency' => request('currency') ?: null,
             ]);
           @endphp
           @php
@@ -882,6 +927,9 @@
 </div>
 @endsection
 @push('scripts')
+@if(isset($portfolioCodes))
+  <script type="application/json" id="pf-codes-json">{!! json_encode(array_values(array_unique(array_filter(($portfolioCodes ?? [])))), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) !!}</script>
+@endif
 <script>
  (function(){
    const master = document.getElementById('alloc-master');
@@ -1118,6 +1166,26 @@
    syncMaster();
   // Propaga no load inicial (caso recarregue a página com alocação existente)
   propagateAllocationMarks();
+  // Marcar automaticamente os códigos que estão na carteira do usuário (sem desmarcar os já selecionados)
+  try{
+    const el = document.getElementById('pf-codes-json');
+    if(el){
+      const arr = JSON.parse(el.textContent || '[]');
+      if(Array.isArray(arr) && arr.length){
+        const set = new Set(arr.map(c=>String(c||'').toUpperCase()));
+        let changed=false;
+        document.querySelectorAll('.var-select').forEach(ch=>{
+          const code = (ch.value||'').toUpperCase();
+          if(set.has(code) && !ch.checked){ ch.checked = true; changed=true; }
+        });
+        if(changed){
+          if(typeof updateVarSelectionStorage === 'function') updateVarSelectionStorage();
+          if(typeof updateVarMasterState === 'function') updateVarMasterState();
+          document.dispatchEvent(new CustomEvent('var-selection-updated'));
+        }
+      }
+    }
+  }catch(_e){}
  })();
 </script>
 @endpush

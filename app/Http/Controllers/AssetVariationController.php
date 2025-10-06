@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\AssetVariationsExport;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth as FacadesAuth;
+use App\Models\UserHolding;
+use App\Models\MoedasValores;
 use Carbon\Carbon;
 use App\Models\OpenAIChatRecord;
 
@@ -362,6 +365,34 @@ class AssetVariationController extends Controller
             );
         }
         $years = AssetVariation::select('year')->distinct()->orderBy('year','desc')->pluck('year');
+
+        // Códigos e total USD da carteira do usuário (para seleção e capital padrão)
+        $portfolioCodes = [];
+        $portfolioUsdTotal = null;
+        $portfolioBrlTotal = null;
+        $usdToBrlRate = null;
+        try {
+            $uid = FacadesAuth::id();
+            if($uid){
+                $holdings = UserHolding::where('user_id', $uid)->get(['code','quantity','current_price']);
+                if($holdings->count()){
+                    $portfolioCodes = $holdings->pluck('code')->filter()->map(function($c){ return strtoupper(trim((string)$c)); })->unique()->values()->all();
+                    $sum = 0.0;
+                    foreach($holdings as $h){
+                        $q = (float)($h->quantity ?? 0); $p = (float)($h->current_price ?? 0);
+                        if($q>0 && $p>0){ $sum += $q*$p; }
+                    }
+                    if($sum > 0){ $portfolioUsdTotal = $sum; }
+                    try {
+                        $usdToBrlRate = MoedasValores::where('idmoeda', 1)->orderBy('data','desc')->value('valor');
+                        if($usdToBrlRate !== null){ $usdToBrlRate = (float)$usdToBrlRate; }
+                    } catch(\Throwable $e){ $usdToBrlRate = null; }
+                    if($portfolioUsdTotal && $usdToBrlRate){
+                        $portfolioBrlTotal = $portfolioUsdTotal * $usdToBrlRate;
+                    }
+                }
+            }
+        } catch(\Throwable $e) { /* noop */ }
         return view('openai.variations.index', [
             'variations'=>$variations,
             'years'=>$years,
@@ -379,6 +410,10 @@ class AssetVariationController extends Controller
             'trendFilter'=>$trendFilter,
             'selectedCodes'=> (array) $request->input('selected_codes', []),
             'noPage'=>$noPage,
+            'portfolioCodes' => $portfolioCodes,
+            'portfolioUsdTotal' => $portfolioUsdTotal,
+            'portfolioBrlTotal' => $portfolioBrlTotal,
+            'usdToBrlRate' => $usdToBrlRate,
         ]);
     }
 

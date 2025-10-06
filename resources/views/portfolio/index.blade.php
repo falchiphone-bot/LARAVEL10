@@ -25,9 +25,24 @@
         }
       }
       $__variationsSelectedUrl = route('openai.variations.index') . (count($__selParams)?('?'.implode('&', $__selParams)):'');
+      // URL para abrir Variações com códigos da carteira selecionados, moeda USD e capital da carteira (USD) + geração automática
+      $__usdTotal = null;
+      if(isset($agg) && array_key_exists('total_current', $agg) && $agg['total_current'] !== null){
+        $__usdTotal = (float)$agg['total_current'];
+      } elseif(isset($agg) && array_key_exists('total_invested', $agg) && $agg['total_invested'] !== null) {
+        $__usdTotal = (float)$agg['total_invested'];
+      }
+      $__capStr = !is_null($__usdTotal) ? number_format($__usdTotal, 2, ',', '.') : null; // parser da view espera vírgula como decimal
+      $__allocQs = [];
+      if(count($__selParams)) { $__allocQs = array_merge($__allocQs, $__selParams); }
+      $___base = [ 'currency'=>'USD', 'no_page'=>1, 'trigger_alloc'=>1 ];
+      if(!is_null($__capStr)) { $___base['capital'] = $__capStr; }
+      foreach($___base as $k=>$v){ $__allocQs[] = urlencode($k).'='.urlencode((string)$v); }
+      $__variationsAllocUrl = route('openai.variations.index') . (count($__allocQs)?('?'.implode('&', $__allocQs)):'');
     @endphp
     @if(!empty($__selParams))
       <a href="{{ $__variationsSelectedUrl }}" class="btn btn-sm btn-outline-warning" title="Abrir Variações com todos os códigos da carteira já selecionados (máx 200)">Variações (Códigos da Carteira)</a>
+      <a href="{{ $__variationsAllocUrl }}#gsc.tab=0" class="btn btn-sm btn-primary" title="Abrir Variações já com códigos da carteira + moeda USD + capital em USD e gerar alocação">Alocar (Carteira → Variações USD)</a>
     @endif
     <a href="{{ route('holdings.create') }}" class="btn btn-sm btn-success" title="Adicionar nova posição">Nova Posição</a>
     @can('HOLDINGS - IMPORTAR')
@@ -148,6 +163,8 @@
             <th class="text-end">{!! sortLink('gain_loss_abs','P/L ($US)',$sort??'', $dir??'asc',$baseQuery) !!}</th>
             <th class="text-end">{!! sortLink('gain_loss_pct','P/L (%)',$sort??'', $dir??'asc',$baseQuery) !!}</th>
             <th class="text-end" title="Variação mensal mais recente">{!! sortLink('variation_monthly','Var. Mês (%)',$sort??'', $dir??'asc',$baseQuery) !!}</th>
+            <th class="text-end" title="Variação do mês anterior (imediatamente anterior ao mais recente)">{!! sortLink('variation_prev','Var. Mês Anterior (%)',$sort??'', $dir??'asc',$baseQuery) !!}</th>
+            <th class="text-end" title="Diferença em pontos percentuais: atual - anterior">{!! sortLink('variation_diff','Dif. Mês (pp)',$sort??'', $dir??'asc',$baseQuery) !!}</th>
             <th class="text-center">Período</th>
             <th class="text-end" title="Cobertura aproximada dos eventos de caixa (compras/vendas) em relação à posição. Heurística baseada em soma de valores e preço médio.">Cobertura Caixa</th>
             <th style="width:90px"></th>
@@ -208,6 +225,14 @@
               <td class="text-end {{ $clsPl }}">@if(!is_null($r['gain_loss_abs'])) {{ number_format($r['gain_loss_abs'], 2, ',', '.') }} @else — @endif</td>
               <td class="text-end {{ $clsPlPct }}">@if(!is_null($r['gain_loss_pct'])) {{ number_format($r['gain_loss_pct'], 2, ',', '.') }} @else — @endif</td>
               <td class="text-end {{ $clsVar }}">@if(!is_null($r['variation_monthly'])) {{ number_format($r['variation_monthly'], 4, ',', '.') }} @else — @endif</td>
+              @php
+                $clsVarPrev = is_null($r['variation_prev'] ?? null) ? 'text-muted' : (($r['variation_prev'] ?? 0) > 0 ? 'text-success' : (($r['variation_prev'] ?? 0) < 0 ? 'text-danger' : 'text-secondary'));
+              @endphp
+              <td class="text-end {{ $clsVarPrev }}">@if(!is_null($r['variation_prev'] ?? null)) {{ number_format($r['variation_prev'], 4, ',', '.') }} @else — @endif</td>
+              @php
+                $clsVarDiff = is_null($r['variation_diff'] ?? null) ? 'text-muted' : (($r['variation_diff'] ?? 0) > 0 ? 'text-success' : (($r['variation_diff'] ?? 0) < 0 ? 'text-danger' : 'text-secondary'));
+              @endphp
+              <td class="text-end {{ $clsVarDiff }}">@if(!is_null($r['variation_diff'] ?? null)) {{ number_format($r['variation_diff'], 4, ',', '.') }} @else — @endif</td>
               <td class="text-center">@if($r['variation_period']) <a href="{{ $varLink }}" class="text-decoration-none">{{ $r['variation_period'] }}</a> @else — @endif</td>
               <td class="text-end">
                 @php
@@ -224,19 +249,11 @@
               </td>
               <td class="text-end d-flex flex-wrap gap-1 justify-content-end">
                 <a href="{{ $varLink }}" class="btn btn-xs btn-outline-secondary" title="Ver histórico de variações">Histórico</a>
-                {{-- Edição opcional (mantida se quiser ajustar manualmente) --}}
-                {{--<a href="{{ route('holdings.edit', $r['id']) }}" class="btn btn-xs btn-outline-primary" title="Editar posição">Editar</a>--}}
-                {{-- Botão excluir individual desativado temporariamente
-                <form action="{{ route('holdings.destroy', $r['id']) }}" method="POST" onsubmit="return confirm('Excluir posição {{ $r['code'] }}?')">
-                  @csrf
-                  @method('DELETE')
-                  <button class="btn btn-xs btn-outline-danger" title="Excluir esta posição" type="submit">Excluir</button>
-                </form>
-                --}}
+                {{-- Ações de edição/exclusão desativadas intencionalmente --}}
               </td>
             </tr>
           @empty
-            <tr><td colspan="13" class="text-center text-muted">Nenhuma posição cadastrada.</td></tr>
+            <tr><td colspan="16" class="text-center text-muted">Nenhuma posição cadastrada.</td></tr>
           @endforelse
           @endif
         </tbody>

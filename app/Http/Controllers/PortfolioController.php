@@ -66,7 +66,7 @@ class PortfolioController extends Controller
             }
         }
 
-        // Mapear última variação mensal por código (ano/mês máximo)
+        // Mapear última variação mensal e a imediatamente anterior por código (ano/mês máximo e penúltimo)
         $variationMap = [];
     if(!$missingTable && $holdings->isNotEmpty()){
             $codes = $holdings->pluck('code')->unique()->values();
@@ -77,12 +77,23 @@ class PortfolioController extends Controller
             foreach($rows as $r){
                 $ck = strtoupper($r->asset_code);
                 if(!isset($variationMap[$ck])){
+                    // Primeiro encontro: mais recente
                     $variationMap[$ck] = [
                         'year' => $r->year,
                         'month' => $r->month,
                         'variation' => (float)$r->variation,
                         'chat_id' => $r->chat_id,
+                        'prev_variation' => null,
+                        'prev_year' => null,
+                        'prev_month' => null,
                     ];
+                    continue;
+                }
+                // Segundo encontro: mês anterior imediatamente disponível
+                if(!isset($variationMap[$ck]['prev_variation']) || is_null($variationMap[$ck]['prev_variation'])){
+                    $variationMap[$ck]['prev_variation'] = (float)$r->variation;
+                    $variationMap[$ck]['prev_year'] = $r->year;
+                    $variationMap[$ck]['prev_month'] = $r->month;
                 }
             }
         }
@@ -177,6 +188,13 @@ class PortfolioController extends Controller
                 'gain_loss_pct' => ($curVal !== null && $inv>0.0) ? (($curVal/$inv)-1.0)*100.0 : null,
                 'variation_monthly' => $var['variation'] ?? null,
                 'variation_period' => $var ? sprintf('%04d-%02d',$var['year'],$var['month']) : null,
+                'variation_prev' => $var['prev_variation'] ?? null,
+                'variation_prev_period' => ($var && isset($var['prev_year'],$var['prev_month']) && $var['prev_year'] && $var['prev_month'])
+                    ? sprintf('%04d-%02d',$var['prev_year'],$var['prev_month'])
+                    : null,
+                'variation_diff' => (isset($var['variation']) && isset($var['prev_variation']) && $var['variation'] !== null && $var['prev_variation'] !== null)
+                    ? ((float)$var['variation'] - (float)$var['prev_variation'])
+                    : null,
                 'cash_cover_pct' => $cashCoverPct,
                 'cash_cover_approx_acquired_qty' => $approxAcquiredQty,
                 'cash_cover_remaining_qty' => $remainingQty,
@@ -189,7 +207,7 @@ class PortfolioController extends Controller
 
         // Ordenação em memória (colunas derivadas). Campos suportados
         $sortable = [
-            'code','account','quantity','avg_price','invested_value','current_price','current_value','gain_loss_abs','gain_loss_pct','variation_monthly'
+            'code','account','quantity','avg_price','invested_value','current_price','current_value','gain_loss_abs','gain_loss_pct','variation_monthly','variation_prev','variation_diff'
         ];
         if($sort && in_array($sort, $sortable, true)){
             usort($rowsOut, function($a,$b) use ($sort,$dir){
