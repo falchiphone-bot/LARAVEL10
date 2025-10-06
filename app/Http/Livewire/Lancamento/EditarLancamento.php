@@ -10,6 +10,7 @@ use App\Models\Lancamento;
 use App\Models\LancamentoComentario;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 
 class EditarLancamento extends Component
@@ -42,6 +43,15 @@ class EditarLancamento extends Component
         if ($empresa_id) {
             $this->empresa = Empresa::find($empresa_id);
             $this->lancamento->EmpresaID = $empresa_id;
+        }
+        // Força recarregar componentes filhos (arquivos / troca empresa)
+        if($lancamento_id && $lancamento_id !== 'novo') {
+            try {
+                $this->emitTo('lancamento.arquivo-lancamento','resetData',$lancamento_id);
+            } catch(\Throwable $e) { /* silent */ }
+            try {
+                $this->emitTo('lancamento.troca-empresa','setLancamentoID',$lancamento_id);
+            } catch(\Throwable $e) { /* silent */ }
         }
     }
 
@@ -329,7 +339,7 @@ class EditarLancamento extends Component
         $this->resetErrorBag();
         $this->resetValidation();
 
-        \Log::debug('[Livewire] mount EditarLancamento', [
+    Log::debug('[Livewire] mount EditarLancamento', [
             'lancamento_id' => $lancamento_id,
             'empresa_id' => $empresa_id,
             'request' => request()->all(),
@@ -345,6 +355,9 @@ class EditarLancamento extends Component
                 $this->lancamento = $lancamento;
                 $this->lancamento->Valor = number_format($this->lancamento->Valor, 2, ',', '.');
                 $this->comentarios = LancamentoComentario::where('LancamentoID', $lancamento_id)->get();
+                // Emite eventos para garantir atualização imediata das abas dependentes
+                try { $this->emitTo('lancamento.arquivo-lancamento','resetData',$lancamento_id); } catch(\Throwable $e) {}
+                try { $this->emitTo('lancamento.troca-empresa','setLancamentoID',$lancamento_id); } catch(\Throwable $e) {}
             } else {
                 // Se não encontrar, cria novo
                 $this->lancamento = new Lancamento();
