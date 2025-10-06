@@ -1,15 +1,22 @@
-<div id="trocaEmpresaWrapper">
+<div id="trocaEmpresaWrapper" style="background:#e0f2ff;padding:6px;border:1px solid #8cc7ff;border-radius:6px;">
     <style>
-        /* Escopo apenas dentro da aba Troca Empresa */
-        #trocaEmpresaWrapper .card { background:#eaf4ff; border-color:#b6dbff; }
-        #trocaEmpresaWrapper .card-body { background:#eaf4ff; }
-        #trocaEmpresaWrapper select.form-control,
-        #trocaEmpresaWrapper select { background:#d7ebff !important; border:1px solid #94c9ff; color:#003153; }
-        #trocaEmpresaWrapper select:focus { background:#c4e2ff !important; border-color:#4aa3ff; box-shadow:0 0 0 .15rem rgba(13,110,253,.15); }
+        /* Escopo apenas dentro da aba Troca Empresa - alta especificidade e !important para vencer Bootstrap/Select2 */
+        #editarLancamentoModal #trocaEmpresaWrapper,
+        #editarLancamentoModal #trocaEmpresaWrapper .card,
+        #editarLancamentoModal #trocaEmpresaWrapper .card-body { background:#e0f2ff !important; }
+        #trocaEmpresaWrapper .card { border-color:#8cc7ff !important; box-shadow:0 0 0 1px #b9e2ff inset; }
         #trocaEmpresaWrapper label { font-weight:600; color:#003153; }
-        #trocaEmpresaWrapper .alert { background:#fff; }
+        #trocaEmpresaWrapper select.form-control,
+        #trocaEmpresaWrapper select { background:#cfe8ff !important; border:1px solid #63b4ff !important; color:#003153 !important; }
+        #trocaEmpresaWrapper select:focus { background:#bfe0ff !important; border-color:#2795ff !important; box-shadow:0 0 0 .15rem rgba(39,149,255,.35) !important; }
+        /* Select2 containers */
+        #trocaEmpresaWrapper .select2-container .select2-selection--single { background:#cfe8ff !important; border:1px solid #63b4ff !important; height:38px; }
+        #trocaEmpresaWrapper .select2-container .select2-selection--single .select2-selection__rendered { line-height:36px; color:#003153 !important; }
+        #trocaEmpresaWrapper .select2-container--default .select2-selection--single .select2-selection__arrow { height:36px; }
         #trocaEmpresaWrapper button.btn-primary { background:#0d6efd; border-color:#0d6efd; }
         #trocaEmpresaWrapper button.btn-primary:hover { background:#0b5ed7; }
+        #trocaEmpresaWrapper .form-control:disabled { opacity:.85; }
+        #trocaEmpresaWrapper .placeholder-msg { background:#fff;border:1px dashed #63b4ff;padding:8px 10px;border-radius:4px;color:#003153;font-size:.875rem; }
     </style>
     {{-- Success is as dangerous as failure. --}}
     <div class="card">
