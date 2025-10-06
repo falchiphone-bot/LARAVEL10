@@ -45,35 +45,48 @@
         </div>
         <div class="card-body">
             <form wire:submit.prevent='transferirLancamento'>
-                <div class="col-sm-12">
+                <div class="col-sm-12 mb-3">
                     <label for="empresaid">Nova Empresa</label>
-                    <select wire:model='novaempresa' wire:change="empresaSelecionada" name="empresaid" id="empresaid"
-                        class="form-control" aria-label="Selecionar nova empresa">
-                        <option value="">Selecione</option>
-                        @foreach ($empresas as $empresaID => $empresaDescricao)
-                            <option value="{{ $empresaID }}">{{ $empresaDescricao }}</option>
-                        @endforeach
-                    </select>
+                    @if($empresas && count($empresas))
+                        <select wire:model='novaempresa' wire:change="empresaSelecionada" name="empresaid" id="empresaid"
+                            class="form-control" aria-label="Selecionar nova empresa">
+                            <option value="">Selecione</option>
+                            @foreach ($empresas as $empresaID => $empresaDescricao)
+                                <option value="{{ $empresaID }}">{{ $empresaDescricao }}</option>
+                            @endforeach
+                        </select>
+                    @else
+                        <div class="placeholder-msg">Nenhuma empresa disponível para este usuário. <button type="button" class="btn btn-sm btn-outline-light ms-2" wire:click="refreshData">Recarregar</button></div>
+                    @endif
+                    <small class="text-muted d-block mt-1">Debug: empresas={{ is_countable($empresas)?count($empresas):'n/a' }} lancamento_id={{ $lancamento_id ?? 'null' }}</small>
                 </div>
 
-                <div class="col-sm-12">
+                <div class="col-sm-12 mb-3">
                     <label for="novacontadebito">Conta Debito</label>
-                    <select id="novacontadebito" class="form-control select2" wire:model='novacontadebito' aria-label="Selecionar conta débito">
-                        <option value="">Selecione</option>
-                        @foreach ($contasnovas as $contaID => $contaDescricao)
-                            <option value="{{ $contaID }}">{{ $contaDescricao }}</option>
-                        @endforeach
-                    </select>
+                    @if($contasnovas && count($contasnovas))
+                        <select id="novacontadebito" class="form-control select2" wire:model='novacontadebito' aria-label="Selecionar conta débito">
+                            <option value="">Selecione</option>
+                            @foreach ($contasnovas as $contaID => $contaDescricao)
+                                <option value="{{ $contaID }}">{{ $contaDescricao }}</option>
+                            @endforeach
+                        </select>
+                    @else
+                        <div class="placeholder-msg">Selecione uma empresa para carregar contas débito.</div>
+                    @endif
                 </div>
 
-                <div class="col-sm-12">
+                <div class="col-sm-12 mb-3">
                     <label for="novacontacredito">Conta Crédito</label>
-                    <select id="novacontacredito" class="form-control select2" wire:model='novacontacredito' aria-label="Selecionar conta crédito">
-                        <option value="">Selecione</option>
-                        @foreach ($contasnovas as $contaID => $contaDescricao)
-                            <option value="{{ $contaID }}">{{ $contaDescricao }}</option>
-                        @endforeach
-                    </select>
+                    @if($contasnovas && count($contasnovas))
+                        <select id="novacontacredito" class="form-control select2" wire:model='novacontacredito' aria-label="Selecionar conta crédito">
+                            <option value="">Selecione</option>
+                            @foreach ($contasnovas as $contaID => $contaDescricao)
+                                <option value="{{ $contaID }}">{{ $contaDescricao }}</option>
+                            @endforeach
+                        </select>
+                    @else
+                        <div class="placeholder-msg">Selecione uma empresa para carregar contas crédito.</div>
+                    @endif
                 </div>
                 <div class="col-sm-12 mt-3">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
