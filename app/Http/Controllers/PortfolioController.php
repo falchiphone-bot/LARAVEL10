@@ -7,6 +7,7 @@ use App\Services\MarketDataService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
+use App\Models\InvestmentAccountCashEvent;
 
 class PortfolioController extends Controller
 {
@@ -87,15 +88,69 @@ class PortfolioController extends Controller
 
         // Montar métricas
         $totalInvested = 0.0; $totalCurrent = 0.0; $rowsOut = [];
-    foreach ($holdings as $h){
+        $holdingsCount = $holdings->count();
+        $enableCross = $holdingsCount > 0 && $holdingsCount <= 150; // evitar N+1 pesado em carteiras grandes
+        foreach ($holdings as $h){
             $inv = (float)$h->invested_value;
             $mktPrice = $h->current_price ?: null;
             $curVal = ($mktPrice !== null) ? $mktPrice * (float)$h->quantity : null;
             $totalInvested += $inv;
             if($curVal !== null) $totalCurrent += $curVal;
             $var = $variationMap[strtoupper($h->code)] ?? null;
+            // Cálculo aproximado de cobertura de caixa: soma dos fluxos de compra/venda relacionados ao código na conta.
+            $cashCoverPct = null; $approxAcquiredQty = null; $remainingQty = null; $buyAmount = 0.0; $sellAmount = 0.0; $tradeEvents = 0;
+            if($enableCross && $h->quantity > 0){
+                try {
+                    $symbol = strtoupper($h->code);
+                    $events = InvestmentAccountCashEvent::query()
+                        ->where('user_id',$userId)
+                        ->where('account_id',$h->account_id)
+                        ->where(function($w) use($symbol){
+                            $w->where('title','LIKE','%'.$symbol.'%');
+                        })
+                        ->where(function($w){
+                            $w->where('title','LIKE','%compra%')
+                              ->orWhere('title','LIKE','%venda%')
+                              ->orWhere('title','LIKE','%buy%')
+                              ->orWhere('title','LIKE','%sell%');
+                        })
+                        ->orderBy('event_date','desc')
+                        ->limit(400)
+                        ->get(['title','amount']);
+                    foreach($events as $ev){
+                        $t = mb_strtolower($ev->title);
+                        $amt = (float)$ev->amount;
+                        if(str_contains($t,'compra') || str_contains($t,'buy')){
+                            // Compra normalmente é saída de caixa (valor negativo). Normalizar como valor absoluto acumulado.
+                            $buyAmount += abs($amt);
+                            $tradeEvents++;
+                        } elseif(str_contains($t,'venda') || str_contains($t,'sell')){
+                            // Venda é entrada de caixa (valor positivo)
+                            $sellAmount += abs($amt);
+                            $tradeEvents++;
+                        }
+                    }
+                    if($buyAmount > 0 && $h->avg_price > 0){
+                        // Aproxima quantidade adquirida bruta = total gasto em compras / preço médio atual (heurística)
+                        $approxAcquiredQty = $buyAmount / $h->avg_price;
+                        // Ajustar por vendas: reduzir quantidade equivalente vendida usando preço médio.
+                        if($sellAmount > 0){
+                            $approxAcquiredQty -= ($sellAmount / $h->avg_price);
+                        }
+                        if($approxAcquiredQty < $h->quantity){
+                            // Se a aproximação for menor que a atual, assume ao menos o atual para evitar >100% depois
+                            $approxAcquiredQty = $h->quantity;
+                        }
+                        $cashCoverPct = $approxAcquiredQty > 0 ? min(100.0, ($h->quantity / $approxAcquiredQty)*100.0) : null;
+                        $remainingQty = $approxAcquiredQty - $h->quantity;
+                    }
+                } catch(\Throwable $e){
+                    // Silencioso: não compromete a página
+                }
+            }
             $rowsOut[] = [
                 'id' => $h->id,
+                'account_id' => $h->account_id,
                 'code' => $h->code,
                 'account' => $h->account?->account_name,
                 'broker' => $h->account?->broker,
@@ -108,6 +163,10 @@ class PortfolioController extends Controller
                 'gain_loss_pct' => ($curVal !== null && $inv>0.0) ? (($curVal/$inv)-1.0)*100.0 : null,
                 'variation_monthly' => $var['variation'] ?? null,
                 'variation_period' => $var ? sprintf('%04d-%02d',$var['year'],$var['month']) : null,
+                'cash_cover_pct' => $cashCoverPct,
+                'cash_cover_approx_acquired_qty' => $approxAcquiredQty,
+                'cash_cover_remaining_qty' => $remainingQty,
+                'cash_cover_trade_events' => $tradeEvents,
             ];
         }
 
@@ -151,6 +210,7 @@ class PortfolioController extends Controller
             'filter_accounts' => \App\Models\InvestmentAccount::where('user_id',$userId)->orderBy('account_name')->get(['id','account_name','broker']),
             'sort' => $sort,
             'dir' => $dir,
+            'cross_cash_enabled' => $enableCross,
         ]);
     }
 }

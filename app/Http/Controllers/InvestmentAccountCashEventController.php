@@ -16,6 +16,7 @@ class InvestmentAccountCashEventController extends Controller
         $accountId = $request->input('account_id');
         $category = $request->input('category');
         $status = trim((string)$request->input('status'));
+    $title = trim((string)$request->input('title'));
         $from = $request->input('from');
         $to = $request->input('to');
         $settleFrom = $request->input('settle_from');
@@ -44,7 +45,8 @@ class InvestmentAccountCashEventController extends Controller
             ->where('user_id',$userId);
         if($accountId){ $q->where('account_id',$accountId); }
         if($category){ $q->where('category',$category); }
-        if($status!==''){ $q->where('status','LIKE','%'.$status.'%'); }
+    if($status!==''){ $q->where('status','LIKE','%'.$status.'%'); }
+    if($title!==''){ $q->where('title','LIKE','%'.$title.'%'); }
         if($from){ $q->whereDate('event_date','>=',$from); }
         if($to){ $q->whereDate('event_date','<=',$to); }
         if($settleFrom){ $q->whereDate('settlement_date','>=',$settleFrom); }
@@ -118,6 +120,7 @@ class InvestmentAccountCashEventController extends Controller
             'filter_account_id'=>$accountId ? (int)$accountId : null,
             'filter_category'=>$category,
             'filter_status'=>$status,
+            'filter_title'=>$title,
             'filter_from'=>$from,
             'filter_to'=>$to,
             'filter_settle_from'=>$settleFrom,

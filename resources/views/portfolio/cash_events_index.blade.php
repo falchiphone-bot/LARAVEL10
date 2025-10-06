@@ -27,6 +27,10 @@
           <label class="form-label small mb-1">Status (contém)</label>
           <input type="text" name="status" value="{{ $filter_status }}" class="form-control form-control-sm" />
         </div>
+        <div class="col-md-3">
+          <label class="form-label small mb-1">Título (contém)</label>
+          <input type="text" name="title" value="{{ $filter_title ?? '' }}" class="form-control form-control-sm" />
+        </div>
         <div class="col-md-2">
           <label class="form-label small mb-1">De</label>
           <input type="date" name="from" value="{{ $filter_from }}" class="form-control form-control-sm" />
@@ -102,6 +106,7 @@
       <div class="d-flex flex-wrap gap-3 align-items-center">
         <div>Entradas: <span class="text-success">{{ number_format($sumIn,2,',','.') }}</span> | Saídas: <span class="text-danger">{{ number_format($sumOut,2,',','.') }}</span> | Saldo (∑ filtrado): <strong>{{ number_format($sumTotal,2,',','.') }}</strong></div>
         <div class="ms-auto d-flex gap-2">
+          <a href="{{ route('openai.portfolio.index') }}#gsc.tab=0" class="btn btn-sm btn-outline-secondary" title="Ver carteira (posições)">Carteira</a>
           <a href="{{ route('cash.events.export.csv', request()->query()) }}" class="btn btn-sm btn-outline-info" title="Exportar eventos filtrados em CSV">Exportar CSV</a>
           @can('CASH EVENTS - IMPORTAR')
           <a href="{{ route('cash.import.form') }}#gsc.tab=0" class="btn btn-sm btn-outline-primary" title="Importar novo bloco de caixa">Importar Caixa</a>

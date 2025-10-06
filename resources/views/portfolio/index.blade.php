@@ -142,6 +142,7 @@
             <th class="text-end">{!! sortLink('gain_loss_pct','P/L (%)',$sort??'', $dir??'asc',$baseQuery) !!}</th>
             <th class="text-end" title="Variação mensal mais recente">{!! sortLink('variation_monthly','Var. Mês (%)',$sort??'', $dir??'asc',$baseQuery) !!}</th>
             <th class="text-center">Período</th>
+            <th class="text-end" title="Cobertura aproximada dos eventos de caixa (compras/vendas) em relação à posição. Heurística baseada em soma de valores e preço médio.">Cobertura Caixa</th>
             <th style="width:90px"></th>
           </tr>
         </thead>
@@ -201,6 +202,19 @@
               <td class="text-end {{ $clsPlPct }}">@if(!is_null($r['gain_loss_pct'])) {{ number_format($r['gain_loss_pct'], 2, ',', '.') }} @else — @endif</td>
               <td class="text-end {{ $clsVar }}">@if(!is_null($r['variation_monthly'])) {{ number_format($r['variation_monthly'], 4, ',', '.') }} @else — @endif</td>
               <td class="text-center">@if($r['variation_period']) <a href="{{ $varLink }}" class="text-decoration-none">{{ $r['variation_period'] }}</a> @else — @endif</td>
+              <td class="text-end">
+                @php
+                  $ccp = $r['cash_cover_pct'];
+                @endphp
+                @if(!is_null($ccp))
+                  @php
+                    $badgeClass = $ccp >= 99.5 ? 'bg-success' : ($ccp >= 80 ? 'bg-primary' : ($ccp >= 50 ? 'bg-warning text-dark' : 'bg-danger'));
+                  @endphp
+                  <span class="badge {{ $badgeClass }}" style="font-size:.65rem" title="Aprox. adquirida: {{ number_format($r['cash_cover_approx_acquired_qty'] ?? 0,4,',','.') }} | Eventos trades: {{ $r['cash_cover_trade_events'] }}">{{ number_format($ccp,1,',','.') }}%</span>
+                @else
+                  <span class="text-muted">—</span>
+                @endif
+              </td>
               <td class="text-end d-flex flex-wrap gap-1 justify-content-end">
                 <a href="{{ $varLink }}" class="btn btn-xs btn-outline-secondary" title="Ver histórico de variações">Histórico</a>
                 {{-- Edição opcional (mantida se quiser ajustar manualmente) --}}
