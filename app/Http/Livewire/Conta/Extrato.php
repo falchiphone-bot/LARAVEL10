@@ -193,21 +193,27 @@ class Extrato extends Component
         $sessConta = session('extrato_ContaID');
         $sessEmpresa = session('conta.extrato.empresa.id');
 
-        if ($sessConta) {
+        // Prioriza SEMPRE a conta recebida na rota se houver (corrige links que abriam conta antiga)
+        if ($contaID) {
+            if ((int)$sessConta !== (int)$contaID) {
+                session(['extrato_ContaID' => $contaID]);
+            }
+            $this->Conta = Conta::find($contaID);
+            $this->selConta = $this->Conta?->ID;
+        } elseif ($sessConta) { // fallback se rota vier vazia (cenário improvável)
             $this->Conta = Conta::find($sessConta);
             $this->selConta = $this->Conta?->ID;
         } else {
-            // fallback ao parâmetro
-            session(['extrato_ContaID' => $contaID]);
-            $this->Conta = Conta::find($contaID);
-            $this->selConta = $this->Conta?->ID;
+            $this->Conta = null;
+            $this->selConta = null;
         }
 
-        if ($sessEmpresa) {
-            $this->selEmpresa = $sessEmpresa;
-        } else {
-            $this->selEmpresa = $this->Conta?->EmpresaID;
+        // Empresa: prioriza empresa da conta atual; se não houver conta, usa sessão (se existir)
+        if ($this->Conta) {
+            $this->selEmpresa = $this->Conta->EmpresaID;
             session(['conta.extrato.empresa.id' => $this->selEmpresa]);
+        } else {
+            $this->selEmpresa = $sessEmpresa;
         }
 
         $this->Empresa = $this->selEmpresa ? Empresa::find($this->selEmpresa) : null;

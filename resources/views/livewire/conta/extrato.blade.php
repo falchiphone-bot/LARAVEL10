@@ -682,11 +682,14 @@
                                         <i class="fa fa-bell-slash"></i>
                                     </button> --}}
 
-                                            <button title="Editar"
+                                            <button title="Editar (modal antigo)"
                                                 wire:click="editarLancamento({{ $lancamento->ID }})"
-                                                class="btn btn-outline-secondary btn-sm btn-editar">
+                                                class="btn btn-outline-secondary btn-sm btn-editar me-1">
                                                 <i class="fa fa-edit"></i>
                                             </button>
+                                            <a title="Editar em página" href="{{ route('lancamentos.edit.simple', $lancamento->ID) }}" target="_blank" class="btn btn-sm btn-primary me-1">
+                                                <i class="fa fa-external-link"></i>
+                                            </a>
                                             <button title="Somar Valor" type="button"
                                                 wire:click="somarLancamento({{ $lancamento->ID }})"
                                                 class="btn-sm btn btn-outline-success autalizar-saldo"><i
@@ -873,8 +876,8 @@
         /* =================== THEMA AZUL COMPLETO DO MODAL =================== */
         #editarLancamentoModal .modal-content { background:#e4f2ff; border:2px solid #0d5ca8; box-shadow:0 0 0 4px rgba(13,92,168,.15); }
         #editarLancamentoModal .modal-header { background:linear-gradient(90deg,#0d5ca8,#1172d4); color:#fff; border-bottom:2px solid #0b4c88; }
-        #editarLancamentoModal .modal-header h5, 
-        #editarLancamentoModal .modal-header h4, 
+        #editarLancamentoModal .modal-header h5,
+        #editarLancamentoModal .modal-header h4,
         #editarLancamentoModal .modal-header strong { color:#fff !important; }
         #editarLancamentoModal .btn-close { filter: invert(1); }
 
@@ -905,9 +908,9 @@
         /* Botões */
         #editarLancamentoModal .btn-primary { background:#0d5ca8; border-color:#0d5ca8; }
         #editarLancamentoModal .btn-primary:hover { background:#0b4c88; }
-        #editarLancamentoModal .btn-outline-secondary, 
+        #editarLancamentoModal .btn-outline-secondary,
         #editarLancamentoModal .btn-secondary { background:#c5e2ff; color:#08314f; border-color:#7fb6e8; }
-        #editarLancamentoModal .btn-outline-secondary:hover, 
+        #editarLancamentoModal .btn-outline-secondary:hover,
         #editarLancamentoModal .btn-secondary:hover { background:#b3d9ff; }
         #editarLancamentoModal .btn-warning { background:#ffb347; border-color:#ffb347; color:#402600; }
         #editarLancamentoModal .btn-warning:hover { background:#ffa326; }

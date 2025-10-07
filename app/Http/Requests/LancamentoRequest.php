@@ -4,14 +4,14 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class LancamentoResquest extends FormRequest
+class LancamentoRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return false;
+        return true; // Permitir, controle de permissão pode ser feito via middleware/Policy
     }
 
     /**
@@ -28,7 +28,7 @@ class LancamentoResquest extends FormRequest
             'ContaCreditoID' => 'required',
             'DataContabilidade' => 'required',
             'Descricao' => 'required',
-         
+
         ];
     }
 }

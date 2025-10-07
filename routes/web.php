@@ -106,6 +106,19 @@ Route::post('/openai/portfolio/cash/events/truncate-user', [\App\Http\Controller
 Route::get('/openai/portfolio/holdings/export/csv', [\App\Http\Controllers\UserHoldingController::class,'exportCsv'])->name('holdings.export.csv');
 Route::get('/openai/portfolio/holdings/export/xlsx', [\App\Http\Controllers\UserHoldingController::class,'exportXlsx'])->name('holdings.export.xlsx');
 
+// === Fallback Troca Empresa (sem Livewire) ===
+// Permite transferência de lançamento caso componente Livewire apresente falhas visuais.
+Route::middleware(['auth'])->group(function(){
+    Route::post('/lancamentos/{lancamento}/troca-empresa-simples', [\App\Http\Controllers\LancamentoTrocaEmpresaController::class,'store'])->name('lancamento.troca-empresa.simples');
+    Route::get('/empresa/{empresa}/contas-grau5', [\App\Http\Controllers\LancamentoTrocaEmpresaController::class,'contas'])->name('empresa.contas.grau5');
+    // View alternativa simples de edição de lançamento (sem Livewire/Modal)
+    Route::get('/lancamentos/{lancamento}/edit-simple', [\App\Http\Controllers\LancamentosController::class,'editSimple'])->name('lancamentos.edit.simple');
+    Route::put('/lancamentos/{lancamento}/edit-simple', [\App\Http\Controllers\LancamentosController::class,'updateSimple'])->name('lancamentos.simple.update');
+    // Clonagem simples (cria novo lançamento a partir de um existente)
+    Route::get('/lancamentos/{lancamento}/clone-simple', [\App\Http\Controllers\LancamentosController::class,'cloneSimple'])->name('lancamentos.clone.simple');
+    Route::post('/lancamentos/{lancamento}/clone-simple', [\App\Http\Controllers\LancamentosController::class,'storeCloneSimple'])->name('lancamentos.clone.store');
+});
+
 // ...outras rotas...
 
 // Rota para editar custo de um envio

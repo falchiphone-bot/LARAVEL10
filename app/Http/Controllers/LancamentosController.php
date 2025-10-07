@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 use app\Helpers;
 use App\Helpers\FinancaHelper;
-use App\Http\Requests\LancamentoResquest;
+use App\Http\Requests\LancamentoRequest;
 use App\Models\Empresa;
 use App\Models\Historicos;
 use App\Models\Lancamento;
@@ -1081,7 +1081,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
     /**
      * Store a newly created resource in storage.
      */
-    public function store(LancamentoResquest $request)
+    public function store(LancamentoRequest $request)
     {
         $lancamento = $request->all();
         Lancamento::created($lancamento);
@@ -1113,9 +1113,137 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
     }
 
     /**
+     * Página alternativa simples (sem Livewire) para editar lançamento.
+     */
+    public function editSimple($id)
+    {
+        $lancamento = Lancamento::find($id);
+        if (!$lancamento) {
+            return redirect()->back()->with('error','Lançamento não encontrado');
+        }
+        // Empresas permitidas ao usuário
+        $empresas = Empresa::join('Contabilidade.EmpresasUsuarios','Empresas.ID','=','EmpresasUsuarios.EmpresaID')
+            ->where('EmpresasUsuarios.UsuarioID', auth()->id())
+            ->orderBy('Empresas.Descricao')
+            ->pluck('Empresas.Descricao','Empresas.ID');
+
+        // Histórico compartilhado (filtrado por usuário)
+        $historicos = Historicos::join('Contabilidade.EmpresasUsuarios','Historicos.EmpresaID','=','EmpresasUsuarios.EmpresaID')
+            ->where('EmpresasUsuarios.UsuarioID', auth()->id())
+            ->select(['Historicos.ID','Historicos.Descricao'])
+            ->orderBy('Historicos.Descricao')
+            ->get();
+
+        // Contas da empresa atual (Grau 5) exibindo descrição do Plano de Contas
+        $contasOrigem = Conta::where('Contabilidade.Contas.EmpresaID',$lancamento->EmpresaID)
+            ->join('Contabilidade.PlanoContas','PlanoContas.ID','=','Contabilidade.Contas.Planocontas_id')
+            ->where('PlanoContas.Grau',5)
+            ->orderBy('PlanoContas.Descricao')
+            ->pluck('PlanoContas.Descricao','Contabilidade.Contas.ID');
+
+        return view('Lancamentos.edit-simple', [
+            'lancamento' => $lancamento,
+            'empresas' => $empresas,
+            'historicos' => $historicos,
+            'contasOrigem' => $contasOrigem,
+        ]);
+    }
+
+    /**
+     * Tela de clonagem simples: pré-preenche dados do lançamento para criar um novo registro.
+     * Similar à edição simples, mas ação gera novo lançamento em vez de atualizar o existente.
+     */
+    public function cloneSimple($id)
+    {
+        $lancamento = Lancamento::find($id);
+        if(!$lancamento){
+            return redirect()->back()->with('error','Lançamento não encontrado');
+        }
+        $empresas = Empresa::join('Contabilidade.EmpresasUsuarios','Empresas.ID','=','EmpresasUsuarios.EmpresaID')
+            ->where('EmpresasUsuarios.UsuarioID', auth()->id())
+            ->orderBy('Empresas.Descricao')
+            ->pluck('Empresas.Descricao','Empresas.ID');
+
+        $historicos = Historicos::join('Contabilidade.EmpresasUsuarios','Historicos.EmpresaID','=','EmpresasUsuarios.EmpresaID')
+            ->where('EmpresasUsuarios.UsuarioID', auth()->id())
+            ->select(['Historicos.ID','Historicos.Descricao'])
+            ->orderBy('Historicos.Descricao')
+            ->get();
+
+        $contasOrigem = Conta::where('Contabilidade.Contas.EmpresaID',$lancamento->EmpresaID)
+            ->join('Contabilidade.PlanoContas','PlanoContas.ID','=','Contabilidade.Contas.Planocontas_id')
+            ->where('PlanoContas.Grau',5)
+            ->orderBy('PlanoContas.Descricao')
+            ->pluck('PlanoContas.Descricao','Contabilidade.Contas.ID');
+
+        return view('Lancamentos.clone-simple',[
+            'lancamento'=>$lancamento,
+            'empresas'=>$empresas,
+            'historicos'=>$historicos,
+            'contasOrigem'=>$contasOrigem,
+        ]);
+    }
+
+    /**
+     * Persistência do clone: cria novo registro baseado nos dados ajustados do formulário.
+     */
+    public function storeCloneSimple(LancamentoRequest $request, $id)
+    {
+        $original = Lancamento::find($id);
+        if(!$original){
+            return redirect()->back()->with('error','Lançamento original não encontrado');
+        }
+        $payload = $request->all();
+        // Se empresa foi trocada deve ter escolhido contas válidas (UI garante grau 5)
+        if(isset($payload['EmpresaID']) && (int)$payload['EmpresaID'] !== (int)$original->EmpresaID){
+            $request->validate([
+                'ContaDebitoID' => 'required|integer',
+                'ContaCreditoID' => 'required|integer',
+            ],[
+                'ContaDebitoID.required' => 'Selecione a conta débito da nova empresa.',
+                'ContaCreditoID.required' => 'Selecione a conta crédito da nova empresa.',
+            ]);
+        } else {
+            // Mesma empresa: se usuário não trocar contas podemos reutilizar as originais
+            if(empty($payload['ContaDebitoID'])) $payload['ContaDebitoID'] = $original->ContaDebitoID;
+            if(empty($payload['ContaCreditoID'])) $payload['ContaCreditoID'] = $original->ContaCreditoID;
+            $payload['EmpresaID'] = $original->EmpresaID; // garante consistência
+        }
+        // Normalização BRL
+        foreach (['Valor','ValorQuantidadeDolar'] as $campo) {
+            if (isset($payload[$campo]) && $payload[$campo] !== '') {
+                $bruto = trim($payload[$campo]);
+                if (!is_numeric($bruto)) {
+                    $semMilhar = str_replace(['.',' '],'',$bruto);
+                    $normalizado = str_replace(',','.', $semMilhar);
+                    if (!is_numeric($normalizado)) $normalizado = 0;
+                    $payload[$campo] = $normalizado;
+                }
+            }
+        }
+        // Campos fixos / herdados
+        $novo = new Lancamento();
+        $novo->fill([
+            'DataContabilidade' => $payload['DataContabilidade'] ?? $original->DataContabilidade,
+            'Descricao' => $payload['Descricao'] ?? $original->Descricao,
+            'ContaDebitoID' => $payload['ContaDebitoID'],
+            'ContaCreditoID' => $payload['ContaCreditoID'],
+            'Valor' => $payload['Valor'] ?? $original->Valor,
+            'ValorQuantidadeDolar' => $payload['ValorQuantidadeDolar'] ?? $original->ValorQuantidadeDolar,
+            'EmpresaID' => $payload['EmpresaID'],
+            'HistoricoID' => $payload['HistoricoID'] ?? $original->HistoricoID,
+            'Usuarios_id' => auth()->id(),
+            'Conferido' => false,
+        ]);
+        $novo->save();
+
+        return redirect()->route('lancamentos.edit.simple',$novo->ID)->with('message','Clone criado (#'.$novo->ID.').');
+    }
+
+    /**
      * Update the specified resource in storage.
      */
-    public function update(LancamentoResquest $request, $id)
+    public function update(LancamentoRequest $request, $id)
     {
         $lancamento = Lancamento::find($id);
         if (empty($lancamento)) {
@@ -1128,6 +1256,50 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
 
 
         return redirect(route('Lancamentos.index'))->with('success', 'Lançamento atualizado.');
+    }
+
+    /**
+     * Update simplificado para a view alternativa.
+     */
+    public function updateSimple(LancamentoRequest $request, $id)
+    {
+        $lancamento = Lancamento::find($id);
+        if(!$lancamento){
+            return redirect()->back()->with('error','Lançamento não encontrado');
+        }
+        $payload = $request->all();
+        // Se empresa foi alterada, força validação de novas contas (grau 5 já garantido pela UI via endpoint)
+        if(isset($payload['EmpresaID']) && (int)$payload['EmpresaID'] !== (int)$lancamento->EmpresaID){
+            $request->validate([
+                'ContaDebitoID' => 'required|integer',
+                'ContaCreditoID' => 'required|integer',
+            ],[
+                'ContaDebitoID.required' => 'Selecione a nova conta débito da empresa escolhida.',
+                'ContaCreditoID.required' => 'Selecione a nova conta crédito da empresa escolhida.',
+            ]);
+        }
+        // Normalização de valores no formato brasileiro (ex: 9.340,01 => 9340.01)
+        foreach (['Valor','ValorQuantidadeDolar'] as $campo) {
+            if (isset($payload[$campo]) && $payload[$campo] !== '') {
+                // Remove espaços
+                $bruto = trim($payload[$campo]);
+                // Se vier já numérico não altera
+                if (!is_numeric($bruto)) {
+                    // Remove milhares
+                    $semMilhar = str_replace(['.',' '],'',$bruto);
+                    // Troca vírgula decimal por ponto
+                    $normalizado = str_replace(',','.', $semMilhar);
+                    // Se continuar não numérico, zera para evitar exception
+                    if (!is_numeric($normalizado)) {
+                        $normalizado = 0;
+                    }
+                    $payload[$campo] = $normalizado;
+                }
+            }
+        }
+        $lancamento->fill($payload);
+        $lancamento->save();
+        return redirect()->route('lancamentos.edit.simple',$lancamento->ID)->with('message','Alterações salvas.');
     }
 
     /**

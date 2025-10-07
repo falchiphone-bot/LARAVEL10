@@ -147,15 +147,14 @@
 
 
                 <table class="table" style="background-color: rgb(247, 247, 213);">
-
                     <tr>
-
                         <th>DATA</th>
                         <th>DÉBITO</th>
                         <th>CRÉDITO</th>
                         <th>VALOR</th>
                         <th>LANCAMENTO</th>
                         <th>EMPRESA</th>
+                        <th>EDITAR</th>
 
 
                     </tr>
@@ -190,10 +189,12 @@
                             </td>
 
                             <td style="padding-left: 10px; Color:black; font-size: 18px;">
-                                <button class="btn btn-link btn-selecionar-empresa"
-                                    data-empresaID="{{ $lancamentos->Empresa->ID }}">
+                                <button class="btn btn-link btn-selecionar-empresa" data-empresaID="{{ $lancamentos->Empresa->ID }}">
                                     {{ $lancamentos->Empresa->Descricao }}
                                 </button>
+                            </td>
+                            <td>
+                                <a class="btn btn-sm btn-primary" href="{{ route('lancamentos.edit.simple', $lancamentos->ID) }}" title="Editar lançamento #{{ $lancamentos->ID }}">Editar</a>
                             </td>
 
 
