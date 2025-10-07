@@ -246,23 +246,30 @@ class LancamentosController extends Controller
            $Verificanulo = $request->Verificanulo;
 
 
-           $ContaPequisada = Conta::Where("EmpresaID",'=',"$EmpresaID")
-           ->Where("Planocontas_id",'=',"$ContaID")
-           ->First();
+           $ContaPequisada = Conta::where('EmpresaID', $EmpresaID)
+               ->where('Planocontas_id', $ContaID)
+               ->first();
 
-           $ContaGerar =  $ContaPequisada->ID;
+           if(!$ContaPequisada){
+               session(['error' => 'Conta não encontrada para a empresa selecionada.']);
+               return view('lancamentos.ExportarSkalaExcel', compact('retorno','Empresas','Contas'));
+           }
+           $ContaGerar = $ContaPequisada->ID;
 
 
            //////////////  converter em data e depois em string data
-           $DataInicialCarbon = Carbon::parse($request->input('DataInicial')) ;
-           $DataFinalCarbon = Carbon::parse($request->input('DataFinal'));
-           $DataInicial = $DataInicialCarbon->format('d/m/Y');
-           $DataFinal = $DataFinalCarbon->format('d/m/Y');
+           $DataInicialCarbon = Carbon::parse($request->input('DataInicial'));
+           $DataFinalCarbon   = Carbon::parse($request->input('DataFinal'));
+           // Formatos separados: display (d/m/Y) e query (Y-m-d) para evitar erro de conversão no SQL Server
+           $DataInicialDisplay = $DataInicialCarbon->format('d/m/Y');
+           $DataFinalDisplay   = $DataFinalCarbon->format('d/m/Y');
+           $DataInicialQuery   = $DataInicialCarbon->toDateString(); // Y-m-d
+           $DataFinalQuery     = $DataFinalCarbon->toDateString();   // Y-m-d
 
 
                $retorno['EmpresaSelecionada'] = $EmpresaID;
-               $retorno['DataInicial'] = $DataInicialCarbon->format('Y-m-d');
-               $retorno['DataFinal'] = $DataFinalCarbon->format('Y-m-d');
+               $retorno['DataInicial'] = $DataInicialCarbon->toDateString();
+               $retorno['DataFinal']   = $DataFinalCarbon->toDateString();
                $retorno['ContaSelecionada'] = $ContaID;
 
                 $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
@@ -283,16 +290,15 @@ class LancamentosController extends Controller
 
 
 
-           $lancamento = Lancamento::where('EmpresaID', '=', $EmpresaID)
-           ->where(function ($query) use ($ContaGerar) {
-               $query->where('ContaDebitoID', '=', $ContaGerar)
-                     ->orWhere('ContaCreditoID', '=', $ContaGerar);
-           })
-           ->where('DataContabilidade', '>=', $DataInicial)
-           ->where('DataContabilidade', '<=', $DataFinal)
-           ->select('DataContabilidade', 'ContaDebitoID', 'ContaCreditoID', 'Valor', 'HistoricoID', 'Descricao')
-           ->orderBy('DataContabilidade', 'ASC')
-           ->get();
+           $lancamento = Lancamento::where('EmpresaID', $EmpresaID)
+               ->where(function ($query) use ($ContaGerar) {
+                   $query->where('ContaDebitoID', $ContaGerar)
+                         ->orWhere('ContaCreditoID', $ContaGerar);
+               })
+               ->whereBetween('DataContabilidade', [$DataInicialQuery, $DataFinalQuery])
+               ->select('DataContabilidade', 'ContaDebitoID', 'ContaCreditoID', 'Valor', 'HistoricoID', 'Descricao')
+               ->orderBy('DataContabilidade', 'ASC')
+               ->get();
 
                 $numeroRegistros = $lancamento->count();
                 if($numeroRegistros == 0)
@@ -337,7 +343,7 @@ class LancamentosController extends Controller
                 // dd($ExportarUnir);
 
                 // Caminho do arquivo .csv que você deseja criar na pasta "storage"
-                $Arquivo = $EmpresasSelecionada->Descricao . '-' .str_replace('/', '', $DataInicial). '-a-'.str_replace('/', '', $DataFinal).'.xlsx';
+                $Arquivo = $EmpresasSelecionada->Descricao . '-' . str_replace('/', '', $DataInicialDisplay) . '-a-' . str_replace('/', '', $DataFinalDisplay) . '.xlsx';
 
 
 
