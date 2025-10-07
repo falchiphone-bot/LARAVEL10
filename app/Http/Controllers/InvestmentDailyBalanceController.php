@@ -29,6 +29,10 @@ class InvestmentDailyBalanceController extends Controller
         $userId = (int) Auth::id();
         $withDeleted = $request->boolean('with_deleted');
         $latestPerDay = $request->boolean('latest_per_day');
+        $groupByDate = $request->boolean('group_by_date');
+        if ($groupByDate) { // agrupamento substitui latest_per_day
+            $latestPerDay = false;
+        }
         $baseMode = $request->input('base_mode','oldest'); // oldest | recent
         $compact = $request->boolean('compact');
         $withSpark = $request->boolean('spark');
@@ -56,7 +60,64 @@ class InvestmentDailyBalanceController extends Controller
                 $query->whereDate('snapshot_at','<=',$to);
             }
         }
-        if ($latestPerDay) {
+        if ($groupByDate) {
+            // Agrupamento por data: mantém apenas o snapshot mais recente de cada dia (sem somar), exibindo um valor por dia.
+            $raw = $query->orderByDesc('snapshot_at')->limit(20000)->get();
+            $daily = [];
+            foreach ($raw as $b) {
+                $d = optional($b->snapshot_at)->toDateString();
+                if(!$d) continue;
+                // Primeiro encontrado em ordem desc é o mais recente do dia
+                if(!isset($daily[$d])) {
+                    $daily[$d] = [
+                        'date' => $d,
+                        'model' => $b,
+                        'latest_total' => (float)$b->total_amount,
+                        'count' => 1,
+                    ];
+                } else {
+                    $daily[$d]['count']++;
+                }
+            }
+            // Já está em ordem desc pela coleta
+            $dailyList = array_values($daily); // preserva ordem
+            $totalItems = count($dailyList);
+            $totalPages = (int) ceil($totalItems / $perPage);
+            $slice = array_slice($dailyList, ($page-1)*$perPage, $perPage);
+            $rows = [];
+            $accBaseVal = null;
+            if (!empty($slice)) {
+                if ($baseMode === 'recent') { $accBaseVal = $slice[0]['latest_total']; }
+                else { $accBaseVal = $slice[count($slice)-1]['latest_total']; }
+            }
+            for ($i=0; $i<count($slice); $i++) {
+                $cur = $slice[$i];
+                $next = $slice[$i+1] ?? null;
+                $diff = null; $var = null;
+                if ($next) {
+                    $diff = (float)$cur['latest_total'] - (float)$next['latest_total'];
+                    $older = (float)$next['latest_total'];
+                    if (abs($older) > 1e-10) { $var = ($diff / $older) * 100.0; }
+                }
+                $accDiff = null; $accPerc = null;
+                if ($accBaseVal !== null) {
+                    $accDiff = (float)$cur['latest_total'] - (float)$accBaseVal;
+                    if (abs((float)$accBaseVal) > 1e-10) { $accPerc = ($accDiff / (float)$accBaseVal) * 100.0; }
+                }
+                $rows[] = [
+                    'group_date' => $cur['date'],
+                    'model' => $cur['model'],
+                    'count' => $cur['count'],
+                    'diff' => $diff,
+                    'var' => $var,
+                    'prev_total' => null,
+                    'acc_diff' => $accDiff,
+                    'acc_perc' => $accPerc,
+                    'latest_total' => $cur['latest_total'],
+                    'grouped' => true,
+                ];
+            }
+        } elseif ($latestPerDay) {
             // Trazer mais registros para deduplicar dias (cap em 5000)
             $raw = $query->orderByDesc('snapshot_at')->limit(5000)->get();
             $seenDays = []; $picked = [];
@@ -78,44 +139,49 @@ class InvestmentDailyBalanceController extends Controller
                 ->take($perPage)
                 ->get();
         }
-        $rows = [];
-    $last = $balances->last();
-    $first = $balances->first();
-    $accBaseVal = ($baseMode === 'recent') ? ($first?->total_amount) : ($last?->total_amount);
-        $count = $balances->count();
-        for ($i=0; $i<$count; $i++) {
-            $cur = $balances[$i];
-            $diff = null; $var = null;
-            if ($i+1 < $count) {
-                $older = $balances[$i+1];
-                $diff = (float)$cur->total_amount - (float)$older->total_amount; // positivo=crescimento
-                $olderBase = (float)$older->total_amount;
-                if (abs($olderBase) > 1e-10) {
-                    $var = ($diff / $olderBase) * 100.0; // var % sobre valor mais antigo
+        if (!isset($rows)) { $rows = []; }
+        $sparkSeries = [];
+        if (!$groupByDate) {
+            // Processamento padrão somente se não estiver agrupando
+            $last = $balances->last();
+            $first = $balances->first();
+            $accBaseVal = ($baseMode === 'recent') ? ($first?->total_amount) : ($last?->total_amount);
+            $count = $balances->count();
+            for ($i=0; $i<$count; $i++) {
+                $cur = $balances[$i];
+                $diff = null; $var = null;
+                if ($i+1 < $count) {
+                    $older = $balances[$i+1];
+                    $diff = (float)$cur->total_amount - (float)$older->total_amount; // positivo=crescimento
+                    $olderBase = (float)$older->total_amount;
+                    if (abs($olderBase) > 1e-10) {
+                        $var = ($diff / $olderBase) * 100.0; // var % sobre valor mais antigo
+                    }
                 }
+                $accDiff = null; $accPerc = null;
+                if ($accBaseVal !== null) {
+                    $accDiff = (float)$cur->total_amount - (float)$accBaseVal;
+                    if (abs((float)$accBaseVal) > 1e-10) { $accPerc = ($accDiff / (float)$accBaseVal) * 100.0; }
+                }
+                $rows[] = [
+                    'model'=>$cur,
+                    'diff'=>$diff,
+                    'var'=>$var,
+                    'perc'=>$var,
+                    'prev_total'=>null,
+                    'acc_diff'=>$accDiff,
+                    'acc_perc'=>$accPerc,
+                ];
             }
-            $accDiff = null; $accPerc = null;
-            if ($accBaseVal !== null) {
-                $accDiff = (float)$cur->total_amount - (float)$accBaseVal;
-                if (abs((float)$accBaseVal) > 1e-10) { $accPerc = ($accDiff / (float)$accBaseVal) * 100.0; }
-            }
-            $rows[] = [
-                'model'=>$cur,
-                'diff'=>$diff,
-                'var'=>$var,
-                'perc'=>$var,
-                'prev_total'=>null,
-                'acc_diff'=>$accDiff,
-                'acc_perc'=>$accPerc,
-            ];
+            // Série spark só faz sentido no modo não agrupado por enquanto
+            $sparkSeries = $withSpark ? $balances->pluck('total_amount')->reverse()->values()->all() : [];
         }
-        // Série para sparkline (mais antigo -> mais recente)
-        $sparkSeries = $withSpark ? $balances->pluck('total_amount')->reverse()->values()->all() : [];
 
         return view('investments.daily_balances.index', [
             'rows' => $rows,
             'withDeleted' => $withDeleted,
             'latestPerDay' => $latestPerDay,
+            'groupByDate' => $groupByDate,
             'baseMode' => $baseMode,
             'compact' => $compact,
             'sparkSeries' => $sparkSeries,
@@ -203,13 +269,94 @@ class InvestmentDailyBalanceController extends Controller
         $withDeleted = $request->boolean('with_deleted');
     $latestPerDay = $request->boolean('latest_per_day');
     $baseMode = $request->input('base_mode','oldest');
+        $groupByDate = $request->boolean('group_by_date');
+        if ($groupByDate) { $latestPerDay = false; }
         $from = trim((string)$request->input('from'));
         $to = trim((string)$request->input('to'));
         $q = InvestmentDailyBalance::where('user_id',$userId);
         if ($withDeleted) { $q->withTrashed(); }
         if ($from !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/',$from)) { $q->whereDate('snapshot_at','>=',$from); }
         if ($to !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/',$to)) { $q->whereDate('snapshot_at','<=',$to); }
-        if ($latestPerDay) {
+        if ($groupByDate) {
+            // Agrupa todos snapshots por dia e cria linhas agregadas sem horário
+            $raw = $q->orderByDesc('snapshot_at')->limit(8000)->get(['snapshot_at','total_amount','deleted_at']);
+            $groups = [];
+            foreach ($raw as $b) {
+                $d = optional($b->snapshot_at)->toDateString();
+                if ($d === null) continue;
+                $groups[$d][] = $b;
+            }
+            krsort($groups); // datas desc
+            $daily = [];
+            foreach ($groups as $d => $items) {
+                usort($items, function($a,$b){ return strcmp($b->snapshot_at, $a->snapshot_at); });
+                $close = $items[0];
+                $open = end($items);
+                $intraDiff = (float)$close->total_amount - (float)$open->total_amount;
+                $intraVar = (abs((float)$open->total_amount) > 1e-10) ? ($intraDiff / (float)$open->total_amount) * 100.0 : null;
+                $daily[] = [
+                    'date' => $d,
+                    'close' => $close,
+                    'open' => $open,
+                    'count' => count($items),
+                    'intra_diff' => $intraDiff,
+                    'intra_var' => $intraVar,
+                ];
+            }
+            // Calcular diffs entre dias
+            $rows = [];
+            $accBaseVal = null;
+            if (!empty($daily)) {
+                if ($baseMode === 'recent') { $accBaseVal = $daily[0]['close']->total_amount ?? null; }
+                else { $accBaseVal = $daily[count($daily)-1]['close']->total_amount ?? null; }
+            }
+            for ($i=0; $i<count($daily); $i++) {
+                $cur = $daily[$i];
+                $next = $daily[$i+1] ?? null; // dia seguinte (mais antigo)
+                $diff = null; $var = null;
+                if ($next) {
+                    $diff = (float)$cur['close']->total_amount - (float)$next['close']->total_amount;
+                    $older = (float)$next['close']->total_amount;
+                    if (abs($older) > 1e-10) { $var = ($diff / $older) * 100.0; }
+                }
+                $accDiff = null; $accPerc = null;
+                if ($accBaseVal !== null) {
+                    $accDiff = (float)$cur['close']->total_amount - (float)$accBaseVal;
+                    if (abs((float)$accBaseVal) > 1e-10) { $accPerc = ($accDiff / (float)$accBaseVal) * 100.0; }
+                }
+                $rows[] = [
+                    'date' => $cur['date'],
+                    'total_amount' => (float)$cur['close']->total_amount,
+                    'count' => $cur['count'],
+                    'intra_diff' => $cur['intra_diff'],
+                    'intra_var' => $cur['intra_var'],
+                    'diff' => $diff,
+                    'var' => $var,
+                    'acc_diff' => $accDiff,
+                    'acc_perc' => $accPerc,
+                ];
+            }
+            $callback = function() use ($rows){
+                $out = fopen('php://output','w');
+                fputcsv($out, ['Date','CloseTotal','DayCount','IntraDiff','IntraVarPerc','DiffPrevDay','VarPrevDay','AccDiff','AccPerc'], ';');
+                foreach ($rows as $r) {
+                    fputcsv($out, [
+                        $r['date'],
+                        number_format($r['total_amount'], 6, '.', ''),
+                        $r['count'],
+                        $r['intra_diff'] === null ? '' : number_format($r['intra_diff'], 6, '.', ''),
+                        $r['intra_var'] === null ? '' : number_format($r['intra_var'], 6, '.', ''),
+                        $r['diff'] === null ? '' : number_format($r['diff'], 6, '.', ''),
+                        $r['var'] === null ? '' : number_format($r['var'], 6, '.', ''),
+                        $r['acc_diff'] === null ? '' : number_format($r['acc_diff'], 6, '.', ''),
+                        $r['acc_perc'] === null ? '' : number_format($r['acc_perc'], 6, '.', ''),
+                    ], ';');
+                }
+                fclose($out);
+            };
+            $file = 'daily_balances_grouped_'.date('Ymd_His').'.csv';
+            return response()->streamDownload($callback,$file,[ 'Content-Type'=>'text/csv; charset=UTF-8']);
+        } elseif ($latestPerDay) {
             $raw = $q->orderByDesc('snapshot_at')->limit(5000)->get(['snapshot_at','total_amount','deleted_at']);
             $seen = []; $selected = [];
             foreach ($raw as $b) {

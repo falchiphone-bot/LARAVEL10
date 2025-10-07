@@ -63,6 +63,10 @@
             <label class="form-check-label" for="latestPerDaySwitch" title="Mantém apenas o snapshot mais recente de cada dia">Mais novo/dia</label>
           </div>
           <div class="form-check form-switch m-0">
+            <input class="form-check-input" type="checkbox" name="group_by_date" value="1" id="groupByDateSwitch" onchange="this.form.submit()" {{ ($groupByDate ?? false) ? 'checked' : '' }}>
+            <label class="form-check-label" for="groupByDateSwitch" title="Agrupa todos snapshots de cada dia em uma linha">Agrupar dia</label>
+          </div>
+          <div class="form-check form-switch m-0">
             <input class="form-check-input" type="checkbox" name="compact" value="1" id="compactSwitch" onchange="this.form.submit()" {{ ($compact ?? false) ? 'checked' : '' }}>
             <label class="form-check-label" for="compactSwitch" title="Modo compacto para dif & var">Compacto</label>
           </div>
@@ -85,7 +89,12 @@
     <table class="table table-sm table-bordered align-middle">
       <thead class="table-dark">
         <tr>
-          <th style="width:20%">Data/Hora</th>
+          @if(!($groupByDate ?? false))
+            <th style="width:20%">Data/Hora</th>
+          @else
+            <th style="width:14%" title="Data (agrupada)">Data</th>
+            <th class="text-end" style="width:10%" title="Quantidade de snapshots no dia">Qtde</th>
+          @endif
           <th class="text-end" style="width:18%">Total</th>
           @if(!($compact ?? false))
             <th class="text-end" style="width:14%" title="Diferença = valor desta linha (mais recente) - próximo (mais antigo); positivo = crescimento">Dif (vs próximo)</th>
@@ -95,7 +104,11 @@
           @endif
           <th class="text-end" style="width:14%" title="Acumulado Dif = valor atual - valor do 1º snapshot listado">Acum Dif</th>
           <th class="text-end" style="width:12%" title="Acum % = (Acum Dif / valor do 1º snapshot) * 100">Acum %</th>
-          <th style="width:12%" class="text-end">Anterior</th>
+          @if(!($groupByDate ?? false))
+            <th style="width:12%" class="text-end">Anterior</th>
+          @else
+            <th class="text-end" style="width:14%" title="Δ intra-dia (fechamento - abertura) / %">Intra Δ / %</th>
+          @endif
           <th style="width:12%" class="text-center">Ações</th>
         </tr>
       </thead>
@@ -110,13 +123,23 @@
             $prevTotal = $r['prev_total'];
             $cls = '';
             if($diff !== null){ if($diff>0) $cls='text-success'; elseif($diff<0) $cls='text-danger'; else $cls='text-muted'; }
+            $grouped = $r['grouped'] ?? false;
+            $intraDiff = $r['intra_diff'] ?? null;
+            $intraVar = $r['intra_var'] ?? null;
           @endphp
             <tr @if($m->trashed()) class="table-warning" @endif>
-              <td>
-                {{ optional($m->snapshot_at)->format('d/m/Y H:i:s') }}
-                @if($m->trashed())<span class="badge bg-warning text-dark ms-1">Excluído</span>@endif
-              </td>
-              <td class="text-end">{{ number_format($m->total_amount, 2, ',', '.') }}</td>
+              @if(!$grouped)
+                <td>
+                  {{ optional($m->snapshot_at)->format('d/m/Y H:i:s') }}
+                  @if($m->trashed())<span class="badge bg-warning text-dark ms-1">Excluído</span>@endif
+                </td>
+              @else
+                <td>{{ $r['group_date'] ? \Carbon\Carbon::parse($r['group_date'])->format('d/m/Y') : '' }}</td>
+                <td class="text-end">
+                  <span class="badge bg-secondary" title="Snapshots no dia">{{ $r['count'] }}</span>
+                </td>
+              @endif
+              <td class="text-end">{{ $grouped ? number_format(($r['sum_total'] ?? $m->total_amount), 2, ',', '.') : number_format($m->total_amount, 2, ',', '.') }}</td>
               @if(!($compact ?? false))
                 <td class="text-end {{ $diff === null ? 'text-muted' : ($diff > 0 ? 'text-success' : ($diff < 0 ? 'text-danger' : 'text-muted')) }}">
                   @if($diff===null) — @else
@@ -146,24 +169,41 @@
               <td class="text-end {{ $accPerc === null ? 'text-muted' : ($accPerc > 0 ? 'text-success' : ($accPerc < 0 ? 'text-danger' : 'text-muted')) }}">
                 @if($accPerc===null) — @else {{ number_format($accPerc, 2, ',', '.') }}% @endif
               </td>
-              <td class="text-end">{{ optional($m->created_at)->format('d/m/Y H:i') }}</td>
+              @if(!$grouped)
+                <td class="text-end">{{ optional($m->created_at)->format('d/m/Y H:i') }}</td>
+              @else
+                <td class="text-end">
+                  @if($intraDiff===null) — @else
+                    <span class="{{ $intraDiff>0?'text-success':($intraDiff<0?'text-danger':'text-muted') }}">
+                      @if($intraDiff>0) ↑ @elseif($intraDiff<0) ↓ @else → @endif
+                      {{ number_format($intraDiff, 2, ',', '.') }}
+                      <span class="text-muted">/</span>
+                      <span class="{{ $intraVar === null ? 'text-muted' : ($intraVar > 0 ? 'text-success' : ($intraVar < 0 ? 'text-danger' : 'text-muted')) }}">{{ $intraVar===null ? '—' : number_format($intraVar, 2, ',', '.') . '%' }}</span>
+                    </span>
+                  @endif
+                </td>
+              @endif
               <td class="d-flex gap-1">
-                @if(!$m->trashed())
-                  @can('INVESTIMENTOS SNAPSHOTS - EXCLUIR')
-                  <form method="POST" action="{{ route('investments.daily-balances.destroy', $m) }}" class="d-inline" onsubmit="return confirm('Excluir este snapshot?');">
-                    @csrf
-                    @method('DELETE')
-                    <button class="btn btn-sm btn-outline-danger" title="Excluir snapshot">Excluir</button>
-                  </form>
-                  @endcan
+                @if(!$grouped)
+                  @if(!$m->trashed())
+                    @can('INVESTIMENTOS SNAPSHOTS - EXCLUIR')
+                    <form method="POST" action="{{ route('investments.daily-balances.destroy', $m) }}" class="d-inline" onsubmit="return confirm('Excluir este snapshot?');">
+                      @csrf
+                      @method('DELETE')
+                      <button class="btn btn-sm btn-outline-danger" title="Excluir snapshot">Excluir</button>
+                    </form>
+                    @endcan
+                  @else
+                    @can('INVESTIMENTOS SNAPSHOTS - RESTAURAR')
+                    <form method="POST" action="{{ route('investments.daily-balances.restore', $m->id) }}" class="d-inline" onsubmit="return confirm('Restaurar este snapshot?');">
+                      @csrf
+                      @method('PATCH')
+                      <button class="btn btn-sm btn-outline-success" title="Restaurar snapshot">Restaurar</button>
+                    </form>
+                    @endcan
+                  @endif
                 @else
-                  @can('INVESTIMENTOS SNAPSHOTS - RESTAURAR')
-                  <form method="POST" action="{{ route('investments.daily-balances.restore', $m->id) }}" class="d-inline" onsubmit="return confirm('Restaurar este snapshot?');">
-                    @csrf
-                    @method('PATCH')
-                    <button class="btn btn-sm btn-outline-success" title="Restaurar snapshot">Restaurar</button>
-                  </form>
-                  @endcan
+                  <span class="text-muted small" title="Ações indisponíveis no modo agrupado">—</span>
                 @endif
               </td>
             </tr>
