@@ -1,6 +1,8 @@
 <?php
 
 return [
+    // Limite máximo de registros ao usar modo "Listar tudo" em asset-stats (proteção memória)
+    'asset_stats_max_all' => env('ASSET_STATS_MAX_ALL', 20000),
     'chat' => [
         'search' => [
             // Habilitado por checkbox no formulário; isto define apenas o padrão se você quiser usar em outro lugar

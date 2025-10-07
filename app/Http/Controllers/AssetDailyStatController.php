@@ -30,6 +30,7 @@ class AssetDailyStatController extends Controller
         $dateEndRaw = trim((string)$request->input('date_end'));
         $accFilter = trim((string)$request->input('acc', '')); // '', 'ok', 'out', 'na'
     $hasClose = $request->boolean('has_close');
+        $showAll = $request->boolean('all');
 
         $allowedSorts = ['date','symbol','acc'];
         if (!in_array($sort, $allowedSorts, true)) { $sort = 'date'; }
@@ -84,7 +85,27 @@ class AssetDailyStatController extends Controller
             $q->orderBy('date', $dir)->orderBy('symbol', 'asc');
         }
 
-        $stats = $q->paginate(50)->appends($request->query());
+        if ($showAll) {
+            // Limite de segurança para não estourar memória: máximo 20k
+            $maxRows = (int)config('openai.asset_stats_max_all', 20000);
+            $collection = $q->limit($maxRows + 1)->get();
+            $truncated = false;
+            if ($collection->count() > $maxRows) {
+                $collection = $collection->take($maxRows);
+                $truncated = true;
+            }
+            // Criar LengthAwarePaginator fake para reutilizar a view sem alterar muito
+            $stats = new \Illuminate\Pagination\LengthAwarePaginator(
+                $collection,
+                $collection->count(),
+                $collection->count() ?: 1,
+                1,
+                ['path' => url()->current(), 'query' => $request->query()]
+            );
+        } else {
+            $stats = $q->paginate(50)->appends($request->query());
+            $truncated = false;
+        }
         return view('asset_stats.index', [
             'stats' => $stats,
             'symbol' => $symbol,
@@ -96,6 +117,8 @@ class AssetDailyStatController extends Controller
             'hasClose' => $hasClose,
             'totalFiltered' => $totalFiltered,
             'withCloseFiltered' => $withCloseFiltered,
+            'showAll' => $showAll,
+            'truncated' => $truncated,
         ]);
     }
 

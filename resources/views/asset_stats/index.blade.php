@@ -48,6 +48,9 @@
       <div class="col-auto">
         <button class="btn btn-primary">Filtrar</button>
       </div>
+      @if(!empty($showAll))
+        <input type="hidden" name="all" value="1">
+      @endif
     </div>
   </form>
 
@@ -66,46 +69,46 @@
       @if(($symbol ?? '') !== '')
         <a class="badge rounded-pill bg-primary text-decoration-none me-1"
            title="Remover filtro Símbolo"
-           href="{{ route('asset-stats.index', array_filter(['symbol'=>null,'date_start'=>$dateStart ?? null,'date_end'=>$dateEnd ?? null,'acc'=>$acc ?? null,'has_close'=>!empty($hasClose)?1:null,'sort'=>$sort ?? null,'dir'=>$dir ?? null])) }}">
+           href="{{ route('asset-stats.index', array_filter(['symbol'=>null,'date_start'=>$dateStart ?? null,'date_end'=>$dateEnd ?? null,'acc'=>$acc ?? null,'has_close'=>!empty($hasClose)?1:null,'sort'=>$sort ?? null,'dir'=>$dir ?? null,'all'=>!empty($showAll)?1:null])) }}">
           Símbolo: {{ $symbol }} <i class="fa-solid fa-xmark ms-1"></i>
         </a>
       @endif
       @if(($dateStart ?? '') !== '' && ($dateEnd ?? '') !== '')
-        <a class="badge rounded-pill bg-secondary text-decoration-none me-1"
+      <a class="badge rounded-pill bg-secondary text-decoration-none me-1"
            title="Remover filtro Período"
-           href="{{ route('asset-stats.index', array_filter(['symbol'=>$symbol ?? null,'date_start'=>null,'date_end'=>null,'acc'=>$acc ?? null,'has_close'=>!empty($hasClose)?1:null,'sort'=>$sort ?? null,'dir'=>$dir ?? null])) }}">
+        href="{{ route('asset-stats.index', array_filter(['symbol'=>$symbol ?? null,'date_start'=>null,'date_end'=>null,'acc'=>$acc ?? null,'has_close'=>!empty($hasClose)?1:null,'sort'=>$sort ?? null,'dir'=>$dir ?? null,'all'=>!empty($showAll)?1:null])) }}">
           Período: {{ $fmtDate($dateStart) }} – {{ $fmtDate($dateEnd) }} <i class="fa-solid fa-xmark ms-1"></i>
         </a>
       @elseif(($dateStart ?? '') !== '')
-        <a class="badge rounded-pill bg-secondary text-decoration-none me-1"
+      <a class="badge rounded-pill bg-secondary text-decoration-none me-1"
            title="Remover filtro De"
-           href="{{ route('asset-stats.index', array_filter(['symbol'=>$symbol ?? null,'date_start'=>null,'date_end'=>$dateEnd ?? null,'acc'=>$acc ?? null,'has_close'=>!empty($hasClose)?1:null,'sort'=>$sort ?? null,'dir'=>$dir ?? null])) }}">
+        href="{{ route('asset-stats.index', array_filter(['symbol'=>$symbol ?? null,'date_start'=>null,'date_end'=>$dateEnd ?? null,'acc'=>$acc ?? null,'has_close'=>!empty($hasClose)?1:null,'sort'=>$sort ?? null,'dir'=>$dir ?? null,'all'=>!empty($showAll)?1:null])) }}">
           De: {{ $fmtDate($dateStart) }} <i class="fa-solid fa-xmark ms-1"></i>
         </a>
       @elseif(($dateEnd ?? '') !== '')
         <a class="badge rounded-pill bg-secondary text-decoration-none me-1"
            title="Remover filtro Até"
-           href="{{ route('asset-stats.index', array_filter(['symbol'=>$symbol ?? null,'date_start'=>$dateStart ?? null,'date_end'=>null,'acc'=>$acc ?? null,'has_close'=>!empty($hasClose)?1:null,'sort'=>$sort ?? null,'dir'=>$dir ?? null])) }}">
+           href="{{ route('asset-stats.index', array_filter(['symbol'=>$symbol ?? null,'date_start'=>$dateStart ?? null,'date_end'=>null,'acc'=>$acc ?? null,'has_close'=>!empty($hasClose)?1:null,'sort'=>$sort ?? null,'dir'=>$dir ?? null,'all'=>!empty($showAll)?1:null])) }}">
           Até: {{ $fmtDate($dateEnd) }} <i class="fa-solid fa-xmark ms-1"></i>
         </a>
       @endif
       @if($accLabel)
         <a class="badge rounded-pill bg-info text-dark text-decoration-none me-1"
            title="Remover filtro Acurácia"
-           href="{{ route('asset-stats.index', array_filter(['symbol'=>$symbol ?? null,'date_start'=>$dateStart ?? null,'date_end'=>$dateEnd ?? null,'acc'=>null,'has_close'=>!empty($hasClose)?1:null,'sort'=>$sort ?? null,'dir'=>$dir ?? null])) }}">
+           href="{{ route('asset-stats.index', array_filter(['symbol'=>$symbol ?? null,'date_start'=>$dateStart ?? null,'date_end'=>$dateEnd ?? null,'acc'=>null,'has_close'=>!empty($hasClose)?1:null,'sort'=>$sort ?? null,'dir'=>$dir ?? null,'all'=>!empty($showAll)?1:null])) }}">
           {{ $accLabel }} <i class="fa-solid fa-xmark ms-1"></i>
         </a>
       @endif
       @if(!empty($hasClose))
         <a class="badge rounded-pill bg-warning text-dark text-decoration-none me-1"
            title="Remover filtro Somente com Fechado"
-           href="{{ route('asset-stats.index', array_filter(['symbol'=>$symbol ?? null,'date_start'=>$dateStart ?? null,'date_end'=>$dateEnd ?? null,'acc'=>$acc ?? null,'has_close'=>null,'sort'=>$sort ?? null,'dir'=>$dir ?? null])) }}">
+           href="{{ route('asset-stats.index', array_filter(['symbol'=>$symbol ?? null,'date_start'=>$dateStart ?? null,'date_end'=>$dateEnd ?? null,'acc'=>$acc ?? null,'has_close'=>null,'sort'=>$sort ?? null,'dir'=>$dir ?? null,'all'=>!empty($showAll)?1:null])) }}">
           Somente com Fechado <i class="fa-solid fa-xmark ms-1"></i>
         </a>
       @endif
       <a class="badge rounded-pill bg-light text-dark border text-decoration-none me-1"
          title="Limpar todos os filtros"
-         href="{{ route('asset-stats.index') }}">
+         href="{{ route('asset-stats.index', !empty($showAll)?['all'=>1]:[]) }}">
         Limpar tudo <i class="fa-solid fa-xmark ms-1"></i>
       </a>
     @endif
@@ -139,6 +142,27 @@
   <div class="mb-2 text-muted small">
     Filtrados: <span class="badge bg-secondary">{{ $totalFiltered ?? 0 }}</span>
     &nbsp;|&nbsp; Com Fechado: <span class="badge bg-info text-dark">{{ $withCloseFiltered ?? 0 }}</span>
+    &nbsp;|&nbsp;
+    @php
+      $toggleParams = array_filter([
+        'symbol' => $symbol ?: null,
+        'date_start' => $dateStart ?: null,
+        'date_end' => $dateEnd ?: null,
+        'acc' => $acc ?: null,
+        'has_close' => !empty($hasClose) ? 1 : null,
+        'sort' => $sort ?: null,
+        'dir' => $dir ?: null,
+      ]);
+    @endphp
+    @if(empty($showAll))
+      <a href="{{ route('asset-stats.index', array_merge($toggleParams, ['all'=>1])) }}" class="text-decoration-none">Listar tudo</a>
+    @else
+      <a href="{{ route('asset-stats.index', $toggleParams) }}" class="text-decoration-none">Paginar (50)</a>
+      <span class="ms-2 badge bg-dark">Tudo</span>
+      @if(!empty($truncated))
+        <span class="ms-1 text-warning" title="Resultado limitado para evitar uso excessivo de memória">(limitado)</span>
+      @endif
+    @endif
   </div>
 
   <div class="table-responsive">
@@ -151,7 +175,7 @@
               $currentDir = $dir ?? 'asc';
               $nextDir = ($isDate && $currentDir === 'asc') ? 'desc' : 'asc';
             @endphp
-            <a class="link-light text-decoration-none" href="{{ route('asset-stats.index', array_filter(['symbol'=>$symbol,'date_start'=>$dateStart ?? null,'date_end'=>$dateEnd ?? null,'has_close'=>!empty($hasClose)?1:null, 'sort'=>'date','dir'=>$isDate ? $nextDir : 'asc'])) }}">
+            <a class="link-light text-decoration-none" href="{{ route('asset-stats.index', array_filter(['symbol'=>$symbol,'date_start'=>$dateStart ?? null,'date_end'=>$dateEnd ?? null,'has_close'=>!empty($hasClose)?1:null, 'sort'=>'date','dir'=>$isDate ? $nextDir : 'asc','acc'=>$acc ?? null,'all'=>!empty($showAll)?1:null])) }}">
               Data
               @if($isDate)
                 {!! ($currentDir) === 'asc' ? '&#9650;' : '&#9660;' !!}
@@ -164,7 +188,7 @@
               $currentDirS = $dir ?? 'asc';
               $nextDirS = ($isSym && $currentDirS === 'asc') ? 'desc' : 'asc';
             @endphp
-            <a class="link-light text-decoration-none" href="{{ route('asset-stats.index', array_filter(['symbol'=>$symbol,'date_start'=>$dateStart ?? null,'date_end'=>$dateEnd ?? null,'has_close'=>!empty($hasClose)?1:null, 'sort'=>'symbol','dir'=>$isSym ? $nextDirS : 'asc'])) }}">
+            <a class="link-light text-decoration-none" href="{{ route('asset-stats.index', array_filter(['symbol'=>$symbol,'date_start'=>$dateStart ?? null,'date_end'=>$dateEnd ?? null,'has_close'=>!empty($hasClose)?1:null, 'sort'=>'symbol','dir'=>$isSym ? $nextDirS : 'asc','acc'=>$acc ?? null,'all'=>!empty($showAll)?1:null])) }}">
               Símbolo
               @if($isSym)
                 {!! ($currentDirS) === 'asc' ? '&#9650;' : '&#9660;' !!}
@@ -192,7 +216,7 @@
               $currentDirA = $dir ?? 'asc';
               $nextDirA = ($isAccSort && $currentDirA === 'asc') ? 'desc' : 'asc';
             @endphp
-            <a class="link-light text-decoration-none" href="{{ route('asset-stats.index', array_filter(['symbol'=>$symbol,'date_start'=>$dateStart ?? null,'date_end'=>$dateEnd ?? null,'acc'=>$acc ?? null,'has_close'=>!empty($hasClose)?1:null,'sort'=>'acc','dir'=>$isAccSort ? $nextDirA : 'asc'])) }}">
+            <a class="link-light text-decoration-none" href="{{ route('asset-stats.index', array_filter(['symbol'=>$symbol,'date_start'=>$dateStart ?? null,'date_end'=>$dateEnd ?? null,'acc'=>$acc ?? null,'has_close'=>!empty($hasClose)?1:null,'sort'=>'acc','dir'=>$isAccSort ? $nextDirA : 'asc','all'=>!empty($showAll)?1:null])) }}">
               Acurácia
               @if($isAccSort)
                 {!! ($currentDirA) === 'asc' ? '&#9650;' : '&#9660;' !!}
@@ -216,7 +240,7 @@
               @endif
             </td>
             <td>
-              <a href="{{ route('asset-stats.index', array_filter(['symbol' => $s->symbol, 'date_start' => $dateStart ?? null, 'date_end' => $dateEnd ?? null, 'acc' => $acc ?? null, 'has_close' => !empty($hasClose) ? 1 : null, 'sort' => $sort ?? null, 'dir' => $dir ?? null])) }}"
+          <a href="{{ route('asset-stats.index', array_filter(['symbol' => $s->symbol, 'date_start' => $dateStart ?? null, 'date_end' => $dateEnd ?? null, 'acc' => $acc ?? null, 'has_close' => !empty($hasClose) ? 1 : null, 'sort' => $sort ?? null, 'dir' => $dir ?? null, 'all'=>!empty($showAll)?1:null])) }}"
                  class="text-decoration-none fw-bold text-primary symbol-link"
                  title="Clique para filtrar por {{ $s->symbol }}">
                 {{ $s->symbol }}
@@ -281,7 +305,11 @@
     </table>
   </div>
 
-  {{ $stats->links() }}
+  @if(empty($showAll))
+    {{ $stats->links() }}
+  @else
+    <div class="small text-muted mt-2">Exibindo {{ $stats->total() }} registro(s) sem paginação.</div>
+  @endif
 {{-- </div> --}}
 @endsection
 
