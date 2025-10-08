@@ -51,6 +51,7 @@
         <a href="{{ url()->previous() }}" class="btn btn-outline-secondary btn-sm align-self-end mt-3">Voltar</a>
         @if($existe && !$erro)
             <a href="{{ route('lancamentos.preview.despesas', array_merge(request()->query(), ['file'=>$arquivo,'refresh'=>1])) }}" id="btn-reprocessar" class="btn btn-warning btn-sm align-self-end mt-3" data-action="reprocessar" title="Reprocessa a planilha ignorando o cache atual">Reprocessar (refresh)</a>
+            <button type="button" id="btn-snapshot-cache" class="btn btn-info btn-sm align-self-end mt-3" title="Força salvar no cache as contas e históricos ajustados visíveis" data-action="snapshot">Salvar Cache</button>
         @endif
     </div>
     @if($erro)
@@ -206,19 +207,57 @@
                 bsModal?.hide();
         });
 
-        const btnReprocessar = document.getElementById('btn-reprocessar');
+    const btnReprocessar = document.getElementById('btn-reprocessar');
+    const btnSnapshot = document.getElementById('btn-snapshot-cache');
+        async function executarSnapshot(manual=false){
+            if(!cacheKey) return;
+            const linhas = [];
+            document.querySelectorAll('table[data-cache-key] tbody tr').forEach(tr=>{
+                const idxCell = tr.querySelector('td:first-child');
+                const rowIndex = idxCell ? (parseInt(idxCell.textContent,10)-1) : null;
+                if(rowIndex===null || isNaN(rowIndex)) return;
+                const sel = tr.querySelector('select.class-conta');
+                const inpHist = tr.querySelector('input.hist-ajustado');
+                if(!inpHist) return;
+                linhas.push({
+                    i: rowIndex,
+                    conta_id: sel && sel.value ? parseInt(sel.value,10) : null,
+                    conta_label: sel && sel.options && sel.selectedIndex>=0 ? sel.options[sel.selectedIndex].textContent : null,
+                    hist_ajustado: inpHist.value
+                });
+            });
+            try{
+                const r = await fetch("{{ route('lancamentos.preview.despesas.snapshot') }}",{
+                    method:'POST',
+                    headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
+                    body: JSON.stringify({cache_key: cacheKey, rows: linhas})
+                });
+                const j = await r.json();
+                if(!j.ok){ console.warn('Falha snapshot', j); return false; }
+                if(manual){
+                    btnSnapshot?.classList.add('btn-success');
+                    btnSnapshot.textContent = 'Cache Salvo';
+                    setTimeout(()=>{ btnSnapshot.classList.remove('btn-success'); btnSnapshot.textContent='Salvar Cache'; }, 2000);
+                }
+                return true;
+            }catch(e){ console.error(e); return false; }
+        }
+        btnSnapshot?.addEventListener('click', ()=> executarSnapshot(true));
         const btnRecarregar = document.getElementById('btn-submit-recarregar');
         const formFiltros = document.querySelector('form[action="{{ route('lancamentos.preview.despesas') }}"][method="GET"]');
         if(btnReprocessar){
-                btnReprocessar.addEventListener('click', function(e){
-                        e.preventDefault();
-                        const href = this.getAttribute('href');
-                        openConfirm('<strong>Reprocessar planilha</strong>: isso relê o arquivo e recria as linhas. Deseja continuar?', ()=>{ window.location.href = href; });
-                });
+        btnReprocessar.addEventListener('click', async function(e){
+            e.preventDefault();
+            const href = this.getAttribute('href');
+            openConfirm('<strong>Reprocessar planilha</strong>: será feito snapshot antes para preservar suas seleções. Continuar?', async ()=>{
+                await executarSnapshot(false);
+                window.location.href = href;
+            });
+        });
         }
         if(btnRecarregar && formFiltros){
-                btnRecarregar.addEventListener('click', function(){
-                        openConfirm('<strong>Recarregar pré-visualização</strong>: isso pode alterar o conjunto de linhas exibidas. Continuar?', ()=>{ formFiltros.submit(); });
+        btnRecarregar.addEventListener('click', function(){
+            openConfirm('<strong>Recarregar pré-visualização</strong>: será salvo snapshot antes. Continuar?', async ()=>{ await executarSnapshot(false); formFiltros.submit(); });
                 });
         }
     const table = document.querySelector('table[data-cache-key]');

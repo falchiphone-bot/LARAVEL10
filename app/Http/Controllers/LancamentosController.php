@@ -1797,6 +1797,45 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         return response()->json(['ok'=>true,'updated_at'=>$payload['updated_at']]);
     }
 
+    /**
+     * Snapshot manual: recebe lista de linhas com conta e histórico ajustado e grava em cache em lote.
+     */
+    public function updatePreviewDespesasSnapshot(Request $request)
+    {
+        $data = $request->validate([
+            'cache_key' => 'required|string',
+            'rows' => 'required|array',
+            'rows.*.i' => 'required|integer|min:0',
+            'rows.*.conta_id' => 'nullable|integer',
+            'rows.*.conta_label' => 'nullable|string',
+            'rows.*.hist_ajustado' => 'nullable|string'
+        ]);
+        if(!Cache::has($data['cache_key'])){
+            return response()->json(['ok'=>false,'message'=>'Cache expirado'],410);
+        }
+        $payload = Cache::get($data['cache_key']);
+        $rows = $payload['rows'] ?? [];
+        foreach($data['rows'] as $r){
+            $i = $r['i'];
+            if(!isset($rows[$i])) continue;
+            if(array_key_exists('hist_ajustado',$r)){
+                $rows[$i]['_hist_ajustado'] = $r['hist_ajustado'];
+                $histCol = $rows[$i]['_hist_original_col'] ?? null;
+                if($histCol && isset($rows[$i][$histCol])){
+                    $rows[$i][$histCol] = $r['hist_ajustado'];
+                }
+            }
+            if(array_key_exists('conta_id',$r)){
+                $rows[$i]['_class_conta_id'] = $r['conta_id'];
+                $rows[$i]['_class_conta_label'] = $r['conta_label'] ?? null;
+            }
+        }
+        $payload['rows'] = $rows;
+        $payload['updated_at'] = now()->toDateTimeString();
+        Cache::put($data['cache_key'],$payload, now()->addHour());
+        return response()->json(['ok'=>true,'updated_at'=>$payload['updated_at']]);
+    }
+
 
 
 // (fim dos métodos de LancamentosController)
