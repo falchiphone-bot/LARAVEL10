@@ -1622,6 +1622,66 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     }
                     unset($linhaNova);
                 }
+                // Auto-classificação por tokens simples (apenas em reprocessamento forçado) - primeira ocorrência manda
+                if($forceRefresh){
+                    $tokenConta = []; // token => conta_id (primeira linha classificada que contém)
+                    $stop = [ 'DE','DA','DO','PARA','EM','NO','NA','A','E','O','OS','AS','UM','UMA','DEBITO','DEB','CREDITO','PAGAMENTO','PAGTO','PAG','COMPRA','TRANSACAO','LANCTO','REF','DOC','NF','NOTA','CONTA','VALOR','DATA','HISTORICO' ];
+                    $minLen = 4;
+                    // 1) Construir mapa de tokens a partir de linhas já classificadas manualmente (com conta)
+                    foreach($rows as $r){
+                        if(empty($r['_class_conta_id'])) continue;
+                        $hist = $r['_hist_ajustado'] ?? ($r['_hist_original_col'] ? ($r[$r['_hist_original_col']] ?? null) : null);
+                        if(!is_string($hist) || $hist==='') continue;
+                        $norm = mb_strtoupper($hist,'UTF-8');
+                        $norm = preg_replace('/[\.,;:!\-\(\)\[\]\/\\]+/u',' ', $norm);
+                        $parts = preg_split('/\s+/u',$norm,-1,PREG_SPLIT_NO_EMPTY);
+                        $seen = [];
+                        foreach($parts as $tok){
+                            if(isset($seen[$tok])) continue; // evita duplicar no mesmo histórico
+                            $seen[$tok]=true;
+                            if(mb_strlen($tok,'UTF-8') < $minLen) continue;
+                            if(in_array($tok,$stop,true)) continue;
+                            if(preg_match('/^\d+$/',$tok)) continue;
+                            if(!isset($tokenConta[$tok])){ // primeira ocorrência fixa
+                                $tokenConta[$tok] = $r['_class_conta_id'];
+                            }
+                        }
+                    }
+                    if($tokenConta){
+                        // 2) Percorrer linhas ainda sem conta e atribuir se encontrar qualquer token mapeado (primeiro match)
+                        foreach($rows as &$r2){
+                            if(!empty($r2['_class_conta_id'])) continue;
+                            $hist2 = $r2['_hist_ajustado'] ?? ($r2['_hist_original_col'] ? ($r2[$r2['_hist_original_col']] ?? null) : null);
+                            if(!is_string($hist2) || $hist2==='') continue;
+                            $hay = mb_strtoupper($hist2,'UTF-8');
+                            foreach($tokenConta as $tok=>$cid){
+                                if(strpos($hay,$tok)!==false){
+                                    $r2['_class_conta_id'] = $cid;
+                                    // label será resolvida em lote após loop
+                                    break;
+                                }
+                            }
+                        }
+                        unset($r2);
+                        // 3) Resolver labels faltantes das contas atribuídas automaticamente
+                        $idsNeed = [];
+                        foreach($rows as $r3){
+                            if(!empty($r3['_class_conta_id']) && empty($r3['_class_conta_label'])){ $idsNeed[$r3['_class_conta_id']] = true; }
+                        }
+                        if($idsNeed){
+                            $labels = Conta::whereIn('Contas.ID', array_keys($idsNeed))
+                                ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                                ->pluck('PlanoContas.Descricao','Contas.ID');
+                            foreach($rows as &$r4){
+                                if(!empty($r4['_class_conta_id']) && empty($r4['_class_conta_label'])){
+                                    $cid = $r4['_class_conta_id'];
+                                    if(isset($labels[$cid])) $r4['_class_conta_label'] = $labels[$cid];
+                                }
+                            }
+                            unset($r4);
+                        }
+                    }
+                }
                 Cache::put($cacheKey, [
                     'headers'=>$headers,
                     'rows'=>$rows,
