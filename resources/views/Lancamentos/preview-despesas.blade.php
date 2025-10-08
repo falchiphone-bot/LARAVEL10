@@ -133,6 +133,13 @@
 </div>
 @endsection
 @push('scripts')
+@push('styles')
+<style>
+    tr.linha-sem-conta {outline:2px solid #dc3545;}
+    tr.linha-sem-conta td {background-image:linear-gradient(90deg, rgba(220,53,69,0.08), transparent);} 
+    .legend-inline {font-size:.75rem;}
+</style>
+@endpush
 <script>
 (function(){
     const table = document.querySelector('table[data-cache-key]');
@@ -203,6 +210,13 @@
             $el.select2({theme:'bootstrap-5', width:'100%', allowClear:true, placeholder:'Conta'});
         });
     }
+    function marcarLinhasSemConta(){
+        document.querySelectorAll('table[data-cache-key] tbody tr').forEach(tr=>{
+            const select = tr.querySelector('select.class-conta');
+            if(!select || select.disabled || select.dataset.can!=='1'){ tr.classList.remove('linha-sem-conta'); return; }
+            if(!select.value){ tr.classList.add('linha-sem-conta'); } else { tr.classList.remove('linha-sem-conta'); }
+        });
+    }
     async function aplicarEmpresaGlobal(){
         const empId = empresaGlobalSelect.value || '';
         const antigaEmpresa = empresaGlobalSelect.getAttribute('data-prev');
@@ -236,6 +250,7 @@
             });
             empresaGlobalSelect.setAttribute('data-prev', empId);
             initSelect2();
+            marcarLinhasSemConta();
         }).catch(e=>console.error(e));
     }
     empresaGlobalSelect?.addEventListener('change', aplicarEmpresaGlobal);
@@ -249,6 +264,7 @@
             const row = selConta.dataset.row;
             const contaId = selConta.value || null;
             updateClassificacao(row, contaId);
+            marcarLinhasSemConta();
         });
     });
     // Export JSON (Ctrl/Cmd+S)
@@ -268,6 +284,7 @@
     });
     // Inicializa select2 caso empresa já setada
     initSelect2();
+    marcarLinhasSemConta();
 })();
 </script>
 @endpush
