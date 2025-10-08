@@ -1545,7 +1545,10 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                 $headerMap = [];
                 for($col=1; $col <= $highestColIndex; $col++){
                     $val = trim((string)$sheet->getCellByColumnAndRow($col,1)->getValue());
-                    if($val === '') $val = 'COL_'.$col;
+                    if($val === '') $val = 'COL_'.$col; // fallback genérico
+                    // Renomeações solicitadas: COL_2 -> HISTORICO, COL_3 -> VALOR
+                    if($val === 'COL_2') { $val = 'HISTORICO'; }
+                    if($val === 'COL_3') { $val = 'VALOR'; }
                     if(in_array($val,$removeCols,true)) continue;
                     $headers[] = $val;
                     $headerMap[$col] = $val;
