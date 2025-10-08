@@ -935,7 +935,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     // dd( $datacontabil,$EfetuarLancamento['Total'], $Empresa, $EfetuarLancamento['debito'] );
                     session(['LancamentoDebito' => "NADA LANÇAMENTO A DÉBITO OU A CRÉDITO!"]);
                 }
-                else{
+                if($oldRows){
                     // dd("Lancando ", $datacontabil,$EfetuarLancamento['Total'], $Empresa, $EfetuarLancamento['debito'] );
 
                     $dataSalvar = Carbon::createFromDate($EfetuarLancamento['datainicial']);
@@ -959,10 +959,10 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
 
                 ////////// JUROS
                 $lancamentoLocalizadoJuros = Lancamento::where('DataContabilidade', $dataString)
-                ->where('Valor', $EfetuarLancamento['Juros'])
-                ->where('EmpresaID', $Empresa)
-                ->where('ContaCreditoID', $EfetuarLancamento['debito'])
-                ->First();
+                    ->where('Valor', $EfetuarLancamento['Juros'])
+                    ->where('EmpresaID', $Empresa)
+                    ->where('ContaCreditoID', $EfetuarLancamento['debito'])
+                    ->First();
 
                 if($lancamentoLocalizadoJuros){
                      $data_conta_juros_bloqueio = $lancamentoLocalizadoJuros->ContaDebito->Bloqueiodataanterior;
