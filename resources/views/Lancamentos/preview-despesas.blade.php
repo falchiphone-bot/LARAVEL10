@@ -115,7 +115,7 @@
                             </td>
                             <td style="min-width:240px;">
                                 @if($canClass)
-                                    <select class="form-select form-select-sm class-conta" data-row="{{ $i }}" data-selected="{{ $r['_class_conta_id'] ?? '' }}" data-can="1" {{ empty($r['_class_empresa_id']) ? 'disabled' : '' }}>
+                                    <select class="form-select form-select-sm class-conta select2-basic" data-row="{{ $i }}" data-selected="{{ $r['_class_conta_id'] ?? '' }}" data-can="1" {{ empty($r['_class_empresa_id']) ? 'disabled' : '' }}>
                                         <option value="">-- Conta --</option>
                                     </select>
                                 @else
@@ -196,17 +196,23 @@
     }
     const empresaGlobalSelect = document.getElementById('empresa-global');
     function initSelect2(){
-        if(window.jQuery && jQuery().select2){
-            jQuery('select.class-conta').not('.select2-hidden-accessible').each(function(){
-                jQuery(this).select2({width:'resolve', dropdownAutoWidth:true});
-            });
-        }
+        if(!window.jQuery || !jQuery().select2) return;
+        jQuery('select.select2-basic').each(function(){
+            const $el = jQuery(this);
+            if($el.hasClass('select2-hidden-accessible')){ $el.select2('destroy'); }
+            $el.select2({theme:'bootstrap-5', width:'100%', allowClear:true, placeholder:'Conta'});
+        });
     }
     async function aplicarEmpresaGlobal(){
         const empId = empresaGlobalSelect.value || '';
+        const antigaEmpresa = empresaGlobalSelect.getAttribute('data-prev');
+        const empresaMudou = antigaEmpresa && antigaEmpresa !== empId;
         document.querySelectorAll('select.class-conta').forEach(sel=>{
             if(sel.dataset.can === '1'){
-                sel.innerHTML = '<option value="">-- Conta --</option>'; sel.disabled = true; sel.dataset.selected='';
+                if(empresaMudou){
+                    sel.dataset.selected = '';// reset seleção somente se empresa realmente mudou
+                }
+                sel.innerHTML = '<option value=\"\">-- Conta --</option>'; sel.disabled = true;
             }
         });
         if(!empId){ return; }
@@ -228,12 +234,16 @@
                 });
                 sel.disabled = false;
             });
+            empresaGlobalSelect.setAttribute('data-prev', empId);
             initSelect2();
         }).catch(e=>console.error(e));
     }
     empresaGlobalSelect?.addEventListener('change', aplicarEmpresaGlobal);
     // Inicialização se já havia empresa selecionada
-    if(empresaGlobalSelect?.value){ aplicarEmpresaGlobal(); }
+    if(empresaGlobalSelect?.value){
+        empresaGlobalSelect.setAttribute('data-prev', empresaGlobalSelect.value);
+        aplicarEmpresaGlobal();
+    }
     document.querySelectorAll('select.class-conta').forEach(selConta=>{
         selConta.addEventListener('change', ()=>{
             const row = selConta.dataset.row;
