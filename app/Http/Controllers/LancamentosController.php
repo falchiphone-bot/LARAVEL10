@@ -2075,6 +2075,73 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         return \Maatwebsite\Excel\Facades\Excel::download(new PreviewDespesasExport($exportRows,$headings), $fileName);
     }
 
+    /**
+     * Importa arquivo gerado pela exportação de preview e recria um cache para continuar edição.
+     */
+    public function importPreviewDespesasExportado(Request $request)
+    {
+        $request->validate([
+            'arquivo_exportado' => 'required|file|mimes:xlsx,xls|max:8192'
+        ]);
+        $file = $request->file('arquivo_exportado');
+        $orig = $file->getClientOriginalName();
+        $storedName = 'reimport-'.$orig;
+        $file->storeAs('imports',$storedName);
+        $path = storage_path('app/imports/'.$storedName);
+        try{
+            $spreadsheet = IOFactory::load($path);
+            $sheet = $spreadsheet->getActiveSheet();
+            $highestRow = $sheet->getHighestDataRow();
+            $highestCol = $sheet->getHighestDataColumn();
+            $highestColIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($highestCol);
+            $headersAll=[]; for($c=1;$c<=$highestColIndex;$c++){ $v=trim((string)$sheet->getCellByColumnAndRow($c,1)->getValue()); if($v==='') $v='COL_'.$c; $headersAll[]=$v; }
+            $required=['HISTORICO_AJUSTADO','EMPRESA_ID','CONTA_DEBITO_ID','CONTA_CREDITO_GLOBAL_ID','ROW_HASH'];
+            foreach($required as $req){ if(!in_array($req,$headersAll,true)){ return back()->with('error','Arquivo inválido: faltando coluna '.$req); } }
+            $extra=['HISTORICO_AJUSTADO','EMPRESA_ID','CONTA_DEBITO_ID','CONTA_DEBITO_LABEL','CONTA_CREDITO_GLOBAL_ID','CONTA_CREDITO_GLOBAL_LABEL','AUTO_CLASSIFIED','AUTO_HITS','ROW_HASH'];
+            $headersOrig = array_values(array_filter($headersAll, fn($h)=> !in_array($h,$extra,true)));
+            $histOrigCol = null; foreach($headersOrig as $h){ if(stripos($h,'HIST')!==false){ $histOrigCol=$h; break; } }
+            $rows=[]; $empresaGlobal=null; $creditId=null; $creditLabel=null;
+            $getVal = function($row,$colName) use ($headersAll,$sheet){ $idx=array_search($colName,$headersAll,true); if($idx===false) return null; $val=$sheet->getCellByColumnAndRow($idx+1,$row)->getValue(); if($val instanceof \DateTimeInterface){ return $val->format('d/m/Y'); } return $val; };
+            for($r=2;$r<=$highestRow;$r++){
+                $linha=[]; foreach($headersOrig as $h){ $idx=array_search($h,$headersAll,true); $val=$sheet->getCellByColumnAndRow($idx+1,$r)->getValue(); if($val instanceof \DateTimeInterface){ $val=$val->format('d/m/Y'); } $linha[$h]=$val; }
+                $histAjust=$getVal($r,'HISTORICO_AJUSTADO');
+                $emp=$getVal($r,'EMPRESA_ID');
+                $contaDeb=$getVal($r,'CONTA_DEBITO_ID');
+                $contaDebLabel=$getVal($r,'CONTA_DEBITO_LABEL');
+                $cred=$getVal($r,'CONTA_CREDITO_GLOBAL_ID');
+                $credLabel=$getVal($r,'CONTA_CREDITO_GLOBAL_LABEL');
+                $autoClass=(int)$getVal($r,'AUTO_CLASSIFIED')===1; $autoHits=$getVal($r,'AUTO_HITS');
+                $rowHash=$getVal($r,'ROW_HASH');
+                if($emp && $empresaGlobal===null) $empresaGlobal=$emp;
+                if($cred && $creditId===null){ $creditId=$cred; $creditLabel=$credLabel; }
+                $linha['_hist_original_col']=$histOrigCol;
+                $linha['_hist_ajustado']=$histAjust;
+                $linha['_class_empresa_id']=$emp ?: $empresaGlobal;
+                $linha['_class_conta_id']=$contaDeb ?: null;
+                if($contaDebLabel) $linha['_class_conta_label']=$contaDebLabel;
+                if($autoClass){ $linha['_auto_classified']=true; $linha['_auto_hits']=$autoHits ?: 1; }
+                if($rowHash){ $linha['_row_hash']=$rowHash; $linha['_row_hash_all']=$rowHash; }
+                $rows[]=$linha;
+            }
+            $cacheKey='preview_despesas:'.auth()->id().':'.md5(json_encode([$storedName,count($rows),false,false,null,null]));
+            Cache::put($cacheKey,[
+                'headers'=>$headersOrig,
+                'rows'=>$rows,
+                'file'=>$storedName,
+                'generated_at'=>now()->toDateTimeString(),
+                'selected_empresa_id'=>$empresaGlobal,
+                'empresa_locked'=>false,
+                'global_credit_conta_id'=>$creditId,
+                'global_credit_conta_label'=>$creditLabel,
+                'global_credit_conta_locked'=>false,
+                'imported_from_export'=>true
+            ], now()->addHour());
+            return redirect()->route('lancamentos.preview.despesas',[ 'file'=>$storedName, 'limite'=>count($rows) ])->with('status','Export importado com sucesso.');
+        }catch(\Throwable $e){
+            return back()->with('error','Falha ao importar: '.$e->getMessage());
+        }
+    }
+
 
 // (fim dos métodos de LancamentosController)
 }

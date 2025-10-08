@@ -53,6 +53,16 @@
                 <button class="btn btn-success btn-sm mt-3">Enviar</button>
             </div>
         </form>
+        <form method="POST" enctype="multipart/form-data" action="{{ route('lancamentos.preview.despesas.importExported') }}" class="d-flex align-items-end gap-2">
+            @csrf
+            <div>
+                <label class="form-label mb-1">Importar Export</label>
+                <input type="file" name="arquivo_exportado" accept=".xlsx,.xls" class="form-control form-control-sm" required>
+            </div>
+            <div class="pb-1">
+                <button class="btn btn-outline-success btn-sm mt-3" title="Importa arquivo gerado pelo botão Exportar Excel">Importar</button>
+            </div>
+        </form>
         <a href="{{ url()->previous() }}" class="btn btn-outline-secondary btn-sm align-self-end mt-3">Voltar</a>
         @if($existe && !$erro)
             <a href="{{ route('lancamentos.preview.despesas', array_merge(request()->query(), ['file'=>$arquivo,'refresh'=>1])) }}" id="btn-reprocessar" class="btn btn-warning btn-sm align-self-end mt-3" data-action="reprocessar" title="Reprocessa a planilha ignorando o cache atual">Reprocessar (refresh)</a>
