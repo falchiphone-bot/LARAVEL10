@@ -76,6 +76,9 @@
             <div class="small text-muted">
                 Após escolher a empresa, selecione a conta para cada linha.
             </div>
+            <div>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="toggle-pendentes" disabled>Ocultar linhas classificadas</button>
+            </div>
         </div>
         <div class="table-responsive" style="max-height:70vh; overflow:auto;">
             <table class="table table-sm table-striped table-bordered align-middle" data-cache-key="{{ $cacheKey ?? '' }}">
@@ -210,6 +213,15 @@
             $el.select2({theme:'bootstrap-5', width:'100%', allowClear:true, placeholder:'Conta'});
         });
     }
+    function ordenarOpcoes(select){
+        const opts = Array.from(select.querySelectorAll('option'))
+            .filter(o=> o.value !== '');
+        opts.sort((a,b)=> a.textContent.localeCompare(b.textContent,'pt-BR',{sensitivity:'base'}));
+        const placeholder = select.querySelector('option[value=""]');
+        select.innerHTML='';
+        if(placeholder){ select.appendChild(placeholder); }
+        opts.forEach(o=> select.appendChild(o));
+    }
     function marcarLinhasSemConta(){
         document.querySelectorAll('table[data-cache-key] tbody tr').forEach(tr=>{
             const select = tr.querySelector('select.class-conta');
@@ -246,6 +258,7 @@
                 Object.entries(contas).forEach(([id, desc])=>{
                     const opt = document.createElement('option'); opt.value=id; opt.textContent=desc; if(selected===String(id)) opt.selected=true; sel.appendChild(opt);
                 });
+                ordenarOpcoes(sel);
                 sel.disabled = false;
             });
             empresaGlobalSelect.setAttribute('data-prev', empId);
@@ -265,6 +278,7 @@
             const contaId = selConta.value || null;
             updateClassificacao(row, contaId);
             marcarLinhasSemConta();
+            atualizarToggleEstado();
         });
     });
     // Export JSON (Ctrl/Cmd+S)
@@ -285,6 +299,40 @@
     // Inicializa select2 caso empresa já setada
     initSelect2();
     marcarLinhasSemConta();
+    // Toggle de ocultar/mostrar classificadas
+    const btnToggle = document.getElementById('toggle-pendentes');
+    function atualizarToggleEstado(){
+        if(!btnToggle) return;
+        const totalClassificaveis = document.querySelectorAll('select.class-conta[data-can="1"]').length;
+        const pendentes = Array.from(document.querySelectorAll('select.class-conta[data-can="1"]')).filter(s=> !s.value).length;
+        btnToggle.disabled = totalClassificaveis === 0;
+        btnToggle.dataset.pendentes = pendentes;
+        if(btnToggle.classList.contains('mostrar-pendentes')){
+            btnToggle.textContent = 'Mostrar todas ('+totalClassificaveis+')';
+        } else {
+            btnToggle.textContent = 'Ocultar linhas classificadas ('+pendentes+' pendentes)';
+        }
+    }
+    function aplicarFiltroClassificadas(){
+        const ocultar = !btnToggle.classList.contains('mostrar-pendentes');
+        document.querySelectorAll('table[data-cache-key] tbody tr').forEach(tr=>{
+            const sel = tr.querySelector('select.class-conta[data-can="1"]');
+            if(!sel) return; // não classificável ou sem select
+            const isClassificada = !!sel.value;
+            if(ocultar){
+                if(isClassificada){ tr.style.display='none'; }
+                else { tr.style.display=''; }
+            } else {
+                tr.style.display='';
+            }
+        });
+    }
+    btnToggle?.addEventListener('click', ()=>{
+        btnToggle.classList.toggle('mostrar-pendentes');
+        aplicarFiltroClassificadas();
+        atualizarToggleEstado();
+    });
+    atualizarToggleEstado();
 })();
 </script>
 @endpush
