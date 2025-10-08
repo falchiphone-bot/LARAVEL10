@@ -379,6 +379,9 @@ if (window.Livewire) {
                                 @can('LANCAMENTOS DOCUMENTOS - LISTAR')
                                 <li><a class="dropdown-item" href="/LancamentosDocumentos">Documentos</a></li>
                                 @endcan
+                                @can('CONTABILIDADE - LISTAR')
+                                <li><a class="dropdown-item" href="{{ route('lancamentos.preview.despesas') }}" title="Pré-visualização e classificação de planilha de despesas (Excel)">Preview Despesas (Excel)</a></li>
+                                @endcan
                                 @can('EMPRESAS - LISTAR')
                                 <li>
                                   <a class="dropdown-item d-flex justify-content-between align-items-center" href="/Empresas">
