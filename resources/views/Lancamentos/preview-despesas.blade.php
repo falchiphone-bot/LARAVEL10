@@ -1,7 +1,12 @@
 @extends('layouts.bootstrap5')
 @section('content')
 <div class="container-fluid py-3">
-    <h4 class="mb-3">Preview Despesas (Excel) - {{ $arquivo }}</h4>
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+        <h4 class="mb-0">Preview Despesas (Excel) - {{ $arquivo }}</h4>
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" id="btn-toggle-layout" class="btn btn-outline-dark btn-sm" title="Alterna exibição do cabeçalho para ganhar espaço">Modo Compacto</button>
+        </div>
+    </div>
     <div class="mb-3 d-flex gap-3 flex-wrap">
         <form method="GET" action="{{ route('lancamentos.preview.despesas') }}" class="row g-2 align-items-end">
             <div class="col-auto">
@@ -147,6 +152,9 @@
 @push('styles')
 <style>
     .modal-confirm-msg code{background: #f8f9fa;padding:2px 4px;border-radius:4px;}
+    body.preview-compact header { display: none !important; }
+    body.preview-compact .container-fluid { padding-top: .75rem !important; }
+    body.preview-compact #btn-toggle-layout { background:#212529; color:#fff; }
 </style>
 @endpush
 @push('styles')
@@ -165,6 +173,20 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 (function(){
+        // Toggle de layout compacto (oculta header do layout bootstrap5)
+        const toggleLayoutBtn = document.getElementById('btn-toggle-layout');
+        const LS_KEY = 'preview_despesas_layout_compact';
+        function applyLayoutState(){
+            const compact = localStorage.getItem(LS_KEY) === '1';
+            document.body.classList.toggle('preview-compact', compact);
+            if(toggleLayoutBtn){ toggleLayoutBtn.textContent = compact ? 'Modo Completo' : 'Modo Compacto'; }
+        }
+        toggleLayoutBtn?.addEventListener('click', ()=>{
+            const compact = document.body.classList.toggle('preview-compact');
+            localStorage.setItem(LS_KEY, compact ? '1':'0');
+            toggleLayoutBtn.textContent = compact ? 'Modo Completo' : 'Modo Compacto';
+        });
+        applyLayoutState();
         // Modal de confirmação
         const modalHtml = `
         <div class="modal fade" id="confirmModalPreview" tabindex="-1" aria-labelledby="confirmPreviewLabel" aria-hidden="true">
