@@ -231,13 +231,10 @@
     }
     async function aplicarEmpresaGlobal(){
         const empId = empresaGlobalSelect.value || '';
-        const antigaEmpresa = empresaGlobalSelect.getAttribute('data-prev');
-        const empresaMudou = antigaEmpresa && antigaEmpresa !== empId;
         document.querySelectorAll('select.class-conta').forEach(sel=>{
             if(sel.dataset.can === '1'){
-                if(empresaMudou){
-                    sel.dataset.selected = '';// reset seleção somente se empresa realmente mudou
-                }
+                // Sempre limpa seleção ao escolher (ou re-escolher) empresa
+                sel.dataset.selected = '';
                 sel.innerHTML = '<option value=\"\">-- Conta --</option>'; sel.disabled = true;
             }
         });
@@ -256,7 +253,9 @@
                 const selected = sel.dataset.selected || '';
                 sel.innerHTML = '<option value="">-- Conta --</option>';
                 Object.entries(contas).forEach(([id, desc])=>{
-                    const opt = document.createElement('option'); opt.value=id; opt.textContent=desc; if(selected===String(id)) opt.selected=true; sel.appendChild(opt);
+                    const opt = document.createElement('option');
+                    opt.value=id; opt.textContent=desc; // não marcar selected para forçar escolha manual
+                    sel.appendChild(opt);
                 });
                 ordenarOpcoes(sel);
                 sel.disabled = false;
