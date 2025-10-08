@@ -61,6 +61,7 @@
         <div class="alert alert-info small mb-2">
             Visualização somente leitura. Ajuste o texto em "Histórico Ajustado" (não salva).<br>
             Atalhos: <code>Ctrl/Cmd+S</code> exporta JSON ajustado.
+                <br>Classificação de contas disponível apenas em linhas que contenham Data e Valor.
         </div>
         <div class="mb-2 d-flex flex-wrap align-items-end gap-2">
             <div>
@@ -90,7 +91,19 @@
                 </thead>
                 <tbody>
                     @forelse($rows as $i=>$r)
-                        @php $histCol = $r['_hist_original_col'] ?? null; @endphp
+                        @php 
+                            $histCol = $r['_hist_original_col'] ?? null; 
+                            // Heurística para detectar coluna de data e valor na linha
+                            $hasDate = false; $hasValor = false; 
+                            foreach($headers as $hDetect){
+                                $valCell = $r[$hDetect];
+                                if(!$hasDate && is_string($valCell) && preg_match('/\b\d{2}\/\d{2}\/\d{4}\b/',$valCell)) $hasDate = true;
+                                if(!$hasDate && $valCell instanceof \DateTimeInterface) $hasDate = true;
+                                if(!$hasValor && (is_numeric($valCell) || (is_string($valCell) && preg_match('/\d+[\.,]?\d*/',$valCell)))) $hasValor = true;
+                                if($hasDate && $hasValor) break;
+                            }
+                            $canClass = $hasDate && $hasValor;
+                        @endphp
                         <tr>
                             <td style="position:sticky;left:0;background:#fff;z-index:1;">{{ $i+1 }}</td>
                             @foreach($headers as $h)
@@ -100,10 +113,14 @@
                                 <input type="text" class="form-control form-control-sm hist-ajustado" value="{{ $r['_hist_ajustado'] }}" data-row="{{ $i }}" data-orig="{{ $histCol }}" placeholder="Ajuste aqui">
                                 <div class="form-text text-muted small">Origem: {{ $histCol ?? 'N/D' }}</div>
                             </td>
-                            <td style="min-width:220px;">
-                                <select class="form-select form-select-sm class-conta" data-row="{{ $i }}" data-selected="{{ $r['_class_conta_id'] ?? '' }}" {{ empty($r['_class_empresa_id']) ? 'disabled' : '' }}>
-                                    <option value="">-- Conta --</option>
-                                </select>
+                            <td style="min-width:240px;">
+                                @if($canClass)
+                                    <select class="form-select form-select-sm class-conta" data-row="{{ $i }}" data-selected="{{ $r['_class_conta_id'] ?? '' }}" data-can="1" {{ empty($r['_class_empresa_id']) ? 'disabled' : '' }}>
+                                        <option value="">-- Conta --</option>
+                                    </select>
+                                @else
+                                    <span class="text-muted small" data-can="0">(sem Data/Valor)</span>
+                                @endif
                             </td>
                         </tr>
                     @empty
@@ -178,10 +195,19 @@
         if(Object.keys(contas).length){ selectConta.disabled = false; } else { selectConta.disabled = true; }
     }
     const empresaGlobalSelect = document.getElementById('empresa-global');
+    function initSelect2(){
+        if(window.jQuery && jQuery().select2){
+            jQuery('select.class-conta').not('.select2-hidden-accessible').each(function(){
+                jQuery(this).select2({width:'resolve', dropdownAutoWidth:true});
+            });
+        }
+    }
     async function aplicarEmpresaGlobal(){
         const empId = empresaGlobalSelect.value || '';
         document.querySelectorAll('select.class-conta').forEach(sel=>{
-            sel.innerHTML = '<option value="">-- Conta --</option>'; sel.disabled = true; sel.dataset.selected='';
+            if(sel.dataset.can === '1'){
+                sel.innerHTML = '<option value="">-- Conta --</option>'; sel.disabled = true; sel.dataset.selected='';
+            }
         });
         if(!empId){ return; }
         // salva empresa global no cache
@@ -194,6 +220,7 @@
             // Carrega contas e preenche cada linha
             const contas = await carregarContas(empId);
             document.querySelectorAll('select.class-conta').forEach(sel=>{
+                if(sel.dataset.can !== '1') return;
                 const selected = sel.dataset.selected || '';
                 sel.innerHTML = '<option value="">-- Conta --</option>';
                 Object.entries(contas).forEach(([id, desc])=>{
@@ -201,6 +228,7 @@
                 });
                 sel.disabled = false;
             });
+            initSelect2();
         }).catch(e=>console.error(e));
     }
     empresaGlobalSelect?.addEventListener('change', aplicarEmpresaGlobal);
@@ -228,6 +256,8 @@
             URL.revokeObjectURL(url);
         }
     });
+    // Inicializa select2 caso empresa já setada
+    initSelect2();
 })();
 </script>
 @endpush
