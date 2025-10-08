@@ -340,6 +340,7 @@
             if(!select.value){ tr.classList.add('linha-sem-conta'); } else { tr.classList.remove('linha-sem-conta'); }
         });
     }
+    let primeiraAplicacaoEmpresa = true;
     async function aplicarEmpresaGlobal(){
         const empId = empresaGlobalSelect.value || '';
         if(empresaGlobalSelect.dataset.locked==='1'){
@@ -374,7 +375,7 @@
             if(!j.ok){ console.warn('Falha set empresa', j); return; }
             // Carrega contas e preenche cada linha
             const contas = await carregarContas(empId);
-            if(!mesmaEmpresa){
+            if(!mesmaEmpresa || primeiraAplicacaoEmpresa){
                 // Repovoa somente com opções das contas previamente selecionadas (para manter visual) quando empresa mudou
                 const selecionados = [];
                 document.querySelectorAll('select.class-conta').forEach(sel=>{
@@ -413,6 +414,7 @@
             initSelect2();
             marcarLinhasSemConta();
             setTimeout(()=> empresaGlobalSelect.classList.remove('border','border-warning'), 1200);
+            primeiraAplicacaoEmpresa = false;
         }).catch(e=>console.error(e));
     }
     empresaGlobalSelect?.addEventListener('change', aplicarEmpresaGlobal);
