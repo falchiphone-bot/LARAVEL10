@@ -1521,13 +1521,15 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             ->orderBy('Empresas.Descricao')
             ->get(['Empresas.ID','Empresas.Descricao']);
         $erro = null;
-        $oldRows = [];
-        $selectedEmpresaId = null;
+    $oldRows = [];
+    $selectedEmpresaId = null;
+    $empresaLocked = false; // trava de seleção de empresa
         if(!$forceRefresh && Cache::has($cacheKey)) {
             $cached = Cache::get($cacheKey);
             $headers = $cached['headers'] ?? [];
             $rows = $cached['rows'] ?? [];
             $selectedEmpresaId = $cached['selected_empresa_id'] ?? null;
+            $empresaLocked = $cached['empresa_locked'] ?? false;
         } elseif(!$exists){
             $erro = "Arquivo não encontrado em imports: $file. Copie ou faça upload.";
         } else {
@@ -1535,6 +1537,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                 if($forceRefresh && Cache::has($cacheKey)) {
                     $oldRows = Cache::get($cacheKey)['rows'] ?? [];
                     $selectedEmpresaId = Cache::get($cacheKey)['selected_empresa_id'] ?? null;
+                    $empresaLocked = Cache::get($cacheKey)['empresa_locked'] ?? false;
                 }
                 $spreadsheet = IOFactory::load($fullPath);
                 $sheet = $spreadsheet->getActiveSheet();
@@ -1607,6 +1610,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     'file'=>$file,
                     'generated_at'=>now()->toDateTimeString(),
                     'selected_empresa_id'=>$selectedEmpresaId,
+                    'empresa_locked'=>$empresaLocked,
                 ], now()->addHour());
             } catch(\Throwable $e){
                 $erro = 'Falha ao ler planilha: '.$e->getMessage();
@@ -1626,6 +1630,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             'cacheKey' => $cacheKey,
             'empresasLista' => $empresasLista,
             'selectedEmpresaId' => $selectedEmpresaId,
+            'empresaLocked' => $empresaLocked,
         ]);
     }
 
@@ -1703,6 +1708,10 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             return response()->json(['ok'=>false,'message'=>'Empresa não autorizada'],403);
         }
         $payload = Cache::get($cacheKey);
+        // Bloqueia troca se travado e já havia empresa definida diferente
+        if(($payload['empresa_locked'] ?? false) && isset($payload['selected_empresa_id']) && $payload['selected_empresa_id'] && $payload['selected_empresa_id'] != $empresaId){
+            return response()->json(['ok'=>false,'message'=>'Empresa travada. Destrave antes de alterar.'],423);
+        }
         $rows = $payload['rows'] ?? [];
         foreach($rows as &$r){
             $r['_class_empresa_id'] = $empresaId;
@@ -1714,6 +1723,29 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         $payload['selected_empresa_id'] = $empresaId;
         Cache::put($cacheKey,$payload, now()->addHour());
         return response()->json(['ok'=>true]);
+    }
+
+    /**
+     * Travar / destravar seleção global de empresa no preview (persistido em cache)
+     */
+    public function togglePreviewDespesasEmpresaLock(Request $request)
+    {
+        $data = $request->validate([
+            'cache_key' => 'required|string',
+            'locked' => 'required|boolean',
+        ]);
+        $cacheKey = $data['cache_key'];
+        if(!Cache::has($cacheKey)){
+            return response()->json(['ok'=>false,'message'=>'Cache expirado']);
+        }
+        $payload = Cache::get($cacheKey);
+        // Se solicitou travar mas ainda não há empresa escolhida, rejeita (evita estado inválido)
+        if($data['locked'] && empty($payload['selected_empresa_id'])){
+            return response()->json(['ok'=>false,'message'=>'Selecione uma empresa antes de travar'],422);
+        }
+        $payload['empresa_locked'] = (bool)$data['locked'];
+        Cache::put($cacheKey,$payload, now()->addHour());
+        return response()->json(['ok'=>true,'locked'=>$payload['empresa_locked']]);
     }
 
     /**

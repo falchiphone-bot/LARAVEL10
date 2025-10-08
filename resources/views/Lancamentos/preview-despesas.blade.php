@@ -66,7 +66,7 @@
         <div class="mb-2 d-flex flex-wrap align-items-end gap-2">
             <div>
                 <label class="form-label mb-1">Empresa (global)</label>
-                <select id="empresa-global" class="form-select form-select-sm select2-basic" data-cache-key="{{ $cacheKey }}" data-placeholder="Selecione a empresa">
+                <select id="empresa-global" class="form-select form-select-sm select2-basic" data-cache-key="{{ $cacheKey }}" data-placeholder="Selecione a empresa" data-locked="{{ $empresaLocked ? '1':'0' }}">
                     <option value=""></option>
                     @foreach($empresasLista as $emp)
                         <option value="{{ $emp->ID }}" {{ (string)($selectedEmpresaId ?? '') === (string)$emp->ID ? 'selected' : '' }}>{{ $emp->Descricao }}</option>
@@ -75,6 +75,12 @@
             </div>
             <div class="small text-muted">
                 Após escolher a empresa, selecione a conta para cada linha.
+            </div>
+            <div>
+                <label class="form-label mb-1">Travamento</label><br>
+                <button type="button" id="btn-lock-empresa" class="btn btn-outline-danger btn-sm mt-1" data-locked="{{ $empresaLocked ? '1':'0' }}" {{ $empresaLocked ? '' : 'disabled' }}>
+                    {{ $empresaLocked ? 'Destravar Empresa' : 'Travada: não (selecione empresa)' }}
+                </button>
             </div>
             <div>
                 <button type="button" class="btn btn-outline-secondary btn-sm" id="toggle-pendentes" disabled>Ocultar linhas classificadas</button>
@@ -336,6 +342,16 @@
     }
     async function aplicarEmpresaGlobal(){
         const empId = empresaGlobalSelect.value || '';
+        if(empresaGlobalSelect.dataset.locked==='1'){
+            // Se travado, impedir troca diferente da atual
+            const prev = empresaGlobalSelect.getAttribute('data-prev');
+            if(prev && prev !== empId){
+                // Reverter seleção
+                empresaGlobalSelect.value = prev;
+                if(window.jQuery){ jQuery('#empresa-global').trigger('change.select2'); }
+                return;
+            }
+        }
         // Feedback visual de carregamento
         empresaGlobalSelect.classList.add('border','border-warning');
         document.querySelectorAll('select.class-conta').forEach(sel=>{
@@ -385,6 +401,47 @@
         }).catch(e=>console.error(e));
     }
     empresaGlobalSelect?.addEventListener('change', aplicarEmpresaGlobal);
+
+    // Botão de lock/unlock
+    const btnLock = document.getElementById('btn-lock-empresa');
+    function atualizarBotaoLock(){
+        if(!btnLock) return;
+        const locked = empresaGlobalSelect.dataset.locked === '1';
+        const temEmpresa = !!empresaGlobalSelect.value;
+        btnLock.disabled = !temEmpresa && !locked; // só habilita lock quando empresa definida
+        if(locked){
+            btnLock.classList.remove('btn-outline-danger');
+            btnLock.classList.add('btn-danger');
+            btnLock.textContent = 'Destravar Empresa';
+        } else {
+            btnLock.classList.add('btn-outline-danger');
+            btnLock.classList.remove('btn-danger');
+            btnLock.textContent = temEmpresa ? 'Travar Empresa' : 'Travada: não (selecione empresa)';
+        }
+    }
+    async function toggleLock(){
+        const locked = empresaGlobalSelect.dataset.locked === '1';
+        const novo = locked ? 0 : 1;
+        if(novo === 1 && !empresaGlobalSelect.value){ return; }
+        try{
+            const r = await fetch("{{ route('lancamentos.preview.despesas.empresa.lock') }}",{
+                method:'POST',
+                headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
+                body: JSON.stringify({cache_key: cacheKey, locked: !!novo})
+            });
+            const j = await r.json();
+            if(!j.ok){ console.warn('Falha toggle lock', j); return; }
+            empresaGlobalSelect.dataset.locked = j.locked ? '1':'0';
+            if(j.locked){
+                empresaGlobalSelect.setAttribute('data-prev', empresaGlobalSelect.value || '');
+            }
+            atualizarBotaoLock();
+        }catch(e){ console.error(e); }
+    }
+    btnLock?.addEventListener('click', toggleLock);
+    atualizarBotaoLock();
+    // Sempre que empresa mudar, reavalia botão (quando não travado)
+    empresaGlobalSelect?.addEventListener('change', atualizarBotaoLock);
     // Inicialização se já havia empresa selecionada
     if(empresaGlobalSelect?.value){
         empresaGlobalSelect.setAttribute('data-prev', empresaGlobalSelect.value);
