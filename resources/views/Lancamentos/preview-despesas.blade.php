@@ -279,7 +279,7 @@
         document.querySelectorAll('select.class-conta').forEach(sel=>{
             if(sel.dataset.can === '1'){
                 // Sempre limpa seleção ao escolher (ou re-escolher) empresa
-                sel.dataset.selected = '';
+                // NÃO limpamos dataset.selected para preservar em reprocess
                 sel.innerHTML = ''; sel.disabled = !empId;
             }
         });
@@ -293,7 +293,29 @@
             if(!j.ok){ console.warn('Falha set empresa', j); return; }
             // Carrega contas e preenche cada linha
             const contas = await carregarContas(empId);
-            // Agora selects serão preenchidos somente quando o usuário pesquisar (AJAX)
+            // Repovoa somente com opções das contas previamente selecionadas (para manter visual)
+            const selecionados = [];
+            document.querySelectorAll('select.class-conta').forEach(sel=>{
+                const sid = sel.dataset.selected;
+                if(sel.dataset.can==='1' && sid){ selecionados.push(sid); }
+            });
+            if(selecionados.length){
+                try{
+                    const respSel = await fetch(`/empresa/${empId}/contas-grau5?ids=${selecionados.join(',')}`);
+                    if(respSel.ok){
+                        const jsonSel = await respSel.json();
+                        document.querySelectorAll('select.class-conta').forEach(sel=>{
+                            const sid = sel.dataset.selected;
+                            if(sel.dataset.can==='1' && sid && jsonSel.data && jsonSel.data[sid]){
+                                const opt = document.createElement('option');
+                                opt.value = sid; opt.textContent = jsonSel.data[sid]; opt.selected = true;
+                                sel.appendChild(opt);
+                            }
+                        });
+                    }
+                }catch(e){ console.warn('Falha ao repovoar selecionados', e); }
+            }
+            // Selects continuam AJAX para novas buscas
             empresaGlobalSelect.setAttribute('data-prev', empId);
             initSelect2();
             marcarLinhasSemConta();
