@@ -25,6 +25,8 @@ use Exception;
 use Illuminate\Support\Facades\Lang;
 use LancamentoExport as GlobalLancamentoExport;
 use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use Illuminate\Support\Facades\Cache;
 
 
 
@@ -246,30 +248,23 @@ class LancamentosController extends Controller
            $Verificanulo = $request->Verificanulo;
 
 
-           $ContaPequisada = Conta::where('EmpresaID', $EmpresaID)
-               ->where('Planocontas_id', $ContaID)
-               ->first();
+           $ContaPequisada = Conta::Where("EmpresaID",'=',"$EmpresaID")
+           ->Where("Planocontas_id",'=',"$ContaID")
+           ->First();
 
-           if(!$ContaPequisada){
-               session(['error' => 'Conta não encontrada para a empresa selecionada.']);
-               return view('lancamentos.ExportarSkalaExcel', compact('retorno','Empresas','Contas'));
-           }
-           $ContaGerar = $ContaPequisada->ID;
+           $ContaGerar =  $ContaPequisada->ID;
 
 
            //////////////  converter em data e depois em string data
-           $DataInicialCarbon = Carbon::parse($request->input('DataInicial'));
-           $DataFinalCarbon   = Carbon::parse($request->input('DataFinal'));
-           // Formatos separados: display (d/m/Y) e query (Y-m-d) para evitar erro de conversão no SQL Server
-           $DataInicialDisplay = $DataInicialCarbon->format('d/m/Y');
-           $DataFinalDisplay   = $DataFinalCarbon->format('d/m/Y');
-           $DataInicialQuery   = $DataInicialCarbon->toDateString(); // Y-m-d
-           $DataFinalQuery     = $DataFinalCarbon->toDateString();   // Y-m-d
+           $DataInicialCarbon = Carbon::parse($request->input('DataInicial')) ;
+           $DataFinalCarbon = Carbon::parse($request->input('DataFinal'));
+           $DataInicial = $DataInicialCarbon->format('d/m/Y');
+           $DataFinal = $DataFinalCarbon->format('d/m/Y');
 
 
                $retorno['EmpresaSelecionada'] = $EmpresaID;
-               $retorno['DataInicial'] = $DataInicialCarbon->toDateString();
-               $retorno['DataFinal']   = $DataFinalCarbon->toDateString();
+               $retorno['DataInicial'] = $DataInicialCarbon->format('Y-m-d');
+               $retorno['DataFinal'] = $DataFinalCarbon->format('Y-m-d');
                $retorno['ContaSelecionada'] = $ContaID;
 
                 $Empresas = Empresa::join('Contabilidade.EmpresasUsuarios', 'Empresas.ID', '=', 'EmpresasUsuarios.EmpresaID')
@@ -290,15 +285,16 @@ class LancamentosController extends Controller
 
 
 
-           $lancamento = Lancamento::where('EmpresaID', $EmpresaID)
-               ->where(function ($query) use ($ContaGerar) {
-                   $query->where('ContaDebitoID', $ContaGerar)
-                         ->orWhere('ContaCreditoID', $ContaGerar);
-               })
-               ->whereBetween('DataContabilidade', [$DataInicialQuery, $DataFinalQuery])
-               ->select('DataContabilidade', 'ContaDebitoID', 'ContaCreditoID', 'Valor', 'HistoricoID', 'Descricao')
-               ->orderBy('DataContabilidade', 'ASC')
-               ->get();
+           $lancamento = Lancamento::where('EmpresaID', '=', $EmpresaID)
+           ->where(function ($query) use ($ContaGerar) {
+               $query->where('ContaDebitoID', '=', $ContaGerar)
+                     ->orWhere('ContaCreditoID', '=', $ContaGerar);
+           })
+           ->where('DataContabilidade', '>=', $DataInicial)
+           ->where('DataContabilidade', '<=', $DataFinal)
+           ->select('DataContabilidade', 'ContaDebitoID', 'ContaCreditoID', 'Valor', 'HistoricoID', 'Descricao')
+           ->orderBy('DataContabilidade', 'ASC')
+           ->get();
 
                 $numeroRegistros = $lancamento->count();
                 if($numeroRegistros == 0)
@@ -343,7 +339,7 @@ class LancamentosController extends Controller
                 // dd($ExportarUnir);
 
                 // Caminho do arquivo .csv que você deseja criar na pasta "storage"
-                $Arquivo = $EmpresasSelecionada->Descricao . '-' . str_replace('/', '', $DataInicialDisplay) . '-a-' . str_replace('/', '', $DataFinalDisplay) . '.xlsx';
+                $Arquivo = $EmpresasSelecionada->Descricao . '-' .str_replace('/', '', $DataInicial). '-a-'.str_replace('/', '', $DataFinal).'.xlsx';
 
 
 
@@ -1473,6 +1469,146 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
 
         return redirect(route('lancamentos.solicitacoesexcluir',  $SolicitacaoExclusao->ID));
 
+    }
+
+    /**
+     * Preview de planilha de despesas (sem gravação em BD) para ajuste de textos de histórico.
+     * Parâmetros opcionais: ?file=DESPESAS-08-2025-TEC.xlsx&limite=300
+     * Arquivo deve estar em storage/app/imports/<arquivo>.
+     */
+    public function previewDespesasExcel(Request $request)
+    {
+        // Upload direto (opcional)
+        if($request->hasFile('arquivo_excel')){
+            $request->validate(['arquivo_excel' => 'file|mimes:xlsx,xls|max:5120']);
+            $uploaded = $request->file('arquivo_excel');
+            $storedName = $uploaded->getClientOriginalName();
+            $uploaded->storeAs('imports', $storedName);
+            return redirect()->route('lancamentos.preview.despesas',[ 'file'=>$storedName ]);
+        }
+
+        $file = $request->query('file', 'DESPESAS-08-2025-TEC.xlsx');
+        $limite = max(1,(int)$request->query('limite', 500));
+        $flagUpper = (bool)$request->query('upper');
+        $flagTrimMulti = (bool)$request->query('trim_multi');
+        $subsRaw = $request->query('subs'); // formato: find=>replace|find2=>replace2
+        $subs = [];
+        if($subsRaw){
+            foreach(explode('|',$subsRaw) as $pair){
+                if(strpos($pair,'=>')!==false){
+                    [$a,$b] = explode('=>',$pair,2); $subs[trim($a)] = $b; }
+            }
+        }
+        $regexRaw = $request->query('regex'); // formato: /expr/flags=>replace|/expr2/flags=>rep2
+        $regexSubs = [];
+        if($regexRaw){
+            foreach(explode('|',$regexRaw) as $pair){
+                if(strpos($pair,'=>')!==false){
+                    [$a,$b] = explode('=>',$pair,2); $regexSubs[$a] = $b; }
+            }
+        }
+
+        $basePath = storage_path('app/imports');
+        $fullPath = $basePath.DIRECTORY_SEPARATOR.$file;
+        $exists = file_exists($fullPath);
+        $cacheKey = 'preview_despesas:'.auth()->id().':'.md5(json_encode([$file,$limite,$flagUpper,$flagTrimMulti,$subsRaw,$regexRaw]));
+        $forceRefresh = (bool)$request->query('refresh');
+        $headers = [];
+        $rows = [];
+        $erro = null;
+        if(!$forceRefresh && Cache::has($cacheKey)) {
+            $cached = Cache::get($cacheKey);
+            $headers = $cached['headers'] ?? [];
+            $rows = $cached['rows'] ?? [];
+        } elseif(!$exists){
+            $erro = "Arquivo não encontrado em imports: $file. Copie ou faça upload.";
+        } else {
+            try {
+                $spreadsheet = IOFactory::load($fullPath);
+                $sheet = $spreadsheet->getActiveSheet();
+                $highestRow = $sheet->getHighestDataRow();
+                $highestCol = $sheet->getHighestDataColumn();
+                $highestColIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($highestCol);
+                $removeCols = ['COL_4','COL_5','COL_6','COL_7'];
+                $headerMap = [];
+                for($col=1; $col <= $highestColIndex; $col++){
+                    $val = trim((string)$sheet->getCellByColumnAndRow($col,1)->getValue());
+                    if($val === '') $val = 'COL_'.$col;
+                    if(in_array($val,$removeCols,true)) continue;
+                    $headers[] = $val;
+                    $headerMap[$col] = $val;
+                }
+                $histKey = collect($headers)->first(fn($h)=> stripos($h,'HIST') !== false);
+                for($row=2; $row <= $highestRow && count($rows) < $limite; $row++){
+                    $linha = [];
+                    $linhaVazia = true;
+                    foreach($headerMap as $colIndex=>$hName){
+                        $val = $sheet->getCellByColumnAndRow($colIndex,$row)->getFormattedValue();
+                        if($val !== null && $val !== '') $linhaVazia = false;
+                        if(is_string($val)){
+                            if($flagTrimMulti){ $val = preg_replace('/\s+/u',' ',trim($val)); }
+                            if($flagUpper){ $val = mb_strtoupper($val,'UTF-8'); }
+                            if($subs){ foreach($subs as $find=>$rep){ if($find!=='') $val = str_replace($find,$rep,$val); } }
+                            if($regexSubs){ foreach($regexSubs as $pattern=>$rep){ if(@preg_match($pattern,'') !== false){ $val = preg_replace($pattern,$rep,$val); } } }
+                        }
+                        $linha[$hName] = $val;
+                    }
+                    if($linhaVazia) break;
+                    $linha['_hist_original_col'] = $histKey;
+                    $linha['_hist_ajustado'] = $histKey ? $linha[$histKey] : null;
+                    $rows[] = $linha;
+                }
+                Cache::put($cacheKey, [
+                    'headers'=>$headers,
+                    'rows'=>$rows,
+                    'file'=>$file,
+                    'generated_at'=>now()->toDateTimeString(),
+                ], now()->addHour());
+            } catch(\Throwable $e){
+                $erro = 'Falha ao ler planilha: '.$e->getMessage();
+            }
+        }
+        return view('Lancamentos.preview-despesas', [
+            'arquivo' => $file,
+            'existe' => $exists,
+            'headers' => $headers,
+            'rows' => $rows,
+            'erro' => $erro,
+            'limite' => $limite,
+            'flagUpper' => $flagUpper,
+            'flagTrimMulti' => $flagTrimMulti,
+            'subsRaw' => $subsRaw,
+            'regexRaw' => $regexRaw,
+            'cacheKey' => $cacheKey,
+        ]);
+    }
+
+    /**
+     * AJAX: atualiza histórico ajustado em cache.
+     */
+    public function updatePreviewDespesasHistorico(Request $request)
+    {
+        $data = $request->validate([
+            'cache_key' => 'required|string',
+            'row' => 'required|integer|min:0',
+            'valor' => 'nullable|string'
+        ]);
+    $payload = Cache::get($data['cache_key']);
+        if(!$payload){
+            return response()->json(['ok'=>false,'message'=>'Cache expirado. Recarregue a página.'], 410);
+        }
+        if(!isset($payload['rows'][$data['row']])){
+            return response()->json(['ok'=>false,'message'=>'Linha inválida'], 422);
+        }
+        $histCol = $payload['rows'][$data['row']]['_hist_original_col'] ?? null;
+        $payload['rows'][$data['row']]['_hist_ajustado'] = $data['valor'];
+        if($histCol && array_key_exists($histCol,$payload['rows'][$data['row']])){
+            // Atualiza também a coluna original para refletir ajuste (facilita export futuro)
+            $payload['rows'][$data['row']][$histCol] = $data['valor'];
+        }
+        $payload['updated_at'] = now()->toDateTimeString();
+    Cache::put($data['cache_key'], $payload, now()->addHour());
+        return response()->json(['ok'=>true,'updated_at'=>$payload['updated_at']]);
     }
 
 
