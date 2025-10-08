@@ -1575,6 +1575,13 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     if($linhaVazia) break;
                     $linha['_hist_original_col'] = $histKey;
                     $linha['_hist_ajustado'] = $histKey ? $linha[$histKey] : null;
+                    // Hash estável da linha (antes de ajustes de histórico posteriores) para reidratar classificação após refresh
+                    if(!isset($linha['_row_hash'])){
+                        // Usa concatenação dos valores das colunas de dados para reduzir colisões; ignora metadados
+                        $hashBase = [];
+                        foreach($headers as $hx){ $hashBase[] = (string)($linha[$hx] ?? ''); }
+                        $linha['_row_hash'] = sha1(implode('|',$hashBase));
+                    }
                     // Campos de classificação (empresa/conta) default null até usuário selecionar (empresa única posteriormente)
                     $linha['_class_empresa_id'] = $selectedEmpresaId; // se já havia empresa selecionada global
                     // Não inicializamos _class_conta_id aqui para permitir restauração posterior; manter null se novo
@@ -1583,24 +1590,24 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                 }
                 // Mescla ajustes antigos se usuário havia modificado (_hist_ajustado diferente do original)
                 if($oldRows){
+                    // Mapa por hash antigo para restauração independente de reordenação
+                    $mapOld = [];
+                    foreach($oldRows as $old){
+                        if(!empty($old['_row_hash'])){ $mapOld[$old['_row_hash']] = $old; }
+                    }
                     foreach($rows as $i => &$linhaNova){
-                        if(!isset($oldRows[$i])) continue;
-                        $old = $oldRows[$i];
+                        $hash = $linhaNova['_row_hash'] ?? null;
+                        $old = ($hash && isset($mapOld[$hash])) ? $mapOld[$hash] : ($oldRows[$i] ?? null);
+                        if(!$old) continue;
                         if(isset($old['_hist_ajustado'])){
                             $origColOld = $old['_hist_original_col'] ?? null;
                             $origValorOld = ($origColOld && isset($old[$origColOld])) ? $old[$origColOld] : null;
                             if($old['_hist_ajustado'] !== null && $old['_hist_ajustado'] !== $origValorOld){
-                                // usuário alterou -> preservar
                                 $linhaNova['_hist_ajustado'] = $old['_hist_ajustado'];
                             }
                         }
-                        // Preserva classificação já feita
-                        if(isset($old['_class_empresa_id'])){
-                            $linhaNova['_class_empresa_id'] = $old['_class_empresa_id'];
-                        }
-                        if(isset($old['_class_conta_id'])){
-                            $linhaNova['_class_conta_id'] = $old['_class_conta_id'];
-                        }
+                        if(isset($old['_class_empresa_id'])){ $linhaNova['_class_empresa_id'] = $old['_class_empresa_id']; }
+                        if(isset($old['_class_conta_id'])){ $linhaNova['_class_conta_id'] = $old['_class_conta_id']; }
                     }
                     unset($linhaNova);
                 }
