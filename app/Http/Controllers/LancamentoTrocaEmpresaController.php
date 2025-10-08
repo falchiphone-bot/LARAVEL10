@@ -28,9 +28,14 @@ class LancamentoTrocaEmpresaController extends Controller
         if(!$allowed){
             return response()->json(['message' => 'Empresa não autorizada'], 403);
         }
-        $contas = Conta::where('EmpresaID',$empresa->ID)->where('Grau',5)
-            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
-            ->orderBy('PlanoContas.Descricao')
+        $q = request('q');
+        $query = Conta::where('EmpresaID',$empresa->ID)->where('Grau',5)
+            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id');
+        if($q){
+            $query->where('PlanoContas.Descricao','like','%'.trim($q).'%');
+        }
+        $contas = $query->orderBy('PlanoContas.Descricao')
+            ->limit(100) // limita para performance em buscas
             ->pluck('PlanoContas.Descricao','Contas.ID');
         return response()->json(['data' => $contas]);
     }

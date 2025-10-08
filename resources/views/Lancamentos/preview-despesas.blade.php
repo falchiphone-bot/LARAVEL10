@@ -118,9 +118,7 @@
                             </td>
                             <td style="min-width:240px;">
                                 @if($canClass)
-                                    <select class="form-select form-select-sm class-conta select2-basic" data-row="{{ $i }}" data-selected="{{ $r['_class_conta_id'] ?? '' }}" data-can="1" {{ empty($r['_class_empresa_id']) ? 'disabled' : '' }}>
-                                        <option value="">-- Conta --</option>
-                                    </select>
+                                    <select class="form-select form-select-sm class-conta select2-conta-ajax" data-row="{{ $i }}" data-selected="{{ $r['_class_conta_id'] ?? '' }}" data-can="1" {{ empty($r['_class_empresa_id']) ? 'disabled' : '' }} data-placeholder="Pesquisar conta"></select>
                                 @else
                                     <span class="text-muted small" data-can="0">(sem Data/Valor)</span>
                                 @endif
@@ -217,7 +215,45 @@
             const $el = jQuery(this);
             const placeholder = $el.data('placeholder') || ($el.attr('id')==='empresa-global' ? 'Selecione a empresa' : 'Conta');
             if($el.hasClass('select2-hidden-accessible')){ $el.select2('destroy'); }
-            $el.select2({ theme:'bootstrap-5', width:'100%', allowClear:true, placeholder: placeholder });
+            $el.select2({ theme:'bootstrap-5', width:'100%', allowClear:true, placeholder });
+        });
+        jQuery('select.select2-conta-ajax').each(function(){
+            const $el = jQuery(this);
+            if($el.hasClass('select2-hidden-accessible')){ $el.select2('destroy'); }
+            const row = $el.data('row');
+            $el.select2({
+                theme:'bootstrap-5', width:'100%', allowClear:true,
+                placeholder: $el.data('placeholder')||'Pesquisar conta',
+                ajax:{
+                    delay:250,
+                    transport: function (params, success, failure){
+                        const empId = empresaGlobalSelect.value || '';
+                        if(!empId){ success({results:[]}); return; }
+                        const term = params.data.q || '';
+                        fetch(`/empresa/${empId}/contas-grau5?q=${encodeURIComponent(term)}`)
+                          .then(r=> r.ok? r.json(): {data:{}})
+                          .then(j=> {
+                              const results = Object.entries(j.data||{}).map(([id,text])=>({id,text}));
+                              success({results});
+                          }).catch(failure);
+                    },
+                    processResults: function(data){ return data; }
+                }
+            });
+            // Carregar texto pré-selecionado (se houver) via request isolado
+            const selectedId = $el.data('selected');
+            if(selectedId){
+                const empId = empresaGlobalSelect.value || '';
+                if(empId){
+                    fetch(`/empresa/${empId}/contas-grau5?q=`) // pega primeira carga e filtra local
+                        .then(r=> r.ok? r.json(): {data:{}})
+                        .then(j=>{
+                            const label = j.data && j.data[selectedId] ? j.data[selectedId] : selectedId;
+                            const option = new Option(label, selectedId, true, true);
+                            $el.append(option).trigger('change');
+                        });
+                }
+            }
         });
     }
     function ordenarOpcoes(select){
@@ -244,7 +280,7 @@
             if(sel.dataset.can === '1'){
                 // Sempre limpa seleção ao escolher (ou re-escolher) empresa
                 sel.dataset.selected = '';
-                sel.innerHTML = '<option value="">Carregando...</option>'; sel.disabled = true;
+                sel.innerHTML = ''; sel.disabled = !empId;
             }
         });
         if(!empId){ return; }
@@ -257,18 +293,7 @@
             if(!j.ok){ console.warn('Falha set empresa', j); return; }
             // Carrega contas e preenche cada linha
             const contas = await carregarContas(empId);
-            document.querySelectorAll('select.class-conta').forEach(sel=>{
-                if(sel.dataset.can !== '1') return;
-                const selected = sel.dataset.selected || '';
-                sel.innerHTML = '<option value=""></option>';
-                Object.entries(contas).forEach(([id, desc])=>{
-                    const opt = document.createElement('option');
-                    opt.value=id; opt.textContent=desc; // não marcar selected para forçar escolha manual
-                    sel.appendChild(opt);
-                });
-                ordenarOpcoes(sel);
-                sel.disabled = false;
-            });
+            // Agora selects serão preenchidos somente quando o usuário pesquisar (AJAX)
             empresaGlobalSelect.setAttribute('data-prev', empId);
             initSelect2();
             marcarLinhasSemConta();
@@ -283,14 +308,15 @@
     } else {
         initSelect2();
     }
-    document.querySelectorAll('select.class-conta').forEach(selConta=>{
-        selConta.addEventListener('change', ()=>{
+    document.addEventListener('change', function(e){
+        const selConta = e.target.closest('select.class-conta');
+        if(selConta){
             const row = selConta.dataset.row;
             const contaId = selConta.value || null;
             updateClassificacao(row, contaId);
             marcarLinhasSemConta();
             atualizarToggleEstado();
-        });
+        }
     });
     // Export JSON (Ctrl/Cmd+S)
     document.addEventListener('keydown', function(e){
