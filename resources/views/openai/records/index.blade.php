@@ -2,6 +2,9 @@
 @section('content')
 {{-- <div class="container py-4" id="records-index"> --}}
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <div class="order-3 order-lg-2 ms-auto d-flex align-items-center gap-2">
+        <button type="button" id="btn-toggle-openai-records-layout" class="btn btn-outline-dark btn-sm" title="Alterna exibição compacta (oculta cabeçalhos e filtros)">Modo Compacto</button>
+      </div>
     <form method="POST" action="{{ route('openai.records.saveVariation') }}" class="d-flex align-items-center gap-2">
       @csrf
       <input type="hidden" name="chat_id" value="{{ $chatId ?? '' }}">
@@ -1406,6 +1409,18 @@ function prepQuickAdd(chatId){
 })();
 </script>
   <script>
+    // Toggle layout compacto
+    (function(){
+      const LS_KEY='openai_records_layout_compact';
+      const btn = document.getElementById('btn-toggle-openai-records-layout');
+      function apply(){
+        const on = localStorage.getItem(LS_KEY)==='1';
+        document.body.classList.toggle('openai-records-compact', on);
+        if(btn){ btn.textContent = on ? 'Modo Completo' : 'Modo Compacto'; }
+      }
+      btn?.addEventListener('click',()=>{ const next = !(localStorage.getItem(LS_KEY)==='1'); localStorage.setItem(LS_KEY,next?'1':'0'); apply(); });
+      apply();
+    })();
   // Mostrar botão salvar variação somente na primeira linha (mais recente) de cada chat
   (function(){
     const rows = Array.from(document.querySelectorAll('table.table tbody tr[data-chat-id]'));
@@ -1487,6 +1502,14 @@ function prepQuickAdd(chatId){
     });
   })();
   </script>
+@endpush
+@push('styles')
+<style>
+  body.openai-records-compact header { display:none !important; }
+  body.openai-records-compact .card.shadow-sm.mb-4:first-of-type, /* filtros */
+  body.openai-records-compact .card.shadow-sm.mb-4 + .card.shadow-sm.mb-4 { display:none !important; }
+  body.openai-records-compact #btn-toggle-openai-records-layout { background:#212529; color:#fff; }
+</style>
 @endpush
 
 @push('scripts')

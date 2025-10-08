@@ -12,6 +12,7 @@
         ]);
       @endphp
       <a href="{{ route('openai.variations.index', $varLinkParams) }}#gsc.tab=0" class="btn btn-outline-dark" title="Ir para Variações Mensais">Variações</a>
+      <button type="button" id="btn-toggle-asset-stats-layout" class="btn btn-outline-dark btn-sm" title="Alterna exibição compacta (oculta filtros, chips e cabeçalho)">Modo Compacto</button>
     </div>
   </div>
 
@@ -312,6 +313,46 @@
   @endif
 {{-- </div> --}}
 @endsection
+
+@push('styles')
+<style>
+  body.asset-stats-compact header { display:none !important; }
+  /* Oculta o formulário de filtros, chips, blocos de ações e linhas informativas */
+  body.asset-stats-compact #asset-stats-filter-form,
+  body.asset-stats-compact .mb-2.text-muted.small,
+  body.asset-stats-compact .mb-2 > span.text-muted.small,
+  body.asset-stats-compact .mb-3 form,
+  body.asset-stats-compact .alert.alert-info,
+  body.asset-stats-compact .badge.bg-secondary.text-wrap { display:none !important; }
+  body.asset-stats-compact #btn-toggle-asset-stats-layout { background:#212529; color:#fff; }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+ (function(){
+   const LS_KEY='asset_stats_layout_compact';
+   const BTN_ID='btn-toggle-asset-stats-layout';
+   function apply(){
+     const on = localStorage.getItem(LS_KEY)==='1';
+     document.body.classList.toggle('asset-stats-compact', on);
+     const btn = document.getElementById(BTN_ID);
+     if(btn){ btn.textContent = on ? 'Modo Completo' : 'Modo Compacto'; }
+   }
+   document.addEventListener('DOMContentLoaded', function(){
+     apply();
+     const btn = document.getElementById(BTN_ID);
+     if(btn){
+       btn.addEventListener('click', function(){
+         const next = !(localStorage.getItem(LS_KEY)==='1');
+         localStorage.setItem(LS_KEY, next ? '1' : '0');
+         apply();
+       });
+     }
+   });
+ })();
+</script>
+@endpush
 
 @push('scripts')
 <script>

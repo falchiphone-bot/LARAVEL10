@@ -20,8 +20,46 @@
     </style>
 @endpush
 
+@push('styles')
+<style>
+    body.extrato-compact header { display:none !important; }
+    body.extrato-compact .card > .card-body > .badge.bg-secondary,
+    body.extrato-compact .card .card-footer,
+    body.extrato-compact .card .card-header { display:none !important; }
+    body.extrato-compact .toggle-extrato-layout.btn { background:#212529; color:#fff; }
+</style>
+@endpush
 
-    <div class="card">
+
+    <div class="d-flex justify-content-end mb-2">
+        <button type="button" id="btn-toggle-extrato-layout" class="btn btn-outline-dark btn-sm toggle-extrato-layout" title="Alterna exibição para ganhar espaço vertical">Modo Compacto</button>
+    </div>
+    @push('scripts')
+    <script>
+    (function(){
+        const BTN_ID='btn-toggle-extrato-layout';
+        const LS_KEY='extrato_layout_compact';
+        function applyState(){
+            const compact = localStorage.getItem(LS_KEY)==='1';
+            document.body.classList.toggle('extrato-compact', compact);
+            const btn = document.getElementById(BTN_ID);
+            if(btn){ btn.textContent = compact ? 'Modo Completo' : 'Modo Compacto'; }
+        }
+        document.addEventListener('DOMContentLoaded', function(){
+            applyState();
+            const btn = document.getElementById(BTN_ID);
+            if(btn){
+                btn.addEventListener('click', function(){
+                    const now = !(localStorage.getItem(LS_KEY)==='1');
+                    localStorage.setItem(LS_KEY, now?'1':'0');
+                    applyState();
+                });
+            }
+        });
+    })();
+    </script>
+    @endpush
+    <div class="card extrato-wrapper">
         <div class="card-body">
             <div class="badge bg-secondary text-wrap" style="width: 100%;
               ;font-size: 16px; lign=˜Center˜">

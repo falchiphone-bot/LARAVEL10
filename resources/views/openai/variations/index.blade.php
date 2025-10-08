@@ -1,7 +1,11 @@
 @extends('layouts.bootstrap5')
 @section('content')
 <div class="container-fluid">
-  <h1 class="h4 mb-3">Variações Mensais Salvas</h1>
+    
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h1 class="h4 mb-0">Variações Mensais Salvas</h1>
+    <button type="button" id="btn-toggle-openai-variations-index-layout" class="btn btn-outline-dark btn-sm" title="Alterna exibição compacta (oculta filtros e toolbars para ganhar espaço vertical)">Modo Compacto</button>
+  </div>
   <style>
     .filters-bar{display:flex;flex-wrap:wrap;gap:.5rem 1rem;align-items:flex-end}
     .filters-bar > *{display:inline-flex;flex-direction:column}
@@ -376,6 +380,40 @@
       }
     }
   @endphp
+@push('styles')
+<style>
+  body.openai-variations-index-compact header { display:none !important; }
+  body.openai-variations-index-compact form.filters-bar { display:none !important; }
+  body.openai-variations-index-compact .mb-2.d-flex.gap-2.align-items-center.position-sticky { display:none !important; }
+  body.openai-variations-index-compact #btn-toggle-openai-variations-index-layout { background:#212529; color:#fff; }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+(function(){
+  const LS_KEY='openai_variations_index_layout_compact';
+  const BTN_ID='btn-toggle-openai-variations-index-layout';
+  function apply(){
+    const on = localStorage.getItem(LS_KEY)==='1';
+    document.body.classList.toggle('openai-variations-index-compact', on);
+    const btn = document.getElementById(BTN_ID);
+    if(btn){ btn.textContent = on ? 'Modo Completo' : 'Modo Compacto'; }
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    apply();
+    const btn = document.getElementById(BTN_ID);
+    if(btn){
+      btn.addEventListener('click', function(){
+        const next = !(localStorage.getItem(LS_KEY)==='1');
+        localStorage.setItem(LS_KEY, next ? '1' : '0');
+        apply();
+      });
+    }
+  });
+})();
+</script>
+@endpush
 
   @if(request('trigger_alloc') && $capital && $sum > 0 && count($alloc) > 0)
     <div class="card mb-3 shadow-sm">

@@ -8,6 +8,9 @@
 @extends('layouts.bootstrap5')
 @section('content')
 <div class="container-fluid">
+    <div class="d-flex justify-content-end mb-2">
+        <button type="button" id="btn-toggle-edit-layout" class="btn btn-outline-dark btn-sm" title="Alterna exibição para ganhar espaço vertical">Modo Compacto</button>
+    </div>
     <div class="row mb-3">
         <div class="col-12 d-flex justify-content-between align-items-center">
             <h4 class="mb-0">Editar Lançamento #{{ $lancamento->ID }}</h4>
@@ -155,6 +158,10 @@
     .select2-container--bootstrap-5 .select2-selection { min-height:38px; }
     .select2-selection__rendered { line-height:36px !important; }
     .select2-selection__arrow { height:36px !important; }
+    body.edit-lanc-compact header { display:none !important; }
+    body.edit-lanc-compact .container-fluid > .row.mb-3,
+    body.edit-lanc-compact .container-fluid > .row.mb-2 { display:none !important; }
+    body.edit-lanc-compact #btn-toggle-edit-layout { background:#212529; color:#fff; }
 </style>
 @endpush
 
@@ -162,6 +169,20 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 (function(){
+    // --- Toggle Modo Compacto ---
+    const LS_KEY='edit_lanc_layout_compact';
+    const btnToggle = document.getElementById('btn-toggle-edit-layout');
+    function applyLayout(){
+        const compact = localStorage.getItem(LS_KEY)==='1';
+        document.body.classList.toggle('edit-lanc-compact', compact);
+        if(btnToggle){ btnToggle.textContent = compact ? 'Modo Completo' : 'Modo Compacto'; }
+    }
+    btnToggle?.addEventListener('click', ()=>{
+        const newState = !(localStorage.getItem(LS_KEY)==='1');
+        localStorage.setItem(LS_KEY, newState ? '1':'0');
+        applyLayout();
+    });
+    applyLayout();
     function initBasic(){
         $('.select2-basic').each(function(){
             const $el = $(this);

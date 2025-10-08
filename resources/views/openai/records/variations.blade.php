@@ -1,7 +1,17 @@
 @extends('layouts.bootstrap5')
 @section('content')
 <div class="container py-4">
-    <h2 class="mb-3">Variações de Ativos</h2>
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h2 class="mb-0">Variações de Ativos</h2>
+    </div>
+    <!-- Card de destaque (vermelho) com o botão de layout compacto -->
+    <div class="card bg-danger text-white mb-3 shadow-sm">
+        <div class="card-body py-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <span class="fw-bold">Opções de Exibição</span>
+            <button type="button" id="btn-toggle-openai-variations-layout" class="btn btn-light btn-sm" title="Alterna exibição compacta (oculta formulários e cabeçalhos)">Modo Compacto</button>
+        </div>
+    </div>
+
 
     {{-- Formulário: Capital para calcular alocação sugerida com base nos itens exibidos --}}
     <form method="GET" class="row g-2 align-items-end mb-3">
@@ -165,3 +175,39 @@
     </table>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    body.openai-variations-compact header { display:none !important; }
+    body.openai-variations-compact form.row.g-2.align-items-end.mb-3 { display:none !important; }
+    body.openai-variations-compact .card.mb-3.shadow-sm,
+    body.openai-variations-compact .card.bg-danger.text-white.mb-3.shadow-sm,
+    body.openai-variations-compact .alert,
+    /* Oculta o título (era mb-0, antes a regra apontava mb-3 e não surtia efeito) */
+    body.openai-variations-compact h2.mb-0 { display:none !important; }
+    body.openai-variations-compact #btn-toggle-openai-variations-layout { background:#212529; color:#fff; }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+(function(){
+    const LS_KEY='openai_variations_layout_compact';
+    const btnId='btn-toggle-openai-variations-layout';
+    function apply(){
+        const compact = localStorage.getItem(LS_KEY)==='1';
+        document.body.classList.toggle('openai-variations-compact', compact);
+        const btn = document.getElementById(btnId);
+        if(btn){ btn.textContent = compact ? 'Modo Completo' : 'Modo Compacto'; }
+    }
+    document.addEventListener('DOMContentLoaded', function(){
+        apply();
+        document.getElementById(btnId)?.addEventListener('click', function(){
+            const next = !(localStorage.getItem(LS_KEY)==='1');
+            localStorage.setItem(LS_KEY, next ? '1':'0');
+            apply();
+        });
+    });
+})();
+</script>
+@endpush

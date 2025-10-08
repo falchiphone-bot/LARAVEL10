@@ -13,6 +13,7 @@
         Badge Mercado: <span data-state>ON</span>
       </button>
   <button type="button" id="toggle-stats-base" class="btn btn-outline-secondary" title="Mostrar/ocultar estatísticas base (≤Base)">Stats Base: <span data-state>OFF</span></button>
+          <button type="button" id="btn-toggle-openai-assets-layout" class="btn btn-outline-dark btn-sm" title="Alterna exibição compacta (oculta filtros e cabeçalho)">Modo Compacto</button>
     </div>
   </div>
   <div class="card shadow-sm mb-3">
@@ -411,6 +412,32 @@
   </div>
 {{-- </div> --}}
 @endsection
+
+@push('styles')
+<style>
+  body.openai-assets-compact header { display:none !important; }
+  body.openai-assets-compact .card.shadow-sm.mb-3 { display:none !important; }
+  body.openai-assets-compact #btn-toggle-openai-assets-layout { background:#212529; color:#fff; }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+(function(){
+  const LS_KEY='openai_assets_layout_compact';
+  const btn = document.getElementById('btn-toggle-openai-assets-layout');
+  function apply(){
+    const on = localStorage.getItem(LS_KEY)==='1';
+    document.body.classList.toggle('openai-assets-compact', on);
+    if(btn){ btn.textContent = on ? 'Modo Completo' : 'Modo Compacto'; }
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    apply();
+    btn?.addEventListener('click', ()=>{ const next = !(localStorage.getItem(LS_KEY)==='1'); localStorage.setItem(LS_KEY,next?'1':'0'); apply(); });
+  });
+})();
+</script>
+@endpush
 <div id="assets-config"
      data-api-quote="{{ route('api.market.quote') }}"
      data-api-historical="{{ route('api.market.historical') }}"
