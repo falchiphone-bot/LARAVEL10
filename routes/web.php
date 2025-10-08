@@ -120,6 +120,7 @@ Route::middleware(['auth'])->group(function(){
     Route::match(['get','post'],'/lancamentos/preview-despesas-excel', [\App\Http\Controllers\LancamentosController::class,'previewDespesasExcel'])->name('lancamentos.preview.despesas');
     Route::post('/lancamentos/preview-despesas-excel/update-historico', [\App\Http\Controllers\LancamentosController::class,'updatePreviewDespesasHistorico'])->name('lancamentos.preview.despesas.update');
     Route::post('/lancamentos/preview-despesas-excel/update-classificacao', [\App\Http\Controllers\LancamentosController::class,'updatePreviewDespesasClassificacao'])->name('lancamentos.preview.despesas.classificacao');
+    Route::post('/lancamentos/preview-despesas-excel/update-empresa', [\App\Http\Controllers\LancamentosController::class,'updatePreviewDespesasEmpresa'])->name('lancamentos.preview.despesas.empresa');
 });
 
 // ...outras rotas...

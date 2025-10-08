@@ -1522,16 +1522,19 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             ->get(['Empresas.ID','Empresas.Descricao']);
         $erro = null;
         $oldRows = [];
+        $selectedEmpresaId = null;
         if(!$forceRefresh && Cache::has($cacheKey)) {
             $cached = Cache::get($cacheKey);
             $headers = $cached['headers'] ?? [];
             $rows = $cached['rows'] ?? [];
+            $selectedEmpresaId = $cached['selected_empresa_id'] ?? null;
         } elseif(!$exists){
             $erro = "Arquivo não encontrado em imports: $file. Copie ou faça upload.";
         } else {
             try {
                 if($forceRefresh && Cache::has($cacheKey)) {
                     $oldRows = Cache::get($cacheKey)['rows'] ?? [];
+                    $selectedEmpresaId = Cache::get($cacheKey)['selected_empresa_id'] ?? null;
                 }
                 $spreadsheet = IOFactory::load($fullPath);
                 $sheet = $spreadsheet->getActiveSheet();
@@ -1565,8 +1568,8 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     if($linhaVazia) break;
                     $linha['_hist_original_col'] = $histKey;
                     $linha['_hist_ajustado'] = $histKey ? $linha[$histKey] : null;
-                    // Campos de classificação (empresa/conta) default null até usuário selecionar
-                    $linha['_class_empresa_id'] = null;
+                    // Campos de classificação (empresa/conta) default null até usuário selecionar (empresa única posteriormente)
+                    $linha['_class_empresa_id'] = $selectedEmpresaId; // se já havia empresa selecionada global
                     $linha['_class_conta_id'] = null;
                     $rows[] = $linha;
                 }
@@ -1598,6 +1601,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     'rows'=>$rows,
                     'file'=>$file,
                     'generated_at'=>now()->toDateTimeString(),
+                    'selected_empresa_id'=>$selectedEmpresaId,
                 ], now()->addHour());
             } catch(\Throwable $e){
                 $erro = 'Falha ao ler planilha: '.$e->getMessage();
@@ -1616,6 +1620,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             'regexRaw' => $regexRaw,
             'cacheKey' => $cacheKey,
             'empresasLista' => $empresasLista,
+            'selectedEmpresaId' => $selectedEmpresaId,
         ]);
     }
 
@@ -1642,6 +1647,11 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         }
         $empresaId = $data['empresa_id'] ?? null;
         $contaId = $data['conta_id'] ?? null;
+        // Se há uma empresa global selecionada, força uso dela.
+        $selectedEmpresaGlobal = $payload['selected_empresa_id'] ?? null;
+        if($selectedEmpresaGlobal){
+            $empresaId = $selectedEmpresaGlobal; // ignora empresa diferente recebida
+        }
         // valida acesso a empresa se informada
         if($empresaId){
             $allowed = Empresa::join('Contabilidade.EmpresasUsuarios','EmpresasUsuarios.EmpresaID','Empresas.ID')
@@ -1662,6 +1672,41 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         $rows[$i]['_class_empresa_id'] = $empresaId;
         $rows[$i]['_class_conta_id'] = $contaId;
         $payload['rows'] = $rows;
+        Cache::put($cacheKey,$payload, now()->addHour());
+        return response()->json(['ok'=>true]);
+    }
+
+    /**
+     * Define a empresa global para a pré-visualização (resetando contas)
+     */
+    public function updatePreviewDespesasEmpresa(Request $request)
+    {
+        $data = $request->validate([
+            'cache_key' => 'required|string',
+            'empresa_id' => 'required|integer',
+        ]);
+        $cacheKey = $data['cache_key'];
+        if(!Cache::has($cacheKey)){
+            return response()->json(['ok'=>false,'message'=>'Cache expirado']);
+        }
+        $empresaId = (int)$data['empresa_id'];
+        $allowed = Empresa::join('Contabilidade.EmpresasUsuarios','EmpresasUsuarios.EmpresaID','Empresas.ID')
+            ->where('EmpresasUsuarios.UsuarioID', auth()->id())
+            ->where('Empresas.ID',$empresaId)
+            ->exists();
+        if(!$allowed){
+            return response()->json(['ok'=>false,'message'=>'Empresa não autorizada'],403);
+        }
+        $payload = Cache::get($cacheKey);
+        $rows = $payload['rows'] ?? [];
+        foreach($rows as &$r){
+            $r['_class_empresa_id'] = $empresaId;
+            // Ao trocar empresa, reseta a conta para evitar inconsistência
+            $r['_class_conta_id'] = null;
+        }
+        unset($r);
+        $payload['rows'] = $rows;
+        $payload['selected_empresa_id'] = $empresaId;
         Cache::put($cacheKey,$payload, now()->addHour());
         return response()->json(['ok'=>true]);
     }

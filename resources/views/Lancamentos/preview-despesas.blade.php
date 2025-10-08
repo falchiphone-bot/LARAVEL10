@@ -62,8 +62,19 @@
             Visualização somente leitura. Ajuste o texto em "Histórico Ajustado" (não salva).<br>
             Atalhos: <code>Ctrl/Cmd+S</code> exporta JSON ajustado.
         </div>
-        <div class="mb-2">
-            <span class="badge bg-secondary">Classificação: selecione Empresa e depois Conta por linha</span>
+        <div class="mb-2 d-flex flex-wrap align-items-end gap-2">
+            <div>
+                <label class="form-label mb-1">Empresa (global)</label>
+                <select id="empresa-global" class="form-select form-select-sm" data-cache-key="{{ $cacheKey }}">
+                    <option value="">-- selecione --</option>
+                    @foreach($empresasLista as $emp)
+                        <option value="{{ $emp->ID }}" {{ (string)($selectedEmpresaId ?? '') === (string)$emp->ID ? 'selected' : '' }}>{{ $emp->Descricao }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="small text-muted">
+                Após escolher a empresa, selecione a conta para cada linha.
+            </div>
         </div>
         <div class="table-responsive" style="max-height:70vh; overflow:auto;">
             <table class="table table-sm table-striped table-bordered align-middle" data-cache-key="{{ $cacheKey ?? '' }}">
@@ -74,7 +85,6 @@
                             <th>{{ $h }}</th>
                         @endforeach
                         <th>Histórico Ajustado</th>
-                        <th>Empresa</th>
                         <th>Conta</th>
                     </tr>
                 </thead>
@@ -90,14 +100,6 @@
                                 <input type="text" class="form-control form-control-sm hist-ajustado" value="{{ $r['_hist_ajustado'] }}" data-row="{{ $i }}" data-orig="{{ $histCol }}" placeholder="Ajuste aqui">
                                 <div class="form-text text-muted small">Origem: {{ $histCol ?? 'N/D' }}</div>
                             </td>
-                            <td style="min-width:200px;">
-                                <select class="form-select form-select-sm class-empresa" data-row="{{ $i }}">
-                                    <option value="">-- Empresa --</option>
-                                    @foreach($empresasLista as $emp)
-                                        <option value="{{ $emp->ID }}" {{ (string)($r['_class_empresa_id'] ?? '') === (string)$emp->ID ? 'selected' : '' }}>{{ $emp->Descricao }}</option>
-                                    @endforeach
-                                </select>
-                            </td>
                             <td style="min-width:220px;">
                                 <select class="form-select form-select-sm class-conta" data-row="{{ $i }}" data-selected="{{ $r['_class_conta_id'] ?? '' }}" {{ empty($r['_class_empresa_id']) ? 'disabled' : '' }}>
                                     <option value="">-- Conta --</option>
@@ -105,7 +107,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="{{ count($headers)+4 }}" class="text-center">Sem dados</td></tr>
+                        <tr><td colspan="{{ count($headers)+3 }}" class="text-center">Sem dados</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -144,13 +146,13 @@
             setTimeout(()=> inp.classList.remove('border','border-warning'), 1000);
         });
     });
-    // --- Classificação Empresa / Conta ---
-    function updateClassificacao(row, empresaId, contaId){
+    // --- Classificação (empresa global + conta por linha) ---
+    function updateClassificacao(row, contaId){
         if(!cacheKey) return;
         fetch("{{ route('lancamentos.preview.despesas.classificacao') }}", {
             method:'POST',
             headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
-            body: JSON.stringify({cache_key: cacheKey, row: row, empresa_id: empresaId || null, conta_id: contaId || null})
+            body: JSON.stringify({cache_key: cacheKey, row: row, conta_id: contaId || null})
         }).then(r=>r.json()).then(j=>{ if(!j.ok){ console.warn('Falha class linha', row, j); }}).catch(e=>console.error(e));
     }
     async function carregarContas(empresaId){
@@ -175,32 +177,40 @@
         });
         if(Object.keys(contas).length){ selectConta.disabled = false; } else { selectConta.disabled = true; }
     }
-    // Inicializa contas já selecionadas
-    document.querySelectorAll('select.class-conta').forEach(selConta=>{
-        const row = selConta.dataset.row;
-        const empresaSel = document.querySelector('select.class-empresa[data-row="'+row+'"]')?.value;
-        if(empresaSel){ preencherContasSelect(selConta, empresaSel); }
-    });
-    document.querySelectorAll('select.class-empresa').forEach(selEmp=>{
-        selEmp.addEventListener('change', async ()=>{
-            const row = selEmp.dataset.row;
-            const empresaId = selEmp.value || null;
-            const contaSelect = document.querySelector('select.class-conta[data-row="'+row+'"]');
-            contaSelect.dataset.selected='';
-            contaSelect.innerHTML = '<option value="">-- Conta --</option>';
-            contaSelect.disabled = true;
-            updateClassificacao(row, empresaId, null);
-            if(empresaId){
-                await preencherContasSelect(contaSelect, empresaId);
-            }
+    const empresaGlobalSelect = document.getElementById('empresa-global');
+    async function aplicarEmpresaGlobal(){
+        const empId = empresaGlobalSelect.value || '';
+        document.querySelectorAll('select.class-conta').forEach(sel=>{
+            sel.innerHTML = '<option value="">-- Conta --</option>'; sel.disabled = true; sel.dataset.selected='';
         });
-    });
+        if(!empId){ return; }
+        // salva empresa global no cache
+        fetch("{{ route('lancamentos.preview.despesas.empresa') }}", {
+            method:'POST',
+            headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
+            body: JSON.stringify({cache_key: cacheKey, empresa_id: empId})
+        }).then(r=>r.json()).then(async j=>{
+            if(!j.ok){ console.warn('Falha set empresa', j); return; }
+            // Carrega contas e preenche cada linha
+            const contas = await carregarContas(empId);
+            document.querySelectorAll('select.class-conta').forEach(sel=>{
+                const selected = sel.dataset.selected || '';
+                sel.innerHTML = '<option value="">-- Conta --</option>';
+                Object.entries(contas).forEach(([id, desc])=>{
+                    const opt = document.createElement('option'); opt.value=id; opt.textContent=desc; if(selected===String(id)) opt.selected=true; sel.appendChild(opt);
+                });
+                sel.disabled = false;
+            });
+        }).catch(e=>console.error(e));
+    }
+    empresaGlobalSelect?.addEventListener('change', aplicarEmpresaGlobal);
+    // Inicialização se já havia empresa selecionada
+    if(empresaGlobalSelect?.value){ aplicarEmpresaGlobal(); }
     document.querySelectorAll('select.class-conta').forEach(selConta=>{
         selConta.addEventListener('change', ()=>{
             const row = selConta.dataset.row;
-            const empresaId = document.querySelector('select.class-empresa[data-row="'+row+'"]').value || null;
             const contaId = selConta.value || null;
-            updateClassificacao(row, empresaId, contaId);
+            updateClassificacao(row, contaId);
         });
     });
     // Export JSON (Ctrl/Cmd+S)
