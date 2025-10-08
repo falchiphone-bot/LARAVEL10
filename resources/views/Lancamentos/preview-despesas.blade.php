@@ -35,7 +35,7 @@
                 <input type="text" name="regex" value="{{ $regexRaw }}" class="form-control form-control-sm" placeholder="/\d{2}\/\d{2}\/\d{4}/=>DATA">
             </div>
             <div class="col-auto pt-1">
-                <button class="btn btn-primary btn-sm mt-3">Recarregar</button>
+                <button class="btn btn-primary btn-sm mt-3" id="btn-submit-recarregar" type="button" data-action="recarregar">Recarregar</button>
             </div>
         </form>
         <form method="POST" enctype="multipart/form-data" action="{{ route('lancamentos.preview.despesas') }}" class="d-flex align-items-end gap-2">
@@ -50,7 +50,7 @@
         </form>
         <a href="{{ url()->previous() }}" class="btn btn-outline-secondary btn-sm align-self-end mt-3">Voltar</a>
         @if($existe && !$erro)
-            <a href="{{ route('lancamentos.preview.despesas', array_merge(request()->query(), ['file'=>$arquivo,'refresh'=>1])) }}" class="btn btn-warning btn-sm align-self-end mt-3" title="Reprocessa a planilha ignorando o cache atual">Reprocessar (refresh)</a>
+            <a href="{{ route('lancamentos.preview.despesas', array_merge(request()->query(), ['file'=>$arquivo,'refresh'=>1])) }}" id="btn-reprocessar" class="btn btn-warning btn-sm align-self-end mt-3" data-action="reprocessar" title="Reprocessa a planilha ignorando o cache atual">Reprocessar (refresh)</a>
         @endif
     </div>
     @if($erro)
@@ -134,6 +134,11 @@
 </div>
 @endsection
 @push('styles')
+<style>
+    .modal-confirm-msg code{background: #f8f9fa;padding:2px 4px;border-radius:4px;}
+</style>
+@endpush
+@push('styles')
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
 <style>
@@ -149,6 +154,63 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 (function(){
+        // Modal de confirmação
+        const modalHtml = `
+        <div class="modal fade" id="confirmModalPreview" tabindex="-1" aria-labelledby="confirmPreviewLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="confirmPreviewLabel">Confirmar ação</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body modal-confirm-msg">
+                        <p id="confirmPreviewMessage" class="mb-2"></p>
+                        <ul class="small text-muted ps-3 mb-0">
+                             <li>Históricos ajustados e contas selecionadas serão preservados.</li>
+                             <li>Use esta ação somente se alterou filtros / precisa refazer parsing.</li>
+                        </ul>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary btn-sm" id="confirmPreviewProceed">Prosseguir</button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+        if(!document.getElementById('confirmModalPreview')){
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+        const confirmModalEl = document.getElementById('confirmModalPreview');
+        let bsModal = null; // instancia bootstrap modal
+        let pendingAction = null;
+        const msgEl = document.getElementById('confirmPreviewMessage');
+        const btnProceed = document.getElementById('confirmPreviewProceed');
+        function openConfirm(message, proceedCb){
+                msgEl.innerHTML = message;
+                pendingAction = proceedCb;
+                if(!bsModal){ bsModal = new bootstrap.Modal(confirmModalEl); }
+                bsModal.show();
+        }
+        btnProceed?.addEventListener('click', ()=>{
+                if(pendingAction){ pendingAction(); }
+                bsModal?.hide();
+        });
+
+        const btnReprocessar = document.getElementById('btn-reprocessar');
+        const btnRecarregar = document.getElementById('btn-submit-recarregar');
+        const formFiltros = document.querySelector('form[action="{{ route('lancamentos.preview.despesas') }}"][method="GET"]');
+        if(btnReprocessar){
+                btnReprocessar.addEventListener('click', function(e){
+                        e.preventDefault();
+                        const href = this.getAttribute('href');
+                        openConfirm('<strong>Reprocessar planilha</strong>: isso relê o arquivo e recria as linhas. Deseja continuar?', ()=>{ window.location.href = href; });
+                });
+        }
+        if(btnRecarregar && formFiltros){
+                btnRecarregar.addEventListener('click', function(){
+                        openConfirm('<strong>Recarregar pré-visualização</strong>: isso pode alterar o conjunto de linhas exibidas. Continuar?', ()=>{ formFiltros.submit(); });
+                });
+        }
     const table = document.querySelector('table[data-cache-key]');
     const cacheKey = table?.dataset.cacheKey;
     const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
