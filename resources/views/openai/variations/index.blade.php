@@ -1,7 +1,7 @@
 @extends('layouts.bootstrap5')
 @section('content')
 <div class="container-fluid">
-    
+
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <h1 class="h4 mb-0">Variações Mensais Salvas</h1>
     <button type="button" id="btn-toggle-openai-variations-index-layout" class="btn btn-outline-dark btn-sm" title="Alterna exibição compacta (oculta filtros e toolbars para ganhar espaço vertical)">Modo Compacto</button>
