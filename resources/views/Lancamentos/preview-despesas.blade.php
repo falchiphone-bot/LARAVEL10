@@ -450,7 +450,8 @@
             // Confirmação antes de travar
             openConfirm('<strong>Travar Empresa</strong>: após travar não será possível alterar a empresa sem destravar. Confirmar?', executar);
         } else {
-            executar();
+            // Confirmação antes de destravar
+            openConfirm('<strong>Destravar Empresa</strong>: permitirá alterar a empresa e exigirá reclassificação das contas. Prosseguir?', executar);
         }
     }
     btnLock?.addEventListener('click', toggleLock);
