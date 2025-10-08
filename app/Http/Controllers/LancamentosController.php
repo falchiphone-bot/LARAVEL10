@@ -1516,6 +1516,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         $headers = [];
         $rows = [];
         $erro = null;
+        $oldRows = [];
         if(!$forceRefresh && Cache::has($cacheKey)) {
             $cached = Cache::get($cacheKey);
             $headers = $cached['headers'] ?? [];
@@ -1524,6 +1525,9 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             $erro = "Arquivo não encontrado em imports: $file. Copie ou faça upload.";
         } else {
             try {
+                if($forceRefresh && Cache::has($cacheKey)) {
+                    $oldRows = Cache::get($cacheKey)['rows'] ?? [];
+                }
                 $spreadsheet = IOFactory::load($fullPath);
                 $sheet = $spreadsheet->getActiveSheet();
                 $highestRow = $sheet->getHighestDataRow();
@@ -1557,6 +1561,22 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     $linha['_hist_original_col'] = $histKey;
                     $linha['_hist_ajustado'] = $histKey ? $linha[$histKey] : null;
                     $rows[] = $linha;
+                }
+                // Mescla ajustes antigos se usuário havia modificado (_hist_ajustado diferente do original)
+                if($oldRows){
+                    foreach($rows as $i => &$linhaNova){
+                        if(!isset($oldRows[$i])) continue;
+                        $old = $oldRows[$i];
+                        if(isset($old['_hist_ajustado'])){
+                            $origColOld = $old['_hist_original_col'] ?? null;
+                            $origValorOld = ($origColOld && isset($old[$origColOld])) ? $old[$origColOld] : null;
+                            if($old['_hist_ajustado'] !== null && $old['_hist_ajustado'] !== $origValorOld){
+                                // usuário alterou -> preservar
+                                $linhaNova['_hist_ajustado'] = $old['_hist_ajustado'];
+                            }
+                        }
+                    }
+                    unset($linhaNova);
                 }
                 Cache::put($cacheKey, [
                     'headers'=>$headers,
