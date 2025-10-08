@@ -1719,17 +1719,21 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         if(($payload['empresa_locked'] ?? false) && isset($payload['selected_empresa_id']) && $payload['selected_empresa_id'] && $payload['selected_empresa_id'] != $empresaId){
             return response()->json(['ok'=>false,'message'=>'Empresa travada. Destrave antes de alterar.'],423);
         }
+        // Se já era a mesma empresa, não resetamos contas
+        $already = isset($payload['selected_empresa_id']) && (int)$payload['selected_empresa_id'] === $empresaId;
         $rows = $payload['rows'] ?? [];
         foreach($rows as &$r){
             $r['_class_empresa_id'] = $empresaId;
-            // Ao trocar empresa, reseta a conta para evitar inconsistência
-            $r['_class_conta_id'] = null;
+            if(!$already){
+                // Apenas em mudança real de empresa zeramos contas
+                $r['_class_conta_id'] = null;
+            }
         }
         unset($r);
         $payload['rows'] = $rows;
         $payload['selected_empresa_id'] = $empresaId;
         Cache::put($cacheKey,$payload, now()->addHour());
-        return response()->json(['ok'=>true]);
+        return response()->json(['ok'=>true,'reset_contas'=> !$already]);
     }
 
     /**
