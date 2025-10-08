@@ -423,25 +423,45 @@
         const locked = empresaGlobalSelect.dataset.locked === '1';
         const novo = locked ? 0 : 1;
         if(novo === 1 && !empresaGlobalSelect.value){ return; }
-        try{
-            const r = await fetch("{{ route('lancamentos.preview.despesas.empresa.lock') }}",{
-                method:'POST',
-                headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
-                body: JSON.stringify({cache_key: cacheKey, locked: !!novo})
-            });
-            const j = await r.json();
-            if(!j.ok){ console.warn('Falha toggle lock', j); return; }
-            empresaGlobalSelect.dataset.locked = j.locked ? '1':'0';
-            if(j.locked){
-                empresaGlobalSelect.setAttribute('data-prev', empresaGlobalSelect.value || '');
-            }
-            atualizarBotaoLock();
-        }catch(e){ console.error(e); }
+        const executar = async ()=>{
+            try{
+                const r = await fetch("{{ route('lancamentos.preview.despesas.empresa.lock') }}",{
+                    method:'POST',
+                    headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
+                    body: JSON.stringify({cache_key: cacheKey, locked: !!novo})
+                });
+                const j = await r.json();
+                if(!j.ok){ console.warn('Falha toggle lock', j); return; }
+                empresaGlobalSelect.dataset.locked = j.locked ? '1':'0';
+                if(j.locked){
+                    empresaGlobalSelect.setAttribute('data-prev', empresaGlobalSelect.value || '');
+                    // Desabilita select (Select2 e elemento base)
+                    if(window.jQuery){ jQuery('#empresa-global').prop('disabled', true).trigger('change.select2'); }
+                    empresaGlobalSelect.disabled = true;
+                } else {
+                    // Reabilita select
+                    empresaGlobalSelect.disabled = false;
+                    if(window.jQuery){ jQuery('#empresa-global').prop('disabled', false).trigger('change.select2'); }
+                }
+                atualizarBotaoLock();
+            }catch(e){ console.error(e); }
+        };
+        if(novo === 1){
+            // Confirmação antes de travar
+            openConfirm('<strong>Travar Empresa</strong>: após travar não será possível alterar a empresa sem destravar. Confirmar?', executar);
+        } else {
+            executar();
+        }
     }
     btnLock?.addEventListener('click', toggleLock);
     atualizarBotaoLock();
     // Sempre que empresa mudar, reavalia botão (quando não travado)
     empresaGlobalSelect?.addEventListener('change', atualizarBotaoLock);
+    // Estado inicial: se já estava travada, desabilita select
+    if(empresaGlobalSelect?.dataset.locked==='1'){
+        empresaGlobalSelect.disabled = true;
+        if(window.jQuery){ jQuery('#empresa-global').prop('disabled', true).trigger('change.select2'); }
+    }
     // Inicialização se já havia empresa selecionada
     if(empresaGlobalSelect?.value){
         empresaGlobalSelect.setAttribute('data-prev', empresaGlobalSelect.value);
