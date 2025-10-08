@@ -123,6 +123,10 @@ Route::middleware(['auth'])->group(function(){
     Route::post('/lancamentos/preview-despesas-excel/update-empresa', [\App\Http\Controllers\LancamentosController::class,'updatePreviewDespesasEmpresa'])->name('lancamentos.preview.despesas.empresa');
     Route::post('/lancamentos/preview-despesas-excel/toggle-empresa-lock', [\App\Http\Controllers\LancamentosController::class,'togglePreviewDespesasEmpresaLock'])->name('lancamentos.preview.despesas.empresa.lock');
     Route::post('/lancamentos/preview-despesas-excel/snapshot', [\App\Http\Controllers\LancamentosController::class,'updatePreviewDespesasSnapshot'])->name('lancamentos.preview.despesas.snapshot');
+    Route::post('/lancamentos/preview-despesas-excel/apply-auto-class', [\App\Http\Controllers\LancamentosController::class,'applyPreviewDespesasAutoClass'])->name('lancamentos.preview.despesas.applyAuto');
+    Route::post('/lancamentos/preview-despesas-excel/conta-credito', [\App\Http\Controllers\LancamentosController::class,'updatePreviewDespesasContaCredito'])->name('lancamentos.preview.despesas.credito');
+    Route::post('/lancamentos/preview-despesas-excel/conta-credito-lock', [\App\Http\Controllers\LancamentosController::class,'togglePreviewDespesasContaCreditoLock'])->name('lancamentos.preview.despesas.credito.lock');
+    Route::get('/lancamentos/preview-despesas-excel/export-xlsx', [\App\Http\Controllers\LancamentosController::class,'exportPreviewDespesasExcel'])->name('lancamentos.preview.despesas.exportXlsx');
 });
 
 // ...outras rotas...

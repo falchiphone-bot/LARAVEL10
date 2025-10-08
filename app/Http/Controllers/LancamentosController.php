@@ -17,102 +17,17 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\Calculation\DateTimeExcel\Days;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\LancamentoExport;
-use App\Models\ContasPagar;
+use App\Exports\PreviewDespesasExport;
 use App\Models\MoedasValores;
 use App\Models\SolicitacaoExclusao;
+use App\Models\ContasPagar;
 use Exception;
-use Illuminate\Support\Facades\Lang;
-use LancamentoExport as GlobalLancamentoExport;
-use Maatwebsite\Excel\Facades\Excel;
-use PhpOffice\PhpSpreadsheet\IOFactory;
-use Illuminate\Support\Facades\Cache;
-
-
-
 class LancamentosController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-
-     public function __construct()
-     {
-         $this->middleware('auth');
-        //  $this->middleware(['permission:LEITURA DE ARQUIVO - LISTAR'])->only('index');
-         // $this->middleware(['permission:PLANO DE CONTAS - INCLUIR'])->only(['create', 'store']);
-         // $this->middleware(['permission:PLANO DE CONTAS - EDITAR'])->only(['edit', 'update']);
-         // $this->middleware(['permission:PLANO DE CONTAS - EXCLUIR'])->only('destroy');
-         $this->middleware(['permission:LEITURA DE ARQUIVO - LISTAR'])->only('lancamentotabelaprice');
-         $this->middleware(['permission:LEITURA DE ARQUIVO - LISTAR'])->only('lancamentoinformaprice');
-        //  $this->middleware(['permission:LEITURA DE ARQUIVO - ENVIAR ARQUIVO PARA VISUALIZAR'])->only('SelecionaLinha');
-     }
-
-
-
-    public function AtualizarSaldoPoupanca(Request $request)
-    {
-
-        $saldo = session('Saldo');
-        $EmpresaID = session('EmpresaID');
-        $dataCalcular = session('dataCalcular');
-        $descricao = session('Descricao');
-        $proximaData = session('ProximaData');
-        $debito = session('Debito');
-        $credito = session('Credito');
-        $novaDescricao = session('NovaDescricao');
-        $jurosArredondado = session('jurosArredondado');
-
-        // dd( $EmpresaID);
-
-        return view('Lancamentos.AtualizarPoupanca', compact('saldo', 'EmpresaID' ,'dataCalcular', 'descricao', 'proximaData', 'debito', 'credito', 'novaDescricao', 'jurosArredondado'));
-    }
-
-
-    public function AtualizarDadosPoupanca(Request $request)
-    {
-
-        // dd($request->all());
-        $data = $request->proximaData;
-        $descricao = (string) $request->novaDescricao;
-        $empresaID = $request->EmpresaID;
-
-        $debito = $request->debito;
-        $credito = $request->credito;
-        $valor = $request->jurosArredondado;
-
-        $lancamento = new Lancamento();
-        $lancamento->DataContabilidade = $data;
-        $lancamento->Descricao = $descricao;
-        $lancamento->ContaDebitoID = $debito;
-        $lancamento->ContaCreditoID = $credito;
-        $lancamento->Valor = $valor;
-        $lancamento->EmpresaID = $empresaID;
-        $lancamento->Usuarios_id = 70;
-
-        // $lancamento->save();
-
-        $ConsultaLancamento = lancamento::where('DataContabilidade', $data)->
-        where('Descricao', $descricao)->
-        where('ContaDebitoID', $debito)->
-        where('ContaCreditoID', $credito)->
-        where('Valor', $valor)->
-        where('EmpresaID', $empresaID)->first();
-
-        if ($ConsultaLancamento) {
-            session(['error' => 'Lançamento já existente!']);
-            return redirect()->route('planocontas.pesquisaavancada');
-        }
-        else {
-            $lancamento->save();
-            session(['success' => 'Lançamento efetuado com sucesso!']);
-            // return redirect()->back();
-            return redirect()->route('planocontas.pesquisaavancada');
-        }
-
-// dd($request->all(), $data, $descricao, $debito, $credito, $valor, $lancamento);
-
-    }
 
      public function DadosMes()
 
@@ -1524,20 +1439,28 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
     $oldRows = [];
     $selectedEmpresaId = null;
     $empresaLocked = false; // trava de seleção de empresa
+    $globalCreditContaId = null; $globalCreditContaLabel = null; $globalCreditContaLocked = false;
         if(!$forceRefresh && Cache::has($cacheKey)) {
             $cached = Cache::get($cacheKey);
             $headers = $cached['headers'] ?? [];
             $rows = $cached['rows'] ?? [];
             $selectedEmpresaId = $cached['selected_empresa_id'] ?? null;
             $empresaLocked = $cached['empresa_locked'] ?? false;
+            $globalCreditContaId = $cached['global_credit_conta_id'] ?? null;
+            $globalCreditContaLabel = $cached['global_credit_conta_label'] ?? null;
+            $globalCreditContaLocked = $cached['global_credit_conta_locked'] ?? false;
         } elseif(!$exists){
             $erro = "Arquivo não encontrado em imports: $file. Copie ou faça upload.";
         } else {
             try {
                 if($forceRefresh && Cache::has($cacheKey)) {
-                    $oldRows = Cache::get($cacheKey)['rows'] ?? [];
-                    $selectedEmpresaId = Cache::get($cacheKey)['selected_empresa_id'] ?? null;
-                    $empresaLocked = Cache::get($cacheKey)['empresa_locked'] ?? false;
+                    $prev = Cache::get($cacheKey);
+                    $oldRows = $prev['rows'] ?? [];
+                    $selectedEmpresaId = $prev['selected_empresa_id'] ?? null;
+                    $empresaLocked = $prev['empresa_locked'] ?? false;
+                    $globalCreditContaId = $prev['global_credit_conta_id'] ?? null;
+                    $globalCreditContaLabel = $prev['global_credit_conta_label'] ?? null;
+                    $globalCreditContaLocked = $prev['global_credit_conta_locked'] ?? false;
                 }
                 $spreadsheet = IOFactory::load($fullPath);
                 $sheet = $spreadsheet->getActiveSheet();
@@ -1624,16 +1547,43 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                 }
                 // Auto-classificação por tokens simples (apenas em reprocessamento forçado) - primeira ocorrência manda
                 if($forceRefresh){
-                    $tokenConta = []; // token => conta_id (primeira linha classificada que contém)
+                    $tokenConta = []; // token => conta_id (primeira linha classificada que contém) – somente linhas com VALOR numérico
                     $stop = [ 'DE','DA','DO','PARA','EM','NO','NA','A','E','O','OS','AS','UM','UMA','DEBITO','DEB','CREDITO','PAGAMENTO','PAGTO','PAG','COMPRA','TRANSACAO','LANCTO','REF','DOC','NF','NOTA','CONTA','VALOR','DATA','HISTORICO' ];
                     $minLen = 4;
+                    $minTokenHits = 1; // agora basta 1 token para auto-classificar
+                    // Detecta coluna VALOR
+                    $valorCol = null; foreach($headers as $hX){ if(mb_strtoupper($hX,'UTF-8')==='VALOR'){ $valorCol=$hX; break; } }
+                    // Função para remover acentos (normalização) e manter só A-Z0-9 e espaços
+                    $removeAccents = function($str){
+                        $s = iconv('UTF-8','ASCII//TRANSLIT//IGNORE',$str);
+                        if($s === false) $s = $str; // fallback
+                        $s = preg_replace('/[^A-Z0-9 ]/',' ', mb_strtoupper($s,'UTF-8'));
+                        return $s;
+                    };
                     // 1) Construir mapa de tokens a partir de linhas já classificadas manualmente (com conta)
+                    // Função local para validar valor numérico em formatos comuns ("1234.56", "1.234,56", "123,45")
+                    $isValorNumerico = function($v){
+                        if(is_numeric($v)) return true;
+                        if(!is_string($v)) return false;
+                        $vTrim = trim($v);
+                        if($vTrim==='') return false;
+                        // Padrão brasileiro com milhares e vírgula decimal
+                        if(preg_match('/^\d{1,3}(\.\d{3})*,\d{2}$/',$vTrim)) return true;
+                        // Simples com vírgula decimal
+                        if(preg_match('/^\d+,\d+$/',$vTrim)) return true;
+                        // Simples com ponto decimal
+                        if(preg_match('/^\d+\.\d+$/',$vTrim)) return true;
+                        // Inteiro
+                        if(preg_match('/^\d+$/',$vTrim)) return true;
+                        return false;
+                    };
                     foreach($rows as $r){
                         if(empty($r['_class_conta_id'])) continue;
+                        if($valorCol){ $valTmp = $r[$valorCol] ?? null; if(!$isValorNumerico($valTmp)) continue; }
                         $hist = $r['_hist_ajustado'] ?? ($r['_hist_original_col'] ? ($r[$r['_hist_original_col']] ?? null) : null);
                         if(!is_string($hist) || $hist==='') continue;
-                        $norm = mb_strtoupper($hist,'UTF-8');
-                        $norm = preg_replace('/[\.,;:!\-\(\)\[\]\/\\]+/u',' ', $norm);
+                        $norm = $removeAccents($hist);
+                        $norm = preg_replace('/[\.,;:!\-\(\)\[\]\/\\]+/u',' ', $norm); // redundante pós-normalização mas mantém limpeza
                         $parts = preg_split('/\s+/u',$norm,-1,PREG_SPLIT_NO_EMPTY);
                         $seen = [];
                         foreach($parts as $tok){
@@ -1651,14 +1601,16 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                         // 2) Percorrer linhas ainda sem conta e atribuir se encontrar qualquer token mapeado (primeiro match)
                         foreach($rows as &$r2){
                             if(!empty($r2['_class_conta_id'])) continue;
+                            if($valorCol){ $valTmp2 = $r2[$valorCol] ?? null; if(!$isValorNumerico($valTmp2)) continue; }
                             $hist2 = $r2['_hist_ajustado'] ?? ($r2['_hist_original_col'] ? ($r2[$r2['_hist_original_col']] ?? null) : null);
                             if(!is_string($hist2) || $hist2==='') continue;
-                            $hay = mb_strtoupper($hist2,'UTF-8');
+                            $hay = $removeAccents($hist2);
                             foreach($tokenConta as $tok=>$cid){
                                 if(strpos($hay,$tok)!==false){
                                     $r2['_class_conta_id'] = $cid;
-                                    // label será resolvida em lote após loop
-                                    break;
+                                    $r2['_auto_classified'] = true;
+                                    $r2['_auto_hits'] = 1;
+                                    break; // primeira correspondência basta
                                 }
                             }
                         }
@@ -1689,6 +1641,9 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     'generated_at'=>now()->toDateTimeString(),
                     'selected_empresa_id'=>$selectedEmpresaId,
                     'empresa_locked'=>$empresaLocked,
+                    'global_credit_conta_id'=>$globalCreditContaId,
+                    'global_credit_conta_label'=>$globalCreditContaLabel,
+                    'global_credit_conta_locked'=>$globalCreditContaLocked,
                 ], now()->addHour());
             } catch(\Throwable $e){
                 $erro = 'Falha ao ler planilha: '.$e->getMessage();
@@ -1709,6 +1664,9 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             'empresasLista' => $empresasLista,
             'selectedEmpresaId' => $selectedEmpresaId,
             'empresaLocked' => $empresaLocked,
+            'globalCreditContaId' => $globalCreditContaId,
+            'globalCreditContaLabel' => $globalCreditContaLabel,
+            'globalCreditContaLocked' => $globalCreditContaLocked,
         ]);
     }
 
@@ -1813,6 +1771,11 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         unset($r);
         $payload['rows'] = $rows;
         $payload['selected_empresa_id'] = $empresaId;
+        if(!$already){
+            // Zera conta crédito global se empresa mudou
+            $payload['global_credit_conta_id'] = null;
+            $payload['global_credit_conta_label'] = null;
+        }
         Cache::put($cacheKey,$payload, now()->addHour());
         return response()->json(['ok'=>true,'reset_contas'=> !$already]);
     }
@@ -1880,6 +1843,8 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             'rows.*.conta_id' => 'nullable|integer',
             'rows.*.conta_label' => 'nullable|string',
             'rows.*.hist_ajustado' => 'nullable|string'
+            ,'global_credit_conta_id' => 'nullable|integer'
+            ,'global_credit_conta_label' => 'nullable|string'
         ]);
         if(!Cache::has($data['cache_key'])){
             return response()->json(['ok'=>false,'message'=>'Cache expirado'],410);
@@ -1902,11 +1867,213 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             }
         }
         $payload['rows'] = $rows;
+        // Atualiza conta crédito global se enviada
+        if(array_key_exists('global_credit_conta_id',$data)){
+            $payload['global_credit_conta_id'] = $data['global_credit_conta_id'];
+            $payload['global_credit_conta_label'] = $data['global_credit_conta_label'] ?? null;
+        }
         $payload['updated_at'] = now()->toDateTimeString();
         Cache::put($data['cache_key'],$payload, now()->addHour());
         return response()->json(['ok'=>true,'updated_at'=>$payload['updated_at']]);
     }
 
+    /**
+     * Executa auto-classificação on-demand nas linhas pendentes.
+     */
+    public function applyPreviewDespesasAutoClass(Request $request){
+        $dataReq = $request->validate([
+            'cache_key' => 'required|string'
+        ]);
+        $cacheKey = $dataReq['cache_key'];
+        $payload = Cache::get($cacheKey);
+        if(!$payload || empty($payload['rows'])){
+            return response()->json(['ok'=>false,'message'=>'Nenhum cache para processar']);
+        }
+    $rows =& $payload['rows'];
+    // Detecta coluna VALOR
+    $valorCol = null; $headersLocal = $payload['headers'] ?? [];
+    foreach($headersLocal as $hX){ if(mb_strtoupper($hX,'UTF-8')==='VALOR'){ $valorCol=$hX; break; } }
+        $tokenConta = [];
+        $stop = [ 'DE','DA','DO','PARA','EM','NO','NA','A','E','O','OS','AS','UM','UMA','DEBITO','DEB','CREDITO','PAGAMENTO','PAGTO','PAG','COMPRA','TRANSACAO','LANCTO','REF','DOC','NF','NOTA','CONTA','VALOR','DATA','HISTORICO' ];
+        $minLen = 4;
+    $minTokenHits = 1; // modo on-demand: 1 token é suficiente
+        $isValorNumerico = function($v){
+            if(is_numeric($v)) return true;
+            if(!is_string($v)) return false; $vTrim=trim($v); if($vTrim==='') return false;
+            if(preg_match('/^\d{1,3}(\.\d{3})*,\d{2}$/',$vTrim)) return true;
+            if(preg_match('/^\d+,\d+$/',$vTrim)) return true;
+            if(preg_match('/^\d+\.\d+$/',$vTrim)) return true;
+            if(preg_match('/^\d+$/',$vTrim)) return true;
+            return false; };
+        $removeAccents = function($str){ $s = iconv('UTF-8','ASCII//TRANSLIT//IGNORE',$str); if($s===false) $s=$str; return preg_replace('/[^A-Z0-9 ]/',' ', mb_strtoupper($s,'UTF-8')); };
+        $n = count($rows); $applied=0;
+        for($iSrc=0;$iSrc<$n;$iSrc++){
+            $src =& $rows[$iSrc];
+            if(empty($src['_class_conta_id'])) continue;
+            if(!empty($src['_auto_classified'])) continue; // evita cascata
+            if($valorCol){ $vSrc = $src[$valorCol] ?? null; if(!$isValorNumerico($vSrc)) continue; }
+            $histSrc = $src['_hist_ajustado'] ?? null;
+            if(!is_string($histSrc) || $histSrc==='') continue;
+            $norm = $removeAccents($histSrc);
+            $parts = preg_split('/\s+/u',$norm,-1,PREG_SPLIT_NO_EMPTY);
+            $tokens = [];
+            foreach($parts as $p){ if(mb_strlen($p,'UTF-8')>4) $tokens[$p]=true; }
+            if(!$tokens) continue;
+            for($j=$iSrc+1;$j<$n;$j++){
+                $tgt =& $rows[$j];
+                if(!empty($tgt['_class_conta_id'])) continue;
+                if($valorCol){ $vT = $tgt[$valorCol] ?? null; if(!$isValorNumerico($vT)) continue; }
+                $histT = $tgt['_hist_ajustado'] ?? null;
+                if(!is_string($histT) || $histT==='') continue;
+                $hay = $removeAccents($histT);
+                $matched=false; foreach($tokens as $tk=>$_1){ if(strpos($hay,$tk)!==false){ $matched=true; break; } }
+                if($matched){
+                    $tgt['_class_conta_id'] = $src['_class_conta_id'];
+                    $tgt['_auto_classified'] = true;
+                    $tgt['_auto_hits'] = 1;
+                    $applied++;
+                }
+            }
+            unset($tgt);
+        }
+        unset($src);
+        // Preencher labels faltantes
+        $need=[]; foreach($rows as $rX){ if(!empty($rX['_class_conta_id']) && empty($rX['_class_conta_label'])) $need[$rX['_class_conta_id']]=true; }
+        if($need){
+            $labels = Conta::whereIn('Contas.ID', array_keys($need))
+                ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                ->pluck('PlanoContas.Descricao','Contas.ID');
+            foreach($rows as &$rY){ if(!empty($rY['_class_conta_id']) && empty($rY['_class_conta_label']) && isset($labels[$rY['_class_conta_id']])) $rY['_class_conta_label']=$labels[$rY['_class_conta_id']]; }
+            unset($rY);
+        }
+        $payload['rows']=$rows; Cache::put($cacheKey,$payload, now()->addHour());
+        return response()->json(['ok'=>true,'applied'=>$applied]);
+    }
+
+    /**
+     * Define conta crédito global usada nas classificações (linhas são débito).
+     */
+    public function updatePreviewDespesasContaCredito(Request $request){
+        $data = $request->validate([
+            'cache_key' => 'required|string',
+            'conta_id' => 'nullable|integer'
+        ]);
+        if(!Cache::has($data['cache_key'])){
+            return response()->json(['ok'=>false,'message'=>'Cache expirado'],410);
+        }
+        $payload = Cache::get($data['cache_key']);
+        $empresaId = $payload['selected_empresa_id'] ?? null;
+        $contaId = $data['conta_id'] ? (int)$data['conta_id'] : null;
+        if(($payload['global_credit_conta_locked'] ?? false) && $contaId && $contaId !== ($payload['global_credit_conta_id'] ?? null)){
+            return response()->json(['ok'=>false,'message'=>'Conta crédito travada. Destrave para alterar.'],423);
+        }
+        if($contaId){
+            if(!$empresaId){
+                return response()->json(['ok'=>false,'message'=>'Selecione empresa antes da conta crédito'],422);
+            }
+            $valida = Conta::where('Contas.ID',$contaId)->where('Contas.EmpresaID',$empresaId)->exists();
+            if(!$valida){
+                return response()->json(['ok'=>false,'message'=>'Conta não pertence à empresa selecionada'],422);
+            }
+            $label = Conta::where('Contas.ID',$contaId)
+                ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                ->value('PlanoContas.Descricao');
+            $payload['global_credit_conta_id'] = $contaId;
+            $payload['global_credit_conta_label'] = $label ?: null;
+        } else {
+            $payload['global_credit_conta_id'] = null;
+            $payload['global_credit_conta_label'] = null;
+        }
+        Cache::put($data['cache_key'],$payload, now()->addHour());
+        return response()->json(['ok'=>true,'conta_id'=>$payload['global_credit_conta_id'],'label'=>$payload['global_credit_conta_label']]);
+    }
+
+    /**
+     * Travar / destravar conta crédito global.
+     */
+    public function togglePreviewDespesasContaCreditoLock(Request $request){
+        $data = $request->validate([
+            'cache_key' => 'required|string',
+            'locked' => 'required|boolean'
+        ]);
+        if(!Cache::has($data['cache_key'])){
+            return response()->json(['ok'=>false,'message'=>'Cache expirado'],410);
+        }
+        $payload = Cache::get($data['cache_key']);
+        if($data['locked']){
+            // travar exige conta crédito já definida
+            if(empty($payload['global_credit_conta_id'])){
+                return response()->json(['ok'=>false,'message'=>'Defina a conta crédito antes de travar'],422);
+            }
+        }
+        $payload['global_credit_conta_locked'] = (bool)$data['locked'];
+        Cache::put($data['cache_key'],$payload, now()->addHour());
+        return response()->json(['ok'=>true,'locked'=>$payload['global_credit_conta_locked']]);
+    }
+
+    /**
+     * Exporta a pré-visualização (cache) para XLSX mantendo todos os campos necessários para futura importação.
+     * GET com ?cache_key=...
+     */
+    public function exportPreviewDespesasExcel(Request $request)
+    {
+        $cacheKey = $request->query('cache_key');
+        if(!$cacheKey){
+            abort(422,'cache_key obrigatório');
+        }
+        if(!Cache::has($cacheKey)){
+            abort(410,'Cache expirado ou inexistente. Recarregue a visualização.');
+        }
+        $payload = Cache::get($cacheKey);
+        $headersOrig = $payload['headers'] ?? [];
+        $rowsCache = $payload['rows'] ?? [];
+        $empresaIdGlobal = $payload['selected_empresa_id'] ?? null;
+        $creditId = $payload['global_credit_conta_id'] ?? null;
+        $creditLabel = $payload['global_credit_conta_label'] ?? null;
+
+        // Construir conjunto de headings: colunas originais + adicionais no final
+        $extraCols = [
+            'HISTORICO_AJUSTADO',
+            'EMPRESA_ID',
+            'CONTA_DEBITO_ID',
+            'CONTA_DEBITO_LABEL',
+            'CONTA_CREDITO_GLOBAL_ID',
+            'CONTA_CREDITO_GLOBAL_LABEL',
+            'AUTO_CLASSIFIED',
+            'AUTO_HITS',
+            'ROW_HASH'
+        ];
+        $headings = array_merge($headersOrig, $extraCols);
+
+        $exportRows = [];
+        foreach($rowsCache as $r){
+            $linha = [];
+            // Colunas originais na ordem
+            foreach($headersOrig as $h){
+                $val = $r[$h] ?? null;
+                // Garante casting simples (evita objetos DateTime sem formatação)
+                if($val instanceof \DateTimeInterface){
+                    $val = $val->format('d/m/Y');
+                }
+                $linha[$h] = $val;
+            }
+            $histAjust = $r['_hist_ajustado'] ?? null;
+            // Se coluna original de histórico existe e foi sobrescrita já está em $linha, mas mantemos coluna explícita
+            $linha['HISTORICO_AJUSTADO'] = $histAjust;
+            $linha['EMPRESA_ID'] = $r['_class_empresa_id'] ?? $empresaIdGlobal;
+            $linha['CONTA_DEBITO_ID'] = $r['_class_conta_id'] ?? null;
+            $linha['CONTA_DEBITO_LABEL'] = $r['_class_conta_label'] ?? null;
+            $linha['CONTA_CREDITO_GLOBAL_ID'] = $creditId;
+            $linha['CONTA_CREDITO_GLOBAL_LABEL'] = $creditLabel;
+            $linha['AUTO_CLASSIFIED'] = !empty($r['_auto_classified']) ? 1 : 0;
+            $linha['AUTO_HITS'] = $r['_auto_hits'] ?? null;
+            $linha['ROW_HASH'] = $r['_row_hash'] ?? null;
+            $exportRows[] = $linha;
+        }
+
+        $fileName = 'preview-despesas-'.date('Ymd-His').'.xlsx';
+        return \Maatwebsite\Excel\Facades\Excel::download(new PreviewDespesasExport($exportRows,$headings), $fileName);
+    }
 
 
 // (fim dos métodos de LancamentosController)

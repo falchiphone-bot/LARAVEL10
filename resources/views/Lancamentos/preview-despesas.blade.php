@@ -56,7 +56,9 @@
         <a href="{{ url()->previous() }}" class="btn btn-outline-secondary btn-sm align-self-end mt-3">Voltar</a>
         @if($existe && !$erro)
             <a href="{{ route('lancamentos.preview.despesas', array_merge(request()->query(), ['file'=>$arquivo,'refresh'=>1])) }}" id="btn-reprocessar" class="btn btn-warning btn-sm align-self-end mt-3" data-action="reprocessar" title="Reprocessa a planilha ignorando o cache atual">Reprocessar (refresh)</a>
+            <button type="button" id="btn-apply-autoclass" class="btn btn-outline-primary btn-sm align-self-end mt-3" title="Executa as regras de auto-classificação agora nas linhas pendentes">Aplicar Regras Agora</button>
             <button type="button" id="btn-snapshot-cache" class="btn btn-info btn-sm align-self-end mt-3" title="Força salvar no cache as contas e históricos ajustados visíveis" data-action="snapshot">Salvar Cache</button>
+            <button type="button" id="btn-export-xlsx" class="btn btn-success btn-sm align-self-end mt-3" title="Exporta a tabela atual (com classificações) para Excel">Exportar Excel</button>
         @endif
     </div>
     @if($erro)
@@ -78,6 +80,21 @@
                         <option value="{{ $emp->ID }}" {{ (string)($selectedEmpresaId ?? '') === (string)$emp->ID ? 'selected' : '' }}>{{ $emp->Descricao }}</option>
                     @endforeach
                 </select>
+            </div>
+            <div>
+                <label class="form-label mb-1">Conta Crédito (global)</label>
+                <select id="conta-credito-global" class="form-select form-select-sm select2-conta-ajax" data-selected="{{ $globalCreditContaId ?? '' }}" data-placeholder="Conta crédito" {{ (empty($selectedEmpresaId) || !empty($globalCreditContaLocked)) ? 'disabled' : '' }}>
+                    @if(!empty($globalCreditContaId))
+                        <option value="{{ $globalCreditContaId }}" selected>{{ $globalCreditContaLabel ?? $globalCreditContaId }}</option>
+                    @endif
+                </select>
+                <div class="form-text small text-muted">Linhas da tabela = Conta Débito; esta será usada como Crédito.</div>
+            </div>
+            <div>
+                <label class="form-label mb-1">Travamento Crédito</label><br>
+                <button type="button" id="btn-lock-conta-credito" class="btn btn-outline-primary btn-sm mt-1" data-locked="{{ !empty($globalCreditContaLocked)?'1':'0' }}" {{ !empty($globalCreditContaId) ? '' : 'disabled' }}>
+                    {{ !empty($globalCreditContaLocked) ? 'Destravar Crédito' : 'Travar Crédito' }}
+                </button>
             </div>
             <div class="small text-muted">
                 Após escolher a empresa, selecione a conta para cada linha.
@@ -117,16 +134,22 @@
                                 if(!$hasValor && (is_numeric($valCell) || (is_string($valCell) && preg_match('/\d+[\.,]?\d*/',$valCell)))) $hasValor = true;
                                 if($hasDate && $hasValor) break;
                             }
-                            $canClass = $hasDate && $hasValor;
+                            // Agora basta ter um VALOR para permitir classificação
+                            $canClass = $hasValor; // antes: $hasDate && $hasValor
                         @endphp
-                        <tr>
+                        <tr class="{{ !empty($r['_auto_classified']) ? 'table-success auto-class' : '' }}">
                             <td style="position:sticky;left:0;background:#fff;z-index:1;">{{ $i+1 }}</td>
                             @foreach($headers as $h)
                                 <td class="small">{{ $r[$h] }}</td>
                             @endforeach
                             <td style="min-width:260px;">
                                 <input type="text" class="form-control form-control-sm hist-ajustado" value="{{ $r['_hist_ajustado'] }}" data-row="{{ $i }}" data-orig="{{ $histCol }}" placeholder="Ajuste aqui">
-                                <div class="form-text text-muted small">Origem: {{ $histCol ?? 'N/D' }}</div>
+                                <div class="form-text text-muted small d-flex justify-content-between">
+                                    <span>Origem: {{ $histCol ?? 'N/D' }}</span>
+                                    @if(!empty($r['_auto_classified']))
+                                        <span class="badge bg-success text-uppercase" title="Linha auto-classificada por tokens (hits: {{ $r['_auto_hits'] ?? '?' }})">AUTO</span>
+                                    @endif
+                                </div>
                             </td>
                             <td style="min-width:240px;">
                                 @if($canClass)
@@ -136,7 +159,7 @@
                                         @endif
                                     </select>
                                 @else
-                                    <span class="text-muted small" data-can="0">(sem Data/Valor)</span>
+                                    <span class="text-muted small" data-can="0">(sem Valor)</span>
                                 @endif
                             </td>
                         </tr>
@@ -167,6 +190,8 @@
     tr.linha-sem-conta {outline:2px solid #dc3545;}
     tr.linha-sem-conta td {background-image:linear-gradient(90deg, rgba(220,53,69,0.08), transparent);}
     .legend-inline {font-size:.75rem;}
+    tr.auto-class td { position: relative; }
+    tr.auto-class td:first-child::before{ content:"★"; color:#198754; font-size:.75rem; position:absolute; left:4px; top:2px; }
 </style>
 @endpush
 @push('scripts')
@@ -231,6 +256,10 @@
 
     const btnReprocessar = document.getElementById('btn-reprocessar');
     const btnSnapshot = document.getElementById('btn-snapshot-cache');
+    const btnApplyAuto = document.getElementById('btn-apply-autoclass');
+    const btnExport = document.getElementById('btn-export-xlsx');
+    const selectContaCredito = document.getElementById('conta-credito-global');
+    const btnLockCredito = document.getElementById('btn-lock-conta-credito');
         async function executarSnapshot(manual=false){
             if(!cacheKey) return;
             const linhas = [];
@@ -252,7 +281,12 @@
                 const r = await fetch("{{ route('lancamentos.preview.despesas.snapshot') }}",{
                     method:'POST',
                     headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
-                    body: JSON.stringify({cache_key: cacheKey, rows: linhas})
+                    body: JSON.stringify({
+                        cache_key: cacheKey,
+                        rows: linhas,
+                        global_credit_conta_id: selectContaCredito && selectContaCredito.value ? parseInt(selectContaCredito.value,10) : null,
+                        global_credit_conta_label: (selectContaCredito && selectContaCredito.options && selectContaCredito.selectedIndex>=0) ? selectContaCredito.options[selectContaCredito.selectedIndex].textContent : null
+                    })
                 });
                 const j = await r.json();
                 if(!j.ok){ console.warn('Falha snapshot', j); return false; }
@@ -265,6 +299,30 @@
             }catch(e){ console.error(e); return false; }
         }
         btnSnapshot?.addEventListener('click', ()=> executarSnapshot(true));
+        btnExport?.addEventListener('click', async()=>{
+            if(!cacheKey) return;
+            // Faz snapshot rápido antes de exportar para garantir persistência
+            await executarSnapshot(false);
+            const url = "{{ route('lancamentos.preview.despesas.exportXlsx') }}" + '?cache_key='+encodeURIComponent(cacheKey);
+            window.location.href = url;
+        });
+        btnApplyAuto?.addEventListener('click', async()=>{
+            if(!cacheKey){ return; }
+            btnApplyAuto.disabled = true;
+            btnApplyAuto.textContent = 'Aplicando...';
+            try{
+                const r = await fetch("/lancamentos/preview-despesas-excel/apply-auto-class",{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},body: JSON.stringify({cache_key: cacheKey})});
+                const j = await r.json();
+                if(j.ok){
+                    // Atualiza visual: para simplicidade recarrega página (mantém snapshot prévio salvo manualmente se quiser); alternativa: fetch cache e patch DOM
+                    location.reload();
+                } else {
+                    console.warn('Falha auto-class', j);
+                    btnApplyAuto.textContent = 'Aplicar Regras Agora';
+                    btnApplyAuto.disabled = false;
+                }
+            }catch(e){ console.error(e); btnApplyAuto.textContent='Aplicar Regras Agora'; btnApplyAuto.disabled=false; }
+        });
         const btnRecarregar = document.getElementById('btn-submit-recarregar');
         const formFiltros = document.querySelector('form[action="{{ route('lancamentos.preview.despesas') }}"][method="GET"]');
         if(btnReprocessar){
@@ -483,6 +541,98 @@
         }).catch(e=>console.error(e));
     }
     empresaGlobalSelect?.addEventListener('change', aplicarEmpresaGlobal);
+    // Conta crédito global: inicializa Select2 após empresa setada
+    function initContaCreditoSelect(){
+        if(!window.jQuery || !selectContaCredito) return;
+        const $el = jQuery(selectContaCredito);
+        if($el.hasClass('select2-hidden-accessible')){ $el.select2('destroy'); }
+        $el.select2({
+            theme:'bootstrap-5', width:'100%', allowClear:true, placeholder:selectContaCredito.dataset.placeholder||'Conta crédito',
+            ajax:{
+                delay:250,
+                transport: function(params, success, failure){
+                    const empId = empresaGlobalSelect.value || '';
+                    if(!empId){ success({results:[]}); return; }
+                    const term = params.data.q || '';
+                    fetch(`/empresa/${empId}/contas-grau5?q=${encodeURIComponent(term)}`)
+                      .then(r=> r.ok? r.json(): {data:{}})
+                      .then(j=> { const results = Object.entries(j.data||{}).map(([id,text])=>({id,text})); success({results}); })
+                      .catch(failure);
+                },
+                processResults: d=>d
+            }
+        });
+    }
+    initContaCreditoSelect();
+    if(selectContaCredito){
+        selectContaCredito.addEventListener('change', function(){
+            const contaId = this.value || null;
+            fetch("{{ route('lancamentos.preview.despesas.credito') }}",{
+                method:'POST',
+                headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
+                body: JSON.stringify({cache_key: cacheKey, conta_id: contaId})
+            }).then(r=>r.json()).then(j=>{ if(!j.ok){ console.warn('Falha definir conta crédito', j); }}).catch(e=>console.error(e));
+        });
+    }
+    function habilitarContaCreditoSeEmpresa(){
+        if(!selectContaCredito) return;
+        const temEmpresa = !!empresaGlobalSelect.value;
+        selectContaCredito.disabled = !temEmpresa;
+        if(temEmpresa){ initContaCreditoSelect(); }
+        atualizarBotaoLockCredito();
+    }
+    empresaGlobalSelect?.addEventListener('change', habilitarContaCreditoSeEmpresa);
+    habilitarContaCreditoSeEmpresa();
+    function atualizarBotaoLockCredito(){
+        if(!btnLockCredito) return;
+        const locked = btnLockCredito.dataset.locked === '1';
+        const temConta = !!(selectContaCredito && selectContaCredito.value);
+        btnLockCredito.disabled = !temConta && !locked;
+        if(locked){
+            btnLockCredito.classList.remove('btn-outline-primary');
+            btnLockCredito.classList.add('btn-primary');
+            btnLockCredito.textContent = 'Destravar Crédito';
+            if(selectContaCredito){ selectContaCredito.disabled = true; }
+        } else {
+            btnLockCredito.classList.add('btn-outline-primary');
+            btnLockCredito.classList.remove('btn-primary');
+            btnLockCredito.textContent = 'Travar Crédito';
+            // Reabilita somente se há empresa selecionada
+            if(selectContaCredito && empresaGlobalSelect.value){ selectContaCredito.disabled = false; }
+        }
+    }
+    btnLockCredito?.addEventListener('click', ()=>{
+        const locked = btnLockCredito.dataset.locked === '1';
+        const novo = locked ? 0 : 1;
+        if(novo === 1 && (!selectContaCredito || !selectContaCredito.value)) return;
+        const confirmarMsg = novo===1 ? '<strong>Travar Conta Crédito</strong>: não será possível alterar até destravar. Confirmar?' : '<strong>Destravar Conta Crédito</strong>: permitirá alterar a conta crédito. Prosseguir?';
+        openConfirm(confirmarMsg, async ()=>{
+            try{
+                const r = await fetch("{{ route('lancamentos.preview.despesas.credito.lock') }}",{
+                    method:'POST',
+                    headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
+                    body: JSON.stringify({cache_key: cacheKey, locked: !!novo})
+                });
+                const j = await r.json();
+                if(j.ok){
+                    btnLockCredito.dataset.locked = j.locked ? '1':'0';
+                    if(j.locked){
+                        // desabilita select
+                        if(selectContaCredito){ selectContaCredito.disabled = true; }
+                    } else {
+                        if(selectContaCredito){ selectContaCredito.disabled = false; }
+                    }
+                    atualizarBotaoLockCredito();
+                } else {
+                    console.warn('Falha lock crédito', j);
+                }
+            }catch(e){ console.error(e); }
+        });
+    });
+    document.addEventListener('change', function(e){
+        if(e.target === selectContaCredito){ atualizarBotaoLockCredito(); }
+    });
+    atualizarBotaoLockCredito();
 
     // Botão de lock/unlock
     const btnLock = document.getElementById('btn-lock-empresa');
