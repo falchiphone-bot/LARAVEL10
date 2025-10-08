@@ -1799,4 +1799,5 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
 
 
 
-// (removido bloco residual inválido)
+// (fim dos métodos de LancamentosController)
+}
