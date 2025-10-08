@@ -94,10 +94,10 @@
                 </thead>
                 <tbody>
                     @forelse($rows as $i=>$r)
-                        @php 
-                            $histCol = $r['_hist_original_col'] ?? null; 
+                        @php
+                            $histCol = $r['_hist_original_col'] ?? null;
                             // Heurística para detectar coluna de data e valor na linha
-                            $hasDate = false; $hasValor = false; 
+                            $hasDate = false; $hasValor = false;
                             foreach($headers as $hDetect){
                                 $valCell = $r[$hDetect];
                                 if(!$hasDate && is_string($valCell) && preg_match('/\b\d{2}\/\d{2}\/\d{4}\b/',$valCell)) $hasDate = true;
@@ -146,7 +146,7 @@
     .select2-selection__rendered { line-height:30px !important; }
     .select2-selection__arrow { height:30px !important; }
     tr.linha-sem-conta {outline:2px solid #dc3545;}
-    tr.linha-sem-conta td {background-image:linear-gradient(90deg, rgba(220,53,69,0.08), transparent);} 
+    tr.linha-sem-conta td {background-image:linear-gradient(90deg, rgba(220,53,69,0.08), transparent);}
     .legend-inline {font-size:.75rem;}
 </style>
 @endpush
@@ -451,12 +451,41 @@
             }
         });
     }
+    function scrollParaProximaPendente(currentRow){
+        const linhas = Array.from(document.querySelectorAll('table[data-cache-key] tbody tr'))
+            .map(tr=>({tr, sel: tr.querySelector('select.class-conta[data-can="1"]')}))
+            .filter(o=> o.sel && !o.sel.disabled && o.tr.style.display !== 'none');
+        const proximas = linhas.filter(o=> parseInt(o.sel.dataset.row,10) > currentRow && !o.sel.value);
+        if(!proximas.length){
+            // Tenta procurar antes (caso usuário esteja no final)
+            const ciclo = linhas.filter(o=> !o.sel.value);
+            if(!ciclo.length) return; // tudo classificado
+            // Rolagem opcional para primeira pendente
+            const alvo = ciclo[0];
+            alvo.tr.scrollIntoView({behavior:'smooth', block:'center'});
+            // Foca select se ainda não aberto
+            setTimeout(()=> alvo.sel.focus(), 300);
+            return;
+        }
+        const alvo = proximas[0];
+        alvo.tr.scrollIntoView({behavior:'smooth', block:'center'});
+        setTimeout(()=> alvo.sel.focus(), 300);
+    }
     btnToggle?.addEventListener('click', ()=>{
         btnToggle.classList.toggle('mostrar-pendentes');
         aplicarFiltroClassificadas();
         atualizarToggleEstado();
     });
     atualizarToggleEstado();
+
+    // Observa mudanças de seleção para auto-scroll (delegação já configurada acima; aqui usamos MutationObserver fallback para selects carregados dinamicamente via Select2)
+    document.addEventListener('change', function(e){
+        const selConta = e.target.closest('select.class-conta');
+        if(selConta && selConta.value){
+            const row = parseInt(selConta.dataset.row,10);
+            scrollParaProximaPendente(row);
+        }
+    });
 })();
 </script>
 @endpush
