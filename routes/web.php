@@ -117,6 +117,9 @@ Route::middleware(['auth'])->group(function(){
     // Clonagem simples (cria novo lançamento a partir de um existente)
     Route::get('/lancamentos/{lancamento}/clone-simple', [\App\Http\Controllers\LancamentosController::class,'cloneSimple'])->name('lancamentos.clone.simple');
     Route::post('/lancamentos/{lancamento}/clone-simple', [\App\Http\Controllers\LancamentosController::class,'storeCloneSimple'])->name('lancamentos.clone.store');
+    Route::match(['get','post'],'/lancamentos/preview-despesas-excel', [\App\Http\Controllers\LancamentosController::class,'previewDespesasExcel'])->name('lancamentos.preview.despesas');
+    Route::post('/lancamentos/preview-despesas-excel/update-historico', [\App\Http\Controllers\LancamentosController::class,'updatePreviewDespesasHistorico'])->name('lancamentos.preview.despesas.update');
+    Route::post('/lancamentos/preview-despesas-excel/update-classificacao', [\App\Http\Controllers\LancamentosController::class,'updatePreviewDespesasClassificacao'])->name('lancamentos.preview.despesas.classificacao');
 });
 
 // ...outras rotas...

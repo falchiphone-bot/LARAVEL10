@@ -1515,6 +1515,11 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         $forceRefresh = (bool)$request->query('refresh');
         $headers = [];
         $rows = [];
+        // Empresas disponíveis para o usuário (mesma lógica usada em outros pontos)
+        $empresasLista = Empresa::join('Contabilidade.EmpresasUsuarios','EmpresasUsuarios.EmpresaID','Empresas.ID')
+            ->where('EmpresasUsuarios.UsuarioID', auth()->id())
+            ->orderBy('Empresas.Descricao')
+            ->get(['Empresas.ID','Empresas.Descricao']);
         $erro = null;
         $oldRows = [];
         if(!$forceRefresh && Cache::has($cacheKey)) {
@@ -1560,6 +1565,9 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     if($linhaVazia) break;
                     $linha['_hist_original_col'] = $histKey;
                     $linha['_hist_ajustado'] = $histKey ? $linha[$histKey] : null;
+                    // Campos de classificação (empresa/conta) default null até usuário selecionar
+                    $linha['_class_empresa_id'] = null;
+                    $linha['_class_conta_id'] = null;
                     $rows[] = $linha;
                 }
                 // Mescla ajustes antigos se usuário havia modificado (_hist_ajustado diferente do original)
@@ -1574,6 +1582,13 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                                 // usuário alterou -> preservar
                                 $linhaNova['_hist_ajustado'] = $old['_hist_ajustado'];
                             }
+                        }
+                        // Preserva classificação já feita
+                        if(isset($old['_class_empresa_id'])){
+                            $linhaNova['_class_empresa_id'] = $old['_class_empresa_id'];
+                        }
+                        if(isset($old['_class_conta_id'])){
+                            $linhaNova['_class_conta_id'] = $old['_class_conta_id'];
                         }
                     }
                     unset($linhaNova);
@@ -1600,7 +1615,55 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             'subsRaw' => $subsRaw,
             'regexRaw' => $regexRaw,
             'cacheKey' => $cacheKey,
+            'empresasLista' => $empresasLista,
         ]);
+    }
+
+    /**
+     * Atualiza classificação (empresa/conta) de uma linha na pré-visualização
+     */
+    public function updatePreviewDespesasClassificacao(Request $request)
+    {
+        $data = $request->validate([
+            'cache_key' => 'required|string',
+            'row' => 'required|integer',
+            'empresa_id' => 'nullable|integer',
+            'conta_id' => 'nullable|integer',
+        ]);
+        $cacheKey = $data['cache_key'];
+        if(!Cache::has($cacheKey)){
+            return response()->json(['ok'=>false,'message'=>'Cache expirado']);
+        }
+        $payload = Cache::get($cacheKey);
+        $rows = $payload['rows'] ?? [];
+        $i = $data['row'];
+        if(!isset($rows[$i])){
+            return response()->json(['ok'=>false,'message'=>'Linha inexistente']);
+        }
+        $empresaId = $data['empresa_id'] ?? null;
+        $contaId = $data['conta_id'] ?? null;
+        // valida acesso a empresa se informada
+        if($empresaId){
+            $allowed = Empresa::join('Contabilidade.EmpresasUsuarios','EmpresasUsuarios.EmpresaID','Empresas.ID')
+                ->where('EmpresasUsuarios.UsuarioID', auth()->id())
+                ->where('Empresas.ID',$empresaId)
+                ->exists();
+            if(!$allowed){
+                return response()->json(['ok'=>false,'message'=>'Empresa não autorizada'],403);
+            }
+        }
+        // valida conta pertence à empresa (quando ambos presentes)
+        if($empresaId && $contaId){
+            $contaOk = Conta::where('ID',$contaId)->where('EmpresaID',$empresaId)->exists();
+            if(!$contaOk){
+                return response()->json(['ok'=>false,'message'=>'Conta não pertence à empresa selecionada'],422);
+            }
+        }
+        $rows[$i]['_class_empresa_id'] = $empresaId;
+        $rows[$i]['_class_conta_id'] = $contaId;
+        $payload['rows'] = $rows;
+        Cache::put($cacheKey,$payload, now()->addHour());
+        return response()->json(['ok'=>true]);
     }
 
     /**
