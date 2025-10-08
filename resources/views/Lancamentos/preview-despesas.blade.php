@@ -66,8 +66,8 @@
         <div class="mb-2 d-flex flex-wrap align-items-end gap-2">
             <div>
                 <label class="form-label mb-1">Empresa (global)</label>
-                <select id="empresa-global" class="form-select form-select-sm" data-cache-key="{{ $cacheKey }}">
-                    <option value="">-- selecione --</option>
+                <select id="empresa-global" class="form-select form-select-sm select2-basic" data-cache-key="{{ $cacheKey }}" data-placeholder="Selecione a empresa">
+                    <option value=""></option>
                     @foreach($empresasLista as $emp)
                         <option value="{{ $emp->ID }}" {{ (string)($selectedEmpresaId ?? '') === (string)$emp->ID ? 'selected' : '' }}>{{ $emp->Descricao }}</option>
                     @endforeach
@@ -135,14 +135,20 @@
     @endif
 </div>
 @endsection
-@push('scripts')
 @push('styles')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
 <style>
+    .select2-container--bootstrap-5 .select2-selection { min-height: 32px; }
+    .select2-selection__rendered { line-height:30px !important; }
+    .select2-selection__arrow { height:30px !important; }
     tr.linha-sem-conta {outline:2px solid #dc3545;}
     tr.linha-sem-conta td {background-image:linear-gradient(90deg, rgba(220,53,69,0.08), transparent);} 
     .legend-inline {font-size:.75rem;}
 </style>
 @endpush
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 (function(){
     const table = document.querySelector('table[data-cache-key]');
@@ -209,8 +215,9 @@
         if(!window.jQuery || !jQuery().select2) return;
         jQuery('select.select2-basic').each(function(){
             const $el = jQuery(this);
+            const placeholder = $el.data('placeholder') || ($el.attr('id')==='empresa-global' ? 'Selecione a empresa' : 'Conta');
             if($el.hasClass('select2-hidden-accessible')){ $el.select2('destroy'); }
-            $el.select2({theme:'bootstrap-5', width:'100%', allowClear:true, placeholder:'Conta'});
+            $el.select2({ theme:'bootstrap-5', width:'100%', allowClear:true, placeholder: placeholder });
         });
     }
     function ordenarOpcoes(select){
@@ -231,11 +238,13 @@
     }
     async function aplicarEmpresaGlobal(){
         const empId = empresaGlobalSelect.value || '';
+        // Feedback visual de carregamento
+        empresaGlobalSelect.classList.add('border','border-warning');
         document.querySelectorAll('select.class-conta').forEach(sel=>{
             if(sel.dataset.can === '1'){
                 // Sempre limpa seleção ao escolher (ou re-escolher) empresa
                 sel.dataset.selected = '';
-                sel.innerHTML = '<option value=\"\">-- Conta --</option>'; sel.disabled = true;
+                sel.innerHTML = '<option value="">Carregando...</option>'; sel.disabled = true;
             }
         });
         if(!empId){ return; }
@@ -251,7 +260,7 @@
             document.querySelectorAll('select.class-conta').forEach(sel=>{
                 if(sel.dataset.can !== '1') return;
                 const selected = sel.dataset.selected || '';
-                sel.innerHTML = '<option value="">-- Conta --</option>';
+                sel.innerHTML = '<option value=""></option>';
                 Object.entries(contas).forEach(([id, desc])=>{
                     const opt = document.createElement('option');
                     opt.value=id; opt.textContent=desc; // não marcar selected para forçar escolha manual
@@ -263,6 +272,7 @@
             empresaGlobalSelect.setAttribute('data-prev', empId);
             initSelect2();
             marcarLinhasSemConta();
+            setTimeout(()=> empresaGlobalSelect.classList.remove('border','border-warning'), 1200);
         }).catch(e=>console.error(e));
     }
     empresaGlobalSelect?.addEventListener('change', aplicarEmpresaGlobal);
@@ -270,6 +280,8 @@
     if(empresaGlobalSelect?.value){
         empresaGlobalSelect.setAttribute('data-prev', empresaGlobalSelect.value);
         aplicarEmpresaGlobal();
+    } else {
+        initSelect2();
     }
     document.querySelectorAll('select.class-conta').forEach(selConta=>{
         selConta.addEventListener('change', ()=>{
@@ -296,7 +308,8 @@
         }
     });
     // Inicializa select2 caso empresa já setada
-    initSelect2();
+    // Se empresa vazia e não inicializou via aplicarEmpresaGlobal
+    if(!empresaGlobalSelect?.value){ initSelect2(); }
     marcarLinhasSemConta();
     // Toggle de ocultar/mostrar classificadas
     const btnToggle = document.getElementById('toggle-pendentes');
