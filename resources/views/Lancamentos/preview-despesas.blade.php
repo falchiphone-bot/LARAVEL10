@@ -335,6 +335,8 @@
         if(selConta){
             const row = selConta.dataset.row;
             const contaId = selConta.value || null;
+            // Persistimos a seleção no atributo data-selected para reutilizar após refresh/reprocess
+            selConta.dataset.selected = contaId ? String(contaId) : '';
             updateClassificacao(row, contaId);
             marcarLinhasSemConta();
             atualizarToggleEstado();

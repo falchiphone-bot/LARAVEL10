@@ -1570,7 +1570,8 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     $linha['_hist_ajustado'] = $histKey ? $linha[$histKey] : null;
                     // Campos de classificação (empresa/conta) default null até usuário selecionar (empresa única posteriormente)
                     $linha['_class_empresa_id'] = $selectedEmpresaId; // se já havia empresa selecionada global
-                    $linha['_class_conta_id'] = null;
+                    // Não inicializamos _class_conta_id aqui para permitir restauração posterior; manter null se novo
+                    $linha['_class_conta_id'] = $linha['_class_conta_id'] ?? null;
                     $rows[] = $linha;
                 }
                 // Mescla ajustes antigos se usuário havia modificado (_hist_ajustado diferente do original)
