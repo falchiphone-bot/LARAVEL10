@@ -56,6 +56,9 @@
 
 <body>
 
+  <!-- Toggle Layout (Enable/Disable header/navigation) -->
+  <button id="toggle-layout" class="toggle-layout-button" title="Desativar/Ativar layout (oculta/exibe cabeçalho)">Layout</button>
+
     <main>
         <header>
 @can('GOOGLE - PESQUISA')
@@ -256,6 +259,58 @@ if (window.Livewire) {
     aplicarMascaraValor();
   });
 }
+</script>
+
+<style>
+  /* Botão flutuante para ativar/desativar o layout (sempre visível, mesmo com header oculto) */
+  .toggle-layout-button {
+    position: fixed;
+    top: 20px;
+    left: 60px; /* evita sobrepor o #toggle-menu */
+    z-index: 1200;
+    background-color: #6c757d;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 10px;
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1;
+    transition: background-color 0.2s ease;
+  }
+  .toggle-layout-button:hover { background-color: #5a6268; }
+  /* Quando layout estiver desativado, ocultar o header */
+  body.layout-off header { display: none !important; }
+  /* Dar destaque ao botão quando off */
+  body.layout-off #toggle-layout { background-color: #212529; }
+</style>
+
+<script>
+  // Toggle do layout (exibe/oculta cabeçalho/navigation do layout bootstrap5)
+  (function(){
+    const LS_KEY = 'bootstrap5.layout.enabled';
+    function isEnabled(){
+      try{ const v = localStorage.getItem(LS_KEY); return v === null ? true : v === '1'; }catch(_e){ return true; }
+    }
+    function setEnabled(on){
+      try{ localStorage.setItem(LS_KEY, on ? '1' : '0'); }catch(_e){}
+      document.body.classList.toggle('layout-off', !on);
+      const btn = document.getElementById('toggle-layout');
+      if(btn){ btn.textContent = on ? 'Desativar Layout' : 'Ativar Layout'; }
+    }
+    document.addEventListener('DOMContentLoaded', function(){
+      // Checa parâmetro de URL (?layout=off|on) para forçar estado inicial
+      try{
+        const url = new URL(window.location.href);
+        const qp = (url.searchParams.get('layout') || '').toLowerCase();
+        if(qp === 'off'){ setEnabled(false); }
+        else if(qp === 'on'){ setEnabled(true); }
+        else { setEnabled(isEnabled()); }
+      }catch(_e){ setEnabled(isEnabled()); }
+      const btn = document.getElementById('toggle-layout');
+      if(btn){ btn.addEventListener('click', function(){ setEnabled(!isEnabled()); }); }
+    });
+  })();
 </script>
 
 <script>

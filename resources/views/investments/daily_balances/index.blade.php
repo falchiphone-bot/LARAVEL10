@@ -1,7 +1,7 @@
 @extends('layouts.bootstrap5')
 @section('content')
-<div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+<div id="daily-balances" class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2 db-header">
     <h1 class="h5 mb-0">Evolução do Saldo (Snapshots)
       @if(isset($baseMode))
         <span class="badge bg-info ms-2" title="Base acumulada">base: {{ $baseMode==='recent'?'mais recente':'mais antigo' }}</span>
@@ -12,7 +12,7 @@
         </span>
       @endif
     </h1>
-    <div class="d-flex gap-2">
+  <div class="d-flex gap-2">
         <a href="{{ route('openai.investments.index') }}" class="btn btn-outline-secondary">← Investimentos</a>
         @can('INVESTIMENTOS SNAPSHOTS - CRIAR')
         <form method="POST" action="{{ route('investments.daily-balances.store') }}" id="new-snapshot-form">
@@ -31,6 +31,7 @@
           'to'=> request('to'),
         ])) }}" class="btn btn-outline-secondary" title="Exportar CSV">Exportar CSV</a>
         @endcan
+        <button type="button" id="btn-toggle-daily-balances-compact" class="btn btn-outline-dark btn-sm" title="Alterna exibição compacta (oculta filtros e cabeçalho)">Modo Compacto</button>
         <form method="GET" action="{{ route('investments.daily-balances.index') }}" class="d-flex align-items-center ms-3 gap-3 flex-wrap">
           <div class="d-flex align-items-end gap-2 flex-wrap">
             <div>
@@ -241,6 +242,19 @@
 </div>
 @endsection
 
+@push('styles')
+<style>
+  body.db-compact header { display: none !important; }
+  body.db-compact #daily-balances .db-header { display: none !important; }
+  body.db-compact #btn-toggle-daily-balances-compact { background:#212529; color:#fff; }
+  /* opcional: reduzir paddings da tabela em modo compacto */
+  body.db-compact #daily-balances .table th,
+  body.db-compact #daily-balances .table td { padding-top:.25rem; padding-bottom:.25rem; }
+  body.db-compact #daily-balances .alert { margin-top:.5rem; margin-bottom:.5rem; }
+  body.db-compact #daily-balances .container { padding-top: .75rem !important; padding-bottom: .75rem !important; }
+</style>
+@endpush
+
 @if(!empty($sparkSeries))
 @push('scripts')
 @php
@@ -269,3 +283,27 @@
 })();</script>
 @endpush
 @endif
+
+@push('scripts')
+<script>
+(function(){
+  const LS_KEY='daily_balances_layout_compact';
+  function apply(){
+    const on = localStorage.getItem(LS_KEY)==='1';
+    document.body.classList.toggle('db-compact', on);
+    const btn = document.getElementById('btn-toggle-daily-balances-compact');
+    if(btn){ btn.textContent = on ? 'Modo Completo' : 'Modo Compacto'; }
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    apply();
+    const btn = document.getElementById('btn-toggle-daily-balances-compact');
+    btn?.addEventListener('click', ()=>{
+      const next = !(localStorage.getItem(LS_KEY)==='1');
+      localStorage.setItem(LS_KEY, next ? '1' : '0');
+      apply();
+    });
+  });
+})();
+</script>
+@endpush
+
