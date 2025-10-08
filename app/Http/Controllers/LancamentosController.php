@@ -1688,6 +1688,15 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         }
         $rows[$i]['_class_empresa_id'] = $empresaId;
         $rows[$i]['_class_conta_id'] = $contaId;
+        // Salva label da conta para reidratar sem depender de fetch imediato
+        if($contaId){
+            $label = Conta::where('Contas.ID',$contaId)
+                ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                ->value('PlanoContas.Descricao');
+            if($label){ $rows[$i]['_class_conta_label'] = $label; }
+        } else {
+            $rows[$i]['_class_conta_label'] = null;
+        }
         $payload['rows'] = $rows;
         Cache::put($cacheKey,$payload, now()->addHour());
         return response()->json(['ok'=>true]);
@@ -1727,6 +1736,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             if(!$already){
                 // Apenas em mudança real de empresa zeramos contas
                 $r['_class_conta_id'] = null;
+                $r['_class_conta_label'] = null;
             }
         }
         unset($r);
@@ -1789,4 +1799,4 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
 
 
 
-}
+// (removido bloco residual inválido)

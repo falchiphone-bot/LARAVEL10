@@ -124,7 +124,11 @@
                             </td>
                             <td style="min-width:240px;">
                                 @if($canClass)
-                                    <select class="form-select form-select-sm class-conta select2-conta-ajax" data-row="{{ $i }}" data-selected="{{ $r['_class_conta_id'] ?? '' }}" data-can="1" {{ empty($r['_class_empresa_id']) ? 'disabled' : '' }} data-placeholder="Pesquisar conta"></select>
+                                    <select class="form-select form-select-sm class-conta select2-conta-ajax" data-row="{{ $i }}" data-selected="{{ $r['_class_conta_id'] ?? '' }}" data-can="1" {{ empty($r['_class_empresa_id']) ? 'disabled' : '' }} data-placeholder="Pesquisar conta">
+                                        @if(!empty($r['_class_conta_id']))
+                                            <option value="{{ $r['_class_conta_id'] }}" selected>{{ $r['_class_conta_label'] ?? $r['_class_conta_id'] }}</option>
+                                        @endif
+                                    </select>
                                 @else
                                     <span class="text-muted small" data-can="0">(sem Data/Valor)</span>
                                 @endif
