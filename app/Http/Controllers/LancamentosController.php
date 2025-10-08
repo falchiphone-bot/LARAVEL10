@@ -1577,10 +1577,16 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     $linha['_hist_ajustado'] = $histKey ? $linha[$histKey] : null;
                     // Hash estável da linha (antes de ajustes de histórico posteriores) para reidratar classificação após refresh
                     if(!isset($linha['_row_hash'])){
-                        // Usa concatenação dos valores das colunas de dados para reduzir colisões; ignora metadados
+                        // Nova estratégia: somente DATA + HISTORICO + VALOR (mais estável conforme solicitação)
+                        $prefer = array_values(array_filter(['DATA','HISTORICO','VALOR'], fn($c)=> in_array($c,$headers,true)));
+                        $baseCols = $prefer ?: $headers; // fallback para todos se não encontrados
                         $hashBase = [];
-                        foreach($headers as $hx){ $hashBase[] = (string)($linha[$hx] ?? ''); }
+                        foreach($baseCols as $hx){ $hashBase[] = (string)($linha[$hx] ?? ''); }
                         $linha['_row_hash'] = sha1(implode('|',$hashBase));
+                        // Hash legacy completo para compatibilidade de caches antigos
+                        $legacyBase = [];
+                        foreach($headers as $hxAll){ $legacyBase[] = (string)($linha[$hxAll] ?? ''); }
+                        $linha['_row_hash_all'] = sha1(implode('|',$legacyBase));
                     }
                     // Campos de classificação (empresa/conta) default null até usuário selecionar (empresa única posteriormente)
                     $linha['_class_empresa_id'] = $selectedEmpresaId; // se já havia empresa selecionada global
@@ -1594,10 +1600,15 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     $mapOld = [];
                     foreach($oldRows as $old){
                         if(!empty($old['_row_hash'])){ $mapOld[$old['_row_hash']] = $old; }
+                        if(!empty($old['_row_hash_all']) && empty($mapOld[$old['_row_hash_all']])){ $mapOld[$old['_row_hash_all']] = $old; }
                     }
                     foreach($rows as $i => &$linhaNova){
                         $hash = $linhaNova['_row_hash'] ?? null;
-                        $old = ($hash && isset($mapOld[$hash])) ? $mapOld[$hash] : ($oldRows[$i] ?? null);
+                        $hashLegacy = $linhaNova['_row_hash_all'] ?? null;
+                        $old = null;
+                        if($hash && isset($mapOld[$hash])){ $old = $mapOld[$hash]; }
+                        elseif($hashLegacy && isset($mapOld[$hashLegacy])){ $old = $mapOld[$hashLegacy]; }
+                        else { $old = $oldRows[$i] ?? null; }
                         if(!$old) continue;
                         if(isset($old['_hist_ajustado'])){
                             $origColOld = $old['_hist_original_col'] ?? null;
