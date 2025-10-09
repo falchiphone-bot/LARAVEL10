@@ -1,3 +1,27 @@
+@extends('layouts.bootstrap5')
+@section('content')
+<!-- Modal de confirmação final -->
+<div class="modal fade" id="modalLancamentoPronto" tabindex="-1" aria-labelledby="modalLancamentoProntoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLancamentoProntoLabel">Validação dos Lançamentos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body" id="modalLancamentoProntoMsg">
+                <!-- Mensagem preenchida via JS -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não</button>
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal">Sim</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Fim modal de confirmação final -->
+<!-- ...existing code... -->
+@push('scripts')
+</script>
 (function(){
     // Salva cache ao sair de qualquer input editável na tabela
     document.addEventListener('blur', function(e){
@@ -7,31 +31,8 @@
         }
     }, true);
 })();
-                        <!-- Modal de confirmação final -->
-                        <div class="modal fade" id="modalLancamentoPronto" tabindex="-1" aria-labelledby="modalLancamentoProntoLabel" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="modalLancamentoProntoLabel">Validação dos Lançamentos</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                                    </div>
-                                    <div class="modal-body" id="modalLancamentoProntoMsg">
-                                        <!-- Mensagem preenchida via JS -->
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não</button>
-                                        <button type="button" class="btn btn-success" data-bs-dismiss="modal">Sim</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                                            // Após seleção automática, dispara clique em Reprocessar (Refresh) se existir
-                                            setTimeout(function(){
-                                                var btnReprocessar = document.getElementById('btn-reprocessar');
-                                                if(btnReprocessar && typeof btnReprocessar.click === 'function'){
-                                                    btnReprocessar.click();
-                                                }
-                                            }, 600);
+</script>
+@endpush
 @extends('layouts.bootstrap5')
 @section('content')
 <div class="container-fluid py-3">
@@ -223,6 +224,12 @@ document.addEventListener('DOMContentLoaded', function(){
                     ths.forEach(function(th, idx){
                         if(th.textContent.trim() === '#') idxNum = idx;
                     });
+                    // Descobre o índice da coluna VALOR (ou VALORES, case-insensitive)
+                    var idxValor = -1;
+                    ths.forEach(function(th, idx){
+                        var nome = th.textContent.trim().toUpperCase();
+                        if(nome === 'VALOR' || nome === 'VALORES') idxValor = idx;
+                    });
                     for(var i=0;i<linhas.length;i++){
                         var tr = linhas[i];
                         var tds = tr.querySelectorAll('td');
@@ -299,12 +306,27 @@ document.addEventListener('DOMContentLoaded', function(){
                         if(sel && sel.selectedIndex>=0) contaDebitoLabel = sel.options[sel.selectedIndex]?.textContent || '';
                         // CONTA_CREDITO_GLOBAL_ID: select#conta-credito-global value
                         var contaCreditoId = document.getElementById('conta-credito-global')?.value || '';
+                        // VALOR: busca e valida formato numérico
+                        var temValor = false;
+                        var valorInvalido = false;
+                        if(idxValor >= 0 && tds[idxValor]) {
+                            var valorCampo = tds[idxValor].textContent.trim();
+                            // Aceita formatos: 1234.56, 1.234,56, 1234,56, -123,45, etc
+                            var valorLimpo = valorCampo.replace(/\s/g,'').replace(/\./g,'').replace(/,/g,'.');
+                            if(valorLimpo !== '' && !isNaN(valorLimpo)) {
+                                temValor = true;
+                            } else {
+                                valorInvalido = true;
+                            }
+                        }
                         var camposFaltando = [];
                         if(!temData) camposFaltando.push('DATA');
                         if(!empresaId) camposFaltando.push('EMPRESA_ID');
                         if(!contaDebitoId) camposFaltando.push('CONTA_DEBITO_ID');
                         if(!contaDebitoLabel) camposFaltando.push('CONTA_DEBITO_LABEL');
                         if(!contaCreditoId) camposFaltando.push('CONTA_CREDITO_GLOBAL_ID');
+                        if(!temValor) camposFaltando.push('VALOR');
+                        if(valorInvalido) camposFaltando.push('VALOR_INVÁLIDO');
                         if(camposFaltando.length > 0){
                             ok = false;
                             erros.push('Linha '+linhaNum+': faltando '+camposFaltando.join(', '));
@@ -316,7 +338,7 @@ document.addEventListener('DOMContentLoaded', function(){
                                 // Busca índice do campo no header
                                 var idxCampo = -1;
                                 ths.forEach(function(th, idx){
-                                    if(th.textContent.trim().toUpperCase().includes(campo.replace('_ID','').replace('_LABEL','').replace('GLOBAL','').replace('CONTA','CONTA').replace('EMPRESA','EMPRESA'))) idxCampo = idx;
+                                    if(th.textContent.trim().toUpperCase().includes(campo.replace('_ID','').replace('_LABEL','').replace('GLOBAL','').replace('CONTA','CONTA').replace('EMPRESA','EMPRESA').replace('VALOR','VALOR'))) idxCampo = idx;
                                 });
                                 if(idxCampo >= 0 && tds[idxCampo]) {
                                     // Se já não for input, ativa edição
