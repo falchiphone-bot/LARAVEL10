@@ -1428,8 +1428,10 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         $exists = file_exists($fullPath);
         $cacheKey = 'preview_despesas:'.auth()->id().':'.md5(json_encode([$file,$limite,$flagUpper,$flagTrimMulti,$subsRaw,$regexRaw]));
         $forceRefresh = (bool)$request->query('refresh');
-        $headers = [];
-        $rows = [];
+    $headers = [];
+    $rows = [];
+    $empresaIdFromFile = null;
+    $contaCreditoIdFromFile = null;
         // Empresas disponíveis para o usuário (mesma lógica usada em outros pontos)
         $empresasLista = Empresa::join('Contabilidade.EmpresasUsuarios','EmpresasUsuarios.EmpresaID','Empresas.ID')
             ->where('EmpresasUsuarios.UsuarioID', auth()->id())
@@ -1449,6 +1451,40 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             $globalCreditContaId = $cached['global_credit_conta_id'] ?? null;
             $globalCreditContaLabel = $cached['global_credit_conta_label'] ?? null;
             $globalCreditContaLocked = $cached['global_credit_conta_locked'] ?? false;
+            // Inferência também no caminho de cache
+            if(in_array('EMPRESA_ID',$headers,true)){
+                foreach($rows as $rX){ if(!empty($rX['EMPRESA_ID'])){ $empresaIdFromFile = (int)$rX['EMPRESA_ID']; break; } }
+            }
+            if(in_array('CONTA_CREDITO_GLOBAL_ID',$headers,true)){
+                foreach($rows as $rX){ if(!empty($rX['CONTA_CREDITO_GLOBAL_ID'])){ $contaCreditoIdFromFile = (int)$rX['CONTA_CREDITO_GLOBAL_ID']; break; } }
+            }
+            // Fallbacks: se não encontrado nas linhas, usa o que já está no cache como sugestão
+            if(!$empresaIdFromFile && $selectedEmpresaId){ $empresaIdFromFile = (int)$selectedEmpresaId; }
+            if(!$contaCreditoIdFromFile && $globalCreditContaId){ $contaCreditoIdFromFile = (int)$globalCreditContaId; }
+            // Se cache ainda não tem empresa selecionada mas inferimos do arquivo, seta e destrava
+            $payload = $cached;
+            $touched = false;
+            if($empresaIdFromFile && empty($payload['selected_empresa_id'])){
+                $payload['selected_empresa_id'] = $empresaIdFromFile;
+                $payload['empresa_locked'] = false;
+                $selectedEmpresaId = $empresaIdFromFile;
+                $empresaLocked = false;
+                $touched = true;
+                // Atualiza cada linha para refletir empresa global quando antes estava vazia
+                if(!empty($payload['rows'])){
+                    foreach($payload['rows'] as &$r){ if(empty($r['_class_empresa_id'])) $r['_class_empresa_id'] = $empresaIdFromFile; }
+                    unset($r);
+                }
+            }
+            if($contaCreditoIdFromFile && empty($payload['global_credit_conta_id'])){
+                $payload['global_credit_conta_id'] = $contaCreditoIdFromFile;
+                $payload['global_credit_conta_label'] = $payload['global_credit_conta_label'] ?? null; // label opcional
+                $payload['global_credit_conta_locked'] = false; // destrava para permitir edição
+                $globalCreditContaId = $contaCreditoIdFromFile;
+                $globalCreditContaLocked = false;
+                $touched = true;
+            }
+            if($touched){ Cache::put($cacheKey, $payload, now()->addHour()); }
         } elseif(!$exists){
             $erro = "Arquivo não encontrado em imports: $file. Copie ou faça upload.";
         } else {
@@ -1517,6 +1553,20 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     $linha['_class_conta_id'] = $linha['_class_conta_id'] ?? null;
                     $rows[] = $linha;
                 }
+                // Tenta inferir Empresa e Conta Crédito a partir do arquivo (se for um export com colunas adicionais)
+                if(in_array('EMPRESA_ID',$headers,true)){
+                    foreach($rows as $rX){ if(!empty($rX['EMPRESA_ID'])){ $empresaIdFromFile = (int)$rX['EMPRESA_ID']; break; } }
+                }
+                if(in_array('CONTA_CREDITO_GLOBAL_ID',$headers,true)){
+                    foreach($rows as $rX){ if(!empty($rX['CONTA_CREDITO_GLOBAL_ID'])){ $contaCreditoIdFromFile = (int)$rX['CONTA_CREDITO_GLOBAL_ID']; break; } }
+                }
+                // Fallback: se usuário só tem 1 empresa, usar essa como sugestão
+                if(!$empresaIdFromFile && $empresasLista->count() === 1){
+                    $empresaIdFromFile = (int)$empresasLista->first()->ID;
+                }
+                // Fallbacks adicionais a partir de contexto selecionado
+                if(!$empresaIdFromFile && $selectedEmpresaId){ $empresaIdFromFile = (int)$selectedEmpresaId; }
+                if(!$contaCreditoIdFromFile && $globalCreditContaId){ $contaCreditoIdFromFile = (int)$globalCreditContaId; }
                 // Mescla ajustes antigos se usuário havia modificado (_hist_ajustado diferente do original)
                 if($oldRows){
                     // Mapa por hash antigo para restauração independente de reordenação
@@ -1667,6 +1717,8 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             'globalCreditContaId' => $globalCreditContaId,
             'globalCreditContaLabel' => $globalCreditContaLabel,
             'globalCreditContaLocked' => $globalCreditContaLocked,
+            'empresaIdFromFile' => $empresaIdFromFile,
+            'contaCreditoIdFromFile' => $contaCreditoIdFromFile,
         ]);
     }
 
@@ -1842,7 +1894,8 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             'rows.*.i' => 'required|integer|min:0',
             'rows.*.conta_id' => 'nullable|integer',
             'rows.*.conta_label' => 'nullable|string',
-            'rows.*.hist_ajustado' => 'nullable|string'
+            'rows.*.hist_ajustado' => 'nullable|string',
+            'rows.*.data' => 'nullable|string'
             ,'global_credit_conta_id' => 'nullable|integer'
             ,'global_credit_conta_label' => 'nullable|string'
         ]);
@@ -1859,6 +1912,20 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                 $histCol = $rows[$i]['_hist_original_col'] ?? null;
                 if($histCol && isset($rows[$i][$histCol])){
                     $rows[$i][$histCol] = $r['hist_ajustado'];
+                }
+            }
+            // Atualiza DATA se enviado
+            if(array_key_exists('data',$r)){
+                // Se existir a coluna DATA no conjunto de headers desta cache, atualiza-a
+                if(isset($rows[$i]['DATA'])){
+                    $rows[$i]['DATA'] = $r['data'];
+                } else {
+                    // fallback: tenta encontrar chave que contenha 'DATA' (caso variação de header)
+                    foreach(array_keys($rows[$i]) as $k){
+                        if(is_string($k) && stripos($k,'DATA') !== false && strpos($k,'_') !== 0){
+                            $rows[$i][$k] = $r['data']; break;
+                        }
+                    }
                 }
             }
             if(array_key_exists('conta_id',$r)){
@@ -2031,7 +2098,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         $creditId = $payload['global_credit_conta_id'] ?? null;
         $creditLabel = $payload['global_credit_conta_label'] ?? null;
 
-        // Construir conjunto de headings: colunas originais + adicionais no final
+        // Construir conjunto de headings: colunas originais + quaisquer chaves presentes nas linhas (não internas) + adicionais padronizados no final
         $extraCols = [
             'HISTORICO_AJUSTADO',
             'EMPRESA_ID',
@@ -2043,28 +2110,46 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             'AUTO_HITS',
             'ROW_HASH'
         ];
-        $headings = array_merge($headersOrig, $extraCols);
+        // Coleta dinâmica de chaves presentes nas linhas (exclui internas "_...")
+        $dynamicKeys = [];
+        foreach($rowsCache as $r){
+            foreach(array_keys($r) as $k){
+                if(is_string($k) && strpos($k,'_') !== 0 && !in_array($k,$dynamicKeys,true)){
+                    $dynamicKeys[] = $k;
+                }
+            }
+        }
+        // Headings: originais + dinâmicas + extras, sem duplicatas
+        $headings = array_values(array_unique(array_merge($headersOrig, $dynamicKeys, $extraCols)));
 
         $exportRows = [];
         foreach($rowsCache as $r){
             $linha = [];
-            // Colunas originais na ordem
-            foreach($headersOrig as $h){
+            // Preenche todas as colunas de saída respeitando prioridade: valor existente no row -> derivação padrão
+            foreach($headings as $h){
                 $val = $r[$h] ?? null;
-                // Garante casting simples (evita objetos DateTime sem formatação)
-                if($val instanceof \DateTimeInterface){
-                    $val = $val->format('d/m/Y');
-                }
-                $linha[$h] = $val;
+                if($val instanceof \DateTimeInterface){ $val = $val->format('d/m/Y'); }
+                $linha[$h] = $val; // inicialmente copia se existir
             }
-            $histAjust = $r['_hist_ajustado'] ?? null;
-            // Se coluna original de histórico existe e foi sobrescrita já está em $linha, mas mantemos coluna explícita
-            $linha['HISTORICO_AJUSTADO'] = $histAjust;
-            $linha['EMPRESA_ID'] = $r['_class_empresa_id'] ?? $empresaIdGlobal;
-            $linha['CONTA_DEBITO_ID'] = $r['_class_conta_id'] ?? null;
-            $linha['CONTA_DEBITO_LABEL'] = $r['_class_conta_label'] ?? null;
-            $linha['CONTA_CREDITO_GLOBAL_ID'] = $creditId;
-            $linha['CONTA_CREDITO_GLOBAL_LABEL'] = $creditLabel;
+            // Preencher campos padronizados quando ausentes
+            if(!array_key_exists('HISTORICO_AJUSTADO',$linha) || $linha['HISTORICO_AJUSTADO'] === null){
+                $linha['HISTORICO_AJUSTADO'] = $r['_hist_ajustado'] ?? null;
+            }
+            if(!array_key_exists('EMPRESA_ID',$linha) || empty($linha['EMPRESA_ID'])){
+                $linha['EMPRESA_ID'] = $r['_class_empresa_id'] ?? $empresaIdGlobal;
+            }
+            if(!array_key_exists('CONTA_DEBITO_ID',$linha) || empty($linha['CONTA_DEBITO_ID'])){
+                $linha['CONTA_DEBITO_ID'] = $r['_class_conta_id'] ?? null;
+            }
+            if(!array_key_exists('CONTA_DEBITO_LABEL',$linha) || empty($linha['CONTA_DEBITO_LABEL'])){
+                $linha['CONTA_DEBITO_LABEL'] = $r['_class_conta_label'] ?? null;
+            }
+            if(!array_key_exists('CONTA_CREDITO_GLOBAL_ID',$linha) || empty($linha['CONTA_CREDITO_GLOBAL_ID'])){
+                $linha['CONTA_CREDITO_GLOBAL_ID'] = $creditId;
+            }
+            if(!array_key_exists('CONTA_CREDITO_GLOBAL_LABEL',$linha) || empty($linha['CONTA_CREDITO_GLOBAL_LABEL'])){
+                $linha['CONTA_CREDITO_GLOBAL_LABEL'] = $creditLabel;
+            }
             $linha['AUTO_CLASSIFIED'] = !empty($r['_auto_classified']) ? 1 : 0;
             $linha['AUTO_HITS'] = $r['_auto_hits'] ?? null;
             $linha['ROW_HASH'] = $r['_row_hash'] ?? null;
@@ -2097,9 +2182,18 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             $headersAll=[]; for($c=1;$c<=$highestColIndex;$c++){ $v=trim((string)$sheet->getCellByColumnAndRow($c,1)->getValue()); if($v==='') $v='COL_'.$c; $headersAll[]=$v; }
             $required=['HISTORICO_AJUSTADO','EMPRESA_ID','CONTA_DEBITO_ID','CONTA_CREDITO_GLOBAL_ID','ROW_HASH'];
             foreach($required as $req){ if(!in_array($req,$headersAll,true)){ return back()->with('error','Arquivo inválido: faltando coluna '.$req); } }
-            $extra=['HISTORICO_AJUSTADO','EMPRESA_ID','CONTA_DEBITO_ID','CONTA_DEBITO_LABEL','CONTA_CREDITO_GLOBAL_ID','CONTA_CREDITO_GLOBAL_LABEL','AUTO_CLASSIFIED','AUTO_HITS','ROW_HASH'];
-            $headersOrig = array_values(array_filter($headersAll, fn($h)=> !in_array($h,$extra,true)));
-            $histOrigCol = null; foreach($headersOrig as $h){ if(stripos($h,'HIST')!==false){ $histOrigCol=$h; break; } }
+            // Manter colunas úteis do export no cabeçalho da visualização (para reimportações):
+            // HISTORICO_AJUSTADO, EMPRESA_ID, CONTA_DEBITO_ID/LABEL, CONTA_CREDITO_GLOBAL_ID/LABEL
+            // Remover apenas auxiliares de diagnóstico/controle
+            $dropOnly = ['AUTO_CLASSIFIED','AUTO_HITS','ROW_HASH'];
+            $headersOrig = array_values(array_filter($headersAll, fn($h)=> !in_array($h,$dropOnly,true)));
+            // Detectar coluna original de histórico (evitar escolher HISTORICO_AJUSTADO)
+            $histOrigCol = null;
+            foreach($headersOrig as $h){
+                $u = mb_strtoupper($h,'UTF-8');
+                if($u === 'HISTORICO_AJUSTADO') continue;
+                if(strpos($u,'HIST')!==false){ $histOrigCol=$h; break; }
+            }
             $rows=[]; $empresaGlobal=null; $creditId=null; $creditLabel=null;
             $getVal = function($row,$colName) use ($headersAll,$sheet){ $idx=array_search($colName,$headersAll,true); if($idx===false) return null; $val=$sheet->getCellByColumnAndRow($idx+1,$row)->getValue(); if($val instanceof \DateTimeInterface){ return $val->format('d/m/Y'); } return $val; };
             for($r=2;$r<=$highestRow;$r++){
@@ -2119,6 +2213,11 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                 $linha['_class_empresa_id']=$emp ?: $empresaGlobal;
                 $linha['_class_conta_id']=$contaDeb ?: null;
                 if($contaDebLabel) $linha['_class_conta_label']=$contaDebLabel;
+                // Se o arquivo traz "CONTA_DEBITO_ID" e a view manterá essa coluna (agora mantemos), deixamos também espelhado no dado original para fallback no validador
+                if(!empty($contaDeb)){
+                    $linha['CONTA_DEBITO_ID'] = $contaDeb;
+                    if($contaDebLabel) $linha['CONTA_DEBITO_LABEL'] = $contaDebLabel;
+                }
                 if($autoClass){ $linha['_auto_classified']=true; $linha['_auto_hits']=$autoHits ?: 1; }
                 if($rowHash){ $linha['_row_hash']=$rowHash; $linha['_row_hash_all']=$rowHash; }
                 $rows[]=$linha;

@@ -1,41 +1,6 @@
 @extends('layouts.bootstrap5')
 @section('content')
-<!-- Modal de confirmação final -->
-<div class="modal fade" id="modalLancamentoPronto" tabindex="-1" aria-labelledby="modalLancamentoProntoLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalLancamentoProntoLabel">Validação dos Lançamentos</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-            </div>
-            <div class="modal-body" id="modalLancamentoProntoMsg">
-                <!-- Mensagem preenchida via JS -->
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não</button>
-                <button type="button" class="btn btn-success" data-bs-dismiss="modal">Sim</button>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- Fim modal de confirmação final -->
-<!-- ...existing code... -->
-@push('scripts')
-</script>
-(function(){
-    // Salva cache ao sair de qualquer input editável na tabela
-    document.addEventListener('blur', function(e){
-        if(e.target && e.target.matches('table[data-cache-key] input')){
-            var btnSnapshot = document.getElementById('btn-snapshot-cache');
-            if(btnSnapshot) btnSnapshot.click();
-        }
-    }, true);
-})();
-</script>
-@endpush
-@extends('layouts.bootstrap5')
-@section('content')
-<div class="container-fluid py-3">
+<div class="container-fluid py-3" id="preview-despesas-root" data-empresa-id-from-file="{{ $empresaIdFromFile ?? '' }}" data-conta-credito-id-from-file="{{ $contaCreditoIdFromFile ?? '' }}">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
         <h4 class="mb-0">Preview Despesas (Excel) - {{ $arquivo }}</h4>
         <div class="d-flex align-items-center gap-2">
@@ -43,7 +8,7 @@
         </div>
     </div>
     <div class="mb-3 d-flex gap-3 flex-wrap">
-        <form method="GET" action="{{ route('lancamentos.preview.despesas') }}" class="row g-2 align-items-end">
+    <form method="GET" action="{{ route('lancamentos.preview.despesas') }}" class="row g-2 align-items-end" id="form-filtros">
             <div class="col-auto">
                 <label class="form-label mb-1">Arquivo (imports)</label>
                 <input type="text" name="file" value="{{ $arquivo }}" class="form-control form-control-sm" placeholder="DESPESAS-08-2025-TEC.xlsx">
@@ -98,61 +63,67 @@
                                             localStorage.setItem('preview_despesas_auto_select', '1');
                                         });
                                     }
+                                    function autoSelectFromDatasetIfAvailable(){
+                                        var root = document.getElementById('preview-despesas-root');
+                                        if(!root) return;
+                                        // Empresa
+                                        var empresaSel = document.getElementById('empresa-global');
+                                        var empresaIdFromFile = root.dataset.empresaIdFromFile || '';
+                                        if(empresaSel && !empresaSel.value){
+                                            if(empresaIdFromFile){
+                                                // Garante que o select esteja habilitado (pode ter sido travado previamente)
+                                                empresaSel.disabled = false;
+                                                empresaSel.value = String(empresaIdFromFile);
+                                                if(window.jQuery){ jQuery(empresaSel).trigger('change.select2'); }
+                                                else empresaSel.dispatchEvent(new Event('change', {bubbles:true}));
+                                                var btnLockEmpresa = document.getElementById('btn-lock-empresa');
+                                                if(btnLockEmpresa){
+                                                    btnLockEmpresa.dataset.locked = '0';
+                                                    btnLockEmpresa.disabled = false;
+                                                    btnLockEmpresa.classList.add('btn-outline-danger');
+                                                    btnLockEmpresa.classList.remove('btn-danger');
+                                                    btnLockEmpresa.textContent = 'Travar Empresa';
+                                                }
+                                            } else if(empresaSel.options.length===2){
+                                                empresaSel.disabled = false;
+                                                empresaSel.selectedIndex = 1;
+                                                if(window.jQuery){ jQuery(empresaSel).trigger('change.select2'); }
+                                                else empresaSel.dispatchEvent(new Event('change', {bubbles:true}));
+                                            }
+                                        }
+                                        // Conta Crédito
+                                        var contaSel = document.getElementById('conta-credito-global');
+                                        var contaCreditoIdFromFile = root.dataset.contaCreditoIdFromFile || '';
+                                        if(contaSel && !contaSel.value && contaCreditoIdFromFile){
+                                            // Garante que o select esteja habilitado
+                                            contaSel.disabled = false;
+                                            var opt = contaSel.querySelector('option[value="'+contaCreditoIdFromFile+'"]');
+                                            if(!opt){
+                                                opt = document.createElement('option');
+                                                opt.value = contaCreditoIdFromFile;
+                                                opt.textContent = contaCreditoIdFromFile;
+                                                contaSel.appendChild(opt);
+                                            }
+                                            contaSel.value = contaCreditoIdFromFile;
+                                            if(window.jQuery){ jQuery(contaSel).trigger('change.select2'); }
+                                            else contaSel.dispatchEvent(new Event('change', {bubbles:true}));
+                                            var btnLockCredito = document.getElementById('btn-lock-conta-credito');
+                                            if(btnLockCredito){
+                                                btnLockCredito.dataset.locked = '0';
+                                                btnLockCredito.disabled = false;
+                                                btnLockCredito.classList.add('btn-outline-primary');
+                                                btnLockCredito.classList.remove('btn-primary');
+                                                btnLockCredito.textContent = 'Travar Crédito';
+                                            }
+                                        }
+                                    }
                                     // Após reload, se flag setada, tenta selecionar automaticamente
                                     if(localStorage.getItem('preview_despesas_auto_select')==='1'){
                                         localStorage.removeItem('preview_despesas_auto_select');
-                                        setTimeout(function(){
-                                            // EMPRESA_ID do backend
-                                            var empresaIdFromFile = {{ isset($empresaIdFromFile) && $empresaIdFromFile ? json_encode($empresaIdFromFile) : 'null' }};
-                                            var empresaSel = document.getElementById('empresa-global');
-                                                                    if(empresaSel && empresaIdFromFile){
-                                                                        empresaSel.value = String(empresaIdFromFile);
-                                                                        if(window.jQuery){ jQuery(empresaSel).trigger('change.select2'); }
-                                                                        else empresaSel.dispatchEvent(new Event('change', {bubbles:true}));
-                                                                        // Destrava botão empresa
-                                                                        var btnLockEmpresa = document.getElementById('btn-lock-empresa');
-                                                                        if(btnLockEmpresa){
-                                                                            btnLockEmpresa.dataset.locked = '0';
-                                                                            btnLockEmpresa.disabled = false;
-                                                                            btnLockEmpresa.classList.add('btn-outline-danger');
-                                                                            btnLockEmpresa.classList.remove('btn-danger');
-                                                                            btnLockEmpresa.textContent = 'Travar Empresa';
-                                                                        }
-                                                                    } else if(empresaSel && empresaSel.options.length===2 && !empresaSel.value){
-                                                                        empresaSel.selectedIndex = 1;
-                                                                        if(window.jQuery){ jQuery(empresaSel).trigger('change.select2'); }
-                                                                        else empresaSel.dispatchEvent(new Event('change', {bubbles:true}));
-                                                                    }
-                                            // CONTA_CREDITO_GLOBAL_ID do backend
-                                            var contaCreditoIdFromFile = {{ isset($contaCreditoIdFromFile) && $contaCreditoIdFromFile ? json_encode($contaCreditoIdFromFile) : 'null' }};
-                                            var contaSel = document.getElementById('conta-credito-global');
-                                                                    if(contaSel && contaCreditoIdFromFile){
-                                                                        // Se já existe option, seleciona; senão, adiciona e seleciona
-                                                                        var opt = contaSel.querySelector('option[value="'+contaCreditoIdFromFile+'"]');
-                                                                        if(!opt){
-                                                                            opt = document.createElement('option');
-                                                                            opt.value = contaCreditoIdFromFile;
-                                                                            opt.textContent = contaCreditoIdFromFile;
-                                                                            contaSel.appendChild(opt);
-                                                                        }
-                                                                        contaSel.value = contaCreditoIdFromFile;
-                                                                        if(window.jQuery){ jQuery(contaSel).trigger('change.select2'); }
-                                                                        else contaSel.dispatchEvent(new Event('change', {bubbles:true}));
-                                                                        // Destrava botão conta crédito
-                                                                        var btnLockCredito = document.getElementById('btn-lock-conta-credito');
-                                                                        if(btnLockCredito){
-                                                                            btnLockCredito.dataset.locked = '0';
-                                                                            btnLockCredito.disabled = false;
-                                                                            btnLockCredito.classList.add('btn-outline-primary');
-                                                                            btnLockCredito.classList.remove('btn-primary');
-                                                                            btnLockCredito.textContent = 'Travar Crédito';
-                                                                        }
-                                                                    } else if(contaSel && contaSel.options.length===2 && !contaSel.value){
-                                                                        contaSel.selectedIndex = 1;
-                                                                        if(window.jQuery){ jQuery(contaSel).trigger('change.select2'); }
-                                                                        else contaSel.dispatchEvent(new Event('change', {bubbles:true}));
-                                                                    }
-                                        }, 400);
+                                        setTimeout(autoSelectFromDatasetIfAvailable, 400);
+                                    } else {
+                                        // Mesmo sem flag (por exemplo, Importar Export), tenta aplicar dataset
+                                        setTimeout(autoSelectFromDatasetIfAvailable, 400);
                                     }
                                 });
                                 </script>
@@ -192,10 +163,30 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- Modal de confirmação final (validação dos lançamentos) -->
+                        <div class="modal fade" id="modalLancamentoPronto" tabindex="-1" aria-labelledby="modalLancamentoProntoLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="modalLancamentoProntoLabel">Validação dos Lançamentos</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                    </div>
+                                    <div class="modal-body" id="modalLancamentoProntoMsg"></div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não</button>
+                                        <button type="button" class="btn btn-success" data-bs-dismiss="modal">Sim</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                 @endif
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function(){
+    // Debug mode: enable via ?debug_preview=1 or localStorage('preview_despesas_debug') or Alt+D
+    var __previewDebug = (localStorage.getItem('preview_despesas_debug')==='1') || (new URLSearchParams(location.search).get('debug_preview')==='1');
+    window.__previewDebug = __previewDebug;
+    document.addEventListener('keydown', function(e){ if(e.altKey && e.key && e.key.toLowerCase()==='d'){ __previewDebug = !__previewDebug; window.__previewDebug = __previewDebug; localStorage.setItem('preview_despesas_debug', __previewDebug?'1':'0'); console.info('Preview despesas debug:', __previewDebug); } });
     var btnEfetuar = document.getElementById('btn-efetuar-lancamento');
     var modalEfetuar = document.getElementById('modalEfetuarLancamento');
     var modalPronto = document.getElementById('modalLancamentoPronto');
@@ -214,6 +205,11 @@ document.addEventListener('DOMContentLoaded', function(){
             var btnSim = modalEfetuar.querySelector('.btn-success');
             if(btnSim){
                 btnSim.onclick = function(){
+                    // Evita foco permanecer em elemento dentro de modal que será oculto
+                    try { if(document.activeElement){ document.activeElement.blur(); } } catch(e){}
+                    var bsEfetuar = bootstrap.Modal.getInstance(modalEfetuar) || bootstrap.Modal.getOrCreateInstance(modalEfetuar);
+                    // Fecha o modal de confirmação antes de validar/abrir o próximo
+                    if(bsEfetuar){ bsEfetuar.hide(); }
                     // Validação das linhas da tabela
                     var ok = true;
                     var erros = [];
@@ -224,56 +220,134 @@ document.addEventListener('DOMContentLoaded', function(){
                     ths.forEach(function(th, idx){
                         if(th.textContent.trim() === '#') idxNum = idx;
                     });
-                    // Descobre o índice da coluna VALOR (ou VALORES, case-insensitive)
+                    // Descobre os índices relevantes no header
                     var idxValor = -1;
+                    var idxContaDebId = -1;
+                    var idxContaDebLabel = -1;
+                    var idxContaCredGlobalId = -1;
+                    var idxData = -1;
+                    // Passo 1: match exato 'DATA'
                     ths.forEach(function(th, idx){
                         var nome = th.textContent.trim().toUpperCase();
-                        if(nome === 'VALOR' || nome === 'VALORES') idxValor = idx;
+                        if(nome === 'DATA') idxData = idx;
                     });
+                    // Passo 2: fallback: contém 'DATA' se não achou exato
+                    if(idxData < 0){
+                        ths.forEach(function(th, idx){
+                            var nome = th.textContent.trim().toUpperCase();
+                            if(nome.includes('DATA')) idxData = idx;
+                        });
+                    }
+                    ths.forEach(function(th, idx){
+                        var nome = th.textContent.trim().toUpperCase();
+                        if(nome.includes('VALOR')) idxValor = idx;
+                        var hasDeb = (nome.includes('DEBIT') || nome.includes('DEBITO') || nome.includes('DÉBITO'));
+                        var hasCred = (nome.includes('CREDIT') || nome.includes('CREDITO') || nome.includes('CRÉDITO'));
+                        if(nome.includes('CONTA') && hasDeb && nome.includes('ID')) idxContaDebId = idx;
+                        if(nome.includes('CONTA') && hasDeb && nome.includes('LABEL')) idxContaDebLabel = idx;
+                        if(nome.includes('CONTA') && hasCred && nome.includes('GLOBAL') && nome.includes('ID')) idxContaCredGlobalId = idx;
+                    });
+
+                    // Utilitários de data
+                    function isValidYMD(y,m,d){
+                        y = parseInt(y,10); m = parseInt(m,10); d = parseInt(d,10);
+                        if(!y||!m||!d) return false;
+                        if(m<1||m>12||d<1||d>31) return false;
+                        var dt = new Date(y, m-1, d);
+                        return dt.getFullYear()===y && (dt.getMonth()+1)===m && dt.getDate()===d;
+                    }
+                    function pad2(n){ n = String(n); return n.length===1 ? '0'+n : n; }
+                    function fmtBR(y,m,d){ return pad2(d)+'/'+pad2(m)+'/'+String(y); }
+                    function fromExcelSerial(serial){
+                        var base = new Date(1899,11,30); // Excel bug 1900, usa 1899-12-30
+                        var ms = Math.round(parseFloat(serial))*86400000;
+                        var dt = new Date(base.getTime()+ms);
+                        return fmtBR(dt.getFullYear(), dt.getMonth()+1, dt.getDate());
+                    }
+                    function parseDataFlex(raw){
+                        if(raw==null) return null;
+                        var v = String(raw).trim();
+                        if(v==='') return null;
+                        // Remove componente de hora (" 12:34", "T12:34:56Z", etc.)
+                        v = v.replace(/[T ]\d{1,2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/, '');
+                        // Excel serial puro
+                        if(/^\d{2,6}$/.test(v)){
+                            var n = parseInt(v,10);
+                            if(n>59 && n<60000){ try { return fromExcelSerial(n); } catch(e){} }
+                        }
+                        // Normaliza separadores
+                        var vSep = v.replace(/[\.\-]/g,'/').replace(/\s+/g,'/');
+                        // yyyy/mm/dd
+                        var mYMD = vSep.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
+                        if(mYMD){
+                            var y=parseInt(mYMD[1],10), m=parseInt(mYMD[2],10), d=parseInt(mYMD[3],10);
+                            if(isValidYMD(y,m,d)) return fmtBR(y,m,d);
+                        }
+                        // dd/mm/yyyy ou d/m/yy
+                        var mDMY = vSep.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+                        if(mDMY){
+                            var d2=parseInt(mDMY[1],10), m2=parseInt(mDMY[2],10), y2=mDMY[3];
+                            if(y2.length===2){ y2 = '20'+y2; }
+                            y2=parseInt(y2,10);
+                            if(isValidYMD(y2,m2,d2)) return fmtBR(y2,m2,d2);
+                        }
+                        // Contíguo: yyyymmdd
+                        var mContYMD = v.match(/^(\d{4})(\d{2})(\d{2})$/);
+                        if(mContYMD){
+                            var y3=parseInt(mContYMD[1],10), m3=parseInt(mContYMD[2],10), d3=parseInt(mContYMD[3],10);
+                            if(isValidYMD(y3,m3,d3)) return fmtBR(y3,m3,d3);
+                        }
+                        // Contíguo: ddmmyyyy
+                        var mContDMY = v.match(/^(\d{2})(\d{2})(\d{4})$/);
+                        if(mContDMY){
+                            var d4=parseInt(mContDMY[1],10), m4=parseInt(mContDMY[2],10), y4=parseInt(mContDMY[3],10);
+                            if(isValidYMD(y4,m4,d4)) return fmtBR(y4,m4,d4);
+                        }
+                        return null;
+                    }
                     for(var i=0;i<linhas.length;i++){
                         var tr = linhas[i];
                         var tds = tr.querySelectorAll('td');
                         // Remove destaque de erro de todas as linhas antes de validar
                         tr.classList.remove('table-danger', 'linha-erro-validacao');
-                        // Só valida se a primeira coluna (número da linha) for >= 3
+                        // Só valida se a primeira coluna (número da linha) for >= 4
                         var linhaNum = tds[idxNum] ? tds[idxNum].textContent.trim() : '';
-                        if(!tds[idxNum] || isNaN(linhaNum) || parseInt(linhaNum,10) < 3) continue;
+                        if(!tds[idxNum] || isNaN(linhaNum) || parseInt(linhaNum,10) < 4) continue;
                         // DATA: busca e valida formato (dd/mm/yyyy), tenta ajustar se possível
                         var temData = false;
                         var dataInvalida = false;
-                        var idxData = -1;
-                        ths.forEach(function(th, idx){
-                            if(th.textContent.trim().toUpperCase().includes('DATA')) idxData = idx;
-                        });
                         var tds = tr.querySelectorAll('td');
-                        if(idxData >= 0 && tds[idxData]) {
-                            var valorData = tds[idxData].textContent.trim();
-                            // Aceita dd/mm/yyyy, d/m/yyyy, ddmmyyyy, ddmmyyyy, etc
-                            var match = valorData.match(/^(\d{1,2})\/?(\d{1,2})\/?(\d{2,4})$/);
-                            if(match) {
-                                // Normaliza para dd/mm/yyyy
-                                var d = match[1].padStart(2,'0');
-                                var m = match[2].padStart(2,'0');
-                                var y = match[3].length === 2 ? '20'+match[3] : match[3];
-                                var dataFormatada = d+'/'+m+'/'+y;
-                                // Se não estava no formato, tenta ajustar
-                                if(valorData !== dataFormatada) {
-                                    tds[idxData].textContent = dataFormatada;
+                        if(idxData >= 0 && tds[idxData]){
+                            var tdDataCell = tds[idxData];
+                            var inputData = tdDataCell.querySelector('input');
+                            var valorData = inputData ? (inputData.value||'').trim() : tdDataCell.textContent.trim();
+                            var normal = parseDataFlex(valorData);
+                            if(normal){
+                                if(inputData){
+                                    tdDataCell.textContent = normal;
+                                    // dispara snapshot para persistir a alteração mesmo sem blur
+                                    var btnSnapshotTmp = document.getElementById('btn-snapshot-cache');
+                                    if(btnSnapshotTmp) btnSnapshotTmp.click();
+                                } else if(valorData !== normal){
+                                    tdDataCell.textContent = normal; valorData = normal;
                                 }
                                 temData = true;
                             } else {
-                                dataInvalida = true;
+                                // Só marca inválida se houve algum conteúdo
+                                dataInvalida = valorData !== '';
                             }
                         }
                         // Se data inválida, abre campo de edição
                         if(dataInvalida && idxData >= 0 && tds[idxData]) {
                             var td = tds[idxData];
                             var valorAtual = td.textContent.trim();
-                            td.innerHTML = '<input type="text" class="form-control form-control-sm" value="'+valorAtual+'" placeholder="dd/mm/yyyy">';
+                            td.innerHTML = '<input type="text" class="form-control form-control-sm" value="'+valorAtual+'" placeholder="dd/mm/aaaa">';
                             var input = td.querySelector('input');
                             if(input){
                                 input.addEventListener('blur', function(){
-                                    td.textContent = input.value;
+                                    var v = input.value;
+                                    var norm = parseDataFlex(v) || v;
+                                    td.textContent = norm;
                                     var btnSnapshot = document.getElementById('btn-snapshot-cache');
                                     if(btnSnapshot) btnSnapshot.click();
                                 });
@@ -289,41 +363,120 @@ document.addEventListener('DOMContentLoaded', function(){
                         var empresaId = '';
                         var ths = document.querySelectorAll('table[data-cache-key] thead th');
                         var idxEmpresa = -1;
-                        ths.forEach(function(th, idx){
-                            if(th.textContent.trim().toUpperCase().includes('EMPRESA')) idxEmpresa = idx;
-                        });
+                        // Prioriza 'EMPRESA_ID' exato
+                        ths.forEach(function(th, idx){ var n=th.textContent.trim().toUpperCase(); if(n==='EMPRESA_ID') idxEmpresa = idx; });
+                        if(idxEmpresa < 0){ ths.forEach(function(th, idx){ if(th.textContent.trim().toUpperCase().includes('EMPRESA')) idxEmpresa = idx; }); }
                         if(idxEmpresa >= 0) {
                             var tds = tr.querySelectorAll('td');
                             if(tds[idxEmpresa]) empresaId = tds[idxEmpresa].textContent.trim();
                         }
                         // fallback: select.class-conta
                         if(!empresaId) empresaId = tr.querySelector('select.class-conta')?.dataset.empresaId || '';
-                        // CONTA_DEBITO_ID: select.class-conta value
-                        var contaDebitoId = tr.querySelector('select.class-conta')?.value || '';
-                        // CONTA_DEBITO_LABEL: select option selecionada
-                        var contaDebitoLabel = '';
+                        // fallback extra: dataset da linha e seleção global
+                        if(!empresaId) empresaId = tr.dataset.classEmpresaId || document.getElementById('empresa-global')?.value || '';
+                        if(!empresaId){ var rootEl = document.getElementById('preview-despesas-root'); if(rootEl && rootEl.dataset.empresaIdFromFile){ empresaId = rootEl.dataset.empresaIdFromFile; } }
+                        // CONTA_DEBITO (somente se a linha for classificável)
                         var sel = tr.querySelector('select.class-conta');
-                        if(sel && sel.selectedIndex>=0) contaDebitoLabel = sel.options[sel.selectedIndex]?.textContent || '';
+                        var linhaClassificavel = !!(sel && sel.dataset.can==='1');
+                        var contaDebitoId = '';
+                        if(linhaClassificavel){
+                            contaDebitoId = sel?.value || sel?.dataset.selected || '';
+                        }
+                        var contaDebitoLabel = '';
+                        if(linhaClassificavel){
+                            if(sel && sel.selectedIndex>=0){ contaDebitoLabel = sel.options[sel.selectedIndex]?.textContent || ''; }
+                            // Fallback adicional de ID vindo do dataset da linha
+                            if(!contaDebitoId){ contaDebitoId = tr.dataset.classContaId || ''; }
+                            // Fallback a partir das colunas CONTA_DEBITO_ID / LABEL quando reimportado de export
+                            if(!contaDebitoId && idxContaDebId>=0 && tds[idxContaDebId]){
+                                var rawId = tds[idxContaDebId].textContent.trim();
+                                if(rawId !== '') contaDebitoId = rawId;
+                            }
+                            if(!contaDebitoLabel && idxContaDebLabel>=0 && tds[idxContaDebLabel]){
+                                var rawLbl = tds[idxContaDebLabel].textContent.trim();
+                                if(rawLbl !== '') contaDebitoLabel = rawLbl;
+                            }
+                            // Fallback: se label vazio mas há id, usa o próprio id como label para não acusar falso positivo
+                            if(!contaDebitoLabel && contaDebitoId){ contaDebitoLabel = String(contaDebitoId); }
+                        }
                         // CONTA_CREDITO_GLOBAL_ID: select#conta-credito-global value
                         var contaCreditoId = document.getElementById('conta-credito-global')?.value || '';
-                        // VALOR: busca e valida formato numérico
+                        // Fallback da coluna exportada (quando reimportado)
+                        if(!contaCreditoId && idxContaCredGlobalId>=0 && tds[idxContaCredGlobalId]){
+                            var rawCred = tds[idxContaCredGlobalId].textContent.trim();
+                            if(rawCred !== '') contaCreditoId = rawCred;
+                        }
+                        // Fallback do dataset raiz (quando UI ainda não aplicou select)
+                        if(!contaCreditoId){
+                            var root = document.getElementById('preview-despesas-root');
+                            if(root && root.dataset.contaCreditoIdFromFile){ contaCreditoId = root.dataset.contaCreditoIdFromFile; }
+                        }
+                        // VALOR: busca e valida formato numérico (robusto: R$, parênteses p/ negativo, sinal ao final, milhar, vírgula/ponto)
                         var temValor = false;
                         var valorInvalido = false;
-                        if(idxValor >= 0 && tds[idxValor]) {
+                        function parseMonetario(v){
+                            if(v==null) return null;
+                            v = String(v).trim();
+                            if(v==='') return null;
+                            var negative = false;
+                            // Parênteses para negativo
+                            if(/^\(.*\)$/.test(v)) { negative = true; v = v.replace(/^\(|\)$/g,''); }
+                            // Sinal negativo ao final
+                            if(/-$/.test(v)) { negative = true; v = v.replace(/-$/,''); }
+                            // Remove símbolos de moeda e plus
+                            v = v.replace(/R\$|BRL|USD|\+/gi,'');
+                            // Remove espaços
+                            v = v.replace(/\s+/g,'');
+                            // Mantém apenas dígitos, vírgula, ponto e um possível sinal negativo inicial
+                            v = v.replace(/[^0-9.,-]/g,'');
+                            // Se vírgula e ponto coexistem, assume vírgula como decimal -> remove pontos e troca vírgula por ponto
+                            var hasDot = v.indexOf('.')>-1; var hasComma = v.indexOf(',')>-1;
+                            if(hasDot && hasComma){ v = v.replace(/\./g,'').replace(/,/g,'.'); }
+                            else if(hasComma && !hasDot){ v = v.replace(/,/g,'.'); }
+                            // Se ainda houver múltiplos pontos, junta milhares
+                            var dots = (v.match(/\./g)||[]).length;
+                            if(dots>1){ var parts=v.split('.'); var dec=parts.pop(); v=parts.join('')+'.'+dec; }
+                            var num = parseFloat(v);
+                            if(isNaN(num)) return null;
+                            return negative ? -num : num;
+                        }
+                        if(idxValor >= 0 && tds[idxValor]){
                             var valorCampo = tds[idxValor].textContent.trim();
-                            // Aceita formatos: 1234.56, 1.234,56, 1234,56, -123,45, etc
-                            var valorLimpo = valorCampo.replace(/\s/g,'').replace(/\./g,'').replace(/,/g,'.');
-                            if(valorLimpo !== '' && !isNaN(valorLimpo)) {
-                                temValor = true;
-                            } else {
-                                valorInvalido = true;
-                            }
+                            var num = parseMonetario(valorCampo);
+                            if(num !== null){ temValor = true; }
+                            else { valorInvalido = true; }
+                        }
+                        // Diagnóstico (opcional)
+                        if(window.__previewDebug){
+                            var selectValue = sel ? (sel.value||'') : '';
+                            var dataSelected = sel ? (sel.dataset.selected||'') : '';
+                            console.debug('Validação linha', linhaNum, {
+                                linhaClassificavel: linhaClassificavel,
+                                empresaId: empresaId,
+                                contaDebitoId: contaDebitoId,
+                                contaDebitoLabel: contaDebitoLabel,
+                                contaCreditoId: contaCreditoId,
+                                temValor: temValor,
+                                valorInvalido: valorInvalido,
+                                fontesConta: { selectValue, dataSelected, trDataset: tr.dataset.classContaId||'' }
+                            });
+                            // Se faltar conta nesta linha, dispara breakpoint para inspecionar no DevTools
+                            if(linhaClassificavel && temValor && !contaDebitoId){ debugger; }
                         }
                         var camposFaltando = [];
-                        if(!temData) camposFaltando.push('DATA');
+                        if(idxData >= 0){
+                            if(dataInvalida){
+                                camposFaltando.push('DATA_INVÁLIDA');
+                            } else if(!temData){
+                                camposFaltando.push('DATA');
+                            }
+                        }
                         if(!empresaId) camposFaltando.push('EMPRESA_ID');
-                        if(!contaDebitoId) camposFaltando.push('CONTA_DEBITO_ID');
-                        if(!contaDebitoLabel) camposFaltando.push('CONTA_DEBITO_LABEL');
+                        // Exige conta débito somente para linhas classificáveis
+                        if(linhaClassificavel && temValor){
+                            if(!contaDebitoId) camposFaltando.push('CONTA_DEBITO_ID');
+                            // Label não é obrigatória se ID presente
+                        }
                         if(!contaCreditoId) camposFaltando.push('CONTA_CREDITO_GLOBAL_ID');
                         if(!temValor) camposFaltando.push('VALOR');
                         if(valorInvalido) camposFaltando.push('VALOR_INVÁLIDO');
@@ -338,7 +491,11 @@ document.addEventListener('DOMContentLoaded', function(){
                                 // Busca índice do campo no header
                                 var idxCampo = -1;
                                 ths.forEach(function(th, idx){
-                                    if(th.textContent.trim().toUpperCase().includes(campo.replace('_ID','').replace('_LABEL','').replace('GLOBAL','').replace('CONTA','CONTA').replace('EMPRESA','EMPRESA').replace('VALOR','VALOR'))) idxCampo = idx;
+                                    var headerNome = th.textContent.trim().toUpperCase();
+                                    var campoHeader = campo;
+                                    if(campoHeader.startsWith('DATA')) campoHeader = 'DATA';
+                                    campoHeader = campoHeader.replace('_ID','').replace('_LABEL','').replace('GLOBAL','').replace('CONTA','CONTA').replace('EMPRESA','EMPRESA').replace('VALOR','VALOR');
+                                    if(headerNome.includes(campoHeader)) idxCampo = idx;
                                 });
                                 if(idxCampo >= 0 && tds[idxCampo]) {
                                     // Se já não for input, ativa edição
@@ -365,7 +522,7 @@ document.addEventListener('DOMContentLoaded', function(){
                             msgPronto.innerHTML = '<div class="alert alert-danger mb-2">Existem linhas com dados obrigatórios ausentes:<ul><li>'+erros.join('</li><li>')+'</li></ul></div>' + avisoFim;
                             if(btnSimModal) btnSimModal.disabled = true;
                         }
-                        setTimeout(function(){ bsModalPronto.show(); }, 200);
+                        setTimeout(function(){ bsModalPronto.show(); try{ modalPronto.focus(); }catch(e){} }, 150);
                     }
                 };
             }
@@ -452,7 +609,7 @@ document.addEventListener('DOMContentLoaded', function(){
                             // Agora basta ter um VALOR para permitir classificação
                             $canClass = $hasValor; // antes: $hasDate && $hasValor
                         @endphp
-                        <tr class="{{ !empty($r['_auto_classified']) ? 'table-success auto-class' : '' }}">
+                        <tr class="{{ !empty($r['_auto_classified']) ? 'table-success auto-class' : '' }}" data-class-empresa-id="{{ $r['_class_empresa_id'] ?? '' }}" data-class-conta-id="{{ $r['_class_conta_id'] ?? '' }}">
                             <td style="position:sticky;left:0;background:#fff;z-index:1;">{{ $i+1 }}</td>
                             @foreach($headers as $h)
                                 <td class="small">{{ $r[$h] }}</td>
@@ -569,6 +726,88 @@ document.addEventListener('DOMContentLoaded', function(){
                 bsModal?.hide();
         });
 
+    // Fallbacks de auto-seleção independentes de upload/import
+    document.addEventListener('DOMContentLoaded', function(){
+        // Empresa: se há exatamente 1 opção além do vazio e nada selecionado, seleciona
+        const empresaSel = document.getElementById('empresa-global');
+        if(empresaSel && !empresaSel.value && empresaSel.options.length === 2){
+            empresaSel.selectedIndex = 1;
+            if(window.jQuery){ jQuery(empresaSel).trigger('change.select2'); }
+            else empresaSel.dispatchEvent(new Event('change', {bubbles:true}));
+        }
+        // Conta Crédito: se há data-selected no select e não há valor selecionado, aplica
+        const contaSel = document.getElementById('conta-credito-global');
+        if(contaSel && !contaSel.value){
+            const ds = contaSel.dataset.selected || '';
+            if(ds){
+                let opt = contaSel.querySelector('option[value="'+ds+'"]');
+                if(!opt){
+                    opt = document.createElement('option');
+                    opt.value = ds; opt.textContent = ds; opt.selected = true;
+                    contaSel.appendChild(opt);
+                }
+                contaSel.value = ds;
+                if(window.jQuery){ jQuery(contaSel).trigger('change.select2'); }
+                else contaSel.dispatchEvent(new Event('change', {bubbles:true}));
+            }
+        }
+        // Aplicação imediata dos data-* se presentes (sem depender da flag do upload)
+        const root = document.getElementById('preview-despesas-root');
+        if(root){
+            const empId = root.dataset.empresaIdFromFile || '';
+            const credId = root.dataset.contaCreditoIdFromFile || '';
+            if(empId && empresaSel && !empresaSel.value){
+                empresaSel.disabled = false;
+                empresaSel.value = String(empId);
+                if(window.jQuery){ jQuery(empresaSel).trigger('change.select2'); }
+                else empresaSel.dispatchEvent(new Event('change', {bubbles:true}));
+                const btnLockEmpresa = document.getElementById('btn-lock-empresa');
+                if(btnLockEmpresa){ btnLockEmpresa.dataset.locked='0'; btnLockEmpresa.disabled=false; btnLockEmpresa.classList.add('btn-outline-danger'); btnLockEmpresa.classList.remove('btn-danger'); btnLockEmpresa.textContent='Travar Empresa'; }
+            }
+            if(credId && contaSel && !contaSel.value){
+                contaSel.disabled = false;
+                let opt = contaSel.querySelector('option[value="'+credId+'"]');
+                if(!opt){ opt = document.createElement('option'); opt.value = credId; opt.textContent = credId; opt.selected = true; contaSel.appendChild(opt); }
+                contaSel.value = credId;
+                if(window.jQuery){ jQuery(contaSel).trigger('change.select2'); }
+                else contaSel.dispatchEvent(new Event('change', {bubbles:true}));
+                const btnLockCredito = document.getElementById('btn-lock-conta-credito');
+                if(btnLockCredito){ btnLockCredito.dataset.locked='0'; btnLockCredito.disabled=false; btnLockCredito.classList.add('btn-outline-primary'); btnLockCredito.classList.remove('btn-primary'); btnLockCredito.textContent='Travar Crédito'; }
+            }
+        }
+        // Extra: se reimportou export e global está vazio, tenta deduzir da tabela
+        try{
+            if(empresaSel && !empresaSel.value){
+                const ths = document.querySelectorAll('table[data-cache-key] thead th');
+                let idxEmp = -1; ths.forEach((th,idx)=>{ const n=th.textContent.trim().toUpperCase(); if(n==='EMPRESA_ID') idxEmp=idx; });
+                if(idxEmp<0){ ths.forEach((th,idx)=>{ if(th.textContent.trim().toUpperCase().includes('EMPRESA')) idxEmp=idx; }); }
+                if(idxEmp>=0){
+                    const firstRow = document.querySelector('table[data-cache-key] tbody tr');
+                    const cell = firstRow?.querySelectorAll('td')[idxEmp];
+                    const v = (cell?.textContent||'').trim();
+                    if(v){ empresaSel.disabled=false; empresaSel.value=String(v); if(window.jQuery){ jQuery(empresaSel).trigger('change.select2'); } else { empresaSel.dispatchEvent(new Event('change',{bubbles:true})); } }
+                }
+            }
+            const contaSel = document.getElementById('conta-credito-global');
+            if(contaSel && !contaSel.value){
+                const ths = document.querySelectorAll('table[data-cache-key] thead th');
+                let idxCred = -1; ths.forEach((th,idx)=>{ const n=th.textContent.trim().toUpperCase(); if(n.includes('CONTA') && n.includes('CREDITO') && n.includes('GLOBAL') && n.includes('ID')) idxCred=idx; });
+                if(idxCred>=0){
+                    const firstRow = document.querySelector('table[data-cache-key] tbody tr');
+                    const cell = firstRow?.querySelectorAll('td')[idxCred];
+                    const v = (cell?.textContent||'').trim();
+                    if(v){
+                        contaSel.disabled=false;
+                        let opt=contaSel.querySelector('option[value="'+v+'"];');
+                        if(!opt){ opt=document.createElement('option'); opt.value=v; opt.textContent=v; contaSel.appendChild(opt); }
+                        contaSel.value=v;
+                        if(window.jQuery){ jQuery(contaSel).trigger('change.select2'); } else { contaSel.dispatchEvent(new Event('change',{bubbles:true})); }
+                    }
+                }
+            }
+        }catch(e){ console.warn('auto-apply from table headers failed', e); }
+    });
+
     const btnReprocessar = document.getElementById('btn-reprocessar');
     const btnSnapshot = document.getElementById('btn-snapshot-cache');
     const btnApplyAuto = document.getElementById('btn-apply-autoclass');
@@ -585,11 +824,19 @@ document.addEventListener('DOMContentLoaded', function(){
                 const sel = tr.querySelector('select.class-conta');
                 const inpHist = tr.querySelector('input.hist-ajustado');
                 if(!inpHist) return;
+                // Lê DATA a partir do índice global do cabeçalho
+                let dataValor = null;
+                if(idxDataGlobal >= 0){
+                    const tds = tr.querySelectorAll('td');
+                    const tdData = tds[idxDataGlobal];
+                    if(tdData){ dataValor = (tdData.textContent||'').trim(); }
+                }
                 linhas.push({
                     i: rowIndex,
                     conta_id: sel && sel.value ? parseInt(sel.value,10) : null,
                     conta_label: sel && sel.options && sel.selectedIndex>=0 ? sel.options[sel.selectedIndex].textContent : null,
-                    hist_ajustado: inpHist.value
+                    hist_ajustado: inpHist.value,
+                    data: dataValor
                 });
             });
             try{
@@ -638,8 +885,8 @@ document.addEventListener('DOMContentLoaded', function(){
                 }
             }catch(e){ console.error(e); btnApplyAuto.textContent='Aplicar Regras Agora'; btnApplyAuto.disabled=false; }
         });
-        const btnRecarregar = document.getElementById('btn-submit-recarregar');
-        const formFiltros = document.querySelector('form[action="{{ route('lancamentos.preview.despesas') }}"][method="GET"]');
+    const btnRecarregar = document.getElementById('btn-submit-recarregar');
+    const formFiltros = document.getElementById('form-filtros');
         if(btnReprocessar){
         btnReprocessar.addEventListener('click', async function(e){
             e.preventDefault();
@@ -658,6 +905,39 @@ document.addEventListener('DOMContentLoaded', function(){
     const table = document.querySelector('table[data-cache-key]');
     const cacheKey = table?.dataset.cacheKey;
     const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    // Índice da coluna DATA para edição inline
+    let idxDataGlobal = -1;
+    function recomputeIdxDataGlobal(){
+        idxDataGlobal = -1;
+        if(!table) return;
+        const ths = table.querySelectorAll('thead th');
+        // Match exato primeiro, depois fallback
+        ths.forEach((th, idx)=>{ if(th.textContent.trim().toUpperCase() === 'DATA') idxDataGlobal = idx; });
+        if(idxDataGlobal < 0){ ths.forEach((th, idx)=>{ if(th.textContent.trim().toUpperCase().includes('DATA')) idxDataGlobal = idx; }); }
+    }
+    recomputeIdxDataGlobal();
+    // Parser/normalizador de datas (mesma lógica do validador)
+    function parseDataFlexInline(raw){
+        if(raw==null) return null;
+        let v = String(raw).trim();
+        if(v==='') return null;
+        v = v.replace(/[T ]\d{1,2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/, '');
+        const pad2 = n=> (String(n).length===1? '0'+n: String(n));
+        const fmt = (y,m,d)=> pad2(d)+'/'+pad2(m)+'/'+String(y);
+        const isValid = (y,m,d)=>{ y=+y; m=+m; d=+d; if(!y||!m||!d) return false; const dt=new Date(y,m-1,d); return dt.getFullYear()===y && (dt.getMonth()+1)===m && dt.getDate()===d; };
+        const fromSerial = (s)=>{ const base=new Date(1899,11,30); const ms=Math.round(parseFloat(s))*86400000; const dt=new Date(base.getTime()+ms); return fmt(dt.getFullYear(), dt.getMonth()+1, dt.getDate()); };
+        if(/^\d{2,6}$/.test(v)){ const n=parseInt(v,10); if(n>59 && n<60000){ try{ return fromSerial(n); }catch(e){} } }
+        const vSep = v.replace(/[\.\-]/g,'/').replace(/\s+/g,'/');
+        let m = vSep.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
+        if(m){ const y=+m[1], mm=+m[2], dd=+m[3]; if(isValid(y,mm,dd)) return fmt(y,mm,dd); }
+        m = vSep.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+        if(m){ let dd=+m[1], mm=+m[2], yy=m[3]; if(yy.length===2) yy='20'+yy; yy=+yy; if(isValid(yy,mm,dd)) return fmt(yy,mm,dd); }
+        m = v.match(/^(\d{4})(\d{2})(\d{2})$/);
+        if(m){ const y=+m[1], mm=+m[2], dd=+m[3]; if(isValid(y,mm,dd)) return fmt(y,mm,dd); }
+        m = v.match(/^(\d{2})(\d{2})(\d{4})$/);
+        if(m){ const dd=+m[1], mm=+m[2], y=+m[3]; if(isValid(y,mm,dd)) return fmt(y,mm,dd); }
+        return null;
+    }
     let timers = {};
     function sendUpdate(row, valor){
         if(!cacheKey) return;
@@ -683,6 +963,41 @@ document.addEventListener('DOMContentLoaded', function(){
             setTimeout(()=> inp.classList.remove('border','border-warning'), 1000);
         });
     });
+    // Snapshot automático ao sair de inputs na tabela
+    document.addEventListener('blur', function(e){
+        if(e.target && e.target.closest('table[data-cache-key]') && e.target.tagName === 'INPUT'){
+            btnSnapshot?.click();
+        }
+    }, true);
+    // Edição inline de DATA com duplo clique
+    if(table && idxDataGlobal >= 0){
+        table.addEventListener('dblclick', function(e){
+            const td = e.target.closest('td');
+            if(!td) return;
+            const tr = td.parentElement;
+            const tds = Array.from(tr.querySelectorAll('td'));
+            const cellIdx = tds.indexOf(td);
+            if(cellIdx !== idxDataGlobal) return;
+            if(td.querySelector('input')) return; // já editando
+            const valorAtual = td.textContent.trim();
+            td.innerHTML = '<input type="text" class="form-control form-control-sm" value="'+valorAtual+'" placeholder="dd/mm/aaaa">';
+            const input = td.querySelector('input');
+            input.focus();
+            input.select();
+            const commit = ()=>{
+                const v = input.value.trim();
+                const normal = parseDataFlexInline(v);
+                td.textContent = normal || v; // mantém o digitado se não normalizar
+                // snapshot após alterar
+                btnSnapshot?.click();
+            };
+            input.addEventListener('blur', commit);
+            input.addEventListener('keydown', function(ev){
+                if(ev.key==='Enter'){ ev.preventDefault(); input.blur(); }
+                if(ev.key==='Escape'){ ev.preventDefault(); td.textContent = valorAtual; }
+            });
+        });
+    }
     // --- Classificação (empresa global + conta por linha) ---
     function updateClassificacao(row, contaId){
         if(!cacheKey) return;
