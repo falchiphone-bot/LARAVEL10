@@ -2101,6 +2101,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         // Construir conjunto de headings: colunas originais + quaisquer chaves presentes nas linhas (não internas) + adicionais padronizados no final
         $extraCols = [
             'HISTORICO_AJUSTADO',
+            'DATA_NORMALIZADA',
             'EMPRESA_ID',
             'CONTA_DEBITO_ID',
             'CONTA_DEBITO_LABEL',
@@ -2123,6 +2124,49 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         $headings = array_values(array_unique(array_merge($headersOrig, $dynamicKeys, $extraCols)));
 
         $exportRows = [];
+        // Helpers de data para normalização (dd/mm/YYYY)
+        $fmtBR = function($y,$m,$d){ return sprintf('%02d/%02d/%04d',(int)$d,(int)$m,(int)$y); };
+        $isValid = function($y,$m,$d){ return checkdate((int)$m,(int)$d,(int)$y); };
+        $fromSerial = function($n) use ($fmtBR){
+            // Excel 1900 date system: base 1899-12-30
+            $base = new \DateTimeImmutable('1899-12-30');
+            $dt = $base->modify("+".((int)round($n))." days");
+            return $fmtBR((int)$dt->format('Y'), (int)$dt->format('m'), (int)$dt->format('d'));
+        };
+        $normalizeDate = function($raw) use ($fmtBR,$isValid,$fromSerial){
+            if($raw instanceof \DateTimeInterface){ return $raw->format('d/m/Y'); }
+            if($raw===null) return null; $v = trim((string)$raw); if($v==='') return null;
+            // Remove componente de hora (" 12:34", "T12:34:56Z", etc.)
+            $v = preg_replace('/[T ]\d{1,2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/','',$v);
+            // Serial Excel
+            if(preg_match('/^\d{2,6}$/',$v)){
+                $n = (int)$v; if($n>59 && $n<60000){ return $fromSerial($n); }
+            }
+            // Normaliza separadores
+            $vSep = preg_replace('/[\.\-]/','/',$v); $vSep = preg_replace('/\s+/','/',$vSep);
+            // yyyy/mm/dd
+            if(preg_match('/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/',$vSep,$m)){
+                $y=(int)$m[1]; $mm=(int)$m[2]; $d=(int)$m[3]; if($isValid($y,$mm,$d)) return $fmtBR($y,$mm,$d);
+            }
+            // dd/mm/yyyy ou d/m/yy
+            if(preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/',$vSep,$m)){
+                $d=(int)$m[1]; $mm=(int)$m[2]; $y=$m[3]; if(strlen($y)===2){ $y = (int)('20'.$y); } else { $y=(int)$y; }
+                if($isValid($y,$mm,$d)) return $fmtBR($y,$mm,$d);
+            }
+            // yyyymmdd
+            if(preg_match('/^(\d{4})(\d{2})(\d{2})$/',$v,$m)){
+                $y=(int)$m[1]; $mm=(int)$m[2]; $d=(int)$m[3]; if($isValid($y,$mm,$d)) return $fmtBR($y,$mm,$d);
+            }
+            // ddmmyyyy
+            if(preg_match('/^(\d{2})(\d{2})(\d{4})$/',$v,$m)){
+                $d=(int)$m[1]; $mm=(int)$m[2]; $y=(int)$m[3]; if($isValid($y,$mm,$d)) return $fmtBR($y,$mm,$d);
+            }
+            return null;
+        };
+        // Descobrir coluna de data preferencial ('DATA' exata ou primeira que contém 'DATA')
+        $dateCol = null; foreach($headersOrig as $h){ if(mb_strtoupper($h,'UTF-8')==='DATA'){ $dateCol=$h; break; } }
+        if(!$dateCol){ foreach($headersOrig as $h){ if(stripos($h,'DATA')!==false && mb_strtoupper($h,'UTF-8')!=='DATA_NORMALIZADA'){ $dateCol=$h; break; } } }
+
         foreach($rowsCache as $r){
             $linha = [];
             // Preenche todas as colunas de saída respeitando prioridade: valor existente no row -> derivação padrão
@@ -2134,6 +2178,11 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             // Preencher campos padronizados quando ausentes
             if(!array_key_exists('HISTORICO_AJUSTADO',$linha) || $linha['HISTORICO_AJUSTADO'] === null){
                 $linha['HISTORICO_AJUSTADO'] = $r['_hist_ajustado'] ?? null;
+            }
+            // DATA_NORMALIZADA a partir da coluna de data preferida
+            if(!array_key_exists('DATA_NORMALIZADA',$linha) || empty($linha['DATA_NORMALIZADA'])){
+                $src = $dateCol ? ($r[$dateCol] ?? null) : null;
+                $linha['DATA_NORMALIZADA'] = $normalizeDate($src);
             }
             if(!array_key_exists('EMPRESA_ID',$linha) || empty($linha['EMPRESA_ID'])){
                 $linha['EMPRESA_ID'] = $r['_class_empresa_id'] ?? $empresaIdGlobal;

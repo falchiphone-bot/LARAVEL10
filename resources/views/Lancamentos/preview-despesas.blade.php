@@ -43,10 +43,12 @@
                 <button class="btn btn-primary btn-sm mt-3" id="btn-submit-recarregar" type="button" data-action="recarregar">Recarregar</button>
             </div>
         </form>
-                <form method="POST" enctype="multipart/form-data" action="{{ route('lancamentos.preview.despesas') }}" class="d-flex align-items-end gap-2" id="form-upload-xlsx">
+                <div class="card shadow-sm bg-primary-subtle text-dark border-0">
+                    <div class="card-body p-3">
+        <form method="POST" enctype="multipart/form-data" action="{{ route('lancamentos.preview.despesas') }}" class="d-flex align-items-end gap-2" id="form-upload-xlsx">
                         @csrf
                         <div>
-                                <label class="form-label mb-1">Upload XLSX</label>
+                                <label class="form-label mb-1">Upload arquivo original despesas em XLS</label>
                                 <input type="file" name="arquivo_excel" accept=".xlsx,.xls" class="form-control form-control-sm">
                         </div>
                         <div class="pb-1">
@@ -122,29 +124,39 @@
                                         localStorage.removeItem('preview_despesas_auto_select');
                                         setTimeout(autoSelectFromDatasetIfAvailable, 400);
                                     } else {
-                                        // Mesmo sem flag (por exemplo, Importar Export), tenta aplicar dataset
+                                        // Mesmo sem flag (por exemplo, import de export), tenta aplicar dataset
                                         setTimeout(autoSelectFromDatasetIfAvailable, 400);
                                     }
                                 });
                                 </script>
                 @endpush
-        <form method="POST" enctype="multipart/form-data" action="{{ route('lancamentos.preview.despesas.importExported') }}" class="d-flex align-items-end gap-2">
+         <form method="POST" enctype="multipart/form-data" action="{{ route('lancamentos.preview.despesas.importExported') }}" class="d-flex align-items-end gap-2">
             @csrf
             <div>
-                <label class="form-label mb-1">Importar Export</label>
+                <label class="form-label mb-1">Importar arquivo excel preparado e exportado referente despesas</label>
                 <input type="file" name="arquivo_exportado" accept=".xlsx,.xls" class="form-control form-control-sm" required>
             </div>
             <div class="pb-1">
-                <button class="btn btn-outline-success btn-sm mt-3" title="Importa arquivo gerado pelo botão Exportar Excel">Importar</button>
+                <button class="btn btn-outline-success btn-sm mt-3" title="Importa arquivo gerado pelo botão Exportar dados preparados em arquivo excel">Importar</button>
             </div>
         </form>
-        <a href="{{ url()->previous() }}" class="btn btn-outline-secondary btn-sm align-self-end mt-3">Voltar</a>
+        <hr class="border-light my-3">
+        <div class="d-flex align-items-start flex-wrap gap-2">
+            @if($existe && !$erro)
+                <div class="d-flex flex-column gap-2 align-items-end ms-auto">
+                    <button type="button" id="btn-export-xlsx" class="btn btn-danger btn-sm" title="Exportar dados preparados em arquivo excel">Exportar dados preparados em arquivo excel</button>
+                    <button type="button" id="btn-efetuar-lancamento" class="btn btn-outline-success btn-sm">Efetuar lançamento contábil</button>
+                </div>
+            @endif
+            <a href="{{ url()->previous() }}" class="btn btn-outline-secondary btn-sm">Voltar</a>
+        </div>
+                    </div>
+                </div>
                 @if($existe && !$erro)
                         <a href="{{ route('lancamentos.preview.despesas', array_merge(request()->query(), ['file'=>$arquivo,'refresh'=>1])) }}" id="btn-reprocessar" class="btn btn-warning btn-sm align-self-end mt-3" data-action="reprocessar" title="Reprocessa a planilha ignorando o cache atual">Reprocessar (refresh)</a>
                         <button type="button" id="btn-apply-autoclass" class="btn btn-outline-primary btn-sm align-self-end mt-3" title="Executa as regras de auto-classificação agora nas linhas pendentes">Aplicar Regras Agora</button>
                         <button type="button" id="btn-snapshot-cache" class="btn btn-info btn-sm align-self-end mt-3" title="Força salvar no cache as contas e históricos ajustados visíveis" data-action="snapshot">Salvar Cache</button>
-                        <button type="button" id="btn-export-xlsx" class="btn btn-success btn-sm align-self-end mt-3" title="Exporta a tabela atual (com classificações) para Excel">Exportar Excel</button>
-                        <button type="button" id="btn-efetuar-lancamento" class="btn btn-outline-success btn-sm align-self-end mt-3">Efetuar lançamento contábil</button>
+                        
                         <!-- Modal de confirmação lançamento contábil -->
                         <div class="modal fade" id="modalEfetuarLancamento" tabindex="-1" aria-labelledby="modalEfetuarLancamentoLabel" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered">
