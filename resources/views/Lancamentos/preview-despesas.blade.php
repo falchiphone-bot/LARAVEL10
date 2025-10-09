@@ -223,14 +223,16 @@ document.addEventListener('DOMContentLoaded', function(){
                     ths.forEach(function(th, idx){
                         if(th.textContent.trim() === '#') idxNum = idx;
                     });
+                    var iniciarValidacao = false;
                     for(var i=0;i<linhas.length;i++){
                         var tr = linhas[i];
                         var tds = tr.querySelectorAll('td');
                         // Remove destaque de erro de todas as linhas antes de validar
                         tr.classList.remove('table-danger', 'linha-erro-validacao');
-                        // Só valida se a primeira coluna (número da linha) for >= 3
+                        // Só inicia a validação a partir da linha cuja coluna '#' tem valor 3
                         var linhaNum = tds[idxNum] ? tds[idxNum].textContent.trim() : '';
-                        if(!tds[idxNum] || isNaN(linhaNum) || parseInt(linhaNum,10) < 3) continue;
+                        if(!iniciarValidacao && tds[idxNum] && !isNaN(linhaNum) && parseInt(linhaNum,10) === 3) iniciarValidacao = true;
+                        if(!iniciarValidacao) continue;
                         // DATA: busca e valida formato (dd/mm/yyyy), tenta ajustar se possível
                         var temData = false;
                         var dataInvalida = false;
@@ -301,10 +303,40 @@ document.addEventListener('DOMContentLoaded', function(){
                         var contaCreditoId = document.getElementById('conta-credito-global')?.value || '';
                         var camposFaltando = [];
                         if(!temData) camposFaltando.push('DATA');
-                        if(!empresaId) camposFaltando.push('EMPRESA_ID');
-                        if(!contaDebitoId) camposFaltando.push('CONTA_DEBITO_ID');
-                        if(!contaDebitoLabel) camposFaltando.push('CONTA_DEBITO_LABEL');
-                        if(!contaCreditoId) camposFaltando.push('CONTA_CREDITO_GLOBAL_ID');
+                        // HISTORICO
+                        var idxHistorico = -1;
+                        ths.forEach(function(th, idx){
+                            if(th.textContent.trim().toUpperCase().includes('HISTORICO')) idxHistorico = idx;
+                        });
+                        if(idxHistorico >= 0 && tds[idxHistorico]) {
+                            var valHist = tds[idxHistorico].textContent.trim();
+                            if(!valHist) camposFaltando.push('HISTORICO');
+                        } else {
+                            camposFaltando.push('HISTORICO');
+                        }
+                        // VALORES
+                        var idxValor = -1;
+                        ths.forEach(function(th, idx){
+                            if(th.textContent.trim().toUpperCase().includes('VALOR')) idxValor = idx;
+                        });
+                        if(idxValor >= 0 && tds[idxValor]) {
+                            var valValor = tds[idxValor].textContent.trim();
+                            if(!valValor || isNaN(valValor.replace(/\./g,'').replace(',','.'))) camposFaltando.push('VALORES');
+                        } else {
+                            camposFaltando.push('VALORES');
+                        }
+                        // HISTORICO AJUSTADO (input)
+                        var idxHistAjust = -1;
+                        ths.forEach(function(th, idx){
+                            if(th.textContent.trim().toUpperCase().includes('AJUSTADO')) idxHistAjust = idx;
+                        });
+                        if(idxHistAjust >= 0) {
+                            var inputHistAjust = tds[idxHistAjust].querySelector('input');
+                            var valHistAjust = inputHistAjust ? inputHistAjust.value.trim() : tds[idxHistAjust].textContent.trim();
+                            if(!valHistAjust) camposFaltando.push('HISTORICO AJUSTADO');
+                        } else {
+                            camposFaltando.push('HISTORICO AJUSTADO');
+                        }
                         if(camposFaltando.length > 0){
                             ok = false;
                             erros.push('Linha '+linhaNum+': faltando '+camposFaltando.join(', '));
