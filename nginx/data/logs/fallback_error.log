@@ -1408,3 +1408,9 @@
 2025/10/08 04:33:09 [warn] 171#171: conflicting server name "saf.falchi.com.br" on [::]:80, ignored
 2025/10/08 10:33:09 [warn] 171#171: conflicting server name "saf.falchi.com.br" on 0.0.0.0:80, ignored
 2025/10/08 10:33:09 [warn] 171#171: conflicting server name "saf.falchi.com.br" on [::]:80, ignored
+2025/10/08 19:41:19 [warn] 171#171: conflicting server name "saf.falchi.com.br" on 0.0.0.0:80, ignored
+2025/10/08 19:41:19 [warn] 171#171: conflicting server name "saf.falchi.com.br" on [::]:80, ignored
+2025/10/09 01:41:19 [warn] 171#171: conflicting server name "saf.falchi.com.br" on 0.0.0.0:80, ignored
+2025/10/09 01:41:19 [warn] 171#171: conflicting server name "saf.falchi.com.br" on [::]:80, ignored
+2025/10/09 07:41:19 [warn] 171#171: conflicting server name "saf.falchi.com.br" on 0.0.0.0:80, ignored
+2025/10/09 07:41:19 [warn] 171#171: conflicting server name "saf.falchi.com.br" on [::]:80, ignored

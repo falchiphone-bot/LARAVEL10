@@ -1,3 +1,37 @@
+(function(){
+    // Salva cache ao sair de qualquer input editável na tabela
+    document.addEventListener('blur', function(e){
+        if(e.target && e.target.matches('table[data-cache-key] input')){
+            var btnSnapshot = document.getElementById('btn-snapshot-cache');
+            if(btnSnapshot) btnSnapshot.click();
+        }
+    }, true);
+})();
+                        <!-- Modal de confirmação final -->
+                        <div class="modal fade" id="modalLancamentoPronto" tabindex="-1" aria-labelledby="modalLancamentoProntoLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="modalLancamentoProntoLabel">Validação dos Lançamentos</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                    </div>
+                                    <div class="modal-body" id="modalLancamentoProntoMsg">
+                                        <!-- Mensagem preenchida via JS -->
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não</button>
+                                        <button type="button" class="btn btn-success" data-bs-dismiss="modal">Sim</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                                            // Após seleção automática, dispara clique em Reprocessar (Refresh) se existir
+                                            setTimeout(function(){
+                                                var btnReprocessar = document.getElementById('btn-reprocessar');
+                                                if(btnReprocessar && typeof btnReprocessar.click === 'function'){
+                                                    btnReprocessar.click();
+                                                }
+                                            }, 600);
 @extends('layouts.bootstrap5')
 @section('content')
 <div class="container-fluid py-3">
@@ -43,16 +77,85 @@
                 <button class="btn btn-primary btn-sm mt-3" id="btn-submit-recarregar" type="button" data-action="recarregar">Recarregar</button>
             </div>
         </form>
-        <form method="POST" enctype="multipart/form-data" action="{{ route('lancamentos.preview.despesas') }}" class="d-flex align-items-end gap-2">
-            @csrf
-            <div>
-                <label class="form-label mb-1">Upload XLSX</label>
-                <input type="file" name="arquivo_excel" accept=".xlsx,.xls" class="form-control form-control-sm">
-            </div>
-            <div class="pb-1">
-                <button class="btn btn-success btn-sm mt-3">Enviar</button>
-            </div>
-        </form>
+                <form method="POST" enctype="multipart/form-data" action="{{ route('lancamentos.preview.despesas') }}" class="d-flex align-items-end gap-2" id="form-upload-xlsx">
+                        @csrf
+                        <div>
+                                <label class="form-label mb-1">Upload XLSX</label>
+                                <input type="file" name="arquivo_excel" accept=".xlsx,.xls" class="form-control form-control-sm">
+                        </div>
+                        <div class="pb-1">
+                                <button class="btn btn-success btn-sm mt-3">Enviar</button>
+                        </div>
+                </form>
+                @push('scripts')
+                                <script>
+                                // Seleciona automaticamente empresa e conta crédito após upload XLSX
+                                document.addEventListener('DOMContentLoaded', function(){
+                                    const formUpload = document.getElementById('form-upload-xlsx');
+                                    if(formUpload){
+                                        formUpload.addEventListener('submit', function(){
+                                            localStorage.setItem('preview_despesas_auto_select', '1');
+                                        });
+                                    }
+                                    // Após reload, se flag setada, tenta selecionar automaticamente
+                                    if(localStorage.getItem('preview_despesas_auto_select')==='1'){
+                                        localStorage.removeItem('preview_despesas_auto_select');
+                                        setTimeout(function(){
+                                            // EMPRESA_ID do backend
+                                            var empresaIdFromFile = {{ isset($empresaIdFromFile) && $empresaIdFromFile ? json_encode($empresaIdFromFile) : 'null' }};
+                                            var empresaSel = document.getElementById('empresa-global');
+                                                                    if(empresaSel && empresaIdFromFile){
+                                                                        empresaSel.value = String(empresaIdFromFile);
+                                                                        if(window.jQuery){ jQuery(empresaSel).trigger('change.select2'); }
+                                                                        else empresaSel.dispatchEvent(new Event('change', {bubbles:true}));
+                                                                        // Destrava botão empresa
+                                                                        var btnLockEmpresa = document.getElementById('btn-lock-empresa');
+                                                                        if(btnLockEmpresa){
+                                                                            btnLockEmpresa.dataset.locked = '0';
+                                                                            btnLockEmpresa.disabled = false;
+                                                                            btnLockEmpresa.classList.add('btn-outline-danger');
+                                                                            btnLockEmpresa.classList.remove('btn-danger');
+                                                                            btnLockEmpresa.textContent = 'Travar Empresa';
+                                                                        }
+                                                                    } else if(empresaSel && empresaSel.options.length===2 && !empresaSel.value){
+                                                                        empresaSel.selectedIndex = 1;
+                                                                        if(window.jQuery){ jQuery(empresaSel).trigger('change.select2'); }
+                                                                        else empresaSel.dispatchEvent(new Event('change', {bubbles:true}));
+                                                                    }
+                                            // CONTA_CREDITO_GLOBAL_ID do backend
+                                            var contaCreditoIdFromFile = {{ isset($contaCreditoIdFromFile) && $contaCreditoIdFromFile ? json_encode($contaCreditoIdFromFile) : 'null' }};
+                                            var contaSel = document.getElementById('conta-credito-global');
+                                                                    if(contaSel && contaCreditoIdFromFile){
+                                                                        // Se já existe option, seleciona; senão, adiciona e seleciona
+                                                                        var opt = contaSel.querySelector('option[value="'+contaCreditoIdFromFile+'"]');
+                                                                        if(!opt){
+                                                                            opt = document.createElement('option');
+                                                                            opt.value = contaCreditoIdFromFile;
+                                                                            opt.textContent = contaCreditoIdFromFile;
+                                                                            contaSel.appendChild(opt);
+                                                                        }
+                                                                        contaSel.value = contaCreditoIdFromFile;
+                                                                        if(window.jQuery){ jQuery(contaSel).trigger('change.select2'); }
+                                                                        else contaSel.dispatchEvent(new Event('change', {bubbles:true}));
+                                                                        // Destrava botão conta crédito
+                                                                        var btnLockCredito = document.getElementById('btn-lock-conta-credito');
+                                                                        if(btnLockCredito){
+                                                                            btnLockCredito.dataset.locked = '0';
+                                                                            btnLockCredito.disabled = false;
+                                                                            btnLockCredito.classList.add('btn-outline-primary');
+                                                                            btnLockCredito.classList.remove('btn-primary');
+                                                                            btnLockCredito.textContent = 'Travar Crédito';
+                                                                        }
+                                                                    } else if(contaSel && contaSel.options.length===2 && !contaSel.value){
+                                                                        contaSel.selectedIndex = 1;
+                                                                        if(window.jQuery){ jQuery(contaSel).trigger('change.select2'); }
+                                                                        else contaSel.dispatchEvent(new Event('change', {bubbles:true}));
+                                                                    }
+                                        }, 400);
+                                    }
+                                });
+                                </script>
+                @endpush
         <form method="POST" enctype="multipart/form-data" action="{{ route('lancamentos.preview.despesas.importExported') }}" class="d-flex align-items-end gap-2">
             @csrf
             <div>
@@ -64,12 +167,191 @@
             </div>
         </form>
         <a href="{{ url()->previous() }}" class="btn btn-outline-secondary btn-sm align-self-end mt-3">Voltar</a>
-        @if($existe && !$erro)
-            <a href="{{ route('lancamentos.preview.despesas', array_merge(request()->query(), ['file'=>$arquivo,'refresh'=>1])) }}" id="btn-reprocessar" class="btn btn-warning btn-sm align-self-end mt-3" data-action="reprocessar" title="Reprocessa a planilha ignorando o cache atual">Reprocessar (refresh)</a>
-            <button type="button" id="btn-apply-autoclass" class="btn btn-outline-primary btn-sm align-self-end mt-3" title="Executa as regras de auto-classificação agora nas linhas pendentes">Aplicar Regras Agora</button>
-            <button type="button" id="btn-snapshot-cache" class="btn btn-info btn-sm align-self-end mt-3" title="Força salvar no cache as contas e históricos ajustados visíveis" data-action="snapshot">Salvar Cache</button>
-            <button type="button" id="btn-export-xlsx" class="btn btn-success btn-sm align-self-end mt-3" title="Exporta a tabela atual (com classificações) para Excel">Exportar Excel</button>
-        @endif
+                @if($existe && !$erro)
+                        <a href="{{ route('lancamentos.preview.despesas', array_merge(request()->query(), ['file'=>$arquivo,'refresh'=>1])) }}" id="btn-reprocessar" class="btn btn-warning btn-sm align-self-end mt-3" data-action="reprocessar" title="Reprocessa a planilha ignorando o cache atual">Reprocessar (refresh)</a>
+                        <button type="button" id="btn-apply-autoclass" class="btn btn-outline-primary btn-sm align-self-end mt-3" title="Executa as regras de auto-classificação agora nas linhas pendentes">Aplicar Regras Agora</button>
+                        <button type="button" id="btn-snapshot-cache" class="btn btn-info btn-sm align-self-end mt-3" title="Força salvar no cache as contas e históricos ajustados visíveis" data-action="snapshot">Salvar Cache</button>
+                        <button type="button" id="btn-export-xlsx" class="btn btn-success btn-sm align-self-end mt-3" title="Exporta a tabela atual (com classificações) para Excel">Exportar Excel</button>
+                        <button type="button" id="btn-efetuar-lancamento" class="btn btn-outline-success btn-sm align-self-end mt-3">Efetuar lançamento contábil</button>
+                        <!-- Modal de confirmação lançamento contábil -->
+                        <div class="modal fade" id="modalEfetuarLancamento" tabindex="-1" aria-labelledby="modalEfetuarLancamentoLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="modalEfetuarLancamentoLabel">Efetuar lançamento contábil</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        Deseja realmente seguir com os lançamentos contábeis?
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não</button>
+                                        <button type="button" class="btn btn-success" data-bs-dismiss="modal">Sim</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                @endif
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    var btnEfetuar = document.getElementById('btn-efetuar-lancamento');
+    var modalEfetuar = document.getElementById('modalEfetuarLancamento');
+    var modalPronto = document.getElementById('modalLancamentoPronto');
+    var msgPronto = document.getElementById('modalLancamentoProntoMsg');
+    if(btnEfetuar){
+        btnEfetuar.addEventListener('click', function(){
+            if(window.bootstrap && modalEfetuar){
+                var bsModal = bootstrap.Modal.getOrCreateInstance(modalEfetuar);
+                bsModal.show();
+            }
+        });
+    }
+    // Ao clicar SIM no modal de confirmação, valida as linhas
+    if(modalEfetuar){
+        modalEfetuar.addEventListener('shown.bs.modal', function(){
+            var btnSim = modalEfetuar.querySelector('.btn-success');
+            if(btnSim){
+                btnSim.onclick = function(){
+                    // Validação das linhas da tabela
+                    var ok = true;
+                    var erros = [];
+                    var linhas = document.querySelectorAll('table[data-cache-key] tbody tr');
+                    // Descobre o índice da coluna número pela header '#'
+                    var ths = document.querySelectorAll('table[data-cache-key] thead th');
+                    var idxNum = 0;
+                    ths.forEach(function(th, idx){
+                        if(th.textContent.trim() === '#') idxNum = idx;
+                    });
+                    for(var i=0;i<linhas.length;i++){
+                        var tr = linhas[i];
+                        var tds = tr.querySelectorAll('td');
+                        // Remove destaque de erro de todas as linhas antes de validar
+                        tr.classList.remove('table-danger', 'linha-erro-validacao');
+                        // Só valida se a primeira coluna (número da linha) for >= 3
+                        var linhaNum = tds[idxNum] ? tds[idxNum].textContent.trim() : '';
+                        if(!tds[idxNum] || isNaN(linhaNum) || parseInt(linhaNum,10) < 3) continue;
+                        // DATA: busca e valida formato (dd/mm/yyyy), tenta ajustar se possível
+                        var temData = false;
+                        var dataInvalida = false;
+                        var idxData = -1;
+                        ths.forEach(function(th, idx){
+                            if(th.textContent.trim().toUpperCase().includes('DATA')) idxData = idx;
+                        });
+                        var tds = tr.querySelectorAll('td');
+                        if(idxData >= 0 && tds[idxData]) {
+                            var valorData = tds[idxData].textContent.trim();
+                            // Aceita dd/mm/yyyy, d/m/yyyy, ddmmyyyy, ddmmyyyy, etc
+                            var match = valorData.match(/^(\d{1,2})\/?(\d{1,2})\/?(\d{2,4})$/);
+                            if(match) {
+                                // Normaliza para dd/mm/yyyy
+                                var d = match[1].padStart(2,'0');
+                                var m = match[2].padStart(2,'0');
+                                var y = match[3].length === 2 ? '20'+match[3] : match[3];
+                                var dataFormatada = d+'/'+m+'/'+y;
+                                // Se não estava no formato, tenta ajustar
+                                if(valorData !== dataFormatada) {
+                                    tds[idxData].textContent = dataFormatada;
+                                }
+                                temData = true;
+                            } else {
+                                dataInvalida = true;
+                            }
+                        }
+                        // Se data inválida, abre campo de edição
+                        if(dataInvalida && idxData >= 0 && tds[idxData]) {
+                            var td = tds[idxData];
+                            var valorAtual = td.textContent.trim();
+                            td.innerHTML = '<input type="text" class="form-control form-control-sm" value="'+valorAtual+'" placeholder="dd/mm/yyyy">';
+                            var input = td.querySelector('input');
+                            if(input){
+                                input.addEventListener('blur', function(){
+                                    td.textContent = input.value;
+                                    var btnSnapshot = document.getElementById('btn-snapshot-cache');
+                                    if(btnSnapshot) btnSnapshot.click();
+                                });
+                                // Opcional: salvar ao pressionar Enter
+                                input.addEventListener('keydown', function(e){
+                                    if(e.key === 'Enter'){
+                                        input.blur();
+                                    }
+                                });
+                            }
+                        }
+                        // EMPRESA_ID: busca na célula da coluna EMPRESA_ID
+                        var empresaId = '';
+                        var ths = document.querySelectorAll('table[data-cache-key] thead th');
+                        var idxEmpresa = -1;
+                        ths.forEach(function(th, idx){
+                            if(th.textContent.trim().toUpperCase().includes('EMPRESA')) idxEmpresa = idx;
+                        });
+                        if(idxEmpresa >= 0) {
+                            var tds = tr.querySelectorAll('td');
+                            if(tds[idxEmpresa]) empresaId = tds[idxEmpresa].textContent.trim();
+                        }
+                        // fallback: select.class-conta
+                        if(!empresaId) empresaId = tr.querySelector('select.class-conta')?.dataset.empresaId || '';
+                        // CONTA_DEBITO_ID: select.class-conta value
+                        var contaDebitoId = tr.querySelector('select.class-conta')?.value || '';
+                        // CONTA_DEBITO_LABEL: select option selecionada
+                        var contaDebitoLabel = '';
+                        var sel = tr.querySelector('select.class-conta');
+                        if(sel && sel.selectedIndex>=0) contaDebitoLabel = sel.options[sel.selectedIndex]?.textContent || '';
+                        // CONTA_CREDITO_GLOBAL_ID: select#conta-credito-global value
+                        var contaCreditoId = document.getElementById('conta-credito-global')?.value || '';
+                        var camposFaltando = [];
+                        if(!temData) camposFaltando.push('DATA');
+                        if(!empresaId) camposFaltando.push('EMPRESA_ID');
+                        if(!contaDebitoId) camposFaltando.push('CONTA_DEBITO_ID');
+                        if(!contaDebitoLabel) camposFaltando.push('CONTA_DEBITO_LABEL');
+                        if(!contaCreditoId) camposFaltando.push('CONTA_CREDITO_GLOBAL_ID');
+                        if(camposFaltando.length > 0){
+                            ok = false;
+                            erros.push('Linha '+linhaNum+': faltando '+camposFaltando.join(', '));
+                            // Destaca a linha
+                            tr.classList.add('table-danger', 'linha-erro-validacao');
+                            // Ativa edição nos campos faltantes
+                            var tds = tr.querySelectorAll('td');
+                            camposFaltando.forEach(function(campo){
+                                // Busca índice do campo no header
+                                var idxCampo = -1;
+                                ths.forEach(function(th, idx){
+                                    if(th.textContent.trim().toUpperCase().includes(campo.replace('_ID','').replace('_LABEL','').replace('GLOBAL','').replace('CONTA','CONTA').replace('EMPRESA','EMPRESA'))) idxCampo = idx;
+                                });
+                                if(idxCampo >= 0 && tds[idxCampo]) {
+                                    // Se já não for input, ativa edição
+                                    if(!tds[idxCampo].querySelector('input')) {
+                                        var valorAtual = tds[idxCampo].textContent.trim();
+                                        tds[idxCampo].innerHTML = '<input type="text" class="form-control form-control-sm" value="'+valorAtual+'" placeholder="'+campo+'">';
+                                    }
+                                }
+                            });
+                        }
+                    }
+                    // Exibe modal de pronto ou erro
+                    if(window.bootstrap && modalPronto && msgPronto){
+                        var bsModalPronto = bootstrap.Modal.getOrCreateInstance(modalPronto);
+                        // Rola até a primeira linha com erro, se houver
+                        var linhaErro = document.querySelector('.linha-erro-validacao');
+                        if(linhaErro) linhaErro.scrollIntoView({behavior:'smooth',block:'center'});
+                        let avisoFim = '<div class="mt-2"><b>Validação concluída.</b></div><div class="mb-2">Deseja seguir com o lançamento?</div>';
+                        var btnSimModal = modalPronto.querySelector('.btn-success');
+                        if(ok){
+                            msgPronto.innerHTML = '<div class="alert alert-success mb-2">Está tudo pronto para seguir com os lançamentos contábeis!</div>' + avisoFim;
+                            if(btnSimModal) btnSimModal.disabled = false;
+                        }else{
+                            msgPronto.innerHTML = '<div class="alert alert-danger mb-2">Existem linhas com dados obrigatórios ausentes:<ul><li>'+erros.join('</li><li>')+'</li></ul></div>' + avisoFim;
+                            if(btnSimModal) btnSimModal.disabled = true;
+                        }
+                        setTimeout(function(){ bsModalPronto.show(); }, 200);
+                    }
+                };
+            }
+        });
+    }
+});
+</script>
+@endpush
     </div>
     @if($erro)
         <div class="alert alert-danger">{{ $erro }}</div>
@@ -82,14 +364,21 @@
                 <br>Classificação de contas disponível apenas em linhas que contenham Data e Valor.
         </div>
         <div class="mb-2 d-flex flex-wrap align-items-end gap-2">
-            <div>
-                <label class="form-label mb-1">Empresa (global)</label>
-                <select id="empresa-global" class="form-select form-select-sm select2-basic" data-cache-key="{{ $cacheKey }}" data-placeholder="Selecione a empresa" data-locked="{{ $empresaLocked ? '1':'0' }}">
-                    <option value=""></option>
-                    @foreach($empresasLista as $emp)
-                        <option value="{{ $emp->ID }}" {{ (string)($selectedEmpresaId ?? '') === (string)$emp->ID ? 'selected' : '' }}>{{ $emp->Descricao }}</option>
-                    @endforeach
-                </select>
+            <div class="d-flex align-items-end gap-2">
+                <div>
+                    <label class="form-label mb-1">Empresa (global)</label>
+                    <select id="empresa-global" class="form-select form-select-sm select2-basic" data-cache-key="{{ $cacheKey }}" data-placeholder="Selecione a empresa" data-locked="{{ $empresaLocked ? '1':'0' }}">
+                        <option value=""></option>
+                        @foreach($empresasLista as $emp)
+                            <option value="{{ $emp->ID }}" {{ (string)($selectedEmpresaId ?? '') === (string)$emp->ID ? 'selected' : '' }}>{{ $emp->Descricao }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="pb-1">
+                    <button type="button" id="btn-lock-empresa" class="btn btn-outline-danger btn-sm" data-locked="{{ $empresaLocked ? '1':'0' }}" {{ $empresaLocked ? '' : 'disabled' }}>
+                        {{ $empresaLocked ? 'Travada (não seleciona empresa)' : 'Travar' }}
+                    </button>
+                </div>
             </div>
             <div>
                 <label class="form-label mb-1">Conta Crédito (global)</label>
@@ -108,12 +397,6 @@
             </div>
             <div class="small text-muted">
                 Após escolher a empresa, selecione a conta para cada linha.
-            </div>
-            <div>
-                <label class="form-label mb-1">Travamento</label><br>
-                <button type="button" id="btn-lock-empresa" class="btn btn-outline-danger btn-sm mt-1" data-locked="{{ $empresaLocked ? '1':'0' }}" {{ $empresaLocked ? '' : 'disabled' }}>
-                    {{ $empresaLocked ? 'Destravar Empresa' : 'Travada: não (selecione empresa)' }}
-                </button>
             </div>
             <div>
                 <button type="button" class="btn btn-outline-secondary btn-sm" id="toggle-pendentes" disabled>Ocultar linhas classificadas</button>
