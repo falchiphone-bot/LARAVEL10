@@ -746,6 +746,11 @@ document.addEventListener('DOMContentLoaded', function(){
             <div>
                 <button type="button" class="btn btn-outline-secondary btn-sm" id="toggle-pendentes" disabled>Ocultar linhas classificadas</button>
             </div>
+            <div>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-convert-dates" title="Converter datas de mm/dd/aaaa ou yyyy-mm-dd para dd/mm/aaaa a partir da linha 2" disabled>
+                    Converter datas (EUA→BR)
+                </button>
+            </div>
         </div>
         <div class="table-responsive" style="max-height:70vh; overflow:auto;">
             <table class="table table-sm table-striped table-bordered align-middle" data-cache-key="{{ $cacheKey ?? '' }}">
@@ -985,6 +990,8 @@ document.addEventListener('DOMContentLoaded', function(){
     const modalPrepare = document.getElementById('modalPrepareExport');
     const btnConfirmPrepare = document.getElementById('btn-confirm-export-prepare');
     const btnLockCredito = document.getElementById('btn-lock-conta-credito');
+    // Mover declaração para o topo para evitar TDZ em atualizarBotaoLock()
+    const btnLock = document.getElementById('btn-lock-empresa');
     // Disponibiliza no escopo global para outros handlers de scripts (stack)
         window.executarSnapshot = async function executarSnapshot(manual=false){
             const tableEl = document.querySelector('table[data-cache-key]');
@@ -1176,11 +1183,84 @@ document.addEventListener('DOMContentLoaded', function(){
         idxDataGlobal = -1;
         if(!table) return;
         const ths = table.querySelectorAll('thead th');
-        // Match exato primeiro, depois fallback
-        ths.forEach((th, idx)=>{ if(th.textContent.trim().toUpperCase() === 'DATA') idxDataGlobal = idx; });
-        if(idxDataGlobal < 0){ ths.forEach((th, idx)=>{ if(th.textContent.trim().toUpperCase().includes('DATA')) idxDataGlobal = idx; }); }
+        // 1) Tenta pelo cabeçalho: match exato "DATA" e depois contém "DATA"
+        ths.forEach((th, idx)=>{ if(idxDataGlobal<0 && th.textContent.trim().toUpperCase() === 'DATA') idxDataGlobal = idx; });
+        if(idxDataGlobal < 0){ ths.forEach((th, idx)=>{ if(idxDataGlobal<0 && th.textContent.trim().toUpperCase().includes('DATA')) idxDataGlobal = idx; }); }
+        // 2) Se não encontrou por cabeçalho, escaneia as primeiras N linhas de dados
+        if(idxDataGlobal < 0){
+            const rows = Array.from(table.querySelectorAll('tbody tr')).slice(0, 10); // avalia até 10 linhas
+            const counts = {};
+            rows.forEach((tr)=>{
+                const tds = Array.from(tr.querySelectorAll('td'));
+                for(let i=1;i<tds.length;i++){ // ignora a coluna de índice '#'
+                    const val = (tds[i].textContent||'').trim();
+                    if(!val) continue;
+                    // ignora literals comuns de cabeçalho copiados para a linha 1
+                    const up = val.toUpperCase();
+                    if(up === 'DATA' || up === 'HISTORICO' || up === 'HISTÓRICO') continue;
+                    const normalized = (typeof parseDataFlexInline === 'function') ? parseDataFlexInline(val) : null;
+                    if(normalized){ counts[i] = (counts[i]||0) + 1; }
+                }
+            });
+            let bestIdx = -1, bestScore = 0;
+            Object.keys(counts).forEach(k=>{
+                const idx = parseInt(k,10); const score = counts[k];
+                if(score > bestScore){ bestScore = score; bestIdx = idx; }
+            });
+            if(bestScore > 0){ idxDataGlobal = bestIdx; }
+        }
     }
     recomputeIdxDataGlobal();
+    // Conversor de datas EUA→BR (a partir da linha 2)
+    const btnConvertDates = document.getElementById('btn-convert-dates');
+    function updateConvertDatesAvailability(){
+        const tableEl = document.querySelector('table[data-cache-key]');
+        if(btnConvertDates){ btnConvertDates.disabled = !tableEl; }
+    }
+    updateConvertDatesAvailability();
+    function toBr(y,m,d){ const pad=n=> (n<10? '0'+n: ''+n); return pad(d)+'/'+pad(m)+'/'+String(y); }
+    function tryConvertUsToBr(raw){
+        if(raw==null) return null; let v=String(raw).trim(); if(v==='') return null;
+        // yyyy-mm-dd ou yyyy/mm/dd (ISO-like) → direto para BR
+        let m = v.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/);
+        if(m){ const y=+m[1], mm=+m[2], dd=+m[3]; const dt=new Date(y,mm-1,dd); if(dt&&dt.getFullYear()===y&&(dt.getMonth()+1)===mm&&dt.getDate()===dd) return toBr(y,mm,dd); }
+        // US mm/dd/yyyy ou mm-dd-yyyy (assumir sempre formato EUA) → BR dd/mm/yyyy
+        // Suporta também ano com 2 dígitos (ex: 7/1/25 → 01/07/2025)
+        m = v.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})$/);
+        if(m){
+            let mm=+m[1], dd=+m[2]; let y=m[3];
+            if(typeof y === 'string' && y.length===2){ y = '20'+y; }
+            y = +y;
+            if(mm>=1&&mm<=12&&dd>=1&&dd<=31){
+                const dt=new Date(y,mm-1,dd);
+                if(dt&&dt.getFullYear()===y&&(dt.getMonth()+1)===mm&&dt.getDate()===dd){
+                    return toBr(y,mm,dd);
+                }
+            }
+        }
+        return null;
+    }
+    btnConvertDates?.addEventListener('click', async ()=>{
+        recomputeIdxDataGlobal(); updateConvertDatesAvailability();
+        const tableEl = document.querySelector('table[data-cache-key]');
+        if(!tableEl){ alert('Tabela não localizada.'); return; }
+        if(idxDataGlobal<0){ alert('Coluna de data não localizada.'); return; }
+        const rows = Array.from(tableEl.querySelectorAll('tbody tr'));
+        let changed=0; let inspected=0;
+        rows.forEach(tr=>{
+            const numCell = tr.querySelector('td:first-child');
+            const rowNum = numCell ? parseInt(numCell.textContent,10) : NaN;
+            if(!rowNum || rowNum<=1) return; // inicia a partir da linha 2
+            const tds = tr.querySelectorAll('td');
+            const td = tds[idxDataGlobal]; if(!td) return;
+            const orig = (td.textContent||'').trim(); if(!orig) return;
+            const conv = tryConvertUsToBr(orig);
+            inspected++;
+            if(conv && conv !== orig){ td.textContent = conv; changed++; }
+        });
+        await (window.executarSnapshot ? window.executarSnapshot(false) : Promise.resolve());
+        alert('Conversão concluída. Linhas analisadas: '+inspected+'; alteradas: '+changed+'.');
+    });
     // Banner persistente pós-simulação (escopo global)
     window.renderDryRunBanner = function renderDryRunBanner(j){
         const host = document.getElementById('dryrun-result-banner');
@@ -1493,9 +1573,22 @@ document.addEventListener('DOMContentLoaded', function(){
         });
     }
     initContaCreditoSelect();
+    // Força destravar visualmente se ?unlock=1
+    try{
+        const qs = new URLSearchParams(window.location.search);
+        if(qs.get('unlock') === '1'){
+            const btnLockEmpresa = document.getElementById('btn-lock-empresa');
+            if(btnLockEmpresa){ btnLockEmpresa.dataset.locked = '0'; }
+            if(btnLockCredito){ btnLockCredito.dataset.locked = '0'; }
+        }
+    }catch(e){}
     if(selectContaCredito){
         selectContaCredito.addEventListener('change', function(){
             const contaId = this.value || null;
+            // Habilita o botão de travar crédito assim que houver conta selecionada
+            if(btnLockCredito){ btnLockCredito.disabled = !contaId && !(btnLockCredito.dataset.locked === '1'); }
+            // Recalcula estado visual imediatamente
+            atualizarBotaoLockCredito();
             fetch("{{ route('lancamentos.preview.despesas.credito') }}",{
                 method:'POST',
                 headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
@@ -1506,12 +1599,32 @@ document.addEventListener('DOMContentLoaded', function(){
     function habilitarContaCreditoSeEmpresa(){
         if(!selectContaCredito) return;
         const temEmpresa = !!empresaGlobalSelect.value;
+        // Atualiza o disabled tanto no elemento quanto no select2
+        if(window.jQuery){ jQuery(selectContaCredito).prop('disabled', !temEmpresa).trigger('change.select2'); }
         selectContaCredito.disabled = !temEmpresa;
-        if(temEmpresa){ initContaCreditoSelect(); }
+        if(temEmpresa){
+            initContaCreditoSelect();
+            // Regra: ao definir empresa, destrava automaticamente a Conta Crédito (se estiver travada)
+            if(btnLockCredito && btnLockCredito.dataset.locked === '1'){
+                btnLockCredito.dataset.locked = '0';
+                try{
+                    fetch("{{ route('lancamentos.preview.despesas.credito.lock') }}",{
+                        method:'POST',
+                        headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
+                        body: JSON.stringify({cache_key: cacheKey, locked: false})
+                    }).then(()=>{}).catch(()=>{});
+                }catch(e){}
+            }
+        }
         atualizarBotaoLockCredito();
+        if(typeof atualizarBotaoLock === 'function'){ atualizarBotaoLock(); }
     }
     empresaGlobalSelect?.addEventListener('change', habilitarContaCreditoSeEmpresa);
+    // Ao selecionar empresa, habilita o botão de travar empresa e atualiza estado
+    empresaGlobalSelect?.addEventListener('change', function(){ if(btnLock){ btnLock.disabled = false; } atualizarBotaoLock(); });
     habilitarContaCreditoSeEmpresa();
+    // Se destravado via querystring, garante atualização visual após habilitar select
+    try{ const qs2 = new URLSearchParams(window.location.search); if(qs2.get('unlock')==='1'){ atualizarBotaoLockCredito(); } }catch(e){}
     function atualizarBotaoLockCredito(){
         if(!btnLockCredito) return;
         const locked = btnLockCredito.dataset.locked === '1';
@@ -1564,7 +1677,6 @@ document.addEventListener('DOMContentLoaded', function(){
     atualizarBotaoLockCredito();
 
     // Botão de lock/unlock
-    const btnLock = document.getElementById('btn-lock-empresa');
     function atualizarBotaoLock(){
         if(!btnLock) return;
         const locked = empresaGlobalSelect.dataset.locked === '1';

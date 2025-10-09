@@ -1399,7 +1399,8 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             $uploaded = $request->file('arquivo_excel');
             $storedName = $uploaded->getClientOriginalName();
             $uploaded->storeAs('imports', $storedName);
-            return redirect()->route('lancamentos.preview.despesas',[ 'file'=>$storedName ]);
+            // Após upload, força reconstrução da visualização e destrava seleções iniciais
+            return redirect()->route('lancamentos.preview.despesas',[ 'file'=>$storedName, 'refresh'=>1, 'unlock'=>1 ]);
         }
 
         $file = $request->query('file', 'DESPESAS-08-2025-TEC.xlsx');
@@ -1427,7 +1428,8 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         $fullPath = $basePath.DIRECTORY_SEPARATOR.$file;
         $exists = file_exists($fullPath);
         $cacheKey = 'preview_despesas:'.auth()->id().':'.md5(json_encode([$file,$limite,$flagUpper,$flagTrimMulti,$subsRaw,$regexRaw]));
-        $forceRefresh = (bool)$request->query('refresh');
+    $forceRefresh = (bool)$request->query('refresh');
+    $forceUnlock = (bool)$request->query('unlock');
     $headers = [];
     $rows = [];
     $empresaIdFromFile = null;
@@ -1484,6 +1486,14 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                 $globalCreditContaLocked = false;
                 $touched = true;
             }
+            // Se ?unlock=1 foi solicitado, destrava explicitamente ambos os controles
+            if($forceUnlock){
+                $payload['empresa_locked'] = false;
+                $payload['global_credit_conta_locked'] = false;
+                $empresaLocked = false;
+                $globalCreditContaLocked = false;
+                $touched = true;
+            }
             if($touched){ Cache::put($cacheKey, $payload, now()->addHour()); }
         } elseif(!$exists){
             $erro = "Arquivo não encontrado em imports: $file. Copie ou faça upload.";
@@ -1497,6 +1507,8 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     $globalCreditContaId = $prev['global_credit_conta_id'] ?? null;
                     $globalCreditContaLabel = $prev['global_credit_conta_label'] ?? null;
                     $globalCreditContaLocked = $prev['global_credit_conta_locked'] ?? false;
+                    // Em refresh após upload com ?unlock=1, destrava explicitamente
+                    if($forceUnlock){ $empresaLocked=false; $globalCreditContaLocked=false; }
                 }
                 $spreadsheet = IOFactory::load($fullPath);
                 $sheet = $spreadsheet->getActiveSheet();
@@ -1567,6 +1579,11 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                 // Fallbacks adicionais a partir de contexto selecionado
                 if(!$empresaIdFromFile && $selectedEmpresaId){ $empresaIdFromFile = (int)$selectedEmpresaId; }
                 if(!$contaCreditoIdFromFile && $globalCreditContaId){ $contaCreditoIdFromFile = (int)$globalCreditContaId; }
+                // Se foi solicitado unlock e conseguimos inferir a empresa, já define como selecionada para habilitar Conta Crédito
+                if($forceUnlock && $empresaIdFromFile && !$selectedEmpresaId){
+                    $selectedEmpresaId = $empresaIdFromFile;
+                    $empresaLocked = false;
+                }
                 // Mescla ajustes antigos se usuário havia modificado (_hist_ajustado diferente do original)
                 if($oldRows){
                     // Mapa por hash antigo para restauração independente de reordenação
@@ -1684,6 +1701,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                         }
                     }
                 }
+                // Ao salvar payload, respeita flags (podem ter sido forçadas para desbloqueadas via ?unlock=1)
                 Cache::put($cacheKey, [
                     'headers'=>$headers,
                     'rows'=>$rows,
@@ -1904,6 +1922,21 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         }
         $payload = Cache::get($data['cache_key']);
         $rows = $payload['rows'] ?? [];
+        $headersLocal = $payload['headers'] ?? [];
+        $ensureDataHeader = false; // sinaliza que devemos incluir 'DATA' no headers
+        // helper interno para detectar se um valor parece data (formatos comuns)
+        $isDateLike = function($v){
+            if($v instanceof \DateTimeInterface) return true;
+            if(!is_string($v)) return false;
+            $s = trim($v);
+            if($s==='') return false;
+            if(preg_match('/^\d{2,6}$/',$s)) return true; // possível serial Excel
+            if(preg_match('/^\d{4}[\/-]\d{1,2}[\/-]\d{1,2}$/',$s)) return true; // yyyy-mm-dd
+            if(preg_match('/^\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}$/',$s)) return true; // mm/dd[/yy]
+            if(preg_match('/^\d{8}$/',$s)) return true; // yyyymmdd ou ddmmyyyy
+            if(preg_match('/^\d{2}[\/]\d{2}[\/]\d{4}$/',$s)) return true; // dd/mm/yyyy
+            return false;
+        };
         foreach($data['rows'] as $r){
             $i = $r['i'];
             if(!isset($rows[$i])) continue;
@@ -1916,16 +1949,39 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             }
             // Atualiza DATA se enviado
             if(array_key_exists('data',$r)){
+                $newVal = $r['data'];
+                $updatedCell = false;
                 // Se existir a coluna DATA no conjunto de headers desta cache, atualiza-a
                 if(isset($rows[$i]['DATA'])){
-                    $rows[$i]['DATA'] = $r['data'];
+                    $rows[$i]['DATA'] = $newVal; $updatedCell = true;
                 } else {
-                    // fallback: tenta encontrar chave que contenha 'DATA' (caso variação de header)
-                    foreach(array_keys($rows[$i]) as $k){
-                        if(is_string($k) && stripos($k,'DATA') !== false && strpos($k,'_') !== 0){
-                            $rows[$i][$k] = $r['data']; break;
+                    // fallback 1: tenta encontrar chave que contenha 'DATA' (caso variação de header)
+                    foreach($headersLocal as $hName){
+                        if(is_string($hName) && stripos($hName,'DATA') !== false && strpos($hName,'_') !== 0){
+                            $rows[$i][$hName] = $newVal; $updatedCell = true; break;
                         }
                     }
+                    // fallback 2: tenta identificar a coluna candidata por valor "parecido com data" na linha
+                    if(!$updatedCell){
+                        foreach($headersLocal as $hName){
+                            if(!is_string($hName)) continue;
+                            $up = mb_strtoupper($hName,'UTF-8');
+                            // ignora campos conhecidos que não são datas
+                            if(in_array($up, ['HISTORICO','HISTÓRICO','VALOR','EMPRESA_ID','CONTA_DEBITO_ID','CONTA_DEBITO_LABEL','CONTA_CREDITO_GLOBAL_ID'], true)) continue;
+                            if(strpos($hName,'_') === 0) continue; // metas/auxiliares
+                            $curr = $rows[$i][$hName] ?? null;
+                            if($isDateLike($curr)){
+                                $rows[$i][$hName] = $newVal; $updatedCell = true; break;
+                            }
+                        }
+                    }
+                }
+                // Se ainda não atualizamos nenhuma célula, garanta um campo persistente 'DATA'
+                if(!$updatedCell){
+                    $rows[$i]['DATA'] = $newVal; $ensureDataHeader = true;
+                } else {
+                    // Ainda assim garantimos um campo persistente 'DATA' para futuras detecções na UI
+                    if(!isset($rows[$i]['DATA'])){ $rows[$i]['DATA'] = $newVal; $ensureDataHeader = true; }
                 }
             }
             if(array_key_exists('conta_id',$r)){
@@ -1934,6 +1990,10 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             }
         }
         $payload['rows'] = $rows;
+        // Se adicionamos DATA em alguma linha e não consta em headers, acrescenta
+        if($ensureDataHeader && (!isset($payload['headers']) || !in_array('DATA', $payload['headers'], true))){
+            $payload['headers'][] = 'DATA';
+        }
         // Atualiza conta crédito global se enviada
         if(array_key_exists('global_credit_conta_id',$data)){
             $payload['global_credit_conta_id'] = $data['global_credit_conta_id'];
