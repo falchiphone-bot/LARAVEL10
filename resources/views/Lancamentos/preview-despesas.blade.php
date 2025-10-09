@@ -148,7 +148,10 @@
                         <button type="button" id="btn-export-xlsx" class="btn btn-danger btn-sm" title="Exportar dados preparados em arquivo excel">Exportar dados preparados em arquivo excel</button>
                         <button type="button" id="btn-export-prepare-xlsx" class="btn btn-outline-danger btn-sm" title="Gerar arquivo para preparar lançamento (com checagem de duplicidade)">Preparar lançamentos</button>
                     </div>
-                    <button type="button" id="btn-efetuar-lancamento" class="btn btn-outline-success btn-sm">Efetuar lançamento contábil</button>
+                    <div class="d-flex gap-2">
+                        <button type="button" id="btn-efetuar-lancamento" class="btn btn-outline-success btn-sm">Efetuar lançamento contábil</button>
+                        <button type="button" id="btn-commit-lancamento" class="btn btn-success btn-sm" title="Consolidar no banco os lançamentos prontos" disabled>Consolidar no banco</button>
+                    </div>
                 </div>
             @endif
             <a href="{{ url()->previous() }}" class="btn btn-outline-secondary btn-sm">Voltar</a>
@@ -227,10 +230,16 @@ document.addEventListener('DOMContentLoaded', function(){
     var __previewDebug = (localStorage.getItem('preview_despesas_debug')==='1') || (new URLSearchParams(location.search).get('debug_preview')==='1');
     window.__previewDebug = __previewDebug;
     document.addEventListener('keydown', function(e){ if(e.altKey && e.key && e.key.toLowerCase()==='d'){ __previewDebug = !__previewDebug; window.__previewDebug = __previewDebug; localStorage.setItem('preview_despesas_debug', __previewDebug?'1':'0'); console.info('Preview despesas debug:', __previewDebug); } });
+    // CSRF disponível globalmente e local
+    window.csrf = window.csrf || (document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || document.querySelector('input[name="_token"]')?.value || '');
+    var csrf = window.csrf;
+    // Cache key disponível globalmente cedo
+    window.cacheKey = window.cacheKey || document.querySelector('table[data-cache-key]')?.dataset.cacheKey || '';
     var btnEfetuar = document.getElementById('btn-efetuar-lancamento');
     var modalEfetuar = document.getElementById('modalEfetuarLancamento');
     var modalPronto = document.getElementById('modalLancamentoPronto');
     var msgPronto = document.getElementById('modalLancamentoProntoMsg');
+    var btnCommit = document.getElementById('btn-commit-lancamento');
     if(btnEfetuar){
         btnEfetuar.addEventListener('click', function(){
             if(window.bootstrap && modalEfetuar){
@@ -563,6 +572,121 @@ document.addEventListener('DOMContentLoaded', function(){
                             if(btnSimModal) btnSimModal.disabled = true;
                         }
                         setTimeout(function(){ bsModalPronto.show(); try{ modalPronto.focus(); }catch(e){} }, 150);
+                        // Se OK e usuário clicar em Sim, processa (dry-run) os lançamentos
+                        if(ok && btnSimModal){
+                            btnSimModal.onclick = async function(){
+                                try{
+                                    // Evitar clique duplo
+                                    btnSimModal.disabled = true;
+                                    // Snapshot antes
+                                    await (window.executarSnapshot ? window.executarSnapshot(false) : Promise.resolve());
+                                    const tableEl = document.querySelector('table[data-cache-key]');
+                                    const ck = window.cacheKey || tableEl?.dataset.cacheKey || '';
+                                    if(window.__previewDebug){
+                                        // Em modo debug: abre nova aba com a resposta (JSON) sem bloquear a tela atual
+                                        const form = document.createElement('form');
+                                        form.method = 'POST';
+                                        form.action = "{{ route('lancamentos.preview.despesas.processDryRun') }}";
+                                        form.target = '_blank';
+                                        const inpToken = document.createElement('input'); inpToken.type='hidden'; inpToken.name='_token'; inpToken.value = (window.csrf || ''); form.appendChild(inpToken);
+                                        const inpCk = document.createElement('input'); inpCk.type='hidden'; inpCk.name='cache_key'; inpCk.value = ck; form.appendChild(inpCk);
+                                        document.body.appendChild(form);
+                                        form.submit();
+                                        btnSimModal.disabled = false;
+                                        return; // nova aba aberta
+                                    }
+                                    // Modo normal: usa fetch JSON e exibe resumo no modal
+                                    const r = await fetch("{{ route('lancamentos.preview.despesas.processDryRun') }}",{
+                                        method:'POST',
+                                        headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
+                                        body: JSON.stringify({cache_key: ck})
+                                    });
+                                    const j = await r.json();
+                                    if(!j.ok){
+                                        msgPronto.innerHTML = '<div class="alert alert-danger">Falha ao processar (simulação): '+(j.message||'erro')+'</div>' + avisoFim;
+                                        btnSimModal.disabled = false;
+                                        return;
+                                    }
+                                    const resumo = `
+                                        <div class="alert alert-success">
+                                            Simulação concluída.<br>
+                                            Prontos: <b>${j.ready_count}</b> — Ignorados: <b>${j.skipped_count}</b>
+                                        </div>
+                                        <div class="small text-muted">Nenhum dado foi gravado no banco. Este é apenas um ensaio.</div>
+                                        <div class="mt-2 d-flex gap-2 flex-wrap">
+                                            <button type="button" class="btn btn-outline-success btn-sm" id="btn-download-ready">Baixar prontos (CSV)</button>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-download-skipped">Baixar ignorados (CSV)</button>
+                                        </div>
+                                    `;
+                                    msgPronto.innerHTML = resumo + avisoFim;
+                                    // Preenche banner persistente abaixo do cabeçalho
+                                    renderDryRunBanner(j);
+                                    // Transformar botão "Sim" em "Fechar"
+                                    btnSimModal.textContent = 'Fechar';
+                                    btnSimModal.setAttribute('data-bs-dismiss','modal');
+                                    btnSimModal.classList.remove('btn-success');
+                                    btnSimModal.classList.add('btn-outline-secondary');
+                                    btnSimModal.disabled = false;
+                                    // Habilita consolidação se há prontos
+                                    if(btnCommit){ btnCommit.disabled = (j.ready_count<=0); }
+                                    // Geração de CSVs client-side
+    // Consolidar no banco
+    btnCommit?.addEventListener('click', async()=>{
+        const tableEl = document.querySelector('table[data-cache-key]');
+        const ck = window.cacheKey || tableEl?.dataset.cacheKey || '';
+        if(!ck) return;
+        // Confirmação
+        openConfirm('<strong>Consolidar lançamentos</strong>: os lançamentos prontos serão gravados no banco. Deseja continuar?', async ()=>{
+            try{
+                btnCommit.disabled = true; btnCommit.textContent = 'Consolidando...';
+                // Snapshot antes
+                await (window.executarSnapshot ? window.executarSnapshot(false) : Promise.resolve());
+                const r = await fetch("{{ route('lancamentos.preview.despesas.commit') }}",{
+                    method:'POST',
+                    headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
+                    body: JSON.stringify({cache_key: ck})
+                });
+                const j = await r.json();
+                if(!j.ok){ alert('Falha ao consolidar: '+(j.message||'erro')); btnCommit.disabled=false; btnCommit.textContent='Consolidar no banco'; return; }
+                // Feedback e atualizar banner
+                renderDryRunBanner({ ready_count: j.ready_count, skipped_count: 0, ready: [], skipped: [] });
+                const msg = `Consolidação concluída. Gravados: ${j.committed_count}.` + (j.skipped_existing_count? ` Ignorados por já existirem: ${j.skipped_existing_count}.`: '');
+                alert(msg);
+                btnCommit.textContent='Consolidar no banco';
+                btnCommit.disabled = false;
+            }catch(e){ console.error(e); alert('Erro inesperado na consolidação.'); btnCommit.disabled=false; btnCommit.textContent='Consolidar no banco'; }
+        });
+    });
+                                    function toCsvValue(v){
+                                        if(v==null) return '';
+                                        const s = String(v);
+                                        if(/[";,\n]/.test(s)) return '"'+s.replace(/"/g,'""')+'"';
+                                        return s;
+                                    }
+                                    function downloadCsv(filename, headers, rows){
+                                        const out = [];
+                                        out.push(headers.map(toCsvValue).join(';'));
+                                        rows.forEach(r=>{ out.push(headers.map(h=> toCsvValue(r[h])).join(';')); });
+                                        const blob = new Blob([out.join('\n')], {type:'text/csv;charset=utf-8;'});
+                                        const url = URL.createObjectURL(blob);
+                                        const a = document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 100);
+                                    }
+                                    document.getElementById('btn-download-ready')?.addEventListener('click', ()=>{
+                                        const headers = ['row','EmpresaID','ContaDebitoID','ContaCreditoID','DataContabilidade','Valor','Descricao'];
+                                        downloadCsv('dryrun-prontos.csv', headers, (j.ready||[]));
+                                    });
+                                    document.getElementById('btn-download-skipped')?.addEventListener('click', ()=>{
+                                        const rows = (j.skipped||[]).map(x=> ({ row:x.row, missing:(Array.isArray(x.missing)? x.missing.join(', '): String(x.missing||'')) }));
+                                        const headers = ['row','missing'];
+                                        downloadCsv('dryrun-ignorados.csv', headers, rows);
+                                    });
+                                }catch(e){
+                                    console.error(e);
+                                    msgPronto.innerHTML = '<div class="alert alert-danger">Erro inesperado na simulação.</div>' + avisoFim;
+                                    btnSimModal.disabled = false;
+                                }
+                            };
+                        }
                     }
                 };
             }
@@ -582,6 +706,8 @@ document.addEventListener('DOMContentLoaded', function(){
             Atalhos: <code>Ctrl/Cmd+S</code> exporta JSON ajustado.
                 <br>Classificação de contas disponível apenas em linhas que contenham Data e Valor.
         </div>
+        <!-- Banner persistente para resultado da simulação (dry-run) -->
+        <div id="dryrun-result-banner" class="my-2"></div>
         <div class="mb-2 d-flex flex-wrap align-items-end gap-2">
             <div class="d-flex align-items-end gap-2">
                 <div>
@@ -755,12 +881,14 @@ document.addEventListener('DOMContentLoaded', function(){
         let pendingAction = null;
         const msgEl = document.getElementById('confirmPreviewMessage');
         const btnProceed = document.getElementById('confirmPreviewProceed');
-        function openConfirm(message, proceedCb){
+    function openConfirm(message, proceedCb){
                 msgEl.innerHTML = message;
                 pendingAction = proceedCb;
                 if(!bsModal){ bsModal = new bootstrap.Modal(confirmModalEl); }
                 bsModal.show();
         }
+    // Expor para escopo global para uso em outros handlers/blocks
+    if(!window.openConfirm){ window.openConfirm = openConfirm; }
         btnProceed?.addEventListener('click', ()=>{
                 if(pendingAction){ pendingAction(); }
                 bsModal?.hide();
@@ -857,8 +985,11 @@ document.addEventListener('DOMContentLoaded', function(){
     const modalPrepare = document.getElementById('modalPrepareExport');
     const btnConfirmPrepare = document.getElementById('btn-confirm-export-prepare');
     const btnLockCredito = document.getElementById('btn-lock-conta-credito');
-        async function executarSnapshot(manual=false){
-            if(!cacheKey) return;
+    // Disponibiliza no escopo global para outros handlers de scripts (stack)
+        window.executarSnapshot = async function executarSnapshot(manual=false){
+            const tableEl = document.querySelector('table[data-cache-key]');
+            const ck = window.cacheKey || tableEl?.dataset.cacheKey || '';
+            if(!ck) return;
             const linhas = [];
             document.querySelectorAll('table[data-cache-key] tbody tr').forEach(tr=>{
                 const idxCell = tr.querySelector('td:first-child');
@@ -887,7 +1018,7 @@ document.addEventListener('DOMContentLoaded', function(){
                     method:'POST',
                     headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
                     body: JSON.stringify({
-                        cache_key: cacheKey,
+                        cache_key: ck,
                         rows: linhas,
                         global_credit_conta_id: selectContaCredito && selectContaCredito.value ? parseInt(selectContaCredito.value,10) : null,
                         global_credit_conta_label: (selectContaCredito && selectContaCredito.options && selectContaCredito.selectedIndex>=0) ? selectContaCredito.options[selectContaCredito.selectedIndex].textContent : null
@@ -902,13 +1033,15 @@ document.addEventListener('DOMContentLoaded', function(){
                 }
                 return true;
             }catch(e){ console.error(e); return false; }
-        }
-        btnSnapshot?.addEventListener('click', ()=> executarSnapshot(true));
+    }
+    btnSnapshot?.addEventListener('click', ()=> window.executarSnapshot(true));
         btnExport?.addEventListener('click', async()=>{
-            if(!cacheKey) return;
+            const tableEl = document.querySelector('table[data-cache-key]');
+            const ck = window.cacheKey || tableEl?.dataset.cacheKey || '';
+            if(!ck) return;
             // Faz snapshot rápido antes de exportar para garantir persistência
-            await executarSnapshot(false);
-            const url = "{{ route('lancamentos.preview.despesas.exportXlsx') }}" + '?cache_key='+encodeURIComponent(cacheKey);
+            await window.executarSnapshot(false);
+            const url = "{{ route('lancamentos.preview.despesas.exportXlsx') }}" + '?cache_key='+encodeURIComponent(ck);
             window.location.href = url;
         });
         function parseValorFlex(raw){
@@ -993,8 +1126,10 @@ document.addEventListener('DOMContentLoaded', function(){
         });
         btnConfirmPrepare?.addEventListener('click', async()=>{
             if(!cacheKey) return;
-            await executarSnapshot(false);
-            const url = "{{ route('lancamentos.preview.despesas.exportPrepareXlsx') }}" + '?cache_key='+encodeURIComponent(cacheKey);
+            await window.executarSnapshot(false);
+            const tableEl = document.querySelector('table[data-cache-key]');
+            const ck = window.cacheKey || tableEl?.dataset.cacheKey || '';
+            const url = "{{ route('lancamentos.preview.despesas.exportPrepareXlsx') }}" + '?cache_key='+encodeURIComponent(ck);
             window.location.href = url;
         });
         btnApplyAuto?.addEventListener('click', async()=>{
@@ -1021,19 +1156,20 @@ document.addEventListener('DOMContentLoaded', function(){
             e.preventDefault();
             const href = this.getAttribute('href');
             openConfirm('<strong>Reprocessar planilha</strong>: será feito snapshot antes para preservar suas seleções. Continuar?', async ()=>{
-                await executarSnapshot(false);
+                await window.executarSnapshot(false);
                 window.location.href = href;
             });
         });
         }
         if(btnRecarregar && formFiltros){
         btnRecarregar.addEventListener('click', function(){
-            openConfirm('<strong>Recarregar pré-visualização</strong>: será salvo snapshot antes. Continuar?', async ()=>{ await executarSnapshot(false); formFiltros.submit(); });
+            openConfirm('<strong>Recarregar pré-visualização</strong>: será salvo snapshot antes. Continuar?', async ()=>{ await window.executarSnapshot(false); formFiltros.submit(); });
                 });
         }
     const table = document.querySelector('table[data-cache-key]');
     const cacheKey = table?.dataset.cacheKey;
-    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    // Reforça o token para este bloco se ainda não existir
+    window.csrf = window.csrf || (document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || document.querySelector('input[name="_token"]')?.value || '');
     // Índice da coluna DATA para edição inline
     let idxDataGlobal = -1;
     function recomputeIdxDataGlobal(){
@@ -1045,6 +1181,40 @@ document.addEventListener('DOMContentLoaded', function(){
         if(idxDataGlobal < 0){ ths.forEach((th, idx)=>{ if(th.textContent.trim().toUpperCase().includes('DATA')) idxDataGlobal = idx; }); }
     }
     recomputeIdxDataGlobal();
+    // Banner persistente pós-simulação (escopo global)
+    window.renderDryRunBanner = function renderDryRunBanner(j){
+        const host = document.getElementById('dryrun-result-banner');
+        if(!host) return;
+        const html = `
+            <div class="alert alert-success d-flex flex-wrap align-items-center justify-content-between">
+                <div>
+                    <strong>Simulação concluída.</strong>
+                    <span class="ms-2">Prontos: <b>${j.ready_count}</b> — Ignorados: <b>${j.skipped_count}</b></span>
+                </div>
+                <div class="d-flex gap-2 mt-2 mt-md-0">
+                    <button type="button" class="btn btn-outline-success btn-sm" id="dryrun-dl-ready">Baixar prontos (CSV)</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="dryrun-dl-skipped">Baixar ignorados (CSV)</button>
+                </div>
+            </div>
+        `;
+        host.innerHTML = html;
+        function toCsvValue(v){ if(v==null) return ''; const s=String(v); return /[";,\n]/.test(s)? '"'+s.replace(/"/g,'""')+'"': s; }
+        function downloadCsv(filename, headers, rows){
+            const out=[]; out.push(headers.map(toCsvValue).join(';'));
+            rows.forEach(r=> out.push(headers.map(h=> toCsvValue(r[h])).join(';')));
+            const blob=new Blob([out.join('\n')],{type:'text/csv;charset=utf-8;'});
+            const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); },100);
+        }
+        document.getElementById('dryrun-dl-ready')?.addEventListener('click', ()=>{
+            const headers=['row','EmpresaID','ContaDebitoID','ContaCreditoID','DataContabilidade','Valor','Descricao'];
+            downloadCsv('dryrun-prontos.csv', headers, (j.ready||[]));
+        });
+        document.getElementById('dryrun-dl-skipped')?.addEventListener('click', ()=>{
+            const rows=(j.skipped||[]).map(x=>({row:x.row, missing:(Array.isArray(x.missing)? x.missing.join(', '): String(x.missing||''))}));
+            const headers=['row','missing'];
+            downloadCsv('dryrun-ignorados.csv', headers, rows);
+        });
+    }
     // Parser/normalizador de datas (mesma lógica do validador)
     function parseDataFlexInline(raw){
         if(raw==null) return null;

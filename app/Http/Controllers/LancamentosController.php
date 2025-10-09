@@ -2256,9 +2256,28 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             // Mantém apenas dígitos, vírgula, ponto e possível sinal negativo inicial
             $v = preg_replace('/[^0-9.,-]/','', $v);
             $hasDot = strpos($v,'.') !== false; $hasComma = strpos($v,',') !== false;
-            if($hasDot && $hasComma){ $v = str_replace('.','',$v); $v = str_replace(',', '.', $v); }
-            else if($hasComma && !$hasDot){ $v = str_replace(',', '.', $v); }
-            // Se houver múltiplos pontos, junta milhares
+            if($hasDot && $hasComma){
+                $lastDot = strrpos($v,'.');
+                $lastComma = strrpos($v,',');
+                if($lastDot !== false && $lastComma !== false){
+                    if($lastDot > $lastComma){
+                        // Ex: 1,234.56 => ponto decimal, vírgula milhar
+                        $v = str_replace(',', '', $v);
+                        // mantém ponto decimal
+                    } else {
+                        // Ex: 1.234,56 => vírgula decimal, ponto milhar
+                        $v = str_replace('.', '', $v);
+                        $v = str_replace(',', '.', $v);
+                    }
+                }
+            } else if($hasComma && !$hasDot){
+                // Apenas vírgula -> tratar como decimal
+                $v = str_replace(',', '.', $v);
+            } else {
+                // Apenas ponto: já está como decimal ou inteiro com milhar sem vírgula
+                // nada a fazer aqui
+            }
+            // Se restaram múltiplos pontos, considerar último como decimal
             if(substr_count($v, '.') > 1){
                 $parts = explode('.', $v);
                 $dec = array_pop($parts);
@@ -2332,6 +2351,229 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
 
         $fileName = 'prepare-lancamentos-'.date('Ymd-His').'.xlsx';
         return \Maatwebsite\Excel\Facades\Excel::download(new PreviewDespesasExport($rowsOut,$headings), $fileName);
+    }
+
+    /**
+     * Processa (simulação) os lançamentos a partir do cache, sem consolidar no BD.
+     * POST JSON: { cache_key: string }
+     * Retorna resumo com linhas prontas e ignoradas.
+     */
+    public function processPreviewDespesasLancamentos(Request $request)
+    {
+        $data = $request->validate(['cache_key' => 'required|string']);
+        if(!Cache::has($data['cache_key'])){
+            return response()->json(['ok'=>false,'message'=>'Cache expirado ou inexistente'], 410);
+        }
+        $payload = Cache::get($data['cache_key']);
+        $headersOrig = $payload['headers'] ?? [];
+        $rowsCache = $payload['rows'] ?? [];
+        $empresaGlobal = $payload['selected_empresa_id'] ?? null;
+        $creditGlobalId = $payload['global_credit_conta_id'] ?? null;
+
+        // Helpers (mesmos do prepare)
+        $normalizeDate = function($raw){
+            if($raw instanceof \DateTimeInterface){ return $raw->format('d/m/Y'); }
+            if($raw===null) return null; $v = trim((string)$raw); if($v==='') return null;
+            $v = preg_replace('/[T ]\d{1,2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/','',$v);
+            if(preg_match('/^\d{2,6}$/',$v)){ $n=(int)$v; if($n>59 && $n<60000){ $base=new \DateTimeImmutable('1899-12-30'); $dt=$base->modify("+".((int)round($n))." days"); return $dt->format('d/m/Y'); } }
+            $vSep = preg_replace('/[\.\-]/','/',$v); $vSep = preg_replace('/\s+/','/',$vSep);
+            if(preg_match('/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/',$vSep,$m)){ if(checkdate((int)$m[2],(int)$m[3],(int)$m[1])) return sprintf('%02d/%02d/%04d',(int)$m[3],(int)$m[2],(int)$m[1]); }
+            if(preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/',$vSep,$m)){ $y=$m[3]; if(strlen($y)===2){ $y='20'.$y; } if(checkdate((int)$m[2],(int)$m[1],(int)$y)) return sprintf('%02d/%02d/%04d',(int)$m[1],(int)$m[2],(int)$y); }
+            if(preg_match('/^(\d{4})(\d{2})(\d{2})$/',$v,$m)){ if(checkdate((int)$m[2],(int)$m[3],(int)$m[1])) return sprintf('%02d/%02d/%04d',(int)$m[3],(int)$m[2],(int)$m[1]); }
+            if(preg_match('/^(\d{2})(\d{2})(\d{4})$/',$v,$m)){ if(checkdate((int)$m[2],(int)$m[1],(int)$m[3])) return sprintf('%02d/%02d/%04d',(int)$m[1],(int)$m[2],(int)$m[3]); }
+            return null;
+        };
+        $toYmd = function(?string $br){ if(!$br) return null; try{ return \Carbon\Carbon::createFromFormat('d/m/Y',$br)->format('Y-m-d'); }catch(\Throwable $e){ return null; } };
+        $parseValor = function($raw){
+            if($raw===null) return null; $v = trim((string)$raw); if($v==='') return null; $negative=false;
+            if(preg_match('/^\(.*\)$/',$v)){ $negative=true; $v=preg_replace('/^\(|\)$/','',$v); }
+            if(preg_match('/-$/',$v)){ $negative=true; $v=preg_replace('/-$/','',$v); }
+            $v = preg_replace('/R\$|BRL|USD|\+/i','',$v); $v=preg_replace('/\s+/','',$v); $v=preg_replace('/[^0-9.,-]/','',$v);
+            $hasDot=strpos($v,'.')!==false; $hasComma=strpos($v,',')!==false;
+            if($hasDot && $hasComma){
+                $lastDot = strrpos($v,'.'); $lastComma = strrpos($v,',');
+                if($lastDot > $lastComma){
+                    $v = str_replace(',', '', $v); // vírgula milhar
+                } else {
+                    $v = str_replace('.', '', $v); // ponto milhar
+                    $v = str_replace(',', '.', $v); // vírgula decimal
+                }
+            } else if($hasComma && !$hasDot){ $v=str_replace(',', '.', $v); }
+            if(substr_count($v,'.')>1){ $parts=explode('.',$v); $dec=array_pop($parts); $v=implode('',$parts).'.'.$dec; }
+            if(!is_numeric($v)) return null; $num=(float)$v; return $negative? -$num : $num;
+        };
+        $findHeader = function(array $headers, string $contains){ foreach($headers as $h){ if(stripos($h,$contains)!==false) return $h; } return null; };
+
+        // Preferências de colunas
+        $dateCol = in_array('DATA_NORMALIZADA',$headersOrig,true) ? 'DATA_NORMALIZADA' : null;
+        if(!$dateCol){
+            foreach($headersOrig as $h){ if(mb_strtoupper($h,'UTF-8')==='DATA'){ $dateCol=$h; break; } }
+            if(!$dateCol){ foreach($headersOrig as $h){ if(stripos($h,'DATA')!==false){ $dateCol=$h; break; } } }
+        }
+        $valorCol = $findHeader($headersOrig,'VALOR');
+        $descCol = $findHeader($headersOrig,'DESCRI');
+
+        $ready=[]; $skipped=[];
+        foreach($rowsCache as $i=>$r){
+            $rowNum = $i+1; if($rowNum<4) continue; // mesma regra da validação
+            $empresaId = $r['_class_empresa_id'] ?? ($r['EMPRESA_ID'] ?? $empresaGlobal);
+            $contaDebId = $r['_class_conta_id'] ?? ($r['CONTA_DEBITO_ID'] ?? null);
+            $contaCredId = $creditGlobalId; if(!empty($r['CONTA_CREDITO_GLOBAL_ID'])) $contaCredId = $r['CONTA_CREDITO_GLOBAL_ID'];
+            $dataOrig = $dateCol ? ($r[$dateCol] ?? null) : null; $dataNorm = $r['DATA_NORMALIZADA'] ?? $normalizeDate($dataOrig);
+            $valorRaw = $valorCol ? ($r[$valorCol] ?? null) : null; $valor = $parseValor($valorRaw);
+            $descricao = $r['HISTORICO_AJUSTADO'] ?? ($descCol ? ($r[$descCol] ?? null) : null);
+
+            $faltas=[];
+            if(!$empresaId) $faltas[]='EMPRESA_ID';
+            if(!$contaCredId) $faltas[]='CONTA_CREDITO_GLOBAL_ID';
+            // Exigir conta débito somente se linha classificável (tem valor)
+            $classificavel = ($valor!==null);
+            if($classificavel && !$contaDebId) $faltas[]='CONTA_DEBITO_ID';
+            if(!$dataNorm) $faltas[]='DATA';
+            if($valor===null) $faltas[]='VALOR';
+
+            if(!empty($faltas)){
+                $skipped[] = ['row'=>$rowNum, 'missing'=>$faltas];
+                continue;
+            }
+            $ready[] = [
+                'row'=>$rowNum,
+                'EmpresaID'=>(int)$empresaId,
+                'ContaDebitoID'=>(int)$contaDebId,
+                'ContaCreditoID'=>(int)$contaCredId,
+                'DataContabilidade'=>$toYmd($dataNorm),
+                'Valor'=>$valor,
+                'Descricao'=>$descricao,
+            ];
+        }
+        return response()->json([
+            'ok'=>true,
+            'ready_count'=>count($ready),
+            'skipped_count'=>count($skipped),
+            'ready'=>$ready,
+            'skipped'=>$skipped,
+        ]);
+    }
+
+    /**
+     * Consolida os lançamentos prontos no BD (commit real).
+     * POST JSON: { cache_key: string }
+     * Reaproveita a mesma lógica de validação do dry-run; duplica a verificação de duplicados.
+     */
+    public function commitPreviewDespesasLancamentos(Request $request)
+    {
+        $data = $request->validate(['cache_key' => 'required|string']);
+        // Garante usuário autenticado (campo Usuarios_id é NOT NULL)
+        $userId = auth()->id();
+        if (!$userId) {
+            return response()->json(['ok'=>false,'message'=>'Usuário não autenticado'], 401);
+        }
+        if(!Cache::has($data['cache_key'])){
+            return response()->json(['ok'=>false,'message'=>'Cache expirado ou inexistente'], 410);
+        }
+        $payload = Cache::get($data['cache_key']);
+        $headersOrig = $payload['headers'] ?? [];
+        $rowsCache = $payload['rows'] ?? [];
+        $empresaGlobal = $payload['selected_empresa_id'] ?? null;
+        $creditGlobalId = $payload['global_credit_conta_id'] ?? null;
+
+        $normalizeDate = function($raw){
+            if($raw instanceof \DateTimeInterface){ return $raw->format('d/m/Y'); }
+            if($raw===null) return null; $v = trim((string)$raw); if($v==='') return null;
+            $v = preg_replace('/[T ]\d{1,2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/','',$v);
+            if(preg_match('/^\d{2,6}$/',$v)){ $n=(int)$v; if($n>59 && $n<60000){ $base=new \DateTimeImmutable('1899-12-30'); $dt=$base->modify("+".((int)round($n))." days"); return $dt->format('d/m/Y'); } }
+            $vSep = preg_replace('/[\.-]/','/',$v); $vSep = preg_replace('/\s+/','/',$vSep);
+            if(preg_match('/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/',$vSep,$m)){ if(checkdate((int)$m[2],(int)$m[3],(int)$m[1])) return sprintf('%02d/%02d/%04d',(int)$m[3],(int)$m[2],(int)$m[1]); }
+            if(preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/',$vSep,$m)){ $y=$m[3]; if(strlen($y)===2){ $y='20'.$y; } if(checkdate((int)$m[2],(int)$m[1],(int)$y)) return sprintf('%02d/%02d/%04d',(int)$m[1],(int)$m[2],(int)$y); }
+            if(preg_match('/^(\d{4})(\d{2})(\d{2})$/',$v,$m)){ if(checkdate((int)$m[2],(int)$m[3],(int)$m[1])) return sprintf('%02d/%02d/%04d',(int)$m[3],(int)$m[2],(int)$m[1]); }
+            if(preg_match('/^(\d{2})(\d{2})(\d{4})$/',$v,$m)){ if(checkdate((int)$m[2],(int)$m[1],(int)$m[3])) return sprintf('%02d/%02d/%04d',(int)$m[1],(int)$m[2],(int)$m[3]); }
+            return null;
+        };
+        $toYmd = function(?string $br){ if(!$br) return null; try{ return \Carbon\Carbon::createFromFormat('d/m/Y',$br)->format('Y-m-d'); }catch(\Throwable $e){ return null; } };
+        $parseValor = function($raw){
+            if($raw===null) return null; $v = trim((string)$raw); if($v==='') return null; $negative=false;
+            if(preg_match('/^\(.*\)$/',$v)){ $negative=true; $v=preg_replace('/^\(|\)$/','',$v); }
+            if(preg_match('/-$/',$v)){ $negative=true; $v=preg_replace('/-$/','',$v); }
+            $v = preg_replace('/R\$|BRL|USD|\+/i','',$v); $v=preg_replace('/\s+/','',$v); $v=preg_replace('/[^0-9.,-]/','',$v);
+            $hasDot=strpos($v,'.')!==false; $hasComma=strpos($v,',')!==false;
+            if($hasDot && $hasComma){ $lastDot=strrpos($v,'.'); $lastComma=strrpos($v,','); if($lastDot>$lastComma){ $v=str_replace(',','',$v); } else { $v=str_replace('.','',$v); $v=str_replace(',', '.', $v); } }
+            else if($hasComma && !$hasDot){ $v=str_replace(',', '.', $v); }
+            if(substr_count($v,'.')>1){ $parts=explode('.',$v); $dec=array_pop($parts); $v=implode('',$parts).'.'.$dec; }
+            if(!is_numeric($v)) return null; $num=(float)$v; return $negative? -$num : $num;
+        };
+        $findHeader = function(array $headers, string $contains){ foreach($headers as $h){ if(stripos($h,$contains)!==false) return $h; } return null; };
+
+        $dateCol = in_array('DATA_NORMALIZADA',$headersOrig,true) ? 'DATA_NORMALIZADA' : null;
+        if(!$dateCol){ foreach($headersOrig as $h){ if(mb_strtoupper($h,'UTF-8')==='DATA'){ $dateCol=$h; break; } } if(!$dateCol){ foreach($headersOrig as $h){ if(stripos($h,'DATA')!==false){ $dateCol=$h; break; } } } }
+        $valorCol = $findHeader($headersOrig,'VALOR');
+        $descCol = $findHeader($headersOrig,'DESCRI');
+
+        $ready=[]; $skipped=[];
+        foreach($rowsCache as $i=>$r){
+            $rowNum = $i+1; if($rowNum<4) continue;
+            $empresaId = $r['_class_empresa_id'] ?? ($r['EMPRESA_ID'] ?? $empresaGlobal);
+            $contaDebId = $r['_class_conta_id'] ?? ($r['CONTA_DEBITO_ID'] ?? null);
+            $contaCredId = $creditGlobalId; if(!empty($r['CONTA_CREDITO_GLOBAL_ID'])) $contaCredId = $r['CONTA_CREDITO_GLOBAL_ID'];
+            $dataOrig = $dateCol ? ($r[$dateCol] ?? null) : null; $dataNorm = $r['DATA_NORMALIZADA'] ?? $normalizeDate($dataOrig);
+            $valorRaw = $valorCol ? ($r[$valorCol] ?? null) : null; $valor = $parseValor($valorRaw);
+            $descricao = $r['HISTORICO_AJUSTADO'] ?? ($descCol ? ($r[$descCol] ?? null) : null);
+
+            $faltas=[]; $classificavel=($valor!==null);
+            if(!$empresaId) $faltas[]='EMPRESA_ID';
+            if(!$contaCredId) $faltas[]='CONTA_CREDITO_GLOBAL_ID';
+            if($classificavel && !$contaDebId) $faltas[]='CONTA_DEBITO_ID';
+            if(!$dataNorm) $faltas[]='DATA';
+            if($valor===null) $faltas[]='VALOR';
+            if(!empty($faltas)){ $skipped[]=['row'=>$rowNum,'missing'=>$faltas]; continue; }
+            $ready[]=[
+                'row'=>$rowNum,
+                'EmpresaID'=>(int)$empresaId,
+                'ContaDebitoID'=>(int)$contaDebId,
+                'ContaCreditoID'=>(int)$contaCredId,
+                'DataContabilidade'=>$toYmd($dataNorm),
+                'Valor'=>$valor,
+                'Descricao'=>$descricao,
+            ];
+        }
+
+        $committedIds=[]; $skippedExisting=[];
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        try{
+            foreach($ready as $item){
+                // Evita duplicidades exatas
+                $exists = Lancamento::query()
+                    ->where('EmpresaID',$item['EmpresaID'])
+                    ->where('ContaDebitoID',$item['ContaDebitoID'])
+                    ->where('ContaCreditoID',$item['ContaCreditoID'])
+                    ->where('DataContabilidade',$item['DataContabilidade'])
+                    ->where('Valor',$item['Valor'])
+                    ->exists();
+                if($exists){ $skippedExisting[]=$item; continue; }
+                $novo = new Lancamento();
+                $novo->EmpresaID = $item['EmpresaID'];
+                $novo->ContaDebitoID = $item['ContaDebitoID'];
+                $novo->ContaCreditoID = $item['ContaCreditoID'];
+                $novo->DataContabilidade = $item['DataContabilidade'];
+                $novo->Valor = $item['Valor'];
+                $novo->Descricao = $item['Descricao'];
+                $novo->Usuarios_id = $userId;
+                $novo->Conferido = false; // padrão seguro
+                $novo->save();
+                $committedIds[] = $novo->ID ?? $novo->getKey();
+            }
+            \Illuminate\Support\Facades\DB::commit();
+        }catch(\Throwable $e){
+            \Illuminate\Support\Facades\DB::rollBack();
+            return response()->json(['ok'=>false,'message'=>'Falha ao consolidar: '.$e->getMessage()], 500);
+        }
+
+        return response()->json([
+            'ok'=>true,
+            'ready_count'=>count($ready),
+            'committed_count'=>count($committedIds),
+            'skipped_existing_count'=>count($skippedExisting),
+            'committed_ids'=>$committedIds,
+        ]);
     }
 
     /**
