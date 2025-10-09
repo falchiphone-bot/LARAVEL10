@@ -2210,6 +2210,131 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
     }
 
     /**
+     * Exporta um arquivo de preparação de lançamentos a partir do cache da pré-visualização,
+     * incluindo colunas canônicas e um check se já existe lançamento idêntico na base.
+     * GET com ?cache_key=...
+     */
+    public function exportPreviewDespesasPrepareExcel(Request $request)
+    {
+        $cacheKey = $request->query('cache_key');
+        if(!$cacheKey){ abort(422,'cache_key obrigatório'); }
+        if(!Cache::has($cacheKey)){ abort(410,'Cache expirado ou inexistente. Recarregue a visualização.'); }
+
+        $payload = Cache::get($cacheKey);
+        $headersOrig = $payload['headers'] ?? [];
+        $rowsCache = $payload['rows'] ?? [];
+        $empresaGlobal = $payload['selected_empresa_id'] ?? null;
+        $creditGlobalId = $payload['global_credit_conta_id'] ?? null;
+
+        // Helpers
+        $normalizeDate = function($raw){
+            if($raw instanceof \DateTimeInterface){ return $raw->format('d/m/Y'); }
+            if($raw===null) return null; $v = trim((string)$raw); if($v==='') return null;
+            $v = preg_replace('/[T ]\d{1,2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/','',$v);
+            if(preg_match('/^\d{2,6}$/',$v)){ $n=(int)$v; if($n>59 && $n<60000){ $base=new \DateTimeImmutable('1899-12-30'); $dt=$base->modify("+".((int)round($n))." days"); return $dt->format('d/m/Y'); } }
+            $vSep = preg_replace('/[\.\-]/','/',$v); $vSep = preg_replace('/\s+/','/',$vSep);
+            if(preg_match('/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/',$vSep,$m)){ if(checkdate((int)$m[2],(int)$m[3],(int)$m[1])) return sprintf('%02d/%02d/%04d',(int)$m[3],(int)$m[2],(int)$m[1]); }
+            if(preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/',$vSep,$m)){ $y=$m[3]; if(strlen($y)===2){ $y='20'.$y; } if(checkdate((int)$m[2],(int)$m[1],(int)$y)) return sprintf('%02d/%02d/%04d',(int)$m[1],(int)$m[2],(int)$y); }
+            if(preg_match('/^(\d{4})(\d{2})(\d{2})$/',$v,$m)){ if(checkdate((int)$m[2],(int)$m[3],(int)$m[1])) return sprintf('%02d/%02d/%04d',(int)$m[3],(int)$m[2],(int)$m[1]); }
+            if(preg_match('/^(\d{2})(\d{2})(\d{4})$/',$v,$m)){ if(checkdate((int)$m[2],(int)$m[1],(int)$m[3])) return sprintf('%02d/%02d/%04d',(int)$m[1],(int)$m[2],(int)$m[3]); }
+            return null;
+        };
+        $toYmd = function(?string $br){ if(!$br) return null; try{ return \Carbon\Carbon::createFromFormat('d/m/Y',$br)->format('Y-m-d'); }catch(\Throwable $e){ return null; } };
+        $parseValor = function($raw){
+            if($raw===null) return null;
+            $v = trim((string)$raw);
+            if($v==='') return null;
+            $negative = false;
+            // Parênteses para negativo
+            if(preg_match('/^\(.*\)$/', $v)) { $negative = true; $v = preg_replace('/^\(|\)$/','', $v); }
+            // Sinal negativo ao final
+            if(preg_match('/-$/', $v)) { $negative = true; $v = preg_replace('/-$/','', $v); }
+            // Remove símbolos de moeda e plus
+            $v = preg_replace('/R\$|BRL|USD|\+/i','', $v);
+            // Remove espaços
+            $v = preg_replace('/\s+/', '', $v);
+            // Mantém apenas dígitos, vírgula, ponto e possível sinal negativo inicial
+            $v = preg_replace('/[^0-9.,-]/','', $v);
+            $hasDot = strpos($v,'.') !== false; $hasComma = strpos($v,',') !== false;
+            if($hasDot && $hasComma){ $v = str_replace('.','',$v); $v = str_replace(',', '.', $v); }
+            else if($hasComma && !$hasDot){ $v = str_replace(',', '.', $v); }
+            // Se houver múltiplos pontos, junta milhares
+            if(substr_count($v, '.') > 1){
+                $parts = explode('.', $v);
+                $dec = array_pop($parts);
+                $v = implode('', $parts).'.'.$dec;
+            }
+            if(!is_numeric($v)) return null;
+            $num = (float)$v;
+            return $negative ? -$num : $num;
+        };
+        $findHeader = function(array $headers, string $contains){ foreach($headers as $h){ if(stripos($h,$contains)!==false) return $h; } return null; };
+
+        // Preferências de colunas presentes
+        $dateCol = 'DATA_NORMALIZADA';
+        if(!in_array($dateCol,$headersOrig,true)){
+            $dateCol = null;
+            foreach($headersOrig as $h){ if(mb_strtoupper($h,'UTF-8')==='DATA'){ $dateCol=$h; break; } }
+            if(!$dateCol){
+                foreach($headersOrig as $h){ if(stripos($h,'DATA')!==false){ $dateCol=$h; break; } }
+            }
+        }
+        $valorCol = $findHeader($headersOrig,'VALOR');
+        $descCol = $findHeader($headersOrig,'DESCRI'); // DESCRICAO / DESCRIÇÃO
+
+        $headings = [
+            'EMPRESA_ID','DATA_ORIGINAL','DATA_NORMALIZADA','CONTA_DEBITO_ID','CONTA_CREDITO_GLOBAL_ID','VALOR','HISTORICO_AJUSTADO','DESCRICAO','ROW_HASH','EXISTS','MATCH_IDS'
+        ];
+        $rowsOut = [];
+
+        foreach($rowsCache as $r){
+            // Coleta canônica
+            $empresaId = $r['_class_empresa_id'] ?? ($r['EMPRESA_ID'] ?? $empresaGlobal);
+            $contaDebId = $r['_class_conta_id'] ?? ($r['CONTA_DEBITO_ID'] ?? null);
+            $contaCredId = $creditGlobalId;
+            if(isset($r['CONTA_CREDITO_GLOBAL_ID']) && $r['CONTA_CREDITO_GLOBAL_ID']){ $contaCredId = $r['CONTA_CREDITO_GLOBAL_ID']; }
+            $dataOrig = $dateCol ? ($r[$dateCol] ?? null) : null;
+            $dataNorm = $r['DATA_NORMALIZADA'] ?? $normalizeDate($dataOrig);
+            $valorRaw = $valorCol ? ($r[$valorCol] ?? null) : null;
+            $valor = $parseValor($valorRaw);
+            $descricao = $r['HISTORICO_AJUSTADO'] ?? ($descCol ? ($r[$descCol] ?? null) : null);
+            $rowHash = $r['_row_hash'] ?? ($r['ROW_HASH'] ?? null);
+
+            $exists = false; $matchIds = [];
+            if($empresaId && $contaDebId && $contaCredId && $dataNorm && $valor!==null){
+                $dataYmd = $toYmd($dataNorm);
+                if($dataYmd){
+                    $matches = Lancamento::query()
+                        ->where('EmpresaID',(int)$empresaId)
+                        ->where('ContaDebitoID',(int)$contaDebId)
+                        ->where('ContaCreditoID',(int)$contaCredId)
+                        ->where('DataContabilidade',$dataYmd)
+                        ->where('Valor',$valor)
+                        ->pluck('ID');
+                    if($matches->count()>0){ $exists=true; $matchIds=$matches->all(); }
+                }
+            }
+
+            $rowsOut[] = [
+                'EMPRESA_ID' => $empresaId,
+                'DATA_ORIGINAL' => $dataOrig,
+                'DATA_NORMALIZADA' => $dataNorm,
+                'CONTA_DEBITO_ID' => $contaDebId,
+                'CONTA_CREDITO_GLOBAL_ID' => $contaCredId,
+                'VALOR' => $valor,
+                'HISTORICO_AJUSTADO' => $r['HISTORICO_AJUSTADO'] ?? null,
+                'DESCRICAO' => $descricao,
+                'ROW_HASH' => $rowHash,
+                'EXISTS' => $exists ? 1 : 0,
+                'MATCH_IDS' => $exists ? implode(',', $matchIds) : null,
+            ];
+        }
+
+        $fileName = 'prepare-lancamentos-'.date('Ymd-His').'.xlsx';
+        return \Maatwebsite\Excel\Facades\Excel::download(new PreviewDespesasExport($rowsOut,$headings), $fileName);
+    }
+
+    /**
      * Importa arquivo gerado pela exportação de preview e recria um cache para continuar edição.
      */
     public function importPreviewDespesasExportado(Request $request)

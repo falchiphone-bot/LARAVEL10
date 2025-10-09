@@ -144,7 +144,10 @@
         <div class="d-flex align-items-start flex-wrap gap-2">
             @if($existe && !$erro)
                 <div class="d-flex flex-column gap-2 align-items-end ms-auto">
-                    <button type="button" id="btn-export-xlsx" class="btn btn-danger btn-sm" title="Exportar dados preparados em arquivo excel">Exportar dados preparados em arquivo excel</button>
+                    <div class="d-flex gap-2">
+                        <button type="button" id="btn-export-xlsx" class="btn btn-danger btn-sm" title="Exportar dados preparados em arquivo excel">Exportar dados preparados em arquivo excel</button>
+                        <button type="button" id="btn-export-prepare-xlsx" class="btn btn-outline-danger btn-sm" title="Gerar arquivo para preparar lançamento (com checagem de duplicidade)">Preparar lançamentos</button>
+                    </div>
                     <button type="button" id="btn-efetuar-lancamento" class="btn btn-outline-success btn-sm">Efetuar lançamento contábil</button>
                 </div>
             @endif
@@ -187,6 +190,31 @@
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não</button>
                                         <button type="button" class="btn btn-success" data-bs-dismiss="modal">Sim</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Modal de resumo para Preparar lançamentos -->
+                        <div class="modal fade" id="modalPrepareExport" tabindex="-1" aria-labelledby="modalPrepareExportLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="modalPrepareExportLabel">Preparar lançamentos — Resumo</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <ul class="mb-0">
+                                            <li>Total de linhas consideradas: <strong><span id="prepTotal">0</span></strong></li>
+                                            <li>Linhas com Data válida: <strong><span id="prepDataOk">0</span></strong></li>
+                                            <li>Linhas com Valor válido: <strong><span id="prepValorOk">0</span></strong></li>
+                                            <li>Linhas com Conta Débito definida: <strong><span id="prepContaDebOk">0</span></strong></li>
+                                            <li>Empresa selecionada: <strong><span id="prepEmpresa">-</span></strong></li>
+                                            <li>Conta Crédito (global): <strong><span id="prepCredito">-</span></strong></li>
+                                        </ul>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                        <button type="button" class="btn btn-danger" id="btn-confirm-export-prepare">Gerar arquivo</button>
                                     </div>
                                 </div>
                             </div>
@@ -825,6 +853,9 @@ document.addEventListener('DOMContentLoaded', function(){
     const btnApplyAuto = document.getElementById('btn-apply-autoclass');
     const btnExport = document.getElementById('btn-export-xlsx');
     const selectContaCredito = document.getElementById('conta-credito-global');
+    const btnExportPrepare = document.getElementById('btn-export-prepare-xlsx');
+    const modalPrepare = document.getElementById('modalPrepareExport');
+    const btnConfirmPrepare = document.getElementById('btn-confirm-export-prepare');
     const btnLockCredito = document.getElementById('btn-lock-conta-credito');
         async function executarSnapshot(manual=false){
             if(!cacheKey) return;
@@ -878,6 +909,92 @@ document.addEventListener('DOMContentLoaded', function(){
             // Faz snapshot rápido antes de exportar para garantir persistência
             await executarSnapshot(false);
             const url = "{{ route('lancamentos.preview.despesas.exportXlsx') }}" + '?cache_key='+encodeURIComponent(cacheKey);
+            window.location.href = url;
+        });
+        function parseValorFlex(raw){
+            if(raw==null) return null;
+            let v = String(raw).trim();
+            if(v==='') return null;
+            let negative = false;
+            if(/^\(.*\)$/.test(v)) { negative = true; v = v.replace(/^\(|\)$/g,''); }
+            if(/-$/.test(v)) { negative = true; v = v.replace(/-$/,''); }
+            v = v.replace(/R\$|BRL|USD|\+/gi,'');
+            v = v.replace(/\s+/g,'');
+            v = v.replace(/[^0-9.,-]/g,'');
+            const hasDot = v.indexOf('.')>-1; const hasComma = v.indexOf(',')>-1;
+            if(hasDot && hasComma){ v = v.replace(/\./g,'').replace(/,/g,'.'); }
+            else if(hasComma && !hasDot){ v = v.replace(/,/g,'.'); }
+            const dots = (v.match(/\./g)||[]).length;
+            if(dots>1){ const parts=v.split('.'); const dec=parts.pop(); v=parts.join('')+'.'+dec; }
+            const num = parseFloat(v);
+            if(isNaN(num)) return null;
+            return negative ? -num : num;
+        }
+        function computePrepareResumo(){
+            const ths = table?.querySelectorAll('thead th') || [];
+            let idxNum = 0, idxValor = -1, idxData = -1, idxContaDebId = -1;
+            ths.forEach((th, idx)=>{ if(th.textContent.trim()==='#') idxNum=idx; });
+            ths.forEach((th, idx)=>{
+                const nome = th.textContent.trim().toUpperCase();
+                if(nome.includes('VALOR')) idxValor = idx;
+                if(nome === 'DATA') idxData = idx;
+            });
+            if(idxData<0){ ths.forEach((th, idx)=>{ const n=th.textContent.trim().toUpperCase(); if(n.includes('DATA')) idxData=idx; }); }
+            ths.forEach((th, idx)=>{
+                const n = th.textContent.trim().toUpperCase();
+                const hasDeb = (n.includes('DEBIT') || n.includes('DEBITO') || n.includes('DÉBITO'));
+                if(n.includes('CONTA') && hasDeb && n.includes('ID')) idxContaDebId = idx;
+            });
+            let total=0, dataOk=0, valorOk=0, contaOk=0;
+            (table?.querySelectorAll('tbody tr')||[]).forEach(tr=>{
+                const tds = tr.querySelectorAll('td');
+                const num = tds[idxNum] ? parseInt((tds[idxNum].textContent||'').trim(),10) : NaN;
+                if(isNaN(num) || num<4) return; // mesma regra de validação
+                total++;
+                // Data
+                if(idxData>=0 && tds[idxData]){
+                    const v = (tds[idxData].textContent||'').trim();
+                    if(parseDataFlexInline(v)) dataOk++;
+                }
+                // Valor
+                if(idxValor>=0 && tds[idxValor]){
+                    const v = (tds[idxValor].textContent||'').trim();
+                    const n = parseValorFlex(v);
+                    if(n!==null) valorOk++;
+                }
+                // Conta Débito
+                let ok=false;
+                const sel = tr.querySelector('select.class-conta');
+                if(sel && sel.dataset.can==='1'){
+                    ok = !!(sel.value);
+                    if(!ok && idxContaDebId>=0 && tds[idxContaDebId]){
+                        ok = ((tds[idxContaDebId].textContent||'').trim()!=='');
+                    }
+                } else {
+                    // Linhas não classificáveis contam como ok
+                    ok = true;
+                }
+                if(ok) contaOk++;
+            });
+            document.getElementById('prepTotal').textContent = String(total);
+            document.getElementById('prepDataOk').textContent = String(dataOk);
+            document.getElementById('prepValorOk').textContent = String(valorOk);
+            document.getElementById('prepContaDebOk').textContent = String(contaOk);
+            const selEmp = document.getElementById('empresa-global');
+            const empTxt = selEmp && selEmp.value ? (selEmp.options[selEmp.selectedIndex]?.textContent || selEmp.value) : 'não definida';
+            document.getElementById('prepEmpresa').textContent = empTxt;
+            const credTxt = selectContaCredito && selectContaCredito.value ? (selectContaCredito.options[selectContaCredito.selectedIndex]?.textContent || selectContaCredito.value) : 'não definida';
+            document.getElementById('prepCredito').textContent = credTxt;
+        }
+        btnExportPrepare?.addEventListener('click', ()=>{
+            if(!cacheKey) return;
+            computePrepareResumo();
+            if(window.bootstrap && modalPrepare){ const m = bootstrap.Modal.getOrCreateInstance(modalPrepare); m.show(); }
+        });
+        btnConfirmPrepare?.addEventListener('click', async()=>{
+            if(!cacheKey) return;
+            await executarSnapshot(false);
+            const url = "{{ route('lancamentos.preview.despesas.exportPrepareXlsx') }}" + '?cache_key='+encodeURIComponent(cacheKey);
             window.location.href = url;
         });
         btnApplyAuto?.addEventListener('click', async()=>{
