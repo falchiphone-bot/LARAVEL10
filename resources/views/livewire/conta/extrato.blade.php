@@ -30,10 +30,6 @@
 </style>
 @endpush
 
-
-    <div class="d-flex justify-content-end mb-2">
-        <button type="button" id="btn-toggle-extrato-layout" class="btn btn-outline-dark btn-sm toggle-extrato-layout" title="Alterna exibição para ganhar espaço vertical">Modo Compacto</button>
-    </div>
     @push('scripts')
     <script>
     (function(){
@@ -61,6 +57,9 @@
     @endpush
     <div class="card extrato-wrapper">
         <div class="card-body">
+            <div class="d-flex justify-content-end mb-2">
+                <button type="button" id="btn-toggle-extrato-layout" class="btn btn-outline-dark btn-sm toggle-extrato-layout" title="Alterna exibição para ganhar espaço vertical">Modo Compacto</button>
+            </div>
             <div class="badge bg-secondary text-wrap" style="width: 100%;
               ;font-size: 16px; lign=˜Center˜">
 
