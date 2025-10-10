@@ -800,6 +800,9 @@ document.addEventListener('DOMContentLoaded', function(){
                                                     <option value="{{ $r['_class_conta_id'] }}" selected>{{ $r['_class_conta_label'] ?? $r['_class_conta_id'] }}</option>
                                                 @endif
                                             </select>
+                                            @if(!empty($r['_class_conta_from_file']))
+                                                <span class="badge bg-secondary ms-2" title="Conta trazida do arquivo importado">Do arquivo</span>
+                                            @endif
                                         @else
                                             <span class="text-muted small" data-can="0">(sem Valor)</span>
                                         @endif
@@ -815,6 +818,9 @@ document.addEventListener('DOMContentLoaded', function(){
                                                 <option value="{{ $r['_class_conta_id'] }}" selected>{{ $r['_class_conta_label'] ?? $r['_class_conta_id'] }}</option>
                                             @endif
                                         </select>
+                                        @if(!empty($r['_class_conta_from_file']))
+                                            <span class="badge bg-secondary ms-2" title="Conta trazida do arquivo importado">Do arquivo</span>
+                                        @endif
                                     @else
                                         <span class="text-muted small" data-can="0">(sem Valor)</span>
                                     @endif

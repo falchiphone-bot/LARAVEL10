@@ -1524,6 +1524,12 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     if($val === 'COL_2') { $val = 'HISTORICO'; }
                     if($val === 'COL_3') { $val = 'VALOR'; }
                     if($val === 'DESPESAS') { $val = 'DATA'; }
+                    // Alias para CONTA_DEBITO_ID: detecta colunas como "Conta Débito ID", "Conta Debito Cod", etc.
+                    $valNorm = mb_strtoupper($val, 'UTF-8');
+                    $isConta = strpos($valNorm, 'CONTA') !== false;
+                    $hasDeb = (strpos($valNorm, 'DEBIT') !== false) || (strpos($valNorm, 'DÉBITO') !== false) || (strpos($valNorm, 'DEBITO') !== false);
+                    $hasId = (strpos($valNorm, 'ID') !== false) || (strpos($valNorm, 'COD') !== false) || (strpos($valNorm, 'CÓD') !== false);
+                    if($isConta && $hasDeb && $hasId){ $val = 'CONTA_DEBITO_ID'; }
                     if(in_array($val,$removeCols,true)) continue;
                     $headers[] = $val;
                     $headerMap[$col] = $val;
@@ -1561,8 +1567,14 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     }
                     // Campos de classificação (empresa/conta) default null até usuário selecionar (empresa única posteriormente)
                     $linha['_class_empresa_id'] = $selectedEmpresaId; // se já havia empresa selecionada global
-                    // Não inicializamos _class_conta_id aqui para permitir restauração posterior; manter null se novo
-                    $linha['_class_conta_id'] = $linha['_class_conta_id'] ?? null;
+                    // Prefill da conta débito quando a planilha já traz CONTA_DEBITO_ID na linha
+                    if(isset($linha['CONTA_DEBITO_ID']) && $linha['CONTA_DEBITO_ID'] !== '' && $linha['CONTA_DEBITO_ID'] !== null){
+                        $linha['_class_conta_id'] = (string)$linha['CONTA_DEBITO_ID'];
+                        $linha['_class_conta_from_file'] = true;
+                    } else {
+                        // Não inicializamos _class_conta_id aqui para permitir restauração posterior; manter null se novo
+                        $linha['_class_conta_id'] = $linha['_class_conta_id'] ?? null;
+                    }
                     $rows[] = $linha;
                 }
                 // Tenta inferir Empresa e Conta Crédito a partir do arquivo (se for um export com colunas adicionais)
@@ -1611,6 +1623,32 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                         if(isset($old['_class_conta_id'])){ $linhaNova['_class_conta_id'] = $old['_class_conta_id']; }
                     }
                     unset($linhaNova);
+                }
+                // Preenche labels das contas quando houver CONTA_DEBITO_ID no arquivo original
+                if(in_array('CONTA_DEBITO_ID',$headers,true)){
+                    $idsMap = [];
+                    foreach($rows as $r){
+                        $cid = null;
+                        if(!empty($r['_class_conta_id'])){ $cid = (string)$r['_class_conta_id']; }
+                        elseif(!empty($r['CONTA_DEBITO_ID'])){ $cid = (string)$r['CONTA_DEBITO_ID']; }
+                        if($cid !== null && $cid !== ''){ $idsMap[$cid] = true; }
+                    }
+                    if(!empty($idsMap)){
+                        $labels = Conta::whereIn('Contas.ID', array_keys($idsMap))
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->pluck('PlanoContas.Descricao','Contas.ID');
+                        foreach($rows as &$rL){
+                            if(isset($rL['CONTA_DEBITO_ID']) && $rL['CONTA_DEBITO_ID'] !== '' && empty($rL['_class_conta_id'])){
+                                $rL['_class_conta_id'] = (string)$rL['CONTA_DEBITO_ID'];
+                                $rL['_class_conta_from_file'] = true;
+                            }
+                            if(!empty($rL['_class_conta_id']) && empty($rL['_class_conta_label'])){
+                                $cid = (string)$rL['_class_conta_id'];
+                                if(isset($labels[$cid])){ $rL['_class_conta_label'] = $labels[$cid]; }
+                            }
+                        }
+                        unset($rL);
+                    }
                 }
                 // Auto-classificação por tokens simples (apenas em reprocessamento forçado) - primeira ocorrência manda
                 if($forceRefresh){
@@ -1787,6 +1825,13 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         }
         $rows[$i]['_class_empresa_id'] = $empresaId;
         $rows[$i]['_class_conta_id'] = $contaId;
+        // Se o usuário alterou a conta manualmente, limpa o flag de origem do arquivo
+        if(!empty($rows[$i]['_class_conta_from_file'])){
+            if($contaId && isset($rows[$i]['CONTA_DEBITO_ID']) && (string)$rows[$i]['CONTA_DEBITO_ID'] !== (string)$contaId){
+                $rows[$i]['_class_conta_from_file'] = false;
+            }
+            if(!$contaId){ $rows[$i]['_class_conta_from_file'] = false; }
+        }
         // Salva label da conta para reidratar sem depender de fetch imediato
         if($contaId){
             $label = Conta::where('Contas.ID',$contaId)
@@ -1987,6 +2032,14 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             if(array_key_exists('conta_id',$r)){
                 $rows[$i]['_class_conta_id'] = $r['conta_id'];
                 $rows[$i]['_class_conta_label'] = $r['conta_label'] ?? null;
+                if(isset($rows[$i]['_class_conta_from_file'])){
+                    $prevFromFile = $rows[$i]['_class_conta_from_file'];
+                    if($prevFromFile){
+                        $orig = isset($rows[$i]['CONTA_DEBITO_ID']) ? (string)$rows[$i]['CONTA_DEBITO_ID'] : null;
+                        $now = $r['conta_id'] !== null ? (string)$r['conta_id'] : null;
+                        if($orig !== $now){ $rows[$i]['_class_conta_from_file'] = false; }
+                    }
+                }
             }
         }
         $payload['rows'] = $rows;
