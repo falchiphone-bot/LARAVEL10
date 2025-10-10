@@ -14,13 +14,14 @@ use App\Models\UserHolding;
 use App\Models\MoedasValores;
 use Carbon\Carbon;
 use App\Models\OpenAIChatRecord;
+use Illuminate\Support\Facades\Cache;
 
 class AssetVariationController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware(['permission:OPENAI - CHAT'])->only('index','store','exportCsv','exportXlsx','batchFlags','importSelected');
+        $this->middleware(['permission:OPENAI - CHAT'])->only('index','store','exportCsv','exportXlsx','batchFlags','importSelected','clearCache');
     }
 
     public function index(Request $request)
@@ -602,5 +603,20 @@ class AssetVariationController extends Controller
             ->with('import_count', count($codes))
             ->with('import_codes', $codes)
             ->with('import_preview', implode(', ', array_slice($codes, 0, 20)).(count($codes)>20?'…':''));
+    }
+
+    /**
+     * Limpa o cache de aplicação para evitar confusão de dados na tela de variações.
+     * Mantém a mesma permissão de acesso da área (OPENAI - CHAT).
+     */
+    public function clearCache(Request $request)
+    {
+        $this->authorize('viewAny', OpenAIChat::class);
+        try {
+            Cache::flush();
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Falha ao limpar cache: '.$e->getMessage());
+        }
+        return back()->with('success', 'Cache limpo com sucesso.')->with('cache_cleared', 1);
     }
 }

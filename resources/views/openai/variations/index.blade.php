@@ -172,7 +172,22 @@
     <div class="vr mx-2 d-none d-md-block"></div>
     <button type="button" id="btn-var-batch-flags" class="btn btn-sm btn-outline-warning" title="Aplicar COMPRAR/NÃO COMPRAR por código conforme sinal da variação (usa a linha mais recente por código)">Aplicar flags (variação)</button>
     <a href="{{ route('asset-stats.index') }}#gsc.tab=0" class="btn btn-sm btn-outline-dark" title="Ir para Asset Stats">Asset Stats</a>
+    <div class="vr mx-2 d-none d-md-block"></div>
+    <form id="form-clear-openai-variations-cache" action="{{ route('openai.variations.clearCache') }}" method="post" class="d-inline">
+      @csrf
+      <button type="submit" class="btn btn-sm btn-outline-danger" title="Limpar cache da aplicação (pode afetar contadores e listas temporariamente)">Limpar cache</button>
+    </form>
   </div>
+
+  @if(session('cache_cleared'))
+    <div class="alert alert-success alert-dismissible fade show small my-2" role="alert">
+      Cache limpo com sucesso.
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  @endif
+
+  <!-- Filtros atuais expostos para JS (evita Blade dentro de <script>) -->
+  <span id="var-filter-ym" data-year="{{ (int)($year ?? 0) }}" data-month="{{ (int)($month ?? 0) }}" hidden></span>
 
   <div class="card mb-3" style="background-color:#e9f8ee;border-color:#b7e3c7;">
     <div class="card-body py-2 d-flex flex-wrap gap-2 align-items-center">
@@ -910,7 +925,7 @@
             $pv = $prevVariationMap[$v->id] ?? null;
             $diff = (!is_null($pv)) ? ($v->variation - $pv) : null;
           @endphp
-          <tr data-row-code="{{ strtoupper($v->asset_code) }}" data-variation="{{ $v->variation }}" @if(!is_null($diff)) data-diff="{{ $diff }}" @endif>
+          <tr data-row-code="{{ strtoupper($v->asset_code) }}" data-year="{{ (int)$v->year }}" data-month="{{ (int)$v->month }}" data-variation="{{ $v->variation }}" @if(!is_null($diff)) data-diff="{{ $diff }}" @endif>
             <td><input type="checkbox" class="var-select" value="{{ strtoupper($v->asset_code) }}" /></td>
             <td>{{ $v->id }}</td>
             <td>{{ $v->asset_code }}</td>
@@ -1031,6 +1046,14 @@
 @endif
 <script>
  (function(){
+  // Confirmação para limpar cache
+  const clearForm = document.getElementById('form-clear-openai-variations-cache');
+  if(clearForm){
+    clearForm.addEventListener('submit', function(ev){
+      const msg = 'Confirmar limpar o cache da aplicação?\n\nIsso pode afetar contadores, listas e caches temporários por alguns minutos.';
+      if(!confirm(msg)) { ev.preventDefault(); }
+    });
+  }
    const master = document.getElementById('alloc-master');
    const rows = () => Array.from(document.querySelectorAll('.alloc-row'));
    const btnAll = document.getElementById('alloc-select-all');
@@ -1430,7 +1453,25 @@
     if(exportSelCsv){ exportSelCsv.disabled = allocSelectedCount===0; }
     if(exportSelXlsx){ exportSelXlsx.disabled = allocSelectedCount===0; }
   }
-  function setSelected(codes){ const set=new Set(codes.map(c=>c.toUpperCase())); varCheckboxes().forEach(ch=>{ ch.checked = set.has(ch.value.toUpperCase()); }); persist(); updateSelectionCount(); }
+  const __ym = document.getElementById('var-filter-ym');
+  const FILTER_YEAR = __ym ? parseInt(__ym.getAttribute('data-year')||'0',10) : 0;
+  const FILTER_MONTH = __ym ? parseInt(__ym.getAttribute('data-month')||'0',10) : 0;
+  function setSelected(codes){
+    const set = new Set(codes.map(c=>c.toUpperCase()));
+    varCheckboxes().forEach(ch=>{
+      const match = set.has((ch.value||'').toUpperCase());
+      if(!match){ ch.checked = false; return; }
+      // Restringir por ano/mês, quando filtros estão ativos
+      const tr = ch.closest('tr');
+      const ry = tr ? parseInt(tr.getAttribute('data-year')||'0',10) : 0;
+      const rm = tr ? parseInt(tr.getAttribute('data-month')||'0',10) : 0;
+      const okYear = (FILTER_YEAR && FILTER_YEAR>0) ? (ry === FILTER_YEAR) : true;
+      const okMonth = (FILTER_MONTH && FILTER_MONTH>0) ? (rm === FILTER_MONTH) : true;
+      ch.checked = match && okYear && okMonth;
+    });
+    persist();
+    updateSelectionCount();
+  }
   function persist(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(getSelected())); }catch(_e){} }
   function restore(){
     const qs = new URLSearchParams(location.search);
