@@ -27,9 +27,11 @@ class AssetVariationController extends Controller
     public function index(Request $request)
     {
         $this->authorize('viewAny', OpenAIChat::class);
-        $year = (int)($request->input('year') ?: date('Y'));
-        $monthInput = $request->input('month');
-        $month = is_numeric($monthInput) ? (int)$monthInput : 0; // 1..12
+    $noPage = $request->boolean('no_page');
+    $yearInput = $request->input('year');
+    $year = is_numeric($yearInput) ? (int)$yearInput : (int)date('Y');
+    $monthInput = $request->input('month');
+    $month = is_numeric($monthInput) ? (int)$monthInput : 0; // 1..12
         $code = trim($request->input('code',''));
         $polarity = $request->input('polarity'); // positive | negative
     $change = $request->input('change'); // melhoria|piora|igual|null
@@ -38,7 +40,10 @@ class AssetVariationController extends Controller
         $sparkWindow = (int)($request->input('spark_window') ?: 6);
         if($sparkWindow < 3) $sparkWindow = 3; if($sparkWindow > 24) $sparkWindow = 24;
     $sort = $request->input('sort', 'year_desc'); // adiciona diff_asc|diff_desc|prev_asc|prev_desc
-        $noPage = $request->boolean('no_page');
+    // Quando "Sem paginação" (no_page) estiver habilitado, obedecer o filtro de mês normalmente;
+    // e se o ano não foi explicitamente informado, não aplicar o ano padrão no SQL
+    $applyYear = is_numeric($yearInput) ? (int)$yearInput : ($noPage ? 0 : (int)date('Y'));
+    $applyMonth = $month;
 
         // Função auxiliar de classificação de tendência (compartilhada)
         $classifyTrend = function(?float $p, ?float $c, int $daysElapsed, int $daysMonth) {
@@ -197,8 +202,8 @@ class AssetVariationController extends Controller
 
         // Modo não agrupado: usar subquery para prev_variation permitindo filtros de mudança e ordenação por diff.
         $q = AssetVariation::with('chat');
-        if($year){ $q->where('year',$year); }
-        if($month >= 1 && $month <= 12){ $q->where('month', $month); }
+    if($applyYear){ $q->where('year',$applyYear); }
+    if($applyMonth >= 1 && $applyMonth <= 12){ $q->where('month', $applyMonth); }
         if($code !== ''){ $q->whereRaw('UPPER(asset_code) = ?', [strtoupper($code)]); }
         if ($polarity === 'positive') { $q->where('variation', '>', 0); }
         elseif ($polarity === 'negative') { $q->where('variation', '<', 0); }
@@ -294,12 +299,15 @@ class AssetVariationController extends Controller
         }
         $variations = $variations->appends(array_filter([
             'year'=>$request->input('year'),
-            'month'=> ($month >= 1 && $month <= 12) ? $month : null,
+            // se no_page, não persistir mês para evitar confusão
+            'month'=> $noPage ? null : (($month >= 1 && $month <= 12) ? $month : null),
             'code'=>$code?:null,
             'polarity' => in_array($polarity, ['positive','negative']) ? $polarity : null,
             'sort'=>$sort !== 'year_desc' ? $sort : null,
             'change'=> in_array($change, ['melhoria','piora','igual']) ? $change : null,
             'no_page' => $noPage ? 1 : null,
+            // Preservar nome do arquivo importado nos links de paginação
+            'import_file' => $request->input('import_file'),
         ]));
 
         // Map prevVariationMap a partir da coluna prev_variation já selecionada
@@ -551,8 +559,17 @@ class AssetVariationController extends Controller
             'file' => ['required','file','mimes:csv,txt,xlsx']
         ]);
 
+        // Requer que um mês esteja selecionado para evitar importações fora de contexto
+        $month = (int) $request->input('month');
+        if ($month <= 0 || $month > 12) {
+            return back()->withInput()->with('error', 'Selecione um mês antes de importar os selecionados.');
+        }
+
         try {
             $file = $request->file('file');
+            // Nome original do arquivo para exibir na UI após o redirect
+            $originalName = '';
+            try { $originalName = (string) $file->getClientOriginalName(); } catch (\Throwable $e) { $originalName = ''; }
             $import = new \App\Imports\SimpleArrayImport();
             \Maatwebsite\Excel\Facades\Excel::import($import, $file);
             $rows = $import->rows ?? [];
@@ -591,7 +608,10 @@ class AssetVariationController extends Controller
             'capital' => $request->input('capital'),
             'cap_pct' => $request->input('cap_pct'),
             'target_pct' => $request->input('target_pct'),
-            'trigger_alloc' => 1,
+            // Garantir sem paginação após importar selecionados
+            'no_page' => 1,
+            // Persistir o nome do arquivo na URL para sobreviver a refresh e novas submissões GET
+            'import_file' => $originalName ?? null,
         ]);
 
         $url = route('openai.variations.index', $qs);
@@ -602,7 +622,9 @@ class AssetVariationController extends Controller
             ->with('success', 'Importação concluída')
             ->with('import_count', count($codes))
             ->with('import_codes', $codes)
-            ->with('import_preview', implode(', ', array_slice($codes, 0, 20)).(count($codes)>20?'…':''));
+            ->with('import_preview', implode(', ', array_slice($codes, 0, 20)).(count($codes)>20?'…':''))
+            ->with('import_file_name', $originalName)
+            ->with('post_import_clear_alloc', 1);
     }
 
     /**

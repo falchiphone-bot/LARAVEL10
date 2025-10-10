@@ -13,6 +13,9 @@
     .filters-bar .form-select,.filters-bar .form-control{width:auto}
   </style>
   <form method="get" class="filters-bar mb-3" style="display:flex;flex-wrap:wrap;gap:.5rem 1rem;align-items:flex-end">
+    @if(request()->filled('import_file'))
+      <input type="hidden" name="import_file" value="{{ request('import_file') }}" />
+    @endif
     <div class="col-auto">
       <label class="form-label mb-0 small">Ano</label>
   <select name="year" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
@@ -54,6 +57,7 @@
           'spark_window' => ($grouped ?? false) ? ($sparkWindow ?? null) : null,
           'trend' => ($trendFilter ?? '') ?: null,
           'currency' => request('currency') ?: null,
+          'import_file' => request('import_file') ?: null,
         ]);
       @endphp
       <div class="btn-group btn-group-sm" role="group" aria-label="Atalhos de sinal">
@@ -81,6 +85,9 @@
           'spark_window' => ($grouped ?? false) ? ($sparkWindow ?? null) : null,
           'trend' => ($trendFilter ?? '') ?: null,
           'currency' => request('currency') ?: null,
+          'import_file' => request('import_file') ?: null,
+          // Por padrão, ao clicar no mês, listar tudo (sem paginação)
+          'no_page' => 1,
         ]);
         $curMonth = (int) (request('month') ?: 0);
       @endphp
@@ -91,6 +98,10 @@
              class="btn btn-outline-primary {{ $curMonth===$m ? 'active' : '' }}"
              title="Filtrar por mês {{ str_pad($m,2,'0',STR_PAD_LEFT) }}">{{ str_pad($m,2,'0',STR_PAD_LEFT) }}</a>
         @endfor
+      </div>
+      <div class="btn-group btn-group-sm ms-2" role="group" aria-label="Paginação">
+        <a href="{{ route('openai.variations.index', array_merge($monthQuickBase, ['no_page'=>1])) }}" class="btn btn-outline-primary {{ request('no_page') ? 'active' : '' }}" title="Sem paginação (mantém mês selecionado se houver)">Sem paginação</a>
+        <a href="{{ route('openai.variations.index', array_merge($monthQuickBase, ['no_page'=>null])) }}" class="btn btn-outline-secondary {{ request('no_page') ? '' : 'active' }}" title="Exibir paginado">Paginado</a>
       </div>
     </div>
 
@@ -198,12 +209,17 @@
         @csrf
         <input type="hidden" name="year" value="{{ request('year') }}">
         <input type="hidden" name="month" value="{{ request('month') }}">
+        <input type="hidden" name="no_page" value="1">
         <input type="hidden" name="code" value="{{ request('code') }}">
         <input type="hidden" name="polarity" value="{{ request('polarity') }}">
         <input type="hidden" name="currency" value="{{ request('currency') }}">
         <input type="hidden" name="capital" value="{{ request('capital') }}">
         <input type="hidden" name="cap_pct" value="{{ request('cap_pct') }}">
         <input type="hidden" name="target_pct" value="{{ request('target_pct') }}">
+        @php $importFileQuery = request('import_file'); @endphp
+        @if(session('import_file_name') || $importFileQuery)
+          <span class="fw-bold text-dark me-2">Último arquivo importado: {{ session('import_file_name') ?: $importFileQuery }}</span>
+        @endif
         <label class="btn btn-sm btn-outline-success mb-0">
           Importar selecionados
           <input id="import-selected-file" type="file" name="file" accept=".csv,.xlsx" class="d-none" />
@@ -609,6 +625,9 @@
       // Parâmetros que precisamos preservar ao trocar Mês/Código/Sinal/Mudança/Tendência
       $persistKeys = ['year','capital','cap_pct','target_pct','grouped','spark_window','currency'];
     @endphp
+    @if(request()->filled('import_file'))
+      <input type="hidden" name="import_file" value="{{ request('import_file') }}" />
+    @endif
     @foreach($persistKeys as $pk)
       @if(request()->filled($pk))
         <input type="hidden" name="{{ $pk }}" value="{{ request($pk) }}" />
@@ -710,6 +729,7 @@
                   'grouped'=>1,
                   'spark_window'=>$sparkWindow,
                   'currency' => request('currency') ?: null,
+                  'import_file' => request('import_file') ?: null,
                 ]);
               }
               $isPrevAsc = ($sort ?? '') === 'prev_asc';
@@ -730,6 +750,7 @@
                 'grouped'=>1,
                 'spark_window'=>$sparkWindow,
                 'currency' => request('currency') ?: null,
+                'import_file' => request('import_file') ?: null,
               ]);
               $isDiffAsc = ($sort ?? '') === 'diff_asc';
               $isDiffDesc = ($sort ?? '') === 'diff_desc';
@@ -827,6 +848,7 @@
               'polarity'=> ($polarity ?? null) ?: null,
               'change' => ($change ?? '') ?: null,
               'currency' => request('currency') ?: null,
+              'import_file' => request('import_file') ?: null,
             ]);
           @endphp
           @php
@@ -1294,6 +1316,13 @@
   try{
     const el = document.getElementById('pf-codes-json');
     if(el){
+      // Nunca auto-marcar carteira sem seleção explícita (selected_codes) ou trigger de alocação
+      try {
+        const qs = new URLSearchParams(window.location.search);
+        const hasSel = qs.getAll('selected_codes[]').length > 0;
+        const hasAlloc = qs.has('trigger_alloc');
+        if(!hasSel && !hasAlloc){ return; }
+      } catch(_e) {}
       const arr = JSON.parse(el.textContent || '[]');
       if(Array.isArray(arr) && arr.length){
         const set = new Set(arr.map(c=>String(c||'').toUpperCase()));
@@ -1322,18 +1351,18 @@
   if(!topBtn) return;
   const form = topBtn.closest('form');
   if(!form) return;
-  function getSelected(){ return Array.from(document.querySelectorAll('.var-select:checked')).map(c=>c.value.toUpperCase()); }
+  function getVarSelected(){ return Array.from(document.querySelectorAll('.var-select:checked')).map(c=>c.value.toUpperCase()); }
+  function getAllocSelected(){ return Array.from(document.querySelectorAll('.alloc-row:checked')).map(c=> (c.value||'').toUpperCase()); }
+  function hasAllocTable(){ return document.querySelectorAll('.alloc-row').length > 0; }
   topBtn.addEventListener('click', function(ev){
     ev.preventDefault();
     // Limpar qualquer selected_codes[] anterior (para respeitar desmarcações)
     Array.from(form.querySelectorAll('input[name="selected_codes[]"]')).forEach(el=>el.remove());
     Array.from(form.querySelectorAll('input[name="trigger_alloc"]')).forEach(el=>el.remove());
-    // Coletar seleção ATUAL (variações + alocação) sem reintroduzir desmarcados da URL
-    const currentVar = new Set(getSelected());
-    const currentAlloc = new Set(Array.from(document.querySelectorAll('.alloc-row:checked')).map(r=> (r.value||'').toUpperCase()).filter(Boolean));
-    const finalCodes = new Set();
-    currentVar.forEach(c=>finalCodes.add(c));
-    currentAlloc.forEach(c=>finalCodes.add(c));
+    // Coletar seleção: PRIORIZE a tabela de Alocação quando existir; senão, use as variações
+    const useAlloc = hasAllocTable();
+    const finalList = useAlloc ? getAllocSelected() : getVarSelected();
+    const finalCodes = new Set(finalList.filter(Boolean));
     // Criar novos hidden somente para os códigos efetivamente marcados agora
     finalCodes.forEach(code=>{
       const inp = document.createElement('input');
@@ -1356,6 +1385,34 @@
 </script>
 @endpush
 
+@if(session('post_import_clear_alloc'))
+@push('scripts')
+<script>
+// Após importar, acionar automaticamente a limpeza da alocação uma única vez
+(function(){
+  document.addEventListener('DOMContentLoaded', function(){
+    try{
+      const btn = document.getElementById('alloc-clear-table');
+      if(btn){ btn.click(); }
+      // Desabilitar o botão/label de Importar Selecionados após a importação
+      const fileInp = document.getElementById('import-selected-file');
+      const labelBtn = fileInp ? fileInp.closest('label') : null;
+      if(fileInp && labelBtn){
+        fileInp.setAttribute('disabled','disabled');
+        fileInp.dataset.forceDisabled = '1';
+        labelBtn.classList.add('disabled');
+        labelBtn.setAttribute('aria-disabled','true');
+        labelBtn.dataset.forceDisabled = '1';
+        labelBtn.style.pointerEvents = 'none';
+        labelBtn.title = 'Importação concluída. Selecione outro mês para habilitar novamente.';
+      }
+    }catch(_e){}
+  });
+})();
+</script>
+@endpush
+@endif
+
 @push('scripts')
 <script>
 // Extensões: diff threshold, persistência, auto-recalc Alta Acelerando
@@ -1377,6 +1434,41 @@
   const importFile = document.getElementById('import-selected-file');
   const importModalEl = document.getElementById('importSelectedConfirmModal');
   let _pendingImport = false;
+
+  // Habilita a importação somente quando um mês estiver selecionado
+  (function handleImportEnableByMonth(){
+    try{
+      const ym = document.getElementById('var-filter-ym');
+      const month = ym ? parseInt(ym.getAttribute('data-month')||'0',10) : 0;
+      const labelBtn = importFile ? importFile.closest('label') : null;
+      if(importFile && labelBtn){
+        // Se estiver em modo "forçar desativado" (após import), não reabilitar
+        const forceDisabled = importFile.dataset.forceDisabled === '1' || labelBtn.dataset.forceDisabled === '1';
+        if(forceDisabled){
+          importFile.setAttribute('disabled','disabled');
+          labelBtn.classList.add('disabled');
+          labelBtn.setAttribute('aria-disabled','true');
+          labelBtn.style.pointerEvents = 'none';
+          labelBtn.title = 'Importação concluída. Selecione outro mês para habilitar novamente.';
+          return;
+        }
+        if(!month || month<=0){
+          importFile.setAttribute('disabled','disabled');
+          labelBtn.classList.add('disabled');
+          labelBtn.setAttribute('aria-disabled','true');
+          // Garantir que não clique: alguns navegadores ignoram .disabled em label
+          labelBtn.style.pointerEvents = 'none';
+          labelBtn.title = 'Selecione um mês para habilitar a importação';
+        } else {
+          importFile.removeAttribute('disabled');
+          labelBtn.classList.remove('disabled');
+          labelBtn.removeAttribute('aria-disabled');
+          labelBtn.style.pointerEvents = '';
+          labelBtn.title = 'Importar arquivo dos selecionados';
+        }
+      }
+    }catch(_e){}
+  })();
 
   // Intercepta escolha de arquivo para exibir modal de confirmação
   if(importFile && importForm && importModalEl){
@@ -1412,9 +1504,21 @@
   const LS_KEY = 'openai_variations_selected_codes';
   function varCheckboxes(){ return Array.from(document.querySelectorAll('.var-select')); }
   function getSelected(){ return varCheckboxes().filter(c=>c.checked).map(c=>c.value.toUpperCase()); }
+  function showTransientInfo(msg){
+    try{
+      const msgEl = document.createElement('div');
+      msgEl.className = 'alert alert-info py-1 px-2 position-fixed top-0 end-0 m-3 shadow';
+      msgEl.style.zIndex = 1080;
+      msgEl.textContent = msg;
+      document.body.appendChild(msgEl);
+      setTimeout(()=>{ try{ msgEl.remove(); }catch(_e){} }, 3000);
+    }catch(_e){}
+  }
   // Função global para que outros scripts (primeiro bloco) possam reavaliar habilitação do botão
   window._updateCalcButtonState = function(){
-    const n = getSelected().length;
+    const n = (document.querySelectorAll('.alloc-row').length > 0)
+      ? Array.from(document.querySelectorAll('.alloc-row:checked')).length
+      : getSelected().length;
     if(!topCalcBtn) return;
     const anyAllocChecked = Array.from(document.querySelectorAll('.alloc-row:checked')).length > 0;
     if(n === 0 && !anyAllocChecked){
@@ -1424,15 +1528,18 @@
     }
   };
   function updateSelectionCount(){
-    const n=getSelected().length;
-    const allocSelectedCount = Array.from(document.querySelectorAll('.alloc-row:checked')).length;
+    const hasAlloc = document.querySelectorAll('.alloc-row').length > 0;
+    const allocSelectedCount = hasAlloc ? Array.from(document.querySelectorAll('.alloc-row:checked')).length : 0;
+    const n = hasAlloc ? allocSelectedCount : getSelected().length;
     if(selectionCount){ selectionCount.textContent = n ? (n+' selecionado(s)') : ''; }
     if(topCalcBtn){
       const base = topCalcBtn.getAttribute('data-base-label') || 'Calcular alocação';
       topCalcBtn.textContent = n ? base + ' ('+n+')' : base;
       // Tooltip dinâmica (title) com até 40 códigos (ou truncado)
       if(n){
-        let codes = getSelected();
+        let codes = hasAlloc
+          ? Array.from(document.querySelectorAll('.alloc-row:checked')).map(c=> (c.value||'').toUpperCase())
+          : getSelected();
         const all = codes.join(', ');
         if(all.length > 300){
           let truncated = '';
@@ -1475,6 +1582,9 @@
   function persist(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(getSelected())); }catch(_e){} }
   function restore(){
     const qs = new URLSearchParams(location.search);
+    const hasMonth = qs.has('month') && (qs.get('month')||'') !== '';
+    const isPaginated = !(qs.has('no_page') && (qs.get('no_page')||'') !== '' && qs.get('no_page') !== '0');
+    const isNoPage = !isPaginated;
     // Se vieram códigos na URL, aplicamos diretamente (não apenas contamos)
     const urlCodes = qs.getAll('selected_codes[]').map(c=> (c||'').toUpperCase()).filter(c=>c);
     if(urlCodes.length>0){
@@ -1482,6 +1592,30 @@
       // Persistir no localStorage também para manter ao trocar filtros sem selected_codes
       try{ localStorage.setItem(LS_KEY, JSON.stringify(urlCodes)); }catch(_e){}
       updateSelectionCount();
+      return;
+    }
+    // Se filtro de mês ativo e sem selected_codes/trigger_alloc, não restaurar seleção e limpar armazenamento
+    if(hasMonth && !qs.has('trigger_alloc')){
+      setSelected([]);
+      try{ localStorage.removeItem(LS_KEY); }catch(_e){}
+      updateSelectionCount();
+      showTransientInfo('Seleção limpa automaticamente (filtro de mês).');
+      return;
+    }
+    // Se estiver paginado e sem selected_codes/trigger_alloc, limpar qualquer seleção
+    if(isPaginated && !qs.has('trigger_alloc')){
+      setSelected([]);
+      try{ localStorage.removeItem(LS_KEY); }catch(_e){}
+      updateSelectionCount();
+      showTransientInfo('Seleção limpa automaticamente (paginado).');
+      return;
+    }
+    // Se estiver em "Sem paginação" e sem selected_codes/trigger_alloc, também não restaurar seleção
+    if(isNoPage && !qs.has('trigger_alloc')){
+      setSelected([]);
+      try{ localStorage.removeItem(LS_KEY); }catch(_e){}
+      updateSelectionCount();
+      showTransientInfo('Seleção limpa automaticamente (sem paginação).');
       return;
     }
     // Caso não haja na URL, tentar restaurar do localStorage
@@ -1596,6 +1730,11 @@
     const existing = [];
     params.forEach((v,k)=>{ if(k==='selected_codes[]') existing.push(k); });
     existing.forEach(k=>params.delete(k));
+    // Preservar o nome do arquivo importado, se existir
+    if(!params.has('import_file')){
+      const qf = new URL(window.location.href).searchParams.get('import_file');
+      if(qf){ params.set('import_file', qf); }
+    }
     sel.forEach(code=> params.append('selected_codes[]', code));
     return baseRoute + (params.toString() ? ('?'+params.toString()) : '');
   }
