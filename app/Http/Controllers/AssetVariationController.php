@@ -597,6 +597,10 @@ class AssetVariationController extends Controller
         // Anexar selected_codes[] mantendo o restante
         $sep = strpos($url, '?') === false ? '?' : '&';
         foreach ($codes as $c) { $url .= $sep.'selected_codes[]='.urlencode($c); $sep='&'; }
-        return redirect($url)->with('success', 'Códigos importados: '.implode(', ', array_slice($codes,0,20)).(count($codes)>20?'…':''));
+        return redirect($url)
+            ->with('success', 'Importação concluída')
+            ->with('import_count', count($codes))
+            ->with('import_codes', $codes)
+            ->with('import_preview', implode(', ', array_slice($codes, 0, 20)).(count($codes)>20?'…':''));
     }
 }

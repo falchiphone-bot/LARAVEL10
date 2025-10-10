@@ -168,13 +168,73 @@
   <div class="mb-2 d-flex gap-2 align-items-center position-sticky top-0 z-3 bg-light py-2" style="top: 0; border-bottom: 1px solid rgba(0,0,0,.1);">
   <a href="{{ route('openai.variations.exportCsv', $exportParams) }}" class="btn btn-sm btn-outline-secondary" title="Exportar visão atual em CSV">Exportar CSV</a>
   <a href="{{ route('openai.variations.exportXlsx', $exportParams) }}" class="btn btn-sm btn-outline-success" title="Exportar visão atual em XLSX">Exportar XLSX</a>
-    <button type="button" id="export-selected-csv" class="btn btn-sm btn-outline-secondary" title="Exportar somente códigos selecionados em CSV" disabled>Exportar Registros Selecionados CSV</button>
-    <button type="button" id="export-selected-xlsx" class="btn btn-sm btn-outline-success" title="Exportar somente códigos selecionados em XLSX" disabled>Exportar Registros Selecionados XLSX</button>
     <button type="button" class="btn btn-sm btn-outline-danger ms-2" id="var-clear-selection-allocation-top" title="Limpar seleção &amp; remover selected_codes da URL">Limpar seleção &amp; alocação</button>
     <div class="vr mx-2 d-none d-md-block"></div>
     <button type="button" id="btn-var-batch-flags" class="btn btn-sm btn-outline-warning" title="Aplicar COMPRAR/NÃO COMPRAR por código conforme sinal da variação (usa a linha mais recente por código)">Aplicar flags (variação)</button>
     <a href="{{ route('asset-stats.index') }}#gsc.tab=0" class="btn btn-sm btn-outline-dark" title="Ir para Asset Stats">Asset Stats</a>
   </div>
+
+  <div class="card mb-3" style="background-color:#e9f8ee;border-color:#b7e3c7;">
+    <div class="card-body py-2 d-flex flex-wrap gap-2 align-items-center">
+      <strong class="me-2 text-success">Selecionados</strong>
+      <button type="button" id="export-selected-csv" class="btn btn-sm btn-outline-success" title="Exportar somente códigos selecionados em CSV" disabled>Exportar Registros Selecionados CSV</button>
+      <button type="button" id="export-selected-xlsx" class="btn btn-sm btn-outline-success" title="Exportar somente códigos selecionados em XLSX" disabled>Exportar Registros Selecionados XLSX</button>
+      <form id="import-selected-form" action="{{ route('openai.variations.importSelected') }}" method="post" enctype="multipart/form-data" class="d-inline-block">
+        @csrf
+        <input type="hidden" name="year" value="{{ request('year') }}">
+        <input type="hidden" name="month" value="{{ request('month') }}">
+        <input type="hidden" name="code" value="{{ request('code') }}">
+        <input type="hidden" name="polarity" value="{{ request('polarity') }}">
+        <input type="hidden" name="currency" value="{{ request('currency') }}">
+        <input type="hidden" name="capital" value="{{ request('capital') }}">
+        <input type="hidden" name="cap_pct" value="{{ request('cap_pct') }}">
+        <input type="hidden" name="target_pct" value="{{ request('target_pct') }}">
+        <label class="btn btn-sm btn-outline-success mb-0">
+          Importar selecionados
+          <input id="import-selected-file" type="file" name="file" accept=".csv,.xlsx" class="d-none" />
+        </label>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- Modal de confirmação de importação -->
+  <div class="modal fade" id="importSelectedConfirmModal" tabindex="-1" aria-labelledby="importSelectedConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="importSelectedConfirmModalLabel">Importar Selecionados</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Antes de prosseguir, confirme que o arquivo possui a primeira linha com o texto:<br>
+          <strong>“Exportado dos registros selecionados CSV/XLSX”</strong>.<br>
+          Essa verificação será feita ao importar. Deseja continuar?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary btn-cancel-import" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-success btn-confirm-import">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast de sucesso da importação -->
+  @if(session('success') && session('import_count'))
+  <div class="position-fixed top-0 end-0 p-3" style="z-index: 1080;">
+    <div id="importSuccessToast" class="toast align-items-center text-bg-success border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body">
+          <strong>Importação concluída:</strong> {{ session('import_count') }} código(s) aplicado(s).
+          @if(session('import_preview'))
+            <br><small>Códigos: {{ session('import_preview') }}</small>
+          @endif
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+  @endif
 
   @php
     // Parse inputs for allocation
@@ -445,21 +505,7 @@
             <a href="{{ request()->fullUrlWithQuery(['alloc_order'=>null]) }}" class="btn btn-outline-secondary {{ $allocOrder==='' ? 'active' : '' }}" title="Ordenar pelo fluxo padrão (diferença e cap)">Padrão</a>
             <a href="{{ request()->fullUrlWithQuery(['alloc_order'=>'trend']) }}" class="btn btn-outline-secondary {{ $allocOrder==='trend' ? 'active' : '' }}" title="Ordenar por Tendência (Alta→Queda)">Tendência</a>
           </div>
-          <form action="{{ route('openai.variations.importSelected') }}" method="post" enctype="multipart/form-data" class="d-flex align-items-center gap-2 ms-2">
-            @csrf
-            <input type="hidden" name="year" value="{{ request('year') }}">
-            <input type="hidden" name="month" value="{{ request('month') }}">
-            <input type="hidden" name="code" value="{{ request('code') }}">
-            <input type="hidden" name="polarity" value="{{ request('polarity') }}">
-            <input type="hidden" name="currency" value="{{ request('currency') }}">
-            <input type="hidden" name="capital" value="{{ request('capital') }}">
-            <input type="hidden" name="cap_pct" value="{{ request('cap_pct') }}">
-            <input type="hidden" name="target_pct" value="{{ request('target_pct') }}">
-            <label class="btn btn-xs btn-outline-secondary btn-sm py-0 mb-0">
-              Importar Selecionados
-              <input type="file" name="file" accept=".csv,.xlsx" class="d-none" onchange="this.form.submit()" />
-            </label>
-          </form>
+
         </div>
       </div>
       <div class="card-body p-0">
@@ -1304,6 +1350,42 @@
   const topCalcBtn = document.getElementById('filter-calc-alloc-btn');
   const exportSelCsv = document.getElementById('export-selected-csv');
   const exportSelXlsx = document.getElementById('export-selected-xlsx');
+  const importForm = document.getElementById('import-selected-form');
+  const importFile = document.getElementById('import-selected-file');
+  const importModalEl = document.getElementById('importSelectedConfirmModal');
+  let _pendingImport = false;
+
+  // Intercepta escolha de arquivo para exibir modal de confirmação
+  if(importFile && importForm && importModalEl){
+    importFile.addEventListener('change', function(){
+      if(!this.files || this.files.length === 0) return;
+      const modal = new bootstrap.Modal(importModalEl);
+      _pendingImport = true;
+      modal.show();
+    });
+    importModalEl.addEventListener('click', function(ev){
+      const isConfirm = ev.target && ev.target.classList && ev.target.classList.contains('btn-confirm-import');
+      if(isConfirm && _pendingImport){
+        _pendingImport = false;
+        // Submete o formulário após confirmação
+        importForm.submit();
+      }
+    });
+    // Se cancelar, limpa o arquivo selecionado
+    importModalEl.addEventListener('hidden.bs.modal', function(){
+      if(_pendingImport){
+        _pendingImport = false;
+        if(importFile){ importFile.value = ''; }
+      }
+    });
+  }
+
+  // Exibir toast de sucesso se existir no DOM
+  const toastEl = document.getElementById('importSuccessToast');
+  if(toastEl && bootstrap?.Toast){
+    const t = new bootstrap.Toast(toastEl, { delay: 5000 });
+    t.show();
+  }
   const LS_KEY = 'openai_variations_selected_codes';
   function varCheckboxes(){ return Array.from(document.querySelectorAll('.var-select')); }
   function getSelected(){ return varCheckboxes().filter(c=>c.checked).map(c=>c.value.toUpperCase()); }
