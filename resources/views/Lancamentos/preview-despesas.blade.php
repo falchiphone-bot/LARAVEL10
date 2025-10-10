@@ -757,11 +757,18 @@ document.addEventListener('DOMContentLoaded', function(){
                 <thead class="table-light sticky-top">
                     <tr>
                         <th style="position:sticky;left:0;background:#f8f9fa;z-index:2;">#</th>
+                        @php $insertedContaHeader = false; @endphp
                         @foreach($headers as $h)
                             <th>{{ $h }}</th>
+                            @if(!$insertedContaHeader && strtoupper($h) === 'VALOR')
+                                <th>Conta</th>
+                                @php $insertedContaHeader = true; @endphp
+                            @endif
                         @endforeach
+                        @if(!$insertedContaHeader)
+                            <th>Conta</th>
+                        @endif
                         <th>Histórico Ajustado</th>
-                        <th>Conta</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -782,9 +789,37 @@ document.addEventListener('DOMContentLoaded', function(){
                         @endphp
                         <tr class="{{ !empty($r['_auto_classified']) ? 'table-success auto-class' : '' }}" data-class-empresa-id="{{ $r['_class_empresa_id'] ?? '' }}" data-class-conta-id="{{ $r['_class_conta_id'] ?? '' }}">
                             <td style="position:sticky;left:0;background:#fff;z-index:1;">{{ $i+1 }}</td>
+                            @php $insertedContaCell = false; @endphp
                             @foreach($headers as $h)
                                 <td class="small">{{ $r[$h] }}</td>
+                                @if(!$insertedContaCell && strtoupper($h) === 'VALOR')
+                                    <td style="min-width:240px;">
+                                        @if($canClass)
+                                            <select class="form-select form-select-sm class-conta select2-conta-ajax" data-row="{{ $i }}" data-selected="{{ $r['_class_conta_id'] ?? '' }}" data-can="1" {{ empty($r['_class_empresa_id']) ? 'disabled' : '' }} data-placeholder="Pesquisar conta">
+                                                @if(!empty($r['_class_conta_id']))
+                                                    <option value="{{ $r['_class_conta_id'] }}" selected>{{ $r['_class_conta_label'] ?? $r['_class_conta_id'] }}</option>
+                                                @endif
+                                            </select>
+                                        @else
+                                            <span class="text-muted small" data-can="0">(sem Valor)</span>
+                                        @endif
+                                    </td>
+                                    @php $insertedContaCell = true; @endphp
+                                @endif
                             @endforeach
+                            @if(!$insertedContaCell)
+                                <td style="min-width:240px;">
+                                    @if($canClass)
+                                        <select class="form-select form-select-sm class-conta select2-conta-ajax" data-row="{{ $i }}" data-selected="{{ $r['_class_conta_id'] ?? '' }}" data-can="1" {{ empty($r['_class_empresa_id']) ? 'disabled' : '' }} data-placeholder="Pesquisar conta">
+                                            @if(!empty($r['_class_conta_id']))
+                                                <option value="{{ $r['_class_conta_id'] }}" selected>{{ $r['_class_conta_label'] ?? $r['_class_conta_id'] }}</option>
+                                            @endif
+                                        </select>
+                                    @else
+                                        <span class="text-muted small" data-can="0">(sem Valor)</span>
+                                    @endif
+                                </td>
+                            @endif
                             <td style="min-width:260px;">
                                 <input type="text" class="form-control form-control-sm hist-ajustado" value="{{ $r['_hist_ajustado'] }}" data-row="{{ $i }}" data-orig="{{ $histCol }}" placeholder="Ajuste aqui">
                                 <div class="form-text text-muted small d-flex justify-content-between">
@@ -793,17 +828,6 @@ document.addEventListener('DOMContentLoaded', function(){
                                         <span class="badge bg-success text-uppercase" title="Linha auto-classificada por tokens (hits: {{ $r['_auto_hits'] ?? '?' }})">AUTO</span>
                                     @endif
                                 </div>
-                            </td>
-                            <td style="min-width:240px;">
-                                @if($canClass)
-                                    <select class="form-select form-select-sm class-conta select2-conta-ajax" data-row="{{ $i }}" data-selected="{{ $r['_class_conta_id'] ?? '' }}" data-can="1" {{ empty($r['_class_empresa_id']) ? 'disabled' : '' }} data-placeholder="Pesquisar conta">
-                                        @if(!empty($r['_class_conta_id']))
-                                            <option value="{{ $r['_class_conta_id'] }}" selected>{{ $r['_class_conta_label'] ?? $r['_class_conta_id'] }}</option>
-                                        @endif
-                                    </select>
-                                @else
-                                    <span class="text-muted small" data-can="0">(sem Valor)</span>
-                                @endif
                             </td>
                         </tr>
                     @empty
