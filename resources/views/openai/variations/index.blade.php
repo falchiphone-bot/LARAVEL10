@@ -445,6 +445,21 @@
             <a href="{{ request()->fullUrlWithQuery(['alloc_order'=>null]) }}" class="btn btn-outline-secondary {{ $allocOrder==='' ? 'active' : '' }}" title="Ordenar pelo fluxo padrão (diferença e cap)">Padrão</a>
             <a href="{{ request()->fullUrlWithQuery(['alloc_order'=>'trend']) }}" class="btn btn-outline-secondary {{ $allocOrder==='trend' ? 'active' : '' }}" title="Ordenar por Tendência (Alta→Queda)">Tendência</a>
           </div>
+          <form action="{{ route('openai.variations.importSelected') }}" method="post" enctype="multipart/form-data" class="d-flex align-items-center gap-2 ms-2">
+            @csrf
+            <input type="hidden" name="year" value="{{ request('year') }}">
+            <input type="hidden" name="month" value="{{ request('month') }}">
+            <input type="hidden" name="code" value="{{ request('code') }}">
+            <input type="hidden" name="polarity" value="{{ request('polarity') }}">
+            <input type="hidden" name="currency" value="{{ request('currency') }}">
+            <input type="hidden" name="capital" value="{{ request('capital') }}">
+            <input type="hidden" name="cap_pct" value="{{ request('cap_pct') }}">
+            <input type="hidden" name="target_pct" value="{{ request('target_pct') }}">
+            <label class="btn btn-xs btn-outline-secondary btn-sm py-0 mb-0">
+              Importar Selecionados
+              <input type="file" name="file" accept=".csv,.xlsx" class="d-none" onchange="this.form.submit()" />
+            </label>
+          </form>
         </div>
       </div>
       <div class="card-body p-0">

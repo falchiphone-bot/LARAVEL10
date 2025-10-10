@@ -62,6 +62,7 @@ Route::post('/openai/records/save-variation', [\App\Http\Controllers\OpenAIChatR
 Route::get('/openai/variations', [\App\Http\Controllers\AssetVariationController::class, 'index'])->name('openai.variations.index');
 Route::get('/openai/variations/export-csv', [\App\Http\Controllers\AssetVariationController::class, 'exportCsv'])->name('openai.variations.exportCsv');
 Route::get('/openai/variations/export-xlsx', [\App\Http\Controllers\AssetVariationController::class, 'exportXlsx'])->name('openai.variations.exportXlsx');
+Route::post('/openai/variations/import-selected', [\App\Http\Controllers\AssetVariationController::class, 'importSelected'])->name('openai.variations.importSelected');
 Route::post('/openai/variations/batch-flags', [\App\Http\Controllers\AssetVariationController::class, 'batchFlags'])->name('openai.variations.batchFlags');
 // Carteira real do usuário
 Route::get('/openai/portfolio', [\App\Http\Controllers\PortfolioController::class, 'index'])->name('openai.portfolio.index');
@@ -509,7 +510,7 @@ Route::get('Envios/{Envio}/custos/pdf', [App\Http\Controllers\EnvioCustoControll
 Route::get('Envios/custos/pdf/filtro', [App\Http\Controllers\EnvioCustoController::class, 'pdfFiltro'])
     ->name('Envios.custos.pdf.filtro');
 // PDF de custos por faixa salarial SAF
-Route::get('Envios/custos/pdf-faixa', [\AppHttp\Controllers\EnvioCustoController::class, 'pdfFaixa'])->name('Envios.custos.pdf.faixa');
+Route::get('Envios/custos/pdf-faixa', [\App\Http\Controllers\EnvioCustoController::class, 'pdfFaixa'])->name('Envios.custos.pdf.faixa');
 Route::get('Envios/faixas/pdf-filtro', [\App\Http\Controllers\EnvioCustoController::class, 'pdfFaixasFiltro'])->name('Envios.faixas.pdf.filtro');
 // Relatórios diagnósticos de faixas
 Route::get('Envios/faixas/pdf-filtro-sem-faixa', [\App\Http\Controllers\EnvioCustoController::class, 'pdfEnviosSemFaixa'])->name('Envios.faixas.pdf.filtro.semfaixa');
@@ -1336,7 +1337,7 @@ Route::resource('RedeSocialUsuarios', App\Http\Controllers\RedeSocialUsuarioCont
     Route::get('PlanoContas/Balancetes', [App\Http\Controllers\PlanoContaController::class, 'Balancetes'])->name('planocontas.balancetes');
     Route::get('PlanoContas/Balancetespdf', [App\Http\Controllers\PlanoContaController::class, 'Balancetesgerarpdf'])->name('planocontas.Balancetesgerarpdf');
     Route::resource('PlanoContas', App\Http\Controllers\PlanoContaController::class);
-    Route::post('PlanoContas/FiltroAgrupamento', [AppHttp\Controllers\PlanoContaController::class, 'FiltroAgrupamento'])->name('planocontas.FiltroAgrupamento');
+    Route::post('PlanoContas/FiltroAgrupamento', [App\Http\Controllers\PlanoContaController::class, 'FiltroAgrupamento'])->name('planocontas.FiltroAgrupamento');
 
     #Lançamentos
 

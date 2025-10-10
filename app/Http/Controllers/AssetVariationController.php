@@ -20,7 +20,7 @@ class AssetVariationController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware(['permission:OPENAI - CHAT'])->only('index','store','exportCsv','exportXlsx','batchFlags');
+        $this->middleware(['permission:OPENAI - CHAT'])->only('index','store','exportCsv','exportXlsx','batchFlags','importSelected');
     }
 
     public function index(Request $request)
@@ -537,5 +537,66 @@ class AssetVariationController extends Controller
 
         $msg = sprintf('Flags aplicadas: %d COMPRAR, %d NÃO COMPRAR. Ignorados: %d.', $buy, $noBuy, $skipped);
         return back()->with('success', $msg);
+    }
+
+    /**
+     * Importa um arquivo (CSV ou XLSX) gerado por "Exportar Selecionados" e extrai os códigos
+     * para marcar na alocação. Confere a primeira linha do cabeçalho com a frase esperada.
+     */
+    public function importSelected(Request $request)
+    {
+        $this->authorize('viewAny', OpenAIChat::class);
+        $request->validate([
+            'file' => ['required','file','mimes:csv,txt,xlsx']
+        ]);
+
+        try {
+            $file = $request->file('file');
+            $import = new \App\Imports\SimpleArrayImport();
+            \Maatwebsite\Excel\Facades\Excel::import($import, $file);
+            $rows = $import->rows ?? [];
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Falha ao ler arquivo: '.$e->getMessage());
+        }
+
+        if (empty($rows) || !is_array($rows[0] ?? null)) {
+            return back()->with('error', 'Arquivo vazio ou formato inválido.');
+        }
+        // Primeira linha deve conter a mensagem
+        $firstRow = $rows[0];
+        $firstCell = (string)($firstRow[0] ?? '');
+        if (stripos($firstCell, 'Exportado dos registros selecionados CSV/XLSX') === false) {
+            return back()->with('error', 'Arquivo não reconhecido: mensagem inicial ausente.');
+        }
+        // Segunda linha deve ser o cabeçalho de colunas; dados a partir da terceira
+        $dataRows = array_slice($rows, 2);
+        $codes = [];
+        foreach ($dataRows as $r) {
+            $code = strtoupper(trim((string)($r[0] ?? '')));
+            if ($code !== '') { $codes[] = $code; }
+        }
+        $codes = array_values(array_unique(array_filter($codes, fn($c)=> $c !== '')));
+        if (empty($codes)) {
+            return back()->with('info', 'Nenhum código encontrado no arquivo.');
+        }
+
+        // Redirecionar para a listagem com os códigos como selected_codes[] e trigger_alloc=1
+        $qs = array_filter([
+            'year' => $request->input('year'),
+            'month' => $request->input('month'),
+            'code' => $request->input('code'),
+            'polarity' => $request->input('polarity'),
+            'currency' => $request->input('currency'),
+            'capital' => $request->input('capital'),
+            'cap_pct' => $request->input('cap_pct'),
+            'target_pct' => $request->input('target_pct'),
+            'trigger_alloc' => 1,
+        ]);
+
+        $url = route('openai.variations.index', $qs);
+        // Anexar selected_codes[] mantendo o restante
+        $sep = strpos($url, '?') === false ? '?' : '&';
+        foreach ($codes as $c) { $url .= $sep.'selected_codes[]='.urlencode($c); $sep='&'; }
+        return redirect($url)->with('success', 'Códigos importados: '.implode(', ', array_slice($codes,0,20)).(count($codes)>20?'…':''));
     }
 }
