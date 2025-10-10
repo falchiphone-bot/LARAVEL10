@@ -21,7 +21,7 @@ class AssetVariationController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware(['permission:OPENAI - CHAT'])->only('index','store','exportCsv','exportXlsx','batchFlags','importSelected','clearCache');
+        $this->middleware(['permission:OPENAI - CHAT'])->only('index','store','exportCsv','exportXlsx','batchFlags','importSelected','clearCache','saveAllocFato');
     }
 
     public function index(Request $request)
@@ -640,5 +640,28 @@ class AssetVariationController extends Controller
             return back()->with('error', 'Falha ao limpar cache: '.$e->getMessage());
         }
         return back()->with('success', 'Cache limpo com sucesso.')->with('cache_cleared', 1);
+    }
+
+    /**
+     * Persiste em cache o valor editável "Aloc.Fato" por (ano, mês, código).
+     */
+    public function saveAllocFato(Request $request)
+    {
+        $this->authorize('viewAny', OpenAIChat::class);
+        $data = $request->validate([
+            'code' => ['required','string','max:50'],
+            'year' => ['required','integer','min:2000','max:2100'],
+            'month'=> ['required','integer','min:1','max:12'],
+            'value'=> ['nullable','numeric','min:0'],
+        ]);
+        $code = strtoupper(trim((string)$data['code']));
+        $key = 'openai:variations:alloc_fato:'.$data['year'].':'.$data['month'].':'.$code;
+        if ($data['value'] === null || $data['value'] === '') {
+            Cache::forget($key);
+        } else {
+            // TTL opcional: deixar sem expiração para durar até limpeza manual
+            Cache::forever($key, (float)$data['value']);
+        }
+        return response()->json(['ok'=>true]);
     }
 }

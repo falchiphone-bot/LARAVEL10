@@ -5,6 +5,7 @@ use App\Models\AssetVariation;
 use App\Models\OpenAIChatRecord;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -212,6 +213,17 @@ class AssetAllocationsExport implements FromCollection, WithHeadings, WithMappin
                 'last_price_disp' => ($lastPrice !== null) ? ($lastPrice * $dispMul) : null,
                 'qty' => $qty,
                 'curSymbol' => $curSymbol,
+                // Aloc.Fato: buscar do cache (valor digitado na UI), sem conversão extra — assume-se na moeda exibida
+                'alloc_fato_disp' => (function() use($r){
+                    $code = strtoupper($r['code'] ?? '');
+                    // Preferir filtros globais; se ausentes, tentar inferir do próprio row (adicionado na view)
+                    $y = isset($this->filters['year']) && $this->filters['year'] !== '' ? (int)$this->filters['year'] : (int)($r['year'] ?? 0);
+                    $m = isset($this->filters['month']) && $this->filters['month'] !== '' ? (int)$this->filters['month'] : (int)($r['month'] ?? 0);
+                    if($y<=0 || $m<=0 || $code==='') return null;
+                    $key = 'openai:variations:alloc_fato:'.$y.':'.$m.':'.$code;
+                    $v = Cache::get($key);
+                    return is_numeric($v) ? (float)$v : null;
+                })(),
             ];
             if ($codeKey !== '') { $seenCodes[$codeKey] = true; }
         }
@@ -234,6 +246,7 @@ class AssetAllocationsExport implements FromCollection, WithHeadings, WithMappin
                 'Anterior (%)',
                 'Diferença (pp)',
                 'Tendência',
+                'Aloc.Fato ('.$curSymbol.')',
                 'Peso (%)',
                 'Valor ('.$curSymbol.')',
                 'Ganho alvo ('.$curSymbol.')',
@@ -255,6 +268,7 @@ class AssetAllocationsExport implements FromCollection, WithHeadings, WithMappin
             $this->fmt4($row['prev']),
             $this->fmt4($row['diff']),
             (string)($row['trend_label'] ?? ''),
+            $this->fmt2($row['alloc_fato_disp'] ?? null),
             $this->fmt2(isset($row['weight']) ? ($row['weight']*100) : null),
             $this->fmt2($row['amount_disp'] ?? null),
             $this->fmt2($row['gain_target_disp'] ?? null),

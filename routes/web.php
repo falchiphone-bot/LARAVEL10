@@ -65,6 +65,7 @@ Route::get('/openai/variations/export-xlsx', [\App\Http\Controllers\AssetVariati
 Route::post('/openai/variations/import-selected', [\App\Http\Controllers\AssetVariationController::class, 'importSelected'])->name('openai.variations.importSelected');
 Route::post('/openai/variations/batch-flags', [\App\Http\Controllers\AssetVariationController::class, 'batchFlags'])->name('openai.variations.batchFlags');
 Route::post('/openai/variations/clear-cache', [\App\Http\Controllers\AssetVariationController::class, 'clearCache'])->name('openai.variations.clearCache');
+Route::post('/openai/variations/save-alloc-fato', [\App\Http\Controllers\AssetVariationController::class, 'saveAllocFato'])->name('openai.variations.saveAllocFato');
 // Carteira real do usuário
 Route::get('/openai/portfolio', [\App\Http\Controllers\PortfolioController::class, 'index'])->name('openai.portfolio.index');
 // CRUD holdings (carteira)

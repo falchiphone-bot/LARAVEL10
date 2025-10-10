@@ -1,6 +1,7 @@
 @extends('layouts.bootstrap5')
 @section('content')
 <div class="container-fluid">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
 
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <h1 class="h4 mb-0">Variações Mensais Salvas</h1>
@@ -317,6 +318,8 @@
             'prev' => is_null($prev) ? null : (float)$prev,
             'diff' => is_null($diff) ? null : (float)$diff,
             'chat_id' => optional($g['latest'])->chat_id ?? null,
+            'year' => optional($g['latest'])->year ?? null,
+            'month'=> optional($g['latest'])->month ?? null,
           ];
         }
       } else {
@@ -335,6 +338,8 @@
             'trend_code' => $tinfo['code'] ?? null,
             'trend_label'=> $tinfo['label'] ?? null,
             'trend_badge'=> $tinfo['badge'] ?? 'secondary',
+            'year' => $v->year ?? null,
+            'month'=> $v->month ?? null,
           ];
         }
       }
@@ -556,6 +561,7 @@
                 <th class="text-end" style="width:12%">Anterior (%)</th>
                 <th class="text-end" style="width:12%">Diferença (pp)</th>
                 <th class="text-center" style="width:10%">Tendência</th>
+                <th class="text-end" style="width:14%">Aloc.Fato</th>
                 <th class="text-end" style="width:12%">Peso (cap)</th>
                 <th class="text-end" style="width:16%">Valor ({{ $curSymbol }})</th>
                 <th class="text-end" style="width:16%">Ganho alvo ({{ $curSymbol }})</th>
@@ -566,6 +572,7 @@
             <tbody>
               @php
                 $sumQty = 0;
+                $sumAllocFato = 0.0;
               @endphp
               @foreach($alloc as $r)
                 <tr>
@@ -581,6 +588,26 @@
                     @else
                       <span class="text-muted">—</span>
                     @endif
+                  </td>
+                  @php
+                    $afKey = 'openai:variations:alloc_fato:'.((int)($year ?? 0)).':'.((int)($month ?? 0)).':'.strtoupper($r['code'] ?? '');
+                    $afVal = \Illuminate\Support\Facades\Cache::get($afKey);
+                    $afRaw = is_numeric($afVal) ? (float)$afVal : null;
+                    if(is_numeric($afRaw)) { $sumAllocFato += (float)$afRaw; }
+                  @endphp
+                  <td class="text-end" data-code="{{ $r['code'] }}">
+                    <div class="input-group input-group-sm justify-content-end">
+                      <span class="input-group-text">{{ $curSymbol }}</span>
+                      <input type="text"
+                             class="form-control form-control-sm text-end alloc-fato-input"
+                             value="{{ $afRaw !== null ? number_format($afRaw, 2, '.', '') : '' }}"
+                             placeholder="0.00"
+                             data-code="{{ $r['code'] }}"
+                             data-year="{{ (int)($r['year'] ?? $year ?? 0) }}"
+                             data-month="{{ (int)($r['month'] ?? $month ?? 0) }}"
+                             inputmode="decimal"
+                             style="max-width: 120px" />
+                    </div>
                   </td>
                   <td class="text-end">{{ number_format($r['weight']*100, 2, ',', '.') }}%</td>
                   <td class="text-end">{{ $curSymbol }} {{ number_format($r['amount'] * $dispMul, 2, ',', '.') }}</td>
@@ -605,7 +632,9 @@
             </tbody>
             <tfoot>
               <tr>
-                <th colspan="8" class="text-end">Totais</th>
+                <th colspan="7" class="text-end">Totais</th>
+                <th class="text-end">{{ $curSymbol }} {{ number_format($sumAllocFato, 2, ',', '.') }}</th>
+                <th></th>
                 <th class="text-end">{{ $curSymbol }} {{ number_format(($calcCapital ?? 0) * $dispMul, 2, ',', '.') }}</th>
                 <th class="text-end">{{ $curSymbol }} {{ number_format((($calcCapital ?? 0) * $target) * $dispMul, 2, ',', '.') }}</th>
                 <th></th>
@@ -613,6 +642,7 @@
               </tr>
             </tfoot>
           </table>
+          <span id="alloc-fato-endpoint" data-url="{{ route('openai.variations.saveAllocFato') }}" hidden></span>
         </div>
       </div>
     </div>
@@ -1435,6 +1465,143 @@
   const importModalEl = document.getElementById('importSelectedConfirmModal');
   let _pendingImport = false;
 
+  // Persistência de Aloc.Fato (AJAX)
+  (function wireAllocFatoPersistence(){
+    try{
+      const endpointEl = document.getElementById('alloc-fato-endpoint');
+      if(!endpointEl) return;
+      const url = endpointEl.getAttribute('data-url');
+      if(!url) return;
+  const inputs = Array.from(document.querySelectorAll('input.alloc-fato-input[data-code]'));
+      if(inputs.length === 0) return;
+  const ymEl = document.getElementById('var-filter-ym');
+  const yearGlobal = ymEl ? parseInt(ymEl.getAttribute('data-year')||'0',10) : 0;
+  const monthGlobal = ymEl ? parseInt(ymEl.getAttribute('data-month')||'0',10) : 0;
+      function parseNumberLike(v){
+        if(v==null) return null;
+        let s = (''+v).trim();
+        if(!s) return null;
+        // aceitar 1.234,56 e 1,234.56 e 1234.56
+        s = s.replace(/[^\d,.-]/g,'');
+        if(s.includes(',') && s.includes('.')){
+          s = s.replace(/\./g,'');
+          s = s.replace(',', '.');
+        } else if(s.includes(',') && !s.includes('.')){
+          s = s.replace(',', '.');
+        }
+        const n = Number(s);
+        return isFinite(n) ? n : null;
+      }
+      const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      // Não desabilitamos mais globalmente; usaremos year/month por input
+      // Hidratar visual com o formato local (2 casas) quando já houver valor numérico no value
+      inputs.forEach(inp=>{
+        const v = parseNumberLike(inp.value);
+        if(v!==null && v>=0){ inp.value = v.toFixed(2); }
+      });
+      async function saveOne(code, val, y, m){
+        try{
+          await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': token || ''
+            },
+            body: JSON.stringify({ code, value: val, year: y, month: m })
+          });
+        }catch(_e){ /* noop */ }
+      }
+      function saveOneBeacon(code, val, y, m){
+        try{
+          if(navigator.sendBeacon){
+            const payload = JSON.stringify({ code, value: val, year: y, month: m });
+            const blob = new Blob([payload], { type: 'application/json' });
+            navigator.sendBeacon(url, blob);
+            return true;
+          }
+        }catch(_e){}
+        return false;
+      }
+      const timers = new Map();
+      function scheduleSave(inp){
+        const code = inp.getAttribute('data-code')||'';
+        const y = parseInt(inp.getAttribute('data-year')||String(yearGlobal)||'0',10);
+        const m = parseInt(inp.getAttribute('data-month')||String(monthGlobal)||'0',10);
+        const raw = inp.value;
+        const val = parseNumberLike(raw);
+        if(val === null){ inp.value = ''; return; }
+        if(val < 0){ alert('Aloc.Fato não pode ser negativo.'); inp.value = ''; return; }
+        inp.value = val.toFixed(2);
+        // debounce 600ms
+        const prev = timers.get(inp);
+        if(prev) clearTimeout(prev);
+        const t = setTimeout(()=>{ saveOne(code, val, y, m); timers.delete(inp); }, 600);
+        timers.set(inp, t);
+      }
+      inputs.forEach(inp=>{
+        inp.addEventListener('input', ()=> scheduleSave(inp));
+        inp.addEventListener('blur', ()=>{ // flush imediato no blur
+          const code = inp.getAttribute('data-code')||'';
+          const y = parseInt(inp.getAttribute('data-year')||String(yearGlobal)||'0',10);
+          const m = parseInt(inp.getAttribute('data-month')||String(monthGlobal)||'0',10);
+          const val = parseNumberLike(inp.value);
+          const prev = timers.get(inp); if(prev) { clearTimeout(prev); timers.delete(inp); }
+          if(val === null || val < 0){ inp.value = ''; return; }
+          inp.value = val.toFixed(2);
+          saveOne(code, val, y, m);
+        });
+      });
+
+      // Expor função para exportadores aguardarem os saves pendentes
+      window.__flushAllocFatoSaves = async function(){
+        const pending = Array.from(timers.values());
+        timers.clear();
+        if(pending.length){ await new Promise(r=> setTimeout(r, 650)); }
+        // Além dos timers, garantir envio do estado atual de cada input com valor válido
+        const promises = [];
+        inputs.forEach(inp=>{
+          const code = inp.getAttribute('data-code')||'';
+          const y = parseInt(inp.getAttribute('data-year')||String(yearGlobal)||'0',10);
+          const m = parseInt(inp.getAttribute('data-month')||String(monthGlobal)||'0',10);
+          const val = parseNumberLike(inp.value);
+          if(val!==null && val>=0){ promises.push(saveOne(code, val, y, m)); }
+        });
+        try{ await Promise.race([Promise.all(promises), new Promise(r=> setTimeout(r, 1000))]); }catch(_e){}
+      }
+
+      // Persistir alterações ao sair da página (melhor esforço)
+      window.addEventListener('beforeunload', function(){
+        inputs.forEach(inp=>{
+          const code = inp.getAttribute('data-code')||'';
+          const y = parseInt(inp.getAttribute('data-year')||String(yearGlobal)||'0',10);
+          const m = parseInt(inp.getAttribute('data-month')||String(monthGlobal)||'0',10);
+          const val = parseNumberLike(inp.value);
+          if(val!==null && val>=0){ if(!saveOneBeacon(code, val, y, m)){ /* best-effort */ } }
+        });
+      });
+
+      // Se a alocação está visível, persistir trigger_alloc=1 na URL (para sobreviver refresh)
+      try{
+        const allocVisible = !!document.getElementById('alloc-count');
+        if(allocVisible){
+          const url = new URL(window.location.href);
+          if(url.searchParams.get('trigger_alloc') !== '1'){
+            url.searchParams.set('trigger_alloc','1');
+            window.history.replaceState({}, '', url.toString());
+          }
+          // Injetar nos formulários de filtro ativos
+          document.querySelectorAll('form.filters-bar').forEach(f=>{
+            if(!f.querySelector('input[name="trigger_alloc"]')){
+              const inp = document.createElement('input');
+              inp.type='hidden'; inp.name='trigger_alloc'; inp.value='1';
+              f.appendChild(inp);
+            }
+          });
+        }
+      }catch(_e){}
+    }catch(_e){}
+  })();
+
   // Habilita a importação somente quando um mês estiver selecionado
   (function handleImportEnableByMonth(){
     try{
@@ -1724,7 +1891,7 @@
       .map(c=> (c.value||'').toUpperCase())
       .filter(Boolean);
     if(!sel.length) return null;
-    const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(window.location.search);
     params.delete('page');
     // Remover selected_codes existentes para evitar duplicação
     const existing = [];
@@ -1735,6 +1902,14 @@
       const qf = new URL(window.location.href).searchParams.get('import_file');
       if(qf){ params.set('import_file', qf); }
     }
+    // Garantir que year/month acompanhem a exportação mesmo se não estiverem na URL
+    try{
+      const ym = document.getElementById('var-filter-ym');
+      const y = ym ? parseInt(ym.getAttribute('data-year')||'0',10) : 0;
+      const m = ym ? parseInt(ym.getAttribute('data-month')||'0',10) : 0;
+      if(y && !params.has('year')) params.set('year', String(y));
+      if(m && !params.has('month')) params.set('month', String(m));
+    }catch(_e){}
     sel.forEach(code=> params.append('selected_codes[]', code));
     return baseRoute + (params.toString() ? ('?'+params.toString()) : '');
   }
@@ -1743,14 +1918,16 @@
     exportSelCsv.addEventListener('click', ()=>{
       const url = buildSelectedExportUrl("{{ route('openai.variations.exportCsv') }}");
       if(!url){ alert('Nenhum selecionado.'); return; }
-      openExport(url);
+      const flush = window.__flushAllocFatoSaves ? window.__flushAllocFatoSaves() : Promise.resolve();
+      flush.finally(()=> openExport(url));
     });
   }
   if(exportSelXlsx){
     exportSelXlsx.addEventListener('click', ()=>{
       const url = buildSelectedExportUrl("{{ route('openai.variations.exportXlsx') }}");
       if(!url){ alert('Nenhum selecionado.'); return; }
-      openExport(url);
+      const flush = window.__flushAllocFatoSaves ? window.__flushAllocFatoSaves() : Promise.resolve();
+      flush.finally(()=> openExport(url));
     });
   }
   // Botão Positivos (variação atual > 0)
