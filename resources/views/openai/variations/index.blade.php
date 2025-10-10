@@ -168,8 +168,8 @@
   <div class="mb-2 d-flex gap-2 align-items-center position-sticky top-0 z-3 bg-light py-2" style="top: 0; border-bottom: 1px solid rgba(0,0,0,.1);">
   <a href="{{ route('openai.variations.exportCsv', $exportParams) }}" class="btn btn-sm btn-outline-secondary" title="Exportar visão atual em CSV">Exportar CSV</a>
   <a href="{{ route('openai.variations.exportXlsx', $exportParams) }}" class="btn btn-sm btn-outline-success" title="Exportar visão atual em XLSX">Exportar XLSX</a>
-    <button type="button" id="export-selected-csv" class="btn btn-sm btn-outline-secondary" title="Exportar somente códigos selecionados em CSV" disabled>Exportar Selecionados CSV</button>
-    <button type="button" id="export-selected-xlsx" class="btn btn-sm btn-outline-success" title="Exportar somente códigos selecionados em XLSX" disabled>Exportar Selecionados XLSX</button>
+    <button type="button" id="export-selected-csv" class="btn btn-sm btn-outline-secondary" title="Exportar somente códigos selecionados em CSV" disabled>Exportar Registros Selecionados CSV</button>
+    <button type="button" id="export-selected-xlsx" class="btn btn-sm btn-outline-success" title="Exportar somente códigos selecionados em XLSX" disabled>Exportar Registros Selecionados XLSX</button>
     <button type="button" class="btn btn-sm btn-outline-danger ms-2" id="var-clear-selection-allocation-top" title="Limpar seleção &amp; remover selected_codes da URL">Limpar seleção &amp; alocação</button>
     <div class="vr mx-2 d-none d-md-block"></div>
     <button type="button" id="btn-var-batch-flags" class="btn btn-sm btn-outline-warning" title="Aplicar COMPRAR/NÃO COMPRAR por código conforme sinal da variação (usa a linha mais recente por código)">Aplicar flags (variação)</button>
@@ -1043,8 +1043,9 @@
           vb.checked = ch.checked;
         }
       });
-      updateVarSelectionStorage();
-      updateVarMasterState();
+  updateVarSelectionStorage();
+  updateVarMasterState();
+  if(typeof updateSelectionCount === 'function') updateSelectionCount();
       // Dispara evento para outros ouvintes (contador, etc.)
       try {
         const synthetic = new Event('change', {bubbles:true});
@@ -1058,6 +1059,7 @@
      master.addEventListener('change', ()=>{
        rows().forEach(ch=>{ ch.checked = master.checked; });
        syncMaster();
+       if(typeof updateSelectionCount === 'function') updateSelectionCount();
      });
    }
    // Modal para Marcar/Desmarcar todos na alocação
@@ -1148,7 +1150,7 @@
           tbody.innerHTML = lastAllocSnapshot.map(r=>r.html).join('');
           // Reativar eventos dos checkboxes restaurados
           tbody.querySelectorAll('.alloc-row').forEach(ch=>{
-            ch.addEventListener('change', (e)=>{ syncMaster(); mirrorAllocChange(e.target); });
+            ch.addEventListener('change', (e)=>{ syncMaster(); mirrorAllocChange(e.target); if(typeof updateSelectionCount==='function') updateSelectionCount(); });
           });
           syncMaster();
           if(allocCountEl){ allocCountEl.textContent = 'Ativos: '+tbody.querySelectorAll('.alloc-row').length; }
@@ -1303,6 +1305,7 @@
   };
   function updateSelectionCount(){
     const n=getSelected().length;
+    const allocSelectedCount = Array.from(document.querySelectorAll('.alloc-row:checked')).length;
     if(selectionCount){ selectionCount.textContent = n ? (n+' selecionado(s)') : ''; }
     if(topCalcBtn){
       const base = topCalcBtn.getAttribute('data-base-label') || 'Calcular alocação';
@@ -1326,8 +1329,9 @@
       }
       window._updateCalcButtonState();
     }
-    if(exportSelCsv){ exportSelCsv.disabled = n===0; }
-    if(exportSelXlsx){ exportSelXlsx.disabled = n===0; }
+    // Exportar Selecionados agora considera apenas os itens alocados
+    if(exportSelCsv){ exportSelCsv.disabled = allocSelectedCount===0; }
+    if(exportSelXlsx){ exportSelXlsx.disabled = allocSelectedCount===0; }
   }
   function setSelected(codes){ const set=new Set(codes.map(c=>c.toUpperCase())); varCheckboxes().forEach(ch=>{ ch.checked = set.has(ch.value.toUpperCase()); }); persist(); updateSelectionCount(); }
   function persist(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(getSelected())); }catch(_e){} }
@@ -1353,6 +1357,12 @@
   }
   restore();
   updateSelectionCount();
+  // Reagir a mudanças nas checkboxes de alocação para habilitar/desabilitar export selecionados
+  try {
+    document.querySelectorAll('.alloc-row').forEach(ch=>{
+      ch.addEventListener('change', ()=>{ if(typeof updateSelectionCount==='function') updateSelectionCount(); });
+    });
+  } catch(_e) {}
   if(varMaster){
     // Modal de confirmação para marcar / desmarcar todos
     // HTML do modal (injetado uma única vez)
@@ -1437,7 +1447,10 @@
     });
   }
   function buildSelectedExportUrl(baseRoute){
-    const sel = getSelected();
+    // Coletar SOMENTE os alocados (.alloc-row:checked)
+    const sel = Array.from(document.querySelectorAll('.alloc-row:checked'))
+      .map(c=> (c.value||'').toUpperCase())
+      .filter(Boolean);
     if(!sel.length) return null;
     const params = new URLSearchParams(window.location.search);
     params.delete('page');

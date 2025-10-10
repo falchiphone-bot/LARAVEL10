@@ -2,6 +2,7 @@
 namespace App\Exports;
 
 use App\Models\AssetVariation;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -35,7 +36,9 @@ class AssetVariationsExport implements FromCollection, WithHeadings, WithMapping
             ? (int) $this->filters['month']
             : 0;
         $code = isset($this->filters['code']) ? trim((string)$this->filters['code']) : '';
-        $polarity = $this->filters['polarity'] ?? null; // positive|negative|null
+    $polarity = $this->filters['polarity'] ?? null; // positive|negative|null
+    $selectedCodes = isset($this->filters['selected_codes']) ? (array)$this->filters['selected_codes'] : [];
+    $selectedCodes = array_values(array_filter(array_unique(array_map(function($c){ return strtoupper(trim((string)$c)); }, $selectedCodes)), fn($c)=> $c !== ''));
 
         if ($year) {
             $q->where('year', $year);
@@ -50,6 +53,11 @@ class AssetVariationsExport implements FromCollection, WithHeadings, WithMapping
             $q->where('variation', '>', 0);
         } elseif ($polarity === 'negative') {
             $q->where('variation', '<', 0);
+        }
+
+        // Filtrar por lista de códigos selecionados, se fornecida
+        if (!empty($selectedCodes)) {
+            $q->whereIn(DB::raw('UPPER(asset_code)'), $selectedCodes);
         }
 
         // Ordenação

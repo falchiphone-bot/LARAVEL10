@@ -7,6 +7,7 @@ use App\Models\OpenAIChat;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\AssetVariationsExport;
+use App\Exports\AssetAllocationsExport;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth as FacadesAuth;
 use App\Models\UserHolding;
@@ -115,6 +116,7 @@ class AssetVariationController extends Controller
                 $prevMonth = $latest->month == 1 ? 12 : ($latest->month - 1);
                 $prev = null;
                 foreach($g['rows'] as $rPrev){
+                    if(!is_object($rPrev)) { continue; }
                     if($rPrev->year == $prevYear && $rPrev->month == $prevMonth){
                         $prev = $rPrev->variation; break;
                     }
@@ -264,9 +266,7 @@ class AssetVariationController extends Controller
             case 'year_asc':
                 $q->orderBy('year','asc')->orderBy('month','asc');
                 break;
-            case 'year_desc':
-                $q->orderBy('year','desc')->orderBy('month','desc');
-                break;
+            // Removido case duplicado de year_desc (tratado no default)
             case 'month_asc':
                 $q->orderBy('month','asc')->orderBy('year','desc');
                 break;
@@ -425,8 +425,24 @@ class AssetVariationController extends Controller
             'month' => $request->input('month'),
             'code' => $request->input('code'),
             'polarity' => $request->input('polarity'),
+            // Permitir exportar apenas selecionados (selected_codes[] via GET)
+            'selected_codes' => (array) $request->input('selected_codes', []),
+            // Parâmetros de alocação (para export de selecionados com colunas da alocação)
+            'capital' => $request->input('capital'),
+            'cap_pct' => $request->input('cap_pct'),
+            'target_pct' => $request->input('target_pct'),
+            'currency' => $request->input('currency'),
         ];
         $sort = $request->input('sort', 'year_desc');
+        $selectedCodes = array_filter((array)$filters['selected_codes']);
+        $capital = $filters['capital'] ?? null;
+        // Se vieram selected_codes e capital, usar export de Alocação (uma linha por ativo, colunas da view)
+        if (!empty($selectedCodes) && $capital !== null && $capital !== '') {
+            $export = new AssetAllocationsExport($filters);
+            return Excel::download($export, 'openai-alloc-selected.csv', \Maatwebsite\Excel\Excel::CSV, [
+                'Content-Type' => 'text/csv',
+            ]);
+        }
         $export = new AssetVariationsExport($filters, $sort);
         return Excel::download($export, 'openai-asset-variations.csv', \Maatwebsite\Excel\Excel::CSV, [
             'Content-Type' => 'text/csv',
@@ -441,8 +457,21 @@ class AssetVariationController extends Controller
             'month' => $request->input('month'),
             'code' => $request->input('code'),
             'polarity' => $request->input('polarity'),
+            // Permitir exportar apenas selecionados (selected_codes[] via GET)
+            'selected_codes' => (array) $request->input('selected_codes', []),
+            // Parâmetros de alocação (para export de selecionados com colunas da alocação)
+            'capital' => $request->input('capital'),
+            'cap_pct' => $request->input('cap_pct'),
+            'target_pct' => $request->input('target_pct'),
+            'currency' => $request->input('currency'),
         ];
         $sort = $request->input('sort', 'year_desc');
+        $selectedCodes = array_filter((array)$filters['selected_codes']);
+        $capital = $filters['capital'] ?? null;
+        if (!empty($selectedCodes) && $capital !== null && $capital !== '') {
+            $export = new AssetAllocationsExport($filters);
+            return Excel::download($export, 'openai-alloc-selected.xlsx');
+        }
         $export = new AssetVariationsExport($filters, $sort);
         return Excel::download($export, 'openai-asset-variations.xlsx');
     }
