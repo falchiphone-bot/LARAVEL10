@@ -116,6 +116,8 @@ class AssetAllocationsExport implements FromCollection, WithHeadings, WithMappin
             $aux[] = [
                 'code' => $codeKey,
                 'title' => $r->chat?->title ?? '',
+                'year' => (int)$r->year,
+                'month'=> (int)$r->month,
                 'cur' => $cur,
                 'prev' => $pv,
                 'diff' => $diff,
@@ -216,9 +218,11 @@ class AssetAllocationsExport implements FromCollection, WithHeadings, WithMappin
                 // Aloc.Fato: buscar do cache (valor digitado na UI), sem conversão extra — assume-se na moeda exibida
                 'alloc_fato_disp' => (function() use($r){
                     $code = strtoupper($r['code'] ?? '');
-                    // Preferir filtros globais; se ausentes, tentar inferir do próprio row (adicionado na view)
-                    $y = isset($this->filters['year']) && $this->filters['year'] !== '' ? (int)$this->filters['year'] : (int)($r['year'] ?? 0);
-                    $m = isset($this->filters['month']) && $this->filters['month'] !== '' ? (int)$this->filters['month'] : (int)($r['month'] ?? 0);
+                    // Preferir ano/mês da própria linha; se ausentes, cair para filtros globais
+                    $y = (int)($r['year'] ?? 0);
+                    $m = (int)($r['month'] ?? 0);
+                    if($y<=0) { $y = isset($this->filters['year']) && $this->filters['year'] !== '' ? (int)$this->filters['year'] : 0; }
+                    if($m<=0) { $m = isset($this->filters['month']) && $this->filters['month'] !== '' ? (int)$this->filters['month'] : 0; }
                     if($y<=0 || $m<=0 || $code==='') return null;
                     $key = 'openai:variations:alloc_fato:'.$y.':'.$m.':'.$code;
                     $v = Cache::get($key);
