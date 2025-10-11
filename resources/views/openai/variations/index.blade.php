@@ -92,7 +92,7 @@
         ]);
         $curMonth = (int) (request('month') ?: 0);
       @endphp
-      <div class="btn-group btn-group-sm flex-wrap" role="group" aria-label="Atalhos de mês">
+      <div id="month-shortcuts-group" class="btn-group btn-group-sm flex-wrap" role="group" aria-label="Atalhos de mês">
         <a href="{{ route('openai.variations.index', $monthQuickBase) }}" class="btn btn-outline-secondary {{ $curMonth===0 ? 'active' : '' }}" title="Limpar filtro de mês">Limpar mês</a>
         @for($m=1;$m<=12;$m++)
           <a href="{{ route('openai.variations.index', array_merge($monthQuickBase, ['month'=>$m])) }}"
@@ -267,6 +267,25 @@
     </div>
   </div>
   @endif
+
+  <!-- Modal: confirmar troca de mês -->
+  <div class="modal fade" id="confirmMonthChangeModal" tabindex="-1" aria-labelledby="confirmMonthChangeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmMonthChangeModalLabel">Trocar mês</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Você deseja realmente alterar o mês selecionado? Quaisquer alterações não salvas poderão ser perdidas.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Não</button>
+          <button type="button" class="btn btn-primary" id="btnConfirmMonthChange">Sim, continuar</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   @php
     // Parse inputs for allocation
@@ -483,6 +502,46 @@
   body.openai-variations-index-compact .mb-2.d-flex.gap-2.align-items-center.position-sticky { display:none !important; }
   body.openai-variations-index-compact #btn-toggle-openai-variations-index-layout { background:#212529; color:#fff; }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+  (function(){
+    // Confirmação ao trocar mês via atalhos
+    const group = document.getElementById('month-shortcuts-group');
+    const modalEl = document.getElementById('confirmMonthChangeModal');
+    if(group && modalEl){
+      let pendingHref = null;
+      let modalInstance = null;
+      group.addEventListener('click', function(ev){
+        const a = ev.target.closest('a[href]');
+        if(!a) return;
+        // Se o link já está ativo, não intercepta
+        if (a.classList.contains('active')) { return; }
+        ev.preventDefault();
+        pendingHref = a.getAttribute('href');
+        if(typeof bootstrap !== 'undefined' && bootstrap.Modal){
+          if(!modalInstance) modalInstance = new bootstrap.Modal(modalEl);
+          modalInstance.show();
+        } else {
+          if(confirm('Você deseja realmente alterar o mês selecionado? Quaisquer alterações não salvas poderão ser perdidas.')){
+            window.location.href = pendingHref;
+          }
+        }
+      });
+      const btn = document.getElementById('btnConfirmMonthChange');
+      if(btn){
+        btn.addEventListener('click', function(){
+          if(pendingHref){
+            const inst = (typeof bootstrap!=='undefined'&&bootstrap.Modal)? bootstrap.Modal.getInstance(modalEl) : null;
+            if(inst) inst.hide();
+            window.location.href = pendingHref;
+          }
+        });
+      }
+    }
+  })();
+</script>
 @endpush
 
 @push('scripts')
