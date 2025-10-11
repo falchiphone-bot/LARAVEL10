@@ -590,7 +590,9 @@
                     @endif
                   </td>
                   @php
-                    $afKey = 'openai:variations:alloc_fato:'.((int)($year ?? 0)).':'.((int)($month ?? 0)).':'.strtoupper($r['code'] ?? '');
+                    $rowYear = (int)($r['year'] ?? $year ?? 0);
+                    $rowMonth = (int)($r['month'] ?? $month ?? 0);
+                    $afKey = 'openai:variations:alloc_fato:'.$rowYear.':'.$rowMonth.':'.strtoupper($r['code'] ?? '');
                     $afVal = \Illuminate\Support\Facades\Cache::get($afKey);
                     $afRaw = is_numeric($afVal) ? (float)$afVal : null;
                     if(is_numeric($afRaw)) { $sumAllocFato += (float)$afRaw; }
@@ -633,7 +635,10 @@
             <tfoot>
               <tr>
                 <th colspan="7" class="text-end">Totais</th>
-                <th class="text-end">{{ $curSymbol }} {{ number_format($sumAllocFato, 2, ',', '.') }}</th>
+                <th id="alloc-fato-total-cell" class="text-end" data-cursymbol="{{ $curSymbol }}">{{ $curSymbol }} <span id="alloc-fato-total-val">{{ number_format($sumAllocFato, 2, ',', '.') }}</span>
+                  <span id="alloc-fato-save-badge" class="badge bg-success ms-2 align-middle" style="vertical-align: middle;">salvo</span>
+                  <span id="alloc-fato-excess-badge" class="badge bg-danger ms-2 align-middle d-none" style="vertical-align: middle;"></span>
+                </th>
                 <th></th>
                 <th class="text-end">{{ $curSymbol }} {{ number_format(($calcCapital ?? 0) * $dispMul, 2, ',', '.') }}</th>
                 <th class="text-end">{{ $curSymbol }} {{ number_format((($calcCapital ?? 0) * $target) * $dispMul, 2, ',', '.') }}</th>
@@ -643,6 +648,8 @@
             </tfoot>
           </table>
           <span id="alloc-fato-endpoint" data-url="{{ route('openai.variations.saveAllocFato') }}" hidden></span>
+          @php $capDisplay = (($calcCapital ?? 0) * $dispMul); @endphp
+          <span id="alloc-capital-display" data-cap="{{ number_format($capDisplay, 2, '.', '') }}" hidden></span>
         </div>
       </div>
     </div>
@@ -1524,31 +1531,64 @@
       }
       const timers = new Map();
       function scheduleSave(inp){
+        // Indicar que estamos salvando
+        try{ const b=document.getElementById('alloc-fato-save-badge'); if(b){ b.textContent='salvando…'; b.classList.remove('bg-success'); b.classList.add('bg-warning','text-dark'); } }catch(_e){}
         const code = inp.getAttribute('data-code')||'';
         const y = parseInt(inp.getAttribute('data-year')||String(yearGlobal)||'0',10);
         const m = parseInt(inp.getAttribute('data-month')||String(monthGlobal)||'0',10);
         const raw = inp.value;
         const val = parseNumberLike(raw);
-        if(val === null){ inp.value = ''; return; }
-        if(val < 0){ alert('Aloc.Fato não pode ser negativo.'); inp.value = ''; return; }
-        inp.value = val.toFixed(2);
-        // debounce 600ms
+        // Em digitação: não formatar nem limpar; apenas não agenda save se inválido
+        if(val === null || !isFinite(val)){
+          const prev = timers.get(inp); if(prev) { clearTimeout(prev); timers.delete(inp); }
+          return;
+        }
+        if(val < 0){
+          const prev = timers.get(inp); if(prev) { clearTimeout(prev); timers.delete(inp); }
+          return;
+        }
+        // debounce 600ms (salva sem formatar o campo durante digitação)
         const prev = timers.get(inp);
         if(prev) clearTimeout(prev);
-        const t = setTimeout(()=>{ saveOne(code, val, y, m); timers.delete(inp); }, 600);
+        const t = setTimeout(async ()=>{
+          await saveOne(code, val, y, m);
+          timers.delete(inp);
+          // Se não houver mais timers pendentes, marcar como salvo
+          if(timers.size === 0){
+            try{ const b=document.getElementById('alloc-fato-save-badge'); if(b){ b.textContent='salvo'; b.classList.remove('bg-warning','text-dark'); b.classList.add('bg-success'); } }catch(_e){}
+          }
+        }, 600);
         timers.set(inp, t);
       }
       inputs.forEach(inp=>{
-        inp.addEventListener('input', ()=> scheduleSave(inp));
+        inp.addEventListener('input', ()=> { scheduleSave(inp); try{ window.__recalcAllocFatoTotal && window.__recalcAllocFatoTotal(); }catch(_e){} });
         inp.addEventListener('blur', ()=>{ // flush imediato no blur
           const code = inp.getAttribute('data-code')||'';
           const y = parseInt(inp.getAttribute('data-year')||String(yearGlobal)||'0',10);
           const m = parseInt(inp.getAttribute('data-month')||String(monthGlobal)||'0',10);
           const val = parseNumberLike(inp.value);
           const prev = timers.get(inp); if(prev) { clearTimeout(prev); timers.delete(inp); }
-          if(val === null || val < 0){ inp.value = ''; return; }
+          if(val === null){
+            alert('Valor inválido. Informe um número (ex: 1234,56).');
+            inp.focus();
+            return;
+          }
+          if(val < 0){
+            alert('Aloc.Fato não pode ser negativo.');
+            inp.focus();
+            return;
+          }
           inp.value = val.toFixed(2);
-          saveOne(code, val, y, m);
+          (async ()=>{
+            try{
+              const b=document.getElementById('alloc-fato-save-badge'); if(b){ b.textContent='salvando…'; b.classList.remove('bg-success'); b.classList.add('bg-warning','text-dark'); }
+            }catch(_e){}
+            await saveOne(code, val, y, m);
+            try{
+              const b=document.getElementById('alloc-fato-save-badge'); if(b){ b.textContent='salvo'; b.classList.remove('bg-warning','text-dark'); b.classList.add('bg-success'); }
+            }catch(_e){}
+          })();
+          try{ window.__recalcAllocFatoTotal && window.__recalcAllocFatoTotal(); }catch(_e){}
         });
       });
 
@@ -1599,6 +1639,50 @@
           });
         }
       }catch(_e){}
+    }catch(_e){}
+  })();
+
+  // Recalcular total de Aloc.Fato no frontend
+  (function wireAllocFatoTotalCalc(){
+    try{
+  const totalEl = document.getElementById('alloc-fato-total-val');
+  const totalCell = document.getElementById('alloc-fato-total-cell');
+      const capEl = document.getElementById('alloc-capital-display');
+      const saveBadge = document.getElementById('alloc-fato-save-badge');
+  const excessBadge = document.getElementById('alloc-fato-excess-badge');
+      if(!totalEl) return;
+      const inputs = () => Array.from(document.querySelectorAll('input.alloc-fato-input[data-code]'));
+      function parseNumberLike(v){
+        if(v==null) return null; let s=(''+v).trim(); if(!s) return null; s=s.replace(/[^\d,.-]/g,'');
+        if(s.includes(',') && s.includes('.')){ s=s.replace(/\./g,''); s=s.replace(',', '.'); }
+        else if(s.includes(',') && !s.includes('.')){ s=s.replace(',', '.'); }
+        const n=Number(s); return isFinite(n)?n:null;
+      }
+      function formatLocal(n){
+        try{ return (n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }catch(_e){ return (Math.round(n*100)/100).toFixed(2).replace('.', ','); }
+      }
+      window.__recalcAllocFatoTotal = function(){
+        const sum = inputs().reduce((acc, inp)=>{ const v=parseNumberLike(inp.value); return acc + (v && v>0 ? v : 0); }, 0);
+        totalEl.textContent = formatLocal(sum);
+        // Destacar em vermelho quando exceder capital
+        const cap = capEl ? parseNumberLike(capEl.getAttribute('data-cap')) : null;
+        if(totalCell && cap !== null){
+          if(sum > cap){
+            totalCell.classList.add('text-danger');
+            if(excessBadge){
+              const sym = totalCell.getAttribute('data-cursymbol') || '';
+              const diff = sum - cap;
+              excessBadge.textContent = '+ ' + sym + ' ' + formatLocal(diff);
+              excessBadge.classList.remove('d-none');
+            }
+          } else {
+            totalCell.classList.remove('text-danger');
+            if(excessBadge){ excessBadge.classList.add('d-none'); excessBadge.textContent=''; }
+          }
+        }
+      };
+      // Recalcular uma vez ao carregar
+      window.__recalcAllocFatoTotal();
     }catch(_e){}
   })();
 
