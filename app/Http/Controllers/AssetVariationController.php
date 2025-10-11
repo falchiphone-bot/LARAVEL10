@@ -586,12 +586,36 @@ class AssetVariationController extends Controller
         if (stripos($firstCell, 'Exportado dos registros selecionados CSV/XLSX') === false) {
             return back()->with('error', 'Arquivo não reconhecido: mensagem inicial ausente.');
         }
-        // Segunda linha deve ser o cabeçalho de colunas; dados a partir da terceira
+        // Segunda linha: cabeçalho de colunas; dados a partir da terceira
+        $header = $rows[1] ?? [];
         $dataRows = array_slice($rows, 2);
         $codes = [];
+        // Detectar coluna de Aloc.Fato, se existir (ex.: "Aloc.Fato (R$)" ou "Aloc.Fato ($US)")
+        $allocFatoIdx = null;
+        foreach ((array)$header as $idx => $col) {
+            $label = strtolower(trim((string)$col));
+            if ($label === '') { continue; }
+            if (strpos($label, 'aloc.fato') !== false || strpos($label, 'alocfato') !== false) {
+                $allocFatoIdx = (int)$idx; break;
+            }
+        }
+        $iyear = (int) ($request->input('year') ?: 0);
+        $imonth = (int) $request->input('month');
+        $canSaveAllocFato = ($iyear >= 2000 && $iyear <= 2100 && $imonth >= 1 && $imonth <= 12 && $allocFatoIdx !== null);
+        $savedAllocCount = 0;
         foreach ($dataRows as $r) {
             $code = strtoupper(trim((string)($r[0] ?? '')));
             if ($code !== '') { $codes[] = $code; }
+            if ($canSaveAllocFato && $code !== '') {
+                $raw = $r[$allocFatoIdx] ?? null;
+                if ($raw !== null && $raw !== '') {
+                    $val = $this->parseMoneyLike($raw);
+                    if ($val !== null && $val >= 0) {
+                        $key = 'openai:variations:alloc_fato:'.$iyear.':'.$imonth.':'.$code;
+                        try { Cache::forever($key, (float)$val); $savedAllocCount++; } catch (\Throwable $e) { /* noop */ }
+                    }
+                }
+            }
         }
         $codes = array_values(array_unique(array_filter($codes, fn($c)=> $c !== '')));
         if (empty($codes)) {
@@ -618,13 +642,40 @@ class AssetVariationController extends Controller
         // Anexar selected_codes[] mantendo o restante
         $sep = strpos($url, '?') === false ? '?' : '&';
         foreach ($codes as $c) { $url .= $sep.'selected_codes[]='.urlencode($c); $sep='&'; }
+        $successMsg = 'Importação concluída';
+        if ($savedAllocCount > 0) { $successMsg .= ' • Aloc.Fato aplicados: '.$savedAllocCount; }
         return redirect($url)
-            ->with('success', 'Importação concluída')
+            ->with('success', $successMsg)
             ->with('import_count', count($codes))
             ->with('import_codes', $codes)
             ->with('import_preview', implode(', ', array_slice($codes, 0, 20)).(count($codes)>20?'…':''))
             ->with('import_file_name', $originalName)
             ->with('post_import_clear_alloc', 1);
+    }
+
+    /**
+     * Faz o parse de valores monetários em formatos comuns
+     * aceitando 1.234,56 (pt-BR) ou 1,234.56 (en-US), além de valores simples.
+     */
+    protected function parseMoneyLike($v): ?float
+    {
+        if ($v === null) { return null; }
+        $s = trim((string)$v);
+        if ($s === '') { return null; }
+        // remover quaisquer símbolos exceto dígitos, vírgulas, pontos, sinal
+        $s = preg_replace('/[^\d,.-]/', '', $s) ?? '';
+        if ($s === '') { return null; }
+        // Se há . e , assumimos que . é milhar e , é decimal (pt-BR)
+        if (strpos($s, '.') !== false && strpos($s, ',') !== false) {
+            $s = str_replace('.', '', $s);
+            $s = str_replace(',', '.', $s);
+        } else {
+            // Se só tem vírgula, tratar como decimal
+            if (strpos($s, ',') !== false && strpos($s, '.') === false) {
+                $s = str_replace(',', '.', $s);
+            }
+        }
+        return is_numeric($s) ? (float)$s : null;
     }
 
     /**
