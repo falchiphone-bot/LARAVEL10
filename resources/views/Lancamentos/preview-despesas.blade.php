@@ -746,6 +746,10 @@ document.addEventListener('DOMContentLoaded', function(){
             <div>
                 <button type="button" class="btn btn-outline-secondary btn-sm" id="toggle-pendentes" disabled>Ocultar linhas classificadas</button>
             </div>
+            <div class="form-check ms-2 mt-3 mt-md-0">
+                <input class="form-check-input" type="checkbox" id="chk-hide-existing">
+                <label class="form-check-label" for="chk-hide-existing">Ocultar "Já existe"</label>
+            </div>
             <div>
                 <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-convert-dates" title="Converter datas de mm/dd/aaaa ou yyyy-mm-dd para dd/mm/aaaa a partir da linha 2" disabled>
                     Converter datas (EUA→BR)
@@ -787,8 +791,13 @@ document.addEventListener('DOMContentLoaded', function(){
                             // Agora basta ter um VALOR para permitir classificação
                             $canClass = $hasValor; // antes: $hasDate && $hasValor
                         @endphp
-                        <tr class="{{ !empty($r['_auto_classified']) ? 'table-success auto-class' : '' }}" data-class-empresa-id="{{ $r['_class_empresa_id'] ?? '' }}" data-class-conta-id="{{ $r['_class_conta_id'] ?? '' }}">
-                            <td style="position:sticky;left:0;background:#fff;z-index:1;">{{ $i+1 }}</td>
+                        <tr class="{{ !empty($r['_auto_classified']) ? 'table-success auto-class' : '' }} {{ !empty($r['_exists']) ? 'row-exists' : '' }}" data-class-empresa-id="{{ $r['_class_empresa_id'] ?? '' }}" data-class-conta-id="{{ $r['_class_conta_id'] ?? '' }}" data-exists="{{ !empty($r['_exists']) ? '1' : '0' }}">
+                            <td style="position:sticky;left:0;background:#fff;z-index:1;">
+                                {{ $i+1 }}
+                                @if(!empty($r['_exists']))
+                                    <span class="badge bg-warning text-dark ms-1" title="Já existe lançamento com mesma Empresa, Data e Valor">Já existe</span>
+                                @endif
+                            </td>
                             @php $insertedContaCell = false; @endphp
                             @foreach($headers as $h)
                                 <td class="small">{{ $r[$h] }}</td>
@@ -1806,31 +1815,35 @@ document.addEventListener('DOMContentLoaded', function(){
     marcarLinhasSemConta();
     // Toggle de ocultar/mostrar classificadas
     const btnToggle = document.getElementById('toggle-pendentes');
+    const chkHideExisting = document.getElementById('chk-hide-existing');
+    // Estado persistente do filtro de existentes
+    const LS_HIDE_EXISTING = 'preview_despesas_hide_existing';
+    try{ const persisted = localStorage.getItem(LS_HIDE_EXISTING); if(persisted==='1' && chkHideExisting){ chkHideExisting.checked = true; } }catch(e){}
+    // Estado local para ocultar classificadas (padrão: mostrar todas)
+    let hideClassified = false;
     function atualizarToggleEstado(){
         if(!btnToggle) return;
         const totalClassificaveis = document.querySelectorAll('select.class-conta[data-can="1"]').length;
         const pendentes = Array.from(document.querySelectorAll('select.class-conta[data-can="1"]')).filter(s=> !s.value).length;
         btnToggle.disabled = totalClassificaveis === 0;
         btnToggle.dataset.pendentes = pendentes;
-        if(btnToggle.classList.contains('mostrar-pendentes')){
-            btnToggle.textContent = 'Mostrar todas ('+totalClassificaveis+')';
-        } else {
-            btnToggle.textContent = 'Ocultar linhas classificadas ('+pendentes+' pendentes)';
-        }
+        btnToggle.textContent = hideClassified ? ('Mostrar todas ('+totalClassificaveis+')') : ('Ocultar linhas classificadas ('+pendentes+' pendentes)');
+    }
+    function recomputeAllRowsVisibility(){
+        const ocultarClassificadas = !!hideClassified;
+        const ocultarExistentes = !!(chkHideExisting && chkHideExisting.checked);
+        const rows = document.querySelectorAll('table[data-cache-key] tbody tr');
+        rows.forEach(tr=>{
+            const sel = tr.querySelector('select.class-conta[data-can="1"]');
+            const isClassificada = !!(sel && sel.value);
+            const isExistente = (tr.dataset.exists === '1');
+            const hide = (ocultarClassificadas && isClassificada) || (ocultarExistentes && isExistente);
+            tr.style.display = hide ? 'none' : '';
+        });
     }
     function aplicarFiltroClassificadas(){
-        const ocultar = !btnToggle.classList.contains('mostrar-pendentes');
-        document.querySelectorAll('table[data-cache-key] tbody tr').forEach(tr=>{
-            const sel = tr.querySelector('select.class-conta[data-can="1"]');
-            if(!sel) return; // não classificável ou sem select
-            const isClassificada = !!sel.value;
-            if(ocultar){
-                if(isClassificada){ tr.style.display='none'; }
-                else { tr.style.display=''; }
-            } else {
-                tr.style.display='';
-            }
-        });
+        // Agora apenas recalcula com base no estado combinado
+        recomputeAllRowsVisibility();
     }
     function scrollParaProximaPendente(currentRow){
         const linhas = Array.from(document.querySelectorAll('table[data-cache-key] tbody tr'))
@@ -1853,11 +1866,20 @@ document.addEventListener('DOMContentLoaded', function(){
         setTimeout(()=> alvo.sel.focus(), 300);
     }
     btnToggle?.addEventListener('click', ()=>{
-        btnToggle.classList.toggle('mostrar-pendentes');
+        hideClassified = !hideClassified;
         aplicarFiltroClassificadas();
         atualizarToggleEstado();
     });
+    chkHideExisting?.addEventListener('change', ()=>{
+        try{ localStorage.setItem(LS_HIDE_EXISTING, chkHideExisting.checked ? '1':'0'); }catch(e){}
+        recomputeAllRowsVisibility();
+    });
     atualizarToggleEstado();
+    // Inicialmente não ocultamos classificadas por padrão.
+    // Se o usuário já havia optado por ocultar "Já existe", aplicamos somente esse filtro no carregamento.
+    if(chkHideExisting && chkHideExisting.checked){
+        recomputeAllRowsVisibility();
+    }
 
     // Observa mudanças de seleção para auto-scroll (delegação já configurada acima; aqui usamos MutationObserver fallback para selects carregados dinamicamente via Select2)
     document.addEventListener('change', function(e){

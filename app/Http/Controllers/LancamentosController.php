@@ -1393,14 +1393,216 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
      */
     public function previewDespesasExcel(Request $request)
     {
+        // Overrides opcionais vindos do Extrato (empresa e conta crédito global)
+        $overrideEmpresaId = $request->input('empresa_id');
+        $overrideGlobalCreditId = $request->input('conta_credito_global_id');
+        // Aplica filtro de DÉBITO automaticamente quando vier do Extrato (override presente)
+        $applyDebitoFilter = !empty($overrideEmpresaId) || !empty($overrideGlobalCreditId);
+        // Função para normalizar string (remover acentos e uppercase)
+        $upperNoAccents = function($s){
+            $s = (string)$s;
+            $t = @iconv('UTF-8','ASCII//TRANSLIT//IGNORE',$s);
+            if($t === false || $t === null) $t = $s;
+            return mb_strtoupper($t,'UTF-8');
+        };
+        // Parser monetário robusto (aceita parênteses, sufixo '-', milhar, vírgula/ponto; retorna float positivo/negativo)
+        $parseMoney = function($raw){
+            if($raw === null) return null;
+            $v = trim((string)$raw);
+            if($v==='') return null;
+            $negative = false;
+            if(preg_match('/^\(.*\)$/',$v)){ $negative = true; $v = preg_replace('/^\(|\)$/','',$v); }
+            if(preg_match('/-$/',$v)){ $negative = true; $v = preg_replace('/-$/','',$v); }
+            $v = preg_replace('/R\$|BRL|USD|\+/i','',$v);
+            $v = preg_replace('/\s+/','',$v);
+            $v = preg_replace('/[^0-9\.,-]/','',$v);
+            $hasDot = strpos($v,'.')!==false; $hasComma = strpos($v,',')!==false;
+            if($hasDot && $hasComma){ $v = str_replace('.','',$v); $v = str_replace(',', '.', $v); }
+            elseif($hasComma && !$hasDot){ $v = str_replace(',', '.', $v); }
+            $dots = substr_count($v,'.');
+            if($dots>1){ $parts = explode('.',$v); $dec = array_pop($parts); $v = implode('',$parts).'.'.$dec; }
+            $num = (float)$v; if(!is_finite($num)) return null; return $negative ? -$num : $num;
+        };
+        // Normaliza data flexível para 'd/m/Y' (retorna null se não conseguir)
+        $parseDateToBR = function($raw){
+            if($raw === null) return null;
+            $v = trim((string)$raw);
+            if($v==='') return null;
+            // Remove hora caso venha junto
+            $v = preg_replace('/[T ]\d{1,2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/','',$v);
+            // yyyy-mm-dd ou yyyy/mm/dd
+            if(preg_match('/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/',$v,$m)){
+                try{ $dt = \Carbon\Carbon::create((int)$m[1],(int)$m[2],(int)$m[3]); return $dt? $dt->format('d/m/Y') : null; }catch(\Throwable $e){ return null; }
+            }
+            // dd/mm/yyyy
+            if(preg_match('/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})$/',$v,$m)){
+                $y = strlen($m[3])===2 ? (int)('20'.$m[3]) : (int)$m[3];
+                try{ $dt = \Carbon\Carbon::create($y,(int)$m[2],(int)$m[1]); return $dt? $dt->format('d/m/Y') : null; }catch(\Throwable $e){ return null; }
+            }
+            // Excel serial
+            if(preg_match('/^\d{2,6}$/',$v)){
+                $n = (int)$v; if($n>59 && $n<60000){
+                    try{ $base = \Carbon\Carbon::create(1899,12,30); $dt = $base->copy()->addDays($n); return $dt->format('d/m/Y'); }catch(\Throwable $e){ return null; }
+                }
+            }
+            // contíguo yyyymmdd
+            if(preg_match('/^(\d{4})(\d{2})(\d{2})$/',$v,$m)){
+                try{ $dt = \Carbon\Carbon::create((int)$m[1],(int)$m[2],(int)$m[3]); return $dt? $dt->format('d/m/Y') : null; }catch(\Throwable $e){ return null; }
+            }
+            // contíguo ddmmyyyy
+            if(preg_match('/^(\d{2})(\d{2})(\d{4})$/',$v,$m)){
+                try{ $dt = \Carbon\Carbon::create((int)$m[3],(int)$m[2],(int)$m[1]); return $dt? $dt->format('d/m/Y') : null; }catch(\Throwable $e){ return null; }
+            }
+            return null;
+        };
+        // Marca linhas que já existam no banco a princípio (Empresa + Data + Valor iguais)
+        $markExisting = function(array $headers, array $rows, $fallbackEmpresaId = null) use ($parseMoney, $parseDateToBR){
+            // Localiza cabeçalhos de DATA e VALOR
+            $dataKey = null; $valorKey = null;
+            foreach($headers as $h){ $hu = mb_strtoupper($h,'UTF-8'); if($hu==='DATA' || (!$dataKey && strpos($hu,'DATA')!==false)) $dataKey = $h; if($hu==='VALOR' || (!$valorKey && strpos($hu,'VALOR')!==false)) $valorKey = $h; }
+            if(!$dataKey || !$valorKey) return $rows; // sem colunas mínimas
+            $existsCache = [];
+            foreach($rows as &$r){
+                $eid = $r['_class_empresa_id'] ?? $fallbackEmpresaId;
+                if(!$eid){ $r['_exists'] = false; continue; }
+                $rawData = $r[$dataKey] ?? null;
+                if($rawData instanceof \DateTimeInterface){ $dataBR = $rawData->format('d/m/Y'); }
+                else { $dataBR = $parseDateToBR($rawData); }
+                if(!$dataBR){ $r['_exists'] = false; continue; }
+                $val = $parseMoney($r[$valorKey] ?? null);
+                if($val === null){ $r['_exists'] = false; continue; }
+                $val = abs($val); // valores já tratados como absolutos
+                $key = $eid.'|'.$dataBR.'|'.number_format($val,2,'.','');
+                if(!array_key_exists($key,$existsCache)){
+                    try{
+                        $dt = \Carbon\Carbon::createFromFormat('d/m/Y',$dataBR);
+                        $exists = \App\Models\Lancamento::where('EmpresaID',(int)$eid)
+                            ->whereDate('DataContabilidade','=',$dt->format('Y-m-d'))
+                            ->where('Valor',$val)
+                            ->exists();
+                        $existsCache[$key] = $exists;
+                    }catch(\Throwable $e){ $existsCache[$key] = false; }
+                }
+                $r['_exists'] = (bool)$existsCache[$key];
+            }
+            unset($r);
+            return $rows;
+        };
+        // Força valores absolutos na coluna VALOR (sem sinal negativo ou parênteses)
+        $makeValorAbsolute = function(array $headers, array $rows){
+            // Detecta a coluna exacta 'VALOR' (case-insensitive via uppercase de comparação)
+            $valorKey = null;
+            foreach($headers as $h){ if(mb_strtoupper($h,'UTF-8') === 'VALOR'){ $valorKey = $h; break; } }
+            if(!$valorKey) return $rows;
+            foreach($rows as &$r){
+                if(!is_array($r)) continue;
+                if(!array_key_exists($valorKey, $r)) continue;
+                $v = $r[$valorKey];
+                if($v === null || $v === '') continue;
+                // Trata como string para preservar formatação local (vírgula/ponto), só removendo sinal
+                $s = (string)$v;
+                $s = trim($s);
+                // Remove parênteses que indicam negativo: (123,45) => 123,45
+                if(strlen($s) >= 2 && $s[0] === '(' && substr($s,-1) === ')'){
+                    $s = substr($s,1,strlen($s)-2);
+                    $s = trim($s);
+                }
+                // Remove quaisquer sinais de menos na borda
+                $s = ltrim($s, "-\xE2\x88\x92"); // inclui sinal unicode de menos
+                $s = rtrim($s, "-\xE2\x88\x92");
+                // Alguns bancos usam sufixo '-' (ex.: 123,45-) já coberto acima; mantém demais caracteres
+                $r[$valorKey] = $s;
+            }
+            unset($r);
+            return $rows;
+        };
+        $filterDebito = function(array $headers, array $rows) use ($upperNoAccents) {
+            // 1) Identifica colunas candidatas: TIPO > DESCRIÇÃO > HISTÓRICO
+            $tipoKey = null; $descKeys = []; $histKeys = [];
+            foreach($headers as $h){
+                $hu = $upperNoAccents($h);
+                if($tipoKey === null && strpos($hu,'TIPO') !== false){ $tipoKey = $h; continue; }
+                if(strpos($hu,'DESCRICAO') !== false){ $descKeys[] = $h; continue; }
+                if(strpos($hu,'HIST') !== false){ $histKeys[] = $h; continue; }
+            }
+            if($tipoKey === null && !empty($rows) && is_array($rows[0])){
+                foreach(array_keys($rows[0]) as $h){
+                    $hu = $upperNoAccents($h);
+                    if(strpos($hu,'TIPO') !== false){ $tipoKey = $h; break; }
+                }
+            }
+            if(empty($descKeys) && !empty($rows) && is_array($rows[0])){
+                foreach(array_keys($rows[0]) as $h){
+                    $hu = $upperNoAccents($h);
+                    if(strpos($hu,'DESCRICAO') !== false){ $descKeys[] = $h; }
+                }
+            }
+            if(empty($histKeys) && !empty($rows) && is_array($rows[0])){
+                foreach(array_keys($rows[0]) as $h){
+                    $hu = $upperNoAccents($h);
+                    if(strpos($hu,'HIST') !== false){ $histKeys[] = $h; }
+                }
+            }
+
+            // 2) Classificador por linha usando TIPO quando disponível; senão usa Descrição/Histórico
+            $isDebitoRow = function(array $row) use ($tipoKey, $descKeys, $histKeys, $upperNoAccents){
+                $hasDeb = false; $hasCred = false;
+                if($tipoKey && isset($row[$tipoKey]) && $row[$tipoKey] !== ''){
+                    $t = $upperNoAccents((string)$row[$tipoKey]);
+                    $t = trim($t);
+                    if($t !== ''){
+                        // Valores comuns: D, C, DEB, CRED, DEBITO, CREDITO
+                        if(strpos($t,'DEB') !== false || preg_match('/^D(\b|[^A-Z]|$)/',$t)){ $hasDeb = true; }
+                        if(strpos($t,'CRED') !== false || preg_match('/^C(\b|[^A-Z]|$)/',$t)){ $hasCred = true; }
+                    }
+                } else {
+                    // Usa descrição/histórico para inferir
+                    $txt = '';
+                    foreach($descKeys as $k){ if(isset($row[$k]) && $row[$k] !== ''){ $txt = (string)$row[$k]; break; } }
+                    if($txt === '' && !empty($histKeys)){
+                        foreach($histKeys as $k){ if(isset($row[$k]) && $row[$k] !== ''){ $txt = (string)$row[$k]; break; } }
+                    }
+                    if($txt === '' && isset($row['_hist_ajustado']) && $row['_hist_ajustado'] !== ''){ $txt = (string)$row['_hist_ajustado']; }
+                    if($txt === '' && isset($row['_hist_original_col']) && isset($row[$row['_hist_original_col']])){ $txt = (string)$row[$row['_hist_original_col']]; }
+                    if($txt !== ''){
+                        $vu = $upperNoAccents($txt);
+                        // Padrões robustos: DEBITO, DÉB, DEB., DB; CREDITO, CRÉD, CRED., CR
+                        if(strpos($vu,'DEBITO') !== false || preg_match('/\bDEB\b|^DEB\b|\bDB\b/i',$vu)){ $hasDeb = true; }
+                        if(strpos($vu,'CREDITO') !== false || preg_match('/\bCRED\b|^CR\b/i',$vu)){ $hasCred = true; }
+                    } else {
+                        // Fallback final: varre todos os campos string buscando tokens
+                        foreach($row as $kk=>$vv){
+                            if(!is_string($vv) || $vv==='') continue;
+                            $vvU = $upperNoAccents($vv);
+                            if(!$hasDeb && (strpos($vvU,'DEBITO') !== false || preg_match('/\bDEB\b|^DEB\b|\bDB\b/i',$vvU))){ $hasDeb = true; }
+                            if(!$hasCred && (strpos($vvU,'CREDITO') !== false || preg_match('/\bCRED\b|^CR\b/i',$vvU))){ $hasCred = true; }
+                            if($hasDeb || $hasCred) break;
+                        }
+                    }
+                }
+                return ($hasDeb && !$hasCred);
+            };
+
+            // 3) Aplica filtro por linha
+            $out = [];
+            foreach($rows as $r){ if(!is_array($r)) continue; if($isDebitoRow($r)) $out[] = $r; }
+            return array_values($out);
+        };
         // Upload direto (opcional)
         if($request->hasFile('arquivo_excel')){
-            $request->validate(['arquivo_excel' => 'file|mimes:xlsx,xls|max:5120']);
+            $request->validate(['arquivo_excel' => 'file|mimes:xlsx,xls,csv|max:5120']);
             $uploaded = $request->file('arquivo_excel');
             $storedName = $uploaded->getClientOriginalName();
             $uploaded->storeAs('imports', $storedName);
             // Após upload, força reconstrução da visualização e destrava seleções iniciais
-            return redirect()->route('lancamentos.preview.despesas',[ 'file'=>$storedName, 'refresh'=>1, 'unlock'=>1 ]);
+            return redirect()->route('lancamentos.preview.despesas',[
+                'file'=>$storedName,
+                'refresh'=>1,
+                'unlock'=>1,
+                // Propaga overrides de contexto do Extrato, quando presentes
+                'empresa_id' => $overrideEmpresaId,
+                'conta_credito_global_id' => $overrideGlobalCreditId,
+            ]);
         }
 
         $file = $request->query('file', 'DESPESAS-08-2025-TEC.xlsx');
@@ -1466,6 +1668,44 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             // Se cache ainda não tem empresa selecionada mas inferimos do arquivo, seta e destrava
             $payload = $cached;
             $touched = false;
+            // Aplica overrides vindos do request (empresa e conta crédito global)
+            if($overrideEmpresaId){
+                $eid = (int)$overrideEmpresaId;
+                $allowed = Empresa::join('Contabilidade.EmpresasUsuarios','EmpresasUsuarios.EmpresaID','Empresas.ID')
+                    ->where('EmpresasUsuarios.UsuarioID', auth()->id())
+                    ->where('Empresas.ID',$eid)
+                    ->exists();
+                if($allowed){
+                    $already = isset($payload['selected_empresa_id']) && (int)$payload['selected_empresa_id'] === $eid;
+                    $payload['selected_empresa_id'] = $eid;
+                    $payload['empresa_locked'] = false;
+                    // Atualiza linhas e reseta contas se mudou
+                    if(!empty($payload['rows'])){
+                        foreach($payload['rows'] as &$r){
+                            $r['_class_empresa_id'] = $eid;
+                            if(!$already){ $r['_class_conta_id'] = null; $r['_class_conta_label'] = null; }
+                        }
+                        unset($r);
+                    }
+                    $selectedEmpresaId = $eid; $empresaLocked = false; $touched = true;
+                }
+            }
+            if($overrideGlobalCreditId){
+                $gcid = (int)$overrideGlobalCreditId;
+                // Se houver empresa definida (via cache ou override), valida pertencimento
+                $empresaForConta = $payload['selected_empresa_id'] ?? $selectedEmpresaId;
+                $contaOk = $empresaForConta ? 
+                    \App\Models\Conta::where('ID',$gcid)->where('EmpresaID',$empresaForConta)->exists() : false;
+                if($contaOk){
+                    $label = \App\Models\Conta::where('Contas.ID',$gcid)
+                        ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                        ->value('PlanoContas.Descricao');
+                    $payload['global_credit_conta_id'] = $gcid;
+                    $payload['global_credit_conta_label'] = $label;
+                    $payload['global_credit_conta_locked'] = false;
+                    $globalCreditContaId = $gcid; $globalCreditContaLabel = $label; $globalCreditContaLocked = false; $touched = true;
+                }
+            }
             if($empresaIdFromFile && empty($payload['selected_empresa_id'])){
                 $payload['selected_empresa_id'] = $empresaIdFromFile;
                 $payload['empresa_locked'] = false;
@@ -1494,6 +1734,19 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                 $globalCreditContaLocked = false;
                 $touched = true;
             }
+            // Filtro DÉBITO (somente no contexto do Extrato)
+            if($applyDebitoFilter){
+                $payload['rows'] = $filterDebito($headers, $payload['rows'] ?? []);
+                $rows = $payload['rows'];
+                $touched = true;
+            }
+            // Garante valores absolutos na coluna VALOR (sempre na prévia)
+            $payload['rows'] = $makeValorAbsolute($headers, $payload['rows'] ?? []);
+            $rows = $payload['rows'];
+            // Marca duplicidades a princípio (Empresa+Data+Valor)
+            $payload['rows'] = $markExisting($headers, $payload['rows'] ?? [], $selectedEmpresaId);
+            $rows = $payload['rows'];
+            $touched = true;
             if($touched){ Cache::put($cacheKey, $payload, now()->addHour()); }
         } elseif(!$exists){
             $erro = "Arquivo não encontrado em imports: $file. Copie ou faça upload.";
@@ -1739,6 +1992,39 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                         }
                     }
                 }
+                // Aplica overrides vindos do request (empresa e conta crédito global) antes de salvar o payload
+                if($overrideEmpresaId){
+                    $eid = (int)$overrideEmpresaId;
+                    $allowed = Empresa::join('Contabilidade.EmpresasUsuarios','EmpresasUsuarios.EmpresaID','Empresas.ID')
+                        ->where('EmpresasUsuarios.UsuarioID', auth()->id())
+                        ->where('Empresas.ID',$eid)
+                        ->exists();
+                    if($allowed){
+                        $already = isset($selectedEmpresaId) && $selectedEmpresaId && (int)$selectedEmpresaId === $eid;
+                        $selectedEmpresaId = $eid; $empresaLocked = false;
+                        foreach($rows as &$r){ $r['_class_empresa_id'] = $eid; if(!$already){ $r['_class_conta_id']=null; $r['_class_conta_label']=null; } }
+                        unset($r);
+                    }
+                }
+                if($overrideGlobalCreditId && $selectedEmpresaId){
+                    $gcid = (int)$overrideGlobalCreditId;
+                    $contaOk = \App\Models\Conta::where('ID',$gcid)->where('EmpresaID',(int)$selectedEmpresaId)->exists();
+                    if($contaOk){
+                        $globalCreditContaId = $gcid;
+                        $globalCreditContaLabel = \App\Models\Conta::where('Contas.ID',$gcid)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->value('PlanoContas.Descricao');
+                        $globalCreditContaLocked = false;
+                    }
+                }
+                // Aplica filtro DÉBITO antes de salvar (somente no contexto do Extrato)
+                if($applyDebitoFilter){
+                    $rows = $filterDebito($headers, $rows);
+                }
+                // Garante valores absolutos na coluna VALOR (sempre)
+                $rows = $makeValorAbsolute($headers, $rows);
+                // Marca duplicidades a princípio (Empresa+Data+Valor)
+                $rows = $markExisting($headers, $rows, $selectedEmpresaId ?? $empresaIdFromFile);
                 // Ao salvar payload, respeita flags (podem ter sido forçadas para desbloqueadas via ?unlock=1)
                 Cache::put($cacheKey, [
                     'headers'=>$headers,

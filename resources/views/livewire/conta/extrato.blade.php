@@ -109,6 +109,35 @@
                     </div>
                 </div>
 
+                <div class="row align-items-center g-2 mt-1">
+                    <div class="col-12 col-md-8">
+                        <form action="{{ route('lancamentos.preview.despesas') }}" method="post" enctype="multipart/form-data" class="row g-2" target="_blank">
+                            @csrf
+                            <input type="hidden" name="empresa_id" value="{{ $selEmpresa ?? '' }}">
+                            <input type="hidden" name="conta_credito_global_id" value="{{ $selConta ?? '' }}">
+                            <div class="col-12 col-sm-7 col-md-8">
+                                <input type="file" id="arquivo_excel_extrato" name="arquivo_excel" accept=".xlsx,.xls,.csv" class="d-none" required>
+                                <div class="d-flex align-items-center gap-2">
+                                    <label for="arquivo_excel_extrato" class="btn btn-outline-danger btn-sm">
+                                        ESCOLHER ARQUIVO MODOBANK
+                                    </label>
+                                    <span id="arquivo_excel_extrato_nome" class="small text-muted">Nenhum arquivo selecionado</span>
+                                </div>
+                            </div>
+                            <div class="col-12 col-sm-5 col-md-4 d-grid d-md-block">
+                                <button type="submit" class="btn btn-sm btn-primary w-100" title="Importa um arquivo CSV/XLSX e abre a tela de pré-visualização para classificar o débito">
+                                    Importar e pré-visualizar (CSV/XLSX)
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <a href="{{ route('lancamentos.preview.despesas') }}" class="btn btn-sm btn-outline-secondary w-100" title="Abrir a tela de pré-visualização (para arquivos já presentes em storage/app/imports)" target="_blank" rel="noopener">
+                            Abrir tela de pré-visualização
+                        </a>
+                    </div>
+                </div>
+
 
                 <div class="row">
                     <div class="col-6">
@@ -133,6 +162,21 @@
 
             </div>
         </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    var inp = document.getElementById('arquivo_excel_extrato');
+    var out = document.getElementById('arquivo_excel_extrato_nome');
+    if(inp && out){
+        inp.addEventListener('change', function(){
+            if(inp.files && inp.files.length){ out.textContent = inp.files[0].name; }
+            else { out.textContent = 'Nenhum arquivo selecionado'; }
+        });
+    }
+});
+</script>
+@endpush
 
 
 
