@@ -68,6 +68,29 @@
                                     function autoSelectFromDatasetIfAvailable(){
                                         var root = document.getElementById('preview-despesas-root');
                                         if(!root) return;
+                                        async function hydrateContaCreditoLabelIfNeeded(){
+                                            try{
+                                                var sel = document.getElementById('conta-credito-global');
+                                                var empSel = document.getElementById('empresa-global');
+                                                if(!sel || !sel.value) return;
+                                                var currentText = sel.options && sel.selectedIndex>=0 ? (sel.options[sel.selectedIndex].textContent||'') : '';
+                                                // Se o texto atual é só o ID, tentamos buscar o label
+                                                if(currentText && currentText.trim() === String(sel.value).trim()){
+                                                    var empId = empSel ? (empSel.value||'') : '';
+                                                    if(!empId) return;
+                                                    const r = await fetch(`/empresa/${empId}/contas-grau5?q=`);
+                                                    const j = r.ok ? await r.json() : {data:{}};
+                                                    const label = j.data && j.data[sel.value] ? j.data[sel.value] : null;
+                                                    if(label){
+                                                        // Atualiza option selecionada com o label correto
+                                                        var opt = sel.querySelector(`option[value="${sel.value}"]`);
+                                                        if(!opt){ opt = document.createElement('option'); opt.value = sel.value; sel.appendChild(opt); }
+                                                        opt.textContent = label; opt.selected = true;
+                                                        if(window.jQuery){ jQuery(sel).trigger('change.select2'); }
+                                                    }
+                                                }
+                                            }catch(e){ console.warn('hydrateContaCreditoLabelIfNeeded failed', e); }
+                                        }
                                         // Empresa
                                         var empresaSel = document.getElementById('empresa-global');
                                         var empresaIdFromFile = root.dataset.empresaIdFromFile || '';
@@ -109,6 +132,8 @@
                                             contaSel.value = contaCreditoIdFromFile;
                                             if(window.jQuery){ jQuery(contaSel).trigger('change.select2'); }
                                             else contaSel.dispatchEvent(new Event('change', {bubbles:true}));
+                                            // Hidrata label assíncrona após setar o valor
+                                            setTimeout(hydrateContaCreditoLabelIfNeeded, 200);
                                             var btnLockCredito = document.getElementById('btn-lock-conta-credito');
                                             if(btnLockCredito){
                                                 btnLockCredito.dataset.locked = '0';
@@ -756,7 +781,7 @@ document.addEventListener('DOMContentLoaded', function(){
                 </button>
             </div>
         </div>
-        <div class="table-responsive" style="max-height:70vh; overflow:auto;">
+        <div id="preview-table-wrap" class="table-responsive" style="max-height:70vh; overflow-x:auto; overflow-y:auto;">
             <table class="table table-sm table-striped table-bordered align-middle" data-cache-key="{{ $cacheKey ?? '' }}">
                 <thead class="table-light sticky-top">
                     <tr>
@@ -961,6 +986,22 @@ document.addEventListener('DOMContentLoaded', function(){
                 contaSel.value = ds;
                 if(window.jQuery){ jQuery(contaSel).trigger('change.select2'); }
                 else contaSel.dispatchEvent(new Event('change', {bubbles:true}));
+                // Hidrata label depois de aplicar o valor do dataset
+                (async function(){
+                    try{
+                        const empId = (document.getElementById('empresa-global')?.value)||'';
+                        if(!empId) return;
+                        const r = await fetch(`/empresa/${empId}/contas-grau5?q=`);
+                        const j = r.ok ? await r.json() : {data:{}};
+                        const label = j.data && j.data[ds] ? j.data[ds] : null;
+                        if(label){
+                            let opt2 = contaSel.querySelector('option[value="'+ds+'"]');
+                            if(!opt2){ opt2 = document.createElement('option'); opt2.value = ds; contaSel.appendChild(opt2); }
+                            opt2.textContent = label; opt2.selected = true;
+                            if(window.jQuery){ jQuery(contaSel).trigger('change.select2'); }
+                        }
+                    }catch(e){ }
+                })();
             }
         }
         // Aplicação imediata dos data-* se presentes (sem depender da flag do upload)
@@ -983,6 +1024,22 @@ document.addEventListener('DOMContentLoaded', function(){
                 contaSel.value = credId;
                 if(window.jQuery){ jQuery(contaSel).trigger('change.select2'); }
                 else contaSel.dispatchEvent(new Event('change', {bubbles:true}));
+                // Hidrata label após aplicar credId do dataset
+                (async function(){
+                    try{
+                        const empId = (document.getElementById('empresa-global')?.value)||'';
+                        if(!empId) return;
+                        const r = await fetch(`/empresa/${empId}/contas-grau5?q=`);
+                        const j = r.ok ? await r.json() : {data:{}};
+                        const label = j.data && j.data[credId] ? j.data[credId] : null;
+                        if(label){
+                            let opt2 = contaSel.querySelector('option[value="'+credId+'"]');
+                            if(!opt2){ opt2 = document.createElement('option'); opt2.value = credId; contaSel.appendChild(opt2); }
+                            opt2.textContent = label; opt2.selected = true;
+                            if(window.jQuery){ jQuery(contaSel).trigger('change.select2'); }
+                        }
+                    }catch(e){ }
+                })();
                 const btnLockCredito = document.getElementById('btn-lock-conta-credito');
                 if(btnLockCredito){ btnLockCredito.dataset.locked='0'; btnLockCredito.disabled=false; btnLockCredito.classList.add('btn-outline-primary'); btnLockCredito.classList.remove('btn-primary'); btnLockCredito.textContent='Travar Crédito'; }
             }
@@ -1821,6 +1878,48 @@ document.addEventListener('DOMContentLoaded', function(){
     try{ const persisted = localStorage.getItem(LS_HIDE_EXISTING); if(persisted==='1' && chkHideExisting){ chkHideExisting.checked = true; } }catch(e){}
     // Estado local para ocultar classificadas (padrão: mostrar todas)
     let hideClassified = false;
+
+    // Ajusta a altura do container da tabela para evitar scroll interno quando poucas linhas
+    function adjustTableWrapHeight(){
+        const wrap = document.getElementById('preview-table-wrap');
+        const tableEl = document.querySelector('table[data-cache-key]');
+        if(!wrap || !tableEl) return;
+        const thead = tableEl.querySelector('thead');
+        const allRows = Array.from(tableEl.querySelectorAll('tbody tr'));
+        // Considera apenas linhas visíveis
+        const visibleRows = allRows.filter(tr => tr.style.display !== 'none');
+        const visibleCount = visibleRows.length;
+        requestAnimationFrame(()=>{
+            // Mede alturas
+            const headerH = thead ? thead.getBoundingClientRect().height : 0;
+            let rowH = 0;
+            const firstVisible = visibleRows.find(tr => tr.offsetParent !== null) || visibleRows[0];
+            if(firstVisible){ rowH = firstVisible.getBoundingClientRect().height; }
+            // Se não conseguimos medir, fallback para scrollHeight
+            if(!rowH){
+                const contentH = tableEl.scrollHeight || 0;
+                const maxH = Math.floor(window.innerHeight * 0.70);
+                if(contentH > 0 && (visibleCount <= 50) && contentH < maxH){
+                    wrap.style.maxHeight = contentH + 'px';
+                    wrap.style.overflowY = 'hidden';
+                } else {
+                    wrap.style.maxHeight = '70vh';
+                    wrap.style.overflowY = 'auto';
+                }
+                return;
+            }
+            // Regra: mostrar até 50 linhas sem rolagem; acima disso, comportamento padrão (70vh com scroll)
+            if(visibleCount <= 50){
+                const desired = Math.ceil(headerH + rowH * visibleCount) + 4; // pequena folga
+                wrap.style.maxHeight = desired + 'px';
+                wrap.style.overflowY = 'hidden';
+            } else {
+                wrap.style.maxHeight = '70vh';
+                wrap.style.overflowY = 'auto';
+            }
+        });
+    }
+    window.addEventListener('resize', adjustTableWrapHeight);
     function atualizarToggleEstado(){
         if(!btnToggle) return;
         const totalClassificaveis = document.querySelectorAll('select.class-conta[data-can="1"]').length;
@@ -1840,6 +1939,8 @@ document.addEventListener('DOMContentLoaded', function(){
             const hide = (ocultarClassificadas && isClassificada) || (ocultarExistentes && isExistente);
             tr.style.display = hide ? 'none' : '';
         });
+        // Após recalcular visibilidade, ajusta altura do container da tabela
+        adjustTableWrapHeight();
     }
     function aplicarFiltroClassificadas(){
         // Agora apenas recalcula com base no estado combinado
@@ -1880,6 +1981,8 @@ document.addEventListener('DOMContentLoaded', function(){
     if(chkHideExisting && chkHideExisting.checked){
         recomputeAllRowsVisibility();
     }
+    // Ajusta altura também no carregamento inicial
+    adjustTableWrapHeight();
 
     // Observa mudanças de seleção para auto-scroll (delegação já configurada acima; aqui usamos MutationObserver fallback para selects carregados dinamicamente via Select2)
     document.addEventListener('change', function(e){

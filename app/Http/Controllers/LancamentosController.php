@@ -1720,7 +1720,17 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             }
             if($contaCreditoIdFromFile && empty($payload['global_credit_conta_id'])){
                 $payload['global_credit_conta_id'] = $contaCreditoIdFromFile;
-                $payload['global_credit_conta_label'] = $payload['global_credit_conta_label'] ?? null; // label opcional
+                // Tenta resolver label imediatamente quando possível (evita mostrar apenas o ID no select global)
+                $empForConta = $payload['selected_empresa_id'] ?? $selectedEmpresaId ?? $empresaIdFromFile;
+                if($empForConta && \App\Models\Conta::where('Contas.ID',$contaCreditoIdFromFile)->where('Contas.EmpresaID',$empForConta)->exists()){
+                    $lbl = \App\Models\Conta::where('Contas.ID',$contaCreditoIdFromFile)
+                        ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                        ->value('PlanoContas.Descricao');
+                    $payload['global_credit_conta_label'] = $lbl ?: null;
+                    $globalCreditContaLabel = $lbl ?: null;
+                } else {
+                    $payload['global_credit_conta_label'] = $payload['global_credit_conta_label'] ?? null; // label opcional
+                }
                 $payload['global_credit_conta_locked'] = false; // destrava para permitir edição
                 $globalCreditContaId = $contaCreditoIdFromFile;
                 $globalCreditContaLocked = false;
@@ -2005,6 +2015,17 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                         foreach($rows as &$r){ $r['_class_empresa_id'] = $eid; if(!$already){ $r['_class_conta_id']=null; $r['_class_conta_label']=null; } }
                         unset($r);
                     }
+                }
+                // Se inferimos conta crédito global do arquivo e ainda não há no contexto, define e resolve label
+                if($contaCreditoIdFromFile && !$globalCreditContaId){
+                    $globalCreditContaId = $contaCreditoIdFromFile;
+                    $empForConta = $selectedEmpresaId ?? $empresaIdFromFile;
+                    if($empForConta && \App\Models\Conta::where('Contas.ID',$globalCreditContaId)->where('Contas.EmpresaID',$empForConta)->exists()){
+                        $globalCreditContaLabel = \App\Models\Conta::where('Contas.ID',$globalCreditContaId)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->value('PlanoContas.Descricao');
+                    }
+                    $globalCreditContaLocked = false;
                 }
                 if($overrideGlobalCreditId && $selectedEmpresaId){
                     $gcid = (int)$overrideGlobalCreditId;

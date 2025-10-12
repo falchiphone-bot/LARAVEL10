@@ -110,27 +110,48 @@
                 </div>
 
                 <div class="row align-items-center g-2 mt-1">
+                    @if($selConta == 19098)
                     <div class="col-12 col-md-8">
-                        <form action="{{ route('lancamentos.preview.despesas') }}" method="post" enctype="multipart/form-data" class="row g-2" target="_blank">
-                            @csrf
-                            <input type="hidden" name="empresa_id" value="{{ $selEmpresa ?? '' }}">
-                            <input type="hidden" name="conta_credito_global_id" value="{{ $selConta ?? '' }}">
-                            <div class="col-12 col-sm-7 col-md-8">
-                                <input type="file" id="arquivo_excel_extrato" name="arquivo_excel" accept=".xlsx,.xls,.csv" class="d-none" required>
-                                <div class="d-flex align-items-center gap-2">
-                                    <label for="arquivo_excel_extrato" class="btn btn-outline-danger btn-sm">
-                                        ESCOLHER ARQUIVO MODOBANK
-                                    </label>
-                                    <span id="arquivo_excel_extrato_nome" class="small text-muted">Nenhum arquivo selecionado</span>
-                                </div>
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header">
+                                <strong>Importar extrato Modobank</strong>
                             </div>
-                            <div class="col-12 col-sm-5 col-md-4 d-grid d-md-block">
-                                <button type="submit" class="btn btn-sm btn-primary w-100" title="Importa um arquivo CSV/XLSX e abre a tela de pré-visualização para classificar o débito">
-                                    Importar e pré-visualizar (CSV/XLSX)
-                                </button>
+                            <div class="card-body">
+                                <form action="{{ route('lancamentos.preview.despesas') }}" method="post" enctype="multipart/form-data" class="row g-2" target="_blank">
+                                    @csrf
+                                    <input type="hidden" name="empresa_id" value="{{ $selEmpresa ?? '' }}">
+                                    <input type="hidden" name="conta_credito_global_id" value="{{ $selConta ?? '' }}">
+                                    <div class="col-12 col-sm-7 col-md-8">
+                                        <input type="file" id="arquivo_excel_extrato" name="arquivo_excel" accept=".xlsx,.xls,.csv" class="d-none" required>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <label for="arquivo_excel_extrato" class="btn btn-outline-danger btn-sm">
+                                                ESCOLHER ARQUIVO MODOBANK
+                                            </label>
+                                            <span id="arquivo_excel_extrato_nome" class="badge bg-danger">Nenhum arquivo selecionado</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-sm-5 col-md-4 d-grid d-md-block">
+                                        <button type="submit" class="btn btn-sm btn-primary w-100" title="Importa um arquivo CSV/XLSX e abre a tela de pré-visualização para classificar o débito">
+                                            Importar e pré-visualizar (CSV/XLSX)
+                                        </button>
+                                    </div>
+                                    <div class="col-12">
+                                        <div id="dropzone-extrato" class="dropzone-extrato text-center p-4 mt-1" role="button" aria-label="Arraste e solte ou clique para selecionar arquivo CSV ou XLSX">
+                                            <div class="d-flex flex-column align-items-center">
+                                                <div class="mb-2 d-flex align-items-center gap-3">
+                                                    <span class="text-success" title="Excel (XLS/XLSX)"><i class="fa fa-file-excel-o fa-2x" aria-hidden="true"></i></span>
+                                                    <span class="text-secondary" title="CSV"><i class="fa fa-file-text-o fa-2x" aria-hidden="true"></i></span>
+                                                </div>
+                                                <div><strong>Arraste e solte</strong> o arquivo CSV/XLSX aqui</div>
+                                                <div class="small text-muted">ou clique para selecionar</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
                             </div>
-                        </form>
+                        </div>
                     </div>
+                    @endif
                     <div class="col-12 col-md-4">
                         <a href="{{ route('lancamentos.preview.despesas') }}" class="btn btn-sm btn-outline-secondary w-100" title="Abrir a tela de pré-visualização (para arquivos já presentes em storage/app/imports)" target="_blank" rel="noopener">
                             Abrir tela de pré-visualização
@@ -168,14 +189,59 @@
 document.addEventListener('DOMContentLoaded', function(){
     var inp = document.getElementById('arquivo_excel_extrato');
     var out = document.getElementById('arquivo_excel_extrato_nome');
+    var dz = document.getElementById('dropzone-extrato');
     if(inp && out){
         inp.addEventListener('change', function(){
-            if(inp.files && inp.files.length){ out.textContent = inp.files[0].name; }
-            else { out.textContent = 'Nenhum arquivo selecionado'; }
+            if(inp.files && inp.files.length){
+                out.textContent = inp.files[0].name;
+                out.classList.remove('bg-danger');
+                out.classList.add('bg-secondary','text-dark');
+            } else {
+                out.textContent = 'Nenhum arquivo selecionado';
+                out.classList.remove('bg-secondary','text-dark');
+                out.classList.add('bg-danger');
+            }
+        });
+    }
+    if(dz && inp && out){
+        var acceptExt = ['xlsx','xls','csv'];
+        function getExt(name){
+            var i = name.lastIndexOf('.');
+            return i>=0 ? name.substring(i+1).toLowerCase() : '';
+        }
+        function setFiles(files){
+            var dt = new DataTransfer();
+            var added = 0;
+            for(var i=0;i<files.length;i++){
+                var f = files[i];
+                if(acceptExt.indexOf(getExt(f.name))>=0){ dt.items.add(f); added++; }
+            }
+            if(added===0){
+                out.textContent = 'Formato não suportado. Use CSV/XLSX.';
+                out.classList.remove('bg-secondary','text-dark');
+                out.classList.add('bg-danger');
+                return;
+            }
+            inp.files = dt.files;
+            inp.dispatchEvent(new Event('change', {bubbles:true}));
+        }
+        dz.addEventListener('click', function(){ inp.click(); });
+        dz.addEventListener('dragover', function(e){ e.preventDefault(); dz.classList.add('drag-over'); });
+        dz.addEventListener('dragleave', function(e){ dz.classList.remove('drag-over'); });
+        dz.addEventListener('drop', function(e){
+            e.preventDefault(); dz.classList.remove('drag-over');
+            if(e.dataTransfer && e.dataTransfer.files){ setFiles(e.dataTransfer.files); }
         });
     }
 });
 </script>
+@endpush
+
+@push('styles')
+<style>
+.dropzone-extrato{ border:2px dashed #6c757d; border-radius:.5rem; color:#6c757d; cursor:pointer; }
+.dropzone-extrato.drag-over{ border-color:#0d6efd; background:rgba(13,110,253,.05); color:#0d6efd; }
+</style>
 @endpush
 
 
