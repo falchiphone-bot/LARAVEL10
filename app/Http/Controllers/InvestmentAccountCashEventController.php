@@ -66,6 +66,44 @@ class InvestmentAccountCashEventController extends Controller
         $sumIn = (float)$allFiltered->filter(fn($e)=>$e->amount>0)->sum('amount');
         $sumOut = (float)$allFiltered->filter(fn($e)=>$e->amount<0)->sum('amount');
 
+        // Resumo por período (mensal) e por conta, com foco em compras, vendas e taxas (fee)
+        $periodField = 'event_date'; // padrão: agrupar por data do evento
+        $aggRows = (clone $q)->get(['event_date','settlement_date','account_id','category','amount']);
+        $periodSummary = [];
+        $byAccountSummary = [];
+        $accountIdsSeen = [];
+        foreach ($aggRows as $row) {
+            $cat = strtolower(trim((string)$row->category));
+            $amount = (float) $row->amount;
+            // Período YYYY-MM por event_date; fallback settlement_date; senão 'sem_data'
+            $dt = $row->event_date ?: $row->settlement_date;
+            $periodKey = $dt ? $dt->format('Y-m') : 'sem_data';
+            if (!isset($periodSummary[$periodKey])) {
+                $periodSummary[$periodKey] = ['buy'=>0.0,'sell'=>0.0,'fee'=>0.0];
+            }
+            $accId = (int)($row->account_id ?: 0);
+            if ($accId) { $accountIdsSeen[$accId] = true; }
+            if (!isset($byAccountSummary[$accId])) { $byAccountSummary[$accId] = ['buy'=>0.0,'sell'=>0.0,'fee'=>0.0]; }
+
+            // Classificação simples por categoria
+            $isFee = (strpos($cat,'fee')!==false) || (strpos($cat,'taxa')!==false) || (strpos($cat,'commission')!==false) || (strpos($cat,'comissão')!==false);
+            $isBuy = (strpos($cat,'buy')!==false) || (strpos($cat,'compra')!==false);
+            $isSell = (strpos($cat,'sell')!==false) || (strpos($cat,'venda')!==false);
+
+            if ($isFee) {
+                $periodSummary[$periodKey]['fee'] += abs($amount);
+                $byAccountSummary[$accId]['fee'] += abs($amount);
+            } elseif ($isBuy) {
+                $periodSummary[$periodKey]['buy'] += abs($amount);
+                $byAccountSummary[$accId]['buy'] += abs($amount);
+            } elseif ($isSell) {
+                $periodSummary[$periodKey]['sell'] += abs($amount);
+                $byAccountSummary[$accId]['sell'] += abs($amount);
+            }
+        }
+        // Ordenar períodos desc
+        krsort($periodSummary);
+
         $accounts = InvestmentAccount::where('user_id',$userId)->orderBy('account_name')->get();
         $categories = InvestmentAccountCashEvent::where('user_id',$userId)->distinct()->pluck('category')->sort()->values();
     $sources = InvestmentAccountCashEvent::where('user_id',$userId)->distinct()->pluck('source')->sort()->values();
@@ -117,6 +155,8 @@ class InvestmentAccountCashEventController extends Controller
             'events'=>$events,
             'accounts'=>$accounts,
             'categories'=>$categories,
+            'periodSummary'=>$periodSummary,
+            'byAccountSummary'=>$byAccountSummary,
             'filter_account_id'=>$accountId ? (int)$accountId : null,
             'filter_category'=>$category,
             'filter_status'=>$status,
