@@ -131,7 +131,7 @@
                                         </div>
                                     </div>
                                     <div class="col-12 col-sm-5 col-md-4 d-grid d-md-block">
-                                        <button type="submit" class="btn btn-sm btn-primary w-100" title="Importa um arquivo CSV/XLSX e abre a tela de pré-visualização para classificar o débito">
+                                        <button id="btn-extrato-importar" type="submit" class="btn btn-sm btn-primary w-100" title="Importa um arquivo CSV/XLSX e abre a tela de pré-visualização para classificar o débito">
                                             Importar e pré-visualizar (CSV/XLSX)
                                         </button>
                                     </div>
@@ -187,52 +187,95 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function(){
-    var inp = document.getElementById('arquivo_excel_extrato');
-    var out = document.getElementById('arquivo_excel_extrato_nome');
-    var dz = document.getElementById('dropzone-extrato');
-    if(inp && out){
-        inp.addEventListener('change', function(){
-            if(inp.files && inp.files.length){
-                out.textContent = inp.files[0].name;
-                out.classList.remove('bg-danger');
-                out.classList.add('bg-secondary','text-dark');
-            } else {
-                out.textContent = 'Nenhum arquivo selecionado';
-                out.classList.remove('bg-secondary','text-dark');
-                out.classList.add('bg-danger');
+    function bindExtratoUploadHandlers(){
+        var inp = document.getElementById('arquivo_excel_extrato');
+        var out = document.getElementById('arquivo_excel_extrato_nome');
+        var dz = document.getElementById('dropzone-extrato');
+        var btn = document.getElementById('btn-extrato-importar');
+        function updateButtonState(){ if(btn){ btn.disabled = !(inp && inp.files && inp.files.length); } }
+        if(inp && out && !inp._extratoBound){
+            const onChanged = function(){
+                var fileName = '';
+                if(inp.files && inp.files.length){ fileName = inp.files[0].name; }
+                // Fallback: alguns navegadores expõem value com caminho; extrai o nome
+                if(!fileName && inp.value){ fileName = inp.value.split('\\').pop().split('/').pop(); }
+                if(fileName){
+                    out.textContent = fileName;
+                    out.classList.remove('bg-danger');
+                    out.classList.add('bg-secondary','text-dark');
+                } else {
+                    out.textContent = 'Nenhum arquivo selecionado';
+                    out.classList.remove('bg-secondary','text-dark');
+                    out.classList.add('bg-danger');
+                }
+                updateButtonState();
+            };
+            inp.addEventListener('change', onChanged);
+            inp.addEventListener('input', onChanged);
+            inp._extratoBound = true;
+            // Estado inicial do botão
+            updateButtonState();
+        }
+        if(dz && inp && out && !dz._extratoBound){
+            var acceptExt = ['xlsx','xls','csv'];
+            function getExt(name){
+                var i = name.lastIndexOf('.');
+                return i>=0 ? name.substring(i+1).toLowerCase() : '';
+            }
+            function setFiles(files){
+                try{
+                    var dt = new DataTransfer();
+                    var added = 0;
+                    for(var i=0;i<files.length;i++){
+                        var f = files[i];
+                        if(acceptExt.indexOf(getExt(f.name))>=0){ dt.items.add(f); added++; }
+                    }
+                    if(added===0){
+                        out.textContent = 'Formato não suportado. Use CSV/XLSX.';
+                        out.classList.remove('bg-secondary','text-dark');
+                        out.classList.add('bg-danger');
+                        updateButtonState();
+                        return;
+                    }
+                    inp.files = dt.files;
+                    inp.dispatchEvent(new Event('change', {bubbles:true}));
+                }catch(e){
+                    // Fallback: se DataTransfer indisponível, apenas exibe o nome do primeiro arquivo escolhido
+                    if(files && files.length){
+                        var f0 = files[0];
+                        if(acceptExt.indexOf(getExt(f0.name))>=0){
+                            out.textContent = f0.name;
+                            out.classList.remove('bg-danger');
+                            out.classList.add('bg-secondary','text-dark');
+                            updateButtonState();
+                        } else {
+                            out.textContent = 'Formato não suportado. Use CSV/XLSX.';
+                            out.classList.remove('bg-secondary','text-dark');
+                            out.classList.add('bg-danger');
+                            updateButtonState();
+                        }
+                    }
+                }
+            }
+            dz.addEventListener('click', function(){ inp.click(); });
+            dz.addEventListener('dragover', function(e){ e.preventDefault(); dz.classList.add('drag-over'); });
+            dz.addEventListener('dragleave', function(e){ dz.classList.remove('drag-over'); });
+            dz.addEventListener('drop', function(e){
+                e.preventDefault(); dz.classList.remove('drag-over');
+                if(e.dataTransfer && e.dataTransfer.files){ setFiles(e.dataTransfer.files); }
+            });
+            dz._extratoBound = true;
+        }
+    }
+    // Bind now, and re-bind after Livewire rerenders
+    bindExtratoUploadHandlers();
+    try{
+        document.addEventListener('livewire:load', function(){
+            if(window.Livewire){
+                Livewire.hook('message.processed', function(){ bindExtratoUploadHandlers(); });
             }
         });
-    }
-    if(dz && inp && out){
-        var acceptExt = ['xlsx','xls','csv'];
-        function getExt(name){
-            var i = name.lastIndexOf('.');
-            return i>=0 ? name.substring(i+1).toLowerCase() : '';
-        }
-        function setFiles(files){
-            var dt = new DataTransfer();
-            var added = 0;
-            for(var i=0;i<files.length;i++){
-                var f = files[i];
-                if(acceptExt.indexOf(getExt(f.name))>=0){ dt.items.add(f); added++; }
-            }
-            if(added===0){
-                out.textContent = 'Formato não suportado. Use CSV/XLSX.';
-                out.classList.remove('bg-secondary','text-dark');
-                out.classList.add('bg-danger');
-                return;
-            }
-            inp.files = dt.files;
-            inp.dispatchEvent(new Event('change', {bubbles:true}));
-        }
-        dz.addEventListener('click', function(){ inp.click(); });
-        dz.addEventListener('dragover', function(e){ e.preventDefault(); dz.classList.add('drag-over'); });
-        dz.addEventListener('dragleave', function(e){ dz.classList.remove('drag-over'); });
-        dz.addEventListener('drop', function(e){
-            e.preventDefault(); dz.classList.remove('drag-over');
-            if(e.dataTransfer && e.dataTransfer.files){ setFiles(e.dataTransfer.files); }
-        });
-    }
+    }catch(e){}
 });
 </script>
 @endpush
