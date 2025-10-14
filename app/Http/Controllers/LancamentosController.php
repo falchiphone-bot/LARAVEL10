@@ -1184,6 +1184,8 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         if(!$lancamento){
             return redirect()->back()->with('error','Lançamento não encontrado');
         }
+        // Guarda empresa original para detectar mudança
+        $empresaAntes = (int) $lancamento->EmpresaID;
         $payload = $request->all();
         // Se empresa foi alterada, força validação de novas contas (grau 5 já garantido pela UI via endpoint)
         if(isset($payload['EmpresaID']) && (int)$payload['EmpresaID'] !== (int)$lancamento->EmpresaID){
@@ -1216,6 +1218,11 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         }
         $lancamento->fill($payload);
         $lancamento->save();
+
+        // Sincroniza sempre a Empresa do Contas a Pagar vinculado ao mesmo LancamentoID
+        $empresaDepois = (int) $lancamento->EmpresaID;
+        ContasPagar::where('LancamentoID', $lancamento->ID)
+            ->update(['EmpresaID' => $empresaDepois]);
         return redirect()->route('lancamentos.edit.simple',$lancamento->ID)->with('message','Alterações salvas.');
     }
 
