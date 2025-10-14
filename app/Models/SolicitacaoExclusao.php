@@ -27,6 +27,10 @@ class SolicitacaoExclusao extends Model
         "ContaCreditoID",
     ];
 
+    protected $casts = [
+        'Created' => 'datetime',
+    ];
+
     public function usuario()
     {
         return $this->belongsTo(User::class, 'UsuarioID');

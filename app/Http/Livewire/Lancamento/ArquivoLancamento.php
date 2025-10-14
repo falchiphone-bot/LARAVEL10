@@ -78,7 +78,7 @@ class ArquivoLancamento extends Component
                     'Rotulo' => $this->rotulo,
                     'LancamentoID' => $this->lancamentoID,
                     'Nome' => explode('.', $arquivo->getFilename())[0],
-                    'Created' => date('d-m-Y H:i:s'),
+                    'Created' => now(),
                     'UsuarioID' => Auth::user()->id,
                     'Ext' => explode('.', $arquivo->getFilename())[1],
                 ]);

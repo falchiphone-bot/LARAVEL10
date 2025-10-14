@@ -1708,7 +1708,7 @@ class Extrato extends Component
                 'Descricao' => 'Lançamento',
                 'UsuarioID' => Auth::user()->id,
                 'Status' => '0',
-                'Created' => date('d/m/Y H:i:s'),
+                'Created' => now(),
                 'Table' => 'lancamentos',
                 'TableID' => $lancamento_id,
             ]);

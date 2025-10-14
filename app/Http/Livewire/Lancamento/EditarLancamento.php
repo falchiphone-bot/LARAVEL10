@@ -242,7 +242,7 @@ class EditarLancamento extends Component
                 'LancamentoID' => $this->lancamento->ID,
                 'Descricao' => $this->comentario,
                 'UsuarioID' => Auth::user()->id,
-                'Created' => date('d/m/Y H:i:s'),
+                'Created' => now(),
                 'Visualizado' => 0,
             ]);
             $this->comentario = null;
