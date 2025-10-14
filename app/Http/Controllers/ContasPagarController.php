@@ -869,11 +869,13 @@ class ContasPagarController extends Controller
 
 
 
+            // Atenção: para SQL Server, evitar comparar datas no formato 'd/m/Y'.
+            // Use sempre 'Y-m-d' (ISO) ou objeto Carbon. Aqui usamos $DataContabilidade (Y-m-d).
             $duplicadoconsulta = Lancamento::where([
                 'EmpresaID' => $contasPagar->EmpresaID,
                 'Descricao' => $contasPagar->Descricao,
                 'Valor' => $contasPagar->Valor,
-                'DataContabilidade' => $dataContabilidade,
+                'DataContabilidade' => $DataContabilidade,
                 'ContaDebitoID' => $contasPagar->ContaFornecedorID,
                 'ContaCreditoID' => $contasPagar->ContaPagamentoID,
             ])->first();
@@ -892,11 +894,12 @@ class ContasPagarController extends Controller
                 Lancamento::create($Lancamento);
                 Lancamento::saved($Lancamento);
 
+                // Repetir a consulta de duplicidade usando a data em formato ISO (Y-m-d)
                 $duplicadoconsulta = Lancamento::where([
                     'EmpresaID' => $contasPagar->EmpresaID,
                     'Descricao' => $contasPagar->Descricao,
                     'Valor' => $contasPagar->Valor,
-                    'DataContabilidade' => $dataContabilidade,
+                    'DataContabilidade' => $DataContabilidade,
                     'ContaDebitoID' => $contasPagar->ContaFornecedorID,
                     'ContaCreditoID' => $contasPagar->ContaPagamentoID,
                 ])->first();
