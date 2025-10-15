@@ -834,7 +834,7 @@
               $prevIcon = $isPrevAsc ? '↑' : ($isPrevDesc ? '↓' : '↕');
             @endphp
             <th>
-              <a class="text-decoration-none" href="{{ route('openai.variations.index', array_merge($baseParamsGrouped, ['sort'=>$prevNext])) }}" title="Ordenar / alternar por Variação anterior">Anterior (%) {{ $prevIcon }}</a>
+              <a class="text-decoration-none" href="{{ route('openai.variations.index', array_merge($baseParamsGrouped, ['sort'=>$prevNext])) }}" title="Ordenar / alternar por Variação do mês anterior">Mês Anterior (%) {{ $prevIcon }}</a>
             </th>
             @php
               $baseParamsGrouped = array_filter([
@@ -996,13 +996,24 @@
             </a>
           </th>
           @php
+            $isPPartAsc = ($sort ?? '') === 'ppart_asc';
+            $isPPartDesc = ($sort ?? '') === 'ppart_desc';
+            $ppartNext = $isPPartAsc ? 'ppart_desc' : ($isPPartDesc ? 'year_desc' : 'ppart_asc');
+            $ppartIcon = $isPPartAsc ? '↑' : ($isPPartDesc ? '↓' : '↕');
+          @endphp
+          <th title="Variação do dia do mês anterior até o fim do mês anterior, ancorada em 'Atualizado' (ex.: 15/09 → 30/09)">
+            <a class="text-decoration-none" href="{{ route('openai.variations.index', array_merge($baseParams, ['sort'=>$ppartNext])) }}" title="Ordenar / alternar por Parcial do Mês Anterior">
+              Parcial Mês Ant. ({{ $ppartHeaderLabel ?? 'D/últ' }}) (%) {{ $ppartIcon }}
+            </a>
+          </th>
+          @php
             $isPrevAsc = ($sort ?? '') === 'prev_asc';
             $isPrevDesc = ($sort ?? '') === 'prev_desc';
             $prevNext = $isPrevAsc ? 'prev_desc' : ($isPrevDesc ? 'year_desc' : 'prev_asc');
             $prevIcon = $isPrevAsc ? '↑' : ($isPrevDesc ? '↓' : '↕');
           @endphp
           <th title="Variação do mês anterior (mesma conversa)">
-            <a class="text-decoration-none" href="{{ route('openai.variations.index', array_merge($baseParams, ['sort'=>$prevNext])) }}" title="Ordenar / alternar por variação anterior">Anterior (%) {{ $prevIcon }}</a>
+            <a class="text-decoration-none" href="{{ route('openai.variations.index', array_merge($baseParams, ['sort'=>$prevNext])) }}" title="Ordenar / alternar por variação do mês anterior">Mês Anterior (%) {{ $prevIcon }}</a>
           </th>
           @php
             $isDiffAsc = ($sort ?? '') === 'diff_asc';
@@ -1078,6 +1089,20 @@
             <td>{{ $v->year }}</td>
             <td>{{ str_pad($v->month,2,'0',STR_PAD_LEFT) }}</td>
             <td>{{ number_format($v->variation, 4, ',', '.') }}</td>
+            <td>
+              @php
+                $pp = $prevMonthPartialMap[$v->id] ?? null;
+                $rng = $prevMonthPartialRange[$v->id] ?? null;
+                $clsPP = is_null($pp) ? 'text-muted' : ($pp > 0 ? 'text-success' : ($pp < 0 ? 'text-danger' : 'text-secondary'));
+                $arrowPP = is_null($pp) ? '' : ($pp > 0 ? '▲' : ($pp < 0 ? '▼' : '▶'));
+                $titlePP = ($rng && is_array($rng)) ? ('Período: '.date('d/m/Y', strtotime($rng[0])).' → '.date('d/m/Y', strtotime($rng[1]))) : 'Sem dados suficientes para o período parcial do mês anterior';
+              @endphp
+              @if(!is_null($pp))
+                <span class="small {{ $clsPP }}" title="{{ $titlePP }}">{{ $arrowPP }} {{ number_format($pp, 4, ',', '.') }}%</span>
+              @else
+                <span class="text-muted small" title="{{ $titlePP }}">—</span>
+              @endif
+            </td>
             <td>
               @php /* $pv já calculado antes da <tr> */ @endphp
               @if(!is_null($pv))

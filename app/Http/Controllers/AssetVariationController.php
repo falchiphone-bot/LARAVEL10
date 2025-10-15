@@ -357,6 +357,42 @@ class AssetVariationController extends Controller
                 'days_month' => $daysMonth,
             ];
         }
+        // Variação do dia do mês anterior até o fim do mês anterior, ancorada em updated_at
+        $prevMonthPartialMap = [];
+        $prevMonthPartialRange = [];
+        foreach($variations as $row){
+            try {
+                if(!$row->chat_id){ $prevMonthPartialMap[$row->id] = null; continue; }
+                $anchor = $row->updated_at ? Carbon::parse($row->updated_at) : ($row->created_at ? Carbon::parse($row->created_at) : Carbon::now());
+                $prev = $anchor->copy()->subMonthNoOverflow();
+                $pmYear = (int)$prev->year; $pmMonth = (int)$prev->month;
+                $day = (int)min((int)$anchor->day, (int)$prev->daysInMonth);
+                $start = Carbon::create($pmYear, $pmMonth, $day, 0, 0, 0);
+                $end = Carbon::create($pmYear, $pmMonth, (int)$prev->daysInMonth, 23, 59, 59);
+                // Preço inicial: primeiro registro em/apos o dia de start dentro do mês anterior
+                $startPrice = OpenAIChatRecord::where('chat_id', $row->chat_id)
+                    ->whereYear('occurred_at', $pmYear)
+                    ->whereMonth('occurred_at', $pmMonth)
+                    ->where('occurred_at', '>=', $start)
+                    ->orderBy('occurred_at', 'asc')
+                    ->value('amount');
+                // Preço final: último registro até o fim do mês anterior
+                $endPrice = OpenAIChatRecord::where('chat_id', $row->chat_id)
+                    ->whereYear('occurred_at', $pmYear)
+                    ->whereMonth('occurred_at', $pmMonth)
+                    ->where('occurred_at', '<=', $end)
+                    ->orderBy('occurred_at', 'desc')
+                    ->value('amount');
+                $val = null;
+                if(is_numeric($startPrice) && is_numeric($endPrice) && (float)$startPrice != 0.0){
+                    $val = (( (float)$endPrice - (float)$startPrice) / (float)$startPrice) * 100.0;
+                }
+                $prevMonthPartialMap[$row->id] = $val;
+                $prevMonthPartialRange[$row->id] = [$start->toDateString(), $end->toDateString()];
+            } catch(\Throwable $e){
+                $prevMonthPartialMap[$row->id] = null;
+            }
+        }
         // Se houver filtro de tendência, filtrar coleção em memória (MVP; opcionalmente mover para persistência futura)
         if($trendFilter){
             $allowed = (array)explode(',', $trendFilter);
@@ -368,6 +404,24 @@ class AssetVariationController extends Controller
             $variations = new \Illuminate\Pagination\LengthAwarePaginator(
                 $items,
                 $items->count(),
+                $variations->perPage(),
+                $variations->currentPage(),
+                ['path' => request()->url(), 'query' => request()->query()]
+            );
+        }
+        // Ordenação por Parcial Mês Anterior (ppart_asc/ppart_desc) - em memória
+        if(in_array($sort, ['ppart_asc','ppart_desc'], true)){
+            $items = collect($variations->items());
+            $items = $items->sort(function($a, $b) use ($prevMonthPartialMap, $sort){
+                $va = $prevMonthPartialMap[$a->id] ?? null; $vb = $prevMonthPartialMap[$b->id] ?? null;
+                $na = is_null($va); $nb = is_null($vb);
+                if($na && $nb) return 0; if($na) return 1; if($nb) return -1; // nulls last
+                if($sort === 'ppart_asc') return $va <=> $vb; else return $vb <=> $va;
+            })->values();
+            $variations = new \Illuminate\Pagination\LengthAwarePaginator(
+                $items,
+                // manter total original; estamos apenas reordenando a página atual
+                $variations->total(),
                 $variations->perPage(),
                 $variations->currentPage(),
                 ['path' => request()->url(), 'query' => request()->query()]
@@ -402,6 +456,15 @@ class AssetVariationController extends Controller
                 }
             }
         } catch(\Throwable $e) { /* noop */ }
+        // Rótulo do cabeçalho da coluna Parcial Mês Ant. (ex.: 15/30 ou 28/31)
+        try {
+            $anchorForHeader = Carbon::now();
+            $prevHeader = $anchorForHeader->copy()->subMonthNoOverflow();
+            $hdrDay = (int)min((int)$anchorForHeader->day, (int)$prevHeader->daysInMonth);
+            $hdrLastDay = (int)$prevHeader->daysInMonth;
+            $ppartHeaderLabel = str_pad((string)$hdrDay, 2, '0', STR_PAD_LEFT) . '/' . str_pad((string)$hdrLastDay, 2, '0', STR_PAD_LEFT);
+        } catch (\Throwable $e) { $ppartHeaderLabel = null; }
+
         return view('openai.variations.index', [
             'variations'=>$variations,
             'years'=>$years,
@@ -423,6 +486,9 @@ class AssetVariationController extends Controller
             'portfolioUsdTotal' => $portfolioUsdTotal,
             'portfolioBrlTotal' => $portfolioBrlTotal,
             'usdToBrlRate' => $usdToBrlRate,
+            'prevMonthPartialMap' => $prevMonthPartialMap,
+            'prevMonthPartialRange' => $prevMonthPartialRange,
+            'ppartHeaderLabel' => $ppartHeaderLabel,
         ]);
     }
 
