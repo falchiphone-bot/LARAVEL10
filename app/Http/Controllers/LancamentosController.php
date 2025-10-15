@@ -771,7 +771,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         if($Lancar){
             session(['LancamentoDebito' => "NADA LANÇAMENTO A DÉBITO!"]);
 
-            dd($tabelaParcelas, $debito->ID, $credito->ID, $Empresa, $DataInicialSomada);
+            // dd($tabelaParcelas, $debito->ID, $credito->ID, $Empresa, $DataInicialSomada);
             foreach($tabelaParcelas as $EfetuarLancamento){
 
 
@@ -1701,7 +1701,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                 $gcid = (int)$overrideGlobalCreditId;
                 // Se houver empresa definida (via cache ou override), valida pertencimento
                 $empresaForConta = $payload['selected_empresa_id'] ?? $selectedEmpresaId;
-                $contaOk = $empresaForConta ? 
+                $contaOk = $empresaForConta ?
                     \App\Models\Conta::where('ID',$gcid)->where('EmpresaID',$empresaForConta)->exists() : false;
                 if($contaOk){
                     $label = \App\Models\Conta::where('Contas.ID',$gcid)
