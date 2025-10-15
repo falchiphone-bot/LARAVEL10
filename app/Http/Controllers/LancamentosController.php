@@ -778,21 +778,21 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
 
 
                 $data = $EfetuarLancamento['datasomada'];
-
-                $dataString = date('d-m-Y', strtotime($data));
+                // Garante instância de Carbon e formata ISO compatível com SQL Server (YYYY-MM-DD)
+                $dataCarbon = ($data instanceof \Carbon\Carbon) ? $data : \Carbon\Carbon::parse($data);
+                $dataIso = $dataCarbon->format('Y-m-d');
 
                 $datacontabil = $EfetuarLancamento['datasomada'];
                 $valorString = $EfetuarLancamento['Total'];
 
-                $lancamentoLocalizado = Lancamento::where('DataContabilidade', $dataString)
+                $lancamentoLocalizado = Lancamento::whereDate('DataContabilidade', '=', $dataIso)
                 ->where('Valor', $EfetuarLancamento['Total'])
                 ->where('EmpresaID', $Empresa)
                 ->where('ContaDebitoID', $EfetuarLancamento['debito'])
                 ->First();
 
                 if($lancamentoLocalizado){
-                    $dataLancamento_carbon = Carbon::createFromDate($data);
-                $dataLancamento = $dataLancamento_carbon->format('Y/m/d');
+                    // Já temos $dataCarbon acima
                 $data_conta_debito_bloqueio = $lancamentoLocalizado->ContaDebito->Bloqueiodataanterior;
                 $data_conta_credito_bloqueio = $lancamentoLocalizado->ContaCredito->Bloqueiodataanterior;
 
@@ -807,7 +807,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     return view('lancamentos.lancamentotabelapriceresultado', ['tabelaParcelas' => $tabelaParcelas]);
                 }
 
-                if ($data_conta_debito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
+                if ($data_conta_debito_bloqueio->greaterThanOrEqualTo($dataCarbon)) {
                     session([
                         'Lancamento' =>
                             'Conta DÉBITO: ' .
@@ -830,7 +830,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     return view('lancamentos.lancamentotabelapriceresultado', ['tabelaParcelas' => $tabelaParcelas]);
                 }
 
-                if ($data_conta_credito_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
+                if ($data_conta_credito_bloqueio->greaterThanOrEqualTo($dataCarbon)) {
                     session([
                         'Lancamento' =>
                             'Conta DÉBITO: ' .
@@ -863,7 +863,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     'ContaCreditoID' => $EfetuarLancamento['credito'],
                     'Descricao' => $EfetuarLancamento['debitodescricao'],
                     'Usuarios_id' => auth()->user()->id,
-                    'DataContabilidade' => $dataString ,
+                    'DataContabilidade' => $dataIso ,
                     'Conferido' => false,
                     'HistoricoID' => null,
                     ]);
@@ -874,7 +874,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                 }
 
                 ////////// JUROS
-                $lancamentoLocalizadoJuros = Lancamento::where('DataContabilidade', $dataString)
+                $lancamentoLocalizadoJuros = Lancamento::whereDate('DataContabilidade', '=', $dataIso)
                     ->where('Valor', $EfetuarLancamento['Juros'])
                     ->where('EmpresaID', $Empresa)
                     ->where('ContaCreditoID', $EfetuarLancamento['debito'])
@@ -894,7 +894,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                         return view('lancamentos.lancamentotabelapriceresultado', ['tabelaParcelas' => $tabelaParcelas]);
                     }
 
-                    if ($data_conta_juros_bloqueio->greaterThanOrEqualTo($dataLancamento)) {
+                    if ($data_conta_juros_bloqueio->greaterThanOrEqualTo($dataCarbon)) {
                         session([
                             'Lancamento' =>
                                 'Conta DÉBITO: ' .
@@ -944,7 +944,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     'ContaCreditoID' => $EfetuarLancamento['debito'],
                     'Descricao' => $EfetuarLancamento['debitodescricao'],
                     'Usuarios_id' => auth()->user()->id,
-                    'DataContabilidade' => $dataString ,
+                    'DataContabilidade' => $dataIso ,
                     'Conferido' => false,
                     'HistoricoID' => null,
                     ]);
