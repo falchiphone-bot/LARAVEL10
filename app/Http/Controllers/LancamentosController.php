@@ -850,7 +850,8 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     // dd( $datacontabil,$EfetuarLancamento['Total'], $Empresa, $EfetuarLancamento['debito'] );
                     session(['LancamentoDebito' => "NADA LANÇAMENTO A DÉBITO OU A CRÉDITO!"]);
                 }
-                if($oldRows){
+                // Criar lançamento somente se não existir um com mesmos dados (não duplicar)
+                if(!$lancamentoLocalizado){
                     // dd("Lancando ", $datacontabil,$EfetuarLancamento['Total'], $Empresa, $EfetuarLancamento['debito'] );
 
                     $dataSalvar = Carbon::createFromDate($EfetuarLancamento['datainicial']);
