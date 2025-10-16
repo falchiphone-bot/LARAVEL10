@@ -178,8 +178,8 @@
     ]);
   @endphp
   <div class="mb-2 d-flex gap-2 align-items-center position-sticky top-0 z-3 bg-light py-2" style="top: 0; border-bottom: 1px solid rgba(0,0,0,.1);">
-  <a href="{{ route('openai.variations.exportCsv', $exportParams) }}" class="btn btn-sm btn-outline-secondary" title="Exportar visão atual em CSV">Exportar CSV</a>
-  <a href="{{ route('openai.variations.exportXlsx', $exportParams) }}" class="btn btn-sm btn-outline-success" title="Exportar visão atual em XLSX">Exportar XLSX</a>
+  <a href="{{ route('openai.variations.exportCsv', $exportParams) }}" class="btn btn-sm btn-outline-secondary" title="Exportar visão atual em CSV">Exportar CSV da tela atual</a>
+  <a href="{{ route('openai.variations.exportXlsx', $exportParams) }}" class="btn btn-sm btn-outline-success" title="Exportar visão atual em XLSX">Exportar XLSX da tela atual</a>
     <button type="button" class="btn btn-sm btn-outline-danger ms-2" id="var-clear-selection-allocation-top" title="Limpar seleção &amp; remover selected_codes da URL">Limpar seleção &amp; alocação</button>
     <div class="vr mx-2 d-none d-md-block"></div>
     <button type="button" id="btn-var-batch-flags" class="btn btn-sm btn-outline-warning" title="Aplicar COMPRAR/NÃO COMPRAR por código conforme sinal da variação (usa a linha mais recente por código)">Aplicar flags (variação)</button>
@@ -1053,8 +1053,9 @@
           @php
             $pv = $prevVariationMap[$v->id] ?? null;
             $diff = (!is_null($pv)) ? ($v->variation - $pv) : null;
+            $pp = $prevMonthPartialMap[$v->id] ?? null; // parcial mês anterior para a linha
           @endphp
-          <tr data-row-code="{{ strtoupper($v->asset_code) }}" data-year="{{ (int)$v->year }}" data-month="{{ (int)$v->month }}" data-variation="{{ $v->variation }}" @if(!is_null($diff)) data-diff="{{ $diff }}" @endif>
+          <tr data-row-code="{{ strtoupper($v->asset_code) }}" data-year="{{ (int)$v->year }}" data-month="{{ (int)$v->month }}" data-variation="{{ $v->variation }}" @if(!is_null($diff)) data-diff="{{ $diff }}" @endif @if(!is_null($pp)) data-ppart="{{ $pp }}" @endif>
             <td><input type="checkbox" class="var-select" value="{{ strtoupper($v->asset_code) }}" /></td>
             <td>{{ $v->id }}</td>
             <td>{{ $v->asset_code }}</td>
@@ -1091,7 +1092,7 @@
             <td>{{ number_format($v->variation, 4, ',', '.') }}</td>
             <td>
               @php
-                $pp = $prevMonthPartialMap[$v->id] ?? null;
+                // $pp já definido antes da <tr>
                 $rng = $prevMonthPartialRange[$v->id] ?? null;
                 $clsPP = is_null($pp) ? 'text-muted' : ($pp > 0 ? 'text-success' : ($pp < 0 ? 'text-danger' : 'text-secondary'));
                 $arrowPP = is_null($pp) ? '' : ($pp > 0 ? '▲' : ($pp < 0 ? '▼' : '▶'));
@@ -1171,6 +1172,14 @@
         <input type="text" class="form-control" id="diff-threshold" value="{{ request('diff_threshold','0.20') }}" />
       </div>
       <button type="button" class="btn btn-sm btn-outline-primary" id="var-select-diff-positive" title="Selecionar onde Diferença (pp) excede o limiar informado">Diff + &gt; Limiar</button>
+      <div class="input-group input-group-sm" style="width:160px;">
+        <span class="input-group-text" title="Selecionar os N primeiros pela ordem atual da tabela">Top</span>
+        <input type="number" min="1" step="1" class="form-control" id="var-top-n" value="10" title="Quantidade de ativos a selecionar pela ordem atual" />
+      </div>
+      <button type="button" class="btn btn-sm btn-outline-primary" id="var-select-topn" title="Selecionar os N primeiros pela ordenação atual da tabela">Top N (ordem)</button>
+      <button type="button" class="btn btn-sm btn-primary" id="var-select-topn-alloc" title="Selecionar os N primeiros e acionar o cálculo de alocação">Top N e Alocar</button>
+      <button type="button" class="btn btn-sm btn-outline-dark" id="var-proc-recommend" title="Selecionar Top 5 pela Parcial do Mês Anterior (desc) e destacar o melhor">Recomendar (Top 5 Parcial)</button>
+      <button type="button" class="btn btn-sm btn-dark" id="var-proc-recommend-alloc" title="Selecionar Top 5 pela Parcial e calcular alocação">Recomendar e Alocar</button>
       <span class="text-muted" id="var-selection-count"></span>
     </div>
   @endif
@@ -2266,6 +2275,47 @@
           if(topBtn) topBtn.scrollIntoView({behavior:'smooth', block:'center'});
         });
       }
+
+        // Procedimento: Top 5 pela Parcial do Mês Anterior (desc)
+        const btnRec = document.getElementById('var-proc-recommend');
+        const btnRecAlloc = document.getElementById('var-proc-recommend-alloc');
+        function getRowsWithPartial(){ return getVarRows().map(r=>({ el:r, code:r.getAttribute('data-row-code'), p: parseFloat(r.getAttribute('data-ppart')) })); }
+        function selectTop5ByPartial(){
+          const items = getRowsWithPartial().filter(x=> x.code && !isNaN(x.p));
+          if(items.length === 0){ alert('Sem valores de Parcial disponíveis nas linhas exibidas.'); return false; }
+          items.sort((a,b)=> b.p - a.p);
+          const top5 = items.slice(0,5).map(x=> x.code);
+          markCodes(top5);
+          // Destacar visualmente o principal (primeiro)
+          try{
+            getVarRows().forEach(r=> r.classList.remove('table-success'));
+            const bestCode = items[0]?.code;
+            if(bestCode){
+              const bestRow = getVarRows().find(r=> r.getAttribute('data-row-code') === bestCode);
+              if(bestRow){ bestRow.classList.add('table-success'); bestRow.scrollIntoView({behavior:'smooth', block:'center'}); }
+            }
+          }catch(_e){}
+          return true;
+        }
+        if(btnRec){ btnRec.addEventListener('click', ()=>{ if(selectTop5ByPartial()){ const topBtn = document.getElementById('filter-calc-alloc-btn'); if(topBtn) topBtn.scrollIntoView({behavior:'smooth', block:'center'}); } }); }
+        if(btnRecAlloc){ btnRecAlloc.addEventListener('click', ()=>{ if(!selectTop5ByPartial()) return; const topBtn = document.getElementById('filter-calc-alloc-btn'); if(topBtn){ topBtn.click(); } else { alert('Botão de alocação não encontrado.'); } }); }
+
+          // Top N pela ordem atual + opção de já alocar
+          const btnTopN = document.getElementById('var-select-topn');
+          const btnTopNAlloc = document.getElementById('var-select-topn-alloc');
+          const inputTopN = document.getElementById('var-top-n');
+          function parseTopN(){
+            const v = parseInt((inputTopN?.value||'').trim(), 10);
+            if(!isFinite(v) || v <= 0) return 10;
+            const total = getVarRows().length;
+            return Math.max(1, Math.min(v, total || 1));
+          }
+          function topNcodes(n){
+            return getVarRows().slice(0, n).map(r=> r.getAttribute('data-row-code')).filter(Boolean);
+          }
+          function selectTopN(){ const n = parseTopN(); const codes = topNcodes(n); if(!codes.length){ alert('Nenhuma linha encontrada.'); return false; } markCodes(codes); return true; }
+          if(btnTopN){ btnTopN.addEventListener('click', ()=>{ if(selectTopN()){ const topBtn = document.getElementById('filter-calc-alloc-btn'); if(topBtn) topBtn.scrollIntoView({behavior:'smooth', block:'center'}); }}); }
+          if(btnTopNAlloc){ btnTopNAlloc.addEventListener('click', ()=>{ if(!selectTopN()) return; const topBtn = document.getElementById('filter-calc-alloc-btn'); if(topBtn){ topBtn.click(); } else { alert('Botão de alocação não encontrado.'); } }); }
   })();
 </script>
 @endpush

@@ -2,18 +2,21 @@
 namespace App\Exports;
 
 use App\Models\AssetVariation;
+use App\Models\OpenAIChatRecord;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Carbon\Carbon;
 
 class AssetVariationsExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize
 {
     /** @var array<string,mixed> */
     protected array $filters;
     protected string $sort;
+    protected ?string $ppartHeaderLabel = null;
 
     /**
      * @param array<string,mixed> $filters
@@ -22,6 +25,17 @@ class AssetVariationsExport implements FromCollection, WithHeadings, WithMapping
     {
         $this->filters = $filters;
         $this->sort = $sort ?: 'year_desc';
+        // Define rótulo do cabeçalho para "Parcial Mês Ant." (ex.: 16/30)
+        try {
+            $anchor = Carbon::now();
+            $prev = $anchor->copy()->subMonthNoOverflow();
+            $day = (int) min((int)$anchor->day, (int)$prev->daysInMonth);
+            $last = (int) $prev->daysInMonth;
+            $this->ppartHeaderLabel = str_pad((string)$day, 2, '0', STR_PAD_LEFT)
+                . '/' . str_pad((string)$last, 2, '0', STR_PAD_LEFT);
+        } catch (\Throwable $e) {
+            $this->ppartHeaderLabel = null;
+        }
     }
 
     public function collection()
@@ -100,14 +114,15 @@ class AssetVariationsExport implements FromCollection, WithHeadings, WithMapping
                 $q->orderBy('year', 'desc')->orderBy('month', 'desc');
         }
 
+        // Precisamos de chat_id para calcular variações parciais por registros
         $rows = $q->get([
-            'id', 'asset_code', 'year', 'month', 'variation', 'created_at', 'updated_at'
+            'id', 'asset_code', 'chat_id', 'year', 'month', 'variation', 'created_at', 'updated_at'
         ]);
 
-        // Calcular tendência / normalização básica para export (assume mês completo para meses passados)
+        // Calcular tendências, mês anterior e parcial mês anterior
         $now = now();
         foreach($rows as $r){
-            $firstOf = \Carbon\Carbon::create($r->year, $r->month, 1);
+            $firstOf = Carbon::create($r->year, $r->month, 1);
             $daysMonth = $firstOf->daysInMonth;
             $daysElapsed = ($r->year == $now->year && $r->month == $now->month) ? min($now->day, $daysMonth) : $daysMonth;
             $normalized = $r->variation;
@@ -119,14 +134,69 @@ class AssetVariationsExport implements FromCollection, WithHeadings, WithMapping
             $r->setAttribute('export_normalized', round($normalized, 6));
             $r->setAttribute('export_confidence', round($confidence, 4));
             $r->setAttribute('export_trend', $daysElapsed < $daysMonth ? 'PARCIAL' : 'COMPLETO');
+
+            // Mês anterior (%) baseado em year/month anteriores
+            $prevYear = ($r->month == 1) ? ($r->year - 1) : $r->year;
+            $prevMonth = ($r->month == 1) ? 12 : ($r->month - 1);
+            $prevVar = AssetVariation::where('chat_id', $r->chat_id)
+                ->where('year', $prevYear)
+                ->where('month', $prevMonth)
+                ->value('variation');
+            $r->setAttribute('export_prev_variation', is_null($prevVar) ? null : (float)$prevVar);
+
+            // Parcial Mês Anterior (%) ancorado em updated_at (fallback created_at)
+            $anchor = $r->updated_at ? Carbon::parse($r->updated_at) : ($r->created_at ? Carbon::parse($r->created_at) : Carbon::now());
+            $pm = $anchor->copy()->subMonthNoOverflow();
+            $pmYear = (int)$pm->year; $pmMonth = (int)$pm->month;
+            $startDay = min((int)$anchor->day, (int)$pm->daysInMonth);
+            $pStart = Carbon::create($pmYear, $pmMonth, $startDay, 0, 0, 0);
+            $pEnd = Carbon::create($pmYear, $pmMonth, (int)$pm->daysInMonth, 23, 59, 59);
+            $startPrice = null; $endPrice = null; $ppart = null;
+            if($r->chat_id){
+                $startPrice = OpenAIChatRecord::where('chat_id', $r->chat_id)
+                    ->whereYear('occurred_at', $pmYear)
+                    ->whereMonth('occurred_at', $pmMonth)
+                    ->where('occurred_at', '>=', $pStart)
+                    ->orderBy('occurred_at', 'asc')
+                    ->value('amount');
+                $endPrice = OpenAIChatRecord::where('chat_id', $r->chat_id)
+                    ->whereYear('occurred_at', $pmYear)
+                    ->whereMonth('occurred_at', $pmMonth)
+                    ->where('occurred_at', '<=', $pEnd)
+                    ->orderBy('occurred_at', 'desc')
+                    ->value('amount');
+            }
+            if(is_numeric($startPrice) && is_numeric($endPrice) && (float)$startPrice != 0.0){
+                $ppart = (( (float)$endPrice - (float)$startPrice) / (float)$startPrice) * 100.0;
+            }
+            $r->setAttribute('export_prev_month_partial', is_null($ppart) ? null : (float)$ppart);
+            $r->setAttribute('export_prev_month_partial_start', $pStart->toDateString());
+            $r->setAttribute('export_prev_month_partial_end', $pEnd->toDateString());
+        }
+
+        // Ordenação adicional por Parcial Mês Ant. (%) se solicitado
+        if (in_array($this->sort, ['ppart_asc','ppart_desc'])) {
+            $rows = $rows->sort(function($a,$b){
+                $av = $a->export_prev_month_partial; $bv = $b->export_prev_month_partial;
+                $aNull = is_null($av); $bNull = is_null($bv);
+                if($aNull && $bNull) return 0;
+                if($aNull) return 1; // nulls last
+                if($bNull) return -1;
+                if($this->sort === 'ppart_asc') return $av <=> $bv;
+                return $bv <=> $av; // desc
+            })->values();
         }
         return $rows;
     }
 
     public function headings(): array
     {
+        $partialCol = 'Parcial Mês Ant. (%)';
+        if ($this->ppartHeaderLabel) {
+            $partialCol = 'Parcial Mês Ant. (' . $this->ppartHeaderLabel . ') (%)';
+        }
         return [
-            'ID', 'Código', 'Ano', 'Mês', 'Variação', 'Variação Normalizada', 'Confiança', 'Status/Tendência', 'Criado em', 'Atualizado em'
+            'ID', 'Código', 'Ano', 'Mês', 'Variação Atual (%)', 'Mês Anterior (%)', $partialCol, 'Variação Normalizada', 'Confiança', 'Status/Tendência', 'Criado em', 'Atualizado em', 'Parcial Início', 'Parcial Fim'
         ];
     }
 
@@ -141,11 +211,15 @@ class AssetVariationsExport implements FromCollection, WithHeadings, WithMapping
             $row->year,
             (int) $row->month,
             (float) $row->variation,
+            is_null($row->export_prev_variation ?? null) ? null : (float) $row->export_prev_variation,
+            is_null($row->export_prev_month_partial ?? null) ? null : round((float)$row->export_prev_month_partial, 6),
             (float) ($row->export_normalized ?? $row->variation),
             (float) ($row->export_confidence ?? 0),
             (string) ($row->export_trend ?? ''),
             optional($row->created_at)->format('Y-m-d H:i:s'),
             optional($row->updated_at)->format('Y-m-d H:i:s'),
+            (string) ($row->export_prev_month_partial_start ?? ''),
+            (string) ($row->export_prev_month_partial_end ?? ''),
         ];
     }
 }
