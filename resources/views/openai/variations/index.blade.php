@@ -506,6 +506,72 @@
 
 @push('scripts')
 <script>
+(function(){
+  // Preço histórico ao lado do campo "Atualizado"
+  document.addEventListener('DOMContentLoaded', function(){
+    try{
+      const spans = Array.from(document.querySelectorAll('span[data-hist-quote][data-symbol][data-date]'));
+      if(spans.length === 0) return;
+      const ENDPOINT = "{{ route('api.market.historical') }}";
+      const cache = new Map(); // key: sym|date -> Promise<{ok, text, title}>
+      function fmtCurrency(v, cur){
+        const n = Number(v);
+        if(!isFinite(n)) return '—';
+        const code = (cur||'').toUpperCase();
+        const curLabel = code==='BRL' ? 'R$' : (code==='USD' ? 'US$' : (code||''));
+        const locale = code==='BRL' ? 'pt-BR' : 'en-US';
+        const num = n.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return (curLabel ? (curLabel + ' ') : '') + num;
+      }
+      function fetchHist(symbol, date){
+        const key = symbol + '|' + date;
+        if(cache.has(key)) return cache.get(key);
+        const p = (async()=>{
+          try{
+            const url = ENDPOINT + '?symbol=' + encodeURIComponent(symbol) + '&date=' + encodeURIComponent(date);
+            const resp = await fetch(url, { headers: { 'Accept':'application/json' } });
+            const data = await resp.json().catch(()=>null);
+            if(!resp.ok || !data){
+              const title = 'Sem preço para ' + symbol + ' em ' + date + (data && data.source ? (' • fonte: ' + data.source) : '');
+              return { ok:false, text:'—', title: title };
+            }
+            const txt = fmtCurrency(data.price, data.currency);
+            const title = (data.source ? ('Fonte: ' + data.source) : 'Preço histórico') + (data.detail ? ('\n' + String(data.detail)) : '');
+            return { ok:true, text: txt, title };
+          }catch(_e){
+            return { ok:false, text:'—', title:'Falha ao buscar preço histórico' };
+          }
+        })();
+        cache.set(key, p);
+        return p;
+      }
+      // Limitar concorrência leve para evitar saturar
+      const MAX_CONC = 3;
+      let idx = 0, active = 0;
+      function next(){
+        while(active < MAX_CONC && idx < spans.length){
+          const el = spans[idx++];
+          const sym = (el.getAttribute('data-symbol')||'').toUpperCase();
+          const dt = el.getAttribute('data-date')||'';
+          if(!sym || !dt){ continue; }
+          active++;
+          fetchHist(sym, dt).then(r=>{
+            try{
+              el.textContent = '(' + (r && r.text ? r.text : '—') + ')';
+              if(r && r.title) el.setAttribute('title', r.title);
+            }catch(_e){}
+          }).finally(()=>{ active--; next(); });
+        }
+      }
+      next();
+    }catch(_e){/* noop */}
+  });
+})();
+</script>
+@endpush
+
+@push('scripts')
+<script>
   (function(){
     // Confirmação ao trocar mês via atalhos
     const group = document.getElementById('month-shortcuts-group');
@@ -1139,7 +1205,18 @@
               @endif
             </td>
             <td>{{ $v->created_at?->timezone(config('app.timezone'))->format('d/m/Y H:i') }}</td>
-            <td>{{ $v->updated_at?->timezone(config('app.timezone'))->format('d/m/Y H:i') }}</td>
+            @php $updDisp = $v->updated_at?->timezone(config('app.timezone')); $updIso = $updDisp?->toDateString(); @endphp
+            <td>
+              {{ $updDisp?->format('d/m/Y H:i') }}
+              @if($updIso && ($v->asset_code ?? ''))
+                <span class="text-muted small ms-1" data-hist-quote
+                      data-symbol="{{ strtoupper($v->asset_code) }}"
+                      data-date="{{ $updIso }}"
+                      title="Preço na data do 'Atualizado'">
+                  (—)
+                </span>
+              @endif
+            </td>
             <td class="text-center">
               @php $flagCode = strtoupper(trim($v->asset_code ?? '')); @endphp
               @if($flagCode !== '')
