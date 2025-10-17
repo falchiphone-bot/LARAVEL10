@@ -35,7 +35,17 @@
     @if(!empty($linhas))
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
-        <div><strong>Resultados</strong></div>
+        <div>
+          <strong>Resultados</strong>
+          @php
+            $empresaSel = collect($empresas ?? [])->firstWhere('ID', $empresaId);
+            $empresaNome = $empresaSel->Descricao ?? '';
+          @endphp
+          <div class="small text-muted mt-1">
+            Empresa: <strong>{{ $empresaNome ?: '—' }}</strong>
+            &nbsp;•&nbsp; Período: <strong>{{ $deBr ?: '—' }}</strong> a <strong>{{ $ateBr ?: '—' }}</strong>
+          </div>
+        </div>
         <div class="d-flex gap-2">
           <a class="btn btn-sm btn-outline-primary" href="{{ route('lancamentos.balancete.exportXlsx', request()->all()) }}">Exportar XLSX</a>
           <a class="btn btn-sm btn-outline-primary" href="{{ route('lancamentos.balancete.exportCsv', request()->all()) }}">Exportar CSV</a>

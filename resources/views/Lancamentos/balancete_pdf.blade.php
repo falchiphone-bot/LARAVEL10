@@ -13,6 +13,14 @@
 </head>
 <body>
     <h3>Balancete por período</h3>
+    @php
+        $empresaSel = collect($empresas ?? [])->firstWhere('ID', $empresaId);
+        $empresaNome = $empresaSel->Descricao ?? '';
+    @endphp
+    <p style="margin:4px 0 12px 0; font-size: 12px;">
+        Empresa: <strong>{{ $empresaNome ?: '—' }}</strong>
+        &nbsp;•&nbsp; Período: <strong>{{ $deBr ?: '—' }}</strong> a <strong>{{ $ateBr ?: '—' }}</strong>
+    </p>
     @php $temGrupos = !empty($grupos ?? []); @endphp
     @if($temGrupos)
         @foreach($grupos as $g)

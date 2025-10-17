@@ -3882,6 +3882,11 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         $empresaId = $data['empresa_id'] ?? ($empresas->first()->ID ?? null);
         $de = isset($data['de']) ? new \DateTimeImmutable($data['de']) : null;
         $ate = isset($data['ate']) ? new \DateTimeImmutable($data['ate']) : null;
+        $empresaNome = '';
+        try {
+            $row = $empresas->firstWhere('ID', $empresaId);
+            if ($row) { $empresaNome = (string)$row->Descricao; }
+        } catch (\Throwable $e) { /* noop */ }
 
         $linhas = [];
         $totDeb = 0.0; $totCred = 0.0; $totSaldo = 0.0;
@@ -3957,11 +3962,16 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         // DRE (Receitas, Despesas, Resultado)
         [$dreReceitas, $dreDespesas, $dreResultado, $dreIsPrejuizo] = $this->computeDre($grupos);
 
+        $deBr = $de?->format('d/m/Y');
+        $ateBr = $ate?->format('d/m/Y');
         return view('Lancamentos.balancete', [
             'empresas' => $empresas,
             'empresaId' => $empresaId,
+            'empresaNome' => $empresaNome,
             'de' => $de?->format('Y-m-d'),
             'ate' => $ate?->format('Y-m-d'),
+            'deBr' => $deBr,
+            'ateBr' => $ateBr,
             'linhas' => $linhas,
             'grupos' => $grupos,
             'totDeb' => $totDeb,
@@ -3977,30 +3987,59 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
     // Exporta balancete em XLSX
     public function balanceteExportXlsx(Request $request)
     {
-        [$linhas,$totDeb,$totCred,$totSaldo] = $this->buildBalanceteData($request);
+        // Usar payload completo para compor nome de arquivo com empresa e período
+        [$empresas,$empresaId,$linhas,$totDeb,$totCred,$totSaldo,$de,$ate] = $this->buildBalancetePayload($request);
+        $empresaNome = '';
+        try {
+            $row = $empresas->firstWhere('ID', $empresaId);
+            if ($row) { $empresaNome = (string)$row->Descricao; }
+        } catch (\Throwable $e) { /* noop */ }
+        $empresaSlug = \Illuminate\Support\Str::slug($empresaNome ?: 'empresa', '_');
+        $deIso = $de ?: 'sem-de';
+        $ateIso = $ate ?: 'sem-ate';
         $grupos = $this->groupLinhasByCodigoTop($linhas);
-        $file = 'balancete_'.date('Ymd_His').'.xlsx';
+        $file = "balancete_{$empresaSlug}_{$deIso}_{$ateIso}.xlsx";
         return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\BalanceteExport($linhas,$totDeb,$totCred,$totSaldo,$grupos), $file);
     }
 
     // Exporta balancete em CSV
     public function balanceteExportCsv(Request $request)
     {
-        [$linhas,$totDeb,$totCred,$totSaldo] = $this->buildBalanceteData($request);
+        [$empresas,$empresaId,$linhas,$totDeb,$totCred,$totSaldo,$de,$ate] = $this->buildBalancetePayload($request);
+        $empresaNome = '';
+        try {
+            $row = $empresas->firstWhere('ID', $empresaId);
+            if ($row) { $empresaNome = (string)$row->Descricao; }
+        } catch (\Throwable $e) { /* noop */ }
+        $empresaSlug = \Illuminate\Support\Str::slug($empresaNome ?: 'empresa', '_');
+        $deIso = $de ?: 'sem-de';
+        $ateIso = $ate ?: 'sem-ate';
         $grupos = $this->groupLinhasByCodigoTop($linhas);
-        $file = 'balancete_'.date('Ymd_His').'.csv';
+        $file = "balancete_{$empresaSlug}_{$deIso}_{$ateIso}.csv";
         return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\BalanceteExport($linhas,$totDeb,$totCred,$totSaldo,$grupos), $file, \Maatwebsite\Excel\Excel::CSV);
     }
 
     // Exporta balancete em PDF (renderiza a mesma view em PDF)
     public function balanceteExportPdf(Request $request)
     {
-        [$linhas,$totDeb,$totCred,$totSaldo,$empresas,$empresaId,$de,$ate] = $this->buildBalancetePayload($request);
-        $grupos = $this->groupLinhasByCodigoTop($linhas);
+        // buildBalancetePayload retorna: [empresas, empresaId, linhas, totDeb, totCred, totSaldo, de, ate]
+        [$empresas,$empresaId,$linhas,$totDeb,$totCred,$totSaldo,$de,$ate] = $this->buildBalancetePayload($request);
+        $empresaNome = '';
+        try {
+            $row = $empresas->firstWhere('ID', $empresaId);
+            if ($row) { $empresaNome = (string)$row->Descricao; }
+        } catch (\Throwable $e) { /* noop */ }
+    $grupos = $this->groupLinhasByCodigoTop($linhas);
+    // $de/$ate vindos do payload são strings 'Y-m-d'; formatar com segurança para pt-BR
+    $deBr = $de ? date('d/m/Y', strtotime($de)) : null;
+    $ateBr = $ate ? date('d/m/Y', strtotime($ate)) : null;
         [$dreReceitas, $dreDespesas, $dreResultado, $dreIsPrejuizo] = $this->computeDre($grupos);
-        $html = view('Lancamentos.balancete_pdf', compact('empresas','empresaId','de','ate','linhas','grupos','totDeb','totCred','totSaldo','dreReceitas','dreDespesas','dreResultado','dreIsPrejuizo'))->render();
+        $html = view('Lancamentos.balancete_pdf', compact('empresas','empresaId','empresaNome','de','ate','deBr','ateBr','linhas','grupos','totDeb','totCred','totSaldo','dreReceitas','dreDespesas','dreResultado','dreIsPrejuizo'))->render();
+        $empresaSlug = \Illuminate\Support\Str::slug($empresaNome ?: 'empresa', '_');
+        $deIso = $de ?: 'sem-de';
+        $ateIso = $ate ?: 'sem-ate';
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)->setPaper('a4', 'portrait');
-        return $pdf->download('balancete_'.date('Ymd_His').'.pdf');
+        return $pdf->download("balancete_{$empresaSlug}_{$deIso}_{$ateIso}.pdf");
     }
 
     // Helper interno para montar os dados do balancete (linhas + totais)
