@@ -4,15 +4,15 @@
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
       <div class="order-3 order-lg-2 ms-auto d-flex align-items-center gap-2">
         <button type="button" id="btn-toggle-openai-records-layout" class="btn btn-outline-dark btn-sm" title="Alterna exibição compacta (oculta cabeçalhos e filtros)">Modo Compacto</button>
+        <button type="button" id="btnAutoSaveVariations" class="btn btn-sm btn-success" title="Salvar variações automaticamente para cada ativo (na lista atual, sem trocar o filtro de conversa)">Auto salvar variações</button>
+        <div class="btn-group">
+          <button type="button" id="btnAutoVarSeq" class="btn btn-sm btn-primary" title="Executa ativo por ativo: aplica Conversa, mantém datas exatas e salva a variação; segue até o próximo ativo">Auto variações (sequencial)</button>
+          <button type="button" id="btnAutoVarStop" class="btn btn-sm btn-outline-danger" title="Parar execução sequencial" style="display:none;">Parar</button>
+        </div>
       </div>
-    <form method="POST" action="{{ route('openai.records.saveVariation') }}" class="d-flex align-items-center gap-2">
-      @csrf
-      <input type="hidden" name="chat_id" value="{{ $chatId ?? '' }}">
-      <input type="hidden" name="asset_code" value="{{ $asset ?? '' }}">
-      <input type="hidden" name="from" value="{{ $from ?? '' }}">
-      <input type="hidden" name="to" value="{{ $to ?? '' }}">
-      <button type="submit" class="btn btn-warning">Salvar Variação das Datas</button>
-    </form>
+    <div class="d-flex align-items-center gap-2">
+      <button type="button" id="btnSaveCurrentVariation" class="btn btn-warning" title="Salvar a variação da primeira linha (mais recente) da conversa atual, usando as datas e filtro exato">Salvar Variação (atual)</button>
+    </div>
     <h1 class="h4 mb-0 d-flex align-items-center gap-2">
       Registros de Conversas
       <x-market.badge storageKey="records.localBadge.visible" idPrefix="records" />
@@ -152,6 +152,281 @@
       });
     }
   });
+  </script>
+  <script>
+    // Rotina automática: salva a variação da primeira linha de cada chat visível, em sequência
+    (function(){
+      const btnRun = document.getElementById('btnAutoSaveVariations');
+      if(!btnRun) return;
+      const token = '{{ csrf_token() }}';
+      function qsParam(name){
+        const params = new URLSearchParams(location.search); return params.get(name);
+      }
+      async function doRequest(payload){
+        const resp = await fetch(@json(route('openai.records.saveVariation')),{ method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':token,'X-Requested-With':'XMLHttpRequest'}, body: JSON.stringify(payload) });
+        let data = {};
+        try { data = await resp.json(); } catch(_e){}
+        return {resp,data};
+      }
+      function collectTargets(){
+        // Por padrão, apenas a primeira linha de cada chat tem o botão visível (script acima já faz isso)
+        const list = Array.from(document.querySelectorAll('.save-var-btn')).filter(b=>!b.classList.contains('d-none'));
+        // Garante ordem estável por chat e data (mais recente primeiro, já está), então só retorna na ordem atual
+        return list;
+      }
+      function ensureExactFilterWarn(){
+        const from = qsParam('from'); const to = qsParam('to'); const exact = qsParam('filter_exact');
+        if(!from || !to || exact!=='1'){
+          // Aviso não bloqueante — usuário pode preferir outro filtro
+          console.warn('Dica: use filtro exato e informe as datas "De/Até" para variação entre dias específicos.');
+        }
+      }
+      btnRun.addEventListener('click', async function(){
+        btnRun.disabled = true; const original = btnRun.textContent; btnRun.textContent = 'Processando…';
+        ensureExactFilterWarn();
+        const targets = collectTargets();
+        if(targets.length === 0){
+          btnRun.textContent = 'Nada a salvar'; setTimeout(()=>{ btnRun.textContent = original; btnRun.disabled = false; }, 2000); return;
+        }
+        let ok=0, err=0, skipped=0;
+        for(const el of targets){
+          const chatId = el.getAttribute('data-chat');
+          let variation = el.getAttribute('data-var');
+          let date = el.getAttribute('data-date');
+          // Fallback: extrai da tabela se faltar
+          const tr = el.closest('tr[data-chat-id]');
+          if(tr){
+            if(!date){ const occ = tr.getAttribute('data-occurred-at'); if(occ){ date = occ.substring(0,10); } }
+            if(!variation || isNaN(Number(variation))){
+              const upperVal = Number(tr.getAttribute('data-amount'));
+              // procura a próxima linha do mesmo chat (a de baixo)
+              let lowerVal = null; let sib = tr.nextElementSibling;
+              while(sib){ if(sib.matches('tr[data-chat-id="'+chatId+'"]')){ lowerVal = Number(sib.getAttribute('data-amount')); break; } sib = sib.nextElementSibling; }
+              if(lowerVal !== null && !isNaN(lowerVal) && lowerVal !== 0 && !isNaN(upperVal)){
+                variation = String(((upperVal - lowerVal) / lowerVal) * 100.0);
+              } else if(!variation){ variation = '0'; }
+            }
+          }
+          // Feedback visual por linha
+          el.disabled = true; const prevText = el.textContent; el.textContent='…';
+          try {
+            let {resp,data} = await doRequest({ chat_id: chatId, variation: variation, date: date });
+            if(resp.status === 409 && data?.needs_confirm){
+              ({resp,data} = await doRequest({ chat_id: chatId, variation: variation, date: date, confirm: 1 }));
+            }
+            if(!resp.ok || !data?.ok){
+              err++; el.classList.remove('btn-outline-primary','btn-outline-secondary'); el.classList.add('btn-outline-danger'); el.textContent='Erro'; el.title=(data && (data.error||data.message))||'Falha';
+            } else {
+              ok++; el.classList.remove('btn-outline-primary','btn-outline-secondary'); el.classList.add('btn-success','text-white'); el.textContent='OK'; el.title=(data.message||'Variação salva')+' ('+data.month+'/'+data.year+')';
+            }
+          } catch(e){ err++; el.classList.add('btn-outline-danger'); el.textContent='Erro'; el.title = e.message||'Erro'; }
+        }
+        btnRun.textContent = `Concluído: ${ok} ok, ${err} erro(s)`;
+        setTimeout(()=>{ btnRun.textContent = original; btnRun.disabled = false; }, 4000);
+      });
+    })();
+  </script>
+  <script>
+    // Execução SEQUENCIAL entre ativos (troca a conversa/chat e continua após recarregar a página)
+    (function(){
+      const storageKey = 'openai_autoVarSeq';
+      const btnStart = document.getElementById('btnAutoVarSeq');
+      const btnStop = document.getElementById('btnAutoVarStop');
+      const token = '{{ csrf_token() }}';
+      function getQS(name){ const p=new URLSearchParams(location.search); return p.get(name); }
+      function setVisible(el, on){ if(el){ el.style.display = on ? '' : 'none'; } }
+      function currentParams(){
+        const from = document.querySelector('input[name="from"]')?.value || getQS('from') || '';
+        const to = document.querySelector('input[name="to"]')?.value || getQS('to') || '';
+        return { from, to };
+      }
+      function saveState(state){ localStorage.setItem(storageKey, JSON.stringify(state)); }
+      function loadState(){ try { return JSON.parse(localStorage.getItem(storageKey)||'{}')||{}; } catch(_e){ return {}; } }
+      function waitForSaveBtn(timeoutMs=5000){
+        return new Promise(resolve=>{
+          const start = performance.now();
+          const tick = ()=>{
+            const el = document.querySelector('.save-var-btn:not(.d-none)');
+            if(el){ resolve(el); return; }
+            if(performance.now()-start > timeoutMs){ resolve(null); return; }
+            setTimeout(tick, 100);
+          };
+          tick();
+        });
+      }
+      async function doRequest(payload){
+        const resp = await fetch(@json(route('openai.records.saveVariation')),{ method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':token,'X-Requested-With':'XMLHttpRequest'}, body: JSON.stringify(payload) });
+        let data = {}; try{ data = await resp.json(); }catch(_e){}
+        return {resp,data};
+      }
+      function collectChatsFromTable(){
+        const rows = Array.from(document.querySelectorAll('table.table tbody tr[data-chat-id]'));
+        const seen = new Set(); const list=[];
+        rows.forEach(tr=>{ const id = tr.getAttribute('data-chat-id'); if(id && !seen.has(id)){ seen.add(id); list.push(id); } });
+        return list;
+      }
+      function collectChatsFromSelect(){
+        const sel = document.getElementById('filter_chat_id');
+        if(!sel) return [];
+        const ids = [];
+        Array.from(sel.options).forEach(opt=>{ const v = opt.value; if(v && String(v).trim() !== '') ids.push(String(v)); });
+        return ids;
+      }
+      function submitFilterToChat(chatId, from, to){
+        const form = document.querySelector('form[action*="openai/records"]');
+        const sel = document.getElementById('filter_chat_id');
+        if(form && sel){
+          sel.value = String(chatId);
+          // datas
+          const inFrom = form.querySelector('input[name="from"]');
+          const inTo = form.querySelector('input[name="to"]');
+          if(inFrom) inFrom.value = from || '';
+          if(inTo) inTo.value = to || '';
+          // filter_exact=1
+          let h = form.querySelector('input[name="filter_exact"]');
+          if(!h){ h = document.createElement('input'); h.type='hidden'; h.name='filter_exact'; form.appendChild(h); }
+          h.value = '1';
+          form.submit();
+        } else {
+          // fallback: navegação por URL
+          const params = new URLSearchParams(location.search);
+          params.set('chat_id', chatId);
+          if(from) params.set('from', from); else params.delete('from');
+          if(to) params.set('to', to); else params.delete('to');
+          params.set('filter_exact','1');
+          location.href = location.pathname + '?' + params.toString();
+        }
+      }
+      async function runForCurrentPageThenNext(){
+        const state = loadState();
+        if(!state.active || !Array.isArray(state.queue)) return;
+        const idx = state.index || 0;
+        if(idx >= state.queue.length){
+          // Concluído
+          state.active=false; saveState(state); setVisible(btnStop,false);
+          if(btnStart){ btnStart.textContent = 'Auto variações (sequencial)'; btnStart.disabled=false; }
+          alert(`Sequência concluída: ${state.ok||0} ok, ${state.err||0} erro(s), ${state.skip||0} sem dados.`);
+          return;
+        }
+        const expectedChat = String(state.queue[idx]);
+        const curChat = String(getQS('chat_id')||'');
+        if(curChat !== expectedChat){
+          submitFilterToChat(expectedChat, state.params?.from||'', state.params?.to||'');
+          return; // após reload, voltamos aqui
+        }
+        // Tenta localizar a primeira linha com botão de salvar visível
+        const btn = await waitForSaveBtn(6000);
+        if(!btn){
+          // nada para salvar neste ativo
+          state.skip = (state.skip||0)+1; state.index = idx+1; saveState(state);
+          // vai para o próximo
+          const next = state.queue[state.index];
+          if(next){ submitFilterToChat(String(next), state.params?.from||'', state.params?.to||''); }
+          else { runForCurrentPageThenNext(); }
+          return;
+        }
+        // Extrai dados do botão
+        const chatId = btn.getAttribute('data-chat');
+        const variation = btn.getAttribute('data-var');
+        const date = btn.getAttribute('data-date');
+        try {
+          let {resp,data} = await doRequest({ chat_id: chatId, variation: variation, date: date });
+          if(resp.status === 409 && data?.needs_confirm){
+            ({resp,data} = await doRequest({ chat_id: chatId, variation: variation, date: date, confirm: 1 }));
+          }
+          if(!resp.ok || !data?.ok){ state.err=(state.err||0)+1; }
+          else { state.ok=(state.ok||0)+1; }
+        } catch(_e){ state.err=(state.err||0)+1; }
+        state.index = idx+1; saveState(state);
+        // Próximo ativo
+        const next = state.queue[state.index];
+        if(next){
+          // pequena pausa para evitar estouro
+          setTimeout(()=> submitFilterToChat(String(next), state.params?.from||'', state.params?.to||''), 250);
+        } else {
+          runForCurrentPageThenNext();
+        }
+      }
+      function startSequence(){
+        const {from,to} = currentParams();
+        if(!from || !to){ alert('Informe as datas De e Até antes de iniciar a execução sequencial.'); return; }
+        // Prioriza ordem do select (como o usuário faria), senão cai na tabela
+        let queue = collectChatsFromSelect();
+        if(queue.length === 0) queue = collectChatsFromTable();
+        if(queue.length === 0){ alert('Nenhum ativo encontrado na lista atual. Ajuste o filtro.'); return; }
+        // Se houver conversa já selecionada, começa por ela e segue adiante
+        const sel = document.getElementById('filter_chat_id');
+        const curSel = sel ? String(sel.value||'') : '';
+        if(curSel){
+          const idx = queue.indexOf(curSel);
+          if(idx >= 0){ queue = queue.slice(idx).concat(queue.slice(0, idx)); }
+        }
+        const state = { active:true, queue, index:0, ok:0, err:0, skip:0, params:{from,to} };
+        saveState(state);
+        if(btnStart){ btnStart.disabled=true; btnStart.textContent='Rodando…'; }
+        setVisible(btnStop,true);
+        // Vai para o primeiro
+        submitFilterToChat(String(queue[0]), from, to);
+      }
+      function stopSequence(){ const s = loadState(); s.active=false; saveState(s); setVisible(btnStop,false); if(btnStart){ btnStart.disabled=false; btnStart.textContent='Auto variações (sequencial)'; } }
+      btnStart?.addEventListener('click', startSequence);
+      btnStop?.addEventListener('click', stopSequence);
+      // Ao carregar a página, se estiver ativo, continua
+      document.addEventListener('DOMContentLoaded', ()=>{
+        const s = loadState();
+        if(s.active){ setVisible(btnStop,true); if(btnStart){ btnStart.disabled=true; btnStart.textContent='Rodando…'; } runForCurrentPageThenNext(); }
+      });
+    })();
+  </script>
+  <script>
+    // Botão: Salvar Variação (atual) — usa a primeira linha visível e envia variação/data corretamente
+    (function(){
+      const btn = document.getElementById('btnSaveCurrentVariation');
+      if(!btn) return;
+      const token = '{{ csrf_token() }}';
+      async function doRequest(payload){
+        const resp = await fetch(@json(route('openai.records.saveVariation')),{ method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':token,'X-Requested-With':'XMLHttpRequest'}, body: JSON.stringify(payload) });
+        let data = {}; try{ data = await resp.json(); }catch(_e){}
+        return {resp,data};
+      }
+      function findFirstSaveBtn(){ return document.querySelector('.save-var-btn:not(.d-none)'); }
+      btn.addEventListener('click', async function(){
+        const el = findFirstSaveBtn();
+        if(!el){ alert('Não foi possível localizar a variação na tabela. Verifique se a conversa e o filtro estão corretos.'); return; }
+        const chatId = el.getAttribute('data-chat');
+        let variation = el.getAttribute('data-var');
+        let date = el.getAttribute('data-date');
+        const tr = el.closest('tr[data-chat-id]');
+        if(tr){
+          if(!date){ const occ = tr.getAttribute('data-occurred-at'); if(occ){ date = occ.substring(0,10); } }
+          if(!variation || isNaN(Number(variation))){
+            const upperVal = Number(tr.getAttribute('data-amount'));
+            let lowerVal = null; let sib = tr.nextElementSibling;
+            while(sib){ if(sib.matches('tr[data-chat-id="'+chatId+'"]')){ lowerVal = Number(sib.getAttribute('data-amount')); break; } sib = sib.nextElementSibling; }
+            if(lowerVal !== null && !isNaN(lowerVal) && lowerVal !== 0 && !isNaN(upperVal)){
+              variation = String(((upperVal - lowerVal) / lowerVal) * 100.0);
+            } else if(!variation){ variation = '0'; }
+          }
+        }
+        btn.disabled = true; const original = btn.textContent; btn.textContent='Salvando…';
+        try {
+          let {resp,data} = await doRequest({ chat_id: chatId, variation: variation, date: date });
+          if(resp.status === 409 && data?.needs_confirm){
+            const proceed = window.confirm('Existe variação para este mês. Deseja substituir?');
+            if(!proceed){ btn.disabled=false; btn.textContent=original; return; }
+            ({resp,data} = await doRequest({ chat_id: chatId, variation: variation, date: date, confirm: 1 }));
+          }
+          if(!resp.ok || !data?.ok){
+            btn.classList.remove('btn-warning'); btn.classList.add('btn-outline-danger'); btn.textContent='Erro'; btn.title=(data && (data.error||data.message))||'Falha';
+          } else {
+            btn.classList.remove('btn-warning'); btn.classList.add('btn-success','text-white'); btn.textContent='Salvo'; btn.title=(data.message||'Variação salva')+' ('+data.month+'/'+data.year+')';
+            setTimeout(()=>{ btn.classList.remove('btn-success','text-white'); btn.classList.add('btn-warning'); btn.textContent=original; btn.disabled=false; }, 2500);
+            return;
+          }
+        } catch(e){ btn.classList.remove('btn-warning'); btn.classList.add('btn-outline-danger'); btn.textContent='Erro'; btn.title=e.message||'Erro'; }
+        setTimeout(()=>{ btn.textContent=original; btn.disabled=false; btn.classList.remove('btn-outline-danger'); btn.classList.add('btn-warning'); }, 3000);
+      });
+    })();
   </script>
   @endpush
 
