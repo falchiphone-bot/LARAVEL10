@@ -18,6 +18,8 @@ use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\Calculation\DateTimeExcel\Days;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\LancamentoExport;
@@ -1404,8 +1406,12 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         // Overrides opcionais vindos do Extrato (empresa e conta crédito global)
         $overrideEmpresaId = $request->input('empresa_id');
         $overrideGlobalCreditId = $request->input('conta_credito_global_id');
+        // Modo especial de extrato (ex.: 'santander') que altera regras de sinal/débito/crédito
+        $extratoMode = $request->input('extrato_mode');
+        $isSantanderMode = ($extratoMode === 'santander');
         // Aplica filtro de DÉBITO automaticamente quando vier do Extrato (override presente)
-        $applyDebitoFilter = !empty($overrideEmpresaId) || !empty($overrideGlobalCreditId);
+        // No modo Santander não aplicar filtro de DÉBITO (iremos lançar entradas e saídas)
+        $applyDebitoFilter = !$isSantanderMode && (!empty($overrideEmpresaId) || !empty($overrideGlobalCreditId));
         // Função para normalizar string (remover acentos e uppercase)
         $upperNoAccents = function($s){
             $s = (string)$s;
@@ -1598,7 +1604,21 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         };
         // Upload direto (opcional)
         if($request->hasFile('arquivo_excel')){
-            $request->validate(['arquivo_excel' => 'file|mimes:xlsx,xls,csv|max:5120']);
+            // Limpa caches antes de iniciar a importação para evitar erro de preg_replace em reimportações
+            try {
+                \Artisan::call('optimize:clear');
+            } catch (\Throwable $e) {
+                try { \Artisan::call('view:clear'); } catch (\Throwable $e2) { /* ignora */ }
+            }
+            // Aceita CSV com variações de MIME (alguns navegadores/bancos enviam como text/plain ou application/vnd.ms-excel)
+            $request->validate([
+                'arquivo_excel' => [
+                    'file',
+                    'max:5120',
+                    'mimes:xlsx,xls,csv,txt',
+                    'mimetypes:text/plain,text/csv,application/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/octet-stream'
+                ]
+            ]);
             $uploaded = $request->file('arquivo_excel');
             $storedName = $uploaded->getClientOriginalName();
             $uploaded->storeAs('imports', $storedName);
@@ -1610,6 +1630,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                 // Propaga overrides de contexto do Extrato, quando presentes
                 'empresa_id' => $overrideEmpresaId,
                 'conta_credito_global_id' => $overrideGlobalCreditId,
+                'extrato_mode' => $extratoMode,
             ]);
         }
 
@@ -1626,13 +1647,31 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             }
         }
         $regexRaw = $request->query('regex'); // formato: /expr/flags=>replace|/expr2/flags=>rep2
-        $regexSubs = [];
+                $regexSubs = [];
         if($regexRaw){
             foreach(explode('|',$regexRaw) as $pair){
                 if(strpos($pair,'=>')!==false){
                     [$a,$b] = explode('=>',$pair,2); $regexSubs[$a] = $b; }
             }
         }
+                // Aplicador seguro de regex para evitar quebra por padrões inválidos
+                $safeApplyRegex = function($text) use ($regexSubs){
+                    if(!$regexSubs) return $text;
+                    $out = $text;
+                    foreach($regexSubs as $pattern=>$rep){
+                        if(!is_string($pattern) || $pattern==='') continue;
+                        // Valida compilação sem disparar warnings
+                        if(@preg_match($pattern, '') === false){ continue; }
+                        try {
+                            $tmp = @preg_replace($pattern, $rep, $out);
+                            if($tmp !== null) { $out = $tmp; }
+                        } catch(\Throwable $e) {
+                            // ignora padrão inválido
+                            continue;
+                        }
+                    }
+                    return $out;
+                };
 
         $basePath = storage_path('app/imports');
         $fullPath = $basePath.DIRECTORY_SEPARATOR.$file;
@@ -1663,6 +1702,9 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             $globalCreditContaId = $cached['global_credit_conta_id'] ?? null;
             $globalCreditContaLabel = $cached['global_credit_conta_label'] ?? null;
             $globalCreditContaLocked = $cached['global_credit_conta_locked'] ?? false;
+            // Resgata modo extrato do cache quando presente
+            $cachedExtratoMode = $cached['extrato_mode'] ?? null;
+            if(!$extratoMode && $cachedExtratoMode){ $extratoMode = $cachedExtratoMode; $isSantanderMode = ($extratoMode==='santander'); }
             // Inferência também no caminho de cache
             if(in_array('EMPRESA_ID',$headers,true)){
                 foreach($rows as $rX){ if(!empty($rX['EMPRESA_ID'])){ $empresaIdFromFile = (int)$rX['EMPRESA_ID']; break; } }
@@ -1758,14 +1800,348 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                 $rows = $payload['rows'];
                 $touched = true;
             }
+            // Auto-classificação: no modo Santander
+            if($isSantanderMode){
+                $empresaForRule = $payload['selected_empresa_id'] ?? $selectedEmpresaId;
+                if($empresaForRule){
+                    // Recebimentos (PIX RECEBIDO) => RECEBIMENTO DE VENDAS
+                    $contaRecebId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                        ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                        ->where('PlanoContas.Descricao','RECEBIMENTO DE VENDAS')
+                        ->value('Contas.ID');
+                    if($contaRecebId){ $contaRecebLabel = \App\Models\Conta::where('Contas.ID',$contaRecebId)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->value('PlanoContas.Descricao'); }
+                    // Recebimentos (plural) => RECEBIMENTOS DE VENDAS (preferir esta conta quando o histórico indicar depósito em dinheiro)
+                    $contaRecebPluralId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                        ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                        ->where('PlanoContas.Descricao','RECEBIMENTOS DE VENDAS')
+                        ->value('Contas.ID');
+                    if($contaRecebPluralId){ $contaRecebPluralLabel = \App\Models\Conta::where('Contas.ID',$contaRecebPluralId)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->value('PlanoContas.Descricao'); }
+                    // Recebimentos específicos: ANTECIPAÇÃO GETNET => RECEBIMENTO DE VENDAS - ANTECIPACAO DE CARTAO CREDITO
+                    $contaAntGetnetId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                        ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                        ->where('PlanoContas.Descricao','RECEBIMENTO DE VENDAS - ANTECIPACAO DE CARTAO CREDITO')
+                        ->value('Contas.ID');
+                    if($contaAntGetnetId){ $contaAntGetnetLabel = \App\Models\Conta::where('Contas.ID',$contaAntGetnetId)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->value('PlanoContas.Descricao'); }
+                    // TED RECEBIDA => VENDA DE MERCADORIAS (preferir singular), fallback VENDAS DE MERCADORIAS
+                    $contaVendasMercId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                        ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                        ->where('PlanoContas.Descricao','VENDA DE MERCADORIAS')
+                        ->value('Contas.ID');
+                    if(!$contaVendasMercId){
+                        $contaVendasMercId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->where('PlanoContas.Descricao','VENDAS DE MERCADORIAS')
+                            ->value('Contas.ID');
+                    }
+                    if($contaVendasMercId){ $contaVendasMercLabel = \App\Models\Conta::where('Contas.ID',$contaVendasMercId)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->value('PlanoContas.Descricao'); }
+                    // Compras
+                    // Prioriza "COMPRA DE MERCADORIAS"; se não existir, usa "COMPRAS DE MERCADORIAS"
+                    $contaComprasId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                        ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                        ->where('PlanoContas.Descricao','COMPRA DE MERCADORIAS')
+                        ->value('Contas.ID');
+                    if(!$contaComprasId){
+                        $contaComprasId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->where('PlanoContas.Descricao','COMPRAS DE MERCADORIAS')
+                            ->value('Contas.ID');
+                    }
+                    if($contaComprasId){ $contaComprasLabel = \App\Models\Conta::where('Contas.ID',$contaComprasId)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->value('PlanoContas.Descricao'); }
+                    // Tarifas Pix => TARIFAS SOBRE PIX
+                    $contaTarifaPixId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                        ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                        ->where('PlanoContas.Descricao','TARIFAS SOBRE PIX')
+                        ->value('Contas.ID');
+                    if($contaTarifaPixId){ $contaTarifaPixLabel = \App\Models\Conta::where('Contas.ID',$contaTarifaPixId)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->value('PlanoContas.Descricao'); }
+                    // Juros de utilização de cheque especial => JUROS UTILIZ.CH.ESPECIAL
+                    $contaJurosCheqEspId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                        ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                        ->where('PlanoContas.Descricao','JUROS UTILIZ.CH.ESPECIAL')
+                        ->value('Contas.ID');
+                    if($contaJurosCheqEspId){ $contaJurosCheqEspLabel = \App\Models\Conta::where('Contas.ID',$contaJurosCheqEspId)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->value('PlanoContas.Descricao'); }
+            // CONTRATACAO EMPRESTIMOS FINANCIAMENTO (tenta nova descrição primeiro), fallback antigo e LIKE amplo
+                    $contaContrEmpFinId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                        ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                        ->where('PlanoContas.Descricao','CONTRATACAO EMPRESTIMOS FINANCIAMENTO')
+                        ->value('Contas.ID');
+                    if(!$contaContrEmpFinId){
+                        $contaContrEmpFinId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->where('PlanoContas.Descricao','CONTRATACAO EMPREST/FINANCIAMENTO')
+                            ->value('Contas.ID');
+                    }
+                    if(!$contaContrEmpFinId){
+                        // Fallback amplo: variações de nome
+                        $contaContrEmpFinId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->where(function($q){
+                                $q->where('PlanoContas.Descricao','like','%CONTRAT%');
+                            })
+                            ->where(function($q){
+                                $q->where('PlanoContas.Descricao','like','%EMPREST%')
+                                  ->orWhere('PlanoContas.Descricao','like','%FINANC%');
+                            })
+                            ->value('Contas.ID');
+                    }
+            if($contaContrEmpFinId){ $contaContrEmpFinLabel = \App\Models\Conta::where('Contas.ID',$contaContrEmpFinId)
+                ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                ->value('PlanoContas.Descricao'); }
+                    // TARIFA CONTRATACAO / ADITAMENTO
+                    $contaTarifaContrAditId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                        ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                        ->where('PlanoContas.Descricao','TARIFA CONTRATACAO / ADITAMENTO')
+                        ->value('Contas.ID');
+                    if($contaTarifaContrAditId){ $contaTarifaContrAditLabel = \App\Models\Conta::where('Contas.ID',$contaTarifaContrAditId)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->value('PlanoContas.Descricao'); }
+                    // IOF IMPOSTO OPERACOES FINANCEIRAS
+                    $contaIofImpOpFinId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                        ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                        ->where('PlanoContas.Descricao','IOF IMPOSTO OPERACOES FINANCEIRAS')
+                        ->value('Contas.ID');
+                    if($contaIofImpOpFinId){ $contaIofImpOpFinLabel = \App\Models\Conta::where('Contas.ID',$contaIofImpOpFinId)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->value('PlanoContas.Descricao'); }
+                    // SANASA - AGUA E ESGOTO MERCADO VILA PROGRESSO
+                    $contaSanasaAguaEsgotoId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                        ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                        ->where('PlanoContas.Descricao','SANASA - AGUA E ESGOTO MERCADO VILA PROGRESSO')
+                        ->value('Contas.ID');
+                    if($contaSanasaAguaEsgotoId){ $contaSanasaAguaEsgotoLabel = \App\Models\Conta::where('Contas.ID',$contaSanasaAguaEsgotoId)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->value('PlanoContas.Descricao'); }
+                    // TARIFA MENSALIDADE PACOTE SERVICOS
+                    $contaTarifaMensalPacoteId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                        ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                        ->where('PlanoContas.Descricao','TARIFA MENSALIDADE PACOTE SERVICOS')
+                        ->value('Contas.ID');
+                    if($contaTarifaMensalPacoteId){ $contaTarifaMensalPacoteLabel = \App\Models\Conta::where('Contas.ID',$contaTarifaMensalPacoteId)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->value('PlanoContas.Descricao'); }
+                    // CONSORCIOS (prioriza ID 10843 se da mesma empresa, fallback por descrição)
+                    $contaConsorciosId = null;
+                    // Primeiro: ID específico informado (10843), mas só se a conta for da mesma empresa
+                    $empCons10843 = \App\Models\Conta::where('Contas.ID',10843)->value('Contas.EmpresaID');
+                    if($empCons10843 && (int)$empCons10843 === (int)$empresaForRule){
+                        $contaConsorciosId = 10843;
+                    }
+                    // Fallback por descrição
+                    if(!$contaConsorciosId){
+                        $contaConsorciosId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->where('PlanoContas.Descricao','CONSORCIOS')
+                            ->value('Contas.ID');
+                    }
+                    if($contaConsorciosId){ $contaConsorciosLabel = \App\Models\Conta::where('Contas.ID',$contaConsorciosId)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->value('PlanoContas.Descricao'); }
+
+                    foreach($payload['rows'] as &$rA){
+                        if(!empty($rA['_class_conta_id'])) continue; // já classificado
+                        $txt = $rA['_hist_ajustado'] ?? (($rA['_hist_original_col'] ?? null) ? ($rA[$rA['_hist_original_col']] ?? null) : null);
+                        if(!is_string($txt) || $txt==='') continue;
+                        $tu = $upperNoAccents($txt);
+                        // ANTECIPACAO GETNET => RECEBIMENTO DE VENDAS - ANTECIPACAO DE CARTAO CREDITO
+                        if(isset($contaAntGetnetId) && $contaAntGetnetId && (strpos($tu,'ANTECIP') !== false && strpos($tu,'GETNET') !== false)){
+                            $rA['_class_conta_id'] = (string)$contaAntGetnetId;
+                            $rA['_class_conta_label'] = $contaAntGetnetLabel ?: 'RECEBIMENTO DE VENDAS - ANTECIPACAO DE CARTAO CREDITO';
+                            continue;
+                        }
+                        // TED RECEBIDA => RECEBIMENTO DE VENDAS
+                        if(isset($contaRecebId) && $contaRecebId && strpos($tu,'TED') !== false && (strpos($tu,'RECEB') !== false || strpos($tu,'RECEBID') !== false)){
+                            $rA['_class_conta_id'] = (string)$contaRecebId;
+                            $rA['_class_conta_label'] = $contaRecebLabel ?: 'RECEBIMENTO DE VENDAS';
+                            continue;
+                        }
+                        // DEP DINHEIRO CAIXA AG => RECEBIMENTO DE VENDAS
+                        if(isset($contaRecebId) && $contaRecebId){
+                            $hasDep = (strpos($tu,'DEP')!==false || strpos($tu,'DEPOSITO')!==false);
+                            $hasDinheiro = (strpos($tu,'DINHE')!==false || strpos($tu,'ESPECIE')!==false);
+                            $hasCaixa = strpos($tu,'CAIXA')!==false;
+                            if($hasDep && $hasDinheiro && $hasCaixa){
+                                $rA['_class_conta_id'] = (string)$contaRecebId;
+                                $rA['_class_conta_label'] = $contaRecebLabel ?: 'RECEBIMENTO DE VENDAS';
+                                continue;
+                            }
+                        }
+                        // PIX RECEBIDO => RECEBIMENTO DE VENDAS
+                        if(isset($contaRecebId) && $contaRecebId && strpos($tu,'PIX RECEB') !== false){
+                            $rA['_class_conta_id'] = (string)$contaRecebId;
+                            $rA['_class_conta_label'] = $contaRecebLabel ?: 'RECEBIMENTO DE VENDAS';
+                            continue;
+                        }
+                        // PIX ENVIADO => COMPR(A|AS) DE MERCADORIAS
+                        if(isset($contaComprasId) && $contaComprasId && strpos($tu,'PIX ENVI') !== false){
+                            $rA['_class_conta_id'] = (string)$contaComprasId;
+                            $rA['_class_conta_label'] = $contaComprasLabel ?: 'COMPRAS DE MERCADORIAS';
+                            continue;
+                        }
+                        // PAGAMENTO DE BOLETO OUTROS BANCOS => COMPR(A|AS) DE MERCADORIAS
+                        if(isset($contaComprasId) && $contaComprasId){
+                            $hasPagamento = (strpos($tu,'PAGAMENTO')!==false || strpos($tu,'PAGTO')!==false || strpos($tu,'PGTO')!==false);
+                            if($hasPagamento && strpos($tu,'BOLETO')!==false && strpos($tu,'OUTR')!==false && strpos($tu,'BANC')!==false){
+                                $rA['_class_conta_id'] = (string)$contaComprasId;
+                                $rA['_class_conta_label'] = $contaComprasLabel ?: 'COMPRAS DE MERCADORIAS';
+                                continue;
+                            }
+                        }
+                        // COMPRA CARTAO DEB/CRED => COMPRAS DE MERCADORIAS
+                        if(isset($contaComprasId) && $contaComprasId && strpos($tu,'COMPRA') !== false && strpos($tu,'CARTAO') !== false && (strpos($tu,'DEB') !== false || strpos($tu,'DEBIT') !== false || strpos($tu,'CRED') !== false)){
+                            $rA['_class_conta_id'] = (string)$contaComprasId;
+                            $rA['_class_conta_label'] = $contaComprasLabel ?: 'COMPRAS DE MERCADORIAS';
+                            continue;
+                        }
+                        // PAGAMENTO CARTAO DE DEBITO/CREDITO => COMPRAS DE MERCADORIAS
+                        if(isset($contaComprasId) && $contaComprasId && strpos($tu,'PAGAMENTO') !== false && strpos($tu,'CARTAO') !== false && (strpos($tu,'DEBIT') !== false || strpos($tu,'CRED') !== false)){
+                            $rA['_class_conta_id'] = (string)$contaComprasId;
+                            $rA['_class_conta_label'] = $contaComprasLabel ?: 'COMPRAS DE MERCADORIAS';
+                            continue;
+                        }
+                        // PAGAMENTO DE BOLETO (genérico) => COMPRAS DE MERCADORIAS
+                        if(isset($contaComprasId) && $contaComprasId){
+                            $hasPagamento = (strpos($tu,'PAGAMENTO')!==false || strpos($tu,'PAGTO')!==false || strpos($tu,'PGTO')!==false);
+                            if($hasPagamento && strpos($tu,'BOLETO')!==false){
+                                $rA['_class_conta_id'] = (string)$contaComprasId;
+                                $rA['_class_conta_label'] = $contaComprasLabel ?: 'COMPRAS DE MERCADORIAS';
+                                continue;
+                            }
+                        }
+                        // JUROS saldo utiliz(ação) até limite => JUROS UTILIZ.CH.ESPECIAL
+                        if(isset($contaJurosCheqEspId) && $contaJurosCheqEspId){
+                            $hasJuros = strpos($tu,'JUROS') !== false;
+                            $hasUtiliz = (strpos($tu,'UTILIZ') !== false || strpos($tu,'UTILIZA') !== false);
+                            $hasSaldoOuLimite = (strpos($tu,'SALDO') !== false || strpos($tu,'LIMITE') !== false);
+                            if($hasJuros && $hasUtiliz && $hasSaldoOuLimite){
+                                $rA['_class_conta_id'] = (string)$contaJurosCheqEspId;
+                                $rA['_class_conta_label'] = $contaJurosCheqEspLabel ?: 'JUROS UTILIZ.CH.ESPECIAL';
+                                continue;
+                            }
+                        }
+                        // TARIFA ... PIX => TARIFAS SOBRE PIX
+                        if(isset($contaTarifaPixId) && $contaTarifaPixId && strpos($tu,'TARIFA') !== false && strpos($tu,'PIX') !== false){
+                            $rA['_class_conta_id'] = (string)$contaTarifaPixId;
+                            $rA['_class_conta_label'] = $contaTarifaPixLabel ?: 'TARIFAS SOBRE PIX';
+                            continue;
+                        }
+                        // CONTRATACAO EMPREST/FINANCIAMENTO
+                        if(isset($contaContrEmpFinId) && $contaContrEmpFinId){
+                            $hasContrat = (strpos($tu,'CONTRAT') !== false || strpos($tu,'CONTRATACAO') !== false);
+                            $hasEmpFin = (strpos($tu,'EMPREST') !== false || strpos($tu,'FINANCI') !== false);
+                            if($hasContrat && $hasEmpFin){
+                                $rA['_class_conta_id'] = (string)$contaContrEmpFinId;
+                                $rA['_class_conta_label'] = $contaContrEmpFinLabel ?: 'CONTRATACAO EMPRESTIMOS FINANCIAMENTO';
+                                continue;
+                            }
+                        }
+                        // PRESTACAO DE EMPRESTIMO/FINANCIAMENTO => CONTRATACAO EMPRESTIMOS FINANCIAMENTO
+                        if(isset($contaContrEmpFinId) && $contaContrEmpFinId){
+                            $hasPrest = (strpos($tu,'PREST') !== false || strpos($tu,'PRESTA') !== false);
+                            $hasEmpFin = (strpos($tu,'EMPREST') !== false || strpos($tu,'FINANCI') !== false);
+                            if($hasPrest && $hasEmpFin){
+                                $rA['_class_conta_id'] = (string)$contaContrEmpFinId;
+                                $rA['_class_conta_label'] = $contaContrEmpFinLabel ?: 'CONTRATACAO EMPRESTIMOS FINANCIAMENTO';
+                                continue;
+                            }
+                        }
+                        // TARIFA CONTRATACAO / ADITAMENTO
+                        if(isset($contaTarifaContrAditId) && $contaTarifaContrAditId){
+                            $hasTarifa = strpos($tu,'TARIFA') !== false;
+                            $hasContr = strpos($tu,'CONTRAT') !== false;
+                            $hasAdit = (strpos($tu,'ADIT') !== false || strpos($tu,'ADITAMENTO') !== false);
+                            if($hasTarifa && $hasContr && $hasAdit){
+                                $rA['_class_conta_id'] = (string)$contaTarifaContrAditId;
+                                $rA['_class_conta_label'] = $contaTarifaContrAditLabel ?: 'TARIFA CONTRATACAO / ADITAMENTO';
+                                continue;
+                            }
+                        }
+                        // IOF IMPOSTO OPERACOES FINANCEIRAS (inclui IOF adicional - automatico)
+                        if(isset($contaIofImpOpFinId) && $contaIofImpOpFinId){
+                            $hasIof = strpos($tu,'IOF') !== false;
+                            $hasImpOuOper = (strpos($tu,'IMPOST') !== false || strpos($tu,'OPER') !== false || strpos($tu,'FINANC') !== false);
+                            $hasAdicional = (strpos($tu,'ADICION') !== false || strpos($tu,'AUTOMAT') !== false);
+                            if($hasIof && ($hasImpOuOper || $hasAdicional)){
+                                $rA['_class_conta_id'] = (string)$contaIofImpOpFinId;
+                                $rA['_class_conta_label'] = $contaIofImpOpFinLabel ?: 'IOF IMPOSTO OPERACOES FINANCEIRAS';
+                                continue;
+                            }
+                        }
+                        // PRESTACAO CONSORCIO => CONSORCIOS
+                        if(isset($contaConsorciosId) && $contaConsorciosId){
+                            $hasPrest = (strpos($tu,'PREST') !== false || strpos($tu,'PRESTA') !== false || strpos($tu,'PARCEL') !== false);
+                            $hasCons = (strpos($tu,'CONSORC') !== false);
+                            if($hasPrest && $hasCons){
+                                $rA['_class_conta_id'] = (string)$contaConsorciosId;
+                                $rA['_class_conta_label'] = $contaConsorciosLabel ?: 'CONSORCIOS';
+                                continue;
+                            }
+                        }
+                        // PAGAMENTO A FORNECEDORES => COMPRAS DE MERCADORIAS
+                        if(isset($contaComprasId) && $contaComprasId){
+                            $hasPag = (strpos($tu,'PAGAMENTO')!==false || strpos($tu,'PAGTO')!==false || strpos($tu,'PGTO')!==false);
+                            $hasForn = (strpos($tu,'FORNEC')!==false || strpos($tu,'FORNECEDOR')!==false || strpos($tu,'FORNECEDORES')!==false || strpos($tu,'FORN')!==false);
+                            if($hasPag && $hasForn){
+                                $rA['_class_conta_id'] = (string)$contaComprasId;
+                                $rA['_class_conta_label'] = $contaComprasLabel ?: 'COMPRA DE MERCADORIAS';
+                                continue;
+                            }
+                        }
+                        // CONTA DE AGUA/ESGOTO (SANASA) => SANASA - AGUA E ESGOTO MERCADO VILA PROGRESSO
+                        if(isset($contaSanasaAguaEsgotoId) && $contaSanasaAguaEsgotoId){
+                            $hasAgua = strpos($tu,'AGUA') !== false;
+                            $hasEsgoto = strpos($tu,'ESGOTO') !== false;
+                            $hasConta = strpos($tu,'CONTA') !== false;
+                            $hasCanais = strpos($tu,'CANAIS') !== false;
+                            if($hasAgua && $hasEsgoto && ($hasConta || $hasCanais)){
+                                $rA['_class_conta_id'] = (string)$contaSanasaAguaEsgotoId;
+                                $rA['_class_conta_label'] = $contaSanasaAguaEsgotoLabel ?: 'SANASA - AGUA E ESGOTO MERCADO VILA PROGRESSO';
+                                continue;
+                            }
+                        }
+                        // TARIFA MENSALIDADE PACOTE SERVICOS
+                        if(isset($contaTarifaMensalPacoteId) && $contaTarifaMensalPacoteId){
+                            $hasTarifa = strpos($tu,'TARIFA') !== false;
+                            $hasMensal = (strpos($tu,'MENSAL') !== false || strpos($tu,'MENSALIDADE') !== false);
+                            $hasPacote = strpos($tu,'PACOTE') !== false;
+                            $hasServ = strpos($tu,'SERV') !== false; // cobre SERVICO/SERVICOS
+                            if($hasTarifa && $hasMensal && $hasPacote && $hasServ){
+                                $rA['_class_conta_id'] = (string)$contaTarifaMensalPacoteId;
+                                $rA['_class_conta_label'] = $contaTarifaMensalPacoteLabel ?: 'TARIFA MENSALIDADE PACOTE SERVICOS';
+                                continue;
+                            }
+                        }
+                    }
+                    unset($rA);
+                    $touched = true;
+                }
+            }
             // Garante valores absolutos na coluna VALOR (sempre na prévia)
-            $payload['rows'] = $makeValorAbsolute($headers, $payload['rows'] ?? []);
-            $rows = $payload['rows'];
+            if(!$isSantanderMode){
+                $payload['rows'] = $makeValorAbsolute($headers, $payload['rows'] ?? []);
+                $rows = $payload['rows'];
+            }
             // Marca duplicidades a princípio (Empresa+Data+Valor)
             $payload['rows'] = $markExisting($headers, $payload['rows'] ?? [], $selectedEmpresaId);
             $rows = $payload['rows'];
             $touched = true;
-            if($touched){ Cache::put($cacheKey, $payload, now()->addHour()); }
+            if($touched){
+                // Persiste também o modo de extrato
+                $payload['extrato_mode'] = $extratoMode;
+                Cache::put($cacheKey, $payload, now()->addHour());
+            }
         } elseif(!$exists){
             $erro = "Arquivo não encontrado em imports: $file. Copie ou faça upload.";
         } else {
@@ -1781,15 +2157,56 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     // Em refresh após upload com ?unlock=1, destrava explicitamente
                     if($forceUnlock){ $empresaLocked=false; $globalCreditContaLocked=false; }
                 }
-                $spreadsheet = IOFactory::load($fullPath);
+                // Leitura robusta: se for CSV, usa leitor CSV com delimitador ';' e encoding UTF-8
+                $ext = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
+                if($ext === 'csv'){
+                    $reader = new \PhpOffice\PhpSpreadsheet\Reader\Csv();
+                    // Detecta delimitador por amostra simples
+                    $sample = @file_get_contents($fullPath, false, null, 0, 2048);
+                    $hasSemicolon = is_string($sample) && substr_count($sample, ';') > substr_count($sample, ',');
+                    $reader->setDelimiter($hasSemicolon ? ';' : ',');
+                    $reader->setEnclosure('"');
+                    // Heurística de encoding: se aparecer caractere de substituição (�), tenta ISO-8859-1
+                    $encoding = 'UTF-8';
+                    if(is_string($sample)){
+                        if(strpos($sample, "\xEF\xBB\xBF") === 0){ $encoding = 'UTF-8'; }
+                        elseif(strpos($sample, "�") !== false){ $encoding = 'ISO-8859-1'; }
+                    }
+                    if(method_exists($reader,'setInputEncoding')){ $reader->setInputEncoding($encoding); }
+                    $spreadsheet = $reader->load($fullPath);
+                } else {
+                    $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($fullPath);
+                }
                 $sheet = $spreadsheet->getActiveSheet();
                 $highestRow = $sheet->getHighestDataRow();
                 $highestCol = $sheet->getHighestDataColumn();
                 $highestColIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($highestCol);
+                // Detecta linha de cabeçalho: varre até 10 linhas procurando por tokens DATA/HIST/VALOR
+                $headerRowIndex = 1; $bestScore = -1;
+                $maxScan = min($highestRow, 10);
+                for($r=1; $r <= $maxScan; $r++){
+                    $tokens = 0; $nonEmpty = 0; $metaScore = 0;
+                    for($c=1; $c <= $highestColIndex; $c++){
+                        $cell = trim((string)$sheet->getCellByColumnAndRow($c,$r)->getValue());
+                        if($cell !== '') $nonEmpty++;
+                        $cellU = mb_strtoupper($cell,'UTF-8');
+                        if(strpos($cellU,'DATA') !== false) $tokens++;
+                        if(strpos($cellU,'HIST') !== false) $tokens++;
+                        if(strpos($cellU,'VALOR') !== false) $tokens++;
+                        if(strpos($cellU,'SALDO') !== false) $tokens++;
+                        if(strpos($cellU,'AGENCIA') !== false || strpos($cellU,'CONTA') !== false) $metaScore++;
+                    }
+                    // ignora linhas vazias
+                    if($nonEmpty === 0) continue;
+                    // Evita pegar linha metadado AGENCIA/CONTA como cabeçalho
+                    if($metaScore > 0 && $tokens === 0) continue;
+                    // Preferir linhas com mais tokens reconhecidos
+                    if($tokens > $bestScore){ $bestScore = $tokens; $headerRowIndex = $r; }
+                }
                 $removeCols = ['COL_4','COL_5','COL_6','COL_7'];
                 $headerMap = [];
                 for($col=1; $col <= $highestColIndex; $col++){
-                    $val = trim((string)$sheet->getCellByColumnAndRow($col,1)->getValue());
+                    $val = trim((string)$sheet->getCellByColumnAndRow($col,$headerRowIndex)->getValue());
                     if($val === '') $val = 'COL_'.$col; // fallback genérico
                     // Renomeações solicitadas: COL_2 -> HISTORICO, COL_3 -> VALOR, DESPESAS -> DATA
                     if($val === 'COL_2') { $val = 'HISTORICO'; }
@@ -1805,8 +2222,10 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     $headers[] = $val;
                     $headerMap[$col] = $val;
                 }
-                $histKey = collect($headers)->first(fn($h)=> stripos($h,'HIST') !== false);
-                for($row=2; $row <= $highestRow && count($rows) < $limite; $row++){
+                // Localiza coluna de histórico procurando por 'HIST' (case-insensitive)
+                $histKey = null;
+                foreach($headers as $h){ if(stripos($h,'HIST') !== false){ $histKey = $h; break; } }
+                for($row=$headerRowIndex+1; $row <= $highestRow && count($rows) < $limite; $row++){
                     $linha = [];
                     $linhaVazia = true;
                     foreach($headerMap as $colIndex=>$hName){
@@ -1816,7 +2235,8 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                             if($flagTrimMulti){ $val = preg_replace('/\s+/u',' ',trim($val)); }
                             if($flagUpper){ $val = mb_strtoupper($val,'UTF-8'); }
                             if($subs){ foreach($subs as $find=>$rep){ if($find!=='') $val = str_replace($find,$rep,$val); } }
-                            if($regexSubs){ foreach($regexSubs as $pattern=>$rep){ if(@preg_match($pattern,'') !== false){ $val = preg_replace($pattern,$rep,$val); } } }
+                            // Aplica regex do usuário com proteção
+                            $val = $safeApplyRegex($val);
                         }
                         $linha[$hName] = $val;
                     }
@@ -2050,8 +2470,324 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                 if($applyDebitoFilter){
                     $rows = $filterDebito($headers, $rows);
                 }
+                // Auto-classificação: no modo Santander (exige empresa selecionada)
+                if($isSantanderMode){
+                    $empresaForRule = $selectedEmpresaId ?? $empresaIdFromFile;
+                    if($empresaForRule){
+                        // Recebimentos (PIX RECEBIDO) => RECEBIMENTO DE VENDAS
+                        $contaRecebId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->where('PlanoContas.Descricao','RECEBIMENTO DE VENDAS')
+                            ->value('Contas.ID');
+                        if($contaRecebId){ $contaRecebLabel = \App\Models\Conta::where('Contas.ID',$contaRecebId)
+                                ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                                ->value('PlanoContas.Descricao'); }
+                        // Recebimentos (plural) => RECEBIMENTOS DE VENDAS
+                        $contaRecebPluralId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->where('PlanoContas.Descricao','RECEBIMENTOS DE VENDAS')
+                            ->value('Contas.ID');
+                        if($contaRecebPluralId){ $contaRecebPluralLabel = \App\Models\Conta::where('Contas.ID',$contaRecebPluralId)
+                                ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                                ->value('PlanoContas.Descricao'); }
+                        // Recebimentos específicos: ANTECIPACAO GETNET => RECEBIMENTO DE VENDAS - ANTECIPACAO DE CARTAO CREDITO
+                        $contaAntGetnetId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->where('PlanoContas.Descricao','RECEBIMENTO DE VENDAS - ANTECIPACAO DE CARTAO CREDITO')
+                            ->value('Contas.ID');
+                        if($contaAntGetnetId){ $contaAntGetnetLabel = \App\Models\Conta::where('Contas.ID',$contaAntGetnetId)
+                                ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                                ->value('PlanoContas.Descricao'); }
+                        // TED RECEBIDA => VENDA DE MERCADORIAS (preferir singular), fallback VENDAS DE MERCADORIAS
+                        $contaVendasMercId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->where('PlanoContas.Descricao','VENDA DE MERCADORIAS')
+                            ->value('Contas.ID');
+                        if(!$contaVendasMercId){
+                            $contaVendasMercId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                                ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                                ->where('PlanoContas.Descricao','VENDAS DE MERCADORIAS')
+                                ->value('Contas.ID');
+                        }
+                        if($contaVendasMercId){ $contaVendasMercLabel = \App\Models\Conta::where('Contas.ID',$contaVendasMercId)
+                                ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                                ->value('PlanoContas.Descricao'); }
+                        // Compras: prioriza "COMPRA DE MERCADORIAS", fallback "COMPRAS DE MERCADORIAS"
+                        $contaComprasId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->where('PlanoContas.Descricao','COMPRA DE MERCADORIAS')
+                            ->value('Contas.ID');
+                        if(!$contaComprasId){
+                            $contaComprasId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                                ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                                ->where('PlanoContas.Descricao','COMPRAS DE MERCADORIAS')
+                                ->value('Contas.ID');
+                        }
+                        if($contaComprasId){ $contaComprasLabel = \App\Models\Conta::where('Contas.ID',$contaComprasId)
+                                ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                                ->value('PlanoContas.Descricao'); }
+                        // Tarifas Pix => TARIFAS SOBRE PIX
+                        $contaTarifaPixId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->where('PlanoContas.Descricao','TARIFAS SOBRE PIX')
+                            ->value('Contas.ID');
+                        if($contaTarifaPixId){ $contaTarifaPixLabel = \App\Models\Conta::where('Contas.ID',$contaTarifaPixId)
+                                ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                                ->value('PlanoContas.Descricao'); }
+                        // Juros de utilização de cheque especial => JUROS UTILIZ.CH.ESPECIAL
+                        $contaJurosCheqEspId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->where('PlanoContas.Descricao','JUROS UTILIZ.CH.ESPECIAL')
+                            ->value('Contas.ID');
+                        if($contaJurosCheqEspId){ $contaJurosCheqEspLabel = \App\Models\Conta::where('Contas.ID',$contaJurosCheqEspId)
+                                ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                                ->value('PlanoContas.Descricao'); }
+                        // CONTRATACAO EMPRESTIMOS FINANCIAMENTO (tenta nova descrição primeiro), fallback antigo e LIKE amplo
+                        $contaContrEmpFinId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->where('PlanoContas.Descricao','CONTRATACAO EMPRESTIMOS FINANCIAMENTO')
+                            ->value('Contas.ID');
+                        if(!$contaContrEmpFinId){
+                            $contaContrEmpFinId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                                ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                                ->where('PlanoContas.Descricao','CONTRATACAO EMPREST/FINANCIAMENTO')
+                                ->value('Contas.ID');
+                        }
+                        if(!$contaContrEmpFinId){
+                            // Fallback amplo: variações de nome
+                            $contaContrEmpFinId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                                ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                                ->where(function($q){
+                                    $q->where('PlanoContas.Descricao','like','%CONTRAT%');
+                                })
+                                ->where(function($q){
+                                    $q->where('PlanoContas.Descricao','like','%EMPREST%')
+                                      ->orWhere('PlanoContas.Descricao','like','%FINANC%');
+                                })
+                                ->value('Contas.ID');
+                        }
+                        if($contaContrEmpFinId){ $contaContrEmpFinLabel = \App\Models\Conta::where('Contas.ID',$contaContrEmpFinId)
+                                ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                                ->value('PlanoContas.Descricao'); }
+                        // TARIFA CONTRATACAO / ADITAMENTO
+                        $contaTarifaContrAditId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->where('PlanoContas.Descricao','TARIFA CONTRATACAO / ADITAMENTO')
+                            ->value('Contas.ID');
+                        if($contaTarifaContrAditId){ $contaTarifaContrAditLabel = \App\Models\Conta::where('Contas.ID',$contaTarifaContrAditId)
+                                ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                                ->value('PlanoContas.Descricao'); }
+                        // IOF IMPOSTO OPERACOES FINANCEIRAS
+                        $contaIofImpOpFinId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->where('PlanoContas.Descricao','IOF IMPOSTO OPERACOES FINANCEIRAS')
+                            ->value('Contas.ID');
+                        if($contaIofImpOpFinId){ $contaIofImpOpFinLabel = \App\Models\Conta::where('Contas.ID',$contaIofImpOpFinId)
+                                ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                                ->value('PlanoContas.Descricao'); }
+                        // SANASA - AGUA E ESGOTO MERCADO VILA PROGRESSO
+                        $contaSanasaAguaEsgotoId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->where('PlanoContas.Descricao','SANASA - AGUA E ESGOTO MERCADO VILA PROGRESSO')
+                            ->value('Contas.ID');
+                        if($contaSanasaAguaEsgotoId){ $contaSanasaAguaEsgotoLabel = \App\Models\Conta::where('Contas.ID',$contaSanasaAguaEsgotoId)
+                                ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                                ->value('PlanoContas.Descricao'); }
+                        // TARIFA MENSALIDADE PACOTE SERVICOS
+                        $contaTarifaMensalPacoteId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->where('PlanoContas.Descricao','TARIFA MENSALIDADE PACOTE SERVICOS')
+                            ->value('Contas.ID');
+                        if($contaTarifaMensalPacoteId){ $contaTarifaMensalPacoteLabel = \App\Models\Conta::where('Contas.ID',$contaTarifaMensalPacoteId)
+                                ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                                ->value('PlanoContas.Descricao'); }
+
+                        // CONSORCIOS (prioriza ID 10843 se da mesma empresa, fallback por descrição)
+                        $contaConsorciosId = null;
+                        $empCons10843 = \App\Models\Conta::where('Contas.ID',10843)->value('Contas.EmpresaID');
+                        if($empCons10843 && (int)$empCons10843 === (int)$empresaForRule){
+                            $contaConsorciosId = 10843;
+                        }
+                        if(!$contaConsorciosId){
+                            $contaConsorciosId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                                ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                                ->where('PlanoContas.Descricao','CONSORCIOS')
+                                ->value('Contas.ID');
+                        }
+                        if($contaConsorciosId){ $contaConsorciosLabel = \App\Models\Conta::where('Contas.ID',$contaConsorciosId)
+                                ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                                ->value('PlanoContas.Descricao'); }
+
+                        foreach($rows as &$rA){
+                            if(!empty($rA['_class_conta_id'])) continue;
+                            $txt = $rA['_hist_ajustado'] ?? (($rA['_hist_original_col'] ?? null) ? ($rA[$rA['_hist_original_col']] ?? null) : null);
+                            if(!is_string($txt) || $txt==='') continue;
+                            $tu = $upperNoAccents($txt);
+                            // DEP DINHEIRO CAIXA AG => RECEBIMENTO DE VENDAS
+                            if(isset($contaRecebId) && $contaRecebId){
+                                $hasDep = (strpos($tu,'DEP')!==false || strpos($tu,'DEPOSITO')!==false);
+                                $hasDinheiro = (strpos($tu,'DINHE')!==false || strpos($tu,'ESPECIE')!==false);
+                                $hasCaixa = strpos($tu,'CAIXA')!==false;
+                                if($hasDep && $hasDinheiro && $hasCaixa){
+                                    $rA['_class_conta_id'] = (string)$contaRecebId;
+                                    $rA['_class_conta_label'] = $contaRecebLabel ?: 'RECEBIMENTO DE VENDAS';
+                                    continue;
+                                }
+                            }
+                            // ANTECIPACAO GETNET => RECEBIMENTO DE VENDAS - ANTECIPACAO DE CARTAO CREDITO
+                            if(isset($contaAntGetnetId) && $contaAntGetnetId && (strpos($tu,'ANTECIP') !== false && strpos($tu,'GETNET') !== false)){
+                                $rA['_class_conta_id'] = (string)$contaAntGetnetId;
+                                $rA['_class_conta_label'] = $contaAntGetnetLabel ?: 'RECEBIMENTO DE VENDAS - ANTECIPACAO DE CARTAO CREDITO';
+                                continue;
+                            }
+                            // TED RECEBIDA => RECEBIMENTO DE VENDAS
+                            if(isset($contaRecebId) && $contaRecebId && strpos($tu,'TED') !== false && (strpos($tu,'RECEB') !== false || strpos($tu,'RECEBID') !== false)){
+                                $rA['_class_conta_id'] = (string)$contaRecebId;
+                                $rA['_class_conta_label'] = $contaRecebLabel ?: 'RECEBIMENTO DE VENDAS';
+                                continue;
+                            }
+                            if(isset($contaRecebId) && $contaRecebId && strpos($tu,'PIX RECEB') !== false){
+                                $rA['_class_conta_id'] = (string)$contaRecebId;
+                                $rA['_class_conta_label'] = $contaRecebLabel ?: 'RECEBIMENTO DE VENDAS';
+                                continue;
+                            }
+                            // COMPRA CARTAO DEB/CRED => COMPRAS DE MERCADORIAS
+                            if(isset($contaComprasId) && $contaComprasId && strpos($tu,'COMPRA') !== false && strpos($tu,'CARTAO') !== false && (strpos($tu,'DEB') !== false || strpos($tu,'DEBIT') !== false || strpos($tu,'CRED') !== false)){
+                                $rA['_class_conta_id'] = (string)$contaComprasId;
+                                $rA['_class_conta_label'] = $contaComprasLabel ?: 'COMPRAS DE MERCADORIAS';
+                                continue;
+                            }
+                            if(isset($contaComprasId) && $contaComprasId && (strpos($tu,'PIX ENVI') !== false || (strpos($tu,'PAGAMENTO') !== false && strpos($tu,'CARTAO') !== false && (strpos($tu,'DEBIT') !== false || strpos($tu,'CRED') !== false)))){
+                                $rA['_class_conta_id'] = (string)$contaComprasId;
+                                $rA['_class_conta_label'] = $contaComprasLabel ?: 'COMPRAS DE MERCADORIAS';
+                                continue;
+                            }
+                            // PAGAMENTO DE BOLETO (genérico) => COMPRAS DE MERCADORIAS
+                            if(isset($contaComprasId) && $contaComprasId){
+                                $hasPagamento = (strpos($tu,'PAGAMENTO')!==false || strpos($tu,'PAGTO')!==false || strpos($tu,'PGTO')!==false);
+                                if($hasPagamento && strpos($tu,'BOLETO')!==false){
+                                    $rA['_class_conta_id'] = (string)$contaComprasId;
+                                    $rA['_class_conta_label'] = $contaComprasLabel ?: 'COMPRAS DE MERCADORIAS';
+                                    continue;
+                                }
+                            }
+                            // PAGAMENTO DE BOLETO OUTROS BANCOS => COMPR(A|AS) DE MERCADORIAS
+                            if(isset($contaComprasId) && $contaComprasId){
+                                $hasPagamento = (strpos($tu,'PAGAMENTO')!==false || strpos($tu,'PAGTO')!==false || strpos($tu,'PGTO')!==false);
+                                if($hasPagamento && strpos($tu,'BOLETO')!==false && strpos($tu,'OUTR')!==false && strpos($tu,'BANC')!==false){
+                                    $rA['_class_conta_id'] = (string)$contaComprasId;
+                                    $rA['_class_conta_label'] = $contaComprasLabel ?: 'COMPRAS DE MERCADORIAS';
+                                    continue;
+                                }
+                            }
+                            // JUROS saldo utiliz(ação) até limite => JUROS UTILIZ.CH.ESPECIAL
+                            if(isset($contaJurosCheqEspId) && $contaJurosCheqEspId){
+                                $hasJuros = strpos($tu,'JUROS') !== false;
+                                $hasUtiliz = (strpos($tu,'UTILIZ') !== false || strpos($tu,'UTILIZA') !== false);
+                                $hasSaldoOuLimite = (strpos($tu,'SALDO') !== false || strpos($tu,'LIMITE') !== false);
+                                if($hasJuros && $hasUtiliz && $hasSaldoOuLimite){
+                                    $rA['_class_conta_id'] = (string)$contaJurosCheqEspId;
+                                    $rA['_class_conta_label'] = $contaJurosCheqEspLabel ?: 'JUROS UTILIZ.CH.ESPECIAL';
+                                    continue;
+                                }
+                            }
+                            // CONTA DE AGUA/ESGOTO (SANASA) => SANASA - AGUA E ESGOTO MERCADO VILA PROGRESSO
+                            if(isset($contaSanasaAguaEsgotoId) && $contaSanasaAguaEsgotoId){
+                                $hasAgua = strpos($tu,'AGUA') !== false;
+                                $hasEsgoto = strpos($tu,'ESGOTO') !== false;
+                                $hasConta = strpos($tu,'CONTA') !== false;
+                                $hasCanais = strpos($tu,'CANAIS') !== false;
+                                if($hasAgua && $hasEsgoto && ($hasConta || $hasCanais)){
+                                    $rA['_class_conta_id'] = (string)$contaSanasaAguaEsgotoId;
+                                    $rA['_class_conta_label'] = $contaSanasaAguaEsgotoLabel ?: 'SANASA - AGUA E ESGOTO MERCADO VILA PROGRESSO';
+                                    continue;
+                                }
+                            }
+                            // TARIFA MENSALIDADE PACOTE SERVICOS
+                            if(isset($contaTarifaMensalPacoteId) && $contaTarifaMensalPacoteId){
+                                $hasTarifa = strpos($tu,'TARIFA') !== false;
+                                $hasMensal = (strpos($tu,'MENSAL') !== false || strpos($tu,'MENSALIDADE') !== false);
+                                $hasPacote = strpos($tu,'PACOTE') !== false;
+                                $hasServ = strpos($tu,'SERV') !== false; // cobre SERVICO/SERVICOS
+                                if($hasTarifa && $hasMensal && $hasPacote && $hasServ){
+                                    $rA['_class_conta_id'] = (string)$contaTarifaMensalPacoteId;
+                                    $rA['_class_conta_label'] = $contaTarifaMensalPacoteLabel ?: 'TARIFA MENSALIDADE PACOTE SERVICOS';
+                                    continue;
+                                }
+                            }
+                            // CONTRATACAO EMPRESTIMOS FINANCIAMENTO
+                            if(isset($contaContrEmpFinId) && $contaContrEmpFinId){
+                                $hasContrat = (strpos($tu,'CONTRAT') !== false || strpos($tu,'CONTRATACAO') !== false);
+                                $hasEmpFin = (strpos($tu,'EMPREST') !== false || strpos($tu,'FINANCI') !== false);
+                                if($hasContrat && $hasEmpFin){
+                                    $rA['_class_conta_id'] = (string)$contaContrEmpFinId;
+                                    $rA['_class_conta_label'] = $contaContrEmpFinLabel ?: 'CONTRATACAO EMPRESTIMOS FINANCIAMENTO';
+                                    continue;
+                                }
+                            }
+                            // PRESTACAO DE EMPRESTIMO/FINANCIAMENTO => CONTRATACAO EMPRESTIMOS FINANCIAMENTO
+                            if(isset($contaContrEmpFinId) && $contaContrEmpFinId){
+                                $hasPrest = (strpos($tu,'PREST') !== false || strpos($tu,'PRESTA') !== false);
+                                $hasEmpFin = (strpos($tu,'EMPREST') !== false || strpos($tu,'FINANCI') !== false);
+                                if($hasPrest && $hasEmpFin){
+                                    $rA['_class_conta_id'] = (string)$contaContrEmpFinId;
+                                    $rA['_class_conta_label'] = $contaContrEmpFinLabel ?: 'CONTRATACAO EMPRESTIMOS FINANCIAMENTO';
+                                    continue;
+                                }
+                            }
+                            // TARIFA CONTRATACAO / ADITAMENTO
+                            if(isset($contaTarifaContrAditId) && $contaTarifaContrAditId){
+                                $hasTarifa = strpos($tu,'TARIFA') !== false;
+                                $hasContr = strpos($tu,'CONTRAT') !== false;
+                                $hasAdit = (strpos($tu,'ADIT') !== false || strpos($tu,'ADITAMENTO') !== false);
+                                if($hasTarifa && $hasContr && $hasAdit){
+                                    $rA['_class_conta_id'] = (string)$contaTarifaContrAditId;
+                                    $rA['_class_conta_label'] = $contaTarifaContrAditLabel ?: 'TARIFA CONTRATACAO / ADITAMENTO';
+                                    continue;
+                                }
+                            }
+                            // IOF IMPOSTO OPERACOES FINANCEIRAS (inclui IOF adicional - automatico)
+                            if(isset($contaIofImpOpFinId) && $contaIofImpOpFinId){
+                                $hasIof = strpos($tu,'IOF') !== false;
+                                $hasImpOuOper = (strpos($tu,'IMPOST') !== false || strpos($tu,'OPER') !== false || strpos($tu,'FINANC') !== false);
+                                $hasAdicional = (strpos($tu,'ADICION') !== false || strpos($tu,'AUTOMAT') !== false);
+                                if($hasIof && ($hasImpOuOper || $hasAdicional)){
+                                    $rA['_class_conta_id'] = (string)$contaIofImpOpFinId;
+                                    $rA['_class_conta_label'] = $contaIofImpOpFinLabel ?: 'IOF IMPOSTO OPERACOES FINANCEIRAS';
+                                    continue;
+                                }
+                            }
+                            // PRESTACAO CONSORCIO => CONSORCIOS
+                            if(isset($contaConsorciosId) && $contaConsorciosId){
+                                $hasPrest = (strpos($tu,'PREST') !== false || strpos($tu,'PRESTA') !== false || strpos($tu,'PARCEL') !== false);
+                                $hasCons = (strpos($tu,'CONSORC') !== false);
+                                if($hasPrest && $hasCons){
+                                    $rA['_class_conta_id'] = (string)$contaConsorciosId;
+                                    $rA['_class_conta_label'] = $contaConsorciosLabel ?: 'CONSORCIOS';
+                                    continue;
+                                }
+                            }
+                            // PAGAMENTO A FORNECEDORES => COMPRAS DE MERCADORIAS
+                            if(isset($contaComprasId) && $contaComprasId){
+                                $hasPag = (strpos($tu,'PAGAMENTO')!==false || strpos($tu,'PAGTO')!==false || strpos($tu,'PGTO')!==false);
+                                $hasForn = (strpos($tu,'FORNEC')!==false || strpos($tu,'FORNECEDOR')!==false || strpos($tu,'FORNECEDORES')!==false || strpos($tu,'FORN')!==false);
+                                if($hasPag && $hasForn){
+                                    $rA['_class_conta_id'] = (string)$contaComprasId;
+                                    $rA['_class_conta_label'] = $contaComprasLabel ?: 'COMPRA DE MERCADORIAS';
+                                    continue;
+                                }
+                            }
+                            if(isset($contaTarifaPixId) && $contaTarifaPixId && strpos($tu,'TARIFA') !== false && strpos($tu,'PIX') !== false){
+                                $rA['_class_conta_id'] = (string)$contaTarifaPixId;
+                                $rA['_class_conta_label'] = $contaTarifaPixLabel ?: 'TARIFAS SOBRE PIX';
+                                continue;
+                            }
+                        }
+                        unset($rA);
+                    }
+                }
                 // Garante valores absolutos na coluna VALOR (sempre)
-                $rows = $makeValorAbsolute($headers, $rows);
+                if(!$isSantanderMode){ $rows = $makeValorAbsolute($headers, $rows); }
                 // Marca duplicidades a princípio (Empresa+Data+Valor)
                 $rows = $markExisting($headers, $rows, $selectedEmpresaId ?? $empresaIdFromFile);
                 // Ao salvar payload, respeita flags (podem ter sido forçadas para desbloqueadas via ?unlock=1)
@@ -2065,6 +2801,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     'global_credit_conta_id'=>$globalCreditContaId,
                     'global_credit_conta_label'=>$globalCreditContaLabel,
                     'global_credit_conta_locked'=>$globalCreditContaLocked,
+                    'extrato_mode'=>$extratoMode,
                 ], now()->addHour());
             } catch(\Throwable $e){
                 $erro = 'Falha ao ler planilha: '.$e->getMessage();
@@ -2090,6 +2827,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             'globalCreditContaLocked' => $globalCreditContaLocked,
             'empresaIdFromFile' => $empresaIdFromFile,
             'contaCreditoIdFromFile' => $contaCreditoIdFromFile,
+            'extratoMode' => $extratoMode,
         ]);
     }
 
@@ -2796,7 +3534,9 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         $headersOrig = $payload['headers'] ?? [];
         $rowsCache = $payload['rows'] ?? [];
         $empresaGlobal = $payload['selected_empresa_id'] ?? null;
-        $creditGlobalId = $payload['global_credit_conta_id'] ?? null;
+    $creditGlobalId = $payload['global_credit_conta_id'] ?? null; // neste modo será a conta do BANCO
+    $extratoMode = $payload['extrato_mode'] ?? null;
+    $isSantanderMode = ($extratoMode === 'santander');
 
         // Helpers (mesmos do prepare)
         $normalizeDate = function($raw){
@@ -2845,34 +3585,60 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         foreach($rowsCache as $i=>$r){
             $rowNum = $i+1; if($rowNum<4) continue; // mesma regra da validação
             $empresaId = $r['_class_empresa_id'] ?? ($r['EMPRESA_ID'] ?? $empresaGlobal);
-            $contaDebId = $r['_class_conta_id'] ?? ($r['CONTA_DEBITO_ID'] ?? null);
-            $contaCredId = $creditGlobalId; if(!empty($r['CONTA_CREDITO_GLOBAL_ID'])) $contaCredId = $r['CONTA_CREDITO_GLOBAL_ID'];
+            $contaClassificadaId = $r['_class_conta_id'] ?? ($r['CONTA_DEBITO_ID'] ?? null);
+            $contaBancoId = $creditGlobalId; if(!empty($r['CONTA_CREDITO_GLOBAL_ID'])) $contaBancoId = $r['CONTA_CREDITO_GLOBAL_ID'];
             $dataOrig = $dateCol ? ($r[$dateCol] ?? null) : null; $dataNorm = $r['DATA_NORMALIZADA'] ?? $normalizeDate($dataOrig);
             $valorRaw = $valorCol ? ($r[$valorCol] ?? null) : null; $valor = $parseValor($valorRaw);
             $descricao = $r['HISTORICO_AJUSTADO'] ?? ($descCol ? ($r[$descCol] ?? null) : null);
 
             $faltas=[];
             if(!$empresaId) $faltas[]='EMPRESA_ID';
-            if(!$contaCredId) $faltas[]='CONTA_CREDITO_GLOBAL_ID';
-            // Exigir conta débito somente se linha classificável (tem valor)
-            $classificavel = ($valor!==null);
-            if($classificavel && !$contaDebId) $faltas[]='CONTA_DEBITO_ID';
             if(!$dataNorm) $faltas[]='DATA';
             if($valor===null) $faltas[]='VALOR';
 
-            if(!empty($faltas)){
-                $skipped[] = ['row'=>$rowNum, 'missing'=>$faltas];
-                continue;
+            if($isSantanderMode){
+                if(!$contaBancoId) $faltas[]='CONTA_BANCO_ID';
+                if(!$contaClassificadaId) $faltas[]='CONTA_CONTRAPARTIDA_ID';
+                if(!empty($faltas)){ $skipped[] = ['row'=>$rowNum, 'missing'=>$faltas]; continue; }
+                $valorAbs = abs((float)$valor);
+                if($valor > 0){
+                    $contaDebId = (int)$contaBancoId;
+                    $contaCredId = (int)$contaClassificadaId;
+                } elseif($valor < 0){
+                    $contaDebId = (int)$contaClassificadaId;
+                    $contaCredId = (int)$contaBancoId;
+                } else {
+                    // ignora zeros
+                    $skipped[] = ['row'=>$rowNum, 'missing'=>['VALOR_NAO_POSITIVO']];
+                    continue;
+                }
+                $ready[] = [
+                    'row'=>$rowNum,
+                    'EmpresaID'=>(int)$empresaId,
+                    'ContaDebitoID'=>$contaDebId,
+                    'ContaCreditoID'=>$contaCredId,
+                    'DataContabilidade'=>$toYmd($dataNorm),
+                    'Valor'=>$valorAbs,
+                    'Descricao'=>$descricao,
+                ];
+            } else {
+                $contaDebId = $contaClassificadaId;
+                $contaCredId = $contaBancoId;
+                if(!$contaCredId) $faltas[]='CONTA_CREDITO_GLOBAL_ID';
+                // Exigir conta débito somente se linha classificável (tem valor)
+                $classificavel = ($valor!==null);
+                if($classificavel && !$contaDebId) $faltas[]='CONTA_DEBITO_ID';
+                if(!empty($faltas)){ $skipped[] = ['row'=>$rowNum, 'missing'=>$faltas]; continue; }
+                $ready[] = [
+                    'row'=>$rowNum,
+                    'EmpresaID'=>(int)$empresaId,
+                    'ContaDebitoID'=>(int)$contaDebId,
+                    'ContaCreditoID'=>(int)$contaCredId,
+                    'DataContabilidade'=>$toYmd($dataNorm),
+                    'Valor'=>$valor,
+                    'Descricao'=>$descricao,
+                ];
             }
-            $ready[] = [
-                'row'=>$rowNum,
-                'EmpresaID'=>(int)$empresaId,
-                'ContaDebitoID'=>(int)$contaDebId,
-                'ContaCreditoID'=>(int)$contaCredId,
-                'DataContabilidade'=>$toYmd($dataNorm),
-                'Valor'=>$valor,
-                'Descricao'=>$descricao,
-            ];
         }
         return response()->json([
             'ok'=>true,
@@ -2903,7 +3669,9 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         $headersOrig = $payload['headers'] ?? [];
         $rowsCache = $payload['rows'] ?? [];
         $empresaGlobal = $payload['selected_empresa_id'] ?? null;
-        $creditGlobalId = $payload['global_credit_conta_id'] ?? null;
+    $creditGlobalId = $payload['global_credit_conta_id'] ?? null; // no modo extrato: conta Banco
+    $extratoMode = $payload['extrato_mode'] ?? null;
+    $isSantanderMode = ($extratoMode === 'santander');
 
         $normalizeDate = function($raw){
             if($raw instanceof \DateTimeInterface){ return $raw->format('d/m/Y'); }
@@ -2940,28 +3708,56 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         foreach($rowsCache as $i=>$r){
             $rowNum = $i+1; if($rowNum<4) continue;
             $empresaId = $r['_class_empresa_id'] ?? ($r['EMPRESA_ID'] ?? $empresaGlobal);
-            $contaDebId = $r['_class_conta_id'] ?? ($r['CONTA_DEBITO_ID'] ?? null);
-            $contaCredId = $creditGlobalId; if(!empty($r['CONTA_CREDITO_GLOBAL_ID'])) $contaCredId = $r['CONTA_CREDITO_GLOBAL_ID'];
+            $contaClassificadaId = $r['_class_conta_id'] ?? ($r['CONTA_DEBITO_ID'] ?? null);
+            $contaBancoId = $creditGlobalId; if(!empty($r['CONTA_CREDITO_GLOBAL_ID'])) $contaBancoId = $r['CONTA_CREDITO_GLOBAL_ID'];
             $dataOrig = $dateCol ? ($r[$dateCol] ?? null) : null; $dataNorm = $r['DATA_NORMALIZADA'] ?? $normalizeDate($dataOrig);
             $valorRaw = $valorCol ? ($r[$valorCol] ?? null) : null; $valor = $parseValor($valorRaw);
             $descricao = $r['HISTORICO_AJUSTADO'] ?? ($descCol ? ($r[$descCol] ?? null) : null);
 
             $faltas=[]; $classificavel=($valor!==null);
             if(!$empresaId) $faltas[]='EMPRESA_ID';
-            if(!$contaCredId) $faltas[]='CONTA_CREDITO_GLOBAL_ID';
-            if($classificavel && !$contaDebId) $faltas[]='CONTA_DEBITO_ID';
             if(!$dataNorm) $faltas[]='DATA';
             if($valor===null) $faltas[]='VALOR';
-            if(!empty($faltas)){ $skipped[]=['row'=>$rowNum,'missing'=>$faltas]; continue; }
-            $ready[]=[
-                'row'=>$rowNum,
-                'EmpresaID'=>(int)$empresaId,
-                'ContaDebitoID'=>(int)$contaDebId,
-                'ContaCreditoID'=>(int)$contaCredId,
-                'DataContabilidade'=>$toYmd($dataNorm),
-                'Valor'=>$valor,
-                'Descricao'=>$descricao,
-            ];
+
+            if($isSantanderMode){
+                if(!$contaBancoId) $faltas[]='CONTA_BANCO_ID';
+                if(!$contaClassificadaId) $faltas[]='CONTA_CONTRAPARTIDA_ID';
+                if(!empty($faltas)){ $skipped[]=['row'=>$rowNum,'missing'=>$faltas]; continue; }
+                $valorAbs = abs((float)$valor);
+                if($valor > 0){
+                    $contaDebId = (int)$contaBancoId; // entrada: banco em DÉBITO
+                    $contaCredId = (int)$contaClassificadaId; // contrapartida em CRÉDITO
+                } elseif($valor < 0){
+                    $contaDebId = (int)$contaClassificadaId; // saída: contrapartida em DÉBITO
+                    $contaCredId = (int)$contaBancoId; // banco em CRÉDITO
+                } else {
+                    $skipped[]=['row'=>$rowNum,'missing'=>['VALOR_NAO_POSITIVO']];
+                    continue;
+                }
+                $ready[]=[
+                    'row'=>$rowNum,
+                    'EmpresaID'=>(int)$empresaId,
+                    'ContaDebitoID'=>$contaDebId,
+                    'ContaCreditoID'=>$contaCredId,
+                    'DataContabilidade'=>$toYmd($dataNorm),
+                    'Valor'=>$valorAbs,
+                    'Descricao'=>$descricao,
+                ];
+            } else {
+                $contaDebId = $contaClassificadaId; $contaCredId = $contaBancoId;
+                if(!$contaCredId) $faltas[]='CONTA_CREDITO_GLOBAL_ID';
+                if($classificavel && !$contaDebId) $faltas[]='CONTA_DEBITO_ID';
+                if(!empty($faltas)){ $skipped[]=['row'=>$rowNum,'missing'=>$faltas]; continue; }
+                $ready[]=[
+                    'row'=>$rowNum,
+                    'EmpresaID'=>(int)$empresaId,
+                    'ContaDebitoID'=>(int)$contaDebId,
+                    'ContaCreditoID'=>(int)$contaCredId,
+                    'DataContabilidade'=>$toYmd($dataNorm),
+                    'Valor'=>$valor,
+                    'Descricao'=>$descricao,
+                ];
+            }
         }
 
         $committedIds=[]; $skippedExisting=[];
@@ -2993,6 +3789,17 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         }catch(\Throwable $e){
             \Illuminate\Support\Facades\DB::rollBack();
             return response()->json(['ok'=>false,'message'=>'Falha ao consolidar: '.$e->getMessage()], 500);
+        }
+
+        // Limpa caches de views/otimizações após commit para evitar aviso
+        // "preg_replace(): Compilation failed: missing terminating ] for character class ..."
+        // que ocorre em reimportações até rodar manualmente optimize:clear
+        try {
+            \Artisan::call('optimize:clear'); // inclui view:clear, route:clear, config:clear
+        } catch (\Throwable $e) {
+            \Log::warning('optimize:clear pós-import falhou: '.$e->getMessage());
+            // fallback mínimo: tenta limpar apenas views
+            try { \Artisan::call('view:clear'); } catch (\Throwable $e2) { /* ignora */ }
         }
 
         return response()->json([

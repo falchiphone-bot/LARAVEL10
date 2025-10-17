@@ -8,6 +8,9 @@
         </div>
     </div>
     <div class="mb-3 d-flex gap-3 flex-wrap">
+        @if(!empty($extratoMode) && $extratoMode === 'santander')
+            <span class="badge bg-danger align-self-center" title="Regras ativas: mantém sinal na prévia; no processamento/commit: valor>0 débito Banco, valor<0 crédito Banco; valor salvo como absoluto.">Modo Santander ativo</span>
+        @endif
     <form method="GET" action="{{ route('lancamentos.preview.despesas') }}" class="row g-2 align-items-end" id="form-filtros">
             <div class="col-auto">
                 <label class="form-label mb-1">Arquivo (imports)</label>
@@ -187,7 +190,7 @@
                         <a href="{{ route('lancamentos.preview.despesas', array_merge(request()->query(), ['file'=>$arquivo,'refresh'=>1])) }}" id="btn-reprocessar" class="btn btn-warning btn-sm align-self-end mt-3" data-action="reprocessar" title="Reprocessa a planilha ignorando o cache atual">Reprocessar (refresh)</a>
                         <button type="button" id="btn-apply-autoclass" class="btn btn-outline-primary btn-sm align-self-end mt-3" title="Executa as regras de auto-classificação agora nas linhas pendentes">Aplicar Regras Agora</button>
                         <button type="button" id="btn-snapshot-cache" class="btn btn-info btn-sm align-self-end mt-3" title="Força salvar no cache as contas e históricos ajustados visíveis" data-action="snapshot">Salvar Cache</button>
-                        
+
                         <!-- Modal de confirmação lançamento contábil -->
                         <div class="modal fade" id="modalEfetuarLancamento" tabindex="-1" aria-labelledby="modalEfetuarLancamentoLabel" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered">

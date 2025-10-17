@@ -122,7 +122,7 @@
                                     <input type="hidden" name="empresa_id" value="{{ $selEmpresa ?? '' }}">
                                     <input type="hidden" name="conta_credito_global_id" value="{{ $selConta ?? '' }}">
                                     <div class="col-12 col-sm-7 col-md-8">
-                                        <input type="file" id="arquivo_excel_extrato" name="arquivo_excel" accept=".xlsx,.xls,.csv" class="d-none" required>
+                                        <input type="file" id="arquivo_excel_extrato" name="arquivo_excel" accept=".xlsx,.xls,.csv,.txt" class="d-none" required>
                                         <div class="d-flex align-items-center gap-2">
                                             <label for="arquivo_excel_extrato" class="btn btn-outline-danger btn-sm">
                                                 ESCOLHER ARQUIVO MODOBANK
@@ -142,7 +142,64 @@
                                                     <span class="text-success" title="Excel (XLS/XLSX)"><i class="fa fa-file-excel-o fa-2x" aria-hidden="true"></i></span>
                                                     <span class="text-secondary" title="CSV"><i class="fa fa-file-text-o fa-2x" aria-hidden="true"></i></span>
                                                 </div>
-                                                <div><strong>Arraste e solte</strong> o arquivo CSV/XLSX aqui</div>
+                                                <div><strong>Arraste e solte</strong> o arquivo CSV/XLSX/TXT aqui</div>
+                                                <div class="small text-muted">ou clique para selecionar</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    {{-- Quando a conta selecionada contiver "SANTANDER" no nome, exibir botão de importação --}}
+                    @php
+                        $isSantanderConta = false;
+                        if (!empty($selConta)) {
+                            foreach ($contas as $conta) {
+                                if ($conta->ID == $selConta) {
+                                    $isSantanderConta = stripos($conta->Descricao ?? '', 'SANTANDER') !== false;
+                                    break;
+                                }
+                            }
+                        }
+                    @endphp
+                    @if($isSantanderConta)
+                    <div class="col-12 col-md-8">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header">
+                                <strong>Importar extrato Santander</strong>
+                            </div>
+                            <div class="card-body">
+                                <form action="{{ route('lancamentos.preview.despesas') }}" method="post" enctype="multipart/form-data" class="row g-2" target="_blank">
+                                    @csrf
+                                    <input type="hidden" name="empresa_id" value="{{ $selEmpresa ?? '' }}">
+                                    {{-- Usaremos a conta selecionada como a conta do BANCO (atuará como débito ou crédito conforme o sinal) --}}
+                                    <input type="hidden" name="conta_credito_global_id" value="{{ $selConta ?? '' }}">
+                                    <input type="hidden" name="extrato_mode" value="santander">
+                                    <div class="col-12 col-sm-7 col-md-8">
+                                        <input type="file" id="arquivo_excel_extrato" name="arquivo_excel" accept=".xlsx,.xls,.csv,.txt" class="d-none" required>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <label for="arquivo_excel_extrato" class="btn btn-outline-danger btn-sm">
+                                                ESCOLHER ARQUIVO SANTANDER
+                                            </label>
+                                            <span id="arquivo_excel_extrato_nome" class="badge bg-danger">Nenhum arquivo selecionado</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-sm-5 col-md-4 d-grid d-md-block">
+                                        <button id="btn-extrato-importar" type="submit" class="btn btn-sm btn-primary w-100" title="Importa um arquivo CSV/XLSX e abre a tela de pré-visualização para classificar as contas">
+                                            Importar e pré-visualizar (CSV/XLSX)
+                                        </button>
+                                    </div>
+                                    <div class="col-12">
+                                        <div id="dropzone-extrato" class="dropzone-extrato text-center p-4 mt-1" role="button" aria-label="Arraste e solte ou clique para selecionar arquivo CSV ou XLSX">
+                                            <div class="d-flex flex-column align-items-center">
+                                                <div class="mb-2 d-flex align-items-center gap-3">
+                                                    <span class="text-success" title="Excel (XLS/XLSX)"><i class="fa fa-file-excel-o fa-2x" aria-hidden="true"></i></span>
+                                                    <span class="text-secondary" title="CSV"><i class="fa fa-file-text-o fa-2x" aria-hidden="true"></i></span>
+                                                </div>
+                                                <div><strong>Arraste e solte</strong> o arquivo CSV/XLSX/TXT aqui</div>
                                                 <div class="small text-muted">ou clique para selecionar</div>
                                             </div>
                                         </div>
