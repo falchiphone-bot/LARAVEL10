@@ -16,6 +16,10 @@
                     Contas de {{ session('Empresa')->Descricao }}
                 </div>
 
+                <nav class="navbar navbar-red mt-2" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                    <a class="btn btn-info" href="{{ route('lancamentos.balancete') }}">Abrir Balancete por Período</a>
+                </nav>
+
                 <hr>
                 {{-- @cannot('PLANO DE CONTAS - LISTAR')
                     <li>

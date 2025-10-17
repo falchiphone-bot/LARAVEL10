@@ -106,6 +106,9 @@
                         <div class="col-2">
                             <a class="btn btn-success" href="/PlanoContas">Plano de Contas</a>
                         </div>
+                        <div class="col-2">
+                            <a class="btn btn-info" href="{{ route('lancamentos.balancete', ['empresa_id' => $selEmpresa ?? null]) }}">Balancete por período</a>
+                        </div>
                     </div>
                 </div>
 

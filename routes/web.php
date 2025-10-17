@@ -134,6 +134,12 @@ Route::middleware(['auth'])->group(function(){
     Route::post('/lancamentos/preview-despesas-excel/process-dry-run', [\App\Http\Controllers\LancamentosController::class,'processPreviewDespesasLancamentos'])->name('lancamentos.preview.despesas.processDryRun');
     Route::post('/lancamentos/preview-despesas-excel/commit', [\App\Http\Controllers\LancamentosController::class,'commitPreviewDespesasLancamentos'])->name('lancamentos.preview.despesas.commit');
     Route::post('/lancamentos/preview-despesas-excel/import-xlsx', [\App\Http\Controllers\LancamentosController::class,'importPreviewDespesasExportado'])->name('lancamentos.preview.despesas.importExported');
+
+    // Balancete simples por período (Débito, Crédito, Saldo)
+    Route::get('/lancamentos/balancete', [\App\Http\Controllers\LancamentosController::class,'balancete'])->name('lancamentos.balancete');
+    Route::get('/lancamentos/balancete/export-xlsx', [\App\Http\Controllers\LancamentosController::class,'balanceteExportXlsx'])->name('lancamentos.balancete.exportXlsx');
+    Route::get('/lancamentos/balancete/export-csv', [\App\Http\Controllers\LancamentosController::class,'balanceteExportCsv'])->name('lancamentos.balancete.exportCsv');
+    Route::get('/lancamentos/balancete/export-pdf', [\App\Http\Controllers\LancamentosController::class,'balanceteExportPdf'])->name('lancamentos.balancete.exportPdf');
 });
 
 // ...outras rotas...

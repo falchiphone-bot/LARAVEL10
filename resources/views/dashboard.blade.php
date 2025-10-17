@@ -108,6 +108,10 @@
                                         <a class="btn btn-warning" href="/Cobranca">Cobrança</a>
                                     </nav>
 
+                                    <nav class="navbar navbar-red" style="background-color: hsla(234, 92%, 47%, 0.096);">
+                                        <a class="btn btn-primary" href="{{ route('lancamentos.balancete') }}">Balancete por período</a>
+                                    </nav>
+
                                 </th>
                             </tr>
                          @endcan

@@ -187,6 +187,23 @@ class Extrato extends Component
         // Restaurar filtros da sessão
         $this->De = session('Extrato_De');
         $this->Ate = session('Extrato_Ate');
+
+        // Se vier de um link (ex.: Balancete), respeitar query string ?de=YYYY-MM-DD&ate=YYYY-MM-DD
+        try {
+            $qDe = request()->query('de');
+            $qAte = request()->query('ate');
+            if (!empty($qDe) && $this->isValidDateYmd($qDe)) {
+                $this->De = $qDe;
+                session(['Extrato_De' => $this->De]);
+            }
+            if (!empty($qAte) && $this->isValidDateYmd($qAte)) {
+                $this->Ate = $qAte;
+                session(['Extrato_Ate' => $this->Ate]);
+            }
+        } catch (\Throwable $e) {
+            // ignore query parse/validation errors e seguir com defaults
+        }
+
         $this->ensureDatesDefault();
 
         // Restaurar empresa/conta da sessão se existirem; caso contrário usar $contaID inicial
@@ -232,6 +249,23 @@ class Extrato extends Component
     $this->Lancamentos = $lancamentos->orderByData()->get();
 
 
+    }
+
+    // Valida data no formato YYYY-MM-DD
+    protected function isValidDateYmd($date): bool
+    {
+        if (!is_string($date)) {
+            return false;
+        }
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            return false;
+        }
+        try {
+            $d = Carbon::createFromFormat('Y-m-d', $date);
+            return $d && $d->format('Y-m-d') === $date;
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     public function updateDataBloqueioConta()

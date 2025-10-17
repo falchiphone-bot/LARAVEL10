@@ -32,41 +32,10 @@ class LancamentosController extends Controller
 {
 
      public function DadosMes()
-
-
      {
         $DadosMes = session('DadosMes');
         $nome = session('nome');
-
-       // // dd( $dados);
-        // $Débito = 0;
-        // $Crédito = 0;
-        // $Saldo = 0;
-        // foreach ($DadosMes as $item) {
-        //     $Débito += $item['Débito'];
-        //     $Crédito += $item['Crédito'];
-        //     $Saldo += $item['Saldo'];
-        // }
-
-
         return view('Lancamentos.DadosMes', compact('DadosMes','nome'));
-        //  return view('Lancamentos.DadosMes', compact('DadosMes', 'Débito', 'Crédito', 'Saldo'));
-     }
-
-
-     public function exibirDadosGabrielMagossiFalchi()
-     {
-        $dados = session('dados');
-        // dd( $dados);
-        $Débito = 0;
-        $Crédito = 0;
-        $Saldo = 0;
-        foreach ($dados as $item) {
-            $Débito += $item['Débito'];
-            $Crédito += $item['Crédito'];
-            $Saldo += $item['Saldo'];
-        }
-         return view('Lancamentos.DadosGabrielMagossiFalchi', compact('dados', 'Débito', 'Crédito', 'Saldo'));
      }
 
      public function EntradasSaidasCalculos()
@@ -3122,9 +3091,9 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         if(!$payload || empty($payload['rows'])){
             return response()->json(['ok'=>false,'message'=>'Nenhum cache para processar']);
         }
-    $rows =& $payload['rows'];
-    // Detecta coluna VALOR
-    $valorCol = null; $headersLocal = $payload['headers'] ?? [];
+        $rows =& $payload['rows'];
+        // Detecta coluna VALOR
+        $valorCol = null; $headersLocal = $payload['headers'] ?? [];
     foreach($headersLocal as $hX){ if(mb_strtoupper($hX,'UTF-8')==='VALOR'){ $valorCol=$hX; break; } }
         $tokenConta = [];
         $stop = [ 'DE','DA','DO','PARA','EM','NO','NA','A','E','O','OS','AS','UM','UMA','DEBITO','DEB','CREDITO','PAGAMENTO','PAGTO','PAG','COMPRA','TRANSACAO','LANCTO','REF','DOC','NF','NOTA','CONTA','VALOR','DATA','HISTORICO' ];
@@ -3890,6 +3859,274 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         }catch(\Throwable $e){
             return back()->with('error','Falha ao importar: '.$e->getMessage());
         }
+    }
+
+
+    /**
+     * Balancete por período: soma Débito, Crédito e Saldo (Débito - Crédito) por conta da empresa.
+     * GET /lancamentos/balancete?empresa_id=...&de=YYYY-MM-DD&ate=YYYY-MM-DD
+     */
+    public function balancete(Request $request)
+    {
+        // Empresas permitidas ao usuário
+        $empresas = \App\Models\Empresa::join('Contabilidade.EmpresasUsuarios','EmpresasUsuarios.EmpresaID','Empresas.ID')
+            ->where('EmpresasUsuarios.UsuarioID', auth()->id())
+            ->orderBy('Empresas.Descricao')
+            ->get(['Empresas.ID','Empresas.Descricao']);
+
+        $data = $request->validate([
+            'empresa_id' => 'nullable|integer',
+            'de' => 'nullable|date',
+            'ate' => 'nullable|date',
+        ]);
+        $empresaId = $data['empresa_id'] ?? ($empresas->first()->ID ?? null);
+        $de = isset($data['de']) ? new \DateTimeImmutable($data['de']) : null;
+        $ate = isset($data['ate']) ? new \DateTimeImmutable($data['ate']) : null;
+
+        $linhas = [];
+        $totDeb = 0.0; $totCred = 0.0; $totSaldo = 0.0;
+    if ($empresaId) {
+            // Débitos por conta (ContaDebitoID)
+            $debPorConta = \App\Models\Lancamento::query()
+                ->empresa($empresaId)
+                ->naoExcluido()
+                ->periodo($de, $ate)
+                ->selectRaw('ContaDebitoID as conta_id, SUM(Valor) as total')
+                ->groupBy('ContaDebitoID')
+                ->pluck('total','conta_id')
+                ->toArray();
+            // Créditos por conta (ContaCreditoID)
+            $credPorConta = \App\Models\Lancamento::query()
+                ->empresa($empresaId)
+                ->naoExcluido()
+                ->periodo($de, $ate)
+                ->selectRaw('ContaCreditoID as conta_id, SUM(Valor) as total')
+                ->groupBy('ContaCreditoID')
+                ->pluck('total','conta_id')
+                ->toArray();
+
+            $contaIds = array_values(array_unique(array_merge(array_keys($debPorConta), array_keys($credPorConta))));
+            $labels = [];
+            if (!empty($contaIds)) {
+                $labels = \App\Models\Conta::whereIn('Contas.ID', $contaIds)
+                    ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                    ->get(['Contas.ID','PlanoContas.Descricao','PlanoContas.Codigo'])
+                    ->mapWithKeys(function($row){
+                        return [
+                            $row->ID => [
+                                'descricao' => $row->Descricao,
+                                'codigo' => $row->Codigo,
+                            ]
+                        ];
+                    })
+                    ->toArray();
+            }
+
+            foreach ($contaIds as $cid) {
+                $deb = (float)($debPorConta[$cid] ?? 0);
+                $cred = (float)($credPorConta[$cid] ?? 0);
+                $saldo = $deb - $cred;
+                $fullCode = (string)($labels[$cid]['codigo'] ?? '');
+                $codigoTop = '';
+                if ($fullCode !== '') {
+                    $parts = explode('.', $fullCode);
+                    $codigoTop = $parts[0] ?? '';
+                    if (!in_array($codigoTop, ['1','2','3','4'], true)) {
+                        $codigoTop = substr($fullCode, 0, 1);
+                        if (!in_array($codigoTop, ['1','2','3','4'], true)) { $codigoTop = ''; }
+                    }
+                }
+                $linhas[] = [
+                    'conta_id' => $cid,
+                    'conta' => $labels[$cid]['descricao'] ?? ('#'.$cid),
+                    'codigo' => $fullCode,
+                    'codigo_top' => $codigoTop,
+                    'debito' => $deb,
+                    'credito' => $cred,
+                    'saldo' => $saldo,
+                ];
+                $totDeb += $deb; $totCred += $cred; $totSaldo += $saldo;
+            }
+
+            // Ordena por Código (classificação), ex.: 1.01.01.01
+            usort($linhas, function($a,$b){ return strnatcasecmp($a['codigo'] ?? '', $b['codigo'] ?? ''); });
+        }
+        // Agrupa por nível 1 (1/2/3/4) com subtotais
+        $grupos = $this->groupLinhasByCodigoTop($linhas);
+
+        // DRE (Receitas, Despesas, Resultado)
+        [$dreReceitas, $dreDespesas, $dreResultado, $dreIsPrejuizo] = $this->computeDre($grupos);
+
+        return view('Lancamentos.balancete', [
+            'empresas' => $empresas,
+            'empresaId' => $empresaId,
+            'de' => $de?->format('Y-m-d'),
+            'ate' => $ate?->format('Y-m-d'),
+            'linhas' => $linhas,
+            'grupos' => $grupos,
+            'totDeb' => $totDeb,
+            'totCred' => $totCred,
+            'totSaldo' => $totSaldo,
+            'dreReceitas' => $dreReceitas,
+            'dreDespesas' => $dreDespesas,
+            'dreResultado' => $dreResultado,
+            'dreIsPrejuizo' => $dreIsPrejuizo,
+        ]);
+    }
+
+    // Exporta balancete em XLSX
+    public function balanceteExportXlsx(Request $request)
+    {
+        [$linhas,$totDeb,$totCred,$totSaldo] = $this->buildBalanceteData($request);
+        $grupos = $this->groupLinhasByCodigoTop($linhas);
+        $file = 'balancete_'.date('Ymd_His').'.xlsx';
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\BalanceteExport($linhas,$totDeb,$totCred,$totSaldo,$grupos), $file);
+    }
+
+    // Exporta balancete em CSV
+    public function balanceteExportCsv(Request $request)
+    {
+        [$linhas,$totDeb,$totCred,$totSaldo] = $this->buildBalanceteData($request);
+        $grupos = $this->groupLinhasByCodigoTop($linhas);
+        $file = 'balancete_'.date('Ymd_His').'.csv';
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\BalanceteExport($linhas,$totDeb,$totCred,$totSaldo,$grupos), $file, \Maatwebsite\Excel\Excel::CSV);
+    }
+
+    // Exporta balancete em PDF (renderiza a mesma view em PDF)
+    public function balanceteExportPdf(Request $request)
+    {
+        [$linhas,$totDeb,$totCred,$totSaldo,$empresas,$empresaId,$de,$ate] = $this->buildBalancetePayload($request);
+        $grupos = $this->groupLinhasByCodigoTop($linhas);
+        [$dreReceitas, $dreDespesas, $dreResultado, $dreIsPrejuizo] = $this->computeDre($grupos);
+        $html = view('Lancamentos.balancete_pdf', compact('empresas','empresaId','de','ate','linhas','grupos','totDeb','totCred','totSaldo','dreReceitas','dreDespesas','dreResultado','dreIsPrejuizo'))->render();
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)->setPaper('a4', 'portrait');
+        return $pdf->download('balancete_'.date('Ymd_His').'.pdf');
+    }
+
+    // Helper interno para montar os dados do balancete (linhas + totais)
+    protected function buildBalanceteData(Request $request): array
+    {
+        [$linhas,$totDeb,$totCred,$totSaldo] = [[],0.0,0.0,0.0];
+        $payload = $this->buildBalancetePayload($request);
+        // Retorna somente o trio principal
+        return [$payload[2], $payload[3], $payload[4], $payload[5]]; // linhas, totDeb, totCred, totSaldo
+    }
+
+    // Helper para montar também empresas/filtros usados na view/pdf
+    protected function buildBalancetePayload(Request $request): array
+    {
+        $empresas = \App\Models\Empresa::join('Contabilidade.EmpresasUsuarios','EmpresasUsuarios.EmpresaID','Empresas.ID')
+            ->where('EmpresasUsuarios.UsuarioID', auth()->id())
+            ->orderBy('Empresas.Descricao')
+            ->get(['Empresas.ID','Empresas.Descricao']);
+
+        $data = $request->validate([
+            'empresa_id' => 'nullable|integer',
+            'de' => 'nullable|date',
+            'ate' => 'nullable|date',
+        ]);
+        $empresaId = $data['empresa_id'] ?? ($empresas->first()->ID ?? null);
+        $de = isset($data['de']) ? new \DateTimeImmutable($data['de']) : null;
+        $ate = isset($data['ate']) ? new \DateTimeImmutable($data['ate']) : null;
+
+        $linhas = [];
+        $totDeb = 0.0; $totCred = 0.0; $totSaldo = 0.0;
+        if ($empresaId) {
+            $debPorConta = \App\Models\Lancamento::query()->empresa($empresaId)->naoExcluido()->periodo($de, $ate)
+                ->selectRaw('ContaDebitoID as conta_id, SUM(Valor) as total')
+                ->groupBy('ContaDebitoID')->pluck('total','conta_id')->toArray();
+            $credPorConta = \App\Models\Lancamento::query()->empresa($empresaId)->naoExcluido()->periodo($de, $ate)
+                ->selectRaw('ContaCreditoID as conta_id, SUM(Valor) as total')
+                ->groupBy('ContaCreditoID')->pluck('total','conta_id')->toArray();
+            $contaIds = array_values(array_unique(array_merge(array_keys($debPorConta), array_keys($credPorConta))));
+            $labels = [];
+            if (!empty($contaIds)) {
+                $labels = \App\Models\Conta::whereIn('Contas.ID', $contaIds)
+                    ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                    ->get(['Contas.ID','PlanoContas.Descricao','PlanoContas.Codigo'])
+                    ->mapWithKeys(function($row){
+                        return [
+                            $row->ID => [
+                                'descricao' => $row->Descricao,
+                                'codigo' => $row->Codigo,
+                            ]
+                        ];
+                    })
+                    ->toArray();
+            }
+            foreach ($contaIds as $cid) {
+                $deb = (float)($debPorConta[$cid] ?? 0);
+                $cred = (float)($credPorConta[$cid] ?? 0);
+                $saldo = $deb - $cred;
+                $fullCode = (string)($labels[$cid]['codigo'] ?? '');
+                $codigoTop = '';
+                if ($fullCode !== '') {
+                    $parts = explode('.', $fullCode);
+                    $codigoTop = $parts[0] ?? '';
+                    if (!in_array($codigoTop, ['1','2','3','4'], true)) {
+                        $codigoTop = substr($fullCode, 0, 1);
+                        if (!in_array($codigoTop, ['1','2','3','4'], true)) { $codigoTop = ''; }
+                    }
+                }
+                $linhas[] = [
+                    'conta_id' => $cid,
+                    'conta' => $labels[$cid]['descricao'] ?? ('#'.$cid),
+                    'codigo' => $fullCode,
+                    'codigo_top' => $codigoTop,
+                    'debito' => $deb,
+                    'credito' => $cred,
+                    'saldo' => $saldo,
+                ];
+                $totDeb += $deb; $totCred += $cred; $totSaldo += $saldo;
+            }
+            // Ordena por Código (classificação)
+            usort($linhas, function($a,$b){ return strnatcasecmp($a['codigo'] ?? '', $b['codigo'] ?? ''); });
+        }
+        return [$empresas, $empresaId, $linhas, $totDeb, $totCred, $totSaldo, $de?->format('Y-m-d'), $ate?->format('Y-m-d')];
+    }
+
+    // Agrupa linhas por código de classificação de nível 1 (1/2/3/4) com subtotais
+    protected function groupLinhasByCodigoTop(array $linhas): array
+    {
+    $labels = [ '1' => 'ATIVO', '2' => 'PASSIVO', '3' => 'DESPESAS', '4' => 'RECEITAS', 'outros' => 'Sem classificação' ];
+        $order = ['1','2','3','4','outros'];
+        $grupos = [];
+        foreach ($order as $k) {
+            $grupos[$k] = [ 'key' => $k, 'label' => $labels[$k], 'linhas' => [], 'totDeb' => 0.0, 'totCred' => 0.0, 'totSaldo' => 0.0 ];
+        }
+        foreach ($linhas as $l) {
+            $k = $l['codigo_top'] ?? '';
+            if (!in_array($k, ['1','2','3','4'], true)) { $k = 'outros'; }
+            $grupos[$k]['linhas'][] = $l;
+            $grupos[$k]['totDeb'] += (float)($l['debito'] ?? 0);
+            $grupos[$k]['totCred'] += (float)($l['credito'] ?? 0);
+            $grupos[$k]['totSaldo'] += (float)($l['saldo'] ?? 0);
+        }
+        // remove grupos vazios
+        foreach ($order as $k) {
+            if (empty($grupos[$k]['linhas'])) { unset($grupos[$k]); }
+        }
+        return $grupos;
+    }
+
+    // Calcula Demonstrativo de Resultado simples a partir dos grupos (3=DESPESAS, 4=RECEITAS)
+    protected function computeDre(array $grupos): array
+    {
+        $totDespDeb = (float)($grupos['3']['totDeb'] ?? 0);
+        $totDespCred = (float)($grupos['3']['totCred'] ?? 0);
+        $totRecDeb = (float)($grupos['4']['totDeb'] ?? 0);
+        $totRecCred = (float)($grupos['4']['totCred'] ?? 0);
+
+        // Despesas: débito - crédito (normalmente positivo)
+        $despesas = $totDespDeb - $totDespCred;
+        if ($despesas < 0) { $despesas = 0.0; }
+        // Receitas: crédito - débito
+        $receitas = $totRecCred - $totRecDeb;
+        if ($receitas < 0) { $receitas = 0.0; }
+
+        $resultado = $receitas - $despesas; // se negativo => prejuízo
+        $isPrejuizo = $resultado < 0;
+        return [$receitas, $despesas, $resultado, $isPrejuizo];
     }
 
 
