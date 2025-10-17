@@ -1901,6 +1901,26 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     if($contaTarifaMensalPacoteId){ $contaTarifaMensalPacoteLabel = \App\Models\Conta::where('Contas.ID',$contaTarifaMensalPacoteId)
                             ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
                             ->value('PlanoContas.Descricao'); }
+                    // Conta de Aplicação Santander (agência/conta específica) para "Aplicacao contamax"
+                    $contaAplicSantId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                        ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                        ->where('PlanoContas.Descricao','SANTANDER APLICACAO AGENCIA 178 CONTA 130092148 - MERCADO VILA PROGRESSO')
+                        ->value('Contas.ID');
+                    if(!$contaAplicSantId){
+                        // Fallback robusto por partes do nome
+                        $contaAplicSantId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->where(function($q){
+                                $q->where('PlanoContas.Descricao','like','%SANTANDER%')
+                                  ->where('PlanoContas.Descricao','like','%APLICA%')
+                                  ->where('PlanoContas.Descricao','like','%178%')
+                                  ->where('PlanoContas.Descricao','like','%130092148%');
+                            })
+                            ->value('Contas.ID');
+                    }
+                    if($contaAplicSantId){ $contaAplicSantLabel = \App\Models\Conta::where('Contas.ID',$contaAplicSantId)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->value('PlanoContas.Descricao'); }
                     // CONSORCIOS (prioriza ID 10843 se da mesma empresa, fallback por descrição)
                     $contaConsorciosId = null;
                     // Primeiro: ID específico informado (10843), mas só se a conta for da mesma empresa
@@ -1924,6 +1944,12 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                         $txt = $rA['_hist_ajustado'] ?? (($rA['_hist_original_col'] ?? null) ? ($rA[$rA['_hist_original_col']] ?? null) : null);
                         if(!is_string($txt) || $txt==='') continue;
                         $tu = $upperNoAccents($txt);
+                        // Aplicação Contamax => Conta de Aplicação Santander específica
+                        if(isset($contaAplicSantId) && $contaAplicSantId && strpos($tu,'APLICACAO') !== false && strpos($tu,'CONTAMAX') !== false){
+                            $rA['_class_conta_id'] = (string)$contaAplicSantId;
+                            $rA['_class_conta_label'] = $contaAplicSantLabel ?: 'SANTANDER APLICACAO AGENCIA 178 CONTA 130092148 - MERCADO VILA PROGRESSO';
+                            continue;
+                        }
                         // ANTECIPACAO GETNET => RECEBIMENTO DE VENDAS - ANTECIPACAO DE CARTAO CREDITO
                         if(isset($contaAntGetnetId) && $contaAntGetnetId && (strpos($tu,'ANTECIP') !== false && strpos($tu,'GETNET') !== false)){
                             $rA['_class_conta_id'] = (string)$contaAntGetnetId;
@@ -2571,6 +2597,27 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                                 ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
                                 ->value('PlanoContas.Descricao'); }
 
+                        // Conta de Aplicação Santander (agência/conta específica) para "Aplicacao contamax"
+                        $contaAplicSantId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                            ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                            ->where('PlanoContas.Descricao','SANTANDER APLICACAO AGENCIA 178 CONTA 130092148 - MERCADO VILA PROGRESSO')
+                            ->value('Contas.ID');
+                        if(!$contaAplicSantId){
+                            // Fallback robusto por partes do nome
+                            $contaAplicSantId = \App\Models\Conta::where('Contas.EmpresaID', (int)$empresaForRule)
+                                ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                                ->where(function($q){
+                                    $q->where('PlanoContas.Descricao','like','%SANTANDER%')
+                                      ->where('PlanoContas.Descricao','like','%APLICA%')
+                                      ->where('PlanoContas.Descricao','like','%178%')
+                                      ->where('PlanoContas.Descricao','like','%130092148%');
+                                })
+                                ->value('Contas.ID');
+                        }
+                        if($contaAplicSantId){ $contaAplicSantLabel = \App\Models\Conta::where('Contas.ID',$contaAplicSantId)
+                                ->join('Contabilidade.PlanoContas','PlanoContas.ID','Planocontas_id')
+                                ->value('PlanoContas.Descricao'); }
+
                         // CONSORCIOS (prioriza ID 10843 se da mesma empresa, fallback por descrição)
                         $contaConsorciosId = null;
                         $empCons10843 = \App\Models\Conta::where('Contas.ID',10843)->value('Contas.EmpresaID');
@@ -2592,6 +2639,12 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                             $txt = $rA['_hist_ajustado'] ?? (($rA['_hist_original_col'] ?? null) ? ($rA[$rA['_hist_original_col']] ?? null) : null);
                             if(!is_string($txt) || $txt==='') continue;
                             $tu = $upperNoAccents($txt);
+                            // Aplicação Contamax => Conta de Aplicação Santander específica
+                            if(isset($contaAplicSantId) && $contaAplicSantId && strpos($tu,'APLICACAO') !== false && strpos($tu,'CONTAMAX') !== false){
+                                $rA['_class_conta_id'] = (string)$contaAplicSantId;
+                                $rA['_class_conta_label'] = $contaAplicSantLabel ?: 'SANTANDER APLICACAO AGENCIA 178 CONTA 130092148 - MERCADO VILA PROGRESSO';
+                                continue;
+                            }
                             // DEP DINHEIRO CAIXA AG => RECEBIMENTO DE VENDAS
                             if(isset($contaRecebId) && $contaRecebId){
                                 $hasDep = (strpos($tu,'DEP')!==false || strpos($tu,'DEPOSITO')!==false);
