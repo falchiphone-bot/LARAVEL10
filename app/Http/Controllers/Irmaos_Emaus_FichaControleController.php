@@ -62,15 +62,60 @@ class Irmaos_Emaus_FichaControleController extends Controller
         $query->orderBy('created_at', 'desc');
     }
 
+    // Filtro por período (created_at)
+    $dateStart = $request->input('date_start'); // formato esperado: Y-m-d
+    $dateEnd = $request->input('date_end');     // formato esperado: Y-m-d
+
+    try {
+        if (!empty($dateStart)) {
+            $start = Carbon::createFromFormat('Y-m-d', trim($dateStart))->startOfDay();
+            $query->where('Irmaos_Emaus_FichaControle.created_at', '>=', $start);
+        }
+    } catch (\Exception $e) {
+        // ignora data inválida silenciosamente para não quebrar a listagem
+    }
+
+    try {
+        if (!empty($dateEnd)) {
+            $end = Carbon::createFromFormat('Y-m-d', trim($dateEnd))->endOfDay();
+            $query->where('Irmaos_Emaus_FichaControle.created_at', '<=', $end);
+        }
+    } catch (\Exception $e) {
+        // ignora data inválida silenciosamente para não quebrar a listagem
+    }
+
     // Filtro de busca
     if ($request->filled('search')) {
         $search = $request->input('search');
+
+        // Tenta interpretar a busca como data para filtrar por Nascimento
+        $dateYmd = null;
+        foreach (['d/m/Y', 'Y-m-d', 'd-m-Y', 'd.m.Y'] as $fmt) {
+            try {
+                $d = Carbon::createFromFormat($fmt, trim($search));
+                if ($d) { $dateYmd = $d->format('Y-m-d'); break; }
+            } catch (\Exception $e) { /* ignora */ }
+        }
+
         $query->where(function($q) use ($search) {
-            $q->where('Nome', 'like', "%{$search}%")
+            $q->where('Irmaos_Emaus_FichaControle.Nome', 'like', "%{$search}%")
+              // Serviço (join via relacionamento)
               ->orWhereHas('Irmaos_EmausServicos', function($q2) use ($search) {
                   $q2->where('nomeServico', 'like', "%{$search}%");
-              });
+              })
+              // Campos adicionais solicitados
+              ->orWhere('Irmaos_Emaus_FichaControle.CidadeNaturalidade', 'like', "%{$search}%")
+              ->orWhere('Irmaos_Emaus_FichaControle.UF_Naturalidade', 'like', "%{$search}%")
+              ->orWhere('Irmaos_Emaus_FichaControle.Mae', 'like', "%{$search}%")
+              ->orWhere('Irmaos_Emaus_FichaControle.Pai', 'like', "%{$search}%")
+              ->orWhere('Irmaos_Emaus_FichaControle.Rg', 'like', "%{$search}%")
+              ->orWhere('Irmaos_Emaus_FichaControle.Cpf', 'like', "%{$search}%")
+              ->orWhere('Irmaos_Emaus_FichaControle.Nis', 'like', "%{$search}%");
         });
+
+        if ($dateYmd) {
+            $query->orWhereDate('Irmaos_Emaus_FichaControle.Nascimento', '=', $dateYmd);
+        }
     }
 
     $model = $query->with('Irmaos_EmausServicos')->paginate($perPage)->appends($request->all());
@@ -129,7 +174,7 @@ class Irmaos_Emaus_FichaControleController extends Controller
 
         $id = $request->idIrmaos_EmausPia;
 
-        $idFichaControle = $idFichaControle;
+    // $idFichaControle já recebido como parâmetro
 
 
         $model= Irmaos_Emaus_RelatorioPia::Where('idFichaControle', $idFichaControle)

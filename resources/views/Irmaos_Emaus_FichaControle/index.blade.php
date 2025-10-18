@@ -37,11 +37,21 @@
                     </div>
                 </div>
 
-                {{-- Form de busca --}}
-                <form method="GET" action="{{ route('Irmaos_Emaus_FichaControle.index') }}" class="mb-3 d-flex align-items-center gap-2">
+                {{-- Form de busca + período --}}
+                <form method="GET" action="{{ route('Irmaos_Emaus_FichaControle.index') }}" class="mb-3 d-flex align-items-center gap-2 flex-wrap">
 
     <input type="text" name="search" class="form-control border-primary shadow-sm"
-        placeholder="Buscar por nome ou serviço..." value="{{ request('search') }}">
+        placeholder="Buscar por nome, serviço, nascimento, cidade, UF, mãe, pai, RG, CPF, NIS..." value="{{ request('search') }}">
+
+    <div class="d-flex align-items-center gap-2">
+        <label for="date_start" class="form-label mb-0">De</label>
+        <input type="date" id="date_start" name="date_start" class="form-control" value="{{ request('date_start') }}">
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+        <label for="date_end" class="form-label mb-0">Até</label>
+        <input type="date" id="date_end" name="date_end" class="form-control" value="{{ request('date_end') }}">
+    </div>
 
     <select name="per_page" class="form-select" style="width: auto;">
         @foreach([5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100,500,1000,2000,5000,10000,50000,100000] as $size)
@@ -52,6 +62,7 @@
     </select>
 
     <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Buscar</button>
+    <a class="btn btn-outline-secondary" href="{{ route('Irmaos_Emaus_FichaControle.index') }}">Limpar</a>
 </form>
 
 
