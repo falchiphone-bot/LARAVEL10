@@ -44,6 +44,20 @@
         placeholder="Buscar por nome, serviço, nascimento, cidade, UF, mãe, pai, RG, CPF, NIS..." value="{{ request('search') }}">
 
     <div class="d-flex align-items-center gap-2">
+        <label for="period_field" class="form-label mb-0">Período em</label>
+        <select name="period_field" id="period_field" class="form-select">
+            @php $pf = request('period_field', 'created_at'); @endphp
+            <option value="created_at" {{ $pf==='created_at' ? 'selected' : '' }}>Cadastrado em</option>
+            <option value="updated_at" {{ $pf==='updated_at' ? 'selected' : '' }}>Alterado em</option>
+            <option value="Nascimento" {{ $pf==='Nascimento' ? 'selected' : '' }}>Nascimento</option>
+            <option value="Entrada" {{ $pf==='Entrada' ? 'selected' : '' }}>Entrada</option>
+            <option value="Saida" {{ $pf==='Saida' ? 'selected' : '' }}>Saída</option>
+            <option value="EntradaPrimeiraVez" {{ $pf==='EntradaPrimeiraVez' ? 'selected' : '' }}>Entrada (1ª vez)</option>
+            <option value="SaidaPrimeiraVez" {{ $pf==='SaidaPrimeiraVez' ? 'selected' : '' }}>Saída (1ª vez)</option>
+        </select>
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
         <label for="date_start" class="form-label mb-0">De</label>
         <input type="date" id="date_start" name="date_start" class="form-control" value="{{ request('date_start') }}">
     </div>

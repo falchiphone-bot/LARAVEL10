@@ -62,26 +62,47 @@ class Irmaos_Emaus_FichaControleController extends Controller
         $query->orderBy('created_at', 'desc');
     }
 
-    // Filtro por período (created_at)
+    // Campo do período selecionável (default: created_at)
+    $allowedPeriodFields = [
+        'created_at', 'updated_at', 'Nascimento', 'Entrada', 'Saida', 'EntradaPrimeiraVez', 'SaidaPrimeiraVez'
+    ];
+    $periodField = $request->input('period_field', 'created_at');
+    if (!in_array($periodField, $allowedPeriodFields, true)) {
+        $periodField = 'created_at';
+    }
+
+    // Filtro por período (aplicado no campo selecionado)
     $dateStart = $request->input('date_start'); // formato esperado: Y-m-d
     $dateEnd = $request->input('date_end');     // formato esperado: Y-m-d
 
     try {
+        $start = null;
         if (!empty($dateStart)) {
             $start = Carbon::createFromFormat('Y-m-d', trim($dateStart))->startOfDay();
-            $query->where('Irmaos_Emaus_FichaControle.created_at', '>=', $start);
         }
     } catch (\Exception $e) {
         // ignora data inválida silenciosamente para não quebrar a listagem
     }
 
     try {
+        $end = null;
         if (!empty($dateEnd)) {
             $end = Carbon::createFromFormat('Y-m-d', trim($dateEnd))->endOfDay();
-            $query->where('Irmaos_Emaus_FichaControle.created_at', '<=', $end);
         }
     } catch (\Exception $e) {
         // ignora data inválida silenciosamente para não quebrar a listagem
+    }
+
+    // Se ambos presentes e invertidos, normaliza
+    if (isset($start, $end) && $start && $end && $start->gt($end)) {
+        [$start, $end] = [$end, $start];
+    }
+
+    if (isset($start) && $start) {
+        $query->where("Irmaos_Emaus_FichaControle.$periodField", '>=', $start);
+    }
+    if (isset($end) && $end) {
+        $query->where("Irmaos_Emaus_FichaControle.$periodField", '<=', $end);
     }
 
     // Filtro de busca
@@ -110,11 +131,51 @@ class Irmaos_Emaus_FichaControleController extends Controller
               ->orWhere('Irmaos_Emaus_FichaControle.Pai', 'like', "%{$search}%")
               ->orWhere('Irmaos_Emaus_FichaControle.Rg', 'like', "%{$search}%")
               ->orWhere('Irmaos_Emaus_FichaControle.Cpf', 'like', "%{$search}%")
-              ->orWhere('Irmaos_Emaus_FichaControle.Nis', 'like', "%{$search}%");
+              ->orWhere('Irmaos_Emaus_FichaControle.Nis', 'like', "%{$search}%")
+              ->orWhere('Irmaos_Emaus_FichaControle.Escolaridade', 'like', "%{$search}%")
+              ->orWhere('Irmaos_Emaus_FichaControle.Prontuario', 'like', "%{$search}%")
+              ->orWhere('Irmaos_Emaus_FichaControle.Livro', 'like', "%{$search}%")
+              ->orWhere('Irmaos_Emaus_FichaControle.Folha', 'like', "%{$search}%")
+              ->orWhere('Irmaos_Emaus_FichaControle.contatos', 'like', "%{$search}%")
+              ->orWhere('Irmaos_Emaus_FichaControle.endereco', 'like', "%{$search}%")
+              ->orWhere('Irmaos_Emaus_FichaControle.profissao', 'like', "%{$search}%")
+              ->orWhere('Irmaos_Emaus_FichaControle.beneficios', 'like', "%{$search}%")
+              ->orWhere('Irmaos_Emaus_FichaControle.observacoes', 'like', "%{$search}%")
+              ->orWhere('Irmaos_Emaus_FichaControle.user_created', 'like', "%{$search}%")
+              ->orWhere('Irmaos_Emaus_FichaControle.user_updated', 'like', "%{$search}%");
         });
 
-        if ($dateYmd) {
-            $query->orWhereDate('Irmaos_Emaus_FichaControle.Nascimento', '=', $dateYmd);
+        // Busca por Nascimento: por ano, mês/ano ou data exata
+        // Padrões aceitos: YYYY | MM/YYYY | YYYY-MM | DD/MM/YYYY (além de variações já tratadas acima)
+        $nascYear = null; $nascMonth = null; $nascExact = null;
+        $raw = trim($search);
+        if (preg_match('/^\d{4}$/', $raw)) { // YYYY
+            $nascYear = (int) $raw;
+        } elseif (preg_match('/^(\d{2})\/(\d{4})$/', $raw, $m)) { // MM/YYYY
+            $nascMonth = (int) $m[1];
+            $nascYear = (int) $m[2];
+        } elseif (preg_match('/^(\d{4})\-(\d{2})$/', $raw, $m)) { // YYYY-MM
+            $nascYear = (int) $m[1];
+            $nascMonth = (int) $m[2];
+        } else {
+            // Tenta datas completas em vários formatos
+            foreach (['d/m/Y', 'Y-m-d', 'd-m-Y', 'd.m.Y'] as $fmt) {
+                try {
+                    $d = Carbon::createFromFormat($fmt, $raw);
+                    if ($d) { $nascExact = $d->format('Y-m-d'); break; }
+                } catch (\Exception $e) { /* ignora */ }
+            }
+        }
+
+        if ($nascExact) {
+            $query->orWhereDate('Irmaos_Emaus_FichaControle.Nascimento', '=', $nascExact);
+        } elseif ($nascYear && $nascMonth) {
+            $query->orWhere(function($q) use ($nascYear, $nascMonth) {
+                $q->whereYear('Irmaos_Emaus_FichaControle.Nascimento', '=', $nascYear)
+                  ->whereMonth('Irmaos_Emaus_FichaControle.Nascimento', '=', $nascMonth);
+            });
+        } elseif ($nascYear) {
+            $query->orWhereYear('Irmaos_Emaus_FichaControle.Nascimento', '=', $nascYear);
         }
     }
 
