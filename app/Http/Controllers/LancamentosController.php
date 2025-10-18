@@ -30,6 +30,31 @@ use App\Models\ContasPagar;
 use Exception;
 class LancamentosController extends Controller
 {
+    /**
+     * Grava o cache da pré-visualização respeitando config/preview.php
+     * - Se preview.cache_forever=true, usa Cache::forever()
+     * - Caso contrário, usa TTL em segundos (preview.cache_ttl_seconds)
+     * Fallback: 1h se ocorrer falha ao ler config
+     */
+    protected function previewCachePut(string $key, array $payload): void
+    {
+        try {
+            $forever = (bool) config('preview.cache_forever', false);
+            if ($forever) {
+                \Illuminate\Support\Facades\Cache::forever($key, $payload);
+                return;
+            }
+            $ttl = (int) config('preview.cache_ttl_seconds', 3600);
+            if ($ttl <= 0) {
+                \Illuminate\Support\Facades\Cache::forever($key, $payload);
+                return;
+            }
+            \Illuminate\Support\Facades\Cache::put($key, $payload, now()->addSeconds($ttl));
+        } catch (\Throwable $e) {
+            // fallback seguro: 1 hora
+            \Illuminate\Support\Facades\Cache::put($key, $payload, now()->addHour());
+        }
+    }
 
      public function DadosMes()
      {
@@ -2150,7 +2175,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             if($touched){
                 // Persiste também o modo de extrato
                 $payload['extrato_mode'] = $extratoMode;
-                Cache::put($cacheKey, $payload, now()->addHour());
+                $this->previewCachePut($cacheKey, $payload);
             }
         } elseif(!$exists){
             $erro = "Arquivo não encontrado em imports: $file. Copie ou faça upload.";
@@ -2840,7 +2865,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     unset($r);
                 }
                 // Ao salvar payload, respeita flags (podem ter sido forçadas para desbloqueadas via ?unlock=1)
-                Cache::put($cacheKey, [
+                $payloadToPut = [
                     'headers'=>$headers,
                     'rows'=>$rows,
                     'file'=>$file,
@@ -2851,7 +2876,8 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     'global_credit_conta_label'=>$globalCreditContaLabel,
                     'global_credit_conta_locked'=>$globalCreditContaLocked,
                     'extrato_mode'=>$extratoMode,
-                ], now()->addHour());
+                ];
+                $this->previewCachePut($cacheKey, $payloadToPut);
             } catch(\Throwable $e){
                 $erro = 'Falha ao ler planilha: '.$e->getMessage();
             }
@@ -2944,7 +2970,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             $rows[$i]['_class_conta_label'] = null;
         }
         $payload['rows'] = $rows;
-        Cache::put($cacheKey,$payload, now()->addHour());
+    $this->previewCachePut($cacheKey, $payload);
         return response()->json(['ok'=>true]);
     }
 
@@ -2993,7 +3019,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             $payload['global_credit_conta_id'] = null;
             $payload['global_credit_conta_label'] = null;
         }
-        Cache::put($cacheKey,$payload, now()->addHour());
+    $this->previewCachePut($cacheKey, $payload);
         return response()->json(['ok'=>true,'reset_contas'=> !$already]);
     }
 
@@ -3016,7 +3042,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             return response()->json(['ok'=>false,'message'=>'Selecione uma empresa antes de travar'],422);
         }
         $payload['empresa_locked'] = (bool)$data['locked'];
-        Cache::put($cacheKey,$payload, now()->addHour());
+    $this->previewCachePut($cacheKey, $payload);
         return response()->json(['ok'=>true,'locked'=>$payload['empresa_locked']]);
     }
 
@@ -3044,7 +3070,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             $payload['rows'][$data['row']][$histCol] = $data['valor'];
         }
         $payload['updated_at'] = now()->toDateTimeString();
-    Cache::put($data['cache_key'], $payload, now()->addHour());
+    $this->previewCachePut($data['cache_key'], $payload);
         return response()->json(['ok'=>true,'updated_at'=>$payload['updated_at']]);
     }
 
@@ -3163,7 +3189,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             $payload['global_credit_conta_label'] = $data['global_credit_conta_label'] ?? null;
         }
         $payload['updated_at'] = now()->toDateTimeString();
-        Cache::put($data['cache_key'],$payload, now()->addHour());
+    $this->previewCachePut($data['cache_key'], $payload);
         return response()->json(['ok'=>true,'updated_at'=>$payload['updated_at']]);
     }
 
@@ -3236,7 +3262,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             foreach($rows as &$rY){ if(!empty($rY['_class_conta_id']) && empty($rY['_class_conta_label']) && isset($labels[$rY['_class_conta_id']])) $rY['_class_conta_label']=$labels[$rY['_class_conta_id']]; }
             unset($rY);
         }
-        $payload['rows']=$rows; Cache::put($cacheKey,$payload, now()->addHour());
+    $payload['rows']=$rows; $this->previewCachePut($cacheKey, $payload);
         return response()->json(['ok'=>true,'applied'=>$applied]);
     }
 
@@ -3274,7 +3300,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             $payload['global_credit_conta_id'] = null;
             $payload['global_credit_conta_label'] = null;
         }
-        Cache::put($data['cache_key'],$payload, now()->addHour());
+    $this->previewCachePut($data['cache_key'], $payload);
         return response()->json(['ok'=>true,'conta_id'=>$payload['global_credit_conta_id'],'label'=>$payload['global_credit_conta_label']]);
     }
 
@@ -3297,7 +3323,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             }
         }
         $payload['global_credit_conta_locked'] = (bool)$data['locked'];
-        Cache::put($data['cache_key'],$payload, now()->addHour());
+    $this->previewCachePut($data['cache_key'], $payload);
         return response()->json(['ok'=>true,'locked'=>$payload['global_credit_conta_locked']]);
     }
 
@@ -3952,7 +3978,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                 $rows[]=$linha;
             }
             $cacheKey='preview_despesas:'.auth()->id().':'.md5(json_encode([$storedName,count($rows),false,false,null,null]));
-            Cache::put($cacheKey,[
+            $payloadToPut = [
                 'headers'=>$headersOrig,
                 'rows'=>$rows,
                 'file'=>$storedName,
@@ -3963,7 +3989,8 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                 'global_credit_conta_label'=>$creditLabel,
                 'global_credit_conta_locked'=>false,
                 'imported_from_export'=>true
-            ], now()->addHour());
+            ];
+            $this->previewCachePut($cacheKey, $payloadToPut);
             return redirect()->route('lancamentos.preview.despesas',[ 'file'=>$storedName, 'limite'=>count($rows) ])->with('status','Export importado com sucesso.');
         }catch(\Throwable $e){
             return back()->with('error','Falha ao importar: '.$e->getMessage());
