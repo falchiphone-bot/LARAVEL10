@@ -11,6 +11,9 @@
         @if(!empty($extratoMode) && $extratoMode === 'santander')
             <span class="badge bg-danger align-self-center" title="Regras ativas: mantém sinal na prévia; no processamento/commit: valor>0 débito Banco, valor<0 crédito Banco; valor salvo como absoluto.">Modo Santander ativo</span>
         @endif
+        @if(!empty($extratoMode) && $extratoMode === 'itau')
+            <span class="badge bg-warning text-dark align-self-center" title="Regras ativas: mantém sinal na prévia; no processamento/commit: valor>0 débito Banco, valor<0 crédito Banco; valor salvo como absoluto.">Modo Itaú ativo</span>
+        @endif
     <form method="GET" action="{{ route('lancamentos.preview.despesas') }}" class="row g-2 align-items-end" id="form-filtros">
             <div class="col-auto">
                 <label class="form-label mb-1">Arquivo (imports)</label>
@@ -618,6 +621,10 @@ document.addEventListener('DOMContentLoaded', function(){
                                         form.target = '_blank';
                                         const inpToken = document.createElement('input'); inpToken.type='hidden'; inpToken.name='_token'; inpToken.value = (window.csrf || ''); form.appendChild(inpToken);
                                         const inpCk = document.createElement('input'); inpCk.type='hidden'; inpCk.name='cache_key'; inpCk.value = ck; form.appendChild(inpCk);
+                                        // Ignorar existentes
+                                        const chk = document.getElementById('chk-hide-existing');
+                                        const ignore = chk ? (chk.checked ? '1':'0') : (localStorage.getItem('preview_despesas_hide_existing')==='1' ? '1':'0');
+                                        const inpIgn = document.createElement('input'); inpIgn.type='hidden'; inpIgn.name='ignore_existing'; inpIgn.value = ignore; form.appendChild(inpIgn);
                                         document.body.appendChild(form);
                                         form.submit();
                                         btnSimModal.disabled = false;
@@ -627,7 +634,7 @@ document.addEventListener('DOMContentLoaded', function(){
                                     const r = await fetch("{{ route('lancamentos.preview.despesas.processDryRun') }}",{
                                         method:'POST',
                                         headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
-                                        body: JSON.stringify({cache_key: ck})
+                                        body: JSON.stringify({cache_key: ck, ignore_existing: (document.getElementById('chk-hide-existing')?.checked ? true : (localStorage.getItem('preview_despesas_hide_existing')==='1'))})
                                     });
                                     const j = await r.json();
                                     if(!j.ok){
@@ -672,7 +679,7 @@ document.addEventListener('DOMContentLoaded', function(){
                 const r = await fetch("{{ route('lancamentos.preview.despesas.commit') }}",{
                     method:'POST',
                     headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},
-                    body: JSON.stringify({cache_key: ck})
+                    body: JSON.stringify({cache_key: ck, ignore_existing: (document.getElementById('chk-hide-existing')?.checked ? true : (localStorage.getItem('preview_despesas_hide_existing')==='1'))})
                 });
                 const j = await r.json();
                 if(!j.ok){ alert('Falha ao consolidar: '+(j.message||'erro')); btnCommit.disabled=false; btnCommit.textContent='Consolidar no banco'; return; }
@@ -774,9 +781,9 @@ document.addEventListener('DOMContentLoaded', function(){
             <div>
                 <button type="button" class="btn btn-outline-secondary btn-sm" id="toggle-pendentes" disabled>Ocultar linhas classificadas</button>
             </div>
-            <div class="form-check ms-2 mt-3 mt-md-0">
+            <div class="form-check ms-2 mt-3 mt-md-0" title="Quando marcado: oculta as linhas já existentes e também as ignora na simulação/commit.">
                 <input class="form-check-input" type="checkbox" id="chk-hide-existing">
-                <label class="form-check-label" for="chk-hide-existing">Ocultar "Já existe"</label>
+                <label class="form-check-label" for="chk-hide-existing">Ocultar e ignorar "Já existe"</label>
             </div>
             <div>
                 <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-convert-dates" title="Converter datas de mm/dd/aaaa ou yyyy-mm-dd para dd/mm/aaaa a partir da linha 2" disabled>
@@ -819,12 +826,16 @@ document.addEventListener('DOMContentLoaded', function(){
                             // Agora basta ter um VALOR para permitir classificação
                             $canClass = $hasValor; // antes: $hasDate && $hasValor
                         @endphp
-                        <tr class="{{ !empty($r['_auto_classified']) ? 'table-success auto-class' : '' }} {{ !empty($r['_exists']) ? 'row-exists' : '' }}" data-class-empresa-id="{{ $r['_class_empresa_id'] ?? '' }}" data-class-conta-id="{{ $r['_class_conta_id'] ?? '' }}" data-exists="{{ !empty($r['_exists']) ? '1' : '0' }}">
+                        <tr class="{{ !empty($r['_auto_classified']) ? 'table-success auto-class' : '' }} {{ (!empty($r['_exists']) || !empty($r['_exists_manual'])) ? 'row-exists' : '' }}" data-class-empresa-id="{{ $r['_class_empresa_id'] ?? '' }}" data-class-conta-id="{{ $r['_class_conta_id'] ?? '' }}" data-exists="{{ (!empty($r['_exists']) || !empty($r['_exists_manual'])) ? '1' : '0' }}" data-exists-manual="{{ !empty($r['_exists_manual']) ? '1' : '0' }}">
                             <td style="position:sticky;left:0;background:#fff;z-index:1;">
                                 {{ $i+1 }}
-                                @if(!empty($r['_exists']))
-                                    <span class="badge bg-warning text-dark ms-1" title="Já existe lançamento com mesma Empresa, Data e Valor">Já existe</span>
+                                @if(!empty($r['_exists']) || !empty($r['_exists_manual']))
+                                    <span class="badge bg-warning text-dark ms-1 badge-existe" title="Já existe lançamento com mesma Empresa, Data e Valor">Já existe</span>
                                 @endif
+                                <div class="form-check form-check-inline ms-2 align-middle" title="Marcar manualmente a linha como existente para ignorar na simulação/commit">
+                                    <input class="form-check-input mark-exists" type="checkbox" id="mark-exists-{{ $i }}" data-row="{{ $i }}" {{ (!empty($r['_exists']) || !empty($r['_exists_manual'])) ? 'checked' : '' }}>
+                                    <label class="form-check-label small" for="mark-exists-{{ $i }}">Existe</label>
+                                </div>
                             </td>
                             @php $insertedContaCell = false; @endphp
                             @foreach($headers as $h)
@@ -1104,6 +1115,7 @@ document.addEventListener('DOMContentLoaded', function(){
                 const sel = tr.querySelector('select.class-conta');
                 const inpHist = tr.querySelector('input.hist-ajustado');
                 if(!inpHist) return;
+                const chkExists = tr.querySelector('input.mark-exists');
                 // Lê DATA a partir do índice global do cabeçalho
                 let dataValor = null;
                 if(idxDataGlobal >= 0){
@@ -1111,13 +1123,15 @@ document.addEventListener('DOMContentLoaded', function(){
                     const tdData = tds[idxDataGlobal];
                     if(tdData){ dataValor = (tdData.textContent||'').trim(); }
                 }
-                linhas.push({
+                const payloadLinha = {
                     i: rowIndex,
                     conta_id: sel && sel.value ? parseInt(sel.value,10) : null,
                     conta_label: sel && sel.options && sel.selectedIndex>=0 ? sel.options[sel.selectedIndex].textContent : null,
                     hist_ajustado: inpHist.value,
                     data: dataValor
-                });
+                };
+                if(chkExists){ payloadLinha.exists_manual = chkExists.checked ? true : false; }
+                linhas.push(payloadLinha);
             });
             try{
                 const r = await fetch("{{ route('lancamentos.preview.despesas.snapshot') }}",{
@@ -1853,6 +1867,31 @@ document.addEventListener('DOMContentLoaded', function(){
             marcarLinhasSemConta();
             atualizarToggleEstado();
         }
+        const chkExists = e.target.closest('input.mark-exists');
+        if(chkExists){
+            const tr = chkExists.closest('tr');
+            if(tr){
+                const badge = tr.querySelector('.badge-existe');
+                if(chkExists.checked){
+                    if(!badge){
+                        const idxCell = tr.querySelector('td:first-child');
+                        if(idxCell){
+                            const span = document.createElement('span');
+                            span.className = 'badge bg-warning text-dark ms-1 badge-existe';
+                            span.title = 'Marcado manualmente como existente';
+                            span.textContent = 'Já existe';
+                            idxCell.appendChild(span);
+                        }
+                    }
+                } else {
+                    if(badge){ badge.remove(); }
+                }
+                // Recalcula visibilidade conforme toggle global
+                recomputeAllRowsVisibility();
+                // Faz snapshot leve (debounce global já ocorre para histórico/conta; aqui acionamos explícito)
+                window.executarSnapshot && window.executarSnapshot(false);
+            }
+        }
     });
     // Export JSON (Ctrl/Cmd+S)
     document.addEventListener('keydown', function(e){
@@ -1938,7 +1977,7 @@ document.addEventListener('DOMContentLoaded', function(){
         rows.forEach(tr=>{
             const sel = tr.querySelector('select.class-conta[data-can="1"]');
             const isClassificada = !!(sel && sel.value);
-            const isExistente = (tr.dataset.exists === '1');
+            const isExistente = (tr.dataset.exists === '1') || !!(tr.querySelector('input.mark-exists')?.checked);
             const hide = (ocultarClassificadas && isClassificada) || (ocultarExistentes && isExistente);
             tr.style.display = hide ? 'none' : '';
         });

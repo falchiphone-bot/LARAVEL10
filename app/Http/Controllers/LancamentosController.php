@@ -1376,11 +1376,12 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         $overrideEmpresaId = $request->input('empresa_id');
         $overrideGlobalCreditId = $request->input('conta_credito_global_id');
         // Modo especial de extrato (ex.: 'santander') que altera regras de sinal/débito/crédito
-        $extratoMode = $request->input('extrato_mode');
-        $isSantanderMode = ($extratoMode === 'santander');
+    $extratoMode = $request->input('extrato_mode');
+    $isSantanderMode = ($extratoMode === 'santander');
+    $isItauMode = ($extratoMode === 'itau');
         // Aplica filtro de DÉBITO automaticamente quando vier do Extrato (override presente)
         // No modo Santander não aplicar filtro de DÉBITO (iremos lançar entradas e saídas)
-        $applyDebitoFilter = !$isSantanderMode && (!empty($overrideEmpresaId) || !empty($overrideGlobalCreditId));
+    $applyDebitoFilter = !($isSantanderMode || $isItauMode) && (!empty($overrideEmpresaId) || !empty($overrideGlobalCreditId));
         // Função para normalizar string (remover acentos e uppercase)
         $upperNoAccents = function($s){
             $s = (string)$s;
@@ -1575,17 +1576,18 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         if($request->hasFile('arquivo_excel')){
             // Limpa caches antes de iniciar a importação para evitar erro de preg_replace em reimportações
             try {
-                \Artisan::call('optimize:clear');
+                Artisan::call('optimize:clear');
             } catch (\Throwable $e) {
-                try { \Artisan::call('view:clear'); } catch (\Throwable $e2) { /* ignora */ }
+                try { Artisan::call('view:clear'); } catch (\Throwable $e2) { /* ignora */ }
             }
             // Aceita CSV com variações de MIME (alguns navegadores/bancos enviam como text/plain ou application/vnd.ms-excel)
             $request->validate([
                 'arquivo_excel' => [
+                    'required',
                     'file',
-                    'max:5120',
-                    'mimes:xlsx,xls,csv,txt',
-                    'mimetypes:text/plain,text/csv,application/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/octet-stream'
+                    'max:10240',
+                    // Aceita variações comuns que alguns browsers/servidores reportam para XLSX/CSV/TXT
+                    'mimetypes:text/plain,text/csv,application/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/octet-stream,application/zip,application/x-zip-compressed'
                 ]
             ]);
             $uploaded = $request->file('arquivo_excel');
@@ -1673,7 +1675,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             $globalCreditContaLocked = $cached['global_credit_conta_locked'] ?? false;
             // Resgata modo extrato do cache quando presente
             $cachedExtratoMode = $cached['extrato_mode'] ?? null;
-            if(!$extratoMode && $cachedExtratoMode){ $extratoMode = $cachedExtratoMode; $isSantanderMode = ($extratoMode==='santander'); }
+            if(!$extratoMode && $cachedExtratoMode){ $extratoMode = $cachedExtratoMode; $isSantanderMode = ($extratoMode==='santander'); $isItauMode = ($extratoMode==='itau'); }
             // Inferência também no caminho de cache
             if(in_array('EMPRESA_ID',$headers,true)){
                 foreach($rows as $rX){ if(!empty($rX['EMPRESA_ID'])){ $empresaIdFromFile = (int)$rX['EMPRESA_ID']; break; } }
@@ -2124,12 +2126,25 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                 }
             }
             // Garante valores absolutos na coluna VALOR (sempre na prévia)
-            if(!$isSantanderMode){
+            if(!$isSantanderMode && !$isItauMode){
                 $payload['rows'] = $makeValorAbsolute($headers, $payload['rows'] ?? []);
                 $rows = $payload['rows'];
             }
             // Marca duplicidades a princípio (Empresa+Data+Valor)
             $payload['rows'] = $markExisting($headers, $payload['rows'] ?? [], $selectedEmpresaId);
+            // Preserva marcações manuais de "Já existe" feitas antes do refresh
+            if(isset($oldRows) && is_array($oldRows) && !empty($oldRows)){
+                foreach($payload['rows'] as $idx=>&$rNew){
+                    $manual = $rNew['_exists_manual'] ?? ($oldRows[$idx]['_exists_manual'] ?? null);
+                    if($manual !== null){
+                        $rNew['_exists_manual'] = (bool)$manual;
+                        // Consolida _exists para refletir na UI (auto OR manual)
+                        $auto = !empty($rNew['_exists']);
+                        $rNew['_exists'] = ($auto || $rNew['_exists_manual']) ? true : false;
+                    }
+                }
+                unset($rNew);
+            }
             $rows = $payload['rows'];
             $touched = true;
             if($touched){
@@ -2374,7 +2389,8 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                         $hist = $r['_hist_ajustado'] ?? ($r['_hist_original_col'] ? ($r[$r['_hist_original_col']] ?? null) : null);
                         if(!is_string($hist) || $hist==='') continue;
                         $norm = $removeAccents($hist);
-                        $norm = preg_replace('/[\.,;:!\-\(\)\[\]\/\\]+/u',' ', $norm); // redundante pós-normalização mas mantém limpeza
+                        $norm = preg_replace('/[\\.,;:!\-\(\)\[\]\/]+/u',' ', $norm); // limpeza básica de pontuação comum
+                        $norm = preg_replace('/\\\\+/u',' ', $norm); // remove barras invertidas restantes
                         $parts = preg_split('/\s+/u',$norm,-1,PREG_SPLIT_NO_EMPTY);
                         $seen = [];
                         foreach($parts as $tok){
@@ -2808,10 +2824,21 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                         unset($rA);
                     }
                 }
-                // Garante valores absolutos na coluna VALOR (sempre)
-                if(!$isSantanderMode){ $rows = $makeValorAbsolute($headers, $rows); }
+                // Garante valores absolutos na coluna VALOR (exceto modos que preservam sinal: Santander/Itaú)
+                if(!$isSantanderMode && !$isItauMode){ $rows = $makeValorAbsolute($headers, $rows); }
                 // Marca duplicidades a princípio (Empresa+Data+Valor)
                 $rows = $markExisting($headers, $rows, $selectedEmpresaId ?? $empresaIdFromFile);
+                // Se havia snapshot anterior (F5 com refresh=1), preserva marcações manuais de "Já existe"
+                if(isset($oldRows) && is_array($oldRows) && !empty($oldRows)){
+                    foreach($rows as $idx=>&$r){
+                        if(isset($oldRows[$idx]['_exists_manual'])){
+                            $r['_exists_manual'] = (bool)$oldRows[$idx]['_exists_manual'];
+                            $auto = !empty($r['_exists']);
+                            $r['_exists'] = ($auto || $r['_exists_manual']) ? true : false;
+                        }
+                    }
+                    unset($r);
+                }
                 // Ao salvar payload, respeita flags (podem ter sido forçadas para desbloqueadas via ?unlock=1)
                 Cache::put($cacheKey, [
                     'headers'=>$headers,
@@ -3034,6 +3061,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             'rows.*.conta_label' => 'nullable|string',
             'rows.*.hist_ajustado' => 'nullable|string',
             'rows.*.data' => 'nullable|string'
+            ,'rows.*.exists_manual' => 'nullable|boolean'
             ,'global_credit_conta_id' => 'nullable|integer'
             ,'global_credit_conta_label' => 'nullable|string'
         ]);
@@ -3115,6 +3143,13 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                         if($orig !== $now){ $rows[$i]['_class_conta_from_file'] = false; }
                     }
                 }
+            }
+            // Override manual de existência
+            if(array_key_exists('exists_manual',$r)){
+                $rows[$i]['_exists_manual'] = (bool)$r['exists_manual'];
+                // Normaliza também o campo _exists (usa OR com o automático)
+                $auto = !empty($rows[$i]['_exists']);
+                $rows[$i]['_exists'] = ($auto || $rows[$i]['_exists_manual']) ? true : false;
             }
         }
         $payload['rows'] = $rows;
@@ -3548,7 +3583,10 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
      */
     public function processPreviewDespesasLancamentos(Request $request)
     {
-        $data = $request->validate(['cache_key' => 'required|string']);
+        $data = $request->validate([
+            'cache_key' => 'required|string',
+            'ignore_existing' => 'nullable'
+        ]);
         if(!Cache::has($data['cache_key'])){
             return response()->json(['ok'=>false,'message'=>'Cache expirado ou inexistente'], 410);
         }
@@ -3559,6 +3597,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
     $creditGlobalId = $payload['global_credit_conta_id'] ?? null; // neste modo será a conta do BANCO
     $extratoMode = $payload['extrato_mode'] ?? null;
     $isSantanderMode = ($extratoMode === 'santander');
+    $isItauMode = ($extratoMode === 'itau');
 
         // Helpers (mesmos do prepare)
         $normalizeDate = function($raw){
@@ -3604,8 +3643,15 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         $descCol = $findHeader($headersOrig,'DESCRI');
 
         $ready=[]; $skipped=[];
+        $ignoreExisting = false;
+        try{
+            // aceitar true/"1"/1
+            $v = $data['ignore_existing'] ?? null;
+            $ignoreExisting = ($v === true) || ($v === 1) || ($v === '1') || ($v === 'true');
+        }catch(\Throwable $e){ $ignoreExisting = false; }
         foreach($rowsCache as $i=>$r){
             $rowNum = $i+1; if($rowNum<4) continue; // mesma regra da validação
+            if($ignoreExisting && (!empty($r['_exists']) || !empty($r['_exists_manual']))){ continue; }
             $empresaId = $r['_class_empresa_id'] ?? ($r['EMPRESA_ID'] ?? $empresaGlobal);
             $contaClassificadaId = $r['_class_conta_id'] ?? ($r['CONTA_DEBITO_ID'] ?? null);
             $contaBancoId = $creditGlobalId; if(!empty($r['CONTA_CREDITO_GLOBAL_ID'])) $contaBancoId = $r['CONTA_CREDITO_GLOBAL_ID'];
@@ -3618,7 +3664,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             if(!$dataNorm) $faltas[]='DATA';
             if($valor===null) $faltas[]='VALOR';
 
-            if($isSantanderMode){
+            if($isSantanderMode || $isItauMode){
                 if(!$contaBancoId) $faltas[]='CONTA_BANCO_ID';
                 if(!$contaClassificadaId) $faltas[]='CONTA_CONTRAPARTIDA_ID';
                 if(!empty($faltas)){ $skipped[] = ['row'=>$rowNum, 'missing'=>$faltas]; continue; }
@@ -3678,7 +3724,10 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
      */
     public function commitPreviewDespesasLancamentos(Request $request)
     {
-        $data = $request->validate(['cache_key' => 'required|string']);
+        $data = $request->validate([
+            'cache_key' => 'required|string',
+            'ignore_existing' => 'nullable'
+        ]);
         // Garante usuário autenticado (campo Usuarios_id é NOT NULL)
         $userId = auth()->id();
         if (!$userId) {
@@ -3694,6 +3743,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
     $creditGlobalId = $payload['global_credit_conta_id'] ?? null; // no modo extrato: conta Banco
     $extratoMode = $payload['extrato_mode'] ?? null;
     $isSantanderMode = ($extratoMode === 'santander');
+    $isItauMode = ($extratoMode === 'itau');
 
         $normalizeDate = function($raw){
             if($raw instanceof \DateTimeInterface){ return $raw->format('d/m/Y'); }
@@ -3727,8 +3777,14 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         $descCol = $findHeader($headersOrig,'DESCRI');
 
         $ready=[]; $skipped=[];
+        $ignoreExisting = false;
+        try{
+            $v = $data['ignore_existing'] ?? null;
+            $ignoreExisting = ($v === true) || ($v === 1) || ($v === '1') || ($v === 'true');
+        }catch(\Throwable $e){ $ignoreExisting = false; }
         foreach($rowsCache as $i=>$r){
             $rowNum = $i+1; if($rowNum<4) continue;
+            if($ignoreExisting && (!empty($r['_exists']) || !empty($r['_exists_manual']))){ continue; }
             $empresaId = $r['_class_empresa_id'] ?? ($r['EMPRESA_ID'] ?? $empresaGlobal);
             $contaClassificadaId = $r['_class_conta_id'] ?? ($r['CONTA_DEBITO_ID'] ?? null);
             $contaBancoId = $creditGlobalId; if(!empty($r['CONTA_CREDITO_GLOBAL_ID'])) $contaBancoId = $r['CONTA_CREDITO_GLOBAL_ID'];
@@ -3741,7 +3797,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             if(!$dataNorm) $faltas[]='DATA';
             if($valor===null) $faltas[]='VALOR';
 
-            if($isSantanderMode){
+            if($isSantanderMode || $isItauMode){
                 if(!$contaBancoId) $faltas[]='CONTA_BANCO_ID';
                 if(!$contaClassificadaId) $faltas[]='CONTA_CONTRAPARTIDA_ID';
                 if(!empty($faltas)){ $skipped[]=['row'=>$rowNum,'missing'=>$faltas]; continue; }
@@ -3817,11 +3873,11 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         // "preg_replace(): Compilation failed: missing terminating ] for character class ..."
         // que ocorre em reimportações até rodar manualmente optimize:clear
         try {
-            \Artisan::call('optimize:clear'); // inclui view:clear, route:clear, config:clear
+            Artisan::call('optimize:clear'); // inclui view:clear, route:clear, config:clear
         } catch (\Throwable $e) {
-            \Log::warning('optimize:clear pós-import falhou: '.$e->getMessage());
+            Log::warning('optimize:clear pós-import falhou: '.$e->getMessage());
             // fallback mínimo: tenta limpar apenas views
-            try { \Artisan::call('view:clear'); } catch (\Throwable $e2) { /* ignora */ }
+            try { Artisan::call('view:clear'); } catch (\Throwable $e2) { /* ignora */ }
         }
 
         return response()->json([

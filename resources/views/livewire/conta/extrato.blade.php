@@ -125,21 +125,21 @@
                                     <input type="hidden" name="empresa_id" value="{{ $selEmpresa ?? '' }}">
                                     <input type="hidden" name="conta_credito_global_id" value="{{ $selConta ?? '' }}">
                                     <div class="col-12 col-sm-7 col-md-8">
-                                        <input type="file" id="arquivo_excel_extrato" name="arquivo_excel" accept=".xlsx,.xls,.csv,.txt" class="d-none" required>
+                                        <input type="file" id="arquivo_excel_extrato-modobank" name="arquivo_excel" accept=".xlsx,.xls,.csv,.txt" class="d-none">
                                         <div class="d-flex align-items-center gap-2">
-                                            <label for="arquivo_excel_extrato" class="btn btn-outline-danger btn-sm">
+                                            <label for="arquivo_excel_extrato-modobank" class="btn btn-outline-danger btn-sm">
                                                 ESCOLHER ARQUIVO MODOBANK
                                             </label>
-                                            <span id="arquivo_excel_extrato_nome" class="badge bg-danger">Nenhum arquivo selecionado</span>
+                                            <span id="arquivo_excel_extrato_nome-modobank" class="badge bg-danger">Nenhum arquivo selecionado</span>
                                         </div>
                                     </div>
                                     <div class="col-12 col-sm-5 col-md-4 d-grid d-md-block">
-                                        <button id="btn-extrato-importar" type="submit" class="btn btn-sm btn-primary w-100" title="Importa um arquivo CSV/XLSX e abre a tela de pré-visualização para classificar o débito">
+                                        <button id="btn-extrato-importar-modobank" type="submit" class="btn btn-sm btn-primary w-100" title="Importa um arquivo CSV/XLSX e abre a tela de pré-visualização para classificar o débito">
                                             Importar e pré-visualizar (CSV/XLSX)
                                         </button>
                                     </div>
                                     <div class="col-12">
-                                        <div id="dropzone-extrato" class="dropzone-extrato text-center p-4 mt-1" role="button" aria-label="Arraste e solte ou clique para selecionar arquivo CSV ou XLSX">
+                                        <div id="dropzone-extrato-modobank" class="dropzone-extrato text-center p-4 mt-1" role="button" aria-label="Arraste e solte ou clique para selecionar arquivo CSV ou XLSX">
                                             <div class="d-flex flex-column align-items-center">
                                                 <div class="mb-2 d-flex align-items-center gap-3">
                                                     <span class="text-success" title="Excel (XLS/XLSX)"><i class="fa fa-file-excel-o fa-2x" aria-hidden="true"></i></span>
@@ -182,7 +182,7 @@
                                     <input type="hidden" name="conta_credito_global_id" value="{{ $selConta ?? '' }}">
                                     <input type="hidden" name="extrato_mode" value="santander">
                                     <div class="col-12 col-sm-7 col-md-8">
-                                        <input type="file" id="arquivo_excel_extrato" name="arquivo_excel" accept=".xlsx,.xls,.csv,.txt" class="d-none" required>
+                                        <input type="file" id="arquivo_excel_extrato" name="arquivo_excel" accept=".xlsx,.xls,.csv,.txt" class="d-none">
                                         <div class="d-flex align-items-center gap-2">
                                             <label for="arquivo_excel_extrato" class="btn btn-outline-danger btn-sm">
                                                 ESCOLHER ARQUIVO SANTANDER
@@ -197,6 +197,63 @@
                                     </div>
                                     <div class="col-12">
                                         <div id="dropzone-extrato" class="dropzone-extrato text-center p-4 mt-1" role="button" aria-label="Arraste e solte ou clique para selecionar arquivo CSV ou XLSX">
+                                            <div class="d-flex flex-column align-items-center">
+                                                <div class="mb-2 d-flex align-items-center gap-3">
+                                                    <span class="text-success" title="Excel (XLS/XLSX)"><i class="fa fa-file-excel-o fa-2x" aria-hidden="true"></i></span>
+                                                    <span class="text-secondary" title="CSV"><i class="fa fa-file-text-o fa-2x" aria-hidden="true"></i></span>
+                                                </div>
+                                                <div><strong>Arraste e solte</strong> o arquivo CSV/XLSX/TXT aqui</div>
+                                                <div class="small text-muted">ou clique para selecionar</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    {{-- Quando a conta selecionada contiver "ITAU" no nome, exibir botão de importação Itaú --}}
+                    @php
+                        $isItauConta = false;
+                        if (!empty($selConta)) {
+                            foreach ($contas as $conta) {
+                                if ($conta->ID == $selConta) {
+                                    $isItauConta = stripos($conta->Descricao ?? '', 'ITAU') !== false || stripos($conta->Descricao ?? '', 'ITAÚ') !== false;
+                                    break;
+                                }
+                            }
+                        }
+                    @endphp
+                    @if($isItauConta)
+                    <div class="col-12 col-md-8">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header">
+                                <strong>Importar extrato Itaú</strong>
+                            </div>
+                            <div class="card-body">
+                                <form action="{{ route('lancamentos.preview.despesas') }}" method="post" enctype="multipart/form-data" class="row g-2" target="_blank">
+                                    @csrf
+                                    <input type="hidden" name="empresa_id" value="{{ $selEmpresa ?? '' }}">
+                                    {{-- Conta selecionada será a conta do BANCO --}}
+                                    <input type="hidden" name="conta_credito_global_id" value="{{ $selConta ?? '' }}">
+                                    <input type="hidden" name="extrato_mode" value="itau">
+                                    <div class="col-12 col-sm-7 col-md-8">
+                                        <input type="file" id="arquivo_excel_extrato-itau" name="arquivo_excel" accept=".xlsx,.xls,.csv,.txt" class="d-none">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <label for="arquivo_excel_extrato-itau" class="btn btn-outline-warning btn-sm">
+                                                ESCOLHER ARQUIVO ITAÚ
+                                            </label>
+                                            <span id="arquivo_excel_extrato_nome-itau" class="badge bg-warning text-dark">Nenhum arquivo selecionado</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-sm-5 col-md-4 d-grid d-md-block">
+                                        <button id="btn-extrato-importar-itau" type="submit" class="btn btn-sm btn-primary w-100" title="Importa um arquivo CSV/XLSX e abre a tela de pré-visualização para classificar as contas">
+                                            Importar e pré-visualizar (CSV/XLSX)
+                                        </button>
+                                    </div>
+                                    <div class="col-12">
+                                        <div id="dropzone-extrato-itau" class="dropzone-extrato text-center p-4 mt-1" role="button" aria-label="Arraste e solte ou clique para selecionar arquivo CSV ou XLSX">
                                             <div class="d-flex flex-column align-items-center">
                                                 <div class="mb-2 d-flex align-items-center gap-3">
                                                     <span class="text-success" title="Excel (XLS/XLSX)"><i class="fa fa-file-excel-o fa-2x" aria-hidden="true"></i></span>
@@ -248,10 +305,12 @@
 <script>
 document.addEventListener('DOMContentLoaded', function(){
     function bindExtratoUploadHandlers(){
-        var inp = document.getElementById('arquivo_excel_extrato');
-        var out = document.getElementById('arquivo_excel_extrato_nome');
-        var dz = document.getElementById('dropzone-extrato');
-        var btn = document.getElementById('btn-extrato-importar');
+        function setupIds(prefix){
+            var inp = document.getElementById('arquivo_excel_extrato'+prefix);
+            var out = document.getElementById('arquivo_excel_extrato_nome'+prefix);
+            var dz = document.getElementById('dropzone-extrato'+prefix);
+            var btn = document.getElementById('btn-extrato-importar'+prefix);
+            var form = inp ? inp.closest('form') : null;
         function updateButtonState(){ if(btn){ btn.disabled = !(inp && inp.files && inp.files.length); } }
         if(inp && out && !inp._extratoBound){
             const onChanged = function(){
@@ -276,44 +335,42 @@ document.addEventListener('DOMContentLoaded', function(){
             // Estado inicial do botão
             updateButtonState();
         }
-        if(dz && inp && out && !dz._extratoBound){
-            var acceptExt = ['xlsx','xls','csv'];
+    if(dz && inp && out && !dz._extratoBound){
+        var acceptExt = ['xlsx','xls','csv','txt'];
             function getExt(name){
                 var i = name.lastIndexOf('.');
                 return i>=0 ? name.substring(i+1).toLowerCase() : '';
             }
             function setFiles(files){
+                // Filtra por extensão válida
+                var valid = [];
+                for(var i=0;i<files.length;i++){
+                    var f = files[i];
+                    if(acceptExt.indexOf(getExt(f.name))>=0){ valid.push(f); }
+                }
+                if(valid.length===0){
+                    out.textContent = 'Formato não suportado. Use CSV/XLSX/TXT.';
+                    out.classList.remove('bg-secondary','text-dark');
+                    out.classList.add('bg-danger');
+                    updateButtonState();
+                    return;
+                }
                 try{
                     var dt = new DataTransfer();
-                    var added = 0;
-                    for(var i=0;i<files.length;i++){
-                        var f = files[i];
-                        if(acceptExt.indexOf(getExt(f.name))>=0){ dt.items.add(f); added++; }
-                    }
-                    if(added===0){
-                        out.textContent = 'Formato não suportado. Use CSV/XLSX.';
-                        out.classList.remove('bg-secondary','text-dark');
-                        out.classList.add('bg-danger');
-                        updateButtonState();
-                        return;
-                    }
+                    valid.forEach(f => dt.items.add(f));
                     inp.files = dt.files;
                     inp.dispatchEvent(new Event('change', {bubbles:true}));
                 }catch(e){
-                    // Fallback: se DataTransfer indisponível, apenas exibe o nome do primeiro arquivo escolhido
-                    if(files && files.length){
-                        var f0 = files[0];
-                        if(acceptExt.indexOf(getExt(f0.name))>=0){
-                            out.textContent = f0.name;
-                            out.classList.remove('bg-danger');
-                            out.classList.add('bg-secondary','text-dark');
-                            updateButtonState();
-                        } else {
-                            out.textContent = 'Formato não suportado. Use CSV/XLSX.';
-                            out.classList.remove('bg-secondary','text-dark');
-                            out.classList.add('bg-danger');
-                            updateButtonState();
-                        }
+                    try{
+                        // Alguns navegadores permitem atribuição direta
+                        inp.files = valid;
+                        inp.dispatchEvent(new Event('change', {bubbles:true}));
+                    }catch(e2){
+                        // Último fallback: atualiza somente a UI e pede clique no input
+                        out.textContent = valid[0].name;
+                        out.classList.remove('bg-danger');
+                        out.classList.add('bg-secondary','text-dark');
+                        updateButtonState();
                     }
                 }
             }
@@ -326,6 +383,29 @@ document.addEventListener('DOMContentLoaded', function(){
             });
             dz._extratoBound = true;
         }
+        // Validação não intrusiva: bloqueia submit sem arquivo
+        if(form && inp && !form._extratoBound){
+            form.addEventListener('submit', function(e){
+                if(!(inp.files && inp.files.length)){
+                    e.preventDefault();
+                    if(out){
+                        out.textContent = 'Selecione um arquivo (CSV/XLSX/TXT)';
+                        out.classList.remove('bg-secondary','text-dark');
+                        out.classList.add('bg-danger');
+                    }
+                    if(inp && typeof inp.click === 'function'){
+                        // Abre seletor de arquivo para o usuário escolher
+                        inp.click();
+                    }
+                }
+            });
+            form._extratoBound = true;
+        }
+        }
+        // Setup padrão (sem sufixo), Itaú (sufixo '-itau') e Modobank (sufixo '-modobank')
+        setupIds('');
+        setupIds('-itau');
+        setupIds('-modobank');
     }
     // Bind now, and re-bind after Livewire rerenders
     bindExtratoUploadHandlers();
