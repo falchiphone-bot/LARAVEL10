@@ -19,6 +19,19 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
+// Rota para servir desafios ACME (Let's Encrypt) a partir de storage/app/acme-challenges
+// Permite que o proxy/openresty sirva o conteúdo gerado pela aplicação sem expor demais.
+Route::get('/.well-known/acme-challenge/{token}', function ($token) {
+    $safe = basename($token);
+    $path = storage_path('app/acme-challenges/' . $safe);
+    if (!file_exists($path) || !is_readable($path)) {
+        abort(404);
+    }
+    return response()->file($path, [
+        'Content-Type' => 'text/plain',
+    ]);
+});
+
 // Rotas de custos de envios
 // require __DIR__.'/envios_custos.php';
 use App\Http\Controllers\SafTipoPrestadorController;
@@ -356,6 +369,9 @@ Route::get('/', function () {
     } elseif ($dominio === 'contabilidade.falchi.com.br') {
         // Redireciona a raiz do subdomínio para o dashboard específico de Contabilidade
         return redirect()->route('dashboardContabilidade');
+    } elseif ($dominio === 'falchi.com.br') {
+        // Domínio raiz principal: envia para dashboard padrão
+        return redirect()->route('dashboard');
     } elseif ($dominio === 'emaus.falchi.com.br') {
     // Antes: retornava view('emaus.index')
     // Agora: enviar para dashboard principal conforme solicitado
@@ -1095,7 +1111,7 @@ Route::get('pdf/GerarPDF', [App\Http\Controllers\ExtratoConectCarController::cla
  'Enviar_Arquivo'])->name('whatsapp.Enviar_Arquivo');
 
  Route::get('/whatsapp/enviarMensagemAprovadaAriane',
- [App\Http\Controllers\Controllers\ApiController::class, 'enviarMensagemAprovadaAriane'])
+ [App\Http\Controllers\ApiController::class, 'enviarMensagemAprovadaAriane'])
  ->name('whatsapp.enviarMensagemAprovadaAriane');
 
  Route::get('/whatsapp/enviarMensagemAprovadaAngelica',
