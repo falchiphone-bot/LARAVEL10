@@ -4004,6 +4004,15 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
      */
     public function balancete(Request $request)
     {
+        $showTrail = $request->boolean('trail', true);
+        $showHier = $request->boolean('hier', false);
+        $showPrev = $request->boolean('prev', true); // somar/exibir saldo anterior (contas 1 e 2)
+        // Exclusividade: se hierárquico estiver ligado, desliga trilha; caso contrário, respeita trilha
+        if ($showHier) {
+            $showTrail = false;
+        } elseif ($showTrail) {
+            $showHier = false;
+        }
         // Empresas permitidas ao usuário
         $empresas = \App\Models\Empresa::join('Contabilidade.EmpresasUsuarios','EmpresasUsuarios.EmpresaID','Empresas.ID')
             ->where('EmpresasUsuarios.UsuarioID', auth()->id())
@@ -4063,10 +4072,29 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     ->toArray();
             }
 
+            // Saldo anterior: movimentos antes da data inicial, apenas se houver data inicial
+            $priorDebPorConta = $priorCredPorConta = [];
+            $deIso = $de?->format('Y-m-d');
+            if ($deIso) {
+                $priorDebPorConta = \App\Models\Lancamento::query()
+                    ->empresa($empresaId)
+                    ->naoExcluido()
+                    ->whereDate('DataContabilidade', '<', $deIso)
+                    ->selectRaw('ContaDebitoID as conta_id, SUM(Valor) as total')
+                    ->groupBy('ContaDebitoID')
+                    ->pluck('total','conta_id')
+                    ->toArray();
+                $priorCredPorConta = \App\Models\Lancamento::query()
+                    ->empresa($empresaId)
+                    ->naoExcluido()
+                    ->whereDate('DataContabilidade', '<', $deIso)
+                    ->selectRaw('ContaCreditoID as conta_id, SUM(Valor) as total')
+                    ->groupBy('ContaCreditoID')
+                    ->pluck('total','conta_id')
+                    ->toArray();
+            }
+
             foreach ($contaIds as $cid) {
-                $deb = (float)($debPorConta[$cid] ?? 0);
-                $cred = (float)($credPorConta[$cid] ?? 0);
-                $saldo = $deb - $cred;
                 $fullCode = (string)($labels[$cid]['codigo'] ?? '');
                 $codigoTop = '';
                 if ($fullCode !== '') {
@@ -4077,6 +4105,17 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                         if (!in_array($codigoTop, ['1','2','3','4'], true)) { $codigoTop = ''; }
                     }
                 }
+                $deb = (float)($debPorConta[$cid] ?? 0);
+                $cred = (float)($credPorConta[$cid] ?? 0);
+                $saldoPeriodo = $deb - $cred;
+                // Saldo anterior apenas para patrimoniais (1 e 2)
+                $saldoAnterior = 0.0;
+                if ($deIso && $showPrev && in_array($codigoTop, ['1','2'], true)) {
+                    $opDeb = (float)($priorDebPorConta[$cid] ?? 0);
+                    $opCred = (float)($priorCredPorConta[$cid] ?? 0);
+                    $saldoAnterior = $opDeb - $opCred;
+                }
+                $saldo = ($showPrev && in_array($codigoTop, ['1','2'], true)) ? ($saldoAnterior + $saldoPeriodo) : $saldoPeriodo;
                 $linhas[] = [
                     'conta_id' => $cid,
                     'conta' => $labels[$cid]['descricao'] ?? ('#'.$cid),
@@ -4085,6 +4124,8 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     'debito' => $deb,
                     'credito' => $cred,
                     'saldo' => $saldo,
+                    'saldo_anterior' => $saldoAnterior,
+                    'saldo_periodo' => $saldoPeriodo,
                 ];
                 $totDeb += $deb; $totCred += $cred; $totSaldo += $saldo;
             }
@@ -4100,6 +4141,75 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
 
         $deBr = $de?->format('d/m/Y');
         $ateBr = $ate?->format('d/m/Y');
+        // Verificação: existem classificações abaixo do grau 5?
+        $belowGrau5Count = 0;
+        $minGrau = PHP_INT_MAX; $maxGrau = 0; $countGrau5Plus = 0;
+        foreach ($linhas as &$l) {
+            $code = (string)($l['codigo'] ?? '');
+            $grau = 0;
+            if ($code !== '') {
+                $parts = array_filter(explode('.', $code), function($p){ return $p !== '' && $p !== null; });
+                $grau = count($parts);
+            }
+            $l['codigo_grau'] = $grau;
+            if ($grau > 0 && $grau < 5) { $belowGrau5Count++; }
+            if ($grau > 0) {
+                if ($grau < $minGrau) { $minGrau = $grau; }
+                if ($grau > $maxGrau) { $maxGrau = $grau; }
+            }
+            if ($grau >= 5) { $countGrau5Plus++; }
+        }
+        unset($l);
+        $hasBelowGrau5 = $belowGrau5Count > 0;
+    // Coleta prefixes de Grau 1..4 presentes para buscar descrições no Plano de Contas
+        $prefixSets = [1=>[],2=>[],3=>[],4=>[]];
+        foreach ($linhas as $lP) {
+            $code = (string)($lP['codigo'] ?? '');
+            if ($code === '') continue;
+            $parts = array_values(array_filter(explode('.', $code), fn($p)=>$p!=='' && $p!==null));
+            $cnt = count($parts);
+            if ($cnt >= 1) { $prefixSets[1][implode('.', array_slice($parts,0,1))] = true; }
+            if ($cnt >= 2) { $prefixSets[2][implode('.', array_slice($parts,0,2))] = true; }
+            if ($cnt >= 3) { $prefixSets[3][implode('.', array_slice($parts,0,3))] = true; }
+            if ($cnt >= 4) { $prefixSets[4][implode('.', array_slice($parts,0,4))] = true; }
+        }
+        $grau1Labels = $grau2Labels = $grau3Labels = $grau4Labels = [];
+        try {
+            if (!empty($prefixSets[1])) {
+                $grau1Labels = \Illuminate\Support\Facades\DB::table('Contabilidade.PlanoContas')
+                    ->where('Grau', 1)
+                    ->whereIn('Codigo', array_keys($prefixSets[1]))
+                    ->pluck('Descricao', 'Codigo')
+                    ->toArray();
+            }
+        } catch (\Throwable $e) { $grau1Labels = []; }
+        try {
+            if (!empty($prefixSets[2])) {
+                $grau2Labels = \Illuminate\Support\Facades\DB::table('Contabilidade.PlanoContas')
+                    ->where('Grau', 2)
+                    ->whereIn('Codigo', array_keys($prefixSets[2]))
+                    ->pluck('Descricao', 'Codigo')
+                    ->toArray();
+            }
+        } catch (\Throwable $e) { $grau2Labels = []; }
+        try {
+            if (!empty($prefixSets[3])) {
+                $grau3Labels = \Illuminate\Support\Facades\DB::table('Contabilidade.PlanoContas')
+                    ->where('Grau', 3)
+                    ->whereIn('Codigo', array_keys($prefixSets[3]))
+                    ->pluck('Descricao', 'Codigo')
+                    ->toArray();
+            }
+        } catch (\Throwable $e) { $grau3Labels = []; }
+        try {
+            if (!empty($prefixSets[4])) {
+                $grau4Labels = \Illuminate\Support\Facades\DB::table('Contabilidade.PlanoContas')
+                    ->where('Grau', 4)
+                    ->whereIn('Codigo', array_keys($prefixSets[4]))
+                    ->pluck('Descricao', 'Codigo')
+                    ->toArray();
+            }
+        } catch (\Throwable $e) { $grau4Labels = []; }
         return view('Lancamentos.balancete', [
             'empresas' => $empresas,
             'empresaId' => $empresaId,
@@ -4117,6 +4227,18 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             'dreDespesas' => $dreDespesas,
             'dreResultado' => $dreResultado,
             'dreIsPrejuizo' => $dreIsPrejuizo,
+            'hasBelowGrau5' => $hasBelowGrau5,
+            'belowGrau5Count' => $belowGrau5Count,
+            'minGrau' => $minGrau === PHP_INT_MAX ? null : $minGrau,
+            'maxGrau' => $maxGrau ?: null,
+            'countGrau5Plus' => $countGrau5Plus,
+            'showTrail' => $showTrail,
+            'showHier' => $showHier,
+            'showPrev' => $showPrev,
+            'grau1Labels' => $grau1Labels,
+            'grau2Labels' => $grau2Labels,
+            'grau3Labels' => $grau3Labels,
+            'grau4Labels' => $grau4Labels,
         ]);
     }
 
@@ -4125,6 +4247,10 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
     {
         // Usar payload completo para compor nome de arquivo com empresa e período
         [$empresas,$empresaId,$linhas,$totDeb,$totCred,$totSaldo,$de,$ate] = $this->buildBalancetePayload($request);
+        $showTrail = $request->boolean('trail', true);
+        $showHier = $request->boolean('hier', false);
+        $showPrev = $request->boolean('prev', true);
+        if ($showHier) { $showTrail = false; } // exclusividade
         $empresaNome = '';
         try {
             $row = $empresas->firstWhere('ID', $empresaId);
@@ -4134,14 +4260,35 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         $deIso = $de ?: 'sem-de';
         $ateIso = $ate ?: 'sem-ate';
         $grupos = $this->groupLinhasByCodigoTop($linhas);
+        // Coletar labels 1..4 para trilha/hierarquia
+        $prefixSets = [1=>[],2=>[],3=>[],4=>[]];
+        foreach ($linhas as $lP) {
+            $code = (string)($lP['codigo'] ?? '');
+            if ($code === '') continue;
+            $parts = array_values(array_filter(explode('.', $code), fn($p)=>$p!=='' && $p!==null));
+            $cnt = count($parts);
+            if ($cnt >= 1) { $prefixSets[1][implode('.', array_slice($parts,0,1))] = true; }
+            if ($cnt >= 2) { $prefixSets[2][implode('.', array_slice($parts,0,2))] = true; }
+            if ($cnt >= 3) { $prefixSets[3][implode('.', array_slice($parts,0,3))] = true; }
+            if ($cnt >= 4) { $prefixSets[4][implode('.', array_slice($parts,0,4))] = true; }
+        }
+        $grau1Labels = $grau2Labels = $grau3Labels = $grau4Labels = [];
+        try { if (!empty($prefixSets[1])) { $grau1Labels = \Illuminate\Support\Facades\DB::table('Contabilidade.PlanoContas')->where('Grau',1)->whereIn('Codigo', array_keys($prefixSets[1]))->pluck('Descricao','Codigo')->toArray(); } } catch (\Throwable $e) { $grau1Labels = []; }
+        try { if (!empty($prefixSets[2])) { $grau2Labels = \Illuminate\Support\Facades\DB::table('Contabilidade.PlanoContas')->where('Grau',2)->whereIn('Codigo', array_keys($prefixSets[2]))->pluck('Descricao','Codigo')->toArray(); } } catch (\Throwable $e) { $grau2Labels = []; }
+        try { if (!empty($prefixSets[3])) { $grau3Labels = \Illuminate\Support\Facades\DB::table('Contabilidade.PlanoContas')->where('Grau',3)->whereIn('Codigo', array_keys($prefixSets[3]))->pluck('Descricao','Codigo')->toArray(); } } catch (\Throwable $e) { $grau3Labels = []; }
+        try { if (!empty($prefixSets[4])) { $grau4Labels = \Illuminate\Support\Facades\DB::table('Contabilidade.PlanoContas')->where('Grau',4)->whereIn('Codigo', array_keys($prefixSets[4]))->pluck('Descricao','Codigo')->toArray(); } } catch (\Throwable $e) { $grau4Labels = []; }
         $file = "balancete_{$empresaSlug}_{$deIso}_{$ateIso}.xlsx";
-        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\BalanceteExport($linhas,$totDeb,$totCred,$totSaldo,$grupos), $file);
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\BalanceteExport($linhas,$totDeb,$totCred,$totSaldo,$grupos,$showTrail,$grau1Labels,$grau2Labels,$grau3Labels,$grau4Labels,$showHier,$showPrev), $file);
     }
 
     // Exporta balancete em CSV
     public function balanceteExportCsv(Request $request)
     {
         [$empresas,$empresaId,$linhas,$totDeb,$totCred,$totSaldo,$de,$ate] = $this->buildBalancetePayload($request);
+        $showTrail = $request->boolean('trail', true);
+        $showHier = $request->boolean('hier', false);
+        $showPrev = $request->boolean('prev', true);
+        if ($showHier) { $showTrail = false; }
         $empresaNome = '';
         try {
             $row = $empresas->firstWhere('ID', $empresaId);
@@ -4151,8 +4298,25 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         $deIso = $de ?: 'sem-de';
         $ateIso = $ate ?: 'sem-ate';
         $grupos = $this->groupLinhasByCodigoTop($linhas);
+        // Coletar labels 1..4 para trilha/hierarquia
+        $prefixSets = [1=>[],2=>[],3=>[],4=>[]];
+        foreach ($linhas as $lP) {
+            $code = (string)($lP['codigo'] ?? '');
+            if ($code === '') continue;
+            $parts = array_values(array_filter(explode('.', $code), fn($p)=>$p!=='' && $p!==null));
+            $cnt = count($parts);
+            if ($cnt >= 1) { $prefixSets[1][implode('.', array_slice($parts,0,1))] = true; }
+            if ($cnt >= 2) { $prefixSets[2][implode('.', array_slice($parts,0,2))] = true; }
+            if ($cnt >= 3) { $prefixSets[3][implode('.', array_slice($parts,0,3))] = true; }
+            if ($cnt >= 4) { $prefixSets[4][implode('.', array_slice($parts,0,4))] = true; }
+        }
+        $grau1Labels = $grau2Labels = $grau3Labels = $grau4Labels = [];
+        try { if (!empty($prefixSets[1])) { $grau1Labels = \Illuminate\Support\Facades\DB::table('Contabilidade.PlanoContas')->where('Grau',1)->whereIn('Codigo', array_keys($prefixSets[1]))->pluck('Descricao','Codigo')->toArray(); } } catch (\Throwable $e) { $grau1Labels = []; }
+        try { if (!empty($prefixSets[2])) { $grau2Labels = \Illuminate\Support\Facades\DB::table('Contabilidade.PlanoContas')->where('Grau',2)->whereIn('Codigo', array_keys($prefixSets[2]))->pluck('Descricao','Codigo')->toArray(); } } catch (\Throwable $e) { $grau2Labels = []; }
+        try { if (!empty($prefixSets[3])) { $grau3Labels = \Illuminate\Support\Facades\DB::table('Contabilidade.PlanoContas')->where('Grau',3)->whereIn('Codigo', array_keys($prefixSets[3]))->pluck('Descricao','Codigo')->toArray(); } } catch (\Throwable $e) { $grau3Labels = []; }
+        try { if (!empty($prefixSets[4])) { $grau4Labels = \Illuminate\Support\Facades\DB::table('Contabilidade.PlanoContas')->where('Grau',4)->whereIn('Codigo', array_keys($prefixSets[4]))->pluck('Descricao','Codigo')->toArray(); } } catch (\Throwable $e) { $grau4Labels = []; }
         $file = "balancete_{$empresaSlug}_{$deIso}_{$ateIso}.csv";
-        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\BalanceteExport($linhas,$totDeb,$totCred,$totSaldo,$grupos), $file, \Maatwebsite\Excel\Excel::CSV);
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\BalanceteExport($linhas,$totDeb,$totCred,$totSaldo,$grupos,$showTrail,$grau1Labels,$grau2Labels,$grau3Labels,$grau4Labels,$showHier,$showPrev), $file, \Maatwebsite\Excel\Excel::CSV);
     }
 
     // Exporta balancete em PDF (renderiza a mesma view em PDF)
@@ -4160,6 +4324,10 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
     {
         // buildBalancetePayload retorna: [empresas, empresaId, linhas, totDeb, totCred, totSaldo, de, ate]
         [$empresas,$empresaId,$linhas,$totDeb,$totCred,$totSaldo,$de,$ate] = $this->buildBalancetePayload($request);
+    $showTrail = $request->boolean('trail', true);
+    $showHier = $request->boolean('hier', false);
+    if ($showHier) { $showTrail = false; }
+    $showPrev = $request->boolean('prev', true);
         $empresaNome = '';
         try {
             $row = $empresas->firstWhere('ID', $empresaId);
@@ -4170,7 +4338,24 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
     $deBr = $de ? date('d/m/Y', strtotime($de)) : null;
     $ateBr = $ate ? date('d/m/Y', strtotime($ate)) : null;
         [$dreReceitas, $dreDespesas, $dreResultado, $dreIsPrejuizo] = $this->computeDre($grupos);
-        $html = view('Lancamentos.balancete_pdf', compact('empresas','empresaId','empresaNome','de','ate','deBr','ateBr','linhas','grupos','totDeb','totCred','totSaldo','dreReceitas','dreDespesas','dreResultado','dreIsPrejuizo'))->render();
+        // Coletar labels 1..4 para trilha/hierarquia no PDF
+        $prefixSets = [1=>[],2=>[],3=>[],4=>[]];
+        foreach ($linhas as $lP) {
+            $code = (string)($lP['codigo'] ?? '');
+            if ($code === '') continue;
+            $parts = array_values(array_filter(explode('.', $code), fn($p)=>$p!=='' && $p!==null));
+            $cnt = count($parts);
+            if ($cnt >= 1) { $prefixSets[1][implode('.', array_slice($parts,0,1))] = true; }
+            if ($cnt >= 2) { $prefixSets[2][implode('.', array_slice($parts,0,2))] = true; }
+            if ($cnt >= 3) { $prefixSets[3][implode('.', array_slice($parts,0,3))] = true; }
+            if ($cnt >= 4) { $prefixSets[4][implode('.', array_slice($parts,0,4))] = true; }
+        }
+        $grau1Labels = $grau2Labels = $grau3Labels = $grau4Labels = [];
+        try { if (!empty($prefixSets[1])) { $grau1Labels = \Illuminate\Support\Facades\DB::table('Contabilidade.PlanoContas')->where('Grau',1)->whereIn('Codigo', array_keys($prefixSets[1]))->pluck('Descricao','Codigo')->toArray(); } } catch (\Throwable $e) { $grau1Labels = []; }
+        try { if (!empty($prefixSets[2])) { $grau2Labels = \Illuminate\Support\Facades\DB::table('Contabilidade.PlanoContas')->where('Grau',2)->whereIn('Codigo', array_keys($prefixSets[2]))->pluck('Descricao','Codigo')->toArray(); } } catch (\Throwable $e) { $grau2Labels = []; }
+        try { if (!empty($prefixSets[3])) { $grau3Labels = \Illuminate\Support\Facades\DB::table('Contabilidade.PlanoContas')->where('Grau',3)->whereIn('Codigo', array_keys($prefixSets[3]))->pluck('Descricao','Codigo')->toArray(); } } catch (\Throwable $e) { $grau3Labels = []; }
+        try { if (!empty($prefixSets[4])) { $grau4Labels = \Illuminate\Support\Facades\DB::table('Contabilidade.PlanoContas')->where('Grau',4)->whereIn('Codigo', array_keys($prefixSets[4]))->pluck('Descricao','Codigo')->toArray(); } } catch (\Throwable $e) { $grau4Labels = []; }
+    $html = view('Lancamentos.balancete_pdf', compact('empresas','empresaId','empresaNome','de','ate','deBr','ateBr','linhas','grupos','totDeb','totCred','totSaldo','dreReceitas','dreDespesas','dreResultado','dreIsPrejuizo','showTrail','showHier','showPrev','grau1Labels','grau2Labels','grau3Labels','grau4Labels'))->render();
         $empresaSlug = \Illuminate\Support\Str::slug($empresaNome ?: 'empresa', '_');
         $deIso = $de ?: 'sem-de';
         $ateIso = $ate ?: 'sem-ate';
@@ -4229,10 +4414,28 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     })
                     ->toArray();
             }
+            // Saldo anterior: movimentos antes da data inicial, apenas se houver data inicial
+            $priorDebPorConta = $priorCredPorConta = [];
+            $deIso = $de?->format('Y-m-d');
+            if ($deIso) {
+                $priorDebPorConta = \App\Models\Lancamento::query()
+                    ->empresa($empresaId)
+                    ->naoExcluido()
+                    ->whereDate('DataContabilidade', '<', $deIso)
+                    ->selectRaw('ContaDebitoID as conta_id, SUM(Valor) as total')
+                    ->groupBy('ContaDebitoID')
+                    ->pluck('total','conta_id')
+                    ->toArray();
+                $priorCredPorConta = \App\Models\Lancamento::query()
+                    ->empresa($empresaId)
+                    ->naoExcluido()
+                    ->whereDate('DataContabilidade', '<', $deIso)
+                    ->selectRaw('ContaCreditoID as conta_id, SUM(Valor) as total')
+                    ->groupBy('ContaCreditoID')
+                    ->pluck('total','conta_id')
+                    ->toArray();
+            }
             foreach ($contaIds as $cid) {
-                $deb = (float)($debPorConta[$cid] ?? 0);
-                $cred = (float)($credPorConta[$cid] ?? 0);
-                $saldo = $deb - $cred;
                 $fullCode = (string)($labels[$cid]['codigo'] ?? '');
                 $codigoTop = '';
                 if ($fullCode !== '') {
@@ -4243,6 +4446,16 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                         if (!in_array($codigoTop, ['1','2','3','4'], true)) { $codigoTop = ''; }
                     }
                 }
+                $deb = (float)($debPorConta[$cid] ?? 0);
+                $cred = (float)($credPorConta[$cid] ?? 0);
+                $saldoPeriodo = $deb - $cred;
+                $saldoAnterior = 0.0;
+                if ($deIso && in_array($codigoTop, ['1','2'], true)) {
+                    $opDeb = (float)($priorDebPorConta[$cid] ?? 0);
+                    $opCred = (float)($priorCredPorConta[$cid] ?? 0);
+                    $saldoAnterior = $opDeb - $opCred;
+                }
+                $saldo = in_array($codigoTop, ['1','2'], true) ? ($saldoAnterior + $saldoPeriodo) : $saldoPeriodo;
                 $linhas[] = [
                     'conta_id' => $cid,
                     'conta' => $labels[$cid]['descricao'] ?? ('#'.$cid),
@@ -4251,6 +4464,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                     'debito' => $deb,
                     'credito' => $cred,
                     'saldo' => $saldo,
+                    'saldo_anterior' => $saldoAnterior,
                 ];
                 $totDeb += $deb; $totCred += $cred; $totSaldo += $saldo;
             }

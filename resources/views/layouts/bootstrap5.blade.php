@@ -436,6 +436,7 @@ if (window.Livewire) {
                                 @endcan
                                 @can('CONTABILIDADE - LISTAR')
                                 <li><a class="dropdown-item" href="{{ route('lancamentos.preview.despesas') }}" title="Pré-visualização e classificação de planilha de despesas (Excel)">Preview Despesas (Excel)</a></li>
+                                <li><a class="dropdown-item" href="/lancamentos/balancete#gsc.tab=0" title="Balancete por período">Balancete</a></li>
                                 @endcan
                                 @can('EMPRESAS - LISTAR')
                                 <li>
