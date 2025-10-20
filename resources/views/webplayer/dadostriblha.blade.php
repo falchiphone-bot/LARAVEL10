@@ -34,7 +34,7 @@
             e <a href="{{ route('radio.liveprf.js.recenttracks') }}" target="_blank" rel="noopener">recenttracks.js</a>.
         </p>
     </div>
-    
+
 </div>
 </body>
 </html>

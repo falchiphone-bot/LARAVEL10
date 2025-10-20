@@ -1,6 +1,6 @@
 
 @{
-    Layout = null;
+    Layout = true;
 }
 
 <!DOCTYPE html>

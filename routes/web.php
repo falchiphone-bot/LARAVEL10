@@ -604,9 +604,11 @@ Route::get('/radio/liveprf/stream.mp3', function () {
 Route::any('/radio/liveprf/proxy/{path}', function (\Illuminate\Http\Request $request, $path) {
     $base = 'http://paineldj6.com.br:2199/';
     $url = rtrim($base, '/') . '/' . ltrim($path, '/');
-    if ($qs = $request->getQueryString()) {
-        $url .= '?' . $qs;
-    }
+    // Reconstrói a query string removendo o parâmetro de debug (para não afetar o upstream)
+    $query = $request->query();
+    if (isset($query['debug'])) { unset($query['debug']); }
+    $qs = http_build_query($query);
+    if (!empty($qs)) { $url .= '?' . $qs; }
     try {
         $method = strtoupper($request->getMethod());
         $http = \Illuminate\Support\Facades\Http::timeout(10)->connectTimeout(5);
@@ -615,6 +617,7 @@ Route::any('/radio/liveprf/proxy/{path}', function (\Illuminate\Http\Request $re
             'Accept' => $request->header('Accept', '*/*'),
             'User-Agent' => $request->header('User-Agent', 'FalchiRadioProxy/1.0'),
         ]);
+        $t0 = microtime(true);
         $resp = match ($method) {
             'POST' => $http->asForm()->post($url, $request->all()),
             'PUT'  => $http->put($url, $request->all()),
@@ -622,7 +625,47 @@ Route::any('/radio/liveprf/proxy/{path}', function (\Illuminate\Http\Request $re
             'DELETE'=> $http->delete($url, $request->all()),
             default => $http->get($url),
         };
-    $contentType = $resp->header('Content-Type') ?? 'application/octet-stream';
+        $durationMs = (int) round((microtime(true) - $t0) * 1000);
+
+        // Modo debug: retorna JSON com status, headers e trecho do corpo
+        if ($request->boolean('debug') || $request->query('debug') === '1') {
+            // Headers do upstream (achatados)
+            $upHeadersRaw = $resp->headers();
+            $upHeaders = [];
+            foreach ($upHeadersRaw as $hk => $hv) {
+                // $hv pode ser array; junta por vírgula
+                $upHeaders[$hk] = is_array($hv) ? implode(', ', $hv) : (string) $hv;
+            }
+            $body = $resp->body();
+            $contentType = $resp->header('Content-Type') ?? 'application/octet-stream';
+            $isText = stripos($contentType, 'text/') !== false
+                || stripos($contentType, 'javascript') !== false
+                || stripos($contentType, 'json') !== false
+                || stripos($contentType, 'xml') !== false
+                || stripos($contentType, 'html') !== false;
+            $sampleLimit = 512;
+            $payload = [
+                'debug' => true,
+                'method' => $method,
+                'upstream_url' => $url,
+                'status' => $resp->status(),
+                'duration_ms' => $durationMs,
+                'headers' => $upHeaders,
+                'content_type' => $contentType,
+                'body_length' => strlen($body),
+            ];
+            if ($isText) {
+                // Garante UTF-8 seguro para JSON
+                $sample = function_exists('mb_substr') ? mb_substr($body, 0, $sampleLimit, 'UTF-8') : substr($body, 0, $sampleLimit);
+                $payload['body_sample'] = $sample;
+            } else {
+                $payload['body_sample_base64'] = base64_encode(substr($body, 0, $sampleLimit));
+                $payload['note'] = 'Conteúdo binário; amostra codificada em base64.';
+            }
+            return response()->json($payload, 200, ['Cache-Control' => 'no-store']);
+        }
+
+        $contentType = $resp->header('Content-Type') ?? 'application/octet-stream';
         return response($resp->body(), $resp->status())
             ->header('Content-Type', $contentType);
     } catch (\Throwable $e) {
