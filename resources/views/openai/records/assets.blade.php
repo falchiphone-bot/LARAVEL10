@@ -645,7 +645,7 @@
   const btnNew = container ? container.querySelector('.btn-create-from-quote') : null;
   if (btnNew) { btnNew.classList.add('d-none'); btnNew.disabled = true; btnNew.removeAttribute('data-amount'); btnNew.removeAttribute('data-updated-at'); }
       try{
-        const url = endpoint + '?symbol=' + encodeURIComponent(symbol);
+  const url = endpoint + '?symbol=' + encodeURIComponent(symbol) + '&persist=1';
         const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
         const data = await resp.json();
         if (!resp.ok || !data || typeof data.price === 'undefined' || data.price === null){

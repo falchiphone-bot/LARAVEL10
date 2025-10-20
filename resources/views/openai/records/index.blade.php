@@ -1648,7 +1648,7 @@ function prepQuickAdd(chatId){
     out.textContent = 'Consultando…';
     try {
   const QUOTE_URL = @json(route('api.market.quote'));
-  const url = QUOTE_URL + '?symbol=' + encodeURIComponent(symbol);
+  const url = QUOTE_URL + '?symbol=' + encodeURIComponent(symbol) + '&persist=1';
       const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
       if (!resp.ok) throw new Error('HTTP ' + resp.status);
       const data = await resp.json();

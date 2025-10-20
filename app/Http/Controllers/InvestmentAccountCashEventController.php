@@ -8,6 +8,8 @@ use App\Models\InvestmentAccountCashSnapshot;
 use App\Models\InvestmentAccount;
 use Illuminate\Support\Facades\DB;
 use App\Services\MarketDataService;
+use App\Models\AssetDailyStat;
+use Carbon\Carbon;
 
 class InvestmentAccountCashEventController extends Controller
 {
@@ -267,7 +269,9 @@ class InvestmentAccountCashEventController extends Controller
         $to = $request->input('to');
         $settleFrom = $request->input('settle_from');
         $settleTo = $request->input('settle_to');
-        $source = $request->input('source');
+    $source = $request->input('source');
+    // Padrão agora é 'db' (usar último registro persistido) quando não for informado
+    $quoteMode = $request->input('quote_mode', 'db'); // 'api' | 'db'
 
         // Base query: mesmos filtros de período/fonte
         $q = InvestmentAccountCashEvent::where('user_id',$userId);
@@ -337,70 +341,155 @@ class InvestmentAccountCashEventController extends Controller
         // Ordena por símbolo
         ksort($map, SORT_NATURAL | SORT_FLAG_CASE);
 
-        // Enriquecer com última cotação: valor atual (unitário), novo total (qty * preço atual) e variação vs custo
-        // Usa MarketDataService com cache curto (ver config market.quote_cache_ttl)
+        // Enriquecer com última cotação para DOIS modos (db e api) e permitir alternância client-side sem recomputar posições
         /** @var MarketDataService $md */
         $md = app(MarketDataService::class);
-        $variationTotals = [];
-        foreach ($map as $sym => &$pos) {
-            $qty = (float)($pos['qty'] ?? 0);
-            if ($qty <= 0) {
-                // Sem posição: manter campos nulos/zero
-                $pos['current_price'] = null;
-                $pos['currency'] = null;
-                $pos['updated_at'] = null;
-                $pos['quote_source'] = null;
-                $pos['new_total'] = 0.0;
-                $pos['variation'] = 0.0;
-                $pos['variation_pct'] = null;
-                // Ainda assim, não altera acumuladores (variação é zero)
-                continue;
-            }
-            try {
-                $q = $md->getQuote($sym);
-            } catch (\Throwable $e) {
-                $q = ['symbol'=>$sym,'price'=>null,'currency'=>null,'updated_at'=>null,'source'=>'none'];
-            }
-            $price = is_numeric($q['price'] ?? null) ? (float)$q['price'] : null;
-            $pos['current_price'] = $price;
-            $pos['currency'] = $q['currency'] ?? null;
-            $pos['updated_at'] = $q['updated_at'] ?? null;
-            $pos['quote_source'] = $q['source'] ?? null;
-            if ($price !== null) {
-                $newTotal = $qty * $price;
-                $pos['new_total'] = $newTotal;
-                $oldCost = (float)($pos['cost'] ?? 0.0);
-                $var = $newTotal - $oldCost;
-                $pos['variation'] = $var;
-                $pos['variation_pct'] = ($oldCost > 0.0) ? ($var / $oldCost) : null;
-                $cur = $pos['currency'] ?: 'USD';
-                if (!isset($variationTotals[$cur])) {
-                    $variationTotals[$cur] = ['positive' => 0.0, 'negative' => 0.0];
-                }
-                if ($var > 0) { $variationTotals[$cur]['positive'] += $var; }
-                if ($var < 0) { $variationTotals[$cur]['negative'] += $var; }
-            } else {
-                $pos['new_total'] = null;
-                $pos['variation'] = null;
-                $pos['variation_pct'] = null;
-            }
-        }
-        unset($pos);
 
-        // Calcula diferença por moeda (positivo + negativo, lembrando que negativo é valor negativo)
-        foreach ($variationTotals as $cur => $vals) {
-            $diff = ($vals['positive'] + $vals['negative']);
-            $variationTotals[$cur]['difference'] = $diff;
-        }
+        $computeWithMode = function(array $baseMap, string $mode) use ($md) {
+            $positions = [];
+            $variationTotalsLocal = [];
+            foreach ($baseMap as $sym => $posBase) {
+                $pos = $posBase; // cópia
+                $qty = (float)($pos['qty'] ?? 0);
+                if ($qty <= 0) {
+                    $pos['current_price'] = null;
+                    $pos['currency'] = null;
+                    $pos['updated_at'] = null;
+                    $pos['quote_source'] = null;
+                    $pos['quote_mode'] = $mode;
+                    $pos['new_total'] = 0.0;
+                    $pos['variation'] = 0.0;
+                    $pos['variation_pct'] = null;
+                    $positions[$sym] = $pos;
+                    continue;
+                }
+                $price = null; $currency = null; $updatedAt = null; $quoteSource = null; $modeUsed = $mode;
+
+                if ($mode === 'db') {
+                    $dbStat = AssetDailyStat::where('symbol', strtoupper($sym))
+                        ->orderBy('date', 'desc')
+                        ->first();
+                    if ($dbStat) {
+                        $price = is_numeric($dbStat->close_value) ? (float) $dbStat->close_value : null;
+                        $updatedAt = optional($dbStat->date)->format('Y-m-d');
+                        $currency = (str_ends_with(strtoupper($sym), '.SA') ? 'BRL' : 'USD');
+                        $quoteSource = 'db_asset_daily_stats';
+                    }
+                    if ($price === null) {
+                        $modeUsed = 'api';
+                        try {
+                            $q = $md->getQuote($sym);
+                        } catch (\Throwable $e) {
+                            $q = ['symbol'=>$sym,'price'=>null,'currency'=>null,'updated_at'=>null,'source'=>'none'];
+                        }
+                        $price = is_numeric($q['price'] ?? null) ? (float)$q['price'] : null;
+                        $currency = $q['currency'] ?? $currency;
+                        $updatedAt = $q['updated_at'] ?? $updatedAt;
+                        $quoteSource = $q['source'] ?? 'none';
+                        if ($price !== null) {
+                            try {
+                                $today = Carbon::today();
+                                $existing = AssetDailyStat::where('symbol', strtoupper($sym))
+                                    ->whereDate('date', '=', $today->format('Y-m-d'))
+                                    ->first();
+                                if ($existing) {
+                                    $existing->close_value = $price;
+                                    $existing->is_accurate = true;
+                                    $existing->save();
+                                } else {
+                                    AssetDailyStat::create([
+                                        'symbol' => strtoupper($sym),
+                                        'date' => Carbon::now(),
+                                        'close_value' => $price,
+                                        'is_accurate' => true,
+                                    ]);
+                                }
+                            } catch (\Throwable $t) { /* noop persist */ }
+                        }
+                    }
+                } else { // api
+                    try {
+                        $q = $md->getQuote($sym);
+                    } catch (\Throwable $e) {
+                        $q = ['symbol'=>$sym,'price'=>null,'currency'=>null,'updated_at'=>null,'source'=>'none'];
+                    }
+                    $price = is_numeric($q['price'] ?? null) ? (float)$q['price'] : null;
+                    $currency = $q['currency'] ?? null;
+                    $updatedAt = $q['updated_at'] ?? null;
+                    $quoteSource = $q['source'] ?? null;
+                    if ($price !== null) {
+                        try {
+                            $today = Carbon::today();
+                            $existing = AssetDailyStat::where('symbol', strtoupper($sym))
+                                ->whereDate('date', '=', $today->format('Y-m-d'))
+                                ->first();
+                            if ($existing) {
+                                $existing->close_value = $price;
+                                $existing->is_accurate = true;
+                                $existing->save();
+                            } else {
+                                AssetDailyStat::create([
+                                    'symbol' => strtoupper($sym),
+                                    'date' => Carbon::now(),
+                                    'close_value' => $price,
+                                    'is_accurate' => true,
+                                ]);
+                            }
+                        } catch (\Throwable $t) { /* noop persist */ }
+                    }
+                }
+
+                $pos['current_price'] = $price;
+                $pos['currency'] = $currency;
+                $pos['updated_at'] = $updatedAt;
+                $pos['quote_source'] = $quoteSource;
+                $pos['quote_mode'] = $modeUsed;
+                if ($price !== null) {
+                    $newTotal = $qty * $price;
+                    $pos['new_total'] = $newTotal;
+                    $oldCost = (float)($pos['cost'] ?? 0.0);
+                    $var = $newTotal - $oldCost;
+                    $pos['variation'] = $var;
+                    $pos['variation_pct'] = ($oldCost > 0.0) ? ($var / $oldCost) : null;
+                    $cur = $pos['currency'] ?: 'USD';
+                    if (!isset($variationTotalsLocal[$cur])) {
+                        $variationTotalsLocal[$cur] = ['positive' => 0.0, 'negative' => 0.0];
+                    }
+                    if ($var > 0) { $variationTotalsLocal[$cur]['positive'] += $var; }
+                    if ($var < 0) { $variationTotalsLocal[$cur]['negative'] += $var; }
+                } else {
+                    $pos['new_total'] = null;
+                    $pos['variation'] = null;
+                    $pos['variation_pct'] = null;
+                }
+                $positions[$sym] = $pos;
+            }
+            // diferença por moeda
+            foreach ($variationTotalsLocal as $cur => $vals) {
+                $variationTotalsLocal[$cur]['difference'] = ($vals['positive'] + $vals['negative']);
+            }
+            // Ordena por símbolo para estabilidade de exibição
+            ksort($positions, SORT_NATURAL | SORT_FLAG_CASE);
+            return [$positions, $variationTotalsLocal];
+        };
+
+        // Computa datasets para ambos os modos para alternância instantânea no front-end
+        [$positionsDb, $variationTotalsDb] = $computeWithMode($map, 'db');
+        [$positionsApi, $variationTotalsApi] = $computeWithMode($map, 'api');
+
+        // Escolhe conjunto inicial conforme query
+        $positions = ($quoteMode === 'db') ? $positionsDb : $positionsApi;
+        $variationTotals = ($quoteMode === 'db') ? $variationTotalsDb : $variationTotalsApi;
 
         // Dados auxiliares de filtros
         $accounts = InvestmentAccount::where('user_id',$userId)->orderBy('account_name')->get();
         $sources = InvestmentAccountCashEvent::where('user_id',$userId)->distinct()->pluck('source')->sort()->values();
 
         return view('portfolio.cash_positions_summary', [
-            'positions' => $map,
+            'positions' => $positions,
             'accounts' => $accounts,
             'sources' => $sources,
+            'quote_mode' => $quoteMode,
             'filter_account_id' => $accountId ? (int)$accountId : null,
             'filter_from' => $from,
             'filter_to' => $to,
@@ -408,6 +497,11 @@ class InvestmentAccountCashEventController extends Controller
             'filter_settle_to' => $settleTo,
             'filter_source' => $source,
             'variationTotals' => $variationTotals,
+            // Datasets para alternância client-side
+            'positionsDb' => array_values($positionsDb),
+            'positionsApi' => array_values($positionsApi),
+            'variationTotalsDb' => $variationTotalsDb,
+            'variationTotalsApi' => $variationTotalsApi,
         ]);
     }
 }

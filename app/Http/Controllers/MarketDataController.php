@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use App\Services\MarketDataService;
 use App\Services\HolidayService;
+use App\Models\AssetDailyStat;
 use Carbon\Carbon;
 
 class MarketDataController extends Controller
@@ -25,6 +27,61 @@ class MarketDataController extends Controller
         }
         $svc = app(MarketDataService::class);
         $data = $svc->getQuote($symbol);
+
+        // Opcional: persistir a cotação do dia em AssetDailyStat quando solicitado
+        try {
+            $persist = $request->boolean('persist');
+            $price = isset($data['price']) && is_numeric($data['price']) ? (float)$data['price'] : null;
+            if ($persist && $price !== null) {
+                $today = Carbon::now()->format('Y-m-d');
+                $driver = DB::getDriverName();
+                if ($driver === 'sqlsrv') {
+                    // Checa existência exata para YYYY-MM-DD 00:00:00
+                    $existing = DB::select('SELECT [id],[p5],[p95] FROM [asset_daily_stats] WHERE [symbol]=? AND [date]=CAST(? AS DATETIME2(7))', [$symbol, $today.' 00:00:00']);
+                    if (!empty($existing)) {
+                        $row = (object)$existing[0];
+                        $isAcc = null;
+                        if (isset($row->p5) && isset($row->p95) && $row->p5 !== null && $row->p95 !== null) {
+                            $isAcc = ($price >= (float)$row->p5 && $price <= (float)$row->p95);
+                        }
+                        DB::update('UPDATE [asset_daily_stats] SET [close_value]=?, [is_accurate]=? WHERE [id]=?', [$price, $isAcc, $row->id]);
+                    } else {
+                        // Inserir novo registro básico para o dia
+                        DB::insert('INSERT INTO [asset_daily_stats]([symbol],[date],[mean],[median],[p5],[p95],[close_value],[is_accurate],[created_at],[updated_at]) VALUES (?,?,?,?,?,?,?,?,SYSUTCDATETIME(),SYSUTCDATETIME())', [
+                            $symbol,
+                            $today.' 00:00:00',
+                            null,
+                            null,
+                            null,
+                            null,
+                            $price,
+                            null,
+                        ]);
+                    }
+                } else {
+                    // Drivers comuns (mysql/sqlite/pgsql)
+                    $stat = AssetDailyStat::where('symbol', $symbol)
+                        ->whereDate('date', $today)
+                        ->first();
+                    if ($stat) {
+                        $isAcc = null;
+                        if ($stat->p5 !== null && $stat->p95 !== null) {
+                            $isAcc = ($price >= (float)$stat->p5 && $price <= (float)$stat->p95);
+                        }
+                        $stat->update(['close_value' => $price, 'is_accurate' => $isAcc]);
+                    } else {
+                        AssetDailyStat::create([
+                            'symbol' => $symbol,
+                            'date' => Carbon::createFromFormat('Y-m-d', $today)->startOfDay(),
+                            'close_value' => $price,
+                            'is_accurate' => null,
+                        ]);
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            // Persistência é best-effort: erros silenciosos para não impactar a resposta principal
+        }
         return response()->json($data);
     }
 
