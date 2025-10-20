@@ -261,7 +261,7 @@
               @endif
             </td>
             <td>
-              <a href="{{ route('openai.records.index', ['chat_id' => $r->chat_id]) }}" class="text-decoration-none">
+              <a href="{{ route('openai.records.index', ['chat_id' => $r->chat_id]) }}" class="text-decoration-none" target="_blank" rel="noopener noreferrer">
                 {{ $r->chat?->title ?? '—' }}
               </a>
             </td>

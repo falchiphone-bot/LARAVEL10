@@ -94,7 +94,7 @@
                 @php
                   $assetStatsHref = route('asset-stats.index', ['symbol' => strtoupper($p['symbol'])]) . '#gsc.tab=0';
                 @endphp
-                <a href="{{ $assetStatsHref }}" title="Ver AssetDailyStat de {{ strtoupper($p['symbol']) }}">{{ strtoupper($p['symbol']) }}</a>
+                <a href="{{ $assetStatsHref }}" target="_blank" rel="noopener noreferrer" title="Ver AssetDailyStat de {{ strtoupper($p['symbol']) }}">{{ strtoupper($p['symbol']) }}</a>
               </td>
               <td class="text-end col-qty">{{ number_format($p['qty'], 4, ',', '.') }}</td>
               <td class="text-end col-avg">{{ number_format($p['avg'], 4, ',', '.') }}</td>
