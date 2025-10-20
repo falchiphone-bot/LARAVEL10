@@ -406,6 +406,18 @@ if (window.Livewire) {
               </li>
               @endcan --}}
 
+              {{-- Link: Rádio online (público) --}}
+              <li>
+                <a href="{{ route('radio.liveprf') }}"
+                   class="nav-link text-white"
+                   data-bs-toggle="tooltip" data-bs-placement="top"
+                   data-bs-custom-class="custom-tooltip"
+                   data-bs-title="Abrir o player da rádio ao vivo">
+                  <i class="fa-solid fa-tower-broadcast"></i>
+                  Rádio online
+                </a>
+              </li>
+
 
 
                             {{-- Dropdown: Contabilidade / Financeiro --}}
