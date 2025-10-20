@@ -491,6 +491,66 @@ Route::get('/radio/liveprf', function () {
 Route::get('/radio/liveprf/dados', function () {
     return view('webplayer.dadostriblha');
 })->name('radio.liveprf.dados');
+// Proxy dos scripts do provedor para evitar mixed content e facilitar cache
+Route::get('/radio/liveprf/js/streaminfo.js', function () {
+    try {
+        $resp = \Illuminate\Support\Facades\Http::timeout(5)->connectTimeout(3)
+            ->withHeaders(['Accept' => 'application/javascript'])
+            ->get('http://paineldj6.com.br:2199/system/streaminfo.js');
+        $body = $resp->body(); $status = $resp->status();
+        return response($body, $status)->header('Content-Type','application/javascript');
+    } catch (\Throwable $e) {
+        return response('// streaminfo.js proxy error: '. $e->getMessage(), 502)
+            ->header('Content-Type','application/javascript');
+    }
+})->name('radio.liveprf.js.streaminfo');
+Route::get('/radio/liveprf/js/recenttracks.js', function () {
+    try {
+        $resp = \Illuminate\Support\Facades\Http::timeout(5)->connectTimeout(3)
+            ->withHeaders(['Accept' => 'application/javascript'])
+            ->get('http://paineldj6.com.br:2199/system/recenttracks.js');
+        $body = $resp->body(); $status = $resp->status();
+        return response($body, $status)->header('Content-Type','application/javascript');
+    } catch (\Throwable $e) {
+        return response('// recenttracks.js proxy error: '. $e->getMessage(), 502)
+            ->header('Content-Type','application/javascript');
+    }
+})->name('radio.liveprf.js.recenttracks');
+
+// Proxy do stream MP3 via HTTPS do próprio domínio (evita mixed content)
+Route::get('/radio/liveprf/stream.mp3', function () {
+    $source = 'http://paineldj6.com.br:8071/stream?type=.mp3';
+    try {
+        $resp = \Illuminate\Support\Facades\Http::withOptions(['stream' => true])
+            ->connectTimeout(5)
+            ->timeout(0) // sem timeout total para stream contínuo
+            ->get($source);
+        // Se servidor retornou erro logo na conexão
+        if ($resp->failed() && $resp->status() !== 200) {
+            return response('Stream indisponível', 502);
+        }
+        $psr = $resp->toPsrResponse();
+        $body = $psr->getBody();
+        return response()->stream(function () use ($body) {
+            while (!$body->eof()) {
+                echo $body->read(8192);
+                if (function_exists('fastcgi_finish_request')) {
+                    // não finalizar, apenas flush
+                }
+                @ob_flush();
+                @flush();
+            }
+        }, 200, [
+            'Content-Type' => 'audio/mpeg',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+            'X-Accel-Buffering' => 'no', // sugere ao Nginx não fazer buffering
+        ]);
+    } catch (\Throwable $e) {
+        return response('Erro ao abrir stream: '.$e->getMessage(), 502);
+    }
+})->name('radio.liveprf.stream');
 
 // Tipo de Esporte - exportação CSV/XLSX
 Route::get('TipoEsporte-export', [App\Http\Controllers\TipoEsporteController::class, 'export'])

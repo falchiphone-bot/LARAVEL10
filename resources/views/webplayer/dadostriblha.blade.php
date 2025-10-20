@@ -21,17 +21,17 @@
     <div class="box">
         <h2>Agora tocando</h2>
         <div id="streaminfo" class="section">
-            <script src="http://paineldj6.com.br:2199/system/streaminfo.js"></script>
+            <script src="{{ route('radio.liveprf.js.streaminfo') }}"></script>
         </div>
 
         <h2 class="section">Faixas recentes</h2>
         <div id="recenttracks" class="section">
-            <script src="http://paineldj6.com.br:2199/system/recenttracks.js"></script>
+            <script src="{{ route('radio.liveprf.js.recenttracks') }}"></script>
         </div>
 
-        <p class="note">Se nada aparecer, pode haver bloqueio do navegador a conteúdo misto (HTTPS x HTTP) ou indisponibilidade do provedor.
-            Abra diretamente: <a href="http://paineldj6.com.br:2199/system/streaminfo.js" target="_blank" rel="noopener">streaminfo.js</a>
-            e <a href="http://paineldj6.com.br:2199/system/recenttracks.js" target="_blank" rel="noopener">recenttracks.js</a>.
+        <p class="note">Se nada aparecer, o provedor pode estar indisponível. Teste os proxies locais:
+            <a href="{{ route('radio.liveprf.js.streaminfo') }}" target="_blank" rel="noopener">streaminfo.js</a>
+            e <a href="{{ route('radio.liveprf.js.recenttracks') }}" target="_blank" rel="noopener">recenttracks.js</a>.
         </p>
     </div>
     

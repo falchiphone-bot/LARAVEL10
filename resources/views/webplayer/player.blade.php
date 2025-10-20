@@ -29,7 +29,7 @@
         <p>Clique no play para ouvir a transmissão. Mantivemos um player simples e compatível.</p>
         <div class="row">
             <audio controls autoplay preload="none">
-                <source src="http://paineldj6.com.br:8071/stream?type=.mp3" type="audio/mp3">
+                <source src="{{ route('radio.liveprf.stream') }}" type="audio/mp3">
                 Seu navegador não suporta áudio HTML5.
             </audio>
         </div>
@@ -38,8 +38,8 @@
             <span class="badge">Porta: 8071</span>
             <span class="badge">Bitrate dinâmico</span>
         </div>
-        <p class="note">Se não tocar, verifique se seu navegador bloqueou autoplay com som ou se a origem http://paineldj6.com.br:8071 está acessível.
-            Você também pode abrir o stream direto: <a href="http://paineldj6.com.br:8071/stream?type=.mp3" target="_blank" rel="noopener">link do stream</a>.
+        <p class="note">Se não tocar, verifique se o navegador bloqueou autoplay com som. Link direto do proxy:
+            <a href="{{ route('radio.liveprf.stream') }}" target="_blank" rel="noopener">stream mp3</a>.
         </p>
         <div style="margin-top:16px">
             <iframe id="dados-trilha" src="{{ route('radio.liveprf.dados') }}" width="100%" height="360" frameborder="0" style="background:#0b1220;border:1px solid #1e2a44;border-radius:8px"></iframe>
