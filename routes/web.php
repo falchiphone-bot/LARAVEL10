@@ -492,78 +492,137 @@ Route::get('/radio/liveprf/dados', function () {
     return view('webplayer.dadostriblha');
 })->name('radio.liveprf.dados');
 // Proxy dos scripts do provedor para evitar mixed content e facilitar cache
-Route::get('/radio/liveprf/js/streaminfo.js', function () {
+// Removido sufixo .js no path para evitar captura pelo Nginx como arquivo estático
+Route::get('/radio/liveprf/js/streaminfo', function () {
     try {
         $resp = \Illuminate\Support\Facades\Http::timeout(5)->connectTimeout(3)
             ->withHeaders(['Accept' => 'application/javascript'])
             ->get('http://paineldj6.com.br:2199/system/streaminfo.js');
         $body = $resp->body(); $status = $resp->status();
-        // Reescreve referências internas/absolutas para passar pelo proxy local
-        $body = str_replace([
-            '"/system/','"/ajax/',
-            "'/system/","'/ajax/",
-            '="/system/','="/ajax/',
-            "='/system/","='/ajax/",
-            'http://paineldj6.com.br:2199/system/','http://paineldj6.com.br:2199/ajax/',
-            'https://paineldj6.com.br:2199/system/','https://paineldj6.com.br:2199/ajax/',
-            '//paineldj6.com.br:2199/system/','//paineldj6.com.br:2199/ajax/',
-        ], [
-            '"/radio/liveprf/proxy/system/','"/radio/liveprf/proxy/ajax/',
-            "'/radio/liveprf/proxy/system/","'/radio/liveprf/proxy/ajax/",
-            '="/radio/liveprf/proxy/system/','="/radio/liveprf/proxy/ajax/',
-            "='/radio/liveprf/proxy/system/","='/radio/liveprf/proxy/ajax/",
-            '/radio/liveprf/proxy/system/','/radio/liveprf/proxy/ajax/',
-            '/radio/liveprf/proxy/system/','/radio/liveprf/proxy/ajax/',
-            '/radio/liveprf/proxy/system/','/radio/liveprf/proxy/ajax/',
-        ], $body);
-        // Força base do loader para nosso proxy antes de executar init()
-        $body = str_replace(
-            'window.centovacast.loader.init());',
-            'window.centovacast.loader.url="/radio/liveprf/proxy/";window.centovacast.loader.init());',
+        // Reescreve referências internas/absolutas para passar pelo proxy local (mais robusto)
+        $patterns = [
+            // "system/..." ou 'system/...', com ou sem barra inicial após a aspa
+            '#([\"\'])/?(system|ajax)/#i',
+            // absolutos com http/https
+            '#https?://paineldj6\\.com\\.br:2199/(system|ajax)/#i',
+            // protocol-relative
+            '#//paineldj6\\.com\\.br:2199/(system|ajax)/#i',
+        ];
+        $replacements = [
+            '$1/radio/liveprf/proxy/$2/',
+            '/radio/liveprf/proxy/$1/',
+            '/radio/liveprf/proxy/$1/',
+        ];
+        $body = preg_replace($patterns, $replacements, $body);
+        // Reescreve chamadas explícitas de load_script('...') para usar o proxy diretamente
+        $body = preg_replace(
+            [
+                // load_script('system/...') ou "system/..."
+                '#load_script\((["])(system|ajax)/(.*?)([\"]?)\)#i',
+                // load_script('jquery.min.js') (relativo sem prefixo)
+                '#load_script\(([\"])((?!https?:|/|radio/liveprf/proxy/|system/|ajax/).+?)(\1)\)#i',
+            ],
+            [
+                // para system/ajax: aponta direto para /radio/liveprf/proxy/{system|ajax}/...
+                'load_script($1/radio/liveprf/proxy/$2/$3$4)',
+                // outros relativos: base em system/streaminfo
+                'load_script($1/radio/liveprf/proxy/system/streaminfo/$2$3)',
+            ],
             $body
         );
-        return response($body, $status)->header('Content-Type','application/javascript');
+    // Anexa um sufixo que ajusta a URL base do loader APÓS o script do provedor registrar o loader
+    $suffix = ";(function(){try{var L=window.centovacast&&window.centovacast.loader;if(!L)return;L.url='/radio/liveprf/proxy/system/streaminfo/';var orig=L.load_script; if(typeof orig==='function'){L.load_script=function(u){try{if(typeof u==='string' && !/^https?:\\/\\//i.test(u) && !u.startsWith('/radio/liveprf/proxy/')){ if(u.startsWith('/')){ /* deja */ } else if(u.startsWith('system/')||u.startsWith('ajax/')){ u='/radio/liveprf/proxy/'+u; } else { u='/radio/liveprf/proxy/system/streaminfo/'+u; } } }catch(e){} return orig.call(this,u);};}}catch(e){}})();";
+    $finalBody = $body . $suffix;
+        // Modo debug opcional
+        if (request()->boolean('debug') || request('debug')==='1') {
+            return response()->json([
+                'debug' => true,
+                'upstream_status' => $status,
+                'content_type' => 'application/javascript',
+                'body_sample' => substr($finalBody, 0, 512),
+                'length' => strlen($finalBody),
+            ]);
+        }
+        return response($finalBody, $status)->header('Content-Type','application/javascript');
     } catch (\Throwable $e) {
         return response('// streaminfo.js proxy error: '. $e->getMessage(), 502)
             ->header('Content-Type','application/javascript');
     }
 })->name('radio.liveprf.js.streaminfo');
-Route::get('/radio/liveprf/js/recenttracks.js', function () {
+Route::get('/radio/liveprf/js/recenttracks', function () {
     try {
         $resp = \Illuminate\Support\Facades\Http::timeout(5)->connectTimeout(3)
             ->withHeaders(['Accept' => 'application/javascript'])
             ->get('http://paineldj6.com.br:2199/system/recenttracks.js');
         $body = $resp->body(); $status = $resp->status();
-        // Reescreve referências internas/absolutas para passar pelo proxy local
-        $body = str_replace([
-            '"/system/','"/ajax/',
-            "'/system/","'/ajax/",
-            '="/system/','="/ajax/',
-            "='/system/","='/ajax/",
-            'http://paineldj6.com.br:2199/system/','http://paineldj6.com.br:2199/ajax/',
-            'https://paineldj6.com.br:2199/system/','https://paineldj6.com.br:2199/ajax/',
-            '//paineldj6.com.br:2199/system/','//paineldj6.com.br:2199/ajax/',
-        ], [
-            '"/radio/liveprf/proxy/system/','"/radio/liveprf/proxy/ajax/',
-            "'/radio/liveprf/proxy/system/","'/radio/liveprf/proxy/ajax/",
-            '="/radio/liveprf/proxy/system/','="/radio/liveprf/proxy/ajax/',
-            "='/radio/liveprf/proxy/system/","='/radio/liveprf/proxy/ajax/",
-            '/radio/liveprf/proxy/system/','/radio/liveprf/proxy/ajax/',
-            '/radio/liveprf/proxy/system/','/radio/liveprf/proxy/ajax/',
-            '/radio/liveprf/proxy/system/','/radio/liveprf/proxy/ajax/',
-        ], $body);
-        // Força base do loader para nosso proxy antes de executar init()
-        $body = str_replace(
-            'window.centovacast.loader.init());',
-            'window.centovacast.loader.url="/radio/liveprf/proxy/";window.centovacast.loader.init());',
+        // Reescrita robusta para o segundo script também
+        $patterns = [
+            '#([\"\'])/?(system|ajax)/#i',
+            '#https?://paineldj6\\.com\\.br:2199/(system|ajax)/#i',
+            '#//paineldj6\\.com\\.br:2199/(system|ajax)/#i',
+        ];
+        $replacements = [
+            '$1/radio/liveprf/proxy/$2/',
+            '/radio/liveprf/proxy/$1/',
+            '/radio/liveprf/proxy/$1/',
+        ];
+        $body = preg_replace($patterns, $replacements, $body);
+        // Reescreve chamadas explícitas de load_script('...') para usar o proxy diretamente
+        $body = preg_replace(
+            [
+                '#load_script\((["])(system|ajax)/(.*?)([\"]?)\)#i',
+                '#load_script\(([\"])((?!https?:|/|radio/liveprf/proxy/|system/|ajax/).+?)(\1)\)#i',
+            ],
+            [
+                'load_script($1/radio/liveprf/proxy/$2/$3$4)',
+                'load_script($1/radio/liveprf/proxy/system/streaminfo/$2$3)',
+            ],
             $body
         );
-        return response($body, $status)->header('Content-Type','application/javascript');
+    $suffix = ";(function(){try{var L=window.centovacast&&window.centovacast.loader;if(!L)return;L.url='/radio/liveprf/proxy/system/streaminfo/';var orig=L.load_script; if(typeof orig==='function'){L.load_script=function(u){try{if(typeof u==='string' && !/^https?:\\/\\//i.test(u) && !u.startsWith('/radio/liveprf/proxy/')){ if(u.startsWith('/')){ /* deja */ } else if(u.startsWith('system/')||u.startsWith('ajax/')){ u='/radio/liveprf/proxy/'+u; } else { u='/radio/liveprf/proxy/system/streaminfo/'+u; } } }catch(e){} return orig.call(this,u);};}}catch(e){}})();";
+    $finalBody = $body . $suffix;
+        if (request()->boolean('debug') || request('debug')==='1') {
+            return response()->json([
+                'debug' => true,
+                'upstream_status' => $status,
+                'content_type' => 'application/javascript',
+                'body_sample' => substr($finalBody, 0, 512),
+                'length' => strlen($finalBody),
+            ]);
+        }
+        return response($finalBody, $status)->header('Content-Type','application/javascript');
     } catch (\Throwable $e) {
         return response('// recenttracks.js proxy error: '. $e->getMessage(), 502)
             ->header('Content-Type','application/javascript');
     }
 })->name('radio.liveprf.js.recenttracks');
+
+// Catch-all: normaliza carregamentos relativos indevidos sob js/streaminfo/* para o proxy
+Route::any('/radio/liveprf/js/streaminfo/{path}', function (\Illuminate\Http\Request $request, $path) {
+    $normalized = ltrim($path, '/');
+    // Se veio com prefixo duplicado "radio/liveprf/proxy/...", encaminha apenas o sufixo para o proxy
+    if (str_starts_with($normalized, 'radio/liveprf/proxy/')) {
+        $proxyPath = substr($normalized, strlen('radio/liveprf/proxy/'));
+    } else {
+        $proxyPath = $normalized; // ex.: system/jquery.min.js
+    }
+    $url = route('radio.liveprf.proxy', ['path' => $proxyPath]);
+    if ($qs = $request->getQueryString()) { $url .= '?' . $qs; }
+    return redirect()->to($url, 302);
+})->where('path', '.*');
+
+// Catch-all: normaliza carregamentos relativos indevidos sob js/recenttracks/* para o proxy
+Route::any('/radio/liveprf/js/recenttracks/{path}', function (\Illuminate\Http\Request $request, $path) {
+    $normalized = ltrim($path, '/');
+    if (str_starts_with($normalized, 'radio/liveprf/proxy/')) {
+        $proxyPath = substr($normalized, strlen('radio/liveprf/proxy/'));
+    } else {
+        $proxyPath = $normalized;
+    }
+    $url = route('radio.liveprf.proxy', ['path' => $proxyPath]);
+    if ($qs = $request->getQueryString()) { $url .= '?' . $qs; }
+    return redirect()->to($url, 302);
+})->where('path', '.*');
 
 // Proxy do stream MP3 via HTTPS do próprio domínio (evita mixed content)
 Route::get('/radio/liveprf/stream.mp3', function () {
@@ -627,6 +686,72 @@ Route::any('/radio/liveprf/proxy/{path}', function (\Illuminate\Http\Request $re
         };
         $durationMs = (int) round((microtime(true) - $t0) * 1000);
 
+        // Fallback automático: se system/* retornou 404, tenta system/streaminfo/* e depois system/streaminfo/js/*
+        $usedFallback = false; $fallbackUrl = null; $fallbackStatus = null; $fallbackTried = [];
+        if ($resp->status() === 404 && preg_match('#^system/(?!streaminfo/)#i', ltrim($path, '/'))) {
+            $altPath = 'system/streaminfo/' . preg_replace('#^system/#i', '', ltrim($path, '/'));
+            $fallbackUrl = rtrim($base, '/') . '/' . $altPath;
+            $fallbackTried[] = $fallbackUrl;
+            $t1 = microtime(true);
+            $respAlt = match ($method) {
+                'POST' => $http->asForm()->post($fallbackUrl, $request->all()),
+                'PUT'  => $http->put($fallbackUrl, $request->all()),
+                'PATCH'=> $http->patch($fallbackUrl, $request->all()),
+                'DELETE'=> $http->delete($fallbackUrl, $request->all()),
+                default => $http->get($fallbackUrl),
+            };
+            $fallbackStatus = $respAlt->status();
+            if ($respAlt->successful()) {
+                $resp = $respAlt;
+                $usedFallback = true;
+                // Atualiza URL para relatórios/debug
+                $url = $fallbackUrl;
+                $durationMs += (int) round((microtime(true) - $t1) * 1000);
+            } else if ($respAlt->status() === 404) {
+                // Tentativa 2: system/streaminfo/js/*
+                $altPath2 = 'system/streaminfo/js/' . preg_replace('#^system/#i', '', ltrim($path, '/'));
+                $fallbackUrl2 = rtrim($base, '/') . '/' . $altPath2;
+                $fallbackTried[] = $fallbackUrl2;
+                $t2 = microtime(true);
+                $respAlt2 = match ($method) {
+                    'POST' => $http->asForm()->post($fallbackUrl2, $request->all()),
+                    'PUT'  => $http->put($fallbackUrl2, $request->all()),
+                    'PATCH'=> $http->patch($fallbackUrl2, $request->all()),
+                    'DELETE'=> $http->delete($fallbackUrl2, $request->all()),
+                    default => $http->get($fallbackUrl2),
+                };
+                if ($respAlt2->successful()) {
+                    $resp = $respAlt2;
+                    $usedFallback = true;
+                    $url = $fallbackUrl2;
+                    $durationMs += (int) round((microtime(true) - $t2) * 1000);
+                }
+            }
+        }
+
+        // Fallback final: se ainda falhou e é jquery.min.js, buscar de CDN confiável
+        if (!$resp->successful() && preg_match('#jquery(\.min)?\.js$#i', basename(parse_url($url, PHP_URL_PATH) ?: ''))) {
+            $cdnUrl = 'https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js';
+            try {
+                $respCdn = \Illuminate\Support\Facades\Http::timeout(10)->connectTimeout(5)->get($cdnUrl);
+                if ($respCdn->successful()) {
+                    if ($request->boolean('debug') || $request->query('debug') === '1') {
+                        return response()->json([
+                            'debug' => true,
+                            'cdn_fallback' => true,
+                            'cdn_url' => $cdnUrl,
+                            'status' => $respCdn->status(),
+                            'content_type' => $respCdn->header('Content-Type') ?? 'application/javascript',
+                            'body_length' => strlen($respCdn->body()),
+                        ], 200, ['Cache-Control' => 'no-store']);
+                    }
+                    return response($respCdn->body(), 200)
+                        ->header('Content-Type', 'application/javascript')
+                        ->header('Cache-Control', 'public, max-age=86400');
+                }
+            } catch (\Throwable $e) { /* ignora e segue para debug normal */ }
+        }
+
         // Modo debug: retorna JSON com status, headers e trecho do corpo
         if ($request->boolean('debug') || $request->query('debug') === '1') {
             // Headers do upstream (achatados)
@@ -654,6 +779,15 @@ Route::any('/radio/liveprf/proxy/{path}', function (\Illuminate\Http\Request $re
                 'content_type' => $contentType,
                 'body_length' => strlen($body),
             ];
+            if ($usedFallback) {
+                $payload['fallback'] = [
+                    'used' => true,
+                    'reason' => '404 para system/*, tentado system/streaminfo/* e js/*',
+                    'fallback_url' => $fallbackUrl,
+                    'fallback_status' => $fallbackStatus,
+                    'tried' => $fallbackTried,
+                ];
+            }
             if ($isText) {
                 // Garante UTF-8 seguro para JSON
                 $sample = function_exists('mb_substr') ? mb_substr($body, 0, $sampleLimit, 'UTF-8') : substr($body, 0, $sampleLimit);
