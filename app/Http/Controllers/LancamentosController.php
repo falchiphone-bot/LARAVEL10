@@ -1406,7 +1406,9 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
     $isItauMode = ($extratoMode === 'itau');
         // Aplica filtro de DÉBITO automaticamente quando vier do Extrato (override presente)
         // No modo Santander não aplicar filtro de DÉBITO (iremos lançar entradas e saídas)
-    $applyDebitoFilter = !($isSantanderMode || $isItauMode) && (!empty($overrideEmpresaId) || !empty($overrideGlobalCreditId));
+    $applyDebitoFilter = !($isSantanderMode || $isItauMode) && (
+        !empty($overrideEmpresaId) || !empty($overrideGlobalCreditId) || request()->boolean('debug_debito', false)
+    );
         // Função para normalizar string (remover acentos e uppercase)
         $upperNoAccents = function($s){
             $s = (string)$s;
@@ -1526,6 +1528,82 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             return $rows;
         };
         $filterDebito = function(array $headers, array $rows) use ($upperNoAccents) {
+            // Preferência solicitada: considerar SOMENTE a coluna A (primeira coluna)
+            // Quando existir, filtramos por 'DÉBITO' apenas nessa coluna; ignoramos demais colunas
+            $firstCol = $headers[0] ?? null;
+            if(!$firstCol && !empty($rows) && is_array($rows[0])){
+                $rowKeys = array_keys($rows[0]);
+                $firstCol = $rowKeys[0] ?? null;
+            }
+            if($firstCol){
+                $out = [];
+                $debugDebito = request()->boolean('debug_debito', false);
+                $idx = 0;
+                $found = false;
+                foreach($rows as $r){
+                    if(!is_array($r)) continue;
+                    if(!array_key_exists($firstCol, $r)) continue;
+                    $txt = (string)($r[$firstCol] ?? '');
+                    if($txt === '') continue;
+                    $vu = $upperNoAccents($txt); // remove acentos e uppercase
+                    // Marca como DÉBITO na PRIMEIRA coluna:
+                    // - tokens clássicos: DEBITO/DEB/DB
+                    // - palavras de saída: PAGAMENTO/PAGTO/PGTO, TARIFA, BOLETO, COMPRA, SAQUE
+                    // - envios: ENVI(A|O)(DOS|DA) junto de PIX/TED/TRANSF
+                    // E exclui qualquer indicação de CRÉDITO/RECEBIMENTO
+                    $hasDebClassic = (strpos($vu,'DEBITO') !== false) || preg_match('/(^|[^A-Z])DEB([^A-Z]|$)/', $vu) || preg_match('/(^|[^A-Z])DB([^A-Z]|$)/', $vu);
+                    $hasOutflowWords = (
+                        strpos($vu,'PAGAMENTO') !== false || strpos($vu,'PAGTO') !== false || strpos($vu,'PGTO') !== false ||
+                        strpos($vu,'TARIFA') !== false || strpos($vu,'BOLETO') !== false ||
+                        strpos($vu,'COMPRA') !== false || strpos($vu,'SAQUE') !== false
+                    );
+                    $hasEnvio = (strpos($vu,'ENVI') !== false) && (strpos($vu,'PIX') !== false || strpos($vu,'TED') !== false || strpos($vu,'TRANSF') !== false);
+                    $hasDeb = $hasDebClassic || $hasOutflowWords || $hasEnvio;
+                    $hasCred = (
+                        (strpos($vu,'CREDITO') !== false) || preg_match('/(^|[^A-Z])CRED([^A-Z]|$)/', $vu) || preg_match('/(^|[^A-Z])CR([^A-Z]|$)/', $vu) ||
+                        strpos($vu,'RECEB') !== false || strpos($vu,'DEPOSITO') !== false
+                    );
+                    if($hasDeb && !$hasCred){
+                        if($debugDebito){
+                            dd([
+                                'debug' => 'primeira_linha_debito_primeira_coluna',
+                                'first_col_header' => $firstCol,
+                                'row_index' => $idx,
+                                'first_col_value' => $txt,
+                                'normalized' => $vu,
+                                'hasDeb' => $hasDeb,
+                                'hasCred' => $hasCred,
+                                'row_sample' => $r,
+                            ]);
+                        }
+                        $found = true;
+                        $out[] = $r;
+                    }
+                    $idx++;
+                }
+                if($debugDebito && !$found){
+                    // Nenhum DÉBITO encontrado na coluna A - retorna contexto para diagnóstico
+                    $sample = [];
+                    $max = 5; $i=0;
+                    foreach($rows as $r){
+                        if(!is_array($r)) continue;
+                        $val = (string)($r[$firstCol] ?? '');
+                        $sample[] = $val;
+                        $i++; if($i>=$max) break;
+                    }
+                    dd([
+                        'debug' => 'nenhum_debito_coluna_a',
+                        'first_col_header' => $firstCol,
+                        'first_col_samples' => $sample,
+                        'total_rows' => count($rows),
+                    ]);
+                }
+          
+                return array_values($out);
+            }
+
+            
+            // Fallback legado (quando não conseguimos determinar a primeira coluna):
             // 1) Identifica colunas candidatas: TIPO > DESCRIÇÃO > HISTÓRICO
             $tipoKey = null; $descKeys = []; $histKeys = [];
             foreach($headers as $h){
@@ -1592,11 +1670,46 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                 return ($hasDeb && !$hasCred);
             };
 
-            // 3) Aplica filtro por linha
+            // 3) Aplica filtro por linha (fallback)
             $out = [];
-            foreach($rows as $r){ if(!is_array($r)) continue; if($isDebitoRow($r)) $out[] = $r; }
+            $debugDebito = request()->boolean('debug_debito', false);
+            $idx = 0;
+            $found = false;
+            foreach($rows as $r){
+                if(!is_array($r)) { $idx++; continue; }
+                if($isDebitoRow($r)){
+                    if($debugDebito){
+                        dd([
+                            'debug' => 'primeira_linha_debito_fallback',
+                            'row_index' => $idx,
+                            'row_sample' => $r,
+                        ]);
+                    }
+                    $found = true;
+                    $out[] = $r;
+                }
+                $idx++;
+            }
+            if($debugDebito && !$found){
+                // Nenhum DÉBITO encontrado no classificador fallback
+                $sample = [];
+                $max = 5; $i=0;
+                foreach($rows as $r){
+                    if(!is_array($r)) continue;
+                    $sample[] = $r;
+                    $i++; if($i>=$max) break;
+                }
+                dd([
+                    'debug' => 'nenhum_debito_fallback',
+                    'total_rows' => count($rows),
+                    'samples' => $sample,
+                ]);
+            }
             return array_values($out);
         };
+
+
+           
         // Upload direto (opcional)
         if($request->hasFile('arquivo_excel')){
             // Limpa caches antes de iniciar a importação para evitar erro de preg_replace em reimportações
@@ -1630,8 +1743,8 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             ]);
         }
 
-        $file = $request->query('file', 'DESPESAS-08-2025-TEC.xlsx');
-        $limite = max(1,(int)$request->query('limite', 500));
+    $file = $request->query('file', 'DESPESAS-08-2025-TEC.xlsx');
+    $limite = max(1,(int)$request->query('limite', 10000));
         $flagUpper = (bool)$request->query('upper');
         $flagTrimMulti = (bool)$request->query('trim_multi');
         $subsRaw = $request->query('subs'); // formato: find=>replace|find2=>replace2
@@ -1679,6 +1792,9 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
     $rows = [];
     $empresaIdFromFile = null;
     $contaCreditoIdFromFile = null;
+    $debitoFilterActive = false;
+    $debitoFilterCountBefore = null;
+    $debitoFilterCountAfter = null;
         // Empresas disponíveis para o usuário (mesma lógica usada em outros pontos)
         $empresasLista = Empresa::join('Contabilidade.EmpresasUsuarios','EmpresasUsuarios.EmpresaID','Empresas.ID')
             ->where('EmpresasUsuarios.UsuarioID', auth()->id())
@@ -1792,9 +1908,12 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             }
             // Filtro DÉBITO (somente no contexto do Extrato)
             if($applyDebitoFilter){
+                $debitoFilterCountBefore = isset($payload['rows']) && is_array($payload['rows']) ? count($payload['rows']) : 0;
                 $payload['rows'] = $filterDebito($headers, $payload['rows'] ?? []);
                 $rows = $payload['rows'];
                 $touched = true;
+                $debitoFilterActive = true;
+                $debitoFilterCountAfter = is_array($rows) ? count($rows) : 0;
             }
             // Auto-classificação: no modo Santander
             if($isSantanderMode){
@@ -2504,7 +2623,10 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                 }
                 // Aplica filtro DÉBITO antes de salvar (somente no contexto do Extrato)
                 if($applyDebitoFilter){
+                    $debitoFilterCountBefore = is_array($rows) ? count($rows) : 0;
                     $rows = $filterDebito($headers, $rows);
+                    $debitoFilterActive = true;
+                    $debitoFilterCountAfter = is_array($rows) ? count($rows) : 0;
                 }
                 // Auto-classificação: no modo Santander (exige empresa selecionada)
                 if($isSantanderMode){
@@ -2903,6 +3025,9 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             'empresaIdFromFile' => $empresaIdFromFile,
             'contaCreditoIdFromFile' => $contaCreditoIdFromFile,
             'extratoMode' => $extratoMode,
+            'debitoFilterActive' => $debitoFilterActive,
+            'debitoFilterCountBefore' => $debitoFilterCountBefore,
+            'debitoFilterCountAfter' => $debitoFilterCountAfter,
         ]);
     }
 

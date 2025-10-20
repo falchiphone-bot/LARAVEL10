@@ -58,7 +58,11 @@
     <div class="card extrato-wrapper">
         <div class="card-body">
             <div class="d-flex justify-content-end mb-2">
-                <button type="button" id="btn-toggle-extrato-layout" class="btn btn-outline-dark btn-sm toggle-extrato-layout" title="Alterna exibição para ganhar espaço vertical">Modo Compacto</button>
+                <button type="button" id="btn-toggle-extrato-layout" 
+                class="btn btn-outline-dark btn-sm toggle-extrato-layout" 
+                
+                
+                title="Alterna exibição para ganhar espaço vertical">Modo Compacto</button>
             </div>
             <div class="badge bg-secondary text-wrap" style="width: 100%;
               ;font-size: 16px; lign=˜Center˜">
@@ -124,6 +128,7 @@
                                     @csrf
                                     <input type="hidden" name="empresa_id" value="{{ $selEmpresa ?? '' }}">
                                     <input type="hidden" name="conta_credito_global_id" value="{{ $selConta ?? '' }}">
+                                    <input type="hidden" name="extrato_mode" value="modobank">
                                     <div class="col-12 col-sm-7 col-md-8">
                                         <input type="file" id="arquivo_excel_extrato-modobank" name="arquivo_excel" accept=".xlsx,.xls,.csv,.txt" class="d-none">
                                         <div class="d-flex align-items-center gap-2">
@@ -270,7 +275,12 @@
                     </div>
                     @endif
                     <div class="col-12 col-md-4">
-                        <a href="{{ route('lancamentos.preview.despesas') }}" class="btn btn-sm btn-outline-secondary w-100" title="Abrir a tela de pré-visualização (para arquivos já presentes em storage/app/imports)" target="_blank" rel="noopener">
+                        <a href="{{ route('lancamentos.preview.despesas', [
+                            'empresa_id' => $selEmpresa ?? null,
+                            'conta_credito_global_id' => $selConta ?? null,
+                            'extrato_mode' => ($selConta == 19098 ? 'modobank' : ($isSantanderConta ? 'santander' : ($isItauConta ? 'itau' : null))),
+                            'unlock' => 1,
+                        ]) }}" class="btn btn-sm btn-outline-secondary w-100" title="Abrir a tela de pré-visualização (para arquivos já presentes em storage/app/imports)" target="_blank" rel="noopener">
                             Abrir tela de pré-visualização
                         </a>
                     </div>

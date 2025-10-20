@@ -11,6 +11,14 @@
         @if(!empty($extratoMode) && $extratoMode === 'santander')
             <span class="badge bg-danger align-self-center" title="Regras ativas: mantém sinal na prévia; no processamento/commit: valor>0 débito Banco, valor<0 crédito Banco; valor salvo como absoluto.">Modo Santander ativo</span>
         @endif
+        @if(!empty($debitoFilterActive))
+            <span class="badge bg-secondary align-self-center" title="Exibindo apenas linhas identificadas como DÉBITO na primeira coluna">
+                Filtro DÉBITO (coluna A)
+                @if(isset($debitoFilterCountBefore) && isset($debitoFilterCountAfter))
+                    <span class="ms-1">{{ $debitoFilterCountAfter }} de {{ $debitoFilterCountBefore }}</span>
+                @endif
+            </span>
+        @endif
         @if(!empty($extratoMode) && $extratoMode === 'itau')
             <span class="badge bg-warning text-dark align-self-center" title="Regras ativas: mantém sinal na prévia; no processamento/commit: valor>0 débito Banco, valor<0 crédito Banco; valor salvo como absoluto.">Modo Itaú ativo</span>
         @endif
@@ -21,7 +29,11 @@
             </div>
             <div class="col-auto">
                 <label class="form-label mb-1">Limite</label>
-                <input type="number" name="limite" value="{{ $limite }}" class="form-control form-control-sm" min="1" max="2000">
+                <input type="number" name="limite" value="{{ $limite }}" class="form-control form-control-sm" min="1" max="10000">
+            </div>
+            <div class="col-auto">
+                <label class="form-label mb-1" title="Quantidade de linhas exibidas na tabela (não afeta o processamento)">Exibir (display)</label>
+                <input type="number" name="display" value="{{ request()->query('display', 200) }}" class="form-control form-control-sm" min="1" max="10000">
             </div>
             <div class="col-auto">
                 <label class="form-label mb-1">Upper</label>
@@ -791,6 +803,20 @@ document.addEventListener('DOMContentLoaded', function(){
                 </button>
             </div>
         </div>
+        @php
+            // Mostra no DOM apenas as primeiras 200 linhas por padrão (sem afetar o processamento total)
+            $rowsCount = is_array($rows) ? count($rows) : 0;
+            $displayLimit = (int) (request()->query('display', 200));
+            if ($displayLimit < 1) { $displayLimit = 200; }
+            if ($displayLimit > $rowsCount) { $displayLimit = $rowsCount; }
+            $displayRows = is_array($rows) ? array_slice($rows, 0, $displayLimit) : [];
+        @endphp
+        <div class="mb-2 small text-muted">
+            Exibindo as primeiras {{ $displayLimit }} linhas de {{ $rowsCount }}.
+            @if($rowsCount > $displayLimit)
+                <a href="{{ request()->fullUrlWithQuery(['display' => $rowsCount]) }}" class="ms-2">Mostrar todas</a>
+            @endif
+        </div>
         <div id="preview-table-wrap" class="table-responsive" style="max-height:70vh; overflow-x:auto; overflow-y:auto;">
             <table class="table table-sm table-striped table-bordered align-middle" data-cache-key="{{ $cacheKey ?? '' }}">
                 <thead class="table-light sticky-top">
@@ -811,7 +837,7 @@ document.addEventListener('DOMContentLoaded', function(){
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($rows as $i=>$r)
+                    @forelse($displayRows as $i=>$r)
                         @php
                             $histCol = $r['_hist_original_col'] ?? null;
                             // Heurística para detectar coluna de data e valor na linha
