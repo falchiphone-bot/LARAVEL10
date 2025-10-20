@@ -7,6 +7,7 @@ use App\Models\InvestmentAccountCashEvent;
 use App\Models\InvestmentAccountCashSnapshot;
 use App\Models\InvestmentAccount;
 use Illuminate\Support\Facades\DB;
+use App\Services\MarketDataService;
 
 class InvestmentAccountCashEventController extends Controller
 {
@@ -247,5 +248,151 @@ class InvestmentAccountCashEventController extends Controller
         });
         return redirect()->route('cash.events.index')
             ->with('success', "Eventos de caixa limpos: {$eventsDeleted}, snapshots: {$snapsDeleted}.");
+    }
+
+    /**
+     * Resumo por Ativo: SALDO (quantidade) e SALDO MÉDIO (preço médio) considerando eventos filtrados.
+     * Regras:
+     * - Identifica compras e vendas parsing o título/detalhe: exemplos pt/inglês
+     *   "Compra de 2 DVN a $ 32,12 cada" => buy, qty=2, symbol=DVN, unit=32.12
+     *   "Venda de 1 AAPL a $ 190.50" => sell, qty=1, symbol=AAPL, unit=190.50
+     * - Mantém preço médio móvel: compras ajustam custo médio, vendas reduzem quantidade e custo proporcional
+     * - Filtros compatíveis com index(): account_id, from, to, settle_from, settle_to, source
+     */
+    public function positionsSummary(Request $request)
+    {
+        $userId = (int)Auth::id();
+        $accountId = $request->input('account_id');
+        $from = $request->input('from');
+        $to = $request->input('to');
+        $settleFrom = $request->input('settle_from');
+        $settleTo = $request->input('settle_to');
+        $source = $request->input('source');
+
+        // Base query: mesmos filtros de período/fonte
+        $q = InvestmentAccountCashEvent::where('user_id',$userId);
+        if($accountId){ $q->where('account_id',$accountId); }
+        if($from){ $q->whereDate('event_date','>=',$from); }
+        if($to){ $q->whereDate('event_date','<=',$to); }
+        if($settleFrom){ $q->whereDate('settlement_date','>=',$settleFrom); }
+        if($settleTo){ $q->whereDate('settlement_date','<=',$settleTo); }
+        if($source){ $q->where('source',$source); }
+
+        // Ordem cronológica para média móvel consistente
+        $events = $q->orderBy('event_date','asc')->orderBy('id','asc')->get(['event_date','title','detail','category','amount']);
+
+        // Parser: retorna [type=>'buy'|'sell', symbol, qty, unit]
+        $parse = function($title, $detail){
+            $txt = trim((string)($title ?: ''));
+            if($detail){ $txt .= ' '.trim((string)$detail); }
+            $t = mb_strtoupper($txt,'UTF-8');
+            // Normaliza separadores decimais e símbolos
+            $norm = preg_replace('/\s+/', ' ', $t);
+            // Padrões em PT: COMPRA|VENDA de 2 DVN a $ 32,12 cada
+            if(preg_match('/\b(COMPRA|VENDA)\b\s+DE\s+(\d+[\.,]?\d*)\s+([A-Z0-9\.\-:_]+)\s+A\s*\$\s*(\d+[\.,]?\d*)/u', $norm, $m)){
+                $type = ($m[1]==='COMPRA')?'buy':'sell';
+                $qty = (float)str_replace(',','.', str_replace('.','', $m[2]));
+                $sym = trim($m[3]);
+                $unit = (float)str_replace(',','.', str_replace('.','', $m[4]));
+                return compact('type','sym') + ['qty'=>$qty,'unit'=>$unit];
+            }
+            // Padrões EN: BUY 2 DVN @ 32.12, SELL 1 AAPL AT $190.50
+            if(preg_match('/\b(BUY|SELL)\b\s+(\d+[\.,]?\d*)\s+([A-Z0-9\.\-:_]+)\s+(@|AT)\s*\$?\s*(\d+[\.,]?\d*)/u', $norm, $m)){
+                $type = ($m[1]==='BUY')?'buy':'sell';
+                $qty = (float)str_replace(',','.', str_replace('.','', $m[2]));
+                $sym = trim($m[3]);
+                $unit = (float)str_replace(',','.', str_replace('.','', $m[5]));
+                return compact('type','sym') + ['qty'=>$qty,'unit'=>$unit];
+            }
+            return null;
+        };
+
+        // Agregadores por ativo
+        $map = [];
+        foreach($events as $ev){
+            $p = $parse($ev->title, $ev->detail);
+            if(!$p) continue;
+            $sym = $p['sym'];
+            if(!isset($map[$sym])){ $map[$sym] = ['symbol'=>$sym,'qty'=>0.0,'avg'=>0.0,'cost'=>0.0]; }
+            $qty = (float)$p['qty'];
+            $unit = (float)$p['unit'];
+            if($qty <= 0 || $unit <= 0) continue;
+            if($p['type'] === 'buy'){
+                // média móvel: novo custo = custo + qty*unit; nova qty = qty +
+                $map[$sym]['cost'] += $qty * $unit;
+                $map[$sym]['qty'] += $qty;
+                $map[$sym]['avg'] = $map[$sym]['qty']>0 ? $map[$sym]['cost'] / $map[$sym]['qty'] : 0.0;
+            } else {
+                // venda: reduz posição; custo proporcional sai
+                $sellQty = min($qty, max(0.0, $map[$sym]['qty']));
+                if($sellQty > 0){
+                    $proportionalCost = $map[$sym]['avg'] * $sellQty;
+                    $map[$sym]['qty'] -= $sellQty;
+                    $map[$sym]['cost'] = max(0.0, $map[$sym]['cost'] - $proportionalCost);
+                    $map[$sym]['avg'] = $map[$sym]['qty']>0 ? $map[$sym]['cost'] / $map[$sym]['qty'] : 0.0;
+                }
+            }
+        }
+
+        // Ordena por símbolo
+        ksort($map, SORT_NATURAL | SORT_FLAG_CASE);
+
+        // Enriquecer com última cotação: valor atual (unitário), novo total (qty * preço atual) e variação vs custo
+        // Usa MarketDataService com cache curto (ver config market.quote_cache_ttl)
+        /** @var MarketDataService $md */
+        $md = app(MarketDataService::class);
+        foreach ($map as $sym => &$pos) {
+            $qty = (float)($pos['qty'] ?? 0);
+            if ($qty <= 0) {
+                // Sem posição: manter campos nulos/zero
+                $pos['current_price'] = null;
+                $pos['currency'] = null;
+                $pos['updated_at'] = null;
+                $pos['quote_source'] = null;
+                $pos['new_total'] = 0.0;
+                $pos['variation'] = 0.0;
+                $pos['variation_pct'] = null;
+                continue;
+            }
+            try {
+                $q = $md->getQuote($sym);
+            } catch (\Throwable $e) {
+                $q = ['symbol'=>$sym,'price'=>null,'currency'=>null,'updated_at'=>null,'source'=>'none'];
+            }
+            $price = is_numeric($q['price'] ?? null) ? (float)$q['price'] : null;
+            $pos['current_price'] = $price;
+            $pos['currency'] = $q['currency'] ?? null;
+            $pos['updated_at'] = $q['updated_at'] ?? null;
+            $pos['quote_source'] = $q['source'] ?? null;
+            if ($price !== null) {
+                $newTotal = $qty * $price;
+                $pos['new_total'] = $newTotal;
+                $oldCost = (float)($pos['cost'] ?? 0.0);
+                $var = $newTotal - $oldCost;
+                $pos['variation'] = $var;
+                $pos['variation_pct'] = ($oldCost > 0.0) ? ($var / $oldCost) : null;
+            } else {
+                $pos['new_total'] = null;
+                $pos['variation'] = null;
+                $pos['variation_pct'] = null;
+            }
+        }
+        unset($pos);
+
+        // Dados auxiliares de filtros
+        $accounts = InvestmentAccount::where('user_id',$userId)->orderBy('account_name')->get();
+        $sources = InvestmentAccountCashEvent::where('user_id',$userId)->distinct()->pluck('source')->sort()->values();
+
+        return view('portfolio.cash_positions_summary', [
+            'positions' => $map,
+            'accounts' => $accounts,
+            'sources' => $sources,
+            'filter_account_id' => $accountId ? (int)$accountId : null,
+            'filter_from' => $from,
+            'filter_to' => $to,
+            'filter_settle_from' => $settleFrom,
+            'filter_settle_to' => $settleTo,
+            'filter_source' => $source,
+        ]);
     }
 }

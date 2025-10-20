@@ -106,6 +106,7 @@
       <div class="d-flex flex-wrap gap-3 align-items-center">
         <div>Entradas: <span class="text-success">{{ number_format($sumIn,2,',','.') }}</span> | Saídas: <span class="text-danger">{{ number_format($sumOut,2,',','.') }}</span> | Saldo (∑ filtrado): <strong>{{ number_format($sumTotal,2,',','.') }}</strong></div>
         <div class="ms-auto d-flex gap-2">
+          <a href="{{ route('cash.positions.summary', request()->query()) }}#gsc.tab=0" class="btn btn-sm btn-outline-success" title="Ver resumo por ativo (saldo e preço médio)">Resumo por Ativo</a>
           <a href="{{ route('openai.portfolio.index') }}#gsc.tab=0" class="btn btn-sm btn-outline-secondary" title="Ver carteira (posições)">Carteira</a>
           <a href="{{ route('cash.events.export.csv', request()->query()) }}" class="btn btn-sm btn-outline-info" title="Exportar eventos filtrados em CSV">Exportar CSV</a>
           @can('CASH EVENTS - IMPORTAR')
@@ -130,6 +131,7 @@
                 <th class="text-end">Compras</th>
                 <th class="text-end">Vendas</th>
                 <th class="text-end">Taxas (fee)</th>
+                <th class="text-end">Saldo (Vnd - Cmp)</th>
               </tr>
             </thead>
             <tbody>
@@ -139,9 +141,11 @@
                   <td class="text-end text-danger">{{ number_format($s['buy'] ?? 0, 2, ',', '.') }}</td>
                   <td class="text-end text-success">{{ number_format($s['sell'] ?? 0, 2, ',', '.') }}</td>
                   <td class="text-end text-secondary">{{ number_format($s['fee'] ?? 0, 2, ',', '.') }}</td>
+                  @php $net = ($s['sell'] ?? 0) - ($s['buy'] ?? 0); @endphp
+                  <td class="text-end {{ $net>0 ? 'text-success' : ($net<0 ? 'text-danger' : 'text-secondary') }}">{{ number_format($net, 2, ',', '.') }}</td>
                 </tr>
               @empty
-                <tr><td colspan="4" class="text-center text-muted">Sem dados no período.</td></tr>
+                <tr><td colspan="5" class="text-center text-muted">Sem dados no período.</td></tr>
               @endforelse
             </tbody>
           </table>
