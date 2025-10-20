@@ -498,6 +498,24 @@ Route::get('/radio/liveprf/js/streaminfo.js', function () {
             ->withHeaders(['Accept' => 'application/javascript'])
             ->get('http://paineldj6.com.br:2199/system/streaminfo.js');
         $body = $resp->body(); $status = $resp->status();
+        // Reescreve referências internas/absolutas para passar pelo proxy local
+        $body = str_replace([
+            '"/system/','"/ajax/',
+            "'/system/","'/ajax/",
+            '="/system/','="/ajax/',
+            "='/system/","='/ajax/",
+            'http://paineldj6.com.br:2199/system/','http://paineldj6.com.br:2199/ajax/',
+            'https://paineldj6.com.br:2199/system/','https://paineldj6.com.br:2199/ajax/',
+            '//paineldj6.com.br:2199/system/','//paineldj6.com.br:2199/ajax/',
+        ], [
+            '"/radio/liveprf/proxy/system/','"/radio/liveprf/proxy/ajax/',
+            "'/radio/liveprf/proxy/system/","'/radio/liveprf/proxy/ajax/",
+            '="/radio/liveprf/proxy/system/','="/radio/liveprf/proxy/ajax/',
+            "='/radio/liveprf/proxy/system/","='/radio/liveprf/proxy/ajax/",
+            '/radio/liveprf/proxy/system/','/radio/liveprf/proxy/ajax/',
+            '/radio/liveprf/proxy/system/','/radio/liveprf/proxy/ajax/',
+            '/radio/liveprf/proxy/system/','/radio/liveprf/proxy/ajax/',
+        ], $body);
         return response($body, $status)->header('Content-Type','application/javascript');
     } catch (\Throwable $e) {
         return response('// streaminfo.js proxy error: '. $e->getMessage(), 502)
@@ -510,6 +528,24 @@ Route::get('/radio/liveprf/js/recenttracks.js', function () {
             ->withHeaders(['Accept' => 'application/javascript'])
             ->get('http://paineldj6.com.br:2199/system/recenttracks.js');
         $body = $resp->body(); $status = $resp->status();
+        // Reescreve referências internas/absolutas para passar pelo proxy local
+        $body = str_replace([
+            '"/system/','"/ajax/',
+            "'/system/","'/ajax/",
+            '="/system/','="/ajax/',
+            "='/system/","='/ajax/",
+            'http://paineldj6.com.br:2199/system/','http://paineldj6.com.br:2199/ajax/',
+            'https://paineldj6.com.br:2199/system/','https://paineldj6.com.br:2199/ajax/',
+            '//paineldj6.com.br:2199/system/','//paineldj6.com.br:2199/ajax/',
+        ], [
+            '"/radio/liveprf/proxy/system/','"/radio/liveprf/proxy/ajax/',
+            "'/radio/liveprf/proxy/system/","'/radio/liveprf/proxy/ajax/",
+            '="/radio/liveprf/proxy/system/','="/radio/liveprf/proxy/ajax/',
+            "='/radio/liveprf/proxy/system/","='/radio/liveprf/proxy/ajax/",
+            '/radio/liveprf/proxy/system/','/radio/liveprf/proxy/ajax/',
+            '/radio/liveprf/proxy/system/','/radio/liveprf/proxy/ajax/',
+            '/radio/liveprf/proxy/system/','/radio/liveprf/proxy/ajax/',
+        ], $body);
         return response($body, $status)->header('Content-Type','application/javascript');
     } catch (\Throwable $e) {
         return response('// recenttracks.js proxy error: '. $e->getMessage(), 502)
@@ -551,6 +587,36 @@ Route::get('/radio/liveprf/stream.mp3', function () {
         return response('Erro ao abrir stream: '.$e->getMessage(), 502);
     }
 })->name('radio.liveprf.stream');
+
+// Proxy genérico para rotas do provedor (system, ajax, etc.)
+Route::any('/radio/liveprf/proxy/{path}', function (\Illuminate\Http\Request $request, $path) {
+    $base = 'http://paineldj6.com.br:2199/';
+    $url = rtrim($base, '/') . '/' . ltrim($path, '/');
+    if ($qs = $request->getQueryString()) {
+        $url .= '?' . $qs;
+    }
+    try {
+        $method = strtoupper($request->getMethod());
+        $http = \Illuminate\Support\Facades\Http::timeout(10)->connectTimeout(5);
+        // Encaminha cabeçalhos relevantes
+        $http = $http->withHeaders([
+            'Accept' => $request->header('Accept', '*/*'),
+            'User-Agent' => $request->header('User-Agent', 'FalchiRadioProxy/1.0'),
+        ]);
+        $resp = match ($method) {
+            'POST' => $http->asForm()->post($url, $request->all()),
+            'PUT'  => $http->put($url, $request->all()),
+            'PATCH'=> $http->patch($url, $request->all()),
+            'DELETE'=> $http->delete($url, $request->all()),
+            default => $http->get($url),
+        };
+    $contentType = $resp->header('Content-Type') ?? 'application/octet-stream';
+        return response($resp->body(), $resp->status())
+            ->header('Content-Type', $contentType);
+    } catch (\Throwable $e) {
+        return response('Proxy error: '.$e->getMessage(), 502);
+    }
+})->where('path', '.*')->name('radio.liveprf.proxy');
 
 // Tipo de Esporte - exportação CSV/XLSX
 Route::get('TipoEsporte-export', [App\Http\Controllers\TipoEsporteController::class, 'export'])
