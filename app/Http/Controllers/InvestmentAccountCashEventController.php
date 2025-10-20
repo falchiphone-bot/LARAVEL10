@@ -388,7 +388,8 @@ class InvestmentAccountCashEventController extends Controller
                         $quoteSource = $q['source'] ?? 'none';
                         if ($price !== null) {
                             try {
-                                $today = Carbon::today();
+                                // Persistência normalizada: sempre em YYYY-MM-DD 00:00:00 (startOfDay)
+                                $today = Carbon::today()->startOfDay();
                                 $existing = AssetDailyStat::where('symbol', strtoupper($sym))
                                     ->whereDate('date', '=', $today->format('Y-m-d'))
                                     ->first();
@@ -399,10 +400,17 @@ class InvestmentAccountCashEventController extends Controller
                                 } else {
                                     AssetDailyStat::create([
                                         'symbol' => strtoupper($sym),
-                                        'date' => Carbon::now(),
+                                        'date' => $today,
                                         'close_value' => $price,
                                         'is_accurate' => true,
                                     ]);
+                                }
+                                // Re-leitura para garantir consistência exibida com DB
+                                $row = AssetDailyStat::where('symbol', strtoupper($sym))
+                                    ->whereDate('date', '=', $today->format('Y-m-d'))
+                                    ->orderBy('date', 'desc')->first();
+                                if ($row && is_numeric($row->close_value)) {
+                                    $price = (float) $row->close_value;
                                 }
                             } catch (\Throwable $t) { /* noop persist */ }
                         }
@@ -419,7 +427,8 @@ class InvestmentAccountCashEventController extends Controller
                     $quoteSource = $q['source'] ?? null;
                     if ($price !== null) {
                         try {
-                            $today = Carbon::today();
+                            // Persistência normalizada: sempre em YYYY-MM-DD 00:00:00 (startOfDay)
+                            $today = Carbon::today()->startOfDay();
                             $existing = AssetDailyStat::where('symbol', strtoupper($sym))
                                 ->whereDate('date', '=', $today->format('Y-m-d'))
                                 ->first();
@@ -430,10 +439,17 @@ class InvestmentAccountCashEventController extends Controller
                             } else {
                                 AssetDailyStat::create([
                                     'symbol' => strtoupper($sym),
-                                    'date' => Carbon::now(),
+                                    'date' => $today,
                                     'close_value' => $price,
                                     'is_accurate' => true,
                                 ]);
+                            }
+                            // Re-leitura para garantir consistência exibida com DB
+                            $row = AssetDailyStat::where('symbol', strtoupper($sym))
+                                ->whereDate('date', '=', $today->format('Y-m-d'))
+                                ->orderBy('date', 'desc')->first();
+                            if ($row && is_numeric($row->close_value)) {
+                                $price = (float) $row->close_value;
                             }
                         } catch (\Throwable $t) { /* noop persist */ }
                     }

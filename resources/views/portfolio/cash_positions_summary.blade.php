@@ -290,6 +290,29 @@
     });
     rows.innerHTML = html || '<div class="text-muted">Sem totais.</div>';
   }
+  // Sinaliza para outras telas (ex.: openai/records/assets) que ADStat foi atualizado via API
+  function notifyAdStatUpdated(mode){
+    try{
+      if (mode !== 'api') return;
+      const data = positionsApi || [];
+      const valid = data.filter(p => p && p.symbol && (p.current_price !== null && p.current_price !== undefined));
+      const symbols = Array.from(new Set(valid.map(p => String(p.symbol).toUpperCase())));
+      if (symbols.length === 0) return;
+      const payloadKey = 'adstat.updated.payload';
+      let prev = null;
+      try{ prev = JSON.parse(localStorage.getItem(payloadKey) || 'null'); }catch(_e){ prev = null; }
+      const prevSyms = Array.isArray(prev?.symbols) ? prev.symbols : [];
+      const merged = Array.from(new Set([...prevSyms, ...symbols]));
+      // Monta itens por símbolo com preço/horário/moeda para evitar nova chamada em outras telas
+      const items = Object.assign({}, (prev && typeof prev.items === 'object' && prev.items) ? prev.items : {});
+      valid.forEach(p => {
+        const k = String(p.symbol).toUpperCase();
+        items[k] = { price: p.current_price, updated_at: p.updated_at || null, currency: p.currency || null };
+      });
+      const nowIso = new Date().toISOString();
+      localStorage.setItem(payloadKey, JSON.stringify({ at: nowIso, symbols: merged, items }));
+    }catch(_e){ /* noop */ }
+  }
   function toggleMode(){
     const btn = document.getElementById('toggleQuoteModeBtn');
     if(!btn) return;
@@ -299,6 +322,7 @@
     btn.textContent = next === 'db' ? 'Alternar' : 'Alternar';
     renderPositions(next);
     renderTotals(next);
+    notifyAdStatUpdated(next);
   const modeText = document.getElementById('modeText');
   if(modeText){ modeText.textContent = next === 'db' ? 'Banco de Dados (último registro)' : 'API (Yahoo/Alpha/Stooq)'; }
     // Alterna estilos dos botões principais
@@ -323,6 +347,7 @@
     // Render garante consistência ao entrar
     renderPositions(initialMode);
     renderTotals(initialMode);
+    notifyAdStatUpdated(initialMode);
     const btn = document.getElementById('toggleQuoteModeBtn');
     if(btn){ btn.addEventListener('click', toggleMode); }
     // Intercepta cliques nos botões DB/API para alternar client-side sem recarregar

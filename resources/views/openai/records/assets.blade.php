@@ -244,7 +244,15 @@
           @endphp
           <tr class="{{ $rowClass }}">
             <td>
-              <strong>{{ $r->chat?->code ?? '—' }}</strong>
+              @php $sym = strtoupper(trim($r->chat?->code ?? '')); @endphp
+              @if($sym !== '')
+                @php $assetStatsUrl = route('asset-stats.index', ['symbol' => $sym]) . '#gsc.tab=0'; @endphp
+                <strong>
+                  <a href="{{ $assetStatsUrl }}" target="_blank" rel="noopener noreferrer" title="Ver AssetDailyStat de {{ $sym }}">{{ $sym }}</a>
+                </strong>
+              @else
+                <strong>—</strong>
+              @endif
               @if(request('baseline'))
                 @if(!$b)
                   <span class="badge bg-warning text-dark ms-2" title="Não há registro na data base ou posterior">Sem base</span>
@@ -419,6 +427,160 @@
   body.openai-assets-compact .card.shadow-sm.mb-3 { display:none !important; }
   body.openai-assets-compact #btn-toggle-openai-assets-layout { background:#212529; color:#fff; }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+  (function(){
+    // Consome payload de outras telas (ex.: positions/summary em modo API)
+    // e adiciona um badge "ADStat" na 1ª coluna para os símbolos afetados.
+    const LS_KEY = 'adstat.updated.payload';
+
+    function formatIsoToBr(iso){
+      if(!iso) return '';
+      try{
+        let s = String(iso).trim();
+        if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2})?$/.test(s) && !/[zZ]|[+-]\d{2}:?\d{2}$/.test(s)) {
+          s = s.replace(' ', 'T') + 'Z';
+        }
+        const d = new Date(s);
+        if (isNaN(d.getTime())) return '';
+        const dd = String(d.getDate()).padStart(2,'0');
+        const mm = String(d.getMonth()+1).padStart(2,'0');
+        const yyyy = d.getFullYear();
+        const HH = String(d.getHours()).padStart(2,'0');
+        const MM = String(d.getMinutes()).padStart(2,'0');
+        return `${dd}/${mm}/${yyyy} ${HH}:${MM}`;
+      }catch(_e){ return ''; }
+    }
+
+    function ensureBadgeForSymbol(codeCell, whenIso){
+      if (!codeCell) return;
+      let badge = codeCell.querySelector('.assetstat-updated-badge');
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'badge bg-light text-dark border ms-2 assetstat-updated-badge';
+        codeCell.appendChild(badge);
+      }
+      const whenTxt = formatIsoToBr(whenIso);
+      badge.textContent = 'ADStat ' + (whenTxt || 'atualizado');
+      badge.title = 'Persistido em AssetDailyStat';
+    }
+
+    function decorateFromPayload(payload){
+      try{
+        if (!payload || !Array.isArray(payload.symbols) || payload.symbols.length === 0) return;
+        const set = new Set(payload.symbols.map(s => String(s).toUpperCase()));
+        const whenIso = payload.at || null;
+        // Percorre linhas e marca as que tiverem o símbolo listado
+        document.querySelectorAll('table tbody tr').forEach(tr => {
+          try{
+            const td = tr.querySelector('td:nth-child(1)');
+            if (!td) return;
+            const a = td.querySelector('a');
+            const sym = a ? String(a.textContent||'').trim().toUpperCase() : '';
+            if (!sym || !set.has(sym)) return;
+            ensureBadgeForSymbol(td, whenIso);
+          }catch(_e){ /* noop */ }
+        });
+      }catch(_e){ /* noop */ }
+    }
+
+    function dateKeyFromIso(iso){
+      if(!iso) return '';
+      try {
+        let s = String(iso).trim();
+        if (/^\d{4}-\d{2}-\d{2}(?:[ T]\d{2}:\d{2}(?::\d{2})?)?$/.test(s) && !/[zZ]|[+-]\d{2}:?\d{2}$/.test(s)) {
+          s = s.replace(' ', 'T') + 'Z';
+        }
+        const d = new Date(s);
+        if (isNaN(d.getTime())) return '';
+        const y = d.getUTCFullYear();
+        const m = String(d.getUTCMonth()+1).padStart(2,'0');
+        const dd = String(d.getUTCDate()).padStart(2,'0');
+        return `${y}-${m}-${dd}`;
+      } catch(_e){ return ''; }
+    }
+
+    async function applyAmount(cell, amount){
+      const url = cell.getAttribute('data-apply-url');
+      if(!url) return false;
+      try{
+        const resp = await fetch(url, {
+          method: 'PATCH',
+          headers: {
+            'Accept':'application/json',
+            'Content-Type':'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+          },
+          body: JSON.stringify({ amount: Number(amount) })
+        });
+        const data = await resp.json().catch(()=>({}));
+        return resp.ok && data && data.ok === true;
+      }catch(_e){ return false; }
+    }
+
+    async function maybeUpdateRowsFromPayload(payload){
+      try{
+        if (!payload || !payload.items || typeof payload.items !== 'object') return;
+        const items = payload.items; // { SYM: { price, updated_at, currency } }
+        const syms = Object.keys(items);
+        if (syms.length === 0) return;
+        const appliedFlag = '__lsApplied';
+        for (const tr of document.querySelectorAll('table tbody tr')){
+          try{
+            const tdCode = tr.querySelector('td:nth-child(1)');
+            const a = tdCode ? tdCode.querySelector('a') : null;
+            const sym = a ? String(a.textContent||'').trim().toUpperCase() : '';
+            if (!sym || !items[sym]) continue;
+            const target = items[sym];
+            const price = Number(target.price);
+            if (!isFinite(price)) continue;
+            const quoteDate = dateKeyFromIso(target.updated_at || payload.at || '');
+            const cotCell = tr.querySelector('td[data-apply-url]');
+            const recordDateKey = cotCell ? (cotCell.getAttribute('data-occurred') || '') : '';
+            if (!cotCell || !recordDateKey || !quoteDate || recordDateKey !== quoteDate) continue;
+            // Evita aplicar repetido se já igual
+            const valorCell = tr.querySelector('td:nth-child(4)');
+            if (valorCell && valorCell.dataset && valorCell.dataset[appliedFlag]==='1') continue;
+            // Aplica via endpoint e atualiza coluna Valor
+            const ok = await applyAmount(cotCell, price);
+            if (ok) {
+              if (valorCell) {
+                valorCell.textContent = formatPrice(price);
+                valorCell.classList.add('fw-bold');
+                try{ valorCell.dataset[appliedFlag] = '1'; }catch(_e){}
+              }
+              cotCell.classList.remove('table-danger');
+            }
+          }catch(_e){ /* noop */ }
+        }
+      }catch(_e){ /* noop */ }
+    }
+
+    function readAndDecorate(){
+      let payload = null;
+      try{ payload = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); }catch(_e){ payload = null; }
+      decorateFromPayload(payload);
+      // Além do badge, tenta aplicar o valor do dia quando a data do registro coincide
+      maybeUpdateRowsFromPayload(payload);
+    }
+
+    // Atualiza ao carregar, ao focar a aba e quando receber evento de storage de outra aba
+    document.addEventListener('DOMContentLoaded', readAndDecorate);
+    window.addEventListener('focus', readAndDecorate);
+    document.addEventListener('visibilitychange', function(){ if(!document.hidden) readAndDecorate(); });
+    window.addEventListener('storage', function(ev){
+      if (ev && ev.key === LS_KEY) {
+        try{
+          const p = JSON.parse(ev.newValue||'null');
+          decorateFromPayload(p);
+          maybeUpdateRowsFromPayload(p);
+        }catch(_e){}
+      }
+    });
+  })();
+  </script>
 @endpush
 
 @push('scripts')
@@ -657,6 +819,22 @@
           const when = formatUpdatedAtBR(data.updated_at);
           outTime.textContent = when ? `(${when})` : '';
         }
+        // Indica visualmente na primeira coluna que o AssetDailyStat foi atualizado (persist=1)
+        try {
+          const row = btn.closest('tr');
+          const codeCell = row ? row.querySelector('td:nth-child(1)') : null;
+          if (codeCell) {
+            let badge = codeCell.querySelector('.assetstat-updated-badge');
+            if (!badge) {
+              badge = document.createElement('span');
+              badge.className = 'badge bg-light text-dark border ms-2 assetstat-updated-badge';
+              codeCell.appendChild(badge);
+            }
+            const whenTxt = formatUpdatedAtBR(data.updated_at);
+            badge.textContent = 'ADStat ' + (whenTxt || 'atualizado');
+            badge.title = 'Persistido em AssetDailyStat';
+          }
+        } catch(_e) { /* noop */ }
         // Regra: só destacar e permitir aplicar se a data da cotação == data do registro
         // Extrai data (YYYY-MM-DD) de updated_at
         let quoteDateKey = '';
@@ -690,6 +868,13 @@
                 container.classList.add('table-danger');
               }
             }
+            // Auto-aplicar em modo individual quando datas coincidem
+            try {
+              if (btnApply && !btnApply.disabled && !window.__batchCreating) {
+                // dispara o clique para aplicar o valor no registro e atualizar a coluna Valor
+                setTimeout(() => { try { btnApply.click(); } catch(_e){} }, 10);
+              }
+            } catch(_e) { /* noop */ }
           }
         } else {
           // Datas diferentes: dar opção de criar novo registro

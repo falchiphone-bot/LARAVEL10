@@ -78,6 +78,23 @@ class MarketDataController extends Controller
                         ]);
                     }
                 }
+                // Após persistir, relê o registro de hoje e usa o valor armazenado como fonte da resposta
+                try {
+                    $stored = null;
+                    if ($driver === 'sqlsrv') {
+                        // 1) Tenta exato 00:00:00
+                        $rows = DB::select('SELECT TOP(1) [close_value] FROM [asset_daily_stats] WHERE [symbol]=? AND [date]=CAST(? AS DATETIME2(7))', [$symbol, $today.' 00:00:00']);
+                        if (empty($rows)) {
+                            // 2) Fallback: compara apenas a parte de data, para cobrir registros pré-existentes com horário
+                            $rows = DB::select('SELECT TOP(1) [close_value] FROM [asset_daily_stats] WHERE [symbol]=? AND CONVERT(date, [date]) = CONVERT(date, ?) ORDER BY [date] DESC', [$symbol, $today]);
+                        }
+                        if (!empty($rows)) { $stored = isset($rows[0]->close_value) && is_numeric($rows[0]->close_value) ? (float)$rows[0]->close_value : null; }
+                    } else {
+                        $row = AssetDailyStat::where('symbol', $symbol)->whereDate('date', $today)->orderBy('date','desc')->first();
+                        if ($row) { $stored = is_numeric($row->close_value) ? (float)$row->close_value : null; }
+                    }
+                    if ($stored !== null) { $data['price'] = $stored; }
+                } catch (\Throwable $e) { /* noop */ }
             }
         } catch (\Throwable $e) {
             // Persistência é best-effort: erros silenciosos para não impactar a resposta principal
