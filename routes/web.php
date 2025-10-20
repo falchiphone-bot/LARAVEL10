@@ -483,6 +483,15 @@ Route::get('TipoArquivo-export', [App\Http\Controllers\TipoArquivoController::cl
 Route::get('TipoArquivo-export-xlsx', [App\Http\Controllers\TipoArquivoController::class, 'exportXlsx'])
     ->name('TipoArquivo.exportXlsx');
 
+// Rádio online (LIVEPRF) – player simples público
+Route::get('/radio/liveprf', function () {
+    return view('webplayer.player');
+})->name('radio.liveprf');
+// Dados da trilha (subpágina simples)
+Route::get('/radio/liveprf/dados', function () {
+    return view('webplayer.dadostriblha');
+})->name('radio.liveprf.dados');
+
 // Tipo de Esporte - exportação CSV/XLSX
 Route::get('TipoEsporte-export', [App\Http\Controllers\TipoEsporteController::class, 'export'])
     ->name('TipoEsporte.export');
