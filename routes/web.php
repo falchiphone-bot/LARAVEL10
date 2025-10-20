@@ -516,6 +516,12 @@ Route::get('/radio/liveprf/js/streaminfo.js', function () {
             '/radio/liveprf/proxy/system/','/radio/liveprf/proxy/ajax/',
             '/radio/liveprf/proxy/system/','/radio/liveprf/proxy/ajax/',
         ], $body);
+        // Força base do loader para nosso proxy antes de executar init()
+        $body = str_replace(
+            'window.centovacast.loader.init());',
+            'window.centovacast.loader.url="/radio/liveprf/proxy/";window.centovacast.loader.init());',
+            $body
+        );
         return response($body, $status)->header('Content-Type','application/javascript');
     } catch (\Throwable $e) {
         return response('// streaminfo.js proxy error: '. $e->getMessage(), 502)
@@ -546,6 +552,12 @@ Route::get('/radio/liveprf/js/recenttracks.js', function () {
             '/radio/liveprf/proxy/system/','/radio/liveprf/proxy/ajax/',
             '/radio/liveprf/proxy/system/','/radio/liveprf/proxy/ajax/',
         ], $body);
+        // Força base do loader para nosso proxy antes de executar init()
+        $body = str_replace(
+            'window.centovacast.loader.init());',
+            'window.centovacast.loader.url="/radio/liveprf/proxy/";window.centovacast.loader.init());',
+            $body
+        );
         return response($body, $status)->header('Content-Type','application/javascript');
     } catch (\Throwable $e) {
         return response('// recenttracks.js proxy error: '. $e->getMessage(), 502)
