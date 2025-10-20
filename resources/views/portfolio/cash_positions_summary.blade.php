@@ -79,7 +79,8 @@
                 @if(isset($p['current_price']) && $p['current_price'] !== null)
                   {{ $p['currency'] ?? '' }} {{ number_format($p['current_price'], 4, ',', '.') }}
                   @if(!empty($p['quote_source']) || !empty($p['updated_at']))
-                    <span class="badge bg-light text-muted border" title="{{ $p['quote_source'] ?? 'cotação' }} @if(!empty($p['updated_at'])) • {{ $p['updated_at'] }} @endif">{{ Str::upper($p['quote_source'] ?? 'cot') }}</span>
+                    @php $qs = strtoupper($p['quote_source'] ?? 'cot'); @endphp
+                    <span class="badge bg-light text-muted border" title="{{ $p['quote_source'] ?? 'cotação' }} @if(!empty($p['updated_at'])) • {{ $p['updated_at'] }} @endif">{{ $qs }}</span>
                   @endif
                 @else
                   <span class="text-muted">—</span>
@@ -113,6 +114,38 @@
         </tbody>
       </table>
     </div>
+    @if(!empty($variationTotals))
+      <div class="card-body border-top">
+        <div class="row g-3">
+          @foreach($variationTotals as $cur => $vals)
+            @php
+              $pos = $vals['positive'] ?? 0.0;
+              $neg = $vals['negative'] ?? 0.0; // já vem negativo
+              $dif = $vals['difference'] ?? ($pos + $neg);
+              $cls = $dif > 0 ? 'text-success' : ($dif < 0 ? 'text-danger' : 'text-muted');
+            @endphp
+            <div class="col-md-4">
+              <div class="p-3 bg-light rounded border h-100">
+                <div class="fw-bold mb-2">Totais por Moeda: {{ $cur }}</div>
+                <div class="d-flex justify-content-between small">
+                  <span>Saldo Positivo:</span>
+                  <span>{{ $cur }} {{ number_format($pos, 2, ',', '.') }}</span>
+                </div>
+                <div class="d-flex justify-content-between small">
+                  <span>Saldo Negativo:</span>
+                  <span>{{ $cur }} {{ number_format($neg, 2, ',', '.') }}</span>
+                </div>
+                <hr class="my-2" />
+                <div class="d-flex justify-content-between">
+                  <span class="fw-semibold">Diferença:</span>
+                  <span class="fw-semibold {{ $cls }}">{{ $cur }} {{ number_format($dif, 2, ',', '.') }}</span>
+                </div>
+              </div>
+            </div>
+          @endforeach
+        </div>
+      </div>
+    @endif
     <div class="card-footer small text-muted">
       Observação: o cálculo considera apenas eventos com textos reconhecíveis de compra/venda e usa média móvel simples.
     </div>

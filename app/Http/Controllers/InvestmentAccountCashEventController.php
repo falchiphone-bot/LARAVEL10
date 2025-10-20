@@ -341,6 +341,7 @@ class InvestmentAccountCashEventController extends Controller
         // Usa MarketDataService com cache curto (ver config market.quote_cache_ttl)
         /** @var MarketDataService $md */
         $md = app(MarketDataService::class);
+        $variationTotals = [];
         foreach ($map as $sym => &$pos) {
             $qty = (float)($pos['qty'] ?? 0);
             if ($qty <= 0) {
@@ -352,6 +353,7 @@ class InvestmentAccountCashEventController extends Controller
                 $pos['new_total'] = 0.0;
                 $pos['variation'] = 0.0;
                 $pos['variation_pct'] = null;
+                // Ainda assim, não altera acumuladores (variação é zero)
                 continue;
             }
             try {
@@ -371,6 +373,12 @@ class InvestmentAccountCashEventController extends Controller
                 $var = $newTotal - $oldCost;
                 $pos['variation'] = $var;
                 $pos['variation_pct'] = ($oldCost > 0.0) ? ($var / $oldCost) : null;
+                $cur = $pos['currency'] ?: 'USD';
+                if (!isset($variationTotals[$cur])) {
+                    $variationTotals[$cur] = ['positive' => 0.0, 'negative' => 0.0];
+                }
+                if ($var > 0) { $variationTotals[$cur]['positive'] += $var; }
+                if ($var < 0) { $variationTotals[$cur]['negative'] += $var; }
             } else {
                 $pos['new_total'] = null;
                 $pos['variation'] = null;
@@ -378,6 +386,12 @@ class InvestmentAccountCashEventController extends Controller
             }
         }
         unset($pos);
+
+        // Calcula diferença por moeda (positivo + negativo, lembrando que negativo é valor negativo)
+        foreach ($variationTotals as $cur => $vals) {
+            $diff = ($vals['positive'] + $vals['negative']);
+            $variationTotals[$cur]['difference'] = $diff;
+        }
 
         // Dados auxiliares de filtros
         $accounts = InvestmentAccount::where('user_id',$userId)->orderBy('account_name')->get();
@@ -393,6 +407,7 @@ class InvestmentAccountCashEventController extends Controller
             'filter_settle_from' => $settleFrom,
             'filter_settle_to' => $settleTo,
             'filter_source' => $source,
+            'variationTotals' => $variationTotals,
         ]);
     }
 }
