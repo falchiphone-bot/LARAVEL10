@@ -25,7 +25,6 @@
                         Extrato Crédito
                     </a>
                 @endif
-                <a href="{{ route('lancamentos.clone.simple',$lancamento->ID) }}" class="btn btn-warning btn-sm" title="Clonar este lançamento para um novo">Clonar</a>
                 <a href="{{ url()->previous() }}" class="btn btn-outline-secondary btn-sm">Voltar</a>
             </div>
         </div>
@@ -141,8 +140,9 @@
 
                 {{-- Card de transferência removido: fluxo unificado pela simples troca de Empresa + seleção de contas --}}
 
-                <div class="mt-4 d-flex gap-2">
+                <div class="mt-4 d-flex gap-2 align-items-center flex-wrap">
                     <button type="submit" class="btn btn-success">Salvar Alterações</button>
+                    <a href="{{ route('lancamentos.clone.simple',$lancamento->ID) }}" class="btn btn-warning" title="Clonar este lançamento para um novo">Clonar</a>
                     <a href="{{ url()->previous() }}" class="btn btn-outline-secondary">Cancelar</a>
                 </div>
             </form>
