@@ -1598,11 +1598,11 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                         'total_rows' => count($rows),
                     ]);
                 }
-          
+
                 return array_values($out);
             }
 
-            
+
             // Fallback legado (quando não conseguimos determinar a primeira coluna):
             // 1) Identifica colunas candidatas: TIPO > DESCRIÇÃO > HISTÓRICO
             $tipoKey = null; $descKeys = []; $histKeys = [];
@@ -1709,7 +1709,7 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
         };
 
 
-           
+
         // Upload direto (opcional)
         if($request->hasFile('arquivo_excel')){
             // Limpa caches antes de iniciar a importação para evitar erro de preg_replace em reimportações
@@ -3801,7 +3801,9 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             $ignoreExisting = ($v === true) || ($v === 1) || ($v === '1') || ($v === 'true');
         }catch(\Throwable $e){ $ignoreExisting = false; }
         foreach($rowsCache as $i=>$r){
-            $rowNum = $i+1; if($rowNum<4) continue; // mesma regra da validação
+            $rowNum = $i+1;
+            $minRowStart = $isSantanderMode ? 1 : 4;
+            if($rowNum < $minRowStart) continue; // regra dinâmica: 1 no Santander, 4 padrão
             if($ignoreExisting && (!empty($r['_exists']) || !empty($r['_exists_manual']))){ continue; }
             $empresaId = $r['_class_empresa_id'] ?? ($r['EMPRESA_ID'] ?? $empresaGlobal);
             $contaClassificadaId = $r['_class_conta_id'] ?? ($r['CONTA_DEBITO_ID'] ?? null);
@@ -3934,7 +3936,9 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
             $ignoreExisting = ($v === true) || ($v === 1) || ($v === '1') || ($v === 'true');
         }catch(\Throwable $e){ $ignoreExisting = false; }
         foreach($rowsCache as $i=>$r){
-            $rowNum = $i+1; if($rowNum<4) continue;
+            $rowNum = $i+1;
+            $minRowStart = $isSantanderMode ? 1 : 4;
+            if($rowNum < $minRowStart) continue;
             if($ignoreExisting && (!empty($r['_exists']) || !empty($r['_exists_manual']))){ continue; }
             $empresaId = $r['_class_empresa_id'] ?? ($r['EMPRESA_ID'] ?? $empresaGlobal);
             $contaClassificadaId = $r['_class_conta_id'] ?? ($r['CONTA_DEBITO_ID'] ?? null);

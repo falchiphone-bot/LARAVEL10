@@ -269,6 +269,9 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function(){
+    // Contexto do modo de extrato (ex.: 'santander', 'itau') e linha inicial dinâmica
+    window.extratoMode = window.extratoMode || "{{ $extratoMode ?? '' }}";
+    window.minRowStart = (window.extratoMode === 'santander') ? 1 : 4;
     // Debug mode: enable via ?debug_preview=1 or localStorage('preview_despesas_debug') or Alt+D
     var __previewDebug = (localStorage.getItem('preview_despesas_debug')==='1') || (new URLSearchParams(location.search).get('debug_preview')==='1');
     window.__previewDebug = __previewDebug;
@@ -402,9 +405,9 @@ document.addEventListener('DOMContentLoaded', function(){
                         var tds = tr.querySelectorAll('td');
                         // Remove destaque de erro de todas as linhas antes de validar
                         tr.classList.remove('table-danger', 'linha-erro-validacao');
-                        // Só valida se a primeira coluna (número da linha) for >= 4
+                        // Só valida se a primeira coluna (número da linha) for >= minRowStart (4 padrão; 1 no modo Santander)
                         var linhaNum = tds[idxNum] ? tds[idxNum].textContent.trim() : '';
-                        if(!tds[idxNum] || isNaN(linhaNum) || parseInt(linhaNum,10) < 4) continue;
+                        if(!tds[idxNum] || isNaN(linhaNum) || parseInt(linhaNum,10) < (window.minRowStart || 4)) continue;
                         // DATA: busca e valida formato (dd/mm/yyyy), tenta ajustar se possível
                         var temData = false;
                         var dataInvalida = false;
@@ -798,7 +801,7 @@ document.addEventListener('DOMContentLoaded', function(){
                 <label class="form-check-label" for="chk-hide-existing">Ocultar e ignorar "Já existe"</label>
             </div>
             <div>
-                <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-convert-dates" title="Converter datas de mm/dd/aaaa ou yyyy-mm-dd para dd/mm/aaaa a partir da linha 2" disabled>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-convert-dates" title="Converter datas de mm/dd/aaaa ou yyyy-mm-dd para dd/mm/aaaa a partir da linha inicial (1 no modo Santander)" disabled>
                     Converter datas (EUA→BR)
                 </button>
             </div>
@@ -1228,7 +1231,8 @@ document.addEventListener('DOMContentLoaded', function(){
             (table?.querySelectorAll('tbody tr')||[]).forEach(tr=>{
                 const tds = tr.querySelectorAll('td');
                 const num = tds[idxNum] ? parseInt((tds[idxNum].textContent||'').trim(),10) : NaN;
-                if(isNaN(num) || num<4) return; // mesma regra de validação
+                const minStart = (window.minRowStart || 4);
+                if(isNaN(num) || num<minStart) return; // mesma regra de validação
                 total++;
                 // Data
                 if(idxData>=0 && tds[idxData]){
@@ -1389,7 +1393,8 @@ document.addEventListener('DOMContentLoaded', function(){
         rows.forEach(tr=>{
             const numCell = tr.querySelector('td:first-child');
             const rowNum = numCell ? parseInt(numCell.textContent,10) : NaN;
-            if(!rowNum || rowNum<=1) return; // inicia a partir da linha 2
+            const minStart = (window.minRowStart || 4);
+            if(!rowNum || rowNum < minStart) return; // inicia a partir da linha configurada (1 para Santander)
             const tds = tr.querySelectorAll('td');
             const td = tds[idxDataGlobal]; if(!td) return;
             const orig = (td.textContent||'').trim(); if(!orig) return;

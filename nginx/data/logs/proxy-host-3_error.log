@@ -1,1 +1,0 @@
-2025/10/17 17:16:52 [error] 237#237: *8005 open() "/data/letsencrypt-acme-challenge/.well-known/acme-challenge/about.php" failed (2: No such file or directory), client: 172.18.0.1, server: vec.org.br, request: "GET /.well-known/acme-challenge/about.php HTTP/1.1", host: "vec.org.br"
