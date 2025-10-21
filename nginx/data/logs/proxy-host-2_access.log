@@ -1,0 +1,4 @@
+[21/Oct/2025:11:26:47 +0000] - 200 200 - GET https tanabisaf.com.br "/robots.txt" [Client 172.18.0.1] [Length 24] [Gzip -] [Sent-to laravel10] "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" "-"
+[21/Oct/2025:13:40:46 +0000] - - 301 - GET http tanabisaf.com.br "/" [Client 186.237.225.6] [Length 166] [Gzip -] [Sent-to laravel10] "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.5615.138 Safari/537.36" "-"
+[21/Oct/2025:13:43:33 +0000] - - 301 - GET http tanabisaf.com.br "/robots.txt" [Client 186.237.225.6] [Length 166] [Gzip -] [Sent-to laravel10] "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" "-"
+[21/Oct/2025:13:43:35 +0000] - 200 200 - GET https tanabisaf.com.br "/robots.txt" [Client 186.237.225.6] [Length 24] [Gzip -] [Sent-to laravel10] "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" "-"

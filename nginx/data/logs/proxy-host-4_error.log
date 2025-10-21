@@ -1,0 +1,5 @@
+2025/10/21 11:36:47 [warn] 197#197: *218 a client request body is buffered to a temporary file /tmp/nginx/body/1/00/0000000001, client: 172.18.0.1, server: falchi.com.br, request: "POST /livewire/message/sicredi.listar-liquidacao HTTP/1.1", host: "falchi.com.br", referrer: "https://falchi.com.br/Sicredi"
+2025/10/21 13:07:46 [warn] 201#201: *116 using uninitialized "server" variable while logging request, client: 136.143.190.226, server: falchi.com.br
+2025/10/21 13:28:58 [warn] 332#332: *1783 using uninitialized "server" variable while logging request, client: 136.143.190.226, server: falchi.com.br, host: "falchi.com.br"
+2025/10/21 13:29:00 [warn] 332#332: *1783 using uninitialized "server" variable while logging request, client: 136.143.190.226, server: falchi.com.br, host: "falchi.com.br"
+2025/10/21 13:38:43 [warn] 199#199: *31 using uninitialized "server" variable while logging request, client: 186.237.225.6, server: falchi.com.br
