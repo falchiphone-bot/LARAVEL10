@@ -19,6 +19,7 @@ use PhpParser\Node\Stmt\Continue_;
 use Ramsey\Uuid\Type\Decimal;
 use Illuminate\Support\Facades\File;
 use Dompdf\Dompdf;
+use Illuminate\Support\Facades\Cache;
 
 use function Pest\Laravel\get;
 
@@ -57,38 +58,35 @@ class LeituraArquivoController extends Controller
 
         // dd($caminho);
         if (File::exists($caminho)) {
-            // Abre o arquivo Excel
-            $spreadsheet = IOFactory::load($caminho);
+            // Usa cache para evitar recarregar e percorrer tudo a cada request
+            $cacheKey = 'leitura-arquivo:cellData:' . $user;
+            $cellData = Cache::remember($cacheKey, 300, function () use ($caminho) {
+                try {
+                    // Abre o arquivo planilha (Csv/Xlsx/etc. autodetect)
+                    $spreadsheet = IOFactory::load($caminho);
+                    $worksheet = $spreadsheet->getActiveSheet();
 
-            // Seleciona a primeira planilha do arquivo
-            $worksheet = $spreadsheet->getActiveSheet();
+                    // Usa toArray que é mais performática que getCellByColumnAndRow em loops grandes
+                    // toArray(null, false, false, false) => mantém valores, não calcula fórmulas, índices base 0
+                    $rawRows = $worksheet->toArray(null, false, false, false);
 
-            // Obtém a última linha da planilha
-            $lastRow = $worksheet->getHighestDataRow();
-
-            // Obtém a última coluna da planilha
-            $lastColumn = $worksheet->getHighestDataColumn();
-
-            // Converte a última coluna para um número (ex: "D" para 4)
-            $lastColumnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($lastColumn);
-
-            // Array que irá armazenar os dados das células
-            $cellData = [];
-
-            // Loop para percorrer todas as células da planilha
-            for ($row = 1; $row <= $lastRow; $row++) {
-                for ($column = 1; $column <= $lastColumnIndex; $column++) {
-                    // Obtém o valor da célula
-                    $cellValue = $worksheet->getCellByColumnAndRow($column, $row)->getValue();
-
-                    // Adiciona o valor da célula ao array $cellData
-                    $cellData[$row][$column] = $cellValue;
+                    // Reindexa para começar em 1 (compatível com a view atual)
+                    $normalized = [];
+                    foreach ($rawRows as $rIdx => $row) {
+                        $rowIndex = $rIdx + 1;
+                        // Garante array sequencial de colunas
+                        $cols = array_values($row);
+                        foreach ($cols as $cIdx => $value) {
+                            $normalized[$rowIndex][$cIdx + 1] = $value;
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    // Em caso de falha de leitura, devolve vazio para evitar quebrar a tela
+                    $normalized = [];
                 }
-            }
+                return $normalized;
+            });
 
-
-            // return view('LeituraArquivo.index', ['cellData' => $cellData]);
-            // dd('index 89');
             return view('LeituraArquivo.index', ['cellData' => $cellData]);
         } else {
 
@@ -235,7 +233,9 @@ class LeituraArquivoController extends Controller
         $user = str_replace('@', '', $email);
         $user = str_replace('.', '', $user);
         $arquivosalvo = 'app/contabilidade/' . $user . '.prf';
-        copy($path, storage_path($arquivosalvo));
+    copy($path, storage_path($arquivosalvo));
+    // invalida cache da visualização do arquivo para este usuário
+    Cache::forget('leitura-arquivo:cellData:' . $user);
 
         // Abre o arquivo Excel
         $spreadsheet = IOFactory::load($caminho);
@@ -559,6 +559,8 @@ public function SelecionaDatasExtratoBradescoPJ(Request $request)
     $user = str_replace('.', '', $user);
     $arquivosalvo = 'app/contabilidade/' . $user . '.prf';
     copy($path, storage_path($arquivosalvo));
+    // invalida cache da visualização do arquivo para este usuário
+    Cache::forget('leitura-arquivo:cellData:' . $user);
 
     // Abre o arquivo Excel
     $spreadsheet = IOFactory::load($caminho);
@@ -1244,7 +1246,9 @@ else {
         $user = str_replace('@', '', $email);
         $user = str_replace('.', '', $user);
         $arquivosalvo = 'app/contabilidade/' . $user . '.prf';
-        copy($path, storage_path($arquivosalvo));
+            copy($path, storage_path($arquivosalvo));
+            // invalida cache da visualização do arquivo para este usuário
+            Cache::forget('leitura-arquivo:cellData:' . $user);
 
         // Abre o arquivo Excel
         $spreadsheet = IOFactory::load($caminho);
