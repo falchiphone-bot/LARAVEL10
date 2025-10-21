@@ -237,8 +237,17 @@ class LeituraArquivoController extends Controller
     // invalida cache da visualização do arquivo para este usuário
     Cache::forget('leitura-arquivo:cellData:' . $user);
 
-        // Abre o arquivo Excel
-        $spreadsheet = IOFactory::load($caminho);
+        // Abre o arquivo Excel (somente dados para performance)
+        try {
+            $reader = IOFactory::createReaderForFile($caminho);
+            if (method_exists($reader, 'setReadDataOnly')) {
+                $reader->setReadDataOnly(true);
+            }
+            $spreadsheet = $reader->load($caminho);
+        } catch (\Throwable $e) {
+            session(['Lancamento' => 'Falha ao abrir o arquivo: ' . $e->getMessage()]);
+            return redirect(route('LeituraArquivo.index'));
+        }
 
         // Seleciona a primeira planilha do arquivo
         $worksheet = $spreadsheet->getActiveSheet();
@@ -332,19 +341,20 @@ class LeituraArquivoController extends Controller
 
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        // Array que irá armazenar os dados das células
+        // Array que irá armazenar os dados das células (mais rápido com toArray)
         $cellData = [];
-
-        // Loop para percorrer todas as células da planilha
-        $dateValue = null;
-        for ($row = 1; $row <= $lastRow; $row++) {
-            for ($column = 1; $column <= $lastColumnIndex; $column++) {
-                // Obtém o valor da célula
-                $cellValue = $worksheet->getCellByColumnAndRow($column, $row)->getValue();
-
-                // Adiciona o valor da célula ao array $cellData
-                $cellData[$row][$column] = $cellValue;
+        try {
+            $rawRows = $worksheet->toArray(null, false, false, false);
+            foreach ($rawRows as $rIdx => $row) {
+                $rowIndex = $rIdx + 1;
+                $cols = array_values($row);
+                foreach ($cols as $cIdx => $value) {
+                    $cellData[$rowIndex][$cIdx + 1] = $value;
+                }
             }
+        } catch (\Throwable $e) {
+            session(['Lancamento' => 'Falha ao processar a planilha: ' . $e->getMessage()]);
+            return redirect(route('LeituraArquivo.index'));
         }
 
         $novadata = array_slice($cellData, 19);
@@ -562,8 +572,17 @@ public function SelecionaDatasExtratoBradescoPJ(Request $request)
     // invalida cache da visualização do arquivo para este usuário
     Cache::forget('leitura-arquivo:cellData:' . $user);
 
-    // Abre o arquivo Excel
-    $spreadsheet = IOFactory::load($caminho);
+    // Abre o arquivo Excel (somente dados para performance)
+    try {
+        $reader = IOFactory::createReaderForFile($caminho);
+        if (method_exists($reader, 'setReadDataOnly')) {
+            $reader->setReadDataOnly(true);
+        }
+        $spreadsheet = $reader->load($caminho);
+    } catch (\Throwable $e) {
+        session(['Lancamento' => 'Falha ao abrir o arquivo: ' . $e->getMessage()]);
+        return redirect(route('LeituraArquivo.index'));
+    }
 
     // Seleciona a primeira planilha do arquivo
     $worksheet = $spreadsheet->getActiveSheet();
@@ -627,20 +646,21 @@ else {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // Array que irá armazenar os dados das células
+    // Array que irá armazenar os dados das células (mais rápido com toArray)
     $cellData = [];
     $DadosUsados = [];
-
-    // Loop para percorrer todas as células da planilha
-    $dateValue = null;
-    for ($row = 1; $row <= $lastRow; $row++) {
-        for ($column = 1; $column <= $lastColumnIndex; $column++) {
-            // Obtém o valor da célula
-            $cellValue = $worksheet->getCellByColumnAndRow($column, $row)->getValue();
-
-            // Adiciona o valor da célula ao array $cellData
-            $cellData[$row][$column] = $cellValue;
+    try {
+        $rawRows = $worksheet->toArray(null, false, false, false);
+        foreach ($rawRows as $rIdx => $row) {
+            $rowIndex = $rIdx + 1;
+            $cols = array_values($row);
+            foreach ($cols as $cIdx => $value) {
+                $cellData[$rowIndex][$cIdx + 1] = $value;
+            }
         }
+    } catch (\Throwable $e) {
+        session(['Lancamento' => 'Falha ao processar a planilha: ' . $e->getMessage()]);
+        return redirect(route('LeituraArquivo.index'));
     }
 
     // $novadata = array_slice($cellData, 10);
@@ -1250,8 +1270,17 @@ else {
             // invalida cache da visualização do arquivo para este usuário
             Cache::forget('leitura-arquivo:cellData:' . $user);
 
-        // Abre o arquivo Excel
-        $spreadsheet = IOFactory::load($caminho);
+        // Abre o arquivo Excel (somente dados para performance)
+        try {
+            $reader = IOFactory::createReaderForFile($caminho);
+            if (method_exists($reader, 'setReadDataOnly')) {
+                $reader->setReadDataOnly(true);
+            }
+            $spreadsheet = $reader->load($caminho);
+        } catch (\Throwable $e) {
+            session(['Lancamento' => 'Falha ao abrir o arquivo: ' . $e->getMessage()]);
+            return redirect(route('LeituraArquivo.index'));
+        }
 
         // Seleciona a primeira planilha do arquivo
         $worksheet = $spreadsheet->getActiveSheet();
@@ -1350,20 +1379,21 @@ else {
         }
         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        // Array que irá armazenar os dados das células
+        // Array que irá armazenar os dados das células (mais rápido com toArray)
         $cellData = [];
         $DadosUsados = [];
-
-        // Loop para percorrer todas as células da planilha
-        $dateValue = null;
-        for ($row = 1; $row <= $lastRow; $row++) {
-            for ($column = 1; $column <= $lastColumnIndex; $column++) {
-                // Obtém o valor da célula
-                $cellValue = $worksheet->getCellByColumnAndRow($column, $row)->getValue();
-
-                // Adiciona o valor da célula ao array $cellData
-                $cellData[$row][$column] = $cellValue;
+        try {
+            $rawRows = $worksheet->toArray(null, false, false, false);
+            foreach ($rawRows as $rIdx => $row) {
+                $rowIndex = $rIdx + 1;
+                $cols = array_values($row);
+                foreach ($cols as $cIdx => $value) {
+                    $cellData[$rowIndex][$cIdx + 1] = $value;
+                }
             }
+        } catch (\Throwable $e) {
+            session(['Lancamento' => 'Falha ao processar a planilha: ' . $e->getMessage()]);
+            return redirect(route('LeituraArquivo.index'));
         }
 
         // $novadata = array_slice($cellData, 10);
@@ -2066,8 +2096,17 @@ else {
         $arquivosalvo = 'app/contabilidade/' . $user . '.prf';
         copy($path, storage_path($arquivosalvo));
 
-        // Carregar o arquivo da planilha
-        $planilha = IOFactory::load($caminho_arquivo);
+        // Carregar o arquivo da planilha (somente dados para performance)
+        try {
+            $reader = IOFactory::createReaderForFile($caminho_arquivo);
+            if (method_exists($reader, 'setReadDataOnly')) {
+                $reader->setReadDataOnly(true);
+            }
+            $planilha = $reader->load($caminho_arquivo);
+        } catch (\Throwable $e) {
+            session(['Lancamento' => 'Falha ao abrir o arquivo: ' . $e->getMessage()]);
+            return redirect(route('LeituraArquivo.SomenteLinha'));
+        }
 
         // Obter a planilha ativa (por exemplo, a primeira planilha)
         $planilha_ativa = $planilha->getActiveSheet();
