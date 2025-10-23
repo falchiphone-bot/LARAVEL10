@@ -39,7 +39,10 @@
         <select name="type_id" class="form-select form-select-sm" style="width: 180px;">
           <option value="">Todos os tipos</option>
           @foreach(($types ?? []) as $type)
-            <option value="{{ $type->id }}" {{ (isset($typeId) && (int)$typeId === (int)$type->id) ? 'selected' : '' }}>{{ $type->name }}</option>
+            @php $isUsStocks = strtoupper($type->name) === 'BOLSA DE VALORES AMERICANA'; @endphp
+            @if(!$isUsStocks || auth()->user()->can('BOLSA DE VALORES AMERICANA'))
+              <option value="{{ $type->id }}" {{ (isset($typeId) && (int)$typeId === (int)$type->id) ? 'selected' : '' }}>{{ $type->name }}</option>
+            @endif
           @endforeach
         </select>
     <input type="number" name="per_page" min="1" max="{{ $maxPerPage ?? 500 }}" value="{{ $perPage ?? 12 }}" class="form-control form-control-sm" style="width:90px;" title="Quantidade por página">
@@ -58,8 +61,10 @@
             <a href="{{ route('openai.chat.new') }}" class="btn btn-primary">Novo Chat</a>
         </div>
     </div>
+  @can('BOLSA DE VALORES AMERICANA')
   <a href="{{ route('openai.records.index')}}"
     class="btn btn-sm btn-outline-success" title="Ver registros desta conversa">Todos os Registros</a>
+  @endcan
 
 
     @if(session('success'))
@@ -148,7 +153,10 @@
                                 <select name="type_id" id="type{{ $chat->id }}" class="form-select">
                                   <option value="">Sem tipo</option>
                                   @foreach(($types ?? []) as $type)
-                                    <option value="{{ $type->id }}" {{ ((int)($chat->type_id) === (int)$type->id) ? 'selected' : '' }}>{{ $type->name }}</option>
+                                    @php $isUsStocks = strtoupper($type->name) === 'BOLSA DE VALORES AMERICANA'; @endphp
+                                    @if(!$isUsStocks || auth()->user()->can('BOLSA DE VALORES AMERICANA'))
+                                      <option value="{{ $type->id }}" {{ ((int)($chat->type_id) === (int)$type->id) ? 'selected' : '' }}>{{ $type->name }}</option>
+                                    @endif
                                   @endforeach
                                 </select>
                               </div>
@@ -237,8 +245,10 @@
                       <td class="text-center">
                         <div class="d-flex flex-wrap gap-1 justify-content-center">
                           <a href="{{ route('openai.chat.load', $chat) }}" class="btn btn-sm btn-secondary">Carregar</a>
-                          <a href="{{ route('openai.records.index', ['chat_id'=>$chat->id]) }}" class="btn btn-sm btn-outline-success" title="Ver registros vinculados">Este Registro</a>
-                          <a href="{{ route('openai.records.index', ['chat_id'=>$chat->id,'from'=>now()->format('Y-m-d'),'to'=>now()->format('Y-m-d')]) }}#newRecordForm" target="_blank" class="btn btn-sm btn-success" title="Adicionar registro (abre em nova aba)">➕ Registro</a>
+                          @if($chat->type && strtoupper($chat->type->name) === 'BOLSA DE VALORES AMERICANA' && auth()->user()->can('BOLSA DE VALORES AMERICANA'))
+                            <a href="{{ route('openai.records.index', ['chat_id'=>$chat->id]) }}" class="btn btn-sm btn-outline-success" title="Ver registros vinculados">Este Registro</a>
+                            <a href="{{ route('openai.records.index', ['chat_id'=>$chat->id,'from'=>now()->format('Y-m-d'),'to'=>now()->format('Y-m-d')]) }}#newRecordForm" target="_blank" class="btn btn-sm btn-success" title="Adicionar registro (abre em nova aba)">➕ Registro</a>
+                          @endif
                           <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#renameModal{{ $chat->id }}">Renomear</button>
                           <form action="{{ route('openai.chat.delete', $chat) }}" method="POST" onsubmit="return confirm('Excluir esta conversa?');" class="d-inline">
                             @csrf
@@ -273,7 +283,10 @@
                                 <select name="type_id" id="type{{ $chat->id }}" class="form-select">
                                   <option value="">Sem tipo</option>
                                   @foreach(($types ?? []) as $type)
-                                    <option value="{{ $type->id }}" {{ ((int)($chat->type_id) === (int)$type->id) ? 'selected' : '' }}>{{ $type->name }}</option>
+                                    @php $isUsStocks = strtoupper($type->name) === 'BOLSA DE VALORES AMERICANA'; @endphp
+                                    @if(!$isUsStocks || auth()->user()->can('BOLSA DE VALORES AMERICANA'))
+                                      <option value="{{ $type->id }}" {{ ((int)($chat->type_id) === (int)$type->id) ? 'selected' : '' }}>{{ $type->name }}</option>
+                                    @endif
                                   @endforeach
                                 </select>
                               </div>
