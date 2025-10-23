@@ -100,6 +100,12 @@
             <label class="form-check-label small" for="chkRunning">Exibir Saldo Após</label>
           </div>
         </div>
+        <div class="col-md-2">
+          <div class="form-check mt-4" data-bs-toggle="tooltip" data-bs-title="Exibe um resumo agregado por ativo (quanto comprou, vendeu e pagou de taxa) considerando os filtros atuais.">
+            <input class="form-check-input" type="checkbox" value="1" id="chkGroupAsset" name="group_asset" @checked($groupAsset ?? false) />
+            <label class="form-check-label small" for="chkGroupAsset">Agrupar por Ativo</label>
+          </div>
+        </div>
       </form>
     </div>
     <div class="card-footer small text-muted">
@@ -148,6 +154,23 @@
                 <tr><td colspan="5" class="text-center text-muted">Sem dados no período.</td></tr>
               @endforelse
             </tbody>
+            @if(!empty($periodSummary))
+            @php
+              $tBuy = array_sum(array_map(fn($r)=>$r['buy'] ?? 0, $periodSummary));
+              $tSell = array_sum(array_map(fn($r)=>$r['sell'] ?? 0, $periodSummary));
+              $tFee = array_sum(array_map(fn($r)=>$r['fee'] ?? 0, $periodSummary));
+              $tNet = $tSell - $tBuy;
+            @endphp
+            <tfoot>
+              <tr>
+                <td class="text-end"><strong>Totais</strong></td>
+                <td class="text-end">{{ number_format($tBuy, 2, ',', '.') }}</td>
+                <td class="text-end">{{ number_format($tSell, 2, ',', '.') }}</td>
+                <td class="text-end">{{ number_format($tFee, 2, ',', '.') }}</td>
+                <td class="text-end {{ $tNet>0 ? 'text-success' : ($tNet<0 ? 'text-danger' : 'text-secondary') }}">{{ number_format($tNet, 2, ',', '.') }}</td>
+              </tr>
+            </tfoot>
+            @endif
           </table>
         </div>
       </div>
@@ -181,9 +204,96 @@
                 <tr><td colspan="4" class="text-center text-muted">Sem dados por conta.</td></tr>
               @endforelse
             </tbody>
+            @if(!empty($byAccountSummary))
+            @php
+              $ab = array_map(fn($r)=>$r['buy'] ?? 0, $byAccountSummary);
+              $as = array_map(fn($r)=>$r['sell'] ?? 0, $byAccountSummary);
+              $af = array_map(fn($r)=>$r['fee'] ?? 0, $byAccountSummary);
+              $tBuyAcc = array_sum($ab);
+              $tSellAcc = array_sum($as);
+              $tFeeAcc = array_sum($af);
+            @endphp
+            <tfoot>
+              <tr>
+                <td class="text-end"><strong>Totais</strong></td>
+                <td class="text-end">{{ number_format($tBuyAcc, 2, ',', '.') }}</td>
+                <td class="text-end">{{ number_format($tSellAcc, 2, ',', '.') }}</td>
+                <td class="text-end">{{ number_format($tFeeAcc, 2, ',', '.') }}</td>
+              </tr>
+            </tfoot>
+            @endif
           </table>
         </div>
       </div>
+    </div>
+  </div>
+  @endif
+  @if(($groupAsset ?? false) && !empty($byAssetSummary))
+  <div class="card mb-3 shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <strong>Resumo por Ativo (filtrado)</strong>
+      <div class="d-flex align-items-center gap-2 small">
+        <label for="byAssetShow" class="mb-0">Mostrar:</label>
+        <select id="byAssetShow" class="form-select form-select-sm" style="width:auto">
+          <option value="all">Todos</option>
+          <option value="marked">Marcados</option>
+          <option value="unmarked">Não marcados</option>
+        </select>
+        <button type="button" id="byAssetMarkAll" class="btn btn-sm btn-outline-primary" title="Marcar todos os ativos visíveis">Marcar todos</button>
+        <button type="button" id="byAssetUnmarkAll" class="btn btn-sm btn-outline-secondary" title="Desmarcar todos os ativos visíveis">Desmarcar todos</button>
+        <a id="byAssetExportCsv" href="{{ route('cash.events.by-asset.export.csv', array_merge(request()->query(), ['group_asset'=>1])) }}" class="btn btn-sm btn-outline-info" title="Exportar Resumo por Ativo (CSV)">Exportar CSV</a>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm table-striped mb-0">
+        <thead class="table-light">
+          <tr>
+            <th style="width:28px" title="Marcar ativo para filtro">✓</th>
+            <th>Ativo</th>
+            <th class="text-end">Compras</th>
+            <th class="text-end">Vendas</th>
+            <th class="text-end">Taxas (fee)</th>
+            <th class="text-end">Saldo (Vnd - Cmp)</th>
+            <th class="text-end">Variação (%)</th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach(($byAssetSummary ?? []) as $sym => $s)
+            @php
+              $buy = (float)($s['buy'] ?? 0);
+              $sell = (float)($s['sell'] ?? 0);
+              $net = $sell - $buy;
+              $varPct = $buy > 0 ? ($net / $buy) * 100.0 : null;
+            @endphp
+            <tr data-sym="{{ $sym }}" data-buy="{{ $buy }}" data-sell="{{ $sell }}" data-fee="{{ (float)($s['fee'] ?? 0) }}" data-net="{{ $net }}" data-varpct="{{ $varPct !== null ? $varPct : '' }}">
+              <td class="text-center align-middle">
+                <input type="checkbox" class="form-check-input asset-mark" data-sym="{{ $sym }}" />
+              </td>
+              <td>
+                <a href="{{ route('asset-stats.index', ['symbol'=>$sym]) }}#gsc.tab=0" target="_blank" rel="noopener" title="Abrir AssetDailyStat">{{ $sym }}</a>
+              </td>
+              <td class="text-end text-danger">{{ number_format($buy, 2, ',', '.') }}</td>
+              <td class="text-end text-success">{{ number_format($sell, 2, ',', '.') }}</td>
+              <td class="text-end text-secondary">{{ number_format($s['fee'] ?? 0, 2, ',', '.') }}</td>
+              <td class="text-end {{ $net>0 ? 'text-success' : ($net<0 ? 'text-danger' : 'text-secondary') }}">{{ number_format($net, 2, ',', '.') }}</td>
+              <td class="text-end {{ ($varPct!==null && $varPct>0) ? 'text-success' : (($varPct!==null && $varPct<0) ? 'text-danger' : 'text-secondary') }}">
+                {{ $varPct!==null ? number_format($varPct, 2, ',', '.') . '%' : '—' }}
+              </td>
+            </tr>
+          @endforeach
+        </tbody>
+        <tfoot>
+          <tr id="byAssetTotalsRow">
+            <td></td>
+            <td class="text-end"><strong>Totais</strong></td>
+            <td class="text-end" data-total="buy">—</td>
+            <td class="text-end" data-total="sell">—</td>
+            <td class="text-end" data-total="fee">—</td>
+            <td class="text-end" data-total="net">—</td>
+            <td class="text-end" data-total="varpct">—</td>
+          </tr>
+        </tfoot>
+      </table>
     </div>
   </div>
   @endif
@@ -275,6 +385,168 @@ document.addEventListener('DOMContentLoaded', function(){
       btn.disabled = (input.value.trim().toUpperCase() !== 'APAGAR');
     });
   }
+});
+</script>
+<script>
+// Marca/Desmarca ativos e filtra a tabela (client-side)
+document.addEventListener('DOMContentLoaded', function(){
+  const LS_KEY = 'cash.byAsset.marks';
+  const LS_SHOW = 'cash.byAsset.show';
+  function loadMarks(){
+    try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch(e){ return {}; }
+  }
+  function saveMarks(m){ localStorage.setItem(LS_KEY, JSON.stringify(m||{})); }
+  function loadShow(){ return localStorage.getItem(LS_SHOW) || 'all'; }
+  function saveShow(v){ localStorage.setItem(LS_SHOW, v); }
+
+  const marks = loadMarks();
+  const showSel = document.getElementById('byAssetShow');
+  const nf = (window.Intl && Intl.NumberFormat) ? new Intl.NumberFormat('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) : null;
+  function fmt(n){ if(n===null || isNaN(n)) return '—'; return nf? nf.format(n) : (Number(n).toFixed(2).replace('.',',')); }
+
+  function computeTotals(){
+    let tBuy=0, tSell=0, tFee=0, tNet=0, tVarPct=null;
+    const rows = document.querySelectorAll('tr[data-sym]');
+    rows.forEach(tr => {
+      if (tr.style.display === 'none') return; // hidden by filter
+      const buy = parseFloat(tr.getAttribute('data-buy')||'0') || 0;
+      const sell = parseFloat(tr.getAttribute('data-sell')||'0') || 0;
+      const fee = parseFloat(tr.getAttribute('data-fee')||'0') || 0;
+      const net = parseFloat(tr.getAttribute('data-net')||'0') || 0;
+      tBuy += buy; tSell += sell; tFee += fee; tNet += net;
+    });
+    const varPct = tBuy>0 ? (tNet/tBuy)*100.0 : null;
+    const row = document.getElementById('byAssetTotalsRow');
+    if (row){
+      const set = (key, val, cls='')=>{
+        const el = row.querySelector(`[data-total="${key}"]`);
+        if (el){ el.textContent = (key==='varpct' && val!==null) ? (fmt(val)+'%') : fmt(val); el.className = 'text-end '+cls; }
+      };
+      set('buy', tBuy);
+      set('sell', tSell);
+      set('fee', tFee);
+      set('net', tNet, tNet>0?'text-success':(tNet<0?'text-danger':'text-secondary'));
+      set('varpct', varPct, (varPct!==null && varPct>0)?'text-success':((varPct!==null && varPct<0)?'text-danger':'text-secondary'));
+    }
+  }
+  if (showSel) {
+    showSel.value = loadShow();
+    showSel.addEventListener('change', function(){ saveShow(showSel.value); applyFilter(); });
+  }
+  const btnMarkAll = document.getElementById('byAssetMarkAll');
+  const btnUnmarkAll = document.getElementById('byAssetUnmarkAll');
+  const exportLink = document.getElementById('byAssetExportCsv');
+  function setVisibleMarks(value){
+    document.querySelectorAll('tr[data-sym]').forEach(tr => {
+      if (tr.style.display === 'none') return; // only visible
+      const sym = tr.getAttribute('data-sym');
+      const cb = tr.querySelector('input.asset-mark');
+      if (cb){ cb.checked = !!value; }
+      if (value) { marks[sym] = true; } else { delete marks[sym]; }
+    });
+    saveMarks(marks);
+    applyFilter();
+  }
+  if (btnMarkAll){ btnMarkAll.addEventListener('click', ()=> setVisibleMarks(true)); }
+  if (btnUnmarkAll){ btnUnmarkAll.addEventListener('click', ()=> setVisibleMarks(false)); }
+
+  // Exportar CSV "como estiver": exporta exatamente as linhas VISÍVEIS (respeita 'Mostrar')
+  function buildExportSymbols(){
+    const syms = [];
+    document.querySelectorAll('tr[data-sym]').forEach(tr => {
+      if (tr.style.display === 'none') return;
+      const sym = tr.getAttribute('data-sym');
+      syms.push(sym);
+    });
+    return syms;
+  }
+  function appendQuery(url, key, value){
+    const u = new URL(url, window.location.origin);
+    if (value !== undefined && value !== null && value !== '') {
+      u.searchParams.set(key, value);
+    }
+    return u.toString();
+  }
+  if (exportLink){
+    exportLink.addEventListener('click', function(ev){
+      try{
+        ev.preventDefault();
+        // Monta CSV diretamente do que está VISÍVEL na tabela
+        const rows = [];
+        document.querySelectorAll('tr[data-sym]').forEach(tr => {
+          if (tr.style.display === 'none') return;
+          const sym = tr.getAttribute('data-sym');
+          const buy = parseFloat(tr.getAttribute('data-buy')||'0') || 0;
+          const sell = parseFloat(tr.getAttribute('data-sell')||'0') || 0;
+          const fee = parseFloat(tr.getAttribute('data-fee')||'0') || 0;
+          const net = parseFloat(tr.getAttribute('data-net')||'0') || 0;
+          const varpctAttr = tr.getAttribute('data-varpct');
+          const varpct = (varpctAttr!==null && varpctAttr!=='') ? parseFloat(varpctAttr) : (buy>0 ? (net/buy)*100.0 : null);
+          rows.push({sym, buy, sell, fee, net, varpct});
+        });
+        // Totais
+        let tBuy=0, tSell=0, tFee=0, tNet=0;
+        rows.forEach(r=>{ tBuy+=r.buy; tSell+=r.sell; tFee+=r.fee; tNet+=r.net; });
+        const tVarPct = tBuy>0 ? (tNet/tBuy)*100.0 : null;
+        const nf6 = (n)=> (n===null||isNaN(n))? '': Number(n).toFixed(6);
+        let csv = '\ufeffsymbol;buy;sell;fee;net;variation_pct\n';
+        rows.forEach(r=>{
+          csv += [r.sym, nf6(r.buy), nf6(r.sell), nf6(r.fee), nf6(r.net), nf6(r.varpct)].join(';') + '\n';
+        });
+        csv += ['TOTAL', nf6(tBuy), nf6(tSell), nf6(tFee), nf6(tNet), nf6(tVarPct)].join(';');
+        const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const now = new Date();
+        const ts = now.getFullYear().toString().padStart(4,'0') +
+                   String(now.getMonth()+1).padStart(2,'0') +
+                   String(now.getDate()).padStart(2,'0') + '_' +
+                   String(now.getHours()).padStart(2,'0') +
+                   String(now.getMinutes()).padStart(2,'0') +
+                   String(now.getSeconds()).padStart(2,'0');
+        a.href = url;
+        a.download = 'cash_by_asset_'+ts+'.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch(e){
+        // fallback: exporta via servidor com os símbolos visíveis
+        try{
+          const syms = buildExportSymbols();
+          const nextUrl = appendQuery(exportLink.href, 'symbols', syms.join(','));
+          window.location.href = nextUrl;
+        }catch(_e){ /* deixa link normal seguir */ }
+      }
+    });
+  }
+
+  // init checkboxes
+  document.querySelectorAll('input.asset-mark[data-sym]').forEach(cb => {
+    const sym = cb.getAttribute('data-sym');
+    cb.checked = !!marks[sym];
+    cb.addEventListener('change', function(){
+      if (cb.checked) { marks[sym] = true; } else { delete marks[sym]; }
+      saveMarks(marks);
+      applyFilter();
+    });
+  });
+
+  function applyFilter(){
+    const mode = (showSel && showSel.value) ? showSel.value : 'all';
+    document.querySelectorAll('tr[data-sym]').forEach(tr => {
+      const sym = tr.getAttribute('data-sym');
+      const marked = !!marks[sym];
+      let visible = true;
+      if (mode === 'marked') visible = marked;
+      else if (mode === 'unmarked') visible = !marked;
+      tr.style.display = visible ? '' : 'none';
+    });
+    computeTotals();
+  }
+
+  applyFilter();
+  computeTotals();
 });
 </script>
 @endpush

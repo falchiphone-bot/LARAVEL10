@@ -31,6 +31,7 @@ class InvestmentAccountCashEventController extends Controller
         $sort = $request->input('sort','event_date');
         $dir = strtolower($request->input('dir','desc')) === 'asc' ? 'asc' : 'desc';
     $showRunning = $request->boolean('show_running');
+    $groupAsset = $request->boolean('group_asset');
 
         $allowedSort = [
             'event_date'=>'event_date',
@@ -71,9 +72,10 @@ class InvestmentAccountCashEventController extends Controller
 
         // Resumo por período (mensal) e por conta, com foco em compras, vendas e taxas (fee)
         $periodField = 'event_date'; // padrão: agrupar por data do evento
-        $aggRows = (clone $q)->get(['event_date','settlement_date','account_id','category','amount']);
+    $aggRows = (clone $q)->get(['event_date','settlement_date','account_id','category','amount','title','detail']);
         $periodSummary = [];
         $byAccountSummary = [];
+    $byAssetSummary = [];
         $accountIdsSeen = [];
         foreach ($aggRows as $row) {
             $cat = strtolower(trim((string)$row->category));
@@ -103,9 +105,41 @@ class InvestmentAccountCashEventController extends Controller
                 $periodSummary[$periodKey]['sell'] += abs($amount);
                 $byAccountSummary[$accId]['sell'] += abs($amount);
             }
+
+            // Resumo por Ativo (opcional): identificar símbolo via parser do título/detalhe
+            if ($groupAsset) {
+                // Parser mínimo aproveitando o usado em positionsSummary
+                $parser = function($title, $detail){
+                    $txt = trim((string)($title ?: ''));
+                    if($detail){ $txt .= ' '.trim((string)$detail); }
+                    $t = mb_strtoupper($txt,'UTF-8');
+                    $norm = preg_replace('/\s+/', ' ', $t);
+                    if(preg_match('/\b(COMPRA|VENDA)\b\s+DE\s+(\d+[\.,]?\d*)\s+([A-Z0-9\.\-:_]+)\s+A\s*\$\s*(\d+[\.,]?\d*)/u', $norm, $m)){
+                        $type = ($m[1]==='COMPRA')?'buy':'sell';
+                        $sym = trim($m[3]);
+                        return ['type'=>$type,'sym'=>$sym];
+                    }
+                    if(preg_match('/\b(BUY|SELL)\b\s+(\d+[\.,]?\d*)\s+([A-Z0-9\.\-:_]+)\s+(@|AT)\s*\$?\s*(\d+[\.,]?\d*)/u', $norm, $m)){
+                        $type = ($m[1]==='BUY')?'buy':'sell';
+                        $sym = trim($m[3]);
+                        return ['type'=>$type,'sym'=>$sym];
+                    }
+                    return null;
+                };
+                $p = $parser($row->title ?? '', $row->detail ?? '');
+                if ($p && !empty($p['sym'])) {
+                    $sym = strtoupper($p['sym']);
+                    if (!isset($byAssetSummary[$sym])) { $byAssetSummary[$sym] = ['buy'=>0.0,'sell'=>0.0,'fee'=>0.0]; }
+                    if ($p['type'] === 'buy') { $byAssetSummary[$sym]['buy'] += abs($amount); }
+                    elseif ($p['type'] === 'sell') { $byAssetSummary[$sym]['sell'] += abs($amount); }
+                    // Taxas: atribuir quando a categoria indicar fee e o texto tiver símbolo
+                    if ($isFee) { $byAssetSummary[$sym]['fee'] += abs($amount); }
+                }
+            }
         }
         // Ordenar períodos desc
         krsort($periodSummary);
+        if ($groupAsset && !empty($byAssetSummary)) { ksort($byAssetSummary, SORT_NATURAL | SORT_FLAG_CASE); }
 
         $accounts = InvestmentAccount::where('user_id',$userId)->orderBy('account_name')->get();
         $categories = InvestmentAccountCashEvent::where('user_id',$userId)->distinct()->pluck('category')->sort()->values();
@@ -160,6 +194,7 @@ class InvestmentAccountCashEventController extends Controller
             'categories'=>$categories,
             'periodSummary'=>$periodSummary,
             'byAccountSummary'=>$byAccountSummary,
+            'byAssetSummary'=>$groupAsset ? $byAssetSummary : [],
             'filter_account_id'=>$accountId ? (int)$accountId : null,
             'filter_category'=>$category,
             'filter_status'=>$status,
@@ -182,6 +217,7 @@ class InvestmentAccountCashEventController extends Controller
             'sources'=>$sources,
             'canComputeRunning'=>$canComputeRunning,
             'showRunning'=>$showRunning,
+            'groupAsset'=>$groupAsset,
         ]);
     }
 
@@ -227,6 +263,132 @@ class InvestmentAccountCashEventController extends Controller
                     ], ';');
                 }
             });
+            fclose($out);
+        };
+        return response()->stream($callback, 200, $headers);
+    }
+
+    public function exportByAssetCsv(Request $request)
+    {
+        $userId = (int)Auth::id();
+        $accountId = $request->input('account_id');
+        $category = $request->input('category');
+        $status = trim((string)$request->input('status'));
+        $title = trim((string)$request->input('title'));
+        $from = $request->input('from');
+        $to = $request->input('to');
+        $settleFrom = $request->input('settle_from');
+        $settleTo = $request->input('settle_to');
+        $direction = $request->input('direction');
+        $valMin = $request->input('val_min');
+        $valMax = $request->input('val_max');
+        $source = $request->input('source');
+
+        $q = InvestmentAccountCashEvent::where('user_id',$userId);
+        if($accountId){ $q->where('account_id',$accountId); }
+        if($category){ $q->where('category',$category); }
+        if($status!==''){ $q->where('status','LIKE','%'.$status.'%'); }
+        if($title!==''){ $q->where('title','LIKE','%'.$title.'%'); }
+        if($from){ $q->whereDate('event_date','>=',$from); }
+        if($to){ $q->whereDate('event_date','<=',$to); }
+        if($settleFrom){ $q->whereDate('settlement_date','>=',$settleFrom); }
+        if($settleTo){ $q->whereDate('settlement_date','<=',$settleTo); }
+        if($direction==='in') { $q->where('amount','>',0); }
+        elseif($direction==='out') { $q->where('amount','<',0); }
+        if($valMin !== null && $valMin !== ''){ $q->where('amount','>=',(float)$valMin); }
+        if($valMax !== null && $valMax !== ''){ $q->where('amount','<=',(float)$valMax); }
+        if($source){ $q->where('source',$source); }
+
+        $rows = $q->get(['title','detail','category','amount']);
+
+        // Parser mínimo para identificar símbolo e tipo (buy/sell) a partir de título/detalhe
+        $parser = function($title, $detail){
+            $txt = trim((string)($title ?: ''));
+            if($detail){ $txt .= ' '.trim((string)$detail); }
+            $t = mb_strtoupper($txt,'UTF-8');
+            $norm = preg_replace('/\s+/', ' ', $t);
+            if(preg_match('/\b(COMPRA|VENDA)\b\s+DE\s+(\d+[\.,]?\d*)\s+([A-Z0-9\.\-:_]+)\s+A\s*\$\s*(\d+[\.,]?\d*)/u', $norm, $m)){
+                $type = ($m[1]==='COMPRA')?'buy':'sell';
+                $sym = trim($m[3]);
+                return ['type'=>$type,'sym'=>$sym];
+            }
+            if(preg_match('/\b(BUY|SELL)\b\s+(\d+[\.,]?\d*)\s+([A-Z0-9\.\-:_]+)\s+(@|AT)\s*\$?\s*(\d+[\.,]?\d*)/u', $norm, $m)){
+                $type = ($m[1]==='BUY')?'buy':'sell';
+                $sym = trim($m[3]);
+                return ['type'=>$type,'sym'=>$sym];
+            }
+            return null;
+        };
+
+        $byAsset = [];
+        foreach($rows as $row){
+            $cat = strtolower(trim((string)$row->category));
+            $amount = (float)$row->amount;
+            $isFee = (strpos($cat,'fee')!==false) || (strpos($cat,'taxa')!==false) || (strpos($cat,'commission')!==false) || (strpos($cat,'comissão')!==false);
+            $p = $parser($row->title ?? '', $row->detail ?? '');
+            if(!$p || empty($p['sym'])) continue;
+            $sym = strtoupper($p['sym']);
+            if (!isset($byAsset[$sym])) { $byAsset[$sym] = ['buy'=>0.0,'sell'=>0.0,'fee'=>0.0]; }
+            if ($p['type'] === 'buy') { $byAsset[$sym]['buy'] += abs($amount); }
+            elseif ($p['type'] === 'sell') { $byAsset[$sym]['sell'] += abs($amount); }
+            if ($isFee) { $byAsset[$sym]['fee'] += abs($amount); }
+        }
+        ksort($byAsset, SORT_NATURAL | SORT_FLAG_CASE);
+
+        // Filtrar por símbolos selecionados exatamente como na view (quando houver parâmetro, mesmo vazio)
+        if ($request->has('symbols')) {
+            $symbolsParam = (string)$request->query('symbols', '');
+            $wanted = array_filter(array_map('trim', explode(',', $symbolsParam)), fn($s)=>$s!=='');
+            $wanted = array_map(fn($s)=>strtoupper($s), $wanted);
+            if (!empty($wanted)) {
+                $byAsset = array_intersect_key($byAsset, array_flip($wanted));
+            } else {
+                // nenhum visível -> força vazio
+                $byAsset = [];
+            }
+        }
+
+        // Totais gerais
+        $tBuy = array_sum(array_map(fn($r)=>$r['buy'] ?? 0, $byAsset));
+        $tSell = array_sum(array_map(fn($r)=>$r['sell'] ?? 0, $byAsset));
+        $tFee = array_sum(array_map(fn($r)=>$r['fee'] ?? 0, $byAsset));
+        $tNet = $tSell - $tBuy;
+        $tVarPct = $tBuy>0 ? ($tNet/$tBuy)*100.0 : null;
+
+        $filename = 'cash_by_asset_'.date('Ymd_His').'.csv';
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"'
+        ];
+    $callback = function() use ($byAsset, $tBuy, $tSell, $tFee, $tNet, $tVarPct){
+            $out = fopen('php://output','w');
+            // BOM UTF-8
+            fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($out, ['symbol','buy','sell','fee','net','variation_pct'], ';');
+            foreach($byAsset as $sym => $s){
+                $buy = (float)($s['buy'] ?? 0);
+                $sell = (float)($s['sell'] ?? 0);
+                $fee = (float)($s['fee'] ?? 0);
+                $net = $sell - $buy;
+                $varPct = $buy>0 ? ($net/$buy)*100.0 : null;
+                fputcsv($out, [
+                    $sym,
+                    number_format($buy,6,'.',''),
+                    number_format($sell,6,'.',''),
+                    number_format($fee,6,'.',''),
+                    number_format($net,6,'.',''),
+                    $varPct!==null ? number_format($varPct,6,'.','') : '',
+                ], ';');
+            }
+            // Totais
+            fputcsv($out, [
+                'TOTAL',
+                number_format($tBuy,6,'.',''),
+                number_format($tSell,6,'.',''),
+                number_format($tFee,6,'.',''),
+                number_format($tNet,6,'.',''),
+                $tVarPct!==null ? number_format($tVarPct,6,'.','') : '',
+            ], ';');
             fclose($out);
         };
         return response()->stream($callback, 200, $headers);

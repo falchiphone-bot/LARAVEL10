@@ -114,6 +114,9 @@ Route::get('/openai/portfolio/cash/events', [\App\Http\Controllers\InvestmentAcc
 Route::get('/openai/portfolio/cash/events/export/csv', [\App\Http\Controllers\InvestmentAccountCashEventController::class,'exportCsv'])
     ->middleware(['auth','verified','can:CASH EVENTS - LISTAR'])
     ->name('cash.events.export.csv');
+Route::get('/openai/portfolio/cash/events/export/by-asset/csv', [\App\Http\Controllers\InvestmentAccountCashEventController::class,'exportByAssetCsv'])
+    ->middleware(['auth','verified','can:CASH EVENTS - LISTAR'])
+    ->name('cash.events.by-asset.export.csv');
 // Resumo por Ativo (saldo e preço médio) a partir dos eventos de caixa
 Route::get('/openai/portfolio/cash/positions/summary', [\App\Http\Controllers\InvestmentAccountCashEventController::class,'positionsSummary'])
     ->middleware(['auth','verified','can:CASH EVENTS - LISTAR'])
