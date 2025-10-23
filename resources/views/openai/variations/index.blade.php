@@ -812,6 +812,10 @@
         @if($sc!=='')<input type="hidden" name="selected_codes[]" value="{{ $sc }}" />@endif
       @endforeach
     @endif
+    <div class="card border-success mb-2">
+      <div class="card-body py-2 bg-success bg-opacity-10">
+  <h6 class="h6 m-0 mb-2 text-success">Período - Período para comparar mês anterior.</h6>
+        <div class="d-flex flex-wrap align-items-end gap-3">
     <div class="col-auto">
       <label class="form-label mb-0 small">Mês</label>
   <select name="month" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
@@ -831,6 +835,13 @@
       <input type="number" name="ppart_end_day" min="1" max="31" value="{{ request('ppart_end_day', $ppartEndDay ?? '') }}" class="form-control form-control-sm w-auto" placeholder="1..31" onchange="this.form.submit()" />
       <small class="text-muted">Período: de Âncora até este dia (ajustado ao mês)</small>
     </div>
+        </div>
+      </div>
+    </div>
+    <div class="card border-danger mb-2">
+      <div class="card-body py-2 bg-danger bg-opacity-10">
+        <h6 class="h6 m-0 mb-2 text-danger">Filtros</h6>
+        <div class="d-flex flex-wrap align-items-end gap-3">
     <div class="col-auto">
       <label class="form-label mb-0 small">Código</label>
   <input type="text" name="code" value="{{ $code }}" class="form-control form-control-sm w-auto" placeholder="TSLA" />
@@ -875,6 +886,9 @@
           <option value="{{ $tv }}" @selected($trendFilter===$tv)>{{ $tl }}</option>
         @endforeach
       </select>
+    </div>
+        </div>
+      </div>
     </div>
   </form>
 <!-- /////// -->
