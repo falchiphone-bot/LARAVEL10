@@ -17,6 +17,8 @@ class AssetVariationsExport implements FromCollection, WithHeadings, WithMapping
     protected array $filters;
     protected string $sort;
     protected ?string $ppartHeaderLabel = null;
+    protected ?int $ppartDay = null;
+    protected ?int $ppartEndDay = null;
 
     /**
      * @param array<string,mixed> $filters
@@ -25,12 +27,34 @@ class AssetVariationsExport implements FromCollection, WithHeadings, WithMapping
     {
         $this->filters = $filters;
         $this->sort = $sort ?: 'year_desc';
+        // Anchor day from filters (optional)
+        $dayIn = $filters['ppart_day'] ?? null;
+        if (is_numeric($dayIn)) {
+            $this->ppartDay = max(1, min(31, (int)$dayIn));
+        } else {
+            $this->ppartDay = null;
+        }
+        // End day from filters (optional)
+        $endIn = $filters['ppart_end_day'] ?? null;
+        if (is_numeric($endIn)) {
+            $this->ppartEndDay = max(1, min(31, (int)$endIn));
+        } else {
+            $this->ppartEndDay = null;
+        }
         // Define rótulo do cabeçalho para "Parcial Mês Ant." (ex.: 16/30)
         try {
             $anchor = Carbon::now();
             $prev = $anchor->copy()->subMonthNoOverflow();
-            $day = (int) min((int)$anchor->day, (int)$prev->daysInMonth);
-            $last = (int) $prev->daysInMonth;
+            $prevDays = (int)$prev->daysInMonth;
+            // Se houver fim informado, usar; senão, se houver ppartDay sem fim, usar 30; senão último dia
+            if ($this->ppartEndDay !== null) {
+                $last = (int)max(1, min($this->ppartEndDay, $prevDays));
+            } elseif ($this->ppartDay !== null) {
+                $last = (int)min(30, $prevDays);
+            } else {
+                $last = $prevDays;
+            }
+            $day = (int) min((int)($this->ppartDay ?? $anchor->day), $last);
             $this->ppartHeaderLabel = str_pad((string)$day, 2, '0', STR_PAD_LEFT)
                 . '/' . str_pad((string)$last, 2, '0', STR_PAD_LEFT);
         } catch (\Throwable $e) {
@@ -144,13 +168,39 @@ class AssetVariationsExport implements FromCollection, WithHeadings, WithMapping
                 ->value('variation');
             $r->setAttribute('export_prev_variation', is_null($prevVar) ? null : (float)$prevVar);
 
-            // Parcial Mês Anterior (%) ancorado em updated_at (fallback created_at)
-            $anchor = $r->updated_at ? Carbon::parse($r->updated_at) : ($r->created_at ? Carbon::parse($r->created_at) : Carbon::now());
-            $pm = $anchor->copy()->subMonthNoOverflow();
-            $pmYear = (int)$pm->year; $pmMonth = (int)$pm->month;
-            $startDay = min((int)$anchor->day, (int)$pm->daysInMonth);
-            $pStart = Carbon::create($pmYear, $pmMonth, $startDay, 0, 0, 0);
-            $pEnd = Carbon::create($pmYear, $pmMonth, (int)$pm->daysInMonth, 23, 59, 59);
+            // Parcial Mês Anterior (%)
+            if ($this->ppartDay !== null || $this->ppartEndDay !== null) {
+                // Âncora e/ou fim informados: término por ppartEndDay (clamp) quando existir; senão 30 se só âncora; senão último dia
+                $firstOfRow = Carbon::create($r->year, $r->month, 1);
+                $pm = $firstOfRow->copy()->subMonthNoOverflow();
+                $pmYear = (int)$pm->year; $pmMonth = (int)$pm->month;
+                $pmDays = (int)$pm->daysInMonth;
+                if ($this->ppartEndDay !== null) {
+                    $endDay = (int)max(1, min($this->ppartEndDay, $pmDays));
+                } elseif ($this->ppartDay !== null) {
+                    $endDay = (int)min(30, $pmDays);
+                } else {
+                    $endDay = $pmDays;
+                }
+                // início: se há âncora, clamp ao fim; caso contrário usar dia de updated/created
+                if ($this->ppartDay !== null) {
+                    $startBase = (int)$this->ppartDay;
+                } else {
+                    $anchor = $r->updated_at ? Carbon::parse($r->updated_at) : ($r->created_at ? Carbon::parse($r->created_at) : Carbon::now());
+                    $startBase = (int)min((int)$anchor->day, $pmDays);
+                }
+                $startDay = (int)max(1, min($startBase, $endDay));
+                $pStart = Carbon::create($pmYear, $pmMonth, $startDay, 0, 0, 0);
+                $pEnd = Carbon::create($pmYear, $pmMonth, $endDay, 23, 59, 59);
+            } else {
+                // Comportamento anterior: ancorado em updated_at (fallback created_at)
+                $anchor = $r->updated_at ? Carbon::parse($r->updated_at) : ($r->created_at ? Carbon::parse($r->created_at) : Carbon::now());
+                $pm = $anchor->copy()->subMonthNoOverflow();
+                $pmYear = (int)$pm->year; $pmMonth = (int)$pm->month;
+                $startDay = min((int)$anchor->day, (int)$pm->daysInMonth);
+                $pStart = Carbon::create($pmYear, $pmMonth, $startDay, 0, 0, 0);
+                $pEnd = Carbon::create($pmYear, $pmMonth, (int)$pm->daysInMonth, 23, 59, 59);
+            }
             $startPrice = null; $endPrice = null; $ppart = null;
             if($r->chat_id){
                 $startPrice = OpenAIChatRecord::where('chat_id', $r->chat_id)

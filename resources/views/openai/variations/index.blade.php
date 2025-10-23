@@ -17,6 +17,12 @@
     @if(request()->filled('import_file'))
       <input type="hidden" name="import_file" value="{{ request('import_file') }}" />
     @endif
+    @if(request()->filled('ppart_day'))
+      <input type="hidden" name="ppart_day" value="{{ request('ppart_day') }}" />
+    @endif
+    @if(request()->filled('ppart_end_day'))
+      <input type="hidden" name="ppart_end_day" value="{{ request('ppart_end_day') }}" />
+    @endif
     <div class="col-auto">
       <label class="form-label mb-0 small">Ano</label>
   <select name="year" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
@@ -59,6 +65,8 @@
           'trend' => ($trendFilter ?? '') ?: null,
           'currency' => request('currency') ?: null,
           'import_file' => request('import_file') ?: null,
+          'ppart_day' => request('ppart_day') ?: null,
+          'ppart_end_day' => request('ppart_end_day') ?: null,
         ]);
       @endphp
       <div class="btn-group btn-group-sm" role="group" aria-label="Atalhos de sinal">
@@ -89,6 +97,8 @@
           'import_file' => request('import_file') ?: null,
           // Por padrão, ao clicar no mês, listar tudo (sem paginação)
           'no_page' => 1,
+          'ppart_day' => request('ppart_day') ?: null,
+          'ppart_end_day' => request('ppart_end_day') ?: null,
         ]);
         $curMonth = (int) (request('month') ?: 0);
       @endphp
@@ -175,6 +185,8 @@
       'spark_window' => ($grouped ?? false) ? ($sparkWindow ?? null) : null,
       'trend' => ($trendFilter ?? '') ?: null,
       'currency' => request('currency') ?: null,
+      'ppart_day' => request('ppart_day') ?: null,
+      'ppart_end_day' => request('ppart_end_day') ?: null,
     ]);
   @endphp
   <div class="mb-2 d-flex gap-2 align-items-center position-sticky top-0 z-3 bg-light py-2" style="top: 0; border-bottom: 1px solid rgba(0,0,0,.1);">
@@ -785,7 +797,7 @@
   <form method="get" class="filters-bar mb-3">
     @php
       // Parâmetros que precisamos preservar ao trocar Mês/Código/Sinal/Mudança/Tendência
-      $persistKeys = ['year','capital','cap_pct','target_pct','grouped','spark_window','currency'];
+  $persistKeys = ['year','capital','cap_pct','target_pct','grouped','spark_window','currency','ppart_day','ppart_end_day'];
     @endphp
     @if(request()->filled('import_file'))
       <input type="hidden" name="import_file" value="{{ request('import_file') }}" />
@@ -808,6 +820,16 @@
           <option value="{{ $m }}" @selected((int)($month ?? 0) === $m)>{{ str_pad($m,2,'0',STR_PAD_LEFT) }}</option>
         @endfor
       </select>
+    </div>
+    <div class="col-auto">
+      <label class="form-label mb-0 small">Âncora Parcial (Dia)</label>
+      <input type="number" name="ppart_day" min="1" max="31" value="{{ request('ppart_day', $ppartDay ?? '') }}" class="form-control form-control-sm w-auto" placeholder="1..31" onchange="this.form.submit()" />
+      <small class="text-muted">Usado para "Parcial Mês Ant."</small>
+    </div>
+    <div class="col-auto">
+      <label class="form-label mb-0 small">Fim Parcial (Dia)</label>
+      <input type="number" name="ppart_end_day" min="1" max="31" value="{{ request('ppart_end_day', $ppartEndDay ?? '') }}" class="form-control form-control-sm w-auto" placeholder="1..31" onchange="this.form.submit()" />
+      <small class="text-muted">Período: de Âncora até este dia (ajustado ao mês)</small>
     </div>
     <div class="col-auto">
       <label class="form-label mb-0 small">Código</label>
@@ -892,6 +914,8 @@
                   'spark_window'=>$sparkWindow,
                   'currency' => request('currency') ?: null,
                   'import_file' => request('import_file') ?: null,
+                  'ppart_day' => request('ppart_day') ?: null,
+                  'ppart_end_day' => request('ppart_end_day') ?: null,
                 ]);
               }
               $isPrevAsc = ($sort ?? '') === 'prev_asc';
@@ -913,6 +937,8 @@
                 'spark_window'=>$sparkWindow,
                 'currency' => request('currency') ?: null,
                 'import_file' => request('import_file') ?: null,
+                'ppart_day' => request('ppart_day') ?: null,
+                'ppart_end_day' => request('ppart_end_day') ?: null,
               ]);
               $isDiffAsc = ($sort ?? '') === 'diff_asc';
               $isDiffDesc = ($sort ?? '') === 'diff_desc';
@@ -1011,6 +1037,8 @@
               'change' => ($change ?? '') ?: null,
               'currency' => request('currency') ?: null,
               'import_file' => request('import_file') ?: null,
+              'ppart_day' => request('ppart_day') ?: null,
+              'ppart_end_day' => request('ppart_end_day') ?: null,
             ]);
           @endphp
           @php
@@ -1067,7 +1095,16 @@
             $ppartNext = $isPPartAsc ? 'ppart_desc' : ($isPPartDesc ? 'year_desc' : 'ppart_asc');
             $ppartIcon = $isPPartAsc ? '↑' : ($isPPartDesc ? '↓' : '↕');
           @endphp
-          <th title="Variação do dia do mês anterior até o fim do mês anterior, ancorada em 'Atualizado' (ex.: 15/09 → 30/09)">
+          @php
+            if(($ppartDay ?? null) && ($ppartEndDay ?? null)){
+              $ppartTitle = 'Variação do dia '.(int)$ppartDay.' ao dia '.(int)$ppartEndDay.' do mês anterior (relativa ao ano/mês da linha)';
+            } elseif(($ppartDay ?? null)){
+              $ppartTitle = 'Variação do dia '.(int)$ppartDay.' do mês anterior até o fim daquele mês (relativa ao ano/mês da linha)';
+            } else {
+              $ppartTitle = "Variação do dia do mês anterior até o fim do mês anterior, ancorada em 'Atualizado' (ex.: 15/09 → 30/09)";
+            }
+          @endphp
+          <th title="{{ $ppartTitle }}">
             <a class="text-decoration-none" href="{{ route('openai.variations.index', array_merge($baseParams, ['sort'=>$ppartNext])) }}" title="Ordenar / alternar por Parcial do Mês Anterior">
               Parcial Mês Ant. ({{ $ppartHeaderLabel ?? 'D/últ' }}) (%) {{ $ppartIcon }}
             </a>

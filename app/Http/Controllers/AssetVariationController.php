@@ -36,6 +36,18 @@ class AssetVariationController extends Controller
         $polarity = $request->input('polarity'); // positive | negative
     $change = $request->input('change'); // melhoria|piora|igual|null
     $trendFilter = $request->input('trend'); // códigos de tendência
+        // Dia de âncora para Parcial do Mês Anterior (1..31); opcional
+        $ppartDayInput = $request->input('ppart_day');
+        $ppartDay = null;
+        if (is_numeric($ppartDayInput)) {
+            $ppartDay = max(1, min(31, (int)$ppartDayInput));
+        }
+        // Dia de término opcional para Parcial (1..31); se informado, o período vai até este dia
+        $ppartEndInput = $request->input('ppart_end_day');
+        $ppartEndDay = null;
+        if (is_numeric($ppartEndInput)) {
+            $ppartEndDay = max(1, min(31, (int)$ppartEndInput));
+        }
         $grouped = (bool)$request->boolean('grouped');
         $sparkWindow = (int)($request->input('spark_window') ?: 6);
         if($sparkWindow < 3) $sparkWindow = 3; if($sparkWindow > 24) $sparkWindow = 24;
@@ -197,6 +209,8 @@ class AssetVariationController extends Controller
                 'groupedData'=>$groupedData,
                 'trendData'=>[],
                 'trendFilter'=>$trendFilter,
+                'ppartDay'=>$ppartDay,
+                'ppartEndDay'=>$ppartEndDay,
             ]);
         }
 
@@ -363,12 +377,39 @@ class AssetVariationController extends Controller
         foreach($variations as $row){
             try {
                 if(!$row->chat_id){ $prevMonthPartialMap[$row->id] = null; continue; }
-                $anchor = $row->updated_at ? Carbon::parse($row->updated_at) : ($row->created_at ? Carbon::parse($row->created_at) : Carbon::now());
-                $prev = $anchor->copy()->subMonthNoOverflow();
-                $pmYear = (int)$prev->year; $pmMonth = (int)$prev->month;
-                $day = (int)min((int)$anchor->day, (int)$prev->daysInMonth);
-                $start = Carbon::create($pmYear, $pmMonth, $day, 0, 0, 0);
-                $end = Carbon::create($pmYear, $pmMonth, (int)$prev->daysInMonth, 23, 59, 59);
+                // Se ppartDay e/ou ppartEndDay foram informados, usar controle manual de início/fim relativo ao ano/mês da linha.
+                if ($ppartDay !== null || $ppartEndDay !== null) {
+                    $firstOfRow = Carbon::create($row->year, $row->month, 1);
+                    $prev = $firstOfRow->copy()->subMonthNoOverflow();
+                    $pmYear = (int)$prev->year; $pmMonth = (int)$prev->month;
+                    $prevDays = (int)$prev->daysInMonth;
+                    // fim: se usuário passou ppartEndDay, usar clamp(1..prevDays); senão, se passou só ppartDay, manter sugestão de fim no 30; senão fim no último dia
+                    if ($ppartEndDay !== null) {
+                        $endDay = (int)max(1, min($ppartEndDay, $prevDays));
+                    } elseif ($ppartDay !== null) {
+                        $endDay = (int)min(30, $prevDays);
+                    } else {
+                        $endDay = $prevDays;
+                    }
+                    // início: se usuário passou ppartDay, clamp ao endDay; senão usar dia do updated/created ancorado e clamp ao endDay
+                    if ($ppartDay !== null) {
+                        $startBase = (int)$ppartDay;
+                    } else {
+                        $anchor = $row->updated_at ? Carbon::parse($row->updated_at) : ($row->created_at ? Carbon::parse($row->created_at) : Carbon::now());
+                        $startBase = (int)min((int)$anchor->day, $prevDays);
+                    }
+                    $startDay = (int)max(1, min($startBase, $endDay));
+                    $start = Carbon::create($pmYear, $pmMonth, $startDay, 0, 0, 0);
+                    $end = Carbon::create($pmYear, $pmMonth, $endDay, 23, 59, 59);
+                } else {
+                    // Comportamento anterior: ancorado no updated_at/created_at da linha
+                    $anchor = $row->updated_at ? Carbon::parse($row->updated_at) : ($row->created_at ? Carbon::parse($row->created_at) : Carbon::now());
+                    $prev = $anchor->copy()->subMonthNoOverflow();
+                    $pmYear = (int)$prev->year; $pmMonth = (int)$prev->month;
+                    $day = (int)min((int)$anchor->day, (int)$prev->daysInMonth);
+                    $start = Carbon::create($pmYear, $pmMonth, $day, 0, 0, 0);
+                    $end = Carbon::create($pmYear, $pmMonth, (int)$prev->daysInMonth, 23, 59, 59);
+                }
                 // Preço inicial: primeiro registro em/apos o dia de start dentro do mês anterior
                 $startPrice = OpenAIChatRecord::where('chat_id', $row->chat_id)
                     ->whereYear('occurred_at', $pmYear)
@@ -460,8 +501,16 @@ class AssetVariationController extends Controller
         try {
             $anchorForHeader = Carbon::now();
             $prevHeader = $anchorForHeader->copy()->subMonthNoOverflow();
-            $hdrDay = (int)min((int)$anchorForHeader->day, (int)$prevHeader->daysInMonth);
-            $hdrLastDay = (int)$prevHeader->daysInMonth;
+            $prevDaysHdr = (int)$prevHeader->daysInMonth;
+            // Quando usuário informa fim, usar esse fim; senão, se só início foi informado, manter 30; senão último dia
+            if ($ppartEndDay !== null) {
+                $hdrLastDay = (int)max(1, min($ppartEndDay, $prevDaysHdr));
+            } elseif ($ppartDay !== null) {
+                $hdrLastDay = (int)min(30, $prevDaysHdr);
+            } else {
+                $hdrLastDay = $prevDaysHdr;
+            }
+            $hdrDay = (int)min((int)($ppartDay ?? $anchorForHeader->day), $hdrLastDay);
             $ppartHeaderLabel = str_pad((string)$hdrDay, 2, '0', STR_PAD_LEFT) . '/' . str_pad((string)$hdrLastDay, 2, '0', STR_PAD_LEFT);
         } catch (\Throwable $e) { $ppartHeaderLabel = null; }
 
@@ -489,6 +538,8 @@ class AssetVariationController extends Controller
             'prevMonthPartialMap' => $prevMonthPartialMap,
             'prevMonthPartialRange' => $prevMonthPartialRange,
             'ppartHeaderLabel' => $ppartHeaderLabel,
+            'ppartDay' => $ppartDay,
+            'ppartEndDay' => $ppartEndDay,
         ]);
     }
 
@@ -507,6 +558,10 @@ class AssetVariationController extends Controller
             'cap_pct' => $request->input('cap_pct'),
             'target_pct' => $request->input('target_pct'),
             'currency' => $request->input('currency'),
+            // Dia de âncora para Parcial do Mês Anterior (opcional)
+            'ppart_day' => $request->input('ppart_day'),
+            // Dia de término opcional para Parcial
+            'ppart_end_day' => $request->input('ppart_end_day'),
         ];
         $sort = $request->input('sort', 'year_desc');
         $selectedCodes = array_filter((array)$filters['selected_codes']);
@@ -539,6 +594,8 @@ class AssetVariationController extends Controller
             'cap_pct' => $request->input('cap_pct'),
             'target_pct' => $request->input('target_pct'),
             'currency' => $request->input('currency'),
+            'ppart_day' => $request->input('ppart_day'),
+            'ppart_end_day' => $request->input('ppart_end_day'),
         ];
         $sort = $request->input('sort', 'year_desc');
         $selectedCodes = array_filter((array)$filters['selected_codes']);
