@@ -836,6 +836,7 @@ document.addEventListener('DOMContentLoaded', function(){
                         @if(!$insertedContaHeader)
                             <th>Conta</th>
                         @endif
+                        <th>Qtd (Cmp/Vnd)</th>
                         <th>Histórico Ajustado</th>
                     </tr>
                 </thead>
@@ -903,6 +904,7 @@ document.addEventListener('DOMContentLoaded', function(){
                                     @endif
                                 </td>
                             @endif
+                            <td class="small text-end td-qty">—</td>
                             <td style="min-width:260px;">
                                 <input type="text" class="form-control form-control-sm hist-ajustado" value="{{ $r['_hist_ajustado'] }}" data-row="{{ $i }}" data-orig="{{ $histCol }}" placeholder="Ajuste aqui">
                                 <div class="form-text text-muted small d-flex justify-content-between">
@@ -914,7 +916,7 @@ document.addEventListener('DOMContentLoaded', function(){
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="{{ count($headers)+3 }}" class="text-center">Sem dados</td></tr>
+                        <tr><td colspan="{{ count($headers)+4 }}" class="text-center">Sem dados</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -1519,6 +1521,41 @@ document.addEventListener('DOMContentLoaded', function(){
                 if(ev.key==='Enter'){ ev.preventDefault(); input.blur(); }
                 if(ev.key==='Escape'){ ev.preventDefault(); td.textContent = valorAtual; }
             });
+        });
+    }
+    // --- Quantidade (Compra/Venda) derivada do Histórico Ajustado ---
+    function parseQtyDirFromText(txt){
+        if(!txt) return null;
+        const t = String(txt).toUpperCase().normalize('NFKD');
+        const norm = t.replace(/\s+/g,' ').trim();
+        // Padrões PT
+        let m = norm.match(/\b(COMPRA|VENDA)\b\s+DE\s+(\d+[\.,]?\d*)\b/u);
+        if(m){ return { dir: (m[1]==='COMPRA')?'buy':'sell', qty: parseFloat((m[2]||'0').replace(/\./g,'').replace(',','.'))||0 }; }
+        // EN
+        m = norm.match(/\b(BUY|SELL)\b\s+(\d+[\.,]?\d*)\b/u);
+        if(m){ return { dir: (m[1]==='BUY')?'buy':'sell', qty: parseFloat((m[2]||'0').replace(/\./g,'').replace(',','.'))||0 }; }
+        // Fallback genérico: QTD/QUANTIDADE
+        m = norm.match(/\b(QTD|QUANTIDADE)\b\s*[:=]?\s*(\d+[\.,]?\d*)\b/u);
+        if(m){ return { dir: null, qty: parseFloat((m[2]||'0').replace(/\./g,'').replace(',','.'))||0 }; }
+        return null;
+    }
+    function applyRowQty(tr){
+        if(!tr) return;
+        const hist = tr.querySelector('input.hist-ajustado');
+        const tdQty = tr.querySelector('td.td-qty');
+        if(!tdQty) return;
+        const txt = hist ? hist.value : '';
+        const p = parseQtyDirFromText(txt);
+        if(!p || !p.qty){ tdQty.textContent = '—'; return; }
+        const sign = p.dir==='sell' ? '-' : (p.dir==='buy' ? '+' : '');
+        tdQty.textContent = sign + (Number(p.qty).toFixed(6));
+    }
+    // Aplica inicialmente e vincula aos inputs
+    if(table){
+        (table.querySelectorAll('tbody tr')||[]).forEach(tr=> applyRowQty(tr));
+        (table.querySelectorAll('input.hist-ajustado')||[]).forEach(inp=>{
+            inp.addEventListener('input', function(){ applyRowQty(inp.closest('tr')); });
+            inp.addEventListener('blur', function(){ applyRowQty(inp.closest('tr')); });
         });
     }
     // --- Classificação (empresa global + conta por linha) ---

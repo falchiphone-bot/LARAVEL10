@@ -140,30 +140,40 @@ class InvestmentAccountCashEventController extends Controller
 
             // Resumo por Ativo (opcional): identificar símbolo via parser do título/detalhe
             if ($groupAsset) {
-                // Parser mínimo aproveitando o usado em positionsSummary
+                // Parser com quantidade (seguindo padrão de positionsSummary)
                 $parser = function($title, $detail){
                     $txt = trim((string)($title ?: ''));
                     if($detail){ $txt .= ' '.trim((string)$detail); }
                     $t = mb_strtoupper($txt,'UTF-8');
                     $norm = preg_replace('/\s+/', ' ', $t);
+                    // PT
                     if(preg_match('/\b(COMPRA|VENDA)\b\s+DE\s+(\d+[\.,]?\d*)\s+([A-Z0-9\.\-:_]+)\s+A\s*\$\s*(\d+[\.,]?\d*)/u', $norm, $m)){
                         $type = ($m[1]==='COMPRA')?'buy':'sell';
+                        $qty = (float)str_replace(',', '.', str_replace('.', '', $m[2]));
                         $sym = trim($m[3]);
-                        return ['type'=>$type,'sym'=>$sym];
+                        return ['type'=>$type,'sym'=>$sym,'qty'=>$qty];
                     }
+                    // EN
                     if(preg_match('/\b(BUY|SELL)\b\s+(\d+[\.,]?\d*)\s+([A-Z0-9\.\-:_]+)\s+(@|AT)\s*\$?\s*(\d+[\.,]?\d*)/u', $norm, $m)){
                         $type = ($m[1]==='BUY')?'buy':'sell';
+                        $qty = (float)str_replace(',', '.', str_replace('.', '', $m[2]));
                         $sym = trim($m[3]);
-                        return ['type'=>$type,'sym'=>$sym];
+                        return ['type'=>$type,'sym'=>$sym,'qty'=>$qty];
                     }
                     return null;
                 };
                 $p = $parser($row->title ?? '', $row->detail ?? '');
                 if ($p && !empty($p['sym'])) {
                     $sym = strtoupper($p['sym']);
-                    if (!isset($byAssetSummary[$sym])) { $byAssetSummary[$sym] = ['buy'=>0.0,'sell'=>0.0,'fee'=>0.0]; }
-                    if ($p['type'] === 'buy') { $byAssetSummary[$sym]['buy'] += abs($amount); }
-                    elseif ($p['type'] === 'sell') { $byAssetSummary[$sym]['sell'] += abs($amount); }
+                    if (!isset($byAssetSummary[$sym])) { $byAssetSummary[$sym] = ['buy'=>0.0,'sell'=>0.0,'fee'=>0.0,'buy_qty'=>0.0,'sell_qty'=>0.0]; }
+                    if ($p['type'] === 'buy') {
+                        $byAssetSummary[$sym]['buy'] += abs($amount);
+                        $byAssetSummary[$sym]['buy_qty'] += is_numeric($p['qty'] ?? null) ? (float)$p['qty'] : 0.0;
+                    }
+                    elseif ($p['type'] === 'sell') {
+                        $byAssetSummary[$sym]['sell'] += abs($amount);
+                        $byAssetSummary[$sym]['sell_qty'] += is_numeric($p['qty'] ?? null) ? (float)$p['qty'] : 0.0;
+                    }
                     // Taxas: atribuir quando a categoria indicar fee e o texto tiver símbolo
                     if ($isFee) { $byAssetSummary[$sym]['fee'] += abs($amount); }
                 }
@@ -333,7 +343,7 @@ class InvestmentAccountCashEventController extends Controller
         if($valMax !== null && $valMax !== ''){ $q->where('amount','<=',(float)$valMax); }
         if($source){ $q->where('source',$source); }
 
-        $rows = $q->get(['title','detail','category','amount']);
+    $rows = $q->get(['title','detail','category','amount']);
 
         // Parser mínimo para identificar símbolo e tipo (buy/sell) a partir de título/detalhe
         $parser = function($title, $detail){
@@ -343,13 +353,15 @@ class InvestmentAccountCashEventController extends Controller
             $norm = preg_replace('/\s+/', ' ', $t);
             if(preg_match('/\b(COMPRA|VENDA)\b\s+DE\s+(\d+[\.,]?\d*)\s+([A-Z0-9\.\-:_]+)\s+A\s*\$\s*(\d+[\.,]?\d*)/u', $norm, $m)){
                 $type = ($m[1]==='COMPRA')?'buy':'sell';
+                $qty = (float)str_replace(',', '.', str_replace('.', '', $m[2]));
                 $sym = trim($m[3]);
-                return ['type'=>$type,'sym'=>$sym];
+                return ['type'=>$type,'sym'=>$sym,'qty'=>$qty];
             }
             if(preg_match('/\b(BUY|SELL)\b\s+(\d+[\.,]?\d*)\s+([A-Z0-9\.\-:_]+)\s+(@|AT)\s*\$?\s*(\d+[\.,]?\d*)/u', $norm, $m)){
                 $type = ($m[1]==='BUY')?'buy':'sell';
+                $qty = (float)str_replace(',', '.', str_replace('.', '', $m[2]));
                 $sym = trim($m[3]);
-                return ['type'=>$type,'sym'=>$sym];
+                return ['type'=>$type,'sym'=>$sym,'qty'=>$qty];
             }
             return null;
         };
@@ -362,9 +374,15 @@ class InvestmentAccountCashEventController extends Controller
             $p = $parser($row->title ?? '', $row->detail ?? '');
             if(!$p || empty($p['sym'])) continue;
             $sym = strtoupper($p['sym']);
-            if (!isset($byAsset[$sym])) { $byAsset[$sym] = ['buy'=>0.0,'sell'=>0.0,'fee'=>0.0]; }
-            if ($p['type'] === 'buy') { $byAsset[$sym]['buy'] += abs($amount); }
-            elseif ($p['type'] === 'sell') { $byAsset[$sym]['sell'] += abs($amount); }
+            if (!isset($byAsset[$sym])) { $byAsset[$sym] = ['buy'=>0.0,'sell'=>0.0,'fee'=>0.0,'buy_qty'=>0.0,'sell_qty'=>0.0]; }
+            if ($p['type'] === 'buy') {
+                $byAsset[$sym]['buy'] += abs($amount);
+                $byAsset[$sym]['buy_qty'] += is_numeric($p['qty'] ?? null) ? (float)$p['qty'] : 0.0;
+            }
+            elseif ($p['type'] === 'sell') {
+                $byAsset[$sym]['sell'] += abs($amount);
+                $byAsset[$sym]['sell_qty'] += is_numeric($p['qty'] ?? null) ? (float)$p['qty'] : 0.0;
+            }
             if ($isFee) { $byAsset[$sym]['fee'] += abs($amount); }
         }
         ksort($byAsset, SORT_NATURAL | SORT_FLAG_CASE);
@@ -383,32 +401,38 @@ class InvestmentAccountCashEventController extends Controller
         }
 
         // Totais gerais
-        $tBuy = array_sum(array_map(fn($r)=>$r['buy'] ?? 0, $byAsset));
-        $tSell = array_sum(array_map(fn($r)=>$r['sell'] ?? 0, $byAsset));
+    $tBuy = array_sum(array_map(fn($r)=>$r['buy'] ?? 0, $byAsset));
+    $tSell = array_sum(array_map(fn($r)=>$r['sell'] ?? 0, $byAsset));
         $tFee = array_sum(array_map(fn($r)=>$r['fee'] ?? 0, $byAsset));
         $tNet = $tSell - $tBuy;
         $tVarPct = $tBuy>0 ? ($tNet/$tBuy)*100.0 : null;
+    $tBuyQty = array_sum(array_map(fn($r)=>$r['buy_qty'] ?? 0, $byAsset));
+    $tSellQty = array_sum(array_map(fn($r)=>$r['sell_qty'] ?? 0, $byAsset));
 
         $filename = 'cash_by_asset_'.date('Ymd_His').'.csv';
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="'.$filename.'"'
         ];
-    $callback = function() use ($byAsset, $tBuy, $tSell, $tFee, $tNet, $tVarPct){
+    $callback = function() use ($byAsset, $tBuy, $tSell, $tFee, $tNet, $tVarPct, $tBuyQty, $tSellQty){
             $out = fopen('php://output','w');
             // BOM UTF-8
             fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($out, ['symbol','buy','sell','fee','net','variation_pct'], ';');
+            fputcsv($out, ['symbol','buy','buy_qty','sell','sell_qty','fee','net','variation_pct'], ';');
             foreach($byAsset as $sym => $s){
                 $buy = (float)($s['buy'] ?? 0);
                 $sell = (float)($s['sell'] ?? 0);
                 $fee = (float)($s['fee'] ?? 0);
                 $net = $sell - $buy;
                 $varPct = $buy>0 ? ($net/$buy)*100.0 : null;
+                $bqty = (float)($s['buy_qty'] ?? 0);
+                $sqty = (float)($s['sell_qty'] ?? 0);
                 fputcsv($out, [
                     $sym,
                     number_format($buy,6,'.',''),
+                    number_format($bqty,6,'.',''),
                     number_format($sell,6,'.',''),
+                    number_format($sqty,6,'.',''),
                     number_format($fee,6,'.',''),
                     number_format($net,6,'.',''),
                     $varPct!==null ? number_format($varPct,6,'.','') : '',
@@ -418,7 +442,9 @@ class InvestmentAccountCashEventController extends Controller
             fputcsv($out, [
                 'TOTAL',
                 number_format($tBuy,6,'.',''),
+                number_format($tBuyQty,6,'.',''),
                 number_format($tSell,6,'.',''),
+                number_format($tSellQty,6,'.',''),
                 number_format($tFee,6,'.',''),
                 number_format($tNet,6,'.',''),
                 $tVarPct!==null ? number_format($tVarPct,6,'.','') : '',

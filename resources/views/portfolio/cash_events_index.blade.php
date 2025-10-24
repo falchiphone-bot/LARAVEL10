@@ -163,19 +163,25 @@
           <tr>
             <th>Ativo</th>
             <th class="text-end">Compras</th>
+            <th class="text-end">Qtd Compra</th>
             <th class="text-end">Vendas</th>
+            <th class="text-end">Qtd Venda</th>
+            <th class="text-end">Qtd Líquida</th>
             <th class="text-end">Taxas (fee)</th>
             <th class="text-end">Saldo (Vnd - Cmp)</th>
             <th class="text-end">Variação (%)</th>
           </tr>
         </thead>
-        <tbody>
-        </tbody>
+  <tbody>
+  </tbody>
         <tfoot>
           <tr id="selectionTotalsRow">
             <td class="text-end"><strong>Totais</strong></td>
             <td class="text-end" data-total="buy">—</td>
+            <td class="text-end" data-total="buy_qty">—</td>
             <td class="text-end" data-total="sell">—</td>
+            <td class="text-end" data-total="sell_qty">—</td>
+            <td class="text-end" data-total="net_qty">—</td>
             <td class="text-end" data-total="fee">—</td>
             <td class="text-end" data-total="net">—</td>
             <td class="text-end" data-total="varpct">—</td>
@@ -363,7 +369,10 @@
             <th style="width:28px" title="Marcar ativo para filtro">✓</th>
             <th>Ativo</th>
             <th class="text-end">Compras</th>
+            <th class="text-end">Qtd Compra</th>
             <th class="text-end">Vendas</th>
+            <th class="text-end">Qtd Venda</th>
+            <th class="text-end">Qtd Líquida</th>
             <th class="text-end">Taxas (fee)</th>
             <th class="text-end">Saldo (Vnd - Cmp)</th>
             <th class="text-end">Variação (%)</th>
@@ -376,21 +385,29 @@
               $sell = (float)($s['sell'] ?? 0);
               $net = $sell - $buy;
               $varPct = $buy > 0 ? ($net / $buy) * 100.0 : null;
+              $bqty = (float)($s['buy_qty'] ?? 0);
+              $sqty = (float)($s['sell_qty'] ?? 0);
             @endphp
-            <tr data-sym="{{ $sym }}" data-buy="{{ $buy }}" data-sell="{{ $sell }}" data-fee="{{ (float)($s['fee'] ?? 0) }}" data-net="{{ $net }}" data-varpct="{{ $varPct !== null ? $varPct : '' }}">
+            <tr data-sym="{{ $sym }}" data-buy="{{ $buy }}" data-buy-qty="{{ $bqty }}" data-sell="{{ $sell }}" data-sell-qty="{{ $sqty }}" data-fee="{{ (float)($s['fee'] ?? 0) }}" data-net="{{ $net }}" data-varpct="{{ $varPct !== null ? $varPct : '' }}" data-orig-buy-qty="{{ $bqty }}" data-orig-sell-qty="{{ $sqty }}">
               <td class="text-center align-middle">
                 <input type="checkbox" class="form-check-input asset-mark" data-sym="{{ $sym }}" />
               </td>
               <td>
                 <a href="{{ route('asset-stats.index', ['symbol'=>$sym]) }}#gsc.tab=0" target="_blank" rel="noopener" title="Abrir AssetDailyStat">{{ $sym }}</a>
               </td>
-              <td class="text-end text-danger">{{ number_format($buy, 2, ',', '.') }}</td>
-              <td class="text-end text-success">{{ number_format($sell, 2, ',', '.') }}</td>
-              <td class="text-end text-secondary">{{ number_format($s['fee'] ?? 0, 2, ',', '.') }}</td>
-              <td class="text-end {{ $net>0 ? 'text-success' : ($net<0 ? 'text-danger' : 'text-secondary') }}">{{ number_format($net, 2, ',', '.') }}</td>
-              <td class="text-end {{ ($varPct!==null && $varPct>0) ? 'text-success' : (($varPct!==null && $varPct<0) ? 'text-danger' : 'text-secondary') }}">
-                {{ $varPct!==null ? number_format($varPct, 2, ',', '.') . '%' : '—' }}
+              <td class="text-end text-danger"><span class="cell-buy">{{ number_format($buy, 2, ',', '.') }}</span></td>
+              <td class="text-end text-secondary">
+                <input type="number" class="form-control form-control-sm text-end qty-input" data-kind="buy" data-sym="{{ $sym }}" value="{{ number_format($bqty, 6, '.', '') }}" step="0.000001" min="0" style="width: 110px; display: inline-block;" />
               </td>
+              <td class="text-end text-success"><span class="cell-sell">{{ number_format($sell, 2, ',', '.') }}</span></td>
+              <td class="text-end text-secondary">
+                <input type="number" class="form-control form-control-sm text-end qty-input" data-kind="sell" data-sym="{{ $sym }}" value="{{ number_format($sqty, 6, '.', '') }}" step="0.000001" min="0" style="width: 110px; display: inline-block;" />
+                <button type="button" class="btn btn-link btn-sm p-0 ms-1 text-decoration-none row-reset" title="Resetar quantidades (linha)">↺</button>
+              </td>
+              <td class="text-end text-primary"><span class="cell-netqty">{{ number_format($bqty - $sqty, 6, ',', '.') }}</span></td>
+              <td class="text-end text-secondary">{{ number_format($s['fee'] ?? 0, 2, ',', '.') }}</td>
+              <td class="text-end {{ $net>0 ? 'text-success' : ($net<0 ? 'text-danger' : 'text-secondary') }}"><span class="cell-net">{{ number_format($net, 2, ',', '.') }}</span></td>
+              <td class="text-end {{ ($varPct!==null && $varPct>0) ? 'text-success' : (($varPct!==null && $varPct<0) ? 'text-danger' : 'text-secondary') }}"><span class="cell-varpct">{{ $varPct!==null ? number_format($varPct, 2, ',', '.') . '%' : '—' }}</span></td>
             </tr>
           @endforeach
         </tbody>
@@ -399,7 +416,10 @@
             <td></td>
             <td class="text-end"><strong>Totais</strong></td>
             <td class="text-end" data-total="buy">—</td>
+            <td class="text-end" data-total="buy_qty">—</td>
             <td class="text-end" data-total="sell">—</td>
+            <td class="text-end" data-total="sell_qty">—</td>
+              <td class="text-end" data-total="net_qty">—</td>
             <td class="text-end" data-total="fee">—</td>
             <td class="text-end" data-total="net">—</td>
             <td class="text-end" data-total="varpct">—</td>
@@ -582,9 +602,9 @@ document.addEventListener('DOMContentLoaded', function(){
     const t = txt.toUpperCase().normalize('NFKD');
     const norm = t.replace(/\s+/g,' ').trim();
     let m = norm.match(/\b(COMPRA|VENDA)\b\s+DE\s+(\d+[\.,]?\d*)\s+([A-Z0-9\.-:_]+)\s+A\s*\$\s*(\d+[\.,]?\d*)/u);
-    if (m){ return { type: (m[1]==='COMPRA')?'buy':'sell', sym: (m[3]||'').trim() }; }
+    if (m){ return { type: (m[1]==='COMPRA')?'buy':'sell', sym: (m[3]||'').trim(), qty: parseFloat((m[2]||'0').replace(/\./g,'').replace(',','.')) || 0 }; }
     m = norm.match(/\b(BUY|SELL)\b\s+(\d+[\.,]?\d*)\s+([A-Z0-9\.-:_]+)\s+(@|AT)\s*\$?\s*(\d+[\.,]?\d*)/u);
-    if (m){ return { type: (m[1]==='BUY')?'buy':'sell', sym: (m[3]||'').trim() }; }
+    if (m){ return { type: (m[1]==='BUY')?'buy':'sell', sym: (m[3]||'').trim(), qty: parseFloat((m[2]||'0').replace(/\./g,'').replace(',','.')) || 0 }; }
     return null;
   }
   function isFeeCategory(cat){
@@ -603,9 +623,9 @@ document.addEventListener('DOMContentLoaded', function(){
       const fee = isFeeCategory(cat);
       if (!p || !p.sym) return;
       const sym = p.sym.toUpperCase();
-      if (!map[sym]) map[sym] = { buy:0, sell:0, fee:0 };
-      if (p.type==='buy') map[sym].buy += Math.abs(amount);
-      else if (p.type==='sell') map[sym].sell += Math.abs(amount);
+      if (!map[sym]) map[sym] = { buy:0, sell:0, fee:0, buy_qty:0, sell_qty:0 };
+      if (p.type==='buy') { map[sym].buy += Math.abs(amount); map[sym].buy_qty += Math.abs(p.qty||0); }
+      else if (p.type==='sell') { map[sym].sell += Math.abs(amount); map[sym].sell_qty += Math.abs(p.qty||0); }
       if (fee) map[sym].fee += Math.abs(amount);
     });
     return map;
@@ -619,22 +639,50 @@ document.addEventListener('DOMContentLoaded', function(){
     const tbody = document.querySelector('#selectionSummaryTable tbody');
     if (!tbody) return;
     tbody.innerHTML = '';
+    // Mantém e aplica overrides de quantidades por símbolo
+    window.__selQtyOverrides = window.__selQtyOverrides || {};
+    const overrides = window.__selQtyOverrides;
     const symbols = Object.keys(map).sort((a,b)=> a.localeCompare(b,'pt-BR',{sensitivity:'base', numeric:true}));
-    let tBuy=0, tSell=0, tFee=0, tNet=0;
+  let tBuy=0, tSell=0, tFee=0, tNet=0, tBuyQty=0, tSellQty=0, tNetQty=0;
     symbols.forEach(sym => {
       const s = map[sym];
       const buy = +(s.buy||0); const sell= +(s.sell||0); const fee= +(s.fee||0);
+      const bqtyCalc = +(s.buy_qty||0); const sqtyCalc = +(s.sell_qty||0);
+      const bqty = (overrides[sym] && overrides[sym].buy_qty!=null) ? +(overrides[sym].buy_qty) : bqtyCalc;
+      const sqty = (overrides[sym] && overrides[sym].sell_qty!=null) ? +(overrides[sym].sell_qty) : sqtyCalc;
       const net = sell - buy;
-      tBuy += buy; tSell+=sell; tFee+=fee; tNet+=net;
+  tBuy += buy; tSell+=sell; tFee+=fee; tNet+=net; tBuyQty+=bqty; tSellQty+=sqty; tNetQty += ((bqty??0)-(sqty??0));
       const varPct = buy>0 ? (net/buy)*100.0 : null;
       const tr = document.createElement('tr');
+      tr.setAttribute('data-sym', sym);
+      // Preços unitários base (derivados dos valores originais)
+      const unitBuy = (bqtyCalc>0 ? (buy / bqtyCalc) : 0);
+      const unitSell = (sqtyCalc>0 ? (sell / sqtyCalc) : 0);
+      // Montantes ajustados conforme overrides
+      const buyAdj = unitBuy * (bqty ?? 0);
+      const sellAdj = unitSell * (sqty ?? 0);
+      const netAdj = sellAdj - buyAdj;
+      const varPctAdj = buyAdj>0 ? (netAdj/buyAdj)*100.0 : null;
+      tr.dataset.buyUnit = String(unitBuy || 0);
+      tr.dataset.sellUnit = String(unitSell || 0);
+      tr.setAttribute('data-orig-buy-qty', String(bqtyCalc||0));
+      tr.setAttribute('data-orig-sell-qty', String(sqtyCalc||0));
+      const netQty = (bqty ?? 0) - (sqty ?? 0);
       tr.innerHTML = `
         <td><a href="${window.location.origin + '{{ route('asset-stats.index', ['symbol'=>'__SYM__']) }}'.replace('%2F','/').replace('__SYM__', encodeURIComponent(sym))}#gsc.tab=0" target="_blank" rel="noopener">${sym}</a></td>
-        <td class="text-end text-danger">${fmt2(buy)}</td>
-        <td class="text-end text-success">${fmt2(sell)}</td>
+        <td class="text-end text-danger"><span class="cell-buy">${fmt2(buyAdj)}</span></td>
+        <td class="text-end text-secondary">
+          <input type="number" class="form-control form-control-sm text-end sel-qty-input" data-kind="buy" data-sym="${sym}" value="${(bqty??0).toFixed(6)}" step="0.000001" min="0" style="width: 110px; display: inline-block;" />
+        </td>
+        <td class="text-end text-success"><span class="cell-sell">${fmt2(sellAdj)}</span></td>
+        <td class="text-end text-secondary">
+          <input type="number" class="form-control form-control-sm text-end sel-qty-input" data-kind="sell" data-sym="${sym}" value="${(sqty??0).toFixed(6)}" step="0.000001" min="0" style="width: 110px; display: inline-block;" />
+          <button type="button" class="btn btn-link btn-sm p-0 ms-1 text-decoration-none sel-row-reset" title="Resetar quantidades (linha)">↺</button>
+        </td>
+        <td class="text-end text-primary"><span class="cell-netqty">${(netQty).toFixed(6).replace('.',',')}</span></td>
         <td class="text-end text-secondary">${fmt2(fee)}</td>
-        <td class="text-end ${net>0?'text-success':(net<0?'text-danger':'text-secondary')}">${fmt2(net)}</td>
-        <td class="text-end ${varPct!==null?(varPct>0?'text-success':(varPct<0?'text-danger':'text-secondary')):'text-secondary'}">${varPct!==null? fmt2(varPct)+'%':'—'}</td>`;
+        <td class="text-end ${netAdj>0?'text-success':(netAdj<0?'text-danger':'text-secondary')}"><span class="cell-net">${fmt2(netAdj)}</span></td>
+        <td class="text-end ${varPctAdj!==null?(varPctAdj>0?'text-success':(varPctAdj<0?'text-danger':'text-secondary')):'text-secondary'}"><span class="cell-varpct">${varPctAdj!==null? fmt2(varPctAdj)+'%':'—'}</span></td>`;
       tbody.appendChild(tr);
     });
     // Totais
@@ -650,8 +698,98 @@ document.addEventListener('DOMContentLoaded', function(){
       set('fee', tFee);
       set('net', tNet, tNet>0?'text-success':(tNet<0?'text-danger':'text-secondary'));
       set('varpct', tVarPct, (tVarPct!==null && tVarPct>0)?'text-success':((tVarPct!==null && tVarPct<0)?'text-danger':'text-secondary'));
+      set('buy_qty', tBuyQty);
+      set('sell_qty', tSellQty);
+      set('net_qty', tNetQty);
     }
   }
+  // Listeners para inputs de quantidade no Resumo por Seleção
+  document.addEventListener('input', function(ev){
+    const t = ev.target;
+    if (t && t.classList && t.classList.contains('sel-qty-input')){
+      const sym = t.getAttribute('data-sym');
+      const kind = t.getAttribute('data-kind'); // 'buy' ou 'sell'
+      const val = parseFloat(t.value||'0');
+      window.__selQtyOverrides = window.__selQtyOverrides || {};
+      if (!window.__selQtyOverrides[sym]) window.__selQtyOverrides[sym] = { buy_qty:null, sell_qty:null };
+      if (kind==='buy') window.__selQtyOverrides[sym].buy_qty = isNaN(val)? 0 : val;
+      else if (kind==='sell') window.__selQtyOverrides[sym].sell_qty = isNaN(val)? 0 : val;
+      // persiste overrides
+      try{ localStorage.setItem('cash.selection.qtyOverrides', JSON.stringify(window.__selQtyOverrides)); }catch(_e){}
+      // Recalcula linha (montantes ajustados) e rodapé
+      const tr = t.closest('tr');
+      if (tr){
+        const unitBuy = parseFloat(tr.dataset.buyUnit||'0')||0;
+        const unitSell = parseFloat(tr.dataset.sellUnit||'0')||0;
+        const inpBuy = tr.querySelector('input.sel-qty-input[data-kind="buy"]');
+        const inpSell = tr.querySelector('input.sel-qty-input[data-kind="sell"]');
+        const qB = parseFloat(inpBuy?.value||'0')||0;
+        const qS = parseFloat(inpSell?.value||'0')||0;
+        const buyAdj = unitBuy*qB; const sellAdj = unitSell*qS; const netAdj = sellAdj - buyAdj; const varPctAdj = buyAdj>0? (netAdj/buyAdj)*100.0 : null; const netQty = qB - qS;
+        const cellBuy = tr.querySelector('.cell-buy'); if (cellBuy) cellBuy.textContent = fmt2(buyAdj);
+        const cellSell = tr.querySelector('.cell-sell'); if (cellSell) cellSell.textContent = fmt2(sellAdj);
+        const cellNetQty = tr.querySelector('.cell-netqty'); if (cellNetQty) cellNetQty.textContent = (netQty).toFixed(6).replace('.',',');
+        const cellNet = tr.querySelector('.cell-net'); if (cellNet){ cellNet.textContent = fmt2(netAdj); const td = cellNet.parentElement; if (td) td.className = 'text-end '+(netAdj>0?'text-success':(netAdj<0?'text-danger':'text-secondary')); }
+        const cellVar = tr.querySelector('.cell-varpct'); if (cellVar){ cellVar.textContent = (varPctAdj!==null? fmt2(varPctAdj)+'%':'—'); const td = cellVar.parentElement; if (td) td.className = 'text-end '+(varPctAdj!==null?(varPctAdj>0?'text-success':(varPctAdj<0?'text-danger':'text-secondary')):'text-secondary'); }
+      }
+      // Recalcula rodapé com montantes ajustados
+      const tbody = document.querySelector('#selectionSummaryTable tbody');
+      if (tbody){
+  let tBuy=0, tSell=0, tFee=0, tNet=0, tBuyQty=0, tSellQty=0, tNetQty=0;
+        // Usa mapa atual para taxas e unidades base
+        const map = computeSelectionMap();
+        Object.keys(map).forEach(sym2 => {
+          const s = map[sym2];
+          const unitB = ((s.buy_qty||0)>0) ? ((s.buy||0)/(s.buy_qty||1)) : 0;
+          const unitS = ((s.sell_qty||0)>0) ? ((s.sell||0)/(s.sell_qty||1)) : 0;
+          const ov = (window.__selQtyOverrides && window.__selQtyOverrides[sym2]) ? window.__selQtyOverrides[sym2] : null;
+          const bqty = ov && ov.buy_qty!=null ? +ov.buy_qty : +(s.buy_qty||0);
+          const sqty = ov && ov.sell_qty!=null ? +ov.sell_qty : +(s.sell_qty||0);
+          const buyA = unitB * bqty; const sellA = unitS * sqty; const fee = +(s.fee||0); const net = sellA - buyA;
+          tBuy += buyA; tSell += sellA; tFee += fee; tNet += net; tBuyQty += bqty; tSellQty += sqty; tNetQty += (bqty - sqty);
+        });
+        const foot = document.getElementById('selectionTotalsRow');
+        if (foot){
+          const set = (key, val, cls='')=>{
+            const el = foot.querySelector(`[data-total="${key}"]`);
+            if (el){ el.textContent = (key==='varpct' && val!==null) ? (fmt2(val)+'%') : fmt2(val); el.className = 'text-end '+cls; }
+          };
+          const tVarPct = tBuy>0 ? (tNet/tBuy)*100.0 : null;
+          set('buy', tBuy);
+          set('sell', tSell);
+          set('fee', tFee);
+          set('net', tNet, tNet>0?'text-success':(tNet<0?'text-danger':'text-secondary'));
+          set('varpct', tVarPct, (tVarPct!==null && tVarPct>0)?'text-success':((tVarPct!==null && tVarPct<0)?'text-danger':'text-secondary'));
+          set('buy_qty', tBuyQty);
+          set('sell_qty', tSellQty);
+          set('net_qty', tNetQty);
+        }
+      }
+    }
+  });
+  // Delegação: reset por linha no Resumo por Seleção
+  document.addEventListener('click', function(ev){
+    const btn = ev.target;
+    if (btn && btn.classList && btn.classList.contains('sel-row-reset')){
+      const tr = btn.closest('tr');
+      if (!tr) return;
+      const sym = tr.getAttribute('data-sym');
+      const ob = parseFloat(tr.getAttribute('data-orig-buy-qty')||'0')||0;
+      const os = parseFloat(tr.getAttribute('data-orig-sell-qty')||'0')||0;
+      const inpB = tr.querySelector('input.sel-qty-input[data-kind="buy"]');
+      const inpS = tr.querySelector('input.sel-qty-input[data-kind="sell"]');
+      if (inpB) inpB.value = ob.toFixed(6);
+      if (inpS) inpS.value = os.toFixed(6);
+      // remove override armazenado para o símbolo
+      window.__selQtyOverrides = window.__selQtyOverrides || {};
+      delete window.__selQtyOverrides[sym];
+      try{ localStorage.setItem('cash.selection.qtyOverrides', JSON.stringify(window.__selQtyOverrides)); }catch(_e){}
+      // Dispara evento de input para recalcular linha e totais
+      if (inpB){ inpB.dispatchEvent(new Event('input', {bubbles:true})); }
+      else if (inpS){ inpS.dispatchEvent(new Event('input', {bubbles:true})); }
+    }
+  });
+
   // Ações no header do card de seleção
   const selMarkAll = document.getElementById('selMarkAll');
   const selUnmarkAll = document.getElementById('selUnmarkAll');
@@ -660,17 +798,24 @@ document.addEventListener('DOMContentLoaded', function(){
   const selExportCsv = document.getElementById('selExportCsv');
   if (selExportCsv){ selExportCsv.addEventListener('click', function(){
     const map = computeSelectionMap();
+    window.__selQtyOverrides = window.__selQtyOverrides || {};
+    const overrides = window.__selQtyOverrides;
     const symbols = Object.keys(map).sort((a,b)=> a.localeCompare(b,'pt-BR',{sensitivity:'base', numeric:true}));
-    let csv = '\ufeffsymbol;buy;sell;fee;net;variation_pct\n';
-    let tBuy=0,tSell=0,tFee=0,tNet=0;
+    let csv = '\\ufeffsymbol;buy;buy_qty;sell;sell_qty;net_qty;fee;net;variation_pct\\n';
+    let tBuy=0,tSell=0,tFee=0,tNet=0,tBuyQty=0,tSellQty=0,tNetQty=0;
     symbols.forEach(sym=>{
       const s = map[sym];
-      const buy = +(s.buy||0); const sell= +(s.sell||0); const fee= +(s.fee||0); const net = sell-buy; const varPct = buy>0? (net/buy)*100.0 : '';
-      csv += [sym, buy.toFixed(6), sell.toFixed(6), fee.toFixed(6), net.toFixed(6), (varPct===''?'':Number(varPct).toFixed(6))].join(';')+'\n';
-      tBuy+=buy; tSell+=sell; tFee+=fee; tNet+=net;
+      const unitB = ((s.buy_qty||0)>0) ? ((s.buy||0)/(s.buy_qty||1)) : 0;
+      const unitS = ((s.sell_qty||0)>0) ? ((s.sell||0)/(s.sell_qty||1)) : 0;
+      const bqty = (overrides[sym] && overrides[sym].buy_qty!=null) ? +(overrides[sym].buy_qty) : +(s.buy_qty||0);
+      const sqty = (overrides[sym] && overrides[sym].sell_qty!=null) ? +(overrides[sym].sell_qty) : +(s.sell_qty||0);
+      const buyA = unitB * bqty; const sellA = unitS * sqty; const fee = +(s.fee||0); const net = sellA - buyA; const varPct = buyA>0? (net/buyA)*100.0 : '';
+      const netQty = bqty - sqty;
+      csv += [sym, buyA.toFixed(6), bqty.toFixed(6), sellA.toFixed(6), sqty.toFixed(6), netQty.toFixed(6), fee.toFixed(6), net.toFixed(6), (varPct===''?'':Number(varPct).toFixed(6))].join(';')+'\\n';
+      tBuy+=buyA; tSell+=sellA; tFee+=fee; tNet+=net; tBuyQty+=bqty; tSellQty+=sqty; tNetQty+=netQty;
     });
     const tVarPct = tBuy>0? (tNet/tBuy)*100.0 : '';
-    csv += ['TOTAL', tBuy.toFixed(6), tSell.toFixed(6), tFee.toFixed(6), tNet.toFixed(6), (tVarPct===''?'':Number(tVarPct).toFixed(6))].join(';');
+    csv += ['TOTAL', tBuy.toFixed(6), tBuyQty.toFixed(6), tSell.toFixed(6), tSellQty.toFixed(6), tNetQty.toFixed(6), tFee.toFixed(6), tNet.toFixed(6), (tVarPct===''?'':Number(tVarPct).toFixed(6))].join(';');
     const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -695,12 +840,16 @@ document.addEventListener('DOMContentLoaded', function(){
   if (selUnmarkByDate){ selUnmarkByDate.addEventListener('click', function(){ setByDate(selDateYmd?.value || '', false); }); }
   const LS_KEY = 'cash.byAsset.marks';
   const LS_SHOW = 'cash.byAsset.show';
+  const LS_BYASSET_QTY = 'cash.byAsset.qtyOverrides';
+  const LS_SEL_QTY = 'cash.selection.qtyOverrides';
   function loadMarks(){
     try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch(e){ return {}; }
   }
   function saveMarks(m){ localStorage.setItem(LS_KEY, JSON.stringify(m||{})); }
   function loadShow(){ return localStorage.getItem(LS_SHOW) || 'all'; }
   function saveShow(v){ localStorage.setItem(LS_SHOW, v); }
+  function loadJson(k){ try { return JSON.parse(localStorage.getItem(k)||'{}'); } catch(_e){ return {}; } }
+  function saveJson(k, v){ try{ localStorage.setItem(k, JSON.stringify(v||{})); }catch(_e){} }
 
   const marks = loadMarks();
   const showSel = document.getElementById('byAssetShow');
@@ -708,15 +857,17 @@ document.addEventListener('DOMContentLoaded', function(){
   function fmt(n){ if(n===null || isNaN(n)) return '—'; return nf? nf.format(n) : (Number(n).toFixed(2).replace('.',',')); }
 
   function computeTotals(){
-    let tBuy=0, tSell=0, tFee=0, tNet=0, tVarPct=null;
+    let tBuy=0, tSell=0, tFee=0, tNet=0, tVarPct=null, tBuyQty=0, tSellQty=0, tNetQty=0;
     const rows = document.querySelectorAll('tr[data-sym]');
     rows.forEach(tr => {
       if (tr.style.display === 'none') return; // hidden by filter
       const buy = parseFloat(tr.getAttribute('data-buy')||'0') || 0;
+      const bqty = parseFloat(tr.getAttribute('data-buy-qty')||'0') || 0;
       const sell = parseFloat(tr.getAttribute('data-sell')||'0') || 0;
+      const sqty = parseFloat(tr.getAttribute('data-sell-qty')||'0') || 0;
       const fee = parseFloat(tr.getAttribute('data-fee')||'0') || 0;
-      const net = parseFloat(tr.getAttribute('data-net')||'0') || 0;
-      tBuy += buy; tSell += sell; tFee += fee; tNet += net;
+    const net = parseFloat(tr.getAttribute('data-net')||'0') || 0;
+  tBuy += buy; tSell += sell; tFee += fee; tNet += net; tBuyQty += bqty; tSellQty += sqty; tNetQty += (bqty - sqty);
     });
     const varPct = tBuy>0 ? (tNet/tBuy)*100.0 : null;
     const row = document.getElementById('byAssetTotalsRow');
@@ -726,12 +877,89 @@ document.addEventListener('DOMContentLoaded', function(){
         if (el){ el.textContent = (key==='varpct' && val!==null) ? (fmt(val)+'%') : fmt(val); el.className = 'text-end '+cls; }
       };
       set('buy', tBuy);
+      set('buy_qty', tBuyQty);
       set('sell', tSell);
+      set('sell_qty', tSellQty);
+        set('net_qty', tNetQty);
       set('fee', tFee);
       set('net', tNet, tNet>0?'text-success':(tNet<0?'text-danger':'text-secondary'));
       set('varpct', varPct, (varPct!==null && varPct>0)?'text-success':((varPct!==null && varPct<0)?'text-danger':'text-secondary'));
     }
   }
+  // Inputs de quantidade no Resumo por Ativo (editáveis): atualiza linha (montantes) e totais
+  document.addEventListener('input', function(ev){
+    const t = ev.target;
+    if (t && t.classList && t.classList.contains('qty-input')){
+      const tr = t.closest('tr[data-sym]');
+      if (!tr) return;
+      const kind = t.getAttribute('data-kind');
+      const v = parseFloat(t.value||'0') || 0;
+      if (kind==='buy'){ tr.setAttribute('data-buy-qty', String(v)); }
+      else if (kind==='sell'){ tr.setAttribute('data-sell-qty', String(v)); }
+      // Determina preços unitários base (persistidos no dataset)
+      let unitBuy = parseFloat(tr.getAttribute('data-buy-unit')||'');
+      let unitSell = parseFloat(tr.getAttribute('data-sell-unit')||'');
+      if (isNaN(unitBuy)){
+        const ob = parseFloat(tr.getAttribute('data-buy')||'0')||0;
+        const obq = parseFloat(tr.getAttribute('data-buy-qty')||'0')||0;
+        unitBuy = obq>0 ? (ob/obq) : 0;
+        tr.setAttribute('data-buy-unit', String(unitBuy));
+      }
+      if (isNaN(unitSell)){
+        const os = parseFloat(tr.getAttribute('data-sell')||'0')||0;
+        const osq = parseFloat(tr.getAttribute('data-sell-qty')||'0')||0;
+        unitSell = osq>0 ? (os/osq) : 0;
+        tr.setAttribute('data-sell-unit', String(unitSell));
+      }
+      const bq = parseFloat(tr.getAttribute('data-buy-qty')||'0')||0;
+      const sq = parseFloat(tr.getAttribute('data-sell-qty')||'0')||0;
+      const buyA = unitBuy*bq; const sellA = unitSell*sq; const netA = sellA - buyA; const varA = buyA>0 ? (netA/buyA)*100.0 : null;
+      tr.setAttribute('data-buy', String(buyA));
+      tr.setAttribute('data-sell', String(sellA));
+      tr.setAttribute('data-net', String(netA));
+      tr.setAttribute('data-varpct', (varA===null?'':String(varA)));
+      // Atualiza células visuais
+      const cellBuy = tr.querySelector('.cell-buy'); if (cellBuy) cellBuy.textContent = fmt(buyA);
+      const cellSell = tr.querySelector('.cell-sell'); if (cellSell) cellSell.textContent = fmt(sellA);
+  const cellNetQty = tr.querySelector('.cell-netqty'); if (cellNetQty) cellNetQty.textContent = (bq - sq).toFixed(6).replace('.',',');
+      const cellNet = tr.querySelector('.cell-net'); if (cellNet){ cellNet.textContent = fmt(netA); const td = cellNet.parentElement; if (td) td.className = 'text-end '+(netA>0?'text-success':(netA<0?'text-danger':'text-secondary')); }
+      const cellVar = tr.querySelector('.cell-varpct'); if (cellVar){ cellVar.textContent = (varA!==null? fmt(varA)+'%':'—'); const td = cellVar.parentElement; if (td) td.className = 'text-end '+(varA!==null?(varA>0?'text-success':(varA<0?'text-danger':'text-secondary')):'text-secondary'); }
+      // Persiste overrides por símbolo
+      try{
+        const sym = tr.getAttribute('data-sym');
+        window.__byAssetQtyOverrides = window.__byAssetQtyOverrides || {};
+        if (!window.__byAssetQtyOverrides[sym]) window.__byAssetQtyOverrides[sym] = { buy_qty:null, sell_qty:null };
+        window.__byAssetQtyOverrides[sym].buy_qty = bq;
+        window.__byAssetQtyOverrides[sym].sell_qty = sq;
+        saveJson(LS_BYASSET_QTY, window.__byAssetQtyOverrides);
+      }catch(_e){}
+      computeTotals();
+    }
+  });
+  // Delegação: reset por linha no Resumo por Ativo
+  document.addEventListener('click', function(ev){
+    const btn = ev.target;
+    if (btn && btn.classList && btn.classList.contains('row-reset')){
+      const tr = btn.closest('tr[data-sym]');
+      if (!tr) return;
+      const sym = tr.getAttribute('data-sym');
+      const ob = parseFloat(tr.getAttribute('data-orig-buy-qty')||'0')||0;
+      const os = parseFloat(tr.getAttribute('data-orig-sell-qty')||'0')||0;
+      const inpB = tr.querySelector('input.qty-input[data-kind="buy"]');
+      const inpS = tr.querySelector('input.qty-input[data-kind="sell"]');
+      if (inpB) inpB.value = ob.toFixed(6);
+      if (inpS) inpS.value = os.toFixed(6);
+      tr.setAttribute('data-buy-qty', String(ob));
+      tr.setAttribute('data-sell-qty', String(os));
+      // Remove override salvo
+      window.__byAssetQtyOverrides = window.__byAssetQtyOverrides || {};
+      delete window.__byAssetQtyOverrides[sym];
+      saveJson(LS_BYASSET_QTY, window.__byAssetQtyOverrides);
+      // Dispara evento de input para recalcular e atualizar totais
+      if (inpB){ inpB.dispatchEvent(new Event('input', {bubbles:true})); }
+      else if (inpS){ inpS.dispatchEvent(new Event('input', {bubbles:true})); }
+    }
+  });
   if (showSel) {
     showSel.value = loadShow();
     showSel.addEventListener('change', function(){ saveShow(showSel.value); applyFilter(); });
@@ -780,23 +1008,26 @@ document.addEventListener('DOMContentLoaded', function(){
           if (tr.style.display === 'none') return;
           const sym = tr.getAttribute('data-sym');
           const buy = parseFloat(tr.getAttribute('data-buy')||'0') || 0;
+          const bqty = parseFloat(tr.getAttribute('data-buy-qty')||'0') || 0;
           const sell = parseFloat(tr.getAttribute('data-sell')||'0') || 0;
+          const sqty = parseFloat(tr.getAttribute('data-sell-qty')||'0') || 0;
           const fee = parseFloat(tr.getAttribute('data-fee')||'0') || 0;
           const net = parseFloat(tr.getAttribute('data-net')||'0') || 0;
           const varpctAttr = tr.getAttribute('data-varpct');
           const varpct = (varpctAttr!==null && varpctAttr!=='') ? parseFloat(varpctAttr) : (buy>0 ? (net/buy)*100.0 : null);
-          rows.push({sym, buy, sell, fee, net, varpct});
+          const net_qty = bqty - sqty;
+          rows.push({sym, buy, bqty, sell, sqty, net_qty, fee, net, varpct});
         });
         // Totais
-        let tBuy=0, tSell=0, tFee=0, tNet=0;
-        rows.forEach(r=>{ tBuy+=r.buy; tSell+=r.sell; tFee+=r.fee; tNet+=r.net; });
+        let tBuy=0, tSell=0, tFee=0, tNet=0, tBuyQty=0, tSellQty=0, tNetQty=0;
+        rows.forEach(r=>{ tBuy+=r.buy; tSell+=r.sell; tFee+=r.fee; tNet+=r.net; tBuyQty+=r.bqty; tSellQty+=r.sqty; tNetQty+=r.net_qty; });
         const tVarPct = tBuy>0 ? (tNet/tBuy)*100.0 : null;
         const nf6 = (n)=> (n===null||isNaN(n))? '': Number(n).toFixed(6);
-        let csv = '\ufeffsymbol;buy;sell;fee;net;variation_pct\n';
+        let csv = '\\ufeffsymbol;buy;buy_qty;sell;sell_qty;net_qty;fee;net;variation_pct\\n';
         rows.forEach(r=>{
-          csv += [r.sym, nf6(r.buy), nf6(r.sell), nf6(r.fee), nf6(r.net), nf6(r.varpct)].join(';') + '\n';
+          csv += [r.sym, nf6(r.buy), nf6(r.bqty), nf6(r.sell), nf6(r.sqty), nf6(r.net_qty), nf6(r.fee), nf6(r.net), nf6(r.varpct)].join(';') + '\\n';
         });
-        csv += ['TOTAL', nf6(tBuy), nf6(tSell), nf6(tFee), nf6(tNet), nf6(tVarPct)].join(';');
+        csv += ['TOTAL', nf6(tBuy), nf6(tBuyQty), nf6(tSell), nf6(tSellQty), nf6(tNetQty), nf6(tFee), nf6(tNet), nf6(tVarPct)].join(';');
         const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -847,6 +1078,32 @@ document.addEventListener('DOMContentLoaded', function(){
     });
     computeTotals();
   }
+
+  // Carrega overrides de LS e aplica
+  try{
+    window.__selQtyOverrides = loadJson(LS_SEL_QTY);
+  }catch(_e){ window.__selQtyOverrides = {}; }
+  try{
+    window.__byAssetQtyOverrides = loadJson(LS_BYASSET_QTY);
+    // Aplica em linhas do Resumo por Ativo, se renderizado
+    document.querySelectorAll('tr[data-sym]').forEach(tr => {
+      // somente linhas que possuem inputs de qty do resumo por ativo
+      const hasQty = tr.querySelector('input.qty-input');
+      if (!hasQty) return;
+      const sym = tr.getAttribute('data-sym');
+      const ov = window.__byAssetQtyOverrides[sym];
+      if (!ov) return;
+      const bq = (ov.buy_qty!=null)? +ov.buy_qty : parseFloat(tr.getAttribute('data-buy-qty')||'0')||0;
+      const sq = (ov.sell_qty!=null)? +ov.sell_qty : parseFloat(tr.getAttribute('data-sell-qty')||'0')||0;
+      const inpB = tr.querySelector('input.qty-input[data-kind="buy"]');
+      const inpS = tr.querySelector('input.qty-input[data-kind="sell"]');
+      if (inpB) inpB.value = (bq||0).toFixed(6);
+      if (inpS) inpS.value = (sq||0).toFixed(6);
+      // dispara input para recalcular e atualizar células/datasets
+      if (inpB){ inpB.dispatchEvent(new Event('input', {bubbles:true})); }
+      else if (inpS){ inpS.dispatchEvent(new Event('input', {bubbles:true})); }
+    });
+  }catch(_e){}
 
   applyFilter();
   computeTotals();
