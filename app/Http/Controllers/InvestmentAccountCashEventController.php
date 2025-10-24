@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use App\Services\MarketDataService;
 use App\Models\AssetDailyStat;
 use Carbon\Carbon;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class InvestmentAccountCashEventController extends Controller
 {
@@ -32,6 +33,8 @@ class InvestmentAccountCashEventController extends Controller
         $dir = strtolower($request->input('dir','desc')) === 'asc' ? 'asc' : 'desc';
     $showRunning = $request->boolean('show_running');
     $groupAsset = $request->boolean('group_asset');
+        $paginate = $request->boolean('paginate', true);
+        $onlyBuySell = $request->boolean('only_buy_sell', false);
 
         $allowedSort = [
             'event_date'=>'event_date',
@@ -43,7 +46,10 @@ class InvestmentAccountCashEventController extends Controller
             'source'=>'source'
         ];
         if(!isset($allowedSort[$sort])){ $sort='event_date'; }
-        $perPage = min(200, max(10, (int)$request->input('per_page', 50)));
+    // Limite de página: quando paginar, força 5000 e trava na UI
+    $perPage = (int)$request->input('per_page', 50);
+    if ($paginate) { $perPage = 5000; }
+    else { $perPage = min(5000, max(10, $perPage)); }
 
         $q = InvestmentAccountCashEvent::with('account')
             ->where('user_id',$userId);
@@ -60,8 +66,34 @@ class InvestmentAccountCashEventController extends Controller
         if($valMin !== null && $valMin !== ''){ $q->where('amount','>=',(float)$valMin); }
         if($valMax !== null && $valMax !== ''){ $q->where('amount','<=',(float)$valMax); }
     if($source){ $q->where('source',$source); }
+        if ($onlyBuySell) {
+            $q->where(function($w){
+                $w->where('category','LIKE','%compra%')
+                  ->orWhere('category','LIKE','%venda%')
+                  ->orWhere('title','LIKE','%compra%')
+                  ->orWhere('title','LIKE','%venda%')
+                  ->orWhere('title','LIKE','%BUY%')
+                  ->orWhere('title','LIKE','%SELL%')
+                  ->orWhere('detail','LIKE','%compra%')
+                  ->orWhere('detail','LIKE','%venda%')
+                  ->orWhere('detail','LIKE','%BUY%')
+                  ->orWhere('detail','LIKE','%SELL%');
+            });
+        }
         $q->orderBy($allowedSort[$sort], $dir)->orderBy('id','desc');
-        $events = $q->paginate($perPage)->appends($request->query());
+        if ($paginate) {
+            $events = $q->paginate($perPage)->appends($request->query());
+        } else {
+            // Sem paginação: retorna todos os eventos filtrados
+            $all = $q->get();
+            $events = new LengthAwarePaginator(
+                $all,
+                $all->count(),
+                $all->count() > 0 ? $all->count() : 1,
+                1,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+        }
 
         // Totais filtrados (sem paginação)
         $aggregateQuery = clone $q; // clone após filtros (remove orderings para sum)
@@ -218,6 +250,8 @@ class InvestmentAccountCashEventController extends Controller
             'canComputeRunning'=>$canComputeRunning,
             'showRunning'=>$showRunning,
             'groupAsset'=>$groupAsset,
+            'onlyBuySell'=>$onlyBuySell,
+            'paginate'=>$paginate,
         ]);
     }
 
@@ -553,7 +587,7 @@ class InvestmentAccountCashEventController extends Controller
                                 // Persistência normalizada: sempre em YYYY-MM-DD 00:00:00 (startOfDay)
                                 $today = Carbon::today()->startOfDay();
                                 $existing = AssetDailyStat::where('symbol', strtoupper($sym))
-                                    ->whereDate('date', '=', $today->format('Y-m-d'))
+                                    ->whereRaw('DATE(`date`) = ?', [$today->format('Y-m-d')])
                                     ->first();
                                 if ($existing) {
                                     $existing->close_value = $price;
@@ -569,7 +603,7 @@ class InvestmentAccountCashEventController extends Controller
                                 }
                                 // Re-leitura para garantir consistência exibida com DB
                                 $row = AssetDailyStat::where('symbol', strtoupper($sym))
-                                    ->whereDate('date', '=', $today->format('Y-m-d'))
+                                    ->whereRaw('DATE(`date`) = ?', [$today->format('Y-m-d')])
                                     ->orderBy('date', 'desc')->first();
                                 if ($row && is_numeric($row->close_value)) {
                                     $price = (float) $row->close_value;
@@ -592,7 +626,7 @@ class InvestmentAccountCashEventController extends Controller
                             // Persistência normalizada: sempre em YYYY-MM-DD 00:00:00 (startOfDay)
                             $today = Carbon::today()->startOfDay();
                             $existing = AssetDailyStat::where('symbol', strtoupper($sym))
-                                ->whereDate('date', '=', $today->format('Y-m-d'))
+                                ->whereRaw('DATE(`date`) = ?', [$today->format('Y-m-d')])
                                 ->first();
                             if ($existing) {
                                 $existing->close_value = $price;
@@ -608,7 +642,7 @@ class InvestmentAccountCashEventController extends Controller
                             }
                             // Re-leitura para garantir consistência exibida com DB
                             $row = AssetDailyStat::where('symbol', strtoupper($sym))
-                                ->whereDate('date', '=', $today->format('Y-m-d'))
+                                ->whereRaw('DATE(`date`) = ?', [$today->format('Y-m-d')])
                                 ->orderBy('date', 'desc')->first();
                             if ($row && is_numeric($row->close_value)) {
                                 $price = (float) $row->close_value;

@@ -100,7 +100,7 @@
             <label class="form-check-label small" for="chkRunning">Exibir Saldo Após</label>
           </div>
         </div>
-        <div class="col-md-2">
+        <div class="col-md-2 d-none">
           <div class="form-check mt-4" data-bs-toggle="tooltip" data-bs-title="Exibe um resumo agregado por ativo (quanto comprou, vendeu e pagou de taxa) considerando os filtros atuais.">
             <input class="form-check-input" type="checkbox" value="1" id="chkGroupAsset" name="group_asset" @checked($groupAsset ?? false) />
             <label class="form-check-label small" for="chkGroupAsset">Agrupar por Ativo</label>
@@ -122,6 +122,66 @@
           <button class="btn btn-sm btn-outline-danger" type="button" data-bs-toggle="modal" data-bs-target="#modalTruncateCash" title="Apagar todos os eventos e snapshots de caixa deste usuário">Limpar Tudo</button>
         </div>
       </div>
+    </div>
+  </div>
+  <!-- Card de alternância de agrupamentos (fundo rosa) -->
+  <div class="card mb-3 shadow-sm border-0" style="background-color:#ffe8f1;">
+    <div class="card-body py-2">
+      <div class="d-flex flex-wrap align-items-center gap-3 small">
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" role="switch" id="toggleGroupAssetMirror">
+          <label class="form-check-label" for="toggleGroupAssetMirror">Agrupar por Ativo</label>
+        </div>
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" role="switch" id="toggleGroupSelection">
+          <label class="form-check-label" for="toggleGroupSelection">Agrupar por Seleção</label>
+        </div>
+        <div class="ms-auto d-flex align-items-center gap-2">
+          <small class="text-muted">Marque eventos na lista e ative "Agrupar por Seleção" para ver o resumo.</small>
+          <button class="btn btn-sm btn-outline-primary" id="btnSelectionRebuild" type="button">Atualizar resumo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Resumo por Seleção (dinâmico, client-side) -->
+  <div class="card mb-3 shadow-sm d-none" id="selectionSummaryCard">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <strong>Resumo por Seleção (filtrado nesta página)</strong>
+      <div class="d-flex align-items-center gap-2 small">
+        <label for="selDateYmd" class="mb-0">Data</label>
+        <input type="date" id="selDateYmd" class="form-control form-control-sm" style="width: 160px;" />
+        <button type="button" id="selMarkByDate" class="btn btn-sm btn-outline-primary" title="Marcar todos desta data">Marcar Data</button>
+        <button type="button" id="selUnmarkByDate" class="btn btn-sm btn-outline-secondary" title="Desmarcar todos desta data">Desmarcar Data</button>
+        <button type="button" id="selMarkAll" class="btn btn-sm btn-outline-primary" title="Marcar todos da página">Marcar todos</button>
+        <button type="button" id="selUnmarkAll" class="btn btn-sm btn-outline-secondary" title="Desmarcar todos da página">Desmarcar</button>
+        <button type="button" id="selExportCsv" class="btn btn-sm btn-outline-info" title="Exportar Resumo (CSV)">Exportar CSV</button>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm table-striped mb-0" id="selectionSummaryTable">
+        <thead class="table-light">
+          <tr>
+            <th>Ativo</th>
+            <th class="text-end">Compras</th>
+            <th class="text-end">Vendas</th>
+            <th class="text-end">Taxas (fee)</th>
+            <th class="text-end">Saldo (Vnd - Cmp)</th>
+            <th class="text-end">Variação (%)</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+        <tfoot>
+          <tr id="selectionTotalsRow">
+            <td class="text-end"><strong>Totais</strong></td>
+            <td class="text-end" data-total="buy">—</td>
+            <td class="text-end" data-total="sell">—</td>
+            <td class="text-end" data-total="fee">—</td>
+            <td class="text-end" data-total="net">—</td>
+            <td class="text-end" data-total="varpct">—</td>
+          </tr>
+        </tfoot>
+      </table>
     </div>
   </div>
   @if(!empty($periodSummary) || !empty($byAccountSummary))
@@ -228,6 +288,58 @@
     </div>
   </div>
   @endif
+  <!-- Controles de paginação -->
+  <form method="get" action="{{ route('cash.events.index') }}" class="mb-2">
+    @foreach(request()->except(['paginate','per_page']) as $k=>$v)
+      @if(is_array($v))
+        @foreach($v as $vv)
+          <input type="hidden" name="{{ $k }}[]" value="{{ $vv }}" />
+        @endforeach
+      @else
+        <input type="hidden" name="{{ $k }}" value="{{ $v }}" />
+      @endif
+    @endforeach
+    <div class="card shadow-sm border-0 mb-3" style="background:#fff7f7;">
+      <div class="card-body py-2 d-flex flex-wrap align-items-center gap-3">
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" role="switch" id="chkPaginate" name="paginate" value="1" @checked(($paginate ?? true)) />
+          <label class="form-check-label" for="chkPaginate">Paginar resultados</label>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <label for="inpPerPage" class="mb-0 small">Linhas por página</label>
+          <input type="number" name="per_page" id="inpPerPage" class="form-control form-control-sm" style="width:100px" min="10" max="5000" value="{{ $perPage ?? 50 }}" />
+          <input type="hidden" name="per_page" id="inpPerPageHidden" value="{{ $perPage ?? 50 }}" />
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="chkOnlyBuySell" name="only_buy_sell" value="1" @checked(($onlyBuySell ?? false)) />
+          <label class="form-check-label" for="chkOnlyBuySell">Somente Compra/Venda</label>
+        </div>
+        <div>
+          <button type="submit" class="btn btn-sm btn-outline-primary">Aplicar</button>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function(){
+          const chk = document.getElementById('chkPaginate');
+          const per = document.getElementById('inpPerPage');
+          const perH = document.getElementById('inpPerPageHidden');
+          const only = document.getElementById('chkOnlyBuySell');
+          function sync(){
+            if (chk && chk.checked){
+              if (per){ per.value = 5000; per.setAttribute('readonly','readonly'); per.classList.add('bg-light'); }
+              if (perH){ perH.value = 5000; }
+              if (only){ only.disabled = false; }
+            } else {
+              if (per){ per.removeAttribute('readonly'); per.classList.remove('bg-light'); }
+              if (only){ only.disabled = true; }
+            }
+          }
+          if(chk){ chk.addEventListener('change', sync); }
+          sync();
+        });
+        </script>
+      </div>
+    </div>
+  </form>
   @if(($groupAsset ?? false) && !empty($byAssetSummary))
   <div class="card mb-3 shadow-sm">
     <div class="card-header d-flex justify-content-between align-items-center">
@@ -306,6 +418,9 @@
       <table class="table table-sm table-striped align-middle mb-0">
         <thead class="table-light">
           <tr>
+            <th style="width:28px" title="Selecionar evento" class="text-center">
+              <input type="checkbox" class="form-check-input form-check-input-sm" id="chkAllPage">
+            </th>
             <th>Data</th>
             <th>Liquidação</th>
             <th>Conta</th>
@@ -324,6 +439,9 @@
         @forelse($events as $e)
           @php $cls = $e->amount>0?'text-success':($e->amount<0?'text-danger':'text-secondary'); @endphp
           <tr>
+            <td class="text-center align-middle">
+              <input type="checkbox" class="form-check-input form-check-input-sm evt-mark" data-title="{{ e($e->title) }}" data-detail="{{ e($e->detail) }}" data-category="{{ e($e->category) }}" data-amount="{{ number_format($e->amount,6,'.','') }}" data-ymd="{{ optional($e->event_date)->format('Y-m-d') }}">
+            </td>
             <td>{{ $e->event_date? $e->event_date->format('d/m/Y'):'—' }}</td>
             <td>{{ $e->settlement_date? $e->settlement_date->format('d/m/Y'):'—' }}</td>
             <td>{{ $e->account? $e->account->account_name:'—' }}</td>
@@ -390,6 +508,191 @@ document.addEventListener('DOMContentLoaded', function(){
 <script>
 // Marca/Desmarca ativos e filtra a tabela (client-side)
 document.addEventListener('DOMContentLoaded', function(){
+  // Espelha controle de "Agrupar por Ativo" para o card rosa e aplica exclusividade com "Agrupar por Seleção"
+  const chkOriginalGroupAsset = document.getElementById('chkGroupAsset');
+  const toggleGroupAssetMirror = document.getElementById('toggleGroupAssetMirror');
+  const toggleGroupSelection = document.getElementById('toggleGroupSelection');
+  const selectionCard = document.getElementById('selectionSummaryCard');
+  const btnSelectionRebuild = document.getElementById('btnSelectionRebuild');
+  // Estado inicial do espelho
+  if (toggleGroupAssetMirror && chkOriginalGroupAsset) {
+    toggleGroupAssetMirror.checked = chkOriginalGroupAsset.checked;
+  }
+  function applyExclusivity(){
+    const selOn = !!(toggleGroupSelection && toggleGroupSelection.checked);
+    const assetOn = !!(toggleGroupAssetMirror && toggleGroupAssetMirror.checked);
+    if (toggleGroupAssetMirror) toggleGroupAssetMirror.disabled = selOn;
+    if (toggleGroupSelection) toggleGroupSelection.disabled = assetOn;
+    // Mostrar/ocultar card de seleção
+    if (selectionCard) selectionCard.classList.toggle('d-none', !selOn);
+    // Quando seleção ativa, esconder o resumo por ativo (se estiver renderizado)
+    try{
+      const byAssetCard = document.querySelector('.card.mb-3.shadow-sm:has(#byAssetTotalsRow)');
+      if (byAssetCard) byAssetCard.style.display = selOn ? 'none' : '';
+    }catch(_e){ /* :has pode não ser suportado - fallback abaixo */
+      const byAssetTotals = document.getElementById('byAssetTotalsRow');
+      if (byAssetTotals) {
+        const card = byAssetTotals.closest('.card');
+        if (card) card.style.display = selOn ? 'none' : '';
+      }
+    }
+  }
+  if (toggleGroupSelection){
+    toggleGroupSelection.addEventListener('change', function(){
+      if (toggleGroupSelection.checked && toggleGroupAssetMirror) {
+        // desliga e desmarca Agrupar por Ativo (espelho e original)
+        toggleGroupAssetMirror.checked = false;
+        if (chkOriginalGroupAsset) chkOriginalGroupAsset.checked = false;
+      }
+      applyExclusivity();
+      if (toggleGroupSelection.checked) rebuildSelectionSummary();
+    });
+  }
+  if (toggleGroupAssetMirror){
+    toggleGroupAssetMirror.addEventListener('change', function(){
+      if (toggleGroupAssetMirror.checked && toggleGroupSelection) {
+        toggleGroupSelection.checked = false;
+      }
+      // replica estado no input original e submete o form para atualizar via servidor
+      if (chkOriginalGroupAsset) {
+        chkOriginalGroupAsset.checked = toggleGroupAssetMirror.checked;
+        const form = chkOriginalGroupAsset.closest('form');
+        if (form) form.submit();
+      }
+      applyExclusivity();
+    });
+  }
+  if (btnSelectionRebuild){ btnSelectionRebuild.addEventListener('click', rebuildSelectionSummary); }
+  applyExclusivity();
+
+  // Seleção na lista: marcar/desmarcar todos desta página
+  const chkAllPage = document.getElementById('chkAllPage');
+  function setAllPage(val){ document.querySelectorAll('input.evt-mark').forEach(cb=>{ cb.checked = !!val; }); }
+  if (chkAllPage){ chkAllPage.addEventListener('change', function(){ setAllPage(chkAllPage.checked); if (toggleGroupSelection && toggleGroupSelection.checked) rebuildSelectionSummary(); }); }
+  document.addEventListener('change', function(ev){
+    const t = ev.target;
+    if (t && t.classList && t.classList.contains('evt-mark')){
+      if (toggleGroupSelection && toggleGroupSelection.checked) rebuildSelectionSummary();
+    }
+  });
+
+  // Parser e agregador para Resumo por Seleção
+  function parseBuySellSymbol(title, detail){
+    const txt = String(title||'') + ' ' + String(detail||'');
+    const t = txt.toUpperCase().normalize('NFKD');
+    const norm = t.replace(/\s+/g,' ').trim();
+    let m = norm.match(/\b(COMPRA|VENDA)\b\s+DE\s+(\d+[\.,]?\d*)\s+([A-Z0-9\.-:_]+)\s+A\s*\$\s*(\d+[\.,]?\d*)/u);
+    if (m){ return { type: (m[1]==='COMPRA')?'buy':'sell', sym: (m[3]||'').trim() }; }
+    m = norm.match(/\b(BUY|SELL)\b\s+(\d+[\.,]?\d*)\s+([A-Z0-9\.-:_]+)\s+(@|AT)\s*\$?\s*(\d+[\.,]?\d*)/u);
+    if (m){ return { type: (m[1]==='BUY')?'buy':'sell', sym: (m[3]||'').trim() }; }
+    return null;
+  }
+  function isFeeCategory(cat){
+    const c = String(cat||'').toLowerCase();
+    return c.includes('fee') || c.includes('taxa') || c.includes('commission') || c.includes('comissão');
+  }
+  function computeSelectionMap(){
+    const rows = document.querySelectorAll('input.evt-mark:checked');
+    const map = {};
+    rows.forEach(cb => {
+      const title = cb.getAttribute('data-title') || '';
+      const detail = cb.getAttribute('data-detail') || '';
+      const cat = cb.getAttribute('data-category') || '';
+      const amount = parseFloat(cb.getAttribute('data-amount')||'0') || 0;
+      const p = parseBuySellSymbol(title, detail);
+      const fee = isFeeCategory(cat);
+      if (!p || !p.sym) return;
+      const sym = p.sym.toUpperCase();
+      if (!map[sym]) map[sym] = { buy:0, sell:0, fee:0 };
+      if (p.type==='buy') map[sym].buy += Math.abs(amount);
+      else if (p.type==='sell') map[sym].sell += Math.abs(amount);
+      if (fee) map[sym].fee += Math.abs(amount);
+    });
+    return map;
+  }
+  function fmt2(n){
+    if (n===null || isNaN(n)) return '—';
+    return new Intl.NumberFormat('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2}).format(n);
+  }
+  function rebuildSelectionSummary(){
+    const map = computeSelectionMap();
+    const tbody = document.querySelector('#selectionSummaryTable tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const symbols = Object.keys(map).sort((a,b)=> a.localeCompare(b,'pt-BR',{sensitivity:'base', numeric:true}));
+    let tBuy=0, tSell=0, tFee=0, tNet=0;
+    symbols.forEach(sym => {
+      const s = map[sym];
+      const buy = +(s.buy||0); const sell= +(s.sell||0); const fee= +(s.fee||0);
+      const net = sell - buy;
+      tBuy += buy; tSell+=sell; tFee+=fee; tNet+=net;
+      const varPct = buy>0 ? (net/buy)*100.0 : null;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><a href="${window.location.origin + '{{ route('asset-stats.index', ['symbol'=>'__SYM__']) }}'.replace('%2F','/').replace('__SYM__', encodeURIComponent(sym))}#gsc.tab=0" target="_blank" rel="noopener">${sym}</a></td>
+        <td class="text-end text-danger">${fmt2(buy)}</td>
+        <td class="text-end text-success">${fmt2(sell)}</td>
+        <td class="text-end text-secondary">${fmt2(fee)}</td>
+        <td class="text-end ${net>0?'text-success':(net<0?'text-danger':'text-secondary')}">${fmt2(net)}</td>
+        <td class="text-end ${varPct!==null?(varPct>0?'text-success':(varPct<0?'text-danger':'text-secondary')):'text-secondary'}">${varPct!==null? fmt2(varPct)+'%':'—'}</td>`;
+      tbody.appendChild(tr);
+    });
+    // Totais
+    const foot = document.getElementById('selectionTotalsRow');
+    if (foot){
+      const set = (key, val, cls='')=>{
+        const el = foot.querySelector(`[data-total="${key}"]`);
+        if (el){ el.textContent = (key==='varpct' && val!==null) ? (fmt2(val)+'%') : fmt2(val); el.className = 'text-end '+cls; }
+      };
+      const tVarPct = tBuy>0 ? (tNet/tBuy)*100.0 : null;
+      set('buy', tBuy);
+      set('sell', tSell);
+      set('fee', tFee);
+      set('net', tNet, tNet>0?'text-success':(tNet<0?'text-danger':'text-secondary'));
+      set('varpct', tVarPct, (tVarPct!==null && tVarPct>0)?'text-success':((tVarPct!==null && tVarPct<0)?'text-danger':'text-secondary'));
+    }
+  }
+  // Ações no header do card de seleção
+  const selMarkAll = document.getElementById('selMarkAll');
+  const selUnmarkAll = document.getElementById('selUnmarkAll');
+  if (selMarkAll){ selMarkAll.addEventListener('click', function(){ document.querySelectorAll('input.evt-mark').forEach(cb=> cb.checked = true); rebuildSelectionSummary(); }); }
+  if (selUnmarkAll){ selUnmarkAll.addEventListener('click', function(){ document.querySelectorAll('input.evt-mark').forEach(cb=> cb.checked = false); rebuildSelectionSummary(); }); }
+  const selExportCsv = document.getElementById('selExportCsv');
+  if (selExportCsv){ selExportCsv.addEventListener('click', function(){
+    const map = computeSelectionMap();
+    const symbols = Object.keys(map).sort((a,b)=> a.localeCompare(b,'pt-BR',{sensitivity:'base', numeric:true}));
+    let csv = '\ufeffsymbol;buy;sell;fee;net;variation_pct\n';
+    let tBuy=0,tSell=0,tFee=0,tNet=0;
+    symbols.forEach(sym=>{
+      const s = map[sym];
+      const buy = +(s.buy||0); const sell= +(s.sell||0); const fee= +(s.fee||0); const net = sell-buy; const varPct = buy>0? (net/buy)*100.0 : '';
+      csv += [sym, buy.toFixed(6), sell.toFixed(6), fee.toFixed(6), net.toFixed(6), (varPct===''?'':Number(varPct).toFixed(6))].join(';')+'\n';
+      tBuy+=buy; tSell+=sell; tFee+=fee; tNet+=net;
+    });
+    const tVarPct = tBuy>0? (tNet/tBuy)*100.0 : '';
+    csv += ['TOTAL', tBuy.toFixed(6), tSell.toFixed(6), tFee.toFixed(6), tNet.toFixed(6), (tVarPct===''?'':Number(tVarPct).toFixed(6))].join(';');
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const now = new Date();
+    const ts = now.getFullYear().toString().padStart(4,'0') + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '_' + String(now.getHours()).padStart(2,'0') + String(now.getMinutes()).padStart(2,'0') + String(now.getSeconds()).padStart(2,'0');
+    a.href = url; a.download = 'cash_selection_'+ts+'.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  }); }
+
+  // Marcar/Desmarcar por Data (YYYY-MM-DD)
+  const selDateYmd = document.getElementById('selDateYmd');
+  const selMarkByDate = document.getElementById('selMarkByDate');
+  const selUnmarkByDate = document.getElementById('selUnmarkByDate');
+  function setByDate(ymd, checked){
+    if (!ymd) return;
+    document.querySelectorAll('input.evt-mark').forEach(cb => {
+      const d = cb.getAttribute('data-ymd') || '';
+      if (d === ymd){ cb.checked = !!checked; }
+    });
+    if (toggleGroupSelection && toggleGroupSelection.checked) rebuildSelectionSummary();
+  }
+  if (selMarkByDate){ selMarkByDate.addEventListener('click', function(){ setByDate(selDateYmd?.value || '', true); }); }
+  if (selUnmarkByDate){ selUnmarkByDate.addEventListener('click', function(){ setByDate(selDateYmd?.value || '', false); }); }
   const LS_KEY = 'cash.byAsset.marks';
   const LS_SHOW = 'cash.byAsset.show';
   function loadMarks(){
