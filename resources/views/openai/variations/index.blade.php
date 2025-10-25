@@ -828,7 +828,7 @@
     <div class="col-auto">
       <label class="form-label mb-0 small">Âncora Parcial (Dia)</label>
       <input type="number" name="ppart_day" min="1" max="31" value="{{ request('ppart_day', $ppartDay ?? '') }}" class="form-control form-control-sm w-auto" placeholder="1..31" onchange="this.form.submit()" />
-      <small class="text-muted">Usado para "Parcial Mês Ant."</small>
+      <small class="text-muted">Usado para "Parcial Mês Ant:"</small>
     </div>
     <div class="col-auto">
       <label class="form-label mb-0 small">Fim Parcial (Dia)</label>
@@ -1122,6 +1122,37 @@
             <a class="text-decoration-none" href="{{ route('openai.variations.index', array_merge($baseParams, ['sort'=>$ppartNext])) }}" title="Ordenar / alternar por Parcial do Mês Anterior">
               Parcial Mês Ant. ({{ $ppartHeaderLabel ?? 'D/últ' }}) (%) {{ $ppartIcon }}
             </a>
+      @php
+        // Acrescenta dias da semana (pt-BR): primeiro é do mês anterior, segundo do mês atual
+        $ppDayIn  = isset($ppartDay) && $ppartDay ? (int)$ppartDay : null;
+        $ppEndIn  = isset($ppartEndDay) && $ppartEndDay ? (int)$ppartEndDay : null;
+        if($ppEndIn === null && $ppDayIn !== null){ $ppEndIn = 30; }
+        $ppartWeekLabel = '';
+        try {
+          $now = \Carbon\Carbon::now();
+          $prev = $now->copy()->subMonthNoOverflow();
+          $wd = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+          $w1 = $w2 = null;
+          if($ppDayIn !== null){
+            $d1 = min(max(1,$ppDayIn), $prev->daysInMonth);
+            $date1 = $prev->copy()->day($d1);
+            $w1 = $wd[$date1->dayOfWeek] ?? null;
+          }
+          if($ppEndIn !== null){
+            $d2 = min(max(1,$ppEndIn), $now->daysInMonth);
+            $date2 = $now->copy()->day($d2);
+            $w2 = $wd[$date2->dayOfWeek] ?? null;
+          }
+          if($w1 || $w2){
+            $ppartWeekLabel = '(' . ($w1 ? ($w1.' do mês anterior') : '') . (($w1 && $w2) ? ' / ' : '') . ($w2 ? ($w2.' do mês atual') : '') . ')';
+          }
+        } catch (\Throwable $e) {
+          $ppartWeekLabel = '';
+        }
+      @endphp
+      @if(!empty($ppartWeekLabel))
+        <small class="text-muted d-block mt-1">{{ $ppartWeekLabel }}</small>
+      @endif
           </th>
           @php
             $isPrevAsc = ($sort ?? '') === 'prev_asc';
