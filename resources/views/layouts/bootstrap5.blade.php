@@ -412,7 +412,8 @@ if (window.Livewire) {
                    class="nav-link text-white"
                    data-bs-toggle="tooltip" data-bs-placement="top"
                    data-bs-custom-class="custom-tooltip"
-                   data-bs-title="Abrir o player da rádio ao vivo">
+                   data-bs-title="Abrir o player da rádio ao vivo"
+                   target="_blank" rel="noopener noreferrer">
                   <i class="fa-solid fa-tower-broadcast"></i>
                   Rádio online
                 </a>
