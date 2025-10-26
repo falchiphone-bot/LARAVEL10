@@ -72,4 +72,12 @@ return [
             : (! (bool) env('GOOGLE_OAUTH_ENABLED', false)),
     ],
 
+    // CentovaCast / LIVEPRF
+    'centovacast' => [
+        'base_url' => env('CENTOVACAST_BASE_URL', 'http://paineldj6.com.br:2199/'),
+        'mount' => env('CENTOVACAST_MOUNT', 'liveprf'),
+        'http_timeout' => (int) env('CENTOVACAST_HTTP_TIMEOUT', 8),
+        'http_connect_timeout' => (int) env('CENTOVACAST_HTTP_CONNECT_TIMEOUT', 5),
+    ],
+
 ];

@@ -490,9 +490,16 @@ Route::get('TipoArquivo-export-xlsx', [App\Http\Controllers\TipoArquivoControlle
 Route::get('/radio/liveprf', function () {
     return view('webplayer.player');
 })->name('radio.liveprf');
-// Dados da trilha (subpágina simples)
+// Dados da trilha (subpágina simples) - render server-side sem depender dos JS do provedor
 Route::get('/radio/liveprf/dados', function () {
-    return view('webplayer.dadostriblha');
+    $svc = app(\App\Services\RadioLiveprfService::class);
+    $stream = $svc->getStreamInfo();
+    $recent = $svc->getRecentTracks();
+    return view('webplayer.dadostriblha', [
+        'stream' => $stream,
+        'recent' => $recent,
+        'checked_at' => now(),
+    ]);
 })->name('radio.liveprf.dados');
 // Proxy dos scripts do provedor para evitar mixed content e facilitar cache
 // Removido sufixo .js no path para evitar captura pelo Nginx como arquivo estático
