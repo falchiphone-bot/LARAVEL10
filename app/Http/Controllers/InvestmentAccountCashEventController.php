@@ -14,6 +14,72 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class InvestmentAccountCashEventController extends Controller
 {
+    /**
+     * Normaliza um número decimal aceitando formatos pt-BR (1.234,56) e en-US (1,234.56 / 1234.56).
+     * Remove espaços/NBSP, decide separador decimal pela última ocorrência entre ',' e '.'.
+     */
+    private function parseDecimalFlexible($raw): ?float
+    {
+        $s = trim((string)$raw);
+        if ($s === '') return null;
+        // remove espaços regulares e NBSP
+        $s = str_replace(["\xC2\xA0", chr(160), ' '], '', $s);
+        $hasDot = strpos($s, '.') !== false;
+        $hasComma = strpos($s, ',') !== false;
+        if ($hasDot && $hasComma) {
+            $lastDot = strrpos($s, '.');
+            $lastComma = strrpos($s, ',');
+            if ($lastComma > $lastDot) {
+                // vírgula é separador decimal => remove pontos (milhar) e troca vírgula por ponto
+                $s = str_replace('.', '', $s);
+                $s = str_replace(',', '.', $s);
+            } else {
+                // ponto é separador decimal => remove vírgulas (milhar)
+                $s = str_replace(',', '', $s);
+            }
+        } elseif ($hasComma) {
+            // somente vírgula => trata como decimal
+            $s = str_replace('.', '', $s); // se houver ponto como milhar, remove
+            $s = str_replace(',', '.', $s);
+        } else {
+            // somente ponto ou apenas dígitos -> mantém
+        }
+        if (!is_numeric($s)) return null;
+        return (float)$s;
+    }
+    public function updateInline(Request $request)
+    {
+        $userId = (int)Auth::id();
+        $targets = (array)$request->input('target_amount', []);
+        $probs = (array)$request->input('target_probability_pct', []);
+
+        // Coleção de IDs a atualizar
+        $ids = array_unique(array_filter(array_map('intval', array_merge(array_keys($targets), array_keys($probs))), fn($v)=>$v>0));
+        if (empty($ids)) {
+            return redirect()->back()->with('info', 'Nada para salvar.');
+        }
+
+        $updated = 0;
+        $events = InvestmentAccountCashEvent::where('user_id',$userId)->whereIn('id',$ids)->get();
+        foreach ($events as $ev) {
+            $id = $ev->id;
+            $hasChange = false;
+            if (array_key_exists($id, $targets)) {
+                $raw = $targets[$id];
+                $val = ($raw === '' || $raw === null) ? null : $this->parseDecimalFlexible($raw);
+                if ($ev->target_amount !== $val) { $ev->target_amount = $val; $hasChange = true; }
+            }
+            if (array_key_exists($id, $probs)) {
+                $raw = $probs[$id];
+                $p = ($raw === '' || $raw === null) ? null : $this->parseDecimalFlexible(str_replace('%','', (string)$raw));
+                if ($p !== null) { $p = max(0.0, min(100.0, $p)); }
+                if ($ev->target_probability_pct !== $p) { $ev->target_probability_pct = $p; $hasChange = true; }
+            }
+            if ($hasChange) { $ev->save(); $updated++; }
+        }
+
+        return redirect()->back()->with('success', "Metas atualizadas em {$updated} evento(s).");
+    }
     public function index(Request $request)
     {
         $userId = (int)Auth::id();
@@ -25,7 +91,8 @@ class InvestmentAccountCashEventController extends Controller
         $to = $request->input('to');
         $settleFrom = $request->input('settle_from');
         $settleTo = $request->input('settle_to');
-        $direction = $request->input('direction'); // in | out
+    $direction = $request->input('direction'); // in | out
+    $buySell = $request->input('buy_sell'); // buy | sell | null
         $valMin = $request->input('val_min');
         $valMax = $request->input('val_max');
     $source = $request->input('source');
@@ -66,7 +133,23 @@ class InvestmentAccountCashEventController extends Controller
         if($valMin !== null && $valMin !== ''){ $q->where('amount','>=',(float)$valMin); }
         if($valMax !== null && $valMax !== ''){ $q->where('amount','<=',(float)$valMax); }
     if($source){ $q->where('source',$source); }
-        if ($onlyBuySell) {
+        if ($buySell === 'buy') {
+            $q->where(function($w){
+                $w->where('category','LIKE','%compra%')
+                  ->orWhere('title','LIKE','%compra%')
+                  ->orWhere('title','LIKE','%BUY%')
+                  ->orWhere('detail','LIKE','%compra%')
+                  ->orWhere('detail','LIKE','%BUY%');
+            });
+        } elseif ($buySell === 'sell') {
+            $q->where(function($w){
+                $w->where('category','LIKE','%venda%')
+                  ->orWhere('title','LIKE','%venda%')
+                  ->orWhere('title','LIKE','%SELL%')
+                  ->orWhere('detail','LIKE','%venda%')
+                  ->orWhere('detail','LIKE','%SELL%');
+            });
+        } elseif ($onlyBuySell) {
             $q->where(function($w){
                 $w->where('category','LIKE','%compra%')
                   ->orWhere('category','LIKE','%venda%')
@@ -93,6 +176,43 @@ class InvestmentAccountCashEventController extends Controller
                 1,
                 ['path' => $request->url(), 'query' => $request->query()]
             );
+        }
+
+        // Derivar preço base por unidade (quando possível) a partir do título/detalhe,
+        // para usar na coluna Meta Δ (%) como referência de "compra".
+        $parseUnit = function($title, $detail){
+            $txt = trim((string)($title ?: ''));
+            if($detail){ $txt .= ' '.trim((string)$detail); }
+            $t = mb_strtoupper($txt,'UTF-8');
+            $norm = preg_replace('/\s+/', ' ', $t);
+            // PT: COMPRA|VENDA de 2 DVN a $ 32,12 cada
+            if(preg_match('/\b(COMPRA|VENDA)\b\s+DE\s+(\d+[\.,]?\d*)\s+[A-Z0-9\.-:_]+\s+A\s*\$\s*(\d+[\.,]?\d*)/u', $norm, $m)){
+                $qty = (float)str_replace(',', '.', str_replace('.', '', $m[2]));
+                $unit = (float)str_replace(',', '.', str_replace('.', '', $m[3]));
+                return ['qty'=>$qty>0?$qty:null, 'unit'=>$unit>0?$unit:null];
+            }
+            // EN: BUY 2 DVN @ 32.12, SELL 1 AAPL AT $190.50
+            if(preg_match('/\b(BUY|SELL)\b\s+(\d+[\.,]?\d*)\s+[A-Z0-9\.-:_]+\s+(@|AT)\s*\$?\s*(\d+[\.,]?\d*)/u', $norm, $m)){
+                $qty = (float)str_replace(',', '.', str_replace('.', '', $m[2]));
+                $unit = (float)str_replace(',', '.', str_replace('.', '', $m[4]));
+                return ['qty'=>$qty>0?$qty:null, 'unit'=>$unit>0?$unit:null];
+            }
+            return null;
+        };
+        foreach ($events as $e) {
+            try {
+                $parsed = $parseUnit($e->title ?? '', $e->detail ?? '');
+                $qty = $parsed['qty'] ?? null; $unit = $parsed['unit'] ?? null;
+                if ($unit !== null && $unit > 0) {
+                    $e->setAttribute('unit_base_price', (float)$unit);
+                } elseif ($qty !== null && $qty > 0 && is_numeric($e->amount)) {
+                    $e->setAttribute('unit_base_price', abs((float)$e->amount) / (float)$qty);
+                } else {
+                    $e->setAttribute('unit_base_price', null);
+                }
+            } catch (\Throwable $t) {
+                $e->setAttribute('unit_base_price', null);
+            }
         }
 
         // Totais filtrados (sem paginação)
@@ -251,6 +371,7 @@ class InvestmentAccountCashEventController extends Controller
             'filter_source'=>$source,
             'sort'=>$sort,
             'dir'=>$dir,
+            'buySell'=>$buySell,
             'sumTotal'=>$sumTotal,
             'sumIn'=>$sumIn,
             'sumOut'=>$sumOut,

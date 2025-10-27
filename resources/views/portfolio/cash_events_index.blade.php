@@ -56,6 +56,14 @@
           </select>
         </div>
         <div class="col-md-2">
+          <label class="form-label small mb-1">Tipo</label>
+          <select name="buy_sell" class="form-select form-select-sm">
+            <option value="" @selected(($buySell ?? '')==='')>Todos</option>
+            <option value="buy" @selected(($buySell ?? '')==='buy')>Somente Compra</option>
+            <option value="sell" @selected(($buySell ?? '')==='sell')>Somente Venda</option>
+          </select>
+        </div>
+        <div class="col-md-2">
           <label class="form-label small mb-1">Valor >=</label>
           <input type="number" step="0.01" name="val_min" value="{{ $filter_val_min }}" class="form-control form-control-sm" />
         </div>
@@ -432,9 +440,14 @@
   <div class="card shadow-sm">
     <div class="card-header d-flex justify-content-between align-items-center">
       <strong>Lista</strong>
-      <small class="text-muted">Total: {{ $events->total() }} | Página {{ $events->currentPage() }}/{{ $events->lastPage() }}</small>
+      <div class="d-flex align-items-center gap-2">
+        <small class="text-muted">Total: {{ $events->total() }} | Página {{ $events->currentPage() }}/{{ $events->lastPage() }}</small>
+        <button type="submit" form="formInlineTargets" class="btn btn-sm btn-primary" title="Salvar metas e probabilidades desta página">Salvar metas</button>
+      </div>
     </div>
-    <div class="table-responsive">
+    <form method="POST" action="{{ route('cash.events.update.inline') }}" id="formInlineTargets">
+      @csrf
+      <div class="table-responsive">
       <table class="table table-sm table-striped align-middle mb-0">
         <thead class="table-light">
           <tr>
@@ -448,6 +461,9 @@
             <th>Título</th>
             <th>Detalhe</th>
             <th class="text-end">Valor (USD)</th>
+            <th class="text-end" title="Meta: valor a ser atingido">Meta (USD)</th>
+            <th class="text-end" title="(Meta / Valor) × 100 − 100">Meta Δ (%)</th>
+            <th class="text-end" title="Probabilidade em percentual">Prob. (%)</th>
             <th>Status</th>
             <th>Fonte</th>
             @if($canComputeRunning)
@@ -469,6 +485,28 @@
             <td>{{ $e->title }}</td>
             <td>{{ $e->detail ?: '—' }}</td>
             <td class="text-end {{ $cls }}">{{ number_format($e->amount,2,',','.') }}</td>
+            <td class="text-end" style="min-width:140px;">
+              <input type="number" step="0.01" name="target_amount[{{ $e->id }}]" value="{{ $e->target_amount!==null ? number_format($e->target_amount,2,'.','') : '' }}" class="form-control form-control-sm text-end" placeholder="0,00" inputmode="decimal">
+            </td>
+            <td class="text-end" style="min-width:120px;">
+              @php
+                $__base = is_numeric($e->unit_base_price ?? null) ? (float)$e->unit_base_price : abs((float)($e->amount ?? 0));
+                $__meta = ($e->target_amount !== null) ? (float)$e->target_amount : null;
+                $__pct = ($__meta !== null && $__base > 0)
+                  ? (((($__meta / $__base) * 100.0) - 100.0))
+                  : null;
+              @endphp
+              <span class="{{ ($__pct!==null && $__pct>0)?'text-success':(($__pct!==null && $__pct<0)?'text-danger':'text-secondary') }}"
+                    title="@if($__pct!==null) Meta={{ number_format($__meta,2,',','.') }}, Valor={{ number_format($__base,2,',','.') }}, (Meta/Valor)*100-100 = {{ number_format($__pct,2,',','.') }}% @else — @endif">
+                {{ $__pct!==null ? number_format($__pct, 2, ',', '.') . '%' : '—' }}
+              </span>
+            </td>
+            <td class="text-end" style="min-width:120px;">
+              <div class="input-group input-group-sm">
+                <input type="number" step="0.01" min="0" max="100" name="target_probability_pct[{{ $e->id }}]" value="{{ $e->target_probability_pct!==null ? number_format($e->target_probability_pct,2,'.','') : '' }}" class="form-control form-control-sm text-end" placeholder="0-100" inputmode="decimal">
+                <span class="input-group-text">%</span>
+              </div>
+            </td>
             <td>{{ $e->status ?: '—' }}</td>
             <td><span class="badge bg-secondary-subtle text-secondary-emphasis border">{{ $e->source }}</span></td>
             @if($canComputeRunning)
@@ -476,11 +514,12 @@
             @endif
           </tr>
         @empty
-          <tr><td colspan="8" class="text-center text-muted">Nenhum evento encontrado.</td></tr>
+          <tr><td colspan="{{ $canComputeRunning ? 14 : 13 }}" class="text-center text-muted">Nenhum evento encontrado.</td></tr>
         @endforelse
         </tbody>
       </table>
-    </div>
+      </div>
+    </form>
     <div class="card-footer">
       {{ $events->links() }}
     </div>
