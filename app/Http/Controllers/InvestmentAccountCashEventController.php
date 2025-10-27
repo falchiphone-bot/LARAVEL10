@@ -86,13 +86,14 @@ class InvestmentAccountCashEventController extends Controller
         $accountId = $request->input('account_id');
         $category = $request->input('category');
         $status = trim((string)$request->input('status'));
-    $title = trim((string)$request->input('title'));
+    $filterTitle = trim((string)$request->input('title'));
         $from = $request->input('from');
         $to = $request->input('to');
         $settleFrom = $request->input('settle_from');
         $settleTo = $request->input('settle_to');
     $direction = $request->input('direction'); // in | out
     $buySell = $request->input('buy_sell'); // buy | sell | null
+    $hasMeta = $request->boolean('has_meta'); // somente com meta preenchida
         $valMin = $request->input('val_min');
         $valMax = $request->input('val_max');
     $source = $request->input('source');
@@ -123,7 +124,7 @@ class InvestmentAccountCashEventController extends Controller
         if($accountId){ $q->where('account_id',$accountId); }
         if($category){ $q->where('category',$category); }
     if($status!==''){ $q->where('status','LIKE','%'.$status.'%'); }
-    if($title!==''){ $q->where('title','LIKE','%'.$title.'%'); }
+    if($filterTitle!==''){ $q->where('title','LIKE','%'.$filterTitle.'%'); }
         if($from){ $q->whereDate('event_date','>=',$from); }
         if($to){ $q->whereDate('event_date','<=',$to); }
         if($settleFrom){ $q->whereDate('settlement_date','>=',$settleFrom); }
@@ -133,6 +134,7 @@ class InvestmentAccountCashEventController extends Controller
         if($valMin !== null && $valMin !== ''){ $q->where('amount','>=',(float)$valMin); }
         if($valMax !== null && $valMax !== ''){ $q->where('amount','<=',(float)$valMax); }
     if($source){ $q->where('source',$source); }
+        if ($hasMeta) { $q->whereNotNull('target_amount'); }
         if ($buySell === 'buy') {
             $q->where(function($w){
                 $w->where('category','LIKE','%compra%')
@@ -201,7 +203,10 @@ class InvestmentAccountCashEventController extends Controller
         };
         foreach ($events as $e) {
             try {
-                $parsed = $parseUnit($e->title ?? '', $e->detail ?? '');
+                $evTitle = (string)($e->title ?? '');
+                $evDetail = (string)($e->detail ?? '');
+                $evCategory = (string)($e->category ?? '');
+                $parsed = $parseUnit($evTitle, $evDetail);
                 $qty = $parsed['qty'] ?? null; $unit = $parsed['unit'] ?? null;
                 if ($unit !== null && $unit > 0) {
                     $e->setAttribute('unit_base_price', (float)$unit);
@@ -210,8 +215,16 @@ class InvestmentAccountCashEventController extends Controller
                 } else {
                     $e->setAttribute('unit_base_price', null);
                 }
+                // Classificação simples de compra/venda por texto (pt/en)
+                $txt = mb_strtolower($evCategory.' '.$evTitle.' '.$evDetail, 'UTF-8');
+                $isBuy = (str_contains($txt,'compra') || str_contains($txt,'buy'));
+                $isSell = (str_contains($txt,'venda') || str_contains($txt,'sell'));
+                $e->setAttribute('is_buy', $isBuy);
+                $e->setAttribute('is_sell', $isSell);
             } catch (\Throwable $t) {
                 $e->setAttribute('unit_base_price', null);
+                $e->setAttribute('is_buy', false);
+                $e->setAttribute('is_sell', false);
             }
         }
 
@@ -229,6 +242,10 @@ class InvestmentAccountCashEventController extends Controller
         $byAccountSummary = [];
     $byAssetSummary = [];
         $accountIdsSeen = [];
+    // Soma de quantidade quando filtrado por título e Tipo=Compra/Venda
+    $buyQtySum = null; $sellQtySum = null;
+    if ($buySell === 'buy' && $filterTitle !== '') { $buyQtySum = 0.0; }
+    if ($buySell === 'sell' && $filterTitle !== '') { $sellQtySum = 0.0; }
         foreach ($aggRows as $row) {
             $cat = strtolower(trim((string)$row->category));
             $amount = (float) $row->amount;
@@ -256,6 +273,46 @@ class InvestmentAccountCashEventController extends Controller
             } elseif ($isSell) {
                 $periodSummary[$periodKey]['sell'] += abs($amount);
                 $byAccountSummary[$accId]['sell'] += abs($amount);
+            }
+
+            // Soma de quantidade de compras quando buySell=buy e título filtrado
+            if ($buyQtySum !== null) {
+                $parserQ = function($title, $detail){
+                    $txt = trim((string)($title ?: ''));
+                    if($detail){ $txt .= ' '.trim((string)$detail); }
+                    $t = mb_strtoupper($txt,'UTF-8');
+                    $norm = preg_replace('/\s+/', ' ', $t);
+                    if(preg_match('/\b(COMPRA)\b\s+DE\s+(\d+[\.,]?\d*)\s+[A-Z0-9\.-:_]+\s+A\s*\$\s*(\d+[\.,]?\d*)/u', $norm, $m)){
+                        $qty = (float)str_replace(',', '.', str_replace('.', '', $m[2]));
+                        return $qty>0 ? $qty : null;
+                    }
+                    if(preg_match('/\b(BUY)\b\s+(\d+[\.,]?\d*)\s+[A-Z0-9\.-:_]+\s+(@|AT)\s*\$?\s*(\d+[\.,]?\d*)/u', $norm, $m)){
+                        $qty = (float)str_replace(',', '.', str_replace('.', '', $m[2]));
+                        return $qty>0 ? $qty : null;
+                    }
+                    return null;
+                };
+                $qQty = $parserQ($row->title ?? '', $row->detail ?? '');
+                if ($qQty !== null) { $buyQtySum += (float)$qQty; }
+            }
+            if ($sellQtySum !== null) {
+                $parserS = function($title, $detail){
+                    $txt = trim((string)($title ?: ''));
+                    if($detail){ $txt .= ' '.trim((string)$detail); }
+                    $t = mb_strtoupper($txt,'UTF-8');
+                    $norm = preg_replace('/\s+/', ' ', $t);
+                    if(preg_match('/\b(VENDA)\b\s+DE\s+(\d+[\.,]?\d*)\s+[A-Z0-9\.-:_]+\s+A\s*\$\s*(\d+[\.,]?\d*)/u', $norm, $m)){
+                        $qty = (float)str_replace(',', '.', str_replace('.', '', $m[2]));
+                        return $qty>0 ? $qty : null;
+                    }
+                    if(preg_match('/\b(SELL)\b\s+(\d+[\.,]?\d*)\s+[A-Z0-9\.-:_]+\s+(@|AT)\s*\$?\s*(\d+[\.,]?\d*)/u', $norm, $m)){
+                        $qty = (float)str_replace(',', '.', str_replace('.', '', $m[2]));
+                        return $qty>0 ? $qty : null;
+                    }
+                    return null;
+                };
+                $qQtyS = $parserS($row->title ?? '', $row->detail ?? '');
+                if ($qQtyS !== null) { $sellQtySum += (float)$qQtyS; }
             }
 
             // Resumo por Ativo (opcional): identificar símbolo via parser do título/detalhe
@@ -360,7 +417,7 @@ class InvestmentAccountCashEventController extends Controller
             'filter_account_id'=>$accountId ? (int)$accountId : null,
             'filter_category'=>$category,
             'filter_status'=>$status,
-            'filter_title'=>$title,
+            'filter_title'=>$filterTitle,
             'filter_from'=>$from,
             'filter_to'=>$to,
             'filter_settle_from'=>$settleFrom,
@@ -372,6 +429,9 @@ class InvestmentAccountCashEventController extends Controller
             'sort'=>$sort,
             'dir'=>$dir,
             'buySell'=>$buySell,
+            'buyQtySum'=>$buyQtySum,
+            'sellQtySum'=>$sellQtySum,
+            'hasMeta'=>$hasMeta,
             'sumTotal'=>$sumTotal,
             'sumIn'=>$sumIn,
             'sumOut'=>$sumOut,
@@ -593,6 +653,21 @@ class InvestmentAccountCashEventController extends Controller
         });
         return redirect()->route('cash.events.index')
             ->with('success', "Eventos de caixa limpos: {$eventsDeleted}, snapshots: {$snapsDeleted}.");
+    }
+
+    public function destroy(Request $request, int $event)
+    {
+        $userId = (int)Auth::id();
+        $row = InvestmentAccountCashEvent::where('user_id',$userId)->where('id',$event)->first();
+        if (!$row) {
+            return redirect()->back()->with('error','Evento não encontrado ou não pertence a este usuário.');
+        }
+        try {
+            $row->delete();
+        } catch (\Throwable $t) {
+            return redirect()->back()->with('error','Falha ao excluir o evento.');
+        }
+        return redirect()->back()->with('success','Evento excluído com sucesso.');
     }
 
     /**

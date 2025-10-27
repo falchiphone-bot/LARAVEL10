@@ -129,6 +129,12 @@ Route::post('/openai/portfolio/cash/events/truncate-user', [\App\Http\Controller
 Route::post('/openai/portfolio/cash/events/update-inline', [\App\Http\Controllers\InvestmentAccountCashEventController::class,'updateInline'])
     ->middleware(['auth','verified','can:CASH EVENTS - LISTAR'])
     ->name('cash.events.update.inline');
+
+// Excluir um evento de caixa individual do usuário atual
+Route::delete('/openai/portfolio/cash/events/{event}', [\App\Http\Controllers\InvestmentAccountCashEventController::class,'destroy'])
+    ->whereNumber('event')
+    ->middleware(['auth','verified','can:CASH EVENTS - LISTAR'])
+    ->name('cash.events.destroy');
 // Removidas: bulkDestroy, templateCsv, templateCsvByAccount, reimport, screenQuickForm, screenQuickStore.
 // Mantidas somente rotas de export existentes e CRUD essencial.
 Route::get('/openai/portfolio/holdings/export/csv', [\App\Http\Controllers\UserHoldingController::class,'exportCsv'])->name('holdings.export.csv');

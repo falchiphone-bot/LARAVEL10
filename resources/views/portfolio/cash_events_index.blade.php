@@ -64,6 +64,12 @@
           </select>
         </div>
         <div class="col-md-2">
+          <div class="form-check mt-4" data-bs-toggle="tooltip" data-bs-title="Exibe apenas eventos com Meta preenchida">
+            <input class="form-check-input" type="checkbox" value="1" id="chkHasMeta" name="has_meta" @checked(($hasMeta ?? false)) />
+            <label class="form-check-label small" for="chkHasMeta">Somente com Meta</label>
+          </div>
+        </div>
+        <div class="col-md-2">
           <label class="form-label small mb-1">Valor >=</label>
           <input type="number" step="0.01" name="val_min" value="{{ $filter_val_min }}" class="form-control form-control-sm" />
         </div>
@@ -119,7 +125,12 @@
     <div class="card-footer small text-muted">
       <div class="d-flex flex-wrap gap-3 align-items-center">
         <div>Entradas: <span class="text-success">{{ number_format($sumIn,2,',','.') }}</span> | Saídas: <span class="text-danger">{{ number_format($sumOut,2,',','.') }}</span> | Saldo (∑ filtrado): <strong>{{ number_format($sumTotal,2,',','.') }}</strong></div>
-        <div class="ms-auto d-flex gap-2">
+        <div class="ms-auto d-flex gap-2 align-items-center">
+          @if(($buySell ?? '')==='buy' && !empty($filter_title) && $buyQtySum !== null)
+            <span class="badge bg-primary-subtle text-primary-emphasis border" title="Soma de quantidades de COMPRA (filtradas pelo título)">Qtd Compra (∑): <strong>{{ number_format($buyQtySum, 6, ',', '.') }}</strong></span>
+          @elseif(($buySell ?? '')==='sell' && !empty($filter_title) && $sellQtySum !== null)
+            <span class="badge bg-warning-subtle text-warning-emphasis border" title="Soma de quantidades de VENDA (filtradas pelo título)">Qtd Venda (∑): <strong>{{ number_format($sellQtySum, 6, ',', '.') }}</strong></span>
+          @endif
           <a href="{{ route('cash.positions.summary', request()->query()) }}#gsc.tab=0" class="btn btn-sm btn-outline-success" title="Ver resumo por ativo (saldo e preço médio)">Resumo por Ativo</a>
           <a href="{{ route('openai.portfolio.index') }}#gsc.tab=0" class="btn btn-sm btn-outline-secondary" title="Ver carteira (posições)">Carteira</a>
           <a href="{{ route('cash.events.export.csv', request()->query()) }}" class="btn btn-sm btn-outline-info" title="Exportar eventos filtrados em CSV">Exportar CSV</a>
@@ -469,6 +480,7 @@
             @if($canComputeRunning)
             <th class="text-end">Saldo Após</th>
             @endif
+            <th class="text-end">Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -486,35 +498,50 @@
             <td>{{ $e->detail ?: '—' }}</td>
             <td class="text-end {{ $cls }}">{{ number_format($e->amount,2,',','.') }}</td>
             <td class="text-end" style="min-width:140px;">
-              <input type="number" step="0.01" name="target_amount[{{ $e->id }}]" value="{{ $e->target_amount!==null ? number_format($e->target_amount,2,'.','') : '' }}" class="form-control form-control-sm text-end" placeholder="0,00" inputmode="decimal">
+              @if($e->is_buy)
+                <input type="number" step="0.01" name="target_amount[{{ $e->id }}]" value="{{ $e->target_amount!==null ? number_format($e->target_amount,2,'.','') : '' }}" class="form-control form-control-sm text-end" placeholder="0,00" inputmode="decimal">
+              @else
+                —
+              @endif
             </td>
             <td class="text-end" style="min-width:120px;">
-              @php
-                $__base = is_numeric($e->unit_base_price ?? null) ? (float)$e->unit_base_price : abs((float)($e->amount ?? 0));
-                $__meta = ($e->target_amount !== null) ? (float)$e->target_amount : null;
-                $__pct = ($__meta !== null && $__base > 0)
-                  ? (((($__meta / $__base) * 100.0) - 100.0))
-                  : null;
-              @endphp
-              <span class="{{ ($__pct!==null && $__pct>0)?'text-success':(($__pct!==null && $__pct<0)?'text-danger':'text-secondary') }}"
-                    title="@if($__pct!==null) Meta={{ number_format($__meta,2,',','.') }}, Valor={{ number_format($__base,2,',','.') }}, (Meta/Valor)*100-100 = {{ number_format($__pct,2,',','.') }}% @else — @endif">
-                {{ $__pct!==null ? number_format($__pct, 2, ',', '.') . '%' : '—' }}
-              </span>
+              @if($e->is_buy)
+                @php
+                  $__base = is_numeric($e->unit_base_price ?? null) ? (float)$e->unit_base_price : abs((float)($e->amount ?? 0));
+                  $__meta = ($e->target_amount !== null) ? (float)$e->target_amount : null;
+                  $__pct = ($__meta !== null && $__base > 0)
+                    ? (((($__meta / $__base) * 100.0) - 100.0))
+                    : null;
+                @endphp
+                <span class="{{ ($__pct!==null && $__pct>0)?'text-success':(($__pct!==null && $__pct<0)?'text-danger':'text-secondary') }}"
+                      title="@if($__pct!==null) Meta={{ number_format($__meta,2,',','.') }}, Valor={{ number_format($__base,2,',','.') }}, (Meta/Valor)*100-100 = {{ number_format($__pct,2,',','.') }}% @else — @endif">
+                  {{ $__pct!==null ? number_format($__pct, 2, ',', '.') . '%' : '—' }}
+                </span>
+              @else
+                —
+              @endif
             </td>
             <td class="text-end" style="min-width:120px;">
-              <div class="input-group input-group-sm">
-                <input type="number" step="0.01" min="0" max="100" name="target_probability_pct[{{ $e->id }}]" value="{{ $e->target_probability_pct!==null ? number_format($e->target_probability_pct,2,'.','') : '' }}" class="form-control form-control-sm text-end" placeholder="0-100" inputmode="decimal">
-                <span class="input-group-text">%</span>
-              </div>
+              @if($e->is_buy)
+                <div class="input-group input-group-sm">
+                  <input type="number" step="0.01" min="0" max="100" name="target_probability_pct[{{ $e->id }}]" value="{{ $e->target_probability_pct!==null ? number_format($e->target_probability_pct,2,'.','') : '' }}" class="form-control form-control-sm text-end" placeholder="0-100" inputmode="decimal">
+                  <span class="input-group-text">%</span>
+                </div>
+              @else
+                —
+              @endif
             </td>
             <td>{{ $e->status ?: '—' }}</td>
             <td><span class="badge bg-secondary-subtle text-secondary-emphasis border">{{ $e->source }}</span></td>
             @if($canComputeRunning)
             <td class="text-end">{{ $e->running_balance_after!==null ? number_format($e->running_balance_after,2,',','.') : '—' }}</td>
             @endif
+            <td class="text-end">
+              <button type="button" class="btn btn-sm btn-outline-danger" data-delete-url="{{ route('cash.events.destroy', $e->id) }}" title="Excluir este evento">Excluir</button>
+            </td>
           </tr>
         @empty
-          <tr><td colspan="{{ $canComputeRunning ? 14 : 13 }}" class="text-center text-muted">Nenhum evento encontrado.</td></tr>
+          <tr><td colspan="{{ $canComputeRunning ? 15 : 14 }}" class="text-center text-muted">Nenhum evento encontrado.</td></tr>
         @endforelse
         </tbody>
       </table>
@@ -1146,6 +1173,30 @@ document.addEventListener('DOMContentLoaded', function(){
 
   applyFilter();
   computeTotals();
+});
+</script>
+<script>
+// Exclusão de linha: usa um form escondido fora da tabela para evitar forms aninhados
+document.addEventListener('DOMContentLoaded', function(){
+  const delButtons = document.querySelectorAll('button[data-delete-url]');
+  let form = document.getElementById('deleteEventForm');
+  if (!form) {
+    form = document.createElement('form');
+    form.id = 'deleteEventForm';
+    form.method = 'POST';
+    form.style.display = 'none';
+    form.innerHTML = `@csrf<input type="hidden" name="_method" value="DELETE">`;
+    document.body.appendChild(form);
+  }
+  delButtons.forEach(btn => {
+    btn.addEventListener('click', function(){
+      const url = btn.getAttribute('data-delete-url');
+      if (!url) return;
+      if (!confirm('Deseja realmente excluir este evento? Esta ação não pode ser desfeita.')) return;
+      form.action = url;
+      form.submit();
+    });
+  });
 });
 </script>
 @endpush
