@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Carbon\Carbon;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 use Faker\Core\DateTime;
 use Illuminate\Support\Collection;
 use PhpParser\Node\Stmt\Foreach_;
@@ -237,9 +238,19 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
         // $novadata = array_slice($cellData, 152);
 
         ///// CONFERE SE EMPRESA BLOQUEADA
-        $Empresa = '11';
-        $EmpresaBloqueada = Empresa::find($Empresa);
-        $Data_bloqueada = $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y');
+    $Empresa = '11';
+    $EmpresaBloqueada = Empresa::find($Empresa);
+        $Data_bloqueada_raw = $EmpresaBloqueada ? $EmpresaBloqueada->Bloqueiodataanterior : null;
+        if ($Data_bloqueada_raw instanceof \DateTimeInterface) {
+            $Data_bloqueada = Carbon::instance($Data_bloqueada_raw)->format('d/m/Y');
+        } elseif (is_string($Data_bloqueada_raw)) {
+            $Data_bloqueada = Carbon::parse($Data_bloqueada_raw)->format('d/m/Y');
+        } elseif ($Data_bloqueada_raw) {
+            // Tenta converter qualquer outro tipo para string
+            $Data_bloqueada = Carbon::parse((string) $Data_bloqueada_raw)->format('d/m/Y');
+        } else {
+            $Data_bloqueada = null;
+        }
 
         /////////   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -283,20 +294,32 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
 
 
 
-            $carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $Data);
-            $linha_data_comparar = $carbon_data->format('Y-m-d');
+            // Normaliza a data da linha para formato SQL (Y-m-d) com tolerância a formatos do Excel
+            try {
+                $linha_data_comparar = Carbon::createFromFormat('d/m/Y', trim((string)$Data))->format('Y-m-d');
+            } catch (\Throwable $e) {
+                if (is_numeric($Data)) {
+                    $linha_data_comparar = Carbon::instance(ExcelDate::excelToDateTimeObject($Data))->format('Y-m-d');
+                } else {
+                    // Fallback: tenta interpretar automaticamente (ex.: 2025-10-13)
+                    $linha_data_comparar = Carbon::parse($Data)->format('Y-m-d');
+                }
+            }
 
-            $carbon_data = \Carbon\Carbon::createFromFormat('d/m/Y', $Data_bloqueada);
-            $Data_bloqueada_comparar = $carbon_data->format('Y-m-d');
+            $Data_bloqueada_comparar = null;
+            if ($Data_bloqueada) {
+                $carbon_data = Carbon::createFromFormat('d/m/Y', $Data_bloqueada);
+                $Data_bloqueada_comparar = $carbon_data->format('Y-m-d');
+            }
 
             if ($DESCONSIDERAR_BLOQUEIOS == null) {
-                if ($linha_data_comparar <= $Data_bloqueada_comparar) {
+                if ($Data_bloqueada_comparar && $linha_data_comparar <= $Data_bloqueada_comparar) {
                     session([
                         'Lancamento' =>
                             'Empresa bloqueada no sistema para o lançamento
                   solicitado! Deverá desbloquear a data de bloqueio
                   da empresa para seguir este procedimento. Bloqueada para até ' .
-                            $EmpresaBloqueada->Bloqueiodataanterior->format('d/m/Y') .
+                            ($Data_bloqueada ?: 'NULA') .
                             '! Encontrado lançamento na linha ' .
                             $linha +
                             1,
@@ -347,7 +370,8 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
             $rowData = $cellData;
 
 // dd( $arraydatanova, $Valor_sem_pontos_virgulas, $valor_formatado);
-            $lancamento = Lancamento::where('DataContabilidade', $arraydatanova['Data'])
+            // Usa whereDate para compatibilidade com SQL Server e evita conversão de string d/m/Y
+            $lancamento = Lancamento::whereDate('DataContabilidade', $linha_data_comparar)
                 ->where('Valor', $valorString = $arraydatanova['valor_formatado'])
                 ->where('EmpresaID', $Empresa)
                 ->where('ContaCreditoID', $ContaCartao)
@@ -476,7 +500,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                             'ContaCreditoID' => $ContaCartao,
                             'Descricao' => $DescricaoCompleta,
                             'Usuarios_id' => auth()->user()->id,
-                            'DataContabilidade' => $Data,
+                            'DataContabilidade' => $linha_data_comparar,
                             'HistoricoID' => '',
                         ]);
                     }
@@ -523,6 +547,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                             'QuantidadeParcela' => $QuantidadeParcela,
                             'Valor' => ($valorString = $valor_formatado),
                             'Data' => $Data,
+                            'DataSql' => $linha_data_comparar,
                             'Descricao' => $Descricao . ' Parcela:' . $i . ' de ' . $QuantidadeParcela,
                             'Usuarios_id' => auth()->user()->id,
                         ];
@@ -540,7 +565,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
 //  dd(540,$NumeroParcela, $QuantidadeParcela, $linha, $registros );
 
                     foreach ($registros as $incluirregistros) {
-                        $lancamentoregistros = Lancamento::where('DataContabilidade', $incluirregistros['Data'])
+                        $lancamentoregistros = Lancamento::whereDate('DataContabilidade', $incluirregistros['DataSql'])
                             ->where('Valor', $valorString = $incluirregistros['Valor'])
                             ->where('EmpresaID', $incluirregistros['EmpresaID'])
                             ->where('ContaCreditoID', $incluirregistros['ContaCreditoID'])
@@ -563,7 +588,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                                 'ContaCreditoID' => $incluirregistros['ContaCreditoID'],
                                 'Descricao' => $incluirregistros['Descricao'],
                                 'Usuarios_id' => $incluirregistros['Usuarios_id'],
-                                'DataContabilidade' => $incluirregistros['Data'],
+                                'DataContabilidade' => $incluirregistros['DataSql'],
                                 'HistoricoID' => '',
                             ]);
                             $arraydatanova['Lancou registros'] = 'SIM';
@@ -601,7 +626,7 @@ class FaturaCartaoCreditoSicrediAbertoController extends Controller
                             'ContaCreditoID' => $ContaCartao,
                             'Descricao' => $DescricaoCompleta,
                             'Usuarios_id' => auth()->user()->id,
-                            'DataContabilidade' => $Data,
+                            'DataContabilidade' => $linha_data_comparar,
                             'HistoricoID' => '',
                         ]);
                     }
