@@ -472,6 +472,8 @@
             <th>Título</th>
             <th>Detalhe</th>
             <th class="text-end">Valor (USD)</th>
+            <th class="text-end" title="Preço atual do ativo × quantidade comprada, baseado em /openai/records">Total Atual (USD)</th>
+            <th class="text-end" title="((Total Atual / Valor) × 100) − 100">Evol. (%)</th>
             <th class="text-end" title="Meta: valor a ser atingido">Meta (USD)</th>
             <th class="text-end" title="(Meta / Valor) × 100 − 100">Meta Δ (%)</th>
             <th class="text-end" title="Probabilidade em percentual">Prob. (%)</th>
@@ -494,9 +496,64 @@
             <td>{{ $e->settlement_date? $e->settlement_date->format('d/m/Y'):'—' }}</td>
             <td>{{ $e->account? $e->account->account_name:'—' }}</td>
             <td>{{ $e->category }}</td>
-            <td>{{ $e->title }}</td>
+            <td>
+              {{ $e->title }}
+              @if(!empty($e->parsed_symbol))
+                <a href="{{ route('cash.events.index', array_merge(request()->query(), ['title' => $e->parsed_symbol])) }}#gsc.tab=0" class="text-decoration-none">
+                  <span class="badge bg-secondary-subtle text-secondary-emphasis border ms-1" title="Filtrar por símbolo">{{ $e->parsed_symbol }}</span>
+                </a>
+                @if(is_numeric($e->parsed_qty ?? null))
+                  <span class="badge bg-info-subtle text-info-emphasis border ms-1" title="Quantidade detectada">Qtd {{ number_format($e->parsed_qty, 6, ',', '.') }}</span>
+                @endif
+              @endif
+              @if(($e->is_buy ?? false))
+                <span class="badge bg-success-subtle text-success-emphasis border ms-1">Compra</span>
+              @elseif(($e->is_sell ?? false))
+                <span class="badge bg-danger-subtle text-danger-emphasis border ms-1">Venda</span>
+              @endif
+            </td>
             <td>{{ $e->detail ?: '—' }}</td>
             <td class="text-end {{ $cls }}">{{ number_format($e->amount,2,',','.') }}</td>
+            <td class="text-end" style="min-width:160px;">
+              @php $__qty = is_numeric($e->parsed_qty ?? null) ? (float)$e->parsed_qty : null; $__p = is_numeric($e->current_price ?? null) ? (float)$e->current_price : null; @endphp
+              @if(is_numeric($e->current_total ?? null) || $__p !== null)
+                <span title="@if($__p!==null) Preço={{ number_format($__p,2,',','.') }}@endif @if($__qty!==null){{ $__p!==null ? ', ' : '' }}Qtd={{ number_format($__qty,6,',','.') }}@endif">
+                  @if(is_numeric($e->current_total ?? null))
+                    {{ number_format($e->current_total, 2, ',', '.') }}
+                  @else
+                    —
+                  @endif
+                  @if($__p!==null)
+                    <small class="text-muted">({{ number_format($__p, 2, ',', '.') }})</small>
+                  @endif
+                </span>
+              @else
+                —
+              @endif
+            </td>
+            <td class="text-end" style="min-width:120px;">
+              @php
+                $__curTot = is_numeric($e->current_total ?? null) ? (float)$e->current_total : null;
+                // Valor base (total): preferir qty*unit_base_price; fallback = abs(amount)
+                $__u = is_numeric($e->unit_base_price ?? null) ? (float)$e->unit_base_price : null;
+                $__den = ($__qty !== null && $__u !== null) ? ($__qty * $__u) : abs((float)($e->amount ?? 0));
+                $__evol = ($__curTot !== null && $__den > 0) ? (((($__curTot / $__den) * 100.0) - 100.0)) : null;
+                $__dif = ($__curTot !== null && $__den > 0) ? ($__curTot - $__den) : null;
+                $__evolSign = ($__evol !== null && $__evol > 0) ? '+' : '';
+                $__difSign = ($__dif !== null && $__dif > 0) ? '+' : '';
+              @endphp
+              @if($__evol !== null)
+                <span class="{{ $__evol>0 ? 'text-success' : ($__evol<0 ? 'text-danger' : 'text-secondary') }}"
+                      title="@if($__evol!==null) TotalAtual={{ number_format($__curTot ?? 0,2,',','.') }}, Valor={{ number_format($__den,2,',','.') }}, Dif={{ number_format($__dif ?? 0,2,',','.') }}, ((Total/Valor)*100-100) = {{ number_format($__evol,2,',','.') }}% @else — @endif">
+                  {{ $__evolSign }}{{ number_format($__evol, 2, ',', '.') }}%
+                  @if($__dif !== null)
+                    <small class="text-muted">({{ $__difSign }}{{ number_format($__dif, 2, ',', '.') }})</small>
+                  @endif
+                </span>
+              @else
+                —
+              @endif
+            </td>
             <td class="text-end" style="min-width:140px;">
               @if($e->is_buy)
                 <input type="number" step="0.01" name="target_amount[{{ $e->id }}]" value="{{ $e->target_amount!==null ? number_format($e->target_amount,2,'.','') : '' }}" class="form-control form-control-sm text-end" placeholder="0,00" inputmode="decimal">
@@ -541,7 +598,7 @@
             </td>
           </tr>
         @empty
-          <tr><td colspan="{{ $canComputeRunning ? 15 : 14 }}" class="text-center text-muted">Nenhum evento encontrado.</td></tr>
+          <tr><td colspan="{{ $canComputeRunning ? 17 : 16 }}" class="text-center text-muted">Nenhum evento encontrado.</td></tr>
         @endforelse
         </tbody>
       </table>

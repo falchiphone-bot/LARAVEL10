@@ -180,27 +180,30 @@ class InvestmentAccountCashEventController extends Controller
             );
         }
 
-        // Derivar preço base por unidade (quando possível) a partir do título/detalhe,
-        // para usar na coluna Meta Δ (%) como referência de "compra".
+        // Derivar preço base por unidade e símbolo/quantidade (quando possível) a partir do título/detalhe,
+        // para usar na coluna Meta Δ (%) e no cálculo de Total Atual (preço atual * quantidade).
         $parseUnit = function($title, $detail){
             $txt = trim((string)($title ?: ''));
             if($detail){ $txt .= ' '.trim((string)$detail); }
             $t = mb_strtoupper($txt,'UTF-8');
             $norm = preg_replace('/\s+/', ' ', $t);
             // PT: COMPRA|VENDA de 2 DVN a $ 32,12 cada
-            if(preg_match('/\b(COMPRA|VENDA)\b\s+DE\s+(\d+[\.,]?\d*)\s+[A-Z0-9\.-:_]+\s+A\s*\$\s*(\d+[\.,]?\d*)/u', $norm, $m)){
+            if(preg_match('/\b(COMPRA|VENDA)\b\s+DE\s+(\d+[\.,]?\d*)\s+([A-Z0-9\.-:_]+)\s+A\s*\$\s*(\d+[\.,]?\d*)/u', $norm, $m)){
                 $qty = (float)str_replace(',', '.', str_replace('.', '', $m[2]));
-                $unit = (float)str_replace(',', '.', str_replace('.', '', $m[3]));
-                return ['qty'=>$qty>0?$qty:null, 'unit'=>$unit>0?$unit:null];
+                $sym = trim($m[3]);
+                $unit = (float)str_replace(',', '.', str_replace('.', '', $m[4]));
+                return ['qty'=>$qty>0?$qty:null, 'unit'=>$unit>0?$unit:null, 'sym'=>$sym!==''?$sym:null];
             }
             // EN: BUY 2 DVN @ 32.12, SELL 1 AAPL AT $190.50
-            if(preg_match('/\b(BUY|SELL)\b\s+(\d+[\.,]?\d*)\s+[A-Z0-9\.-:_]+\s+(@|AT)\s*\$?\s*(\d+[\.,]?\d*)/u', $norm, $m)){
+            if(preg_match('/\b(BUY|SELL)\b\s+(\d+[\.,]?\d*)\s+([A-Z0-9\.-:_]+)\s+(@|AT)\s*\$?\s*(\d+[\.,]?\d*)/u', $norm, $m)){
                 $qty = (float)str_replace(',', '.', str_replace('.', '', $m[2]));
-                $unit = (float)str_replace(',', '.', str_replace('.', '', $m[4]));
-                return ['qty'=>$qty>0?$qty:null, 'unit'=>$unit>0?$unit:null];
+                $sym = trim($m[3]);
+                $unit = (float)str_replace(',', '.', str_replace('.', '', $m[5]));
+                return ['qty'=>$qty>0?$qty:null, 'unit'=>$unit>0?$unit:null, 'sym'=>$sym!==''?$sym:null];
             }
             return null;
         };
+        $symbolsWanted = [];
         foreach ($events as $e) {
             try {
                 $evTitle = (string)($e->title ?? '');
@@ -215,6 +218,17 @@ class InvestmentAccountCashEventController extends Controller
                 } else {
                     $e->setAttribute('unit_base_price', null);
                 }
+                // Quantidade e símbolo extraídos (para calcular Total Atual)
+                if ($qty !== null && $qty > 0) { $e->setAttribute('parsed_qty', (float)$qty); }
+                else { $e->setAttribute('parsed_qty', null); }
+                $sym = $parsed['sym'] ?? null;
+                if ($sym) {
+                    $symUp = strtoupper(trim($sym));
+                    $e->setAttribute('parsed_symbol', $symUp);
+                    $symbolsWanted[$symUp] = true;
+                } else {
+                    $e->setAttribute('parsed_symbol', null);
+                }
                 // Classificação simples de compra/venda por texto (pt/en)
                 $txt = mb_strtolower($evCategory.' '.$evTitle.' '.$evDetail, 'UTF-8');
                 $isBuy = (str_contains($txt,'compra') || str_contains($txt,'buy'));
@@ -225,6 +239,52 @@ class InvestmentAccountCashEventController extends Controller
                 $e->setAttribute('unit_base_price', null);
                 $e->setAttribute('is_buy', false);
                 $e->setAttribute('is_sell', false);
+                $e->setAttribute('parsed_qty', null);
+                $e->setAttribute('parsed_symbol', null);
+            }
+        }
+
+        // Buscar preço atual por código (último OpenAIChatRecord por código do usuário)
+        $currentPriceByCode = [];
+        if (!empty($symbolsWanted)) {
+            $codesUpper = array_keys($symbolsWanted);
+            // Normaliza expressão por driver (SQL Server vs outros)
+            $driverOP = DB::getDriverName();
+            $codeExpr = ($driverOP === 'sqlsrv') ? "UPPER(LTRIM(RTRIM(c.code)))" : "UPPER(TRIM(c.code))";
+            $rows = DB::table('openai_chat_records as r')
+                ->join('open_a_i_chats as c', 'c.id', '=', 'r.chat_id')
+                ->where('r.user_id', $userId)
+                ->whereIn(DB::raw($codeExpr), $codesUpper)
+                ->orderBy('r.occurred_at','desc')
+                ->orderBy('r.id','desc')
+                ->selectRaw($codeExpr.' as code, r.amount, r.occurred_at')
+                ->get();
+            foreach ($rows as $row) {
+                $code = strtoupper(trim((string)($row->code ?? '')));
+                if ($code === '') continue;
+                if (!isset($currentPriceByCode[$code])) {
+                    $amt = is_numeric($row->amount ?? null) ? (float)$row->amount : null;
+                    if ($amt !== null) { $currentPriceByCode[$code] = $amt; }
+                }
+            }
+        }
+        // Atribuir preço atual e total atual por linha (para compra e venda):
+        // - current_price: sempre que houver símbolo e preço recente encontrado
+        // - current_total: quando houver também quantidade (>0)
+        foreach ($events as $e) {
+            $e->setAttribute('current_price', null);
+            $e->setAttribute('current_total', null);
+            $sym = (string)($e->parsed_symbol ?? '');
+            if ($sym !== '' && !empty($currentPriceByCode)) {
+                $codeUp = strtoupper($sym);
+                $price = $currentPriceByCode[$codeUp] ?? null;
+                if ($price !== null) {
+                    $e->setAttribute('current_price', (float)$price);
+                    $qty = is_numeric($e->parsed_qty ?? null) ? (float)$e->parsed_qty : null;
+                    if ($qty !== null && $qty > 0) {
+                        $e->setAttribute('current_total', (float)$price * (float)$qty);
+                    }
+                }
             }
         }
 
