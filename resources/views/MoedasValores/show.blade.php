@@ -18,7 +18,14 @@
                         </div>
                         <div class="card-body">
                             <p>
-                                Data: {{ $moedasvalores->data}}
+                                @php($d = $moedasvalores->data ?? null)
+                                Data:
+                                @if($d)
+                                    {{ \Carbon\Carbon::parse($d)->format('d/m/Y') }}
+                                    ({{ \Carbon\Carbon::parse($d)->locale('pt_BR')->translatedFormat('l') }})
+                                @else
+                                    -
+                                @endif
                             </p>
                             <p>
                                 Valor: {{ $moedasvalores->valor }}

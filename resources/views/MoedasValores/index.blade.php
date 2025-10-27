@@ -129,7 +129,15 @@
                             @foreach ($moedasvalores as $moedavalores)
                                 <tr>
                                     <td class="">
-                                        {{ $moedavalores->data->format('d/m/Y')  }}
+                                        @php
+                                            $dataValor = $moedavalores->data ?? null;
+                                        @endphp
+                                        @if($dataValor)
+                                            {{ \Carbon\Carbon::parse($dataValor)->format('d/m/Y') }}
+                                            ({{ \Carbon\Carbon::parse($dataValor)->locale('pt_BR')->translatedFormat('l') }})
+                                        @else
+                                            -
+                                        @endif
 
                                         </a>
                                     </td>

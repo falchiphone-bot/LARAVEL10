@@ -131,11 +131,19 @@
             <tr @if($m->trashed()) class="table-warning" @endif>
               @if(!$grouped)
                 <td>
-                  {{ optional($m->snapshot_at)->format('d/m/Y H:i:s') }}
+                  @if($m->snapshot_at)
+                    {{ \Carbon\Carbon::parse($m->snapshot_at)->format('d/m/Y H:i:s') }}
+                    ({{ \Carbon\Carbon::parse($m->snapshot_at)->locale('pt_BR')->translatedFormat('l') }})
+                  @endif
                   @if($m->trashed())<span class="badge bg-warning text-dark ms-1">Excluído</span>@endif
                 </td>
               @else
-                <td>{{ $r['group_date'] ? \Carbon\Carbon::parse($r['group_date'])->format('d/m/Y') : '' }}</td>
+                <td>
+                  @if(!empty($r['group_date']))
+                    {{ \Carbon\Carbon::parse($r['group_date'])->format('d/m/Y') }}
+                    ({{ \Carbon\Carbon::parse($r['group_date'])->locale('pt_BR')->translatedFormat('l') }})
+                  @endif
+                </td>
                 <td class="text-end">
                   <span class="badge bg-secondary" title="Snapshots no dia">{{ $r['count'] }}</span>
                 </td>

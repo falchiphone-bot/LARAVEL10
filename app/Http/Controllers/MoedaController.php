@@ -65,7 +65,13 @@ class MoedaController extends Controller
      */
     public function show(string $id)
     {
+        if (!ctype_digit((string)$id)) {
+            return redirect()->route('Moedas.index')->with('error', 'Moeda inválida.');
+        }
         $cadastro = Moeda::find($id);
+        if (!$cadastro) {
+            return redirect()->route('Moedas.index')->with('error', 'Moeda não encontrada.');
+        }
         return view('Moedas.show',compact('cadastro'));
     }
 
@@ -74,7 +80,13 @@ class MoedaController extends Controller
      */
     public function edit(string $id)
     {
+        if (!ctype_digit((string)$id)) {
+            return redirect()->route('Moedas.index')->with('error', 'Moeda inválida.');
+        }
         $moedas= Moeda::find($id);
+        if (!$moedas) {
+            return redirect()->route('Moedas.index')->with('error', 'Moeda não encontrada.');
+        }
         // dd($cadastro);
 
         return view('Moedas.edit',compact('moedas'));
@@ -85,8 +97,13 @@ class MoedaController extends Controller
      */
     public function update(Request $request, string $id)
     {
-
+        if (!ctype_digit((string)$id)) {
+            return redirect()->route('Moedas.index')->with('error', 'Moeda inválida.');
+        }
         $cadastro = Moeda::find($id);
+        if (!$cadastro) {
+            return redirect()->route('Moedas.index')->with('error', 'Moeda não encontrada.');
+        }
 
         $cadastro->fill($request->all()) ;
 
@@ -102,7 +119,13 @@ class MoedaController extends Controller
      */
     public function destroy(string $id)
     {
+        if (!ctype_digit((string)$id)) {
+            return redirect()->route('Moedas.index')->with('error', 'Moeda inválida.');
+        }
         $moedas = Moeda::find($id);
+        if (!$moedas) {
+            return redirect()->route('Moedas.index')->with('error', 'Moeda não encontrada.');
+        }
 
 
         $moedas->delete();

@@ -1735,7 +1735,10 @@ Route::resource('RedeSocialUsuarios', App\Http\Controllers\RedeSocialUsuarioCont
 
     #Moedas e valores
     Route::get('Moedas/dashboard', [App\Http\Controllers\MoedaController::class, 'dashboard'])->name('moedas.dashboard');
-    Route::resource('Moedas', App\Http\Controllers\MoedaController::class)->where(['Moedas' => '[0-9]+']);
+    // Restringe parâmetro do resource a ID numérico para evitar capturar paths como 'consultar-valor'
+    Route::resource('Moedas', App\Http\Controllers\MoedaController::class)
+        ->parameters(['Moedas' => 'moeda'])
+        ->whereNumber('moeda');
 
     // Rotas auxiliares devem vir antes do resource para evitar captura como {MoedasValore}
     Route::post('MoedasValores/clear-cache', [App\Http\Controllers\MoedaValoresController::class, 'clearCache'])->name('moedasvalores.clearCache');

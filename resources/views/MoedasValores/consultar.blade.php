@@ -27,9 +27,38 @@
                     <h5>Detalhes</h5>
                     <ul class="list-group">
                         <li class="list-group-item">Moeda: <strong>{{ $resultado['moeda_nome'] ?? ($moeda->nome ?? '-') }}</strong></li>
-                        <li class="list-group-item">Data de referência: <strong>{{ $resultado['data_referencia'] ?? (isset($dataRef) ? \Carbon\Carbon::parse($dataRef)->format('d/m/Y') : '-') }}</strong></li>
+                        @php
+                            $refBruta = $resultado['data_referencia'] ?? (isset($dataRef) ? $dataRef : null);
+                            $refFmt = '-';
+                            if($refBruta){
+                                try {
+                                    // Tenta d/m/Y primeiro
+                                    $refFmt = \Carbon\Carbon::createFromFormat('d/m/Y', $refBruta)->format('d/m/Y') .
+                                             ' (' . \Carbon\Carbon::createFromFormat('d/m/Y', $refBruta)->locale('pt_BR')->translatedFormat('l') . ')';
+                                } catch (\Throwable $e) {
+                                    // Fallback parse flexível
+                                    $refFmt = \Carbon\Carbon::parse($refBruta)->format('d/m/Y') .
+                                             ' (' . \Carbon\Carbon::parse($refBruta)->locale('pt_BR')->translatedFormat('l') . ')';
+                                }
+                            }
+                        @endphp
+                        <li class="list-group-item">Data de referência: <strong>{!! $refFmt !!}</strong></li>
                         @if(($resultado['data_utilizada'] ?? null) && ($resultado['data_referencia'] ?? null) && $resultado['data_utilizada'] !== $resultado['data_referencia'])
-                            <li class="list-group-item">Data utilizada na API: <strong>{{ $resultado['data_utilizada'] }}</strong>
+                            @php
+                                $utilFmt = $resultado['data_utilizada'];
+                                try {
+                                    $utilFmt = \Carbon\Carbon::createFromFormat('d/m/Y', $resultado['data_utilizada'])->format('d/m/Y') .
+                                              ' (' . \Carbon\Carbon::createFromFormat('d/m/Y', $resultado['data_utilizada'])->locale('pt_BR')->translatedFormat('l') . ')';
+                                } catch (\Throwable $e) {
+                                    try {
+                                        $utilFmt = \Carbon\Carbon::parse($resultado['data_utilizada'])->format('d/m/Y') .
+                                                  ' (' . \Carbon\Carbon::parse($resultado['data_utilizada'])->locale('pt_BR')->translatedFormat('l') . ')';
+                                    } catch (\Throwable $e2) {
+                                        // mantém string original
+                                    }
+                                }
+                            @endphp
+                            <li class="list-group-item">Data utilizada na API: <strong>{!! $utilFmt !!}</strong>
                                 <small class="text-muted">(sem cotação no dia de referência; usada a última disponível)</small>
                             </li>
                         @endif

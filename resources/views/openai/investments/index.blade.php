@@ -152,7 +152,12 @@
           <th colspan="1" class="text-end">Total (BRL)</th>
           <th class="text-end">
             {{ number_format((float)($totalSumBrl ?? 0), 2, ',', '.') }}
-            <small class="text-muted d-block">Taxa {{ number_format($usdToBrlRate, 4, ',', '.') }}</small>
+            <small class="text-muted d-block">
+              Taxa USD→BRL {{ number_format($usdToBrlRate, 4, ',', '.') }}
+              @if(!empty($usdToBrlDate))
+                ({{ optional($usdToBrlDate)->format('d/m/Y') }})
+              @endif
+            </small>
           </th>
           <th colspan="3" class="text-start">
             <small class="text-muted">Conversão aplicada sobre o agregado filtrado.</small>
