@@ -79,6 +79,14 @@
           </select>
         </div>
         <div class="col-md-2">
+          <label class="form-label small mb-1">Auditoria</label>
+          <select name="audit_status" class="form-select form-select-sm" id="selAuditStatus">
+            <option value="" @selected(($auditStatus ?? '')==='')>Todas</option>
+            <option value="audited" @selected(($auditStatus ?? '')==='audited')>Somente auditadas</option>
+            <option value="not_audited" @selected(($auditStatus ?? '')==='not_audited')>Somente não auditadas</option>
+          </select>
+        </div>
+        <div class="col-md-2">
           <div class="form-check mt-4" data-bs-toggle="tooltip" data-bs-title="Exibe apenas eventos com Meta preenchida">
             <input class="form-check-input" type="checkbox" value="1" id="chkHasMeta" name="has_meta" @checked(($hasMeta ?? false)) />
             <label class="form-check-label small" for="chkHasMeta">Somente com Meta</label>
@@ -139,7 +147,19 @@
     </div>
     <div class="card-footer small text-muted">
       <div class="d-flex flex-wrap gap-3 align-items-center">
-        <div>Entradas: <span class="text-success">{{ number_format($sumIn,2,',','.') }}</span> | Saídas: <span class="text-danger">{{ number_format($sumOut,2,',','.') }}</span> | Saldo (∑ filtrado): <strong>{{ number_format($sumTotal,2,',','.') }}</strong></div>
+        <div>
+          Entradas: <span class="text-success">{{ number_format($sumIn,2,',','.') }}</span>
+          <span class="mx-1">|</span>
+          Saídas: <span class="text-danger">{{ number_format($sumOut,2,',','.') }}</span>
+          <span class="mx-1">|</span>
+          Saldo (∑ filtrado): <strong>{{ number_format($sumTotal,2,',','.') }}</strong>
+          @if(($buySell ?? '')==='buy')
+            <span class="mx-2">|</span>
+            <span class="text-muted">Auditadas (pág): <strong>{{ (int)($buyAuditedCount ?? 0) }}</strong></span>
+            <span class="mx-1">|</span>
+            <span class="text-muted">Não auditadas (pág): <strong>{{ (int)($buyNotAuditedCount ?? 0) }}</strong></span>
+          @endif
+        </div>
         <div class="ms-auto d-flex gap-2 align-items-center">
           @if(($buySell ?? '')==='buy' && !empty($filter_title) && $buyQtySum !== null)
             <span class="badge bg-primary-subtle text-primary-emphasis border" title="Soma de quantidades de COMPRA (filtradas pelo título)">Qtd Compra (∑): <strong>{{ number_format($buyQtySum, 6, ',', '.') }}</strong></span>
@@ -467,7 +487,12 @@
   @endif
   <div class="card shadow-sm">
     <div class="card-header d-flex justify-content-between align-items-center">
-      <strong>Lista</strong>
+      <div class="d-flex align-items-center gap-2">
+        <strong>Lista</strong>
+        @if(($auditStatus ?? '')==='not_audited')
+          <span class="badge bg-warning-subtle text-warning-emphasis border" title="Filtro de Auditoria: somente não auditadas">Não auditadas</span>
+        @endif
+      </div>
       <div class="d-flex align-items-center gap-2">
         <small class="text-muted">Total: {{ $events->total() }} | Página {{ $events->currentPage() }}/{{ $events->lastPage() }}</small>
         <button type="submit" form="formInlineTargets" class="btn btn-sm btn-primary" title="Salvar metas e probabilidades desta página">Salvar metas</button>
@@ -535,6 +560,9 @@
               @endif
               @if(($e->is_buy ?? false))
                 <span class="badge bg-success-subtle text-success-emphasis border ms-1">Compra</span>
+                @if(!empty($auditedBuySet[$e->id]))
+                  <span class="badge bg-primary-subtle text-primary-emphasis border ms-1" title="Marcado pela Auditoria de Alocações">Auditada</span>
+                @endif
               @elseif(($e->is_sell ?? false))
                 <span class="badge bg-danger-subtle text-danger-emphasis border ms-1">Venda</span>
               @endif
@@ -631,8 +659,15 @@
       </table>
       </div>
     </form>
-    <div class="card-footer">
-      {{ $events->links() }}
+    <div class="card-footer d-flex justify-content-between align-items-center small">
+      <div class="text-muted">
+        Compras auditadas: <strong>{{ (int)($buyAuditedCount ?? 0) }}</strong>
+        <span class="mx-1">|</span>
+        Não auditadas: <strong>{{ (int)($buyNotAuditedCount ?? 0) }}</strong>
+      </div>
+      <div>
+        {{ $events->links() }}
+      </div>
     </div>
   </div>
 </div>

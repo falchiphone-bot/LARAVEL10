@@ -101,8 +101,9 @@ class InvestmentAccountCashEventController extends Controller
         $dir = strtolower($request->input('dir','desc')) === 'asc' ? 'asc' : 'desc';
     $showRunning = $request->boolean('show_running');
     $groupAsset = $request->boolean('group_asset');
-        $paginate = $request->boolean('paginate', true);
-        $onlyBuySell = $request->boolean('only_buy_sell', false);
+    $paginate = $request->boolean('paginate', true);
+    $onlyBuySell = $request->boolean('only_buy_sell', false);
+    $auditStatus = trim((string)$request->input('audit_status', ''));
 
         $allowedSort = [
             'event_date'=>'event_date',
@@ -165,6 +166,25 @@ class InvestmentAccountCashEventController extends Controller
                   ->orWhere('detail','LIKE','%SELL%');
             });
         }
+        // Filtro por Auditoria (somente aplicado em eventos de COMPRA)
+        if (in_array($auditStatus, ['audited','not_audited'], true)) {
+            // Restringe a compras por texto (mesma heurística do filtro buy)
+            $q->where(function($w){
+                $w->where('category','LIKE','%compra%')
+                  ->orWhere('title','LIKE','%compra%')
+                  ->orWhere('title','LIKE','%BUY%')
+                  ->orWhere('detail','LIKE','%compra%')
+                  ->orWhere('detail','LIKE','%BUY%');
+            });
+            $sub = DB::table('investment_account_cash_matches')
+                ->where('user_id', $userId)
+                ->select('buy_event_id');
+            if ($auditStatus === 'audited') {
+                $q->whereIn('id', $sub);
+            } else {
+                $q->whereNotIn('id', $sub);
+            }
+        }
         $q->orderBy($allowedSort[$sort], $dir)->orderBy('id','desc');
         if ($paginate) {
             $events = $q->paginate($perPage)->appends($request->query());
@@ -178,6 +198,28 @@ class InvestmentAccountCashEventController extends Controller
                 1,
                 ['path' => $request->url(), 'query' => $request->query()]
             );
+        }
+
+        // Conjunto de compras que já possuem alocação na Auditoria (marcador visual na lista)
+        $auditedBuySet = [];
+        try {
+            $pageIds = collect($events->items())->pluck('id')->filter()->map(fn($v)=> (int)$v)->values()->all();
+            if (!empty($pageIds)) {
+                $auditedBuyIds = DB::table('investment_account_cash_matches')
+                    ->where('user_id', $userId)
+                    ->whereIn('buy_event_id', $pageIds)
+                    ->pluck('buy_event_id')
+                    ->map(fn($v)=> (int)$v)
+                    ->unique()
+                    ->values()
+                    ->all();
+                if (!empty($auditedBuyIds)) {
+                    $auditedBuySet = array_fill_keys($auditedBuyIds, true);
+                }
+            }
+        } catch (\Throwable $e) {
+            // silencioso: se falhar, apenas não marca
+            $auditedBuySet = [];
         }
 
         // Derivar preço base por unidade e símbolo/quantidade (quando possível) a partir do título/detalhe,
@@ -241,6 +283,19 @@ class InvestmentAccountCashEventController extends Controller
                 $e->setAttribute('is_sell', false);
                 $e->setAttribute('parsed_qty', null);
                 $e->setAttribute('parsed_symbol', null);
+            }
+        }
+
+        // Contadores de compras auditadas vs não auditadas (na página atual)
+        $buyAuditedCount = 0;
+        $buyNotAuditedCount = 0;
+        if (!empty($events)) {
+            foreach ($events as $e) {
+                $isBuy = (bool)($e->getAttribute('is_buy'));
+                if (!$isBuy) { continue; }
+                $id = (int)($e->id ?? 0);
+                if ($id && isset($auditedBuySet[$id])) { $buyAuditedCount++; }
+                else { $buyNotAuditedCount++; }
             }
         }
 
@@ -503,6 +558,10 @@ class InvestmentAccountCashEventController extends Controller
             'groupAsset'=>$groupAsset,
             'onlyBuySell'=>$onlyBuySell,
             'paginate'=>$paginate,
+            'auditStatus'=>$auditStatus,
+            'auditedBuySet'=>$auditedBuySet,
+            'buyAuditedCount'=>$buyAuditedCount,
+            'buyNotAuditedCount'=>$buyNotAuditedCount,
         ]);
     }
 
@@ -843,7 +902,7 @@ class InvestmentAccountCashEventController extends Controller
         if ($symbol !== '') {
             $symUp = strtoupper($symbol);
             $sellQuery->where(function($w) use ($symUp){
-                $w->whereRaw('UPPER(COALESCE(title,\'\')) LIKE ?', ["%{$symUp}%"]) 
+                $w->whereRaw('UPPER(COALESCE(title,\'\')) LIKE ?', ["%{$symUp}%"])
                   ->orWhereRaw('UPPER(COALESCE(detail,\'\')) LIKE ?', ["%{$symUp}%"]);
             });
         }
@@ -1165,7 +1224,7 @@ class InvestmentAccountCashEventController extends Controller
         if ($symbol !== '') {
             $symUp = strtoupper($symbol);
             $q->where(function($w) use ($symUp){
-                $w->whereRaw("UPPER(COALESCE(s.title,'') ) LIKE ?", ["%{$symUp}%"]) 
+                $w->whereRaw("UPPER(COALESCE(s.title,'') ) LIKE ?", ["%{$symUp}%"])
                   ->orWhereRaw("UPPER(COALESCE(s.detail,'') ) LIKE ?", ["%{$symUp}%"]);
             });
         }
