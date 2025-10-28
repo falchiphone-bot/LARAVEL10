@@ -19,6 +19,7 @@
   <div class="card shadow-sm mb-3">
     <div class="card-body">
   <form id="assets-filter-form" method="GET" action="{{ route('openai.records.assets') }}" class="row g-2 align-items-end">
+    @php $autoBatchDefault = (int) config('openai.assets.auto_batch_interval_default_ms', 120000); @endphp
         <div class="col-sm-5 col-md-4">
           <label class="form-label small mb-1" title="Filtra pelos códigos das conversas do tipo 'Bolsa de Valores Americana'">Ativo (código)</label>
           <select name="asset" class="form-select form-select-sm">
@@ -71,10 +72,37 @@
             @endforeach
           </select>
         </div>
-        <div class="col-sm-3 col-md-2">
-          <label class="form-label small mb-1">Intervalo CHECK (ms)</label>
-          <input type="number" min="0" step="50" name="auto_prev_interval" value="{{ request('auto_prev_interval') }}" class="form-control form-control-sm" placeholder="ex: 400">
-          <small class="text-muted d-block mt-1">Intervalo do polling do CHECK. Padrão 400 ms.</small>
+        <div class="col-12">
+          <div class="card bg-success-subtle text-dark border-0 shadow-sm">
+            <div class="card-body py-2">
+              <div class="row g-2 align-items-end">
+                <div class="col-sm-3 col-md-2">
+                  <label class="form-label small mb-1">Intervalo CHECK (ms)</label>
+                  <input type="number" min="0" step="50" name="auto_prev_interval" value="{{ request('auto_prev_interval') }}" class="form-control form-control-sm" placeholder="ex: 400">
+                  <small class="text-muted d-block mt-1">Intervalo do polling do CHECK. Padrão 400 ms.</small>
+                </div>
+                <div class="col-sm-3 col-md-2">
+                  <label class="form-label small mb-1" title="Intervalo entre execuções do 'Consultar todos' automático">Intervalo AUTO (ms)
+                    <span class="ms-1 text-muted" style="cursor: help;" data-bs-toggle="tooltip" data-bs-placement="top" title="Fluxo AUTO: dispara o botão 'Consultar todos' periodicamente usando este intervalo. O estado fica salvo no navegador e é restaurado após recarregar. Evita sobreposições (espera um lote terminar). Também pode ser habilitado via ?auto_batch=1&auto_batch_interval=60000.">?</span>
+                  </label>
+                  <input type="number" min="0" step="100" name="auto_batch_interval" value="{{ request('auto_batch_interval') }}" class="form-control form-control-sm" placeholder="ex: {{ $autoBatchDefault }}">
+                  <small class="text-muted d-block mt-1">Usado pelo AUTO (Consultar). Padrão {{ number_format($autoBatchDefault, 0, ',', '.') }} ms.</small>
+                </div>
+                <div class="col d-flex align-items-end">
+                  <div class="d-flex align-items-center gap-2 flex-wrap ms-auto">
+                    <button type="button" id="btn-auto-prev-start" class="btn btn-sm btn-outline-success">CHECK</button>
+                    <button type="button" id="btn-auto-prev-stop" class="btn btn-sm btn-outline-danger d-none">Parar (CHECK)</button>
+                    <small id="auto-prev-status" class="text-muted"></small>
+                    <div class="vr d-none d-md-block"></div>
+                    <button type="button" id="btn-batch-auto-start" class="btn btn-sm btn-outline-success" title="Executa 'Consultar todos' periodicamente">AUTO (Consultar)</button>
+                    <button type="button" id="btn-batch-auto-stop" class="btn btn-sm btn-outline-danger d-none">Parar (AUTO)</button>
+                    <small id="batch-auto-status" class="text-muted"></small>
+                    <span id="batch-auto-timer" class="badge bg-secondary d-none" title="Tempo até o próximo AUTO" style="min-width:64px;">00:00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="col-sm-3 col-md-2">
           <label class="form-label small mb-1">Atraso recarregar (ms)</label>
@@ -116,13 +144,6 @@
           </button>
           <small id="batch-status" class="text-muted"></small>
           <div class="vr mx-2 d-none d-md-block"></div>
-          <button type="button" id="btn-auto-prev-start" class="btn btn-sm btn-outline-success">
-            CHECK
-          </button>
-          <button type="button" id="btn-auto-prev-stop" class="btn btn-sm btn-outline-danger d-none">
-            Parar (CHECK)
-          </button>
-          <small id="auto-prev-status" class="text-muted"></small>
           <div class="vr mx-2 d-none d-md-block"></div>
           <button type="button" id="btn-usage" class="btn btn-sm btn-outline-secondary">Ver limites</button>
           <small id="usage-status" class="text-muted"></small>
@@ -612,6 +633,16 @@
 @push('scripts')
 <script>
   (function(){
+    // Inicializa tooltips Bootstrap 5, inclusive do ícone de ajuda do AUTO
+    document.addEventListener('DOMContentLoaded', function(){
+      try {
+        if (window.bootstrap && typeof bootstrap.Tooltip === 'function') {
+          document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el){
+            try { new bootstrap.Tooltip(el); } catch(_e) {}
+          });
+        }
+      } catch(_e) { /* noop */ }
+    });
     // Dispara clique sem alterar foco (evita rolagem automática)
     function triggerClick(el){
       if (!el) return;
@@ -623,19 +654,22 @@
         try{ el.click(); }catch(_e2){}
       }
     }
-    const cfgEl = document.getElementById('assets-config');
+  const cfgEl = document.getElementById('assets-config');
     const cfg = cfgEl ? cfgEl.dataset : {};
     const endpoint = cfg.apiQuote || '';
     const endpointHist = cfg.apiHistorical || '';
     const endpointUsage = cfg.apiUsage || '';
     const endpointStatus = cfg.apiStatus || '';
+  const defaultAutoBatch = Number('{{ (int) config('openai.assets.auto_batch_interval_default_ms', 120000) }}') || 120000;
     let batchAbort = false;
     // Utilitário: obtém número de querystring ou localStorage com fallback
     function getConfigNumber(paramName, defaultValue){
       try{
         const url = new URL(window.location.href);
         const qv = url.searchParams.get(paramName);
-        if (qv !== null && qv !== '') {
+        if (qv !== null) {
+          // Se o parâmetro existe mas está vazio, tratar como reset explícito: usar default e não o localStorage
+          if (qv === '') return defaultValue;
           const n = Number(qv);
           if (isFinite(n) && n >= 0) return n;
         }
@@ -644,6 +678,7 @@
         const keyMap = {
           'auto_prev_interval': 'assets.autoPrev.intervalMs',
           'auto_prev_reload_delay': 'assets.autoPrev.reloadDelayMs',
+          'auto_batch_interval': 'assets.autoBatch.intervalMs',
         };
         const lsKey = keyMap[paramName] || paramName;
         const ls = localStorage.getItem(lsKey);
@@ -1052,14 +1087,15 @@
           }
         }catch(e){ fail++; }
       }
-      if(!batchAbort){ if(status){ status.textContent = `Concluído: ${ok} ok, ${fail} erro(s)`; } }
+  if(!batchAbort){ if(status){ status.textContent = `Concluído: ${ok} ok, ${fail} erro(s)`; } }
       btn.disabled = false;
       btn.innerHTML = prev;
       if (btnStop){ btnStop.classList.add('d-none'); btnStop.disabled = true; }
-      // Recarrega uma única vez ao final
+      // Recarrega uma única vez ao final (apenas quando NÃO estiver em modo AUTO)
       window.__batchCreating = false;
       try{
-        if (!batchAbort) {
+        const isAuto = (localStorage.getItem('assets.autoBatch.enabled') === '1');
+        if (!batchAbort && !isAuto) {
           const f = document.getElementById('assets-filter-form');
           setTimeout(()=>{ if (f) { (typeof f.requestSubmit === 'function') ? f.requestSubmit() : f.submit(); } else { window.location.reload(); } }, 200);
         }
@@ -1071,6 +1107,148 @@
       batchAbort = true;
       this.disabled = true;
     });
+
+    // AUTO (Consultar todos periodicamente)
+    const AUTO_BATCH_KEY = 'assets.autoBatch.enabled';
+    let autoBatchTimer = null;
+  let autoBatchClock = null; // cronômetro visual
+  let autoBatchLastStartAt = 0; // timestamp do último disparo
+  let autoBatchIntervalMs = 0; // intervalo configurado
+    function updateAutoBatchStatus(msg){
+      const el = document.getElementById('batch-auto-status');
+      if (el) el.textContent = typeof msg === 'string' ? msg : '';
+    }
+    function formatMMSS(ms){
+      if (!isFinite(ms) || ms < 0) ms = 0;
+      const total = Math.floor(ms/1000);
+      const m = Math.floor(total/60);
+      const s = total % 60;
+      return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+    }
+    function updateAutoBatchTimer(){
+      const el = document.getElementById('batch-auto-timer');
+      if (!el) return;
+      if (!autoBatchLastStartAt || !autoBatchIntervalMs) { el.textContent = '00:00'; return; }
+      const delta = Date.now() - autoBatchLastStartAt;
+      const remain = Math.max(0, autoBatchIntervalMs - delta);
+      el.textContent = formatMMSS(remain);
+    }
+    function startAutoBatch(){
+      localStorage.setItem(AUTO_BATCH_KEY, '1');
+      document.getElementById('btn-batch-auto-start')?.classList.add('d-none');
+      const stopBtn = document.getElementById('btn-batch-auto-stop');
+      if (stopBtn){ stopBtn.classList.remove('d-none'); stopBtn.disabled = false; }
+      updateAutoBatchStatus('Ativo');
+      if (autoBatchTimer) { clearInterval(autoBatchTimer); autoBatchTimer = null; }
+      // Inicia cronômetro visual
+      autoBatchLastStartAt = Date.now();
+      const timerEl = document.getElementById('batch-auto-timer');
+      if (timerEl){ timerEl.classList.remove('d-none'); timerEl.textContent = '00:00'; }
+      if (autoBatchClock) { clearInterval(autoBatchClock); autoBatchClock = null; }
+      autoBatchClock = setInterval(updateAutoBatchTimer, 500);
+  const intervalMs = getConfigNumber('auto_batch_interval', defaultAutoBatch);
+  autoBatchIntervalMs = Math.max(0, intervalMs|0);
+  try{ localStorage.setItem('assets.autoBatch.intervalMs', String(intervalMs)); }catch(_e){}
+      // Dispara imediatamente uma execução, depois agenda
+      scheduleAutoBatchTick();
+      autoBatchTimer = setInterval(scheduleAutoBatchTick, Math.max(500, intervalMs));
+    }
+    function stopAutoBatch(){
+      localStorage.removeItem(AUTO_BATCH_KEY);
+      if (autoBatchTimer) { clearInterval(autoBatchTimer); autoBatchTimer = null; }
+      if (autoBatchClock) { clearInterval(autoBatchClock); autoBatchClock = null; }
+      autoBatchLastStartAt = 0;
+      const timerEl = document.getElementById('batch-auto-timer');
+      if (timerEl){ timerEl.classList.add('d-none'); timerEl.textContent = '00:00'; }
+      document.getElementById('btn-batch-auto-start')?.classList.remove('d-none');
+      const stopBtn = document.getElementById('btn-batch-auto-stop');
+      if (stopBtn){ stopBtn.classList.add('d-none'); stopBtn.disabled = true; }
+      updateAutoBatchStatus('Parado');
+    }
+    // Hot-swap do intervalo do AUTO sem parar/reiniciar manualmente
+    function applyAutoBatchInterval(newMs, resetCountdown){
+      try{
+        const ms = Math.max(0, Number(newMs)||0);
+        autoBatchIntervalMs = ms;
+        try{ localStorage.setItem('assets.autoBatch.intervalMs', String(ms)); }catch(_e){}
+        if (localStorage.getItem(AUTO_BATCH_KEY) === '1'){
+          // se AUTO ativo, reinicia apenas o agendamento com novo intervalo
+          if (autoBatchTimer) { clearInterval(autoBatchTimer); autoBatchTimer = null; }
+          autoBatchTimer = setInterval(scheduleAutoBatchTick, Math.max(500, ms));
+          if (resetCountdown !== false){
+            autoBatchLastStartAt = Date.now();
+            updateAutoBatchTimer();
+          }
+          updateAutoBatchStatus('Ativo (intervalo atualizado)');
+        }
+      }catch(_e){/* noop */}
+    }
+    function scheduleAutoBatchTick(){
+      if (window.__batchCreating) { updateAutoBatchStatus('Aguardando lote terminar…'); return; }
+      const btn = document.getElementById('btn-batch-quotes');
+      if (!btn || btn.disabled) { updateAutoBatchStatus('Aguardando…'); return; }
+      updateAutoBatchStatus('Executando…');
+      // Zera visualmente ao atingir o limite e, em seguida, reinicia a contagem regressiva
+      const timerEl = document.getElementById('batch-auto-timer');
+      if (timerEl) timerEl.textContent = '00:00';
+      autoBatchLastStartAt = Date.now();
+      triggerClick(btn);
+    }
+    document.getElementById('btn-batch-auto-start')?.addEventListener('click', startAutoBatch);
+    document.getElementById('btn-batch-auto-stop')?.addEventListener('click', stopAutoBatch);
+    // Ouvir mudanças do input Intervalo AUTO (ms) e aplicar em tempo real
+    (function(){
+      const inp = document.querySelector('input[name="auto_batch_interval"]');
+      if (!inp) return;
+      function onChange(){
+        let v = Number(inp.value);
+        if (!isFinite(v) || v < 0 || String(inp.value).trim()===''){
+          // vazio/invalid: usar default do config
+          v = defaultAutoBatch;
+        }
+        applyAutoBatchInterval(v, true);
+      }
+      inp.addEventListener('change', onChange);
+      inp.addEventListener('input', function(){
+        // aplica com leve debounce para não reiniciar a cada tecla
+        if (window.__autoBatchDebounce) clearTimeout(window.__autoBatchDebounce);
+        window.__autoBatchDebounce = setTimeout(onChange, 300);
+      });
+    })();
+    // Preservar estado do AUTO-BATCH ao enviar filtros (auto_batch=1)
+    (function(){
+      const form = document.getElementById('assets-filter-form');
+      if (!form) return;
+      form.addEventListener('submit', function(){
+        try{
+          if (localStorage.getItem(AUTO_BATCH_KEY) === '1'){
+            let hp = form.querySelector('input[name="auto_batch"]');
+            if (!hp) {
+              hp = document.createElement('input');
+              hp.type = 'hidden';
+              hp.name = 'auto_batch';
+              form.appendChild(hp);
+            }
+            hp.value = '1';
+          }
+        }catch(e){/* noop */}
+      });
+    })();
+    // Restaurar AUTO-BATCH ao carregar a página
+    (function(){
+      try{
+        const url = new URL(window.location.href);
+        const autoParam = url.searchParams.get('auto_batch');
+        const should = (localStorage.getItem(AUTO_BATCH_KEY) === '1') || (autoParam === '1');
+        if (!should) return;
+        const kickoff = () => startAutoBatch();
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+          setTimeout(kickoff, 0);
+        } else {
+          window.addEventListener('DOMContentLoaded', kickoff);
+        }
+      }catch(_e){/* noop */}
+    })();
 
     // CHECK: modo automático sempre na primeira linha da tabela
     const AUTO_KEY = 'assets.autoPrev.enabled';

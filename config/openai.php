@@ -3,6 +3,12 @@
 return [
     // Limite máximo de registros ao usar modo "Listar tudo" em asset-stats (proteção memória)
     'asset_stats_max_all' => env('ASSET_STATS_MAX_ALL', 20000),
+    // Configurações da tela de ativos (records/assets)
+    'assets' => [
+        // Intervalo padrão (ms) para execução automática do "Consultar todos" (AUTO)
+        // Pode ser alterado via .env OPENAI_ASSETS_AUTO_BATCH_INTERVAL_MS
+        'auto_batch_interval_default_ms' => env('OPENAI_ASSETS_AUTO_BATCH_INTERVAL_MS', 120000), // 2 minutos
+    ],
     'chat' => [
         'search' => [
             // Habilitado por checkbox no formulário; isto define apenas o padrão se você quiser usar em outro lugar

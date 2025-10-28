@@ -191,9 +191,10 @@
                         <button type="button" id="btn-export-xlsx" class="btn btn-danger btn-sm" title="Exportar dados preparados em arquivo excel">Exportar dados preparados em arquivo excel</button>
                         <button type="button" id="btn-export-prepare-xlsx" class="btn btn-outline-danger btn-sm" title="Gerar arquivo para preparar lançamento (com checagem de duplicidade)">Preparar lançamentos</button>
                     </div>
-                    <div class="d-flex gap-2">
+                    <div class="d-flex gap-2 align-items-center">
                         <button type="button" id="btn-efetuar-lancamento" class="btn btn-outline-success btn-sm">Efetuar lançamento contábil</button>
                         <button type="button" id="btn-commit-lancamento" class="btn btn-success btn-sm" title="Consolidar no banco os lançamentos prontos" disabled>Consolidar no banco</button>
+                        <span id="process-timer" class="badge bg-secondary d-none" title="Tempo decorrido do processo" style="min-width:64px;">00:00</span>
                     </div>
                 </div>
             @endif
@@ -286,6 +287,42 @@ document.addEventListener('DOMContentLoaded', function(){
     var modalPronto = document.getElementById('modalLancamentoPronto');
     var msgPronto = document.getElementById('modalLancamentoProntoMsg');
     var btnCommit = document.getElementById('btn-commit-lancamento');
+    // Temporizador de processo (validação, simulação, commit)
+    var __procTimer = { id: null, start: 0 };
+    function __formatMs(ms){
+        if(!ms || ms<0) ms = 0;
+        var sec = Math.floor(ms/1000);
+        var m = Math.floor(sec/60);
+        var s = sec % 60;
+        return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    }
+    function __updateTimer(){
+        var el = document.getElementById('process-timer');
+        if(!el) return;
+        var delta = Date.now() - (__procTimer.start||Date.now());
+        el.textContent = __formatMs(delta);
+    }
+    window.startProcessTimer = function(){
+        try{
+            var el = document.getElementById('process-timer');
+            if(!el) return;
+            if(__procTimer.id){ clearInterval(__procTimer.id); __procTimer.id = null; }
+            __procTimer.start = Date.now();
+            el.classList.remove('d-none');
+            el.textContent = '00:00';
+            __procTimer.id = setInterval(__updateTimer, 500);
+        }catch(e){ console.warn('startProcessTimer error', e); }
+    };
+    window.stopProcessTimer = function(){
+        try{
+            var el = document.getElementById('process-timer');
+            if(!el) return;
+            if(__procTimer.id){ clearInterval(__procTimer.id); __procTimer.id = null; }
+            __updateTimer();
+            // Oculta após breve intervalo para permitir leitura do tempo final
+            setTimeout(function(){ el.classList.add('d-none'); }, 1200);
+        }catch(e){ console.warn('stopProcessTimer error', e); }
+    };
     if(btnEfetuar){
         btnEfetuar.addEventListener('click', function(){
             if(window.bootstrap && modalEfetuar){
@@ -305,6 +342,8 @@ document.addEventListener('DOMContentLoaded', function(){
                     var bsEfetuar = bootstrap.Modal.getInstance(modalEfetuar) || bootstrap.Modal.getOrCreateInstance(modalEfetuar);
                     // Fecha o modal de confirmação antes de validar/abrir o próximo
                     if(bsEfetuar){ bsEfetuar.hide(); }
+                    // Inicia temporizador para a etapa de validação
+                    if(window.startProcessTimer) window.startProcessTimer();
                     // Validação das linhas da tabela
                     var ok = true;
                     var erros = [];
@@ -617,6 +656,8 @@ document.addEventListener('DOMContentLoaded', function(){
                             msgPronto.innerHTML = '<div class="alert alert-danger mb-2">Existem linhas com dados obrigatórios ausentes:<ul><li>'+erros.join('</li><li>')+'</li></ul></div>' + avisoFim;
                             if(btnSimModal) btnSimModal.disabled = true;
                         }
+                        // Finaliza temporizador da etapa de validação
+                        if(window.stopProcessTimer) window.stopProcessTimer();
                         setTimeout(function(){ bsModalPronto.show(); try{ modalPronto.focus(); }catch(e){} }, 150);
                         // Se OK e usuário clicar em Sim, processa (dry-run) os lançamentos
                         if(ok && btnSimModal){
@@ -624,6 +665,8 @@ document.addEventListener('DOMContentLoaded', function(){
                                 try{
                                     // Evitar clique duplo
                                     btnSimModal.disabled = true;
+                                    // Inicia temporizador para a simulação (dry-run)
+                                    if(window.startProcessTimer) window.startProcessTimer();
                                     // Snapshot antes
                                     await (window.executarSnapshot ? window.executarSnapshot(false) : Promise.resolve());
                                     const tableEl = document.querySelector('table[data-cache-key]');
@@ -643,6 +686,7 @@ document.addEventListener('DOMContentLoaded', function(){
                                         document.body.appendChild(form);
                                         form.submit();
                                         btnSimModal.disabled = false;
+                                        if(window.stopProcessTimer) window.stopProcessTimer();
                                         return; // nova aba aberta
                                     }
                                     // Modo normal: usa fetch JSON e exibe resumo no modal
@@ -655,6 +699,7 @@ document.addEventListener('DOMContentLoaded', function(){
                                     if(!j.ok){
                                         msgPronto.innerHTML = '<div class="alert alert-danger">Falha ao processar (simulação): '+(j.message||'erro')+'</div>' + avisoFim;
                                         btnSimModal.disabled = false;
+                                        if(window.stopProcessTimer) window.stopProcessTimer();
                                         return;
                                     }
                                     const resumo = `
@@ -669,6 +714,7 @@ document.addEventListener('DOMContentLoaded', function(){
                                         </div>
                                     `;
                                     msgPronto.innerHTML = resumo + avisoFim;
+                                    if(window.stopProcessTimer) window.stopProcessTimer();
                                     // Preenche banner persistente abaixo do cabeçalho
                                     renderDryRunBanner(j);
                                     // Transformar botão "Sim" em "Fechar"
@@ -686,9 +732,11 @@ document.addEventListener('DOMContentLoaded', function(){
         const ck = window.cacheKey || tableEl?.dataset.cacheKey || '';
         if(!ck) return;
         // Confirmação
-        openConfirm('<strong>Consolidar lançamentos</strong>: os lançamentos prontos serão gravados no banco. Deseja continuar?', async ()=>{
+    openConfirm('<strong>Consolidar lançamentos</strong>: os lançamentos prontos serão gravados no banco. Deseja continuar?', async ()=>{
             try{
-                btnCommit.disabled = true; btnCommit.textContent = 'Consolidando...';
+        btnCommit.disabled = true; btnCommit.textContent = 'Consolidando...';
+        // Inicia temporizador para a consolidação
+        if(window.startProcessTimer) window.startProcessTimer();
                 // Snapshot antes
                 await (window.executarSnapshot ? window.executarSnapshot(false) : Promise.resolve());
                 const r = await fetch("{{ route('lancamentos.preview.despesas.commit') }}",{
@@ -697,14 +745,20 @@ document.addEventListener('DOMContentLoaded', function(){
                     body: JSON.stringify({cache_key: ck, ignore_existing: (document.getElementById('chk-hide-existing')?.checked ? true : (localStorage.getItem('preview_despesas_hide_existing')==='1'))})
                 });
                 const j = await r.json();
-                if(!j.ok){ alert('Falha ao consolidar: '+(j.message||'erro')); btnCommit.disabled=false; btnCommit.textContent='Consolidar no banco'; return; }
+                if(!j.ok){
+                    alert('Falha ao consolidar: '+(j.message||'erro'));
+                    if(window.stopProcessTimer) window.stopProcessTimer();
+                    btnCommit.disabled=false; btnCommit.textContent='Consolidar no banco';
+                    return;
+                }
                 // Feedback e atualizar banner
                 renderDryRunBanner({ ready_count: j.ready_count, skipped_count: 0, ready: [], skipped: [] });
                 const msg = `Consolidação concluída. Gravados: ${j.committed_count}.` + (j.skipped_existing_count? ` Ignorados por já existirem: ${j.skipped_existing_count}.`: '');
                 alert(msg);
                 btnCommit.textContent='Consolidar no banco';
                 btnCommit.disabled = false;
-            }catch(e){ console.error(e); alert('Erro inesperado na consolidação.'); btnCommit.disabled=false; btnCommit.textContent='Consolidar no banco'; }
+                if(window.stopProcessTimer) window.stopProcessTimer();
+            }catch(e){ console.error(e); alert('Erro inesperado na consolidação.'); if(window.stopProcessTimer) window.stopProcessTimer(); btnCommit.disabled=false; btnCommit.textContent='Consolidar no banco'; }
         });
     });
                                     function toCsvValue(v){
@@ -734,6 +788,7 @@ document.addEventListener('DOMContentLoaded', function(){
                                     console.error(e);
                                     msgPronto.innerHTML = '<div class="alert alert-danger">Erro inesperado na simulação.</div>' + avisoFim;
                                     btnSimModal.disabled = false;
+                                    if(window.stopProcessTimer) window.stopProcessTimer();
                                 }
                             };
                         }
