@@ -9,6 +9,17 @@
           <button type="button" id="btnAutoVarSeq" class="btn btn-sm btn-primary" title="Executa ativo por ativo: aplica Conversa, mantém datas exatas e salva a variação; segue até o próximo ativo">Auto variações (sequencial)</button>
           <button type="button" id="btnAutoVarStop" class="btn btn-sm btn-outline-danger" title="Parar execução sequencial" style="display:none;">Parar</button>
         </div>
+        @php $autoVarDefault = (int) config('openai.records.auto_var_seq_interval_default_ms', 120000); @endphp
+        <div class="d-flex align-items-end gap-2 flex-wrap">
+          <div class="d-flex flex-column" style="min-width:200px;">
+            <label class="form-label small mb-1" for="autoVarInterval">Intervalo AUTO (ms)</label>
+            <div class="input-group input-group-sm">
+              <input type="number" min="0" step="100" id="autoVarInterval" class="form-control" placeholder="ex: {{ $autoVarDefault }}">
+              <button type="button" id="autoVarReset" class="btn btn-outline-secondary" title="Limpa o valor salvo no navegador e usa o padrão do .env">Resetar</button>
+            </div>
+          </div>
+          <span id="auto-var-timer" class="badge bg-secondary d-none" title="Tempo até o próximo passo do AUTO (sequencial)" style="min-width:64px; align-self:center;">00:00</span>
+        </div>
       </div>
     <div class="d-flex align-items-center gap-2">
       <button type="button" id="btnSaveCurrentVariation" class="btn btn-warning" title="Salvar a variação da primeira linha (mais recente) da conversa atual, usando as datas e filtro exato">Salvar Variação (atual)</button>
@@ -233,6 +244,98 @@
       const btnStart = document.getElementById('btnAutoVarSeq');
       const btnStop = document.getElementById('btnAutoVarStop');
       const token = '{{ csrf_token() }}';
+      const defaultInterval = Number('{{ (int) config('openai.records.auto_var_seq_interval_default_ms', 120000) }}') || 120000;
+      let countdownClock = null; // setInterval id
+      let scheduleTimeout = null; // setTimeout id
+      let lastStartAt = 0; // timestamp do início da contagem
+      function getIntervalMs(){
+        const inp = document.getElementById('autoVarInterval');
+        let v = null;
+        // 1) Query param tem prioridade máxima
+        try {
+          const url = new URL(window.location.href);
+          const q = url.searchParams.get('auto_var_seq_interval');
+          if (q !== null && q !== '') {
+            const n = Number(q); if (isFinite(n) && n>=0) v = n;
+          }
+        } catch(_e){}
+        // 2) Valor digitado no campo (se houver)
+        if (v === null) {
+          if (inp){
+            const raw = String(inp.value||'').trim();
+            if (raw !== ''){
+              const n = Number(raw); if (isFinite(n) && n>=0) v = n;
+            }
+          }
+        }
+        // 3) Default do .env (Blade injeta em defaultInterval)
+        if (v === null) {
+          v = defaultInterval;
+        }
+        // 4) localStorage apenas se for menor que o default (preserva escolha mais agressiva do usuário)
+        try{
+          const ls = localStorage.getItem('records.autoVarSeq.intervalMs');
+          if (ls !== null && ls !== ''){
+            const n = Number(ls);
+            if (isFinite(n) && n>=0){
+              // Se usuário guardou um valor menor, usamos ele; se maior, mantemos o default/env.
+              v = Math.min(v, n);
+            }
+          }
+        }catch(_e){}
+        // Não sobrepor o placeholder aqui; deixamos o do servidor (env) prevalecer visualmente
+        return v;
+      }
+      function setIntervalMs(ms){ try{ localStorage.setItem('records.autoVarSeq.intervalMs', String(Math.max(0, Number(ms)||0))); }catch(_e){} }
+      function fmtMMSS(ms){ if(!isFinite(ms)||ms<0) ms=0; const t=Math.floor(ms/1000); const m=Math.floor(t/60); const s=t%60; return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); }
+      function updateTimer(){
+        const el = document.getElementById('auto-var-timer');
+        if(!el || !lastStartAt) return; const total = getIntervalMs(); const delta = Date.now()-lastStartAt; const rem = Math.max(0, total - delta); el.textContent = fmtMMSS(rem);
+      }
+      function stopCountdown(){ if(countdownClock){ clearInterval(countdownClock); countdownClock=null; } if(scheduleTimeout){ clearTimeout(scheduleTimeout); scheduleTimeout=null; } lastStartAt=0; const el=document.getElementById('auto-var-timer'); if(el){ el.classList.add('d-none'); el.textContent='00:00'; } }
+      function scheduleNext(chatId, from, to){
+        const ms = getIntervalMs(); setIntervalMs(ms);
+        const badge = document.getElementById('auto-var-timer'); if(badge){ badge.classList.remove('d-none'); }
+        stopCountdown(); // limpa qualquer anterior
+        lastStartAt = Date.now(); updateTimer(); countdownClock = setInterval(updateTimer, 500);
+        if(ms<=0){ submitFilterToChat(String(chatId), from, to); return; }
+        scheduleTimeout = setTimeout(()=> submitFilterToChat(String(chatId), from, to), ms);
+      }
+      // Hot-swap: mudar intervalo enquanto ativo
+      (function(){
+        const inp = document.getElementById('autoVarInterval');
+        const btnReset = document.getElementById('autoVarReset');
+        if(!inp) return;
+        function onChange(){
+          let v = Number(inp.value);
+          if(!isFinite(v)||v<0||String(inp.value).trim()===''){
+            v = defaultInterval;
+          }
+          setIntervalMs(v);
+          if(lastStartAt){ // se contagem ativa, reinicia com novo valor preservando estado
+            const s = loadState();
+            if(s.active && Array.isArray(s.queue) && s.index < s.queue.length){
+              const next = s.queue[s.index];
+              scheduleNext(next, s.params?.from||'', s.params?.to||'');
+            }
+          }
+        }
+        inp.addEventListener('change', onChange);
+        inp.addEventListener('input', ()=>{ if(window.__autoVarDeb) clearTimeout(window.__autoVarDeb); window.__autoVarDeb = setTimeout(onChange,300); });
+        // Reset: limpa LS e aplica default imediatamente
+        if (btnReset){
+          btnReset.addEventListener('click', ()=>{
+            try{ localStorage.removeItem('records.autoVarSeq.intervalMs'); }catch(_e){}
+            inp.value = '';
+            // Mantém placeholder do servidor (default from env)
+            const s = loadState();
+            if(s.active && Array.isArray(s.queue) && s.index < s.queue.length){
+              const next = s.queue[s.index];
+              scheduleNext(next, s.params?.from||'', s.params?.to||'');
+            }
+          });
+        }
+      })();
       function getQS(name){ const p=new URLSearchParams(location.search); return p.get(name); }
       function setVisible(el, on){ if(el){ el.style.display = on ? '' : 'none'; } }
       function currentParams(){
@@ -306,11 +409,13 @@
           state.active=false; saveState(state); setVisible(btnStop,false);
           if(btnStart){ btnStart.textContent = 'Auto variações (sequencial)'; btnStart.disabled=false; }
           alert(`Sequência concluída: ${state.ok||0} ok, ${state.err||0} erro(s), ${state.skip||0} sem dados.`);
+          stopCountdown();
           return;
         }
         const expectedChat = String(state.queue[idx]);
         const curChat = String(getQS('chat_id')||'');
         if(curChat !== expectedChat){
+          stopCountdown();
           submitFilterToChat(expectedChat, state.params?.from||'', state.params?.to||'');
           return; // após reload, voltamos aqui
         }
@@ -321,8 +426,8 @@
           state.skip = (state.skip||0)+1; state.index = idx+1; saveState(state);
           // vai para o próximo
           const next = state.queue[state.index];
-          if(next){ submitFilterToChat(String(next), state.params?.from||'', state.params?.to||''); }
-          else { runForCurrentPageThenNext(); }
+          if(next){ scheduleNext(next, state.params?.from||'', state.params?.to||''); }
+          else { stopCountdown(); runForCurrentPageThenNext(); }
           return;
         }
         // Extrai dados do botão
@@ -341,9 +446,9 @@
         // Próximo ativo
         const next = state.queue[state.index];
         if(next){
-          // pequena pausa para evitar estouro
-          setTimeout(()=> submitFilterToChat(String(next), state.params?.from||'', state.params?.to||''), 250);
+          scheduleNext(next, state.params?.from||'', state.params?.to||'');
         } else {
+          stopCountdown();
           runForCurrentPageThenNext();
         }
       }
@@ -368,7 +473,7 @@
         // Vai para o primeiro
         submitFilterToChat(String(queue[0]), from, to);
       }
-      function stopSequence(){ const s = loadState(); s.active=false; saveState(s); setVisible(btnStop,false); if(btnStart){ btnStart.disabled=false; btnStart.textContent='Auto variações (sequencial)'; } }
+  function stopSequence(){ const s = loadState(); s.active=false; saveState(s); setVisible(btnStop,false); if(btnStart){ btnStart.disabled=false; btnStart.textContent='Auto variações (sequencial)'; } stopCountdown(); }
       btnStart?.addEventListener('click', startSequence);
       btnStop?.addEventListener('click', stopSequence);
       // Ao carregar a página, se estiver ativo, continua

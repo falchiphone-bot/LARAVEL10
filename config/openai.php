@@ -9,6 +9,12 @@ return [
         // Pode ser alterado via .env OPENAI_ASSETS_AUTO_BATCH_INTERVAL_MS
         'auto_batch_interval_default_ms' => env('OPENAI_ASSETS_AUTO_BATCH_INTERVAL_MS', 120000), // 2 minutos
     ],
+    // Configurações específicas da tela de registros (openai/records)
+    'records' => [
+        // Intervalo padrão (ms) entre passos do modo "Auto variações (sequencial)"
+        // Pode ser alterado via .env OPENAI_RECORDS_AUTO_SEQ_INTERVAL_MS
+        'auto_var_seq_interval_default_ms' => env('OPENAI_RECORDS_AUTO_SEQ_INTERVAL_MS', 120000),
+    ],
     'chat' => [
         'search' => [
             // Habilitado por checkbox no formulário; isto define apenas o padrão se você quiser usar em outro lugar
