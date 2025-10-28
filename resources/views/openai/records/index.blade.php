@@ -29,6 +29,7 @@
           </div>
           <span id="auto-var-timer" class="badge bg-secondary d-none" title="Tempo até o próximo passo do AUTO (sequencial)" style="min-width:64px; align-self:center;">00:00</span>
           <span id="auto-var-loop" class="badge bg-dark d-none" title="Temporizador regressivo (loop) — reinicia automaticamente enquanto o AUTO estiver ativo" style="min-width:64px; align-self:center;">00:01</span>
+          <span id="auto-window-indicator" class="badge bg-info text-dark" title="Janela do AUTO" style="align-self:center;">⏰ 10:30–17:00</span>
           <span id="scroll-lock-indicator" class="badge bg-secondary d-none" title="Rolagem bloqueada enquanto o AUTO estiver ativo" style="align-self:center;">🔒 Sem rolagem</span>
         </div>
       </div>
@@ -57,6 +58,9 @@
     </div>
     </div>
   </div>
+
+    <div id="records-config" class="d-none"
+      data-api-status="{{ route('api.market.status') }}"></div>
 
   @if(session('success'))
     <div class="alert alert-success py-2">{{ session('success') }}</div>
@@ -266,6 +270,37 @@
   const LS_LOOP_START_AT = 'records.autoVarSeq.loopStartAt';
       const LS_COMPACT_KEY = 'openai_records_layout_compact';
       const LS_AUTO_PREV_COMPACT = 'openai.records.auto.prevCompact';
+      // Gating: dias úteis sem feriado (NYSE) e janela local 10:30–17:00
+      const recordsCfgEl = document.getElementById('records-config');
+      const endpointStatus = recordsCfgEl?.dataset?.apiStatus || '';
+      async function fetchMarketStatus(){
+        try{
+          if(!endpointStatus) return;
+          const resp = await fetch(endpointStatus, { headers: { 'Accept':'application/json' } });
+          const data = await resp.json().catch(()=>null);
+          if(!resp.ok || !data) return;
+          const st = String(data.status||'').toLowerCase();
+          const label = String(data.label||'Mercado');
+          try{ window.__nyseStatus = { status: st, label, reason: String(data.reason||''), isHoliday: /holiday|feriado/i.test(String(data.reason||'')) }; }catch(_e){}
+        }catch(_e){}
+      }
+      function isWithinAutoWindow(){
+        try { const now = new Date(); const m = now.getHours()*60 + now.getMinutes(); return m >= (10*60+30) && m < (17*60); } catch(_e){ return true; }
+      }
+      function isTradingDay(){
+        try{ const d=new Date().getDay(); if(d===0||d===6) return false; return !(window.__nyseStatus && window.__nyseStatus.isHoliday); }catch(_e){ return true; }
+      }
+      function isAutoAllowed(){ return isWithinAutoWindow() && isTradingDay(); }
+      function updateAutoWindowBadge(){
+        const b = document.getElementById('auto-window-indicator');
+        if(!b) return;
+        const ok = isAutoAllowed();
+        b.className = 'badge ' + (ok ? 'bg-info text-dark' : 'bg-warning text-dark');
+        const isHol = !!(window.__nyseStatus && window.__nyseStatus.isHoliday);
+        const day = new Date().getDay(); const weekend = (day===0 || day===6);
+        b.textContent = ok ? '⏰ 10:30–17:00' : (isHol ? '⛔ Feriado (NYSE)' : (weekend ? '⛔ Fim de semana' : '⏰ Fora do horário'));
+        b.title = ok ? 'AUTO permitido agora' : 'AUTO permitido apenas em dias úteis sem feriado, entre 10:30 e 17:00 (horário local)';
+      }
       // Bloqueio total de rolagem enquanto o AUTO estiver ativo
       let _scrollPrevX = 0, _scrollPrevY = 0;
       let _wheelHandler = null, _touchHandler = null, _keysHandler = null, _forceTopHandler = null;
@@ -642,6 +677,11 @@
         }
       }
       function startSequence(){
+        updateAutoWindowBadge();
+        if(!isAutoAllowed()){
+          alert('AUTO permitido apenas em dias úteis sem feriado, entre 10:30 e 17:00 (horário local).');
+          return;
+        }
         const {from,to} = currentParams();
         if(!from || !to){ alert('Informe as datas De e Até antes de iniciar a execução sequencial.'); return; }
         // Prioriza ordem do select (como o usuário faria), senão cai na tabela
@@ -672,9 +712,24 @@
       btnStart?.addEventListener('click', startSequence);
       btnStop?.addEventListener('click', stopSequence);
       // Ao carregar a página, se estiver ativo, continua
-      document.addEventListener('DOMContentLoaded', ()=>{
+      document.addEventListener('DOMContentLoaded', async ()=>{
         const s = loadState();
-  if(s.active){ setVisible(btnStop,true); if(btnStart){ btnStart.disabled=true; btnStart.textContent='Rodando…'; } startLoopTimer(true); rememberAndApplyCompact(); lockScrollTop(); runForCurrentPageThenNext(); }
+        await fetchMarketStatus();
+        updateAutoWindowBadge();
+        if(s.active){
+          if(!isAutoAllowed()){
+            // Fora da janela/dia não útil: não retoma automaticamente
+            if(btnStart){ btnStart.disabled=false; btnStart.textContent='Auto variações (sequencial)'; }
+            setVisible(btnStop,false);
+          } else {
+            setVisible(btnStop,true);
+            if(btnStart){ btnStart.disabled=true; btnStart.textContent='Rodando…'; }
+            startLoopTimer(true); rememberAndApplyCompact(); lockScrollTop(); runForCurrentPageThenNext();
+          }
+        }
+        // Atualiza o badge periodicamente e revalida status do mercado
+        try{ setInterval(updateAutoWindowBadge, 60*1000); }catch(_e){}
+        try{ setInterval(fetchMarketStatus, 5*60*1000); }catch(_e){}
       });
     })();
   </script>

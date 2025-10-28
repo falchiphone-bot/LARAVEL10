@@ -1,10 +1,12 @@
 @extends('layouts.bootstrap5')
 @section('content')
 {{-- <div class="container py-4"> --}}
+  <div id="assets-toolbar" class="sticky-top bg-white py-2" style="z-index: 1030; border-bottom: 1px dashed rgba(0,0,0,.1);">
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <h1 class="h5 mb-0 d-flex align-items-center gap-2">
       Ativos (sem repetição)
       <span id="market-status-badge" class="badge bg-secondary" title="Status do mercado (NYSE)">Mercado: carregando…</span>
+      <span id="assets-auto-window" class="badge bg-info text-dark" title="Janela do AUTO">⏰ 10:30–17:00</span>
     </h1>
     <div class="d-flex gap-2">
           <a href="{{ route('openai.records.index') }}" class="btn btn-outline-secondary">← Registros</a>
@@ -15,6 +17,7 @@
   <button type="button" id="toggle-stats-base" class="btn btn-outline-secondary" title="Mostrar/ocultar estatísticas base (≤Base)">Stats Base: <span data-state>OFF</span></button>
           <button type="button" id="btn-toggle-openai-assets-layout" class="btn btn-outline-dark btn-sm" title="Alterna exibição compacta (oculta filtros e cabeçalho)">Modo Compacto</button>
     </div>
+  </div>
   </div>
   <div class="card shadow-sm mb-3">
     <div class="card-body">
@@ -737,8 +740,8 @@
       }
       apply();
     })();
-    // Mercado: buscar status atual (NYSE) e pintar badge
-    (async function(){
+    // Mercado: buscar status atual (NYSE) e pintar badge; expõe para gating (fim de semana/feriado)
+    async function fetchAndPaintMarketStatus(){
       try{
         const badge = document.getElementById('market-status-badge');
         if(!badge) return;
@@ -757,11 +760,23 @@
         badge.className = 'badge ' + cls;
         badge.textContent = `Mercado: ${label}` + next;
         if (data.reason){ badge.title = `${label} — ${data.reason}`; }
+        // expõe global para verificação de feriado
+        try {
+          window.__nyseStatus = {
+            status: st,
+            label: label,
+            reason: String(data.reason||''),
+            isHoliday: /holiday|feriado/i.test(String(data.reason||''))
+          };
+        } catch(_e){}
+        try { if (typeof updateWindowBadge === 'function') updateWindowBadge(); } catch(_e){}
       }catch(_e){
         const badge = document.getElementById('market-status-badge');
         if (badge){ badge.className='badge bg-secondary'; badge.textContent='Mercado: indisponível'; }
       }
-    })();
+    }
+    (async function(){ await fetchAndPaintMarketStatus(); })();
+    try{ setInterval(fetchAndPaintMarketStatus, 5*60*1000); }catch(_e){}
     // Botão: Ver limites (snapshot de uso e limites)
     document.getElementById('btn-usage')?.addEventListener('click', async function(){
       const btn = this;
@@ -1157,6 +1172,30 @@
       const el = document.getElementById('batch-auto-status');
       if (el) el.textContent = typeof msg === 'string' ? msg : '';
     }
+    // Janela local 10:30–17:00 + dias úteis sem feriado (NYSE)
+    function isWithinAutoWindow(){
+      try{ const now=new Date(); const m=now.getHours()*60+now.getMinutes(); return m>=(10*60+30) && m<(17*60); }catch(_e){ return true; }
+    }
+    function isTradingDay(){
+      try{
+        const d = new Date().getDay(); // 0 dom, 6 sáb
+        if (d===0 || d===6) return false;
+        const isHol = !!(window.__nyseStatus && window.__nyseStatus.isHoliday);
+        if (isHol) return false;
+        return true;
+      }catch(_e){ return true; }
+    }
+    function isAutoAllowed(){ return isWithinAutoWindow() && isTradingDay(); }
+    function updateWindowBadge(){
+      const b = document.getElementById('assets-auto-window'); if(!b) return;
+      const ok=isAutoAllowed();
+      b.className = 'badge ' + (ok ? 'bg-info text-dark' : 'bg-warning text-dark');
+      const isHol = !!(window.__nyseStatus && window.__nyseStatus.isHoliday);
+      const day = new Date().getDay();
+      const weekend = (day===0 || day===6);
+      b.textContent = ok ? '⏰ 10:30–17:00' : (isHol ? '⛔ Feriado (NYSE)' : (weekend ? '⛔ Fim de semana' : '⏰ Fora do horário'));
+      b.title = ok ? 'AUTO permitido agora' : 'AUTO permitido apenas em dias úteis sem feriado, entre 10:30 e 17:00 (horário local)';
+    }
     function formatMMSS(ms){
       if (!isFinite(ms) || ms < 0) ms = 0;
       const total = Math.floor(ms/1000);
@@ -1173,6 +1212,11 @@
       el.textContent = formatMMSS(remain);
     }
     function startAutoBatch(){
+      updateWindowBadge();
+      if(!isAutoAllowed()){
+        alert('AUTO (Consultar) permitido apenas em dias úteis sem feriado, entre 10:30 e 17:00 (horário local).');
+        return;
+      }
       localStorage.setItem(AUTO_BATCH_KEY, '1');
       document.getElementById('btn-batch-auto-start')?.classList.add('d-none');
       const stopBtn = document.getElementById('btn-batch-auto-stop');
@@ -1233,7 +1277,7 @@
       autoBatchLastStartAt = Date.now();
       triggerClick(btn);
     }
-    document.getElementById('btn-batch-auto-start')?.addEventListener('click', startAutoBatch);
+  document.getElementById('btn-batch-auto-start')?.addEventListener('click', startAutoBatch);
     document.getElementById('btn-batch-auto-stop')?.addEventListener('click', stopAutoBatch);
     // Persistência de prioridades: preencher inputs e salvar alterações
     (function(){
@@ -1300,7 +1344,7 @@
         const autoParam = url.searchParams.get('auto_batch');
         const should = (localStorage.getItem(AUTO_BATCH_KEY) === '1') || (autoParam === '1');
         if (!should) return;
-        const kickoff = () => startAutoBatch();
+  const kickoff = async () => { try{ await fetchAndPaintMarketStatus(); }catch(_e){}; if(isAutoAllowed()) startAutoBatch(); else updateWindowBadge(); };
         if (document.readyState === 'complete' || document.readyState === 'interactive') {
           setTimeout(kickoff, 0);
         } else {
@@ -1348,6 +1392,11 @@
   triggerClick(btn);
     }
     function startAutoPrev(){
+      updateWindowBadge();
+      if(!isAutoAllowed()){
+        alert('CHECK automático permitido apenas em dias úteis sem feriado, entre 10:30 e 17:00 (horário local).');
+        return;
+      }
       autoAbort = false;
       window.__autoPrevActive = true;
       window.__autoPrevBusy = false;
@@ -1382,7 +1431,7 @@
         const autoParam = url.searchParams.get('auto_prev');
         const shouldAuto = (localStorage.getItem(AUTO_KEY) === '1') || (autoParam === '1');
         if (!shouldAuto) return;
-        const kickoff = () => startAutoPrev();
+  const kickoff = async () => { try{ await fetchAndPaintMarketStatus(); }catch(_e){}; if(isAutoAllowed()) startAutoPrev(); else updateWindowBadge(); };
         if (document.readyState === 'complete' || document.readyState === 'interactive') {
           setTimeout(kickoff, 0);
         } else {
@@ -1390,6 +1439,8 @@
         }
       }catch(_e){/* noop */}
     })();
+    // Atualiza o badge da janela a cada minuto
+    try{ updateWindowBadge(); setInterval(updateWindowBadge, 60*1000); }catch(_e){}
 
     // Buscar cotação histórica usando exatamente a data indicada no botão (texto Base anterior)
     document.addEventListener('click', async function(ev){
