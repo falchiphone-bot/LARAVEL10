@@ -731,6 +731,143 @@ class InvestmentAccountCashEventController extends Controller
     }
 
     /**
+     * Persiste as alocações LIFO (compra→venda) enviadas pelo front-end.
+     * Espera payload JSON:
+     *  {
+     *    matches: [ { buy_event_id: number, sell_event_id: number, qty: number }, ... ]
+     *  }
+     */
+    public function saveLifoMatches(Request $request)
+    {
+        $userId = (int) Auth::id();
+        $data = $request->validate([
+            'matches' => 'required|array|min:1',
+            'matches.*.buy_event_id' => 'required|integer|min:1',
+            'matches.*.sell_event_id' => 'required|integer|min:1|different:matches.*.buy_event_id',
+            'matches.*.qty' => 'required|numeric|min:0.000001',
+        ]);
+
+        $matches = $data['matches'] ?? [];
+        if (empty($matches)) {
+            return response()->json(['saved' => 0, 'message' => 'Nada a salvar'], 200);
+        }
+
+        // Carrega todos IDs envolvidos e valida a titularidade (multi-tenant)
+        $buyIds = array_map(fn($m) => (int) $m['buy_event_id'], $matches);
+        $sellIds = array_map(fn($m) => (int) $m['sell_event_id'], $matches);
+        $allIds = array_unique(array_merge($buyIds, $sellIds));
+        $owned = InvestmentAccountCashEvent::where('user_id', $userId)
+            ->whereIn('id', $allIds)
+            ->pluck('id')->all();
+        $ownedSet = array_fill_keys($owned, true);
+
+        $rows = [];
+        foreach ($matches as $m) {
+            $b = (int) $m['buy_event_id'];
+            $s = (int) $m['sell_event_id'];
+            $q = (float) $m['qty'];
+            if ($q <= 0) { continue; }
+            if (!isset($ownedSet[$b]) || !isset($ownedSet[$s])) { continue; }
+            $rows[] = [
+                'user_id' => $userId,
+                'buy_event_id' => $b,
+                'sell_event_id' => $s,
+                'qty' => $q,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+
+        if (empty($rows)) {
+            return response()->json(['saved' => 0, 'message' => 'Nenhuma alocação válida (verifique titularidade/quantidade).'], 422);
+        }
+
+        // Upsert por (user_id, buy_event_id, sell_event_id)
+        try {
+            DB::table('investment_account_cash_matches')->upsert(
+                $rows,
+                ['user_id', 'buy_event_id', 'sell_event_id'],
+                ['qty', 'updated_at']
+            );
+        } catch (\Throwable $e) {
+            return response()->json(['saved' => 0, 'message' => 'Falha ao salvar alocações.'], 500);
+        }
+
+        return response()->json(['saved' => count($rows)]);
+    }
+
+    /**
+     * Limpa alocações para uma venda específica do usuário autenticado.
+     */
+    public function clearAllocationsForSell(Request $request, int $sellId)
+    {
+        $userId = (int) Auth::id();
+        // Verifica se a venda pertence ao usuário
+        $sell = InvestmentAccountCashEvent::where('user_id', $userId)->where('id', $sellId)->first();
+        if (!$sell) {
+            return redirect()->back()->with('error', 'Venda não encontrada ou não pertence a este usuário.');
+        }
+        $deleted = 0;
+        DB::transaction(function() use ($userId, $sellId, &$deleted){
+            $deleted = DB::table('investment_account_cash_matches')
+                ->where('user_id', $userId)
+                ->where('sell_event_id', $sellId)
+                ->delete();
+        });
+        return redirect()->back()->with('success', "Alocações removidas para a venda #{$sellId}: {$deleted} registro(s).");
+    }
+
+    /**
+     * Limpa alocações por filtros (período por data da venda e/ou símbolo encontrado no texto da venda).
+     * Filtros aceitos: from, to, symbol
+     */
+    public function clearAllocations(Request $request)
+    {
+        $userId = (int) Auth::id();
+        $from = $request->input('from');
+        $to = $request->input('to');
+        $symbol = trim((string) $request->input('symbol'));
+
+        // Seleciona IDs de vendas do usuário, opcionalmente filtrando por período e termo de símbolo (em título/detalhe)
+        $sellQuery = InvestmentAccountCashEvent::where('user_id', $userId)
+            ->where(function($w){
+                // Heurística para vendas
+                $w->where('category','LIKE','%venda%')
+                  ->orWhere('title','LIKE','%venda%')
+                  ->orWhere('title','LIKE','%SELL%')
+                  ->orWhere('detail','LIKE','%venda%')
+                  ->orWhere('detail','LIKE','%SELL%');
+            });
+        if ($from) { $sellQuery->whereDate('event_date', '>=', $from); }
+        if ($to) { $sellQuery->whereDate('event_date', '<=', $to); }
+        if ($symbol !== '') {
+            $symUp = strtoupper($symbol);
+            $sellQuery->where(function($w) use ($symUp){
+                $w->whereRaw('UPPER(COALESCE(title,\'\')) LIKE ?', ["%{$symUp}%"]) 
+                  ->orWhereRaw('UPPER(COALESCE(detail,\'\')) LIKE ?', ["%{$symUp}%"]);
+            });
+        }
+        $sellIds = $sellQuery->pluck('id')->all();
+
+        if (empty($sellIds)) {
+            return redirect()->back()->with('info', 'Nenhuma venda encontrada para os filtros informados.');
+        }
+
+        $deleted = 0;
+        DB::transaction(function() use ($userId, $sellIds, &$deleted){
+            $deleted = DB::table('investment_account_cash_matches')
+                ->where('user_id', $userId)
+                ->whereIn('sell_event_id', $sellIds)
+                ->delete();
+        });
+
+        $msg = $deleted > 0
+            ? "Alocações removidas por filtro: {$deleted} registro(s)."
+            : 'Nenhuma alocação para remover com os filtros.';
+        return redirect()->back()->with('success', $msg);
+    }
+
+    /**
      * Resumo por Ativo: SALDO (quantidade) e SALDO MÉDIO (preço médio) considerando eventos filtrados.
      * Regras:
      * - Identifica compras e vendas parsing o título/detalhe: exemplos pt/inglês
@@ -996,6 +1133,142 @@ class InvestmentAccountCashEventController extends Controller
             'positionsApi' => array_values($positionsApi),
             'variationTotalsDb' => $variationTotalsDb,
             'variationTotalsApi' => $variationTotalsApi,
+        ]);
+    }
+
+    /**
+     * Auditoria de alocações LIFO: lista, por venda, as compras e quantidades alocadas.
+     */
+    public function allocationsIndex(Request $request)
+    {
+        $userId = (int) Auth::id();
+        $from = $request->input('from');
+        $to = $request->input('to');
+        $symbol = trim((string) $request->input('symbol'));
+
+        // Base: matches do usuário com join nas duas pontas (buy/sell)
+        $q = DB::table('investment_account_cash_matches as m')
+            ->join('investment_account_cash_events as s', function($j){ $j->on('s.id','=','m.sell_event_id'); })
+            ->join('investment_account_cash_events as b', function($j){ $j->on('b.id','=','m.buy_event_id'); })
+            ->where('m.user_id', $userId)
+            ->where('s.user_id', $userId)
+            ->where('b.user_id', $userId)
+            ->select([
+                'm.qty',
+                'm.sell_event_id', 'm.buy_event_id',
+                's.event_date as sell_event_date', 's.settlement_date as sell_settlement_date', 's.title as sell_title', 's.detail as sell_detail', 's.amount as sell_amount', 's.account_id as sell_account_id',
+                'b.event_date as buy_event_date', 'b.settlement_date as buy_settlement_date', 'b.title as buy_title', 'b.detail as buy_detail', 'b.amount as buy_amount', 'b.account_id as buy_account_id',
+            ]);
+
+        if ($from) { $q->whereDate('s.event_date','>=',$from); }
+        if ($to) { $q->whereDate('s.event_date','<=',$to); }
+        if ($symbol !== '') {
+            $symUp = strtoupper($symbol);
+            $q->where(function($w) use ($symUp){
+                $w->whereRaw("UPPER(COALESCE(s.title,'') ) LIKE ?", ["%{$symUp}%"]) 
+                  ->orWhereRaw("UPPER(COALESCE(s.detail,'') ) LIKE ?", ["%{$symUp}%"]);
+            });
+        }
+
+        $rows = $q->orderBy('s.event_date','desc')->orderBy('m.sell_event_id','desc')->orderBy('b.event_date','desc')->get();
+
+        // Parser simples para extrair símbolo e quantidade do texto (mesmos padrões usados nas demais telas)
+        $parse = function($title, $detail){
+            $txt = trim((string)($title ?: ''));
+            if($detail){ $txt .= ' '.trim((string)$detail); }
+            $t = mb_strtoupper($txt,'UTF-8');
+            $norm = preg_replace('/\s+/', ' ', $t);
+            if(preg_match('/\b(COMPRA|VENDA)\b\s+DE\s+(\d+[\.,]?\d*)\s+([A-Z0-9\.-:_]+)\s+A\s*\$\s*(\d+[\.,]?\d*)/u', $norm, $m)){
+                $type = ($m[1]==='COMPRA')?'buy':'sell';
+                $qty = (float)str_replace(',','.', str_replace('.','', $m[2]));
+                $sym = trim($m[3]);
+                $unit = (float)str_replace(',','.', str_replace('.','', $m[4]));
+                return compact('type','sym') + ['qty'=>$qty,'unit'=>$unit];
+            }
+            if(preg_match('/\b(BUY|SELL)\b\s+(\d+[\.,]?\d*)\s+([A-Z0-9\.-:_]+)\s+(@|AT)\s*\$?\s*(\d+[\.,]?\d*)/u', $norm, $m)){
+                $type = ($m[1]==='BUY')?'buy':'sell';
+                $qty = (float)str_replace(',','.', str_replace('.','', $m[2]));
+                $sym = trim($m[3]);
+                $unit = (float)str_replace(',','.', str_replace('.','', $m[5]));
+                return compact('type','sym') + ['qty'=>$qty,'unit'=>$unit];
+            }
+            return null;
+        };
+
+        // Agrupa por venda
+        $groups = [];
+        foreach ($rows as $r) {
+            $sid = (int) $r->sell_event_id;
+            if (!isset($groups[$sid])) {
+                $ps = $parse($r->sell_title, $r->sell_detail) ?: [];
+                $sellSym = strtoupper(trim((string)($ps['sym'] ?? '')));
+                $sellQtyParsed = is_numeric($ps['qty'] ?? null) ? (float)$ps['qty'] : null;
+                $groups[$sid] = [
+                    'sell_event_id' => $sid,
+                    'sell_event_date' => $r->sell_event_date,
+                    'sell_settlement_date' => $r->sell_settlement_date,
+                    'sell_title' => $r->sell_title,
+                    'sell_detail' => $r->sell_detail,
+                    'sell_amount' => (float)$r->sell_amount,
+                    'sell_account_id' => (int)($r->sell_account_id ?? 0),
+                    'symbol' => $sellSym ?: null,
+                    'sell_qty_parsed' => $sellQtyParsed,
+                    'allocations' => [],
+                    'sum_alloc_qty' => 0.0,
+                ];
+            }
+            $groups[$sid]['allocations'][] = [
+                'buy_event_id' => (int)$r->buy_event_id,
+                'qty' => (float)$r->qty,
+                'buy_event_date' => $r->buy_event_date,
+                'buy_settlement_date' => $r->buy_settlement_date,
+                'buy_title' => $r->buy_title,
+                'buy_detail' => $r->buy_detail,
+                'buy_amount' => (float)$r->buy_amount,
+                'buy_account_id' => (int)($r->buy_account_id ?? 0),
+            ];
+            $groups[$sid]['sum_alloc_qty'] += (float)$r->qty;
+        }
+
+        // Filtro por símbolo (se informado) - redundante para garantir coesão quando o BD não aplicar LIKE como esperado
+        if ($symbol !== '') {
+            $symbolUp = strtoupper($symbol);
+            $groups = array_filter($groups, function($g) use ($symbolUp, $parse){
+                if (!empty($g['symbol'])) return str_contains($g['symbol'], $symbolUp);
+                // fallback: tenta pelo título/detalhe
+                $ps = $parse($g['sell_title'] ?? '', $g['sell_detail'] ?? '') ?: [];
+                $sym = strtoupper(trim((string)($ps['sym'] ?? '')));
+                return $sym !== '' ? str_contains($sym, $symbolUp) : false;
+            });
+        }
+
+        // Ordena por data desc / id desc
+        usort($groups, function($a,$b){
+            $da = $a['sell_event_date']; $db = $b['sell_event_date'];
+            if ($da == $db) return $b['sell_event_id'] <=> $a['sell_event_id'];
+            if ($da === null) return 1; if ($db === null) return -1;
+            return strcmp($db, $da);
+        });
+
+        // Carregar nomes de contas para exibição
+        $accountIds = [];
+        foreach ($groups as $g){
+            if (!empty($g['sell_account_id'])) $accountIds[$g['sell_account_id']] = true;
+            foreach ($g['allocations'] as $al){ if (!empty($al['buy_account_id'])) $accountIds[$al['buy_account_id']] = true; }
+        }
+        $accNames = [];
+        if (!empty($accountIds)) {
+            $ids = array_keys($accountIds);
+            $accRows = InvestmentAccount::where('user_id',$userId)->whereIn('id',$ids)->get(['id','account_name','broker']);
+            foreach ($accRows as $ar){ $accNames[(int)$ar->id] = trim($ar->account_name.' '.($ar->broker?('('.$ar->broker.')'):'') ); }
+        }
+
+        return view('portfolio.cash_allocations_index', [
+            'groups' => $groups,
+            'accNames' => $accNames,
+            'filter_from' => $from,
+            'filter_to' => $to,
+            'filter_symbol' => $symbol,
         ]);
     }
 }

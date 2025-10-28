@@ -130,6 +130,25 @@ Route::post('/openai/portfolio/cash/events/update-inline', [\App\Http\Controller
     ->middleware(['auth','verified','can:CASH EVENTS - LISTAR'])
     ->name('cash.events.update.inline');
 
+// Persistência de alocações LIFO (seleção)
+Route::post('/openai/portfolio/cash/events/save-lifo-matches', [\App\Http\Controllers\InvestmentAccountCashEventController::class,'saveLifoMatches'])
+    ->middleware(['auth','verified','can:CASH EVENTS - LISTAR'])
+    ->name('cash.events.saveLifoMatches');
+
+// Auditoria de alocações (por venda)
+Route::get('/openai/portfolio/cash/allocations', [\App\Http\Controllers\InvestmentAccountCashEventController::class,'allocationsIndex'])
+    ->middleware(['auth','verified','can:CASH EVENTS - LISTAR'])
+    ->name('cash.allocations.index');
+// Limpeza de alocações: por venda específica
+Route::post('/openai/portfolio/cash/allocations/{sell}/clear', [\App\Http\Controllers\InvestmentAccountCashEventController::class,'clearAllocationsForSell'])
+    ->whereNumber('sell')
+    ->middleware(['auth','verified','can:CASH EVENTS - LISTAR'])
+    ->name('cash.allocations.clearSell');
+// Limpeza de alocações por filtros (período/símbolo)
+Route::post('/openai/portfolio/cash/allocations/clear', [\App\Http\Controllers\InvestmentAccountCashEventController::class,'clearAllocations'])
+    ->middleware(['auth','verified','can:CASH EVENTS - LISTAR'])
+    ->name('cash.allocations.clear');
+
 // Excluir um evento de caixa individual do usuário atual
 Route::delete('/openai/portfolio/cash/events/{event}', [\App\Http\Controllers\InvestmentAccountCashEventController::class,'destroy'])
     ->whereNumber('event')

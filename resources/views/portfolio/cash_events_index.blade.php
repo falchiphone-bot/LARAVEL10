@@ -148,6 +148,7 @@
           @endif
           <a href="{{ route('cash.positions.summary', request()->query()) }}#gsc.tab=0" class="btn btn-sm btn-outline-success" title="Ver resumo por ativo (saldo e preço médio)">Resumo por Ativo</a>
           <a href="{{ route('openai.portfolio.index') }}#gsc.tab=0" class="btn btn-sm btn-outline-secondary" title="Ver carteira (posições)">Carteira</a>
+          <a href="{{ route('cash.allocations.index', array_filter(['from'=>$filter_from,'to'=>$filter_to,'symbol'=>$filter_title])) }}#gsc.tab=0" class="btn btn-sm btn-outline-dark" title="Ver auditoria de alocações (por venda)">Auditar alocações</a>
           <a href="{{ route('cash.events.export.csv', request()->query()) }}" class="btn btn-sm btn-outline-info" title="Exportar eventos filtrados em CSV">Exportar CSV</a>
           @can('CASH EVENTS - IMPORTAR')
           <a href="{{ route('cash.import.form') }}#gsc.tab=0" class="btn btn-sm btn-outline-primary" title="Importar novo bloco de caixa">Importar Caixa</a>
@@ -189,6 +190,7 @@
         <button type="button" id="selMarkAll" class="btn btn-sm btn-outline-primary" title="Marcar todos da página">Marcar todos</button>
         <button type="button" id="selUnmarkAll" class="btn btn-sm btn-outline-secondary" title="Desmarcar todos da página">Desmarcar</button>
         <button type="button" id="selExportCsv" class="btn btn-sm btn-outline-info" title="Exportar Resumo (CSV)">Exportar CSV</button>
+        <button type="button" id="selPersistLifo" class="btn btn-sm btn-success" title="Salvar alocações LIFO (Seleção)">Salvar alocações</button>
       </div>
     </div>
     <div class="table-responsive">
@@ -507,6 +509,7 @@
             <td class="text-center align-middle">
     <input type="checkbox"
       class="form-check-input form-check-input-sm evt-mark"
+      data-id="{{ $e->id }}"
       data-title="{{ e($e->title) }}"
       data-detail="{{ e($e->detail) }}"
       data-category="{{ e($e->category) }}"
@@ -661,6 +664,9 @@
 </div>
 <script>
 document.addEventListener('DOMContentLoaded', function(){
+  // URL para salvar alocações LIFO + CSRF
+  window.SAVE_LIFO_URL = "{{ route('cash.events.saveLifoMatches') }}";
+  window.csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || "{{ csrf_token() }}";
   // Utilitário: formata data/hora para pt-BR (dd/mm/aaaa hh:mm:ss), assumindo UTC quando string vier como 'YYYY-MM-DD HH:MM:SS'
   function formatPtBrDatetime(s){
     if (!s || typeof s !== 'string') return '';
@@ -1148,6 +1154,58 @@ document.addEventListener('DOMContentLoaded', function(){
   }); }
   if (selUnmarkAll){ selUnmarkAll.addEventListener('click', function(){ document.querySelectorAll('input.evt-mark').forEach(cb=> cb.checked = false); rebuildSelectionSummary(); }); }
   const selExportCsv = document.getElementById('selExportCsv');
+  const selPersistLifo = document.getElementById('selPersistLifo');
+  if (selPersistLifo){
+    selPersistLifo.addEventListener('click', async function(){
+      try{
+        const idx = buildEventIndexBySymbol();
+        const matches = [];
+        Object.keys(idx).forEach(sym => {
+          const s = idx[sym];
+          if (!s) return;
+          // Buys com quantidade remanescente (LIFO)
+          const buys = (s.buys||[]).map(b => ({ id: b.id, remaining: Math.max(0, b.qty||0) }))
+            .filter(b => b && b.id && b.remaining>0);
+          // Sells marcadas (ordem cronológica asc)
+          const sells = (s.sells||[])
+            .filter(r => r.marked && (r.qty||0)>0 && r.id)
+            .slice()
+            .sort((a,b)=> (a.ymd||'').localeCompare(b.ymd||''));
+          for (const sell of sells){
+            let req = Math.max(0, sell.qty||0);
+            for (let i=0; i<buys.length && req>0; i++){
+              const b = buys[i];
+              if (!b || b.remaining<=0) continue;
+              const take = Math.min(b.remaining, req);
+              if (take>0){
+                matches.push({ buy_event_id: b.id, sell_event_id: sell.id, qty: take });
+                b.remaining -= take;
+                req -= take;
+              }
+            }
+          }
+        });
+        if (!matches.length){
+          alert('Nenhuma alocação encontrada. Marque compras e vendas e ative o Agrupar por Seleção.');
+          return;
+        }
+        const resp = await fetch(window.SAVE_LIFO_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': window.csrfToken || '' },
+          body: JSON.stringify({ matches })
+        });
+        const json = await resp.json().catch(()=>({}));
+        if (!resp.ok){
+          alert('Erro ao salvar alocações: '+ (json?.message || resp.status));
+          return;
+        }
+        alert('Alocações salvas: ' + (json?.saved ?? 0));
+      }catch(e){
+        console.error(e);
+        alert('Falha ao preparar ou salvar as alocações.');
+      }
+    });
+  }
   if (selExportCsv){ selExportCsv.addEventListener('click', function(){
     const map = computeSelectionMap();
     window.__selQtyOverrides = window.__selQtyOverrides || {};
@@ -1188,13 +1246,20 @@ document.addEventListener('DOMContentLoaded', function(){
       const detail = cb.getAttribute('data-detail') || '';
       const amount = parseFloat(cb.getAttribute('data-amount')||'0') || 0;
       const ymd = cb.getAttribute('data-ymd') || '';
-      const parsed = parseBuySellSymbol(title, detail);
+      const id = parseInt(cb.getAttribute('data-id')||'0');
+      // Preferir atributos já parseados do servidor quando possível
+      let typeAttr = (cb.getAttribute('data-type')||'').toLowerCase();
+      let symAttr = (cb.getAttribute('data-parsed-symbol')||'').toUpperCase().trim();
+      let qtyAttr = cb.getAttribute('data-qty')||'';
+      let parsed = null;
+      if (typeAttr && symAttr){ parsed = { type: typeAttr, sym: symAttr, qty: (parseFloat(qtyAttr||'')||0) }; }
+      else { parsed = parseBuySellSymbol(title, detail); }
       if (!parsed || !parsed.sym || !parsed.type) return;
       const sym = parsed.sym.toUpperCase();
       const qty = Math.abs(parsed.qty || 0);
       if (!idx[sym]) idx[sym] = { buys: [], sells: [] };
       const unit = (qty>0) ? (Math.abs(amount)/qty) : null; // preço unitário aproximado
-      const rec = { cb, ymd, qty, amount: Math.abs(amount), unit, marked: !!cb.checked };
+      const rec = { id, cb, ymd, qty, amount: Math.abs(amount), unit, marked: !!cb.checked };
       if (parsed.type === 'buy') idx[sym].buys.push(rec);
       else if (parsed.type === 'sell') idx[sym].sells.push(rec);
     });
