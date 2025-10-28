@@ -200,6 +200,13 @@
           <th style="width:12%" class="text-end">
             <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'var','dir'=>$toggle('var')])) }}">Var (%) {{ $icon('var') }}</a>
           </th>
+          <!-- Move Consultar/Prio/Flag uma coluna para frente (antes de Dif) -->
+          <th style="width:10%" class="text-center" title="Itens empilhados: consultar, valor, horário e ações. O botão ‘Aplicar’ aparece quando a data da cotação coincide com a do registro.">Consultar</th>
+          <th style="width:8%" class="text-center" title="Prioridade de atualização no AUTO (1 = primeiro). Deixe 0 ou vazio para usar a ordem normal.">
+            @php /* suporte à semântica de sort/dir como os demais cabeçalhos */ @endphp
+            <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'prio','dir'=>$toggle('prio')])) }}">Prio {{ $icon('prio') }}</a>
+          </th>
+          <th style="width:8%" class="text-center" title="Marca por usuário se o ativo está como NÃO COMPRAR">Flag</th>
           <th style="width:12%" class="text-end">
             <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'diff','dir'=>$toggle('diff')])) }}">Dif {{ $icon('diff') }}</a>
           </th>
@@ -233,9 +240,8 @@
           <th style="width:6%" class="text-end stats-total d-none" title="Quantidade total de registros no intervalo">
             <a class="text-white text-decoration-none" href="{{ route('openai.records.assets', array_merge($q, ['sort'=>'count_total','dir'=>$toggle('count_total')])) }}">N Tot {{ $icon('count_total') }}</a>
           </th>
-          <th style="width:10%" class="text-center" title="Itens empilhados: consultar, valor, horário e ações. O botão ‘Aplicar’ aparece quando a data da cotação coincide com a do registro.">Cotação</th>
-          <th style="width:8%" class="text-center" title="Marca por usuário se o ativo está como NÃO COMPRAR">Flag</th>
-          <th style="width:10%" class="text-end" title="Tendência do valor após a baseline + N dias">Tendência</th>
+          <!-- As colunas Consultar/Prio/Flag foram movidas para antes de Dif -->
+          <th style="width:10%" class="text-end" title="Tendência do valor após a baseline + N dias"></th>
         </tr>
       </thead>
       <tbody>
@@ -332,6 +338,39 @@
                 @endif
               @endif
             </td>
+            <!-- Colunas movidas: Consultar, Prio, Flag (agora antes de Dif) -->
+            <td class="text-center" data-ref="{{ number_format((float)$r->amount, 6, '.', '') }}" data-occurred="{{ optional($r->occurred_at)->format('Y-m-d') }}" data-apply-url="{{ route('openai.records.applyQuote', $r) }}">
+              @php $symbol = strtoupper(trim($r->chat?->code ?? '')); @endphp
+              @if($symbol !== '')
+                <div class="d-inline-flex flex-column align-items-stretch gap-1 cotacao-col">
+                  <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-primary btn-quote" data-symbol="{{ $symbol }}" title="Consulta a cotação atual do ativo">Consultar</button>
+                  </div>
+                  <div class="d-flex align-items-baseline gap-2">
+                    <span class="quote-value" aria-live="polite" title="Valor retornado pela consulta"></span>
+                    <small class="quote-time text-muted" title="Horário da cotação obtida"></small>
+                  </div>
+                  <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-success d-none btn-apply-quote" title="Mostrado quando a data da cotação coincide com a data do registro; aplica o valor no registro">Aplicar</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary d-none btn-create-from-quote" title="Usado quando a data difere; cria um novo registro com essa cotação">Novo registro</button>
+                  </div>
+                </div>
+              @else
+                <span class="text-muted">—</span>
+              @endif
+            </td>
+            <td class="text-center align-middle">
+              @php $symPrio = strtoupper(trim($r->chat?->code ?? '')) ?: strtoupper(trim($r->chat?->title ?? '')); @endphp
+              <input type="number" min="0" step="1" class="form-control form-control-sm asset-priority-input" data-symbol="{{ $symPrio }}" placeholder="0" title="1 = maior prioridade; 0 = sem prioridade" style="max-width:80px; margin:0 auto;">
+            </td>
+            @php $flagCode = strtoupper(trim($r->chat?->code ?? '')); @endphp
+            <td class="text-center">
+              @if($flagCode)
+                <span class="badge bg-secondary" data-flag-code="{{ $flagCode }}">—</span>
+              @else
+                <span class="text-muted">—</span>
+              @endif
+            </td>
             <td class="text-end {{ $cls }}">
               @if($dif === null)
                 —
@@ -400,34 +439,6 @@
                 —
               @endif
             </td>
-            <td class="text-center" data-ref="{{ number_format((float)$r->amount, 6, '.', '') }}" data-occurred="{{ optional($r->occurred_at)->format('Y-m-d') }}" data-apply-url="{{ route('openai.records.applyQuote', $r) }}">
-              @php $symbol = strtoupper(trim($r->chat?->code ?? '')); @endphp
-              @if($symbol !== '')
-                <div class="d-inline-flex flex-column align-items-stretch gap-1 cotacao-col">
-                  <div class="d-flex align-items-center gap-2">
-                    <button type="button" class="btn btn-sm btn-outline-primary btn-quote" data-symbol="{{ $symbol }}" title="Consulta a cotação atual do ativo">Consultar</button>
-                  </div>
-                  <div class="d-flex align-items-baseline gap-2">
-                    <span class="quote-value" aria-live="polite" title="Valor retornado pela consulta"></span>
-                    <small class="quote-time text-muted" title="Horário da cotação obtida"></small>
-                  </div>
-                  <div class="d-flex align-items-center gap-2">
-                    <button type="button" class="btn btn-sm btn-outline-success d-none btn-apply-quote" title="Mostrado quando a data da cotação coincide com a data do registro; aplica o valor no registro">Aplicar</button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary d-none btn-create-from-quote" title="Usado quando a data difere; cria um novo registro com essa cotação">Novo registro</button>
-                  </div>
-                </div>
-              @else
-                <span class="text-muted">—</span>
-              @endif
-            </td>
-            @php $flagCode = strtoupper(trim($r->chat?->code ?? '')); @endphp
-            <td class="text-center">
-              @if($flagCode)
-                <span class="badge bg-secondary" data-flag-code="{{ $flagCode }}">—</span>
-              @else
-                <span class="text-muted">—</span>
-              @endif
-            </td>
           </tr>
         @empty
           <tr><td colspan="9" class="text-center text-muted">Nenhum ativo encontrado.</td></tr>
@@ -447,6 +458,13 @@
   body.openai-assets-compact header { display:none !important; }
   body.openai-assets-compact .card.shadow-sm.mb-3 { display:none !important; }
   body.openai-assets-compact #btn-toggle-openai-assets-layout { background:#212529; color:#fff; }
+  /* Campo de prioridade mais compacto */
+  .asset-priority-input {
+    max-width: 120px; /* mais largo para caber valores de 2+ dígitos */
+    min-width: 90px;  /* evita encolher demais em telas estreitas */
+    text-align: center;
+    padding-right: 1.75rem; /* espaço para os spinners do input number */
+  }
 </style>
 @endpush
 
@@ -1051,7 +1069,28 @@
       const btn = this;
       const status = document.getElementById('batch-status');
       const btnStop = document.getElementById('btn-batch-stop');
-      const all = Array.from(document.querySelectorAll('button.btn-quote'));
+      // Helpers de prioridade
+      function loadPriorities(){
+        try{ return JSON.parse(localStorage.getItem('assets.priorities')||'{}')||{}; }catch(_e){ return {}; }
+      }
+      function getPriorityForSymbol(code){
+        if(!code) return 0;
+        const map = loadPriorities();
+        const v = Number(map[String(code).toUpperCase()]||0);
+        return (isFinite(v) && v>0) ? v : 0;
+      }
+      function symbolFromBtn(b){ return (b?.getAttribute('data-symbol')||'').toUpperCase(); }
+      let all = Array.from(document.querySelectorAll('button.btn-quote'));
+      // Anexa prioridade e índice original para ordenação estável
+      const decorated = all.map((b,idx)=>({ btn:b, prio:getPriorityForSymbol(symbolFromBtn(b)), idx }));
+      decorated.sort((a,b)=>{
+        const ap = a.prio||0, bp = b.prio||0;
+        if (ap>0 && bp>0){ if (ap!==bp) return ap-bp; return a.idx-b.idx; }
+        if (ap>0 && bp===0) return -1;
+        if (ap===0 && bp>0) return 1;
+        return a.idx-b.idx;
+      });
+      all = decorated.map(x=>x.btn);
       if (all.length === 0) { if(status) status.textContent = 'Nada para consultar'; return; }
       const prev = btn.innerHTML;
       btn.disabled = true;
@@ -1196,6 +1235,26 @@
     }
     document.getElementById('btn-batch-auto-start')?.addEventListener('click', startAutoBatch);
     document.getElementById('btn-batch-auto-stop')?.addEventListener('click', stopAutoBatch);
+    // Persistência de prioridades: preencher inputs e salvar alterações
+    (function(){
+      function load(){ try{ return JSON.parse(localStorage.getItem('assets.priorities')||'{}')||{}; }catch(_e){ return {}; } }
+      function save(m){ try{ localStorage.setItem('assets.priorities', JSON.stringify(m||{})); }catch(_e){} }
+      const map = load();
+      document.querySelectorAll('.asset-priority-input[data-symbol]').forEach(inp=>{
+        try{
+          const sym = String(inp.getAttribute('data-symbol')||'').toUpperCase();
+          if (!sym) return;
+          const v = Number(map[sym]||0);
+          if (isFinite(v) && v>0) inp.value = String(v);
+          inp.addEventListener('change', ()=>{
+            const n = Number(inp.value);
+            if (!isFinite(n) || n<=0) { delete map[sym]; inp.value=''; }
+            else { map[sym] = Math.floor(n); }
+            save(map);
+          });
+        }catch(_e){}
+      });
+    })();
     // Ouvir mudanças do input Intervalo AUTO (ms) e aplicar em tempo real
     (function(){
       const inp = document.querySelector('input[name="auto_batch_interval"]');
@@ -1462,6 +1521,42 @@
         btn.innerHTML = prev;
       }
     });
+    // Ordenação por Prio ao carregar quando sort=prio estiver na URL (refresh com estado)
+    (function(){
+      function getPrioFromRow(tr){
+        try{
+          const inp = tr.querySelector('.asset-priority-input');
+          const v = Number(inp?.value || 0);
+          return (isFinite(v) && v>0) ? Math.floor(v) : 0;
+        }catch(_e){ return 0; }
+      }
+      function sortRows(dir){
+        const tbody = document.querySelector('table tbody');
+        if(!tbody) return;
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const dec = rows.map((tr,idx)=>({ tr, prio:getPrioFromRow(tr), idx }));
+        dec.sort((a,b)=>{
+          if (a.prio !== b.prio) return dir==='desc' ? (b.prio - a.prio) : (a.prio - b.prio);
+          return a.idx - b.idx; // estável
+        });
+        dec.forEach(d => tbody.appendChild(d.tr));
+      }
+      function init(){
+        try{
+          const url = new URL(window.location.href);
+          const s = (url.searchParams.get('sort')||'').toLowerCase();
+          if (s !== 'prio') return; // só atua quando o usuário escolheu Prio no cabeçalho (com refresh)
+          const dir = ((url.searchParams.get('dir')||'asc').toLowerCase() === 'desc') ? 'desc' : 'asc';
+          sortRows(dir);
+          // Se mudar algum valor de prioridade, reordena mantendo a direção
+          document.querySelectorAll('.asset-priority-input').forEach(inp=>{
+            inp.addEventListener('change', ()=> sortRows(dir));
+          });
+        }catch(_e){/* noop */}
+      }
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+      else init();
+    })();
   })();
 </script>
 <script>
