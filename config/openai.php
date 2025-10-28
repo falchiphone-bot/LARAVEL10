@@ -14,6 +14,10 @@ return [
         // Intervalo padrão (ms) entre passos do modo "Auto variações (sequencial)"
         // Pode ser alterado via .env OPENAI_RECORDS_AUTO_SEQ_INTERVAL_MS
         'auto_var_seq_interval_default_ms' => env('OPENAI_RECORDS_AUTO_SEQ_INTERVAL_MS', 120000),
+        // Temporizador regressivo em loop (ms) que reinicia automaticamente enquanto o modo sequencial estiver ativo
+        // Usado apenas para feedback visual (não agenda execuções). Mantém separado para não conflitar com outros fluxos
+        // Pode ser alterado via .env OPENAI_RECORDS_AUTO_SEQ_LOOP_MS
+        'auto_var_seq_loop_default_ms' => env('OPENAI_RECORDS_AUTO_SEQ_LOOP_MS', 1000),
     ],
     'chat' => [
         'search' => [

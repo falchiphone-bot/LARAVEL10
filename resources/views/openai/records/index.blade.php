@@ -1,7 +1,8 @@
 @extends('layouts.bootstrap5')
 @section('content')
 {{-- <div class="container py-4" id="records-index"> --}}
-  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <div id="records-toolbar" class="sticky-top bg-white py-2" style="z-index: 1030; border-bottom: 1px dashed rgba(0,0,0,.1);">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
       <div class="order-3 order-lg-2 ms-auto d-flex align-items-center gap-2">
         <button type="button" id="btn-toggle-openai-records-layout" class="btn btn-outline-dark btn-sm" title="Alterna exibição compacta (oculta cabeçalhos e filtros)">Modo Compacto</button>
         <button type="button" id="btnAutoSaveVariations" class="btn btn-sm btn-success" title="Salvar variações automaticamente para cada ativo (na lista atual, sem trocar o filtro de conversa)">Auto salvar variações</button>
@@ -18,7 +19,17 @@
               <button type="button" id="autoVarReset" class="btn btn-outline-secondary" title="Limpa o valor salvo no navegador e usa o padrão do .env">Resetar</button>
             </div>
           </div>
+          @php $autoVarLoopDefault = (int) config('openai.records.auto_var_seq_loop_default_ms', 1000); @endphp
+          <div class="d-flex flex-column" style="min-width:180px;">
+            <label class="form-label small mb-1" for="autoVarLoop">Loop (ms)</label>
+            <div class="input-group input-group-sm">
+              <input type="number" min="0" step="100" id="autoVarLoop" class="form-control" placeholder="ex: {{ $autoVarLoopDefault }}">
+              <button type="button" id="autoVarLoopReset" class="btn btn-outline-secondary" title="Limpa o valor salvo no navegador e usa o padrão do .env do loop">Resetar</button>
+            </div>
+          </div>
           <span id="auto-var-timer" class="badge bg-secondary d-none" title="Tempo até o próximo passo do AUTO (sequencial)" style="min-width:64px; align-self:center;">00:00</span>
+          <span id="auto-var-loop" class="badge bg-dark d-none" title="Temporizador regressivo (loop) — reinicia automaticamente enquanto o AUTO estiver ativo" style="min-width:64px; align-self:center;">00:01</span>
+          <span id="scroll-lock-indicator" class="badge bg-secondary d-none" title="Rolagem bloqueada enquanto o AUTO estiver ativo" style="align-self:center;">🔒 Sem rolagem</span>
         </div>
       </div>
     <div class="d-flex align-items-center gap-2">
@@ -43,6 +54,7 @@
           <li><a class="dropdown-item" href="{{ route('openai.variations.index') }}">Variações Mensais</a></li>
         </ul>
       </div>
+    </div>
     </div>
   </div>
 
@@ -244,10 +256,64 @@
       const btnStart = document.getElementById('btnAutoVarSeq');
       const btnStop = document.getElementById('btnAutoVarStop');
       const token = '{{ csrf_token() }}';
-      const defaultInterval = Number('{{ (int) config('openai.records.auto_var_seq_interval_default_ms', 120000) }}') || 120000;
+  const defaultInterval = Number('{{ (int) config('openai.records.auto_var_seq_interval_default_ms', 120000) }}') || 120000;
+  const defaultLoop = Number('{{ (int) config('openai.records.auto_var_seq_loop_default_ms', 1000) }}') || 1000; // novo contador em loop
       let countdownClock = null; // setInterval id
       let scheduleTimeout = null; // setTimeout id
       let lastStartAt = 0; // timestamp do início da contagem
+  let loopClock = null; // setInterval do loop
+  let loopLastStartAt = 0; // início do ciclo do loop
+  const LS_LOOP_START_AT = 'records.autoVarSeq.loopStartAt';
+      const LS_COMPACT_KEY = 'openai_records_layout_compact';
+      const LS_AUTO_PREV_COMPACT = 'openai.records.auto.prevCompact';
+      // Bloqueio total de rolagem enquanto o AUTO estiver ativo
+      let _scrollPrevX = 0, _scrollPrevY = 0;
+      let _wheelHandler = null, _touchHandler = null, _keysHandler = null, _forceTopHandler = null;
+      function lockScrollTop(){
+        try{
+          _scrollPrevX = window.scrollX || 0; _scrollPrevY = window.scrollY || 0;
+          document.body.style.overflow = 'hidden';
+          document.documentElement.style.overflow = 'hidden';
+          document.body.style.position = 'fixed';
+          document.body.style.top = '0';
+          document.body.style.left = '0';
+          document.body.style.right = '0';
+          document.body.style.width = '100%';
+          // Previne interações de rolagem (mouse, touch e teclado)
+          _wheelHandler = (e)=>{ e.preventDefault(); };
+          _touchHandler = (e)=>{ e.preventDefault(); };
+          _keysHandler = (e)=>{ const kc = e.keyCode; if([32,33,34,35,36,37,38,39,40].includes(kc)){ e.preventDefault(); } };
+          _forceTopHandler = ()=>{ if(window.scrollY>0||window.scrollX>0){ window.scrollTo(0,0); } };
+          window.addEventListener('wheel', _wheelHandler, { passive:false });
+          window.addEventListener('touchmove', _touchHandler, { passive:false });
+          window.addEventListener('keydown', _keysHandler, { passive:false });
+          window.addEventListener('scroll', _forceTopHandler, { passive:false });
+          // Garante que fique no topo
+          window.scrollTo(0,0);
+          const ind = document.getElementById('scroll-lock-indicator');
+          if(ind){ ind.classList.remove('d-none'); }
+        }catch(_e){}
+      }
+      function unlockScrollTop(){
+        try{
+          window.removeEventListener('wheel', _wheelHandler||(()=>{}));
+          window.removeEventListener('touchmove', _touchHandler||(()=>{}));
+          window.removeEventListener('keydown', _keysHandler||(()=>{}));
+          window.removeEventListener('scroll', _forceTopHandler||(()=>{}));
+          _wheelHandler=_touchHandler=_keysHandler=_forceTopHandler=null;
+          document.body.style.overflow = '';
+          document.documentElement.style.overflow = '';
+          document.body.style.position = '';
+          document.body.style.top = '';
+          document.body.style.left = '';
+          document.body.style.right = '';
+          document.body.style.width = '';
+          // Restaura posição anterior só se precisar (não é essencial, mas evita “pulo” ao sair do AUTO)
+          if(_scrollPrevX || _scrollPrevY){ window.scrollTo(_scrollPrevX, _scrollPrevY); }
+          const ind = document.getElementById('scroll-lock-indicator');
+          if(ind){ ind.classList.add('d-none'); }
+        }catch(_e){}
+      }
       function getIntervalMs(){
         const inp = document.getElementById('autoVarInterval');
         let v = null;
@@ -272,17 +338,6 @@
         if (v === null) {
           v = defaultInterval;
         }
-        // 4) localStorage apenas se for menor que o default (preserva escolha mais agressiva do usuário)
-        try{
-          const ls = localStorage.getItem('records.autoVarSeq.intervalMs');
-          if (ls !== null && ls !== ''){
-            const n = Number(ls);
-            if (isFinite(n) && n>=0){
-              // Se usuário guardou um valor menor, usamos ele; se maior, mantemos o default/env.
-              v = Math.min(v, n);
-            }
-          }
-        }catch(_e){}
         // Não sobrepor o placeholder aqui; deixamos o do servidor (env) prevalecer visualmente
         return v;
       }
@@ -292,7 +347,102 @@
         const el = document.getElementById('auto-var-timer');
         if(!el || !lastStartAt) return; const total = getIntervalMs(); const delta = Date.now()-lastStartAt; const rem = Math.max(0, total - delta); el.textContent = fmtMMSS(rem);
       }
-      function stopCountdown(){ if(countdownClock){ clearInterval(countdownClock); countdownClock=null; } if(scheduleTimeout){ clearTimeout(scheduleTimeout); scheduleTimeout=null; } lastStartAt=0; const el=document.getElementById('auto-var-timer'); if(el){ el.classList.add('d-none'); el.textContent='00:00'; } }
+      // Temporizador em loop contínuo (visual), separado do agendamento
+      function getLoopMs(){
+        let v = null;
+        // 1) Valor digitado no campo (se houver)
+        try{
+          const inp = document.getElementById('autoVarLoop');
+          if (inp){
+            const raw = String(inp.value||'').trim();
+            if (raw !== ''){
+              const n = Number(raw); if (isFinite(n) && n>=0) v = n;
+            }
+          }
+        }catch(_e){}
+        // 2) Valor salvo no navegador
+        if (v === null){
+          try{
+            const ls = localStorage.getItem('records.autoVarSeq.loopMs');
+            if (ls !== null && ls !== ''){
+              const n = Number(ls); if (isFinite(n) && n>=0) v = n;
+            }
+          }catch(_e){}
+        }
+        // 3) Default do .env
+        if (v === null) v = defaultLoop;
+        return v;
+      }
+      function updateLoopTimer(){
+        const badge = document.getElementById('auto-var-loop');
+        if(!badge) return;
+        const total = getLoopMs();
+        if (!total || total <= 0){ badge.textContent = '00:00'; return; }
+        if (!loopLastStartAt) loopLastStartAt = Date.now();
+        const delta = Date.now() - loopLastStartAt;
+        let rem = total - delta;
+        if (rem <= 0){
+          // reinicia automaticamente o ciclo visual
+          loopLastStartAt = Date.now();
+          try{ localStorage.setItem(LS_LOOP_START_AT, String(loopLastStartAt)); }catch(_e){}
+          rem = total;
+        }
+        badge.textContent = fmtMMSS(rem);
+      }
+      function startLoopTimer(preserve=true){
+        const badge = document.getElementById('auto-var-loop');
+        if (badge){ badge.classList.remove('d-none'); }
+        if (loopClock) clearInterval(loopClock);
+        if (preserve){
+          try{
+            const saved = Number(localStorage.getItem(LS_LOOP_START_AT));
+            loopLastStartAt = (isFinite(saved) && saved>0) ? saved : Date.now();
+          }catch(_e){ loopLastStartAt = Date.now(); }
+        } else {
+          loopLastStartAt = Date.now();
+        }
+        try{ localStorage.setItem(LS_LOOP_START_AT, String(loopLastStartAt)); }catch(_e){}
+        updateLoopTimer();
+        loopClock = setInterval(updateLoopTimer, 500);
+      }
+      function stopLoopTimer(){
+        if (loopClock){ clearInterval(loopClock); loopClock = null; }
+        loopLastStartAt = 0;
+        try{ localStorage.removeItem(LS_LOOP_START_AT); }catch(_e){}
+        const badge = document.getElementById('auto-var-loop');
+        if (badge){ badge.classList.add('d-none'); badge.textContent = '00:00'; }
+      }
+
+      // Compactar layout automaticamente durante o AUTO para manter a tabela visível
+      function setRecordsCompact(on){
+        try{ localStorage.setItem(LS_COMPACT_KEY, on ? '1' : '0'); }catch(_e){}
+        try{
+          document.body.classList.toggle('openai-records-compact', !!on);
+          const btn = document.getElementById('btn-toggle-openai-records-layout');
+          if (btn){ btn.textContent = on ? 'Modo Completo' : 'Modo Compacto'; }
+        }catch(_e){}
+      }
+      function rememberAndApplyCompact(){
+        try{
+          const prev = localStorage.getItem(LS_COMPACT_KEY);
+          // Só grava a primeira vez que ativar
+          if (localStorage.getItem(LS_AUTO_PREV_COMPACT) === null){
+            localStorage.setItem(LS_AUTO_PREV_COMPACT, prev === null ? 'null' : (prev === '1' ? '1' : '0'));
+          }
+          setRecordsCompact(true);
+        }catch(_e){}
+      }
+      function restoreCompactIfNeeded(){
+        try{
+          const prev = localStorage.getItem(LS_AUTO_PREV_COMPACT);
+          if (prev !== null){
+            if (prev === 'null'){ localStorage.removeItem(LS_COMPACT_KEY); document.body.classList.remove('openai-records-compact'); }
+            else { setRecordsCompact(prev === '1'); }
+            localStorage.removeItem(LS_AUTO_PREV_COMPACT);
+          }
+        }catch(_e){}
+      }
+  function stopCountdown(){ if(countdownClock){ clearInterval(countdownClock); countdownClock=null; } if(scheduleTimeout){ clearTimeout(scheduleTimeout); scheduleTimeout=null; } lastStartAt=0; const el=document.getElementById('auto-var-timer'); if(el){ el.classList.add('d-none'); el.textContent='00:00'; } }
       function scheduleNext(chatId, from, to){
         const ms = getIntervalMs(); setIntervalMs(ms);
         const badge = document.getElementById('auto-var-timer'); if(badge){ badge.classList.remove('d-none'); }
@@ -320,6 +470,13 @@
             }
           }
         }
+        // Carrega valor previamente salvo (se houver) na UI, sem alterar placeholder quando ausente
+        try{
+          const ls = localStorage.getItem('records.autoVarSeq.intervalMs');
+          if (ls !== null && ls !== ''){
+            const n = Number(ls); if (isFinite(n) && n>=0){ inp.value = String(n); }
+          }
+        }catch(_e){}
         inp.addEventListener('change', onChange);
         inp.addEventListener('input', ()=>{ if(window.__autoVarDeb) clearTimeout(window.__autoVarDeb); window.__autoVarDeb = setTimeout(onChange,300); });
         // Reset: limpa LS e aplica default imediatamente
@@ -335,6 +492,33 @@
             }
           });
         }
+      })();
+      // Loop (ms): hot-swap
+      (function(){
+        const inp = document.getElementById('autoVarLoop');
+        const btn = document.getElementById('autoVarLoopReset');
+        if (!inp) return;
+        // Hidrata a UI a partir do LS (se existir)
+        try{
+          const ls = localStorage.getItem('records.autoVarSeq.loopMs');
+          if (ls !== null && ls !== ''){
+            const n = Number(ls); if (isFinite(n) && n>=0) inp.value = String(n);
+          }
+        }catch(_e){}
+        function onChange(){
+          const raw = String(inp.value||'').trim();
+          if (raw === ''){ try{ localStorage.removeItem('records.autoVarSeq.loopMs'); }catch(_e){}; }
+          else {
+            let v = Number(raw);
+            if (!isFinite(v) || v < 0) { v = defaultLoop; }
+            try{ localStorage.setItem('records.autoVarSeq.loopMs', String(Math.floor(v))); }catch(_e){}
+          }
+          // Hot-swap: se loop ativo, reinicia ciclo com novo total
+          if (loopClock){ loopLastStartAt = Date.now(); try{ localStorage.setItem(LS_LOOP_START_AT, String(loopLastStartAt)); }catch(_e){}; updateLoopTimer(); }
+        }
+        inp.addEventListener('change', onChange);
+        inp.addEventListener('input', ()=>{ if(window.__autoVarLoopDeb) clearTimeout(window.__autoVarLoopDeb); window.__autoVarLoopDeb = setTimeout(onChange, 300); });
+  if (btn){ btn.addEventListener('click', ()=>{ try{ localStorage.removeItem('records.autoVarSeq.loopMs'); }catch(_e){}; inp.value=''; if (loopClock){ loopLastStartAt = Date.now(); try{ localStorage.setItem(LS_LOOP_START_AT, String(loopLastStartAt)); }catch(_e){}; updateLoopTimer(); } }); }
       })();
       function getQS(name){ const p=new URLSearchParams(location.search); return p.get(name); }
       function setVisible(el, on){ if(el){ el.style.display = on ? '' : 'none'; } }
@@ -405,11 +589,13 @@
         if(!state.active || !Array.isArray(state.queue)) return;
         const idx = state.index || 0;
         if(idx >= state.queue.length){
-          // Concluído
-          state.active=false; saveState(state); setVisible(btnStop,false);
-          if(btnStart){ btnStart.textContent = 'Auto variações (sequencial)'; btnStart.disabled=false; }
-          alert(`Sequência concluída: ${state.ok||0} ok, ${state.err||0} erro(s), ${state.skip||0} sem dados.`);
-          stopCountdown();
+          // Concluído — NÃO para automaticamente: reinicia do começo mantendo ativo
+          state.index = 0;
+          saveState(state);
+          const next = state.queue[0];
+          if (next){
+            scheduleNext(next, state.params?.from||'', state.params?.to||'');
+          }
           return;
         }
         const expectedChat = String(state.queue[idx]);
@@ -448,8 +634,11 @@
         if(next){
           scheduleNext(next, state.params?.from||'', state.params?.to||'');
         } else {
-          stopCountdown();
-          runForCurrentPageThenNext();
+          // Chegou ao fim — reinicia do começo sem desligar
+          const s2 = loadState();
+          s2.index = 0; saveState(s2);
+          const first = s2.queue && s2.queue.length ? s2.queue[0] : null;
+          if (first){ scheduleNext(first, s2.params?.from||'', s2.params?.to||''); }
         }
       }
       function startSequence(){
@@ -469,17 +658,23 @@
         const state = { active:true, queue, index:0, ok:0, err:0, skip:0, params:{from,to} };
         saveState(state);
         if(btnStart){ btnStart.disabled=true; btnStart.textContent='Rodando…'; }
-        setVisible(btnStop,true);
+    setVisible(btnStop,true);
+  // Inicia o temporizador em loop (visual)
+    startLoopTimer(true);
+    // Força layout compacto durante o AUTO
+    rememberAndApplyCompact();
+  // Proíbe rolagem da página enquanto o AUTO estiver ativo
+  lockScrollTop();
         // Vai para o primeiro
         submitFilterToChat(String(queue[0]), from, to);
       }
-  function stopSequence(){ const s = loadState(); s.active=false; saveState(s); setVisible(btnStop,false); if(btnStart){ btnStart.disabled=false; btnStart.textContent='Auto variações (sequencial)'; } stopCountdown(); }
+  function stopSequence(){ const s = loadState(); s.active=false; saveState(s); setVisible(btnStop,false); if(btnStart){ btnStart.disabled=false; btnStart.textContent='Auto variações (sequencial)'; } stopCountdown(); stopLoopTimer(); restoreCompactIfNeeded(); unlockScrollTop(); }
       btnStart?.addEventListener('click', startSequence);
       btnStop?.addEventListener('click', stopSequence);
       // Ao carregar a página, se estiver ativo, continua
       document.addEventListener('DOMContentLoaded', ()=>{
         const s = loadState();
-        if(s.active){ setVisible(btnStop,true); if(btnStart){ btnStart.disabled=true; btnStart.textContent='Rodando…'; } runForCurrentPageThenNext(); }
+  if(s.active){ setVisible(btnStop,true); if(btnStart){ btnStart.disabled=true; btnStart.textContent='Rodando…'; } startLoopTimer(true); rememberAndApplyCompact(); lockScrollTop(); runForCurrentPageThenNext(); }
       });
     })();
   </script>
@@ -1861,17 +2056,20 @@ function prepQuickAdd(chatId){
         btn.classList.add('btn-success','text-white');
         btn.textContent='OK';
         btn.title=(data.message || 'Variação salva')+' ('+data.month+'/'+data.year+')';
-        // Após salvar com sucesso, aguarda 3s e então rola até o dropdown de conversas no topo
+        // Após salvar com sucesso, rolamos para o topo APENAS quando não estiver em AUTO sequencial
         try {
-          setTimeout(()=>{
-            const sel = document.getElementById('filter_chat_id');
-            if(sel){
-              sel.scrollIntoView({behavior:'smooth', block:'center'});
-              sel.classList.add('flash-highlight');
-              setTimeout(()=> sel.classList.remove('flash-highlight'), 2500);
-              sel.focus({preventScroll:true});
-            }
-          }, 3000);
+          const isAutoActive = (function(){ try{ const s = JSON.parse(localStorage.getItem('openai_autoVarSeq')||'{}'); return !!s && s.active===true; }catch(_e){ return false; } })();
+          if (!isAutoActive) {
+            setTimeout(()=>{
+              const sel = document.getElementById('filter_chat_id');
+              if(sel){
+                sel.scrollIntoView({behavior:'smooth', block:'center'});
+                sel.classList.add('flash-highlight');
+                setTimeout(()=> sel.classList.remove('flash-highlight'), 2500);
+                sel.focus({preventScroll:true});
+              }
+            }, 3000);
+          }
         } catch(_e){}
       } catch(e){
         btn.classList.remove('btn-outline-primary');
@@ -2009,7 +2207,15 @@ function prepQuickAdd(chatId){
 <script>
 // Preserva o fragmento do Google CSE (#gsc.*) ao clicar em links e ao enviar formulários GET
 (function(){
+  // Se o AUTO sequencial estiver ativo, não preservar nem aplicar hash para evitar rolagens automáticas
+  const isAutoActive = (function(){ try{ const s = JSON.parse(localStorage.getItem('openai_autoVarSeq')||'{}'); return !!s && s.active===true; }catch(_e){ return false; } })();
   const hash = window.location.hash;
+  if (isAutoActive) {
+    if (hash && hash.startsWith('#gsc.')) {
+      try { history.replaceState(null, '', window.location.pathname + (window.location.search || '')); } catch(_e){}
+    }
+    return; // não reescrever links nem interceptar formulários quando AUTO está ativo
+  }
   if (!hash || !hash.startsWith('#gsc.')) return;
   const root = document.getElementById('records-index') || document;
   // Acrescenta hash nos links internos sem fragmento
