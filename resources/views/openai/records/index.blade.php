@@ -281,13 +281,26 @@
           if(!resp.ok || !data) return;
           const st = String(data.status||'').toLowerCase();
           const label = String(data.label||'Mercado');
-          try{ window.__nyseStatus = { status: st, label, reason: String(data.reason||''), isHoliday: /holiday|feriado/i.test(String(data.reason||'')) }; }catch(_e){}
+          try{
+            const explicitHoliday = (typeof data.is_holiday !== 'undefined') ? !!data.is_holiday
+                                     : (typeof data.holiday !== 'undefined') ? !!data.holiday
+                                     : (typeof data.isHoliday !== 'undefined') ? !!data.isHoliday
+                                     : (typeof data.market_holiday !== 'undefined') ? !!data.market_holiday
+                                     : /holiday|feriado/i.test(String(data.reason||''));
+            window.__nyseStatus = { status: st, label, reason: String(data.reason||''), isHoliday: explicitHoliday };
+          }catch(_e){}
         }catch(_e){}
       }
+      const GATE_ENABLED = {{ config('openai.assets.auto_gating_enabled', true) ? 'true' : 'false' }};
+      const GATE_START = '{{ config('openai.assets.auto_gating.window_start','10:30') }}';
+      const GATE_END   = '{{ config('openai.assets.auto_gating.window_end','17:00') }}';
+      function timeToMin(t){ try{ const m=String(t||'').match(/^(\d{1,2}):(\d{2})$/); if(!m) return null; const hh=Math.max(0,Math.min(23,parseInt(m[1],10))); const mm=Math.max(0,Math.min(59,parseInt(m[2],10))); return hh*60+mm; }catch(_e){ return null; } }
       function isWithinAutoWindow(){
-        try { const now = new Date(); const m = now.getHours()*60 + now.getMinutes(); return m >= (10*60+30) && m < (17*60); } catch(_e){ return true; }
+        if (!GATE_ENABLED) return true;
+        try { const s=timeToMin(GATE_START); const e=timeToMin(GATE_END); const now=new Date(); const m = now.getHours()*60 + now.getMinutes(); return m >= (s??(10*60+30)) && m < (e??(17*60)); } catch(_e){ return true; }
       }
       function isTradingDay(){
+        if (!GATE_ENABLED) return true;
         try{ const d=new Date().getDay(); if(d===0||d===6) return false; return !(window.__nyseStatus && window.__nyseStatus.isHoliday); }catch(_e){ return true; }
       }
       function isAutoAllowed(){ return isWithinAutoWindow() && isTradingDay(); }
@@ -295,11 +308,12 @@
         const b = document.getElementById('auto-window-indicator');
         if(!b) return;
         const ok = isAutoAllowed();
-        b.className = 'badge ' + (ok ? 'bg-info text-dark' : 'bg-warning text-dark');
+        b.className = 'badge ' + (!GATE_ENABLED ? 'bg-success' : (ok ? 'bg-info text-dark' : 'bg-warning text-dark'));
         const isHol = !!(window.__nyseStatus && window.__nyseStatus.isHoliday);
         const day = new Date().getDay(); const weekend = (day===0 || day===6);
-        b.textContent = ok ? '⏰ 10:30–17:00' : (isHol ? '⛔ Feriado (NYSE)' : (weekend ? '⛔ Fim de semana' : '⏰ Fora do horário'));
-        b.title = ok ? 'AUTO permitido agora' : 'AUTO permitido apenas em dias úteis sem feriado, entre 10:30 e 17:00 (horário local)';
+        const range = `${GATE_START}–${GATE_END}`;
+        b.textContent = !GATE_ENABLED ? '✔ AUTO livre' : (ok ? `⏰ ${range}` : (isHol ? '⛔ Feriado (NYSE)' : (weekend ? '⛔ Fim de semana' : '⏰ Fora do horário')));
+        b.title = !GATE_ENABLED ? 'Bloqueio desativado por configuração (.env)' : (ok ? `AUTO permitido agora (${range})` : `AUTO permitido apenas em dias úteis sem feriado, entre ${range} (horário local)`);
       }
       // Bloqueio total de rolagem enquanto o AUTO estiver ativo
       let _scrollPrevX = 0, _scrollPrevY = 0;
@@ -679,7 +693,7 @@
       function startSequence(){
         updateAutoWindowBadge();
         if(!isAutoAllowed()){
-          alert('AUTO permitido apenas em dias úteis sem feriado, entre 10:30 e 17:00 (horário local).');
+          alert(`AUTO permitido apenas em dias úteis sem feriado, entre ${GATE_START} e ${GATE_END} (horário local).`);
           return;
         }
         const {from,to} = currentParams();

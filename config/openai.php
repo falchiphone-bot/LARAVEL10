@@ -8,6 +8,13 @@ return [
         // Intervalo padrão (ms) para execução automática do "Consultar todos" (AUTO)
         // Pode ser alterado via .env OPENAI_ASSETS_AUTO_BATCH_INTERVAL_MS
         'auto_batch_interval_default_ms' => env('OPENAI_ASSETS_AUTO_BATCH_INTERVAL_MS', 120000), // 2 minutos
+        // Gating: habilitar/desabilitar bloqueio por horário/dia/feriado (NYSE)
+        'auto_gating_enabled' => env('OPENAI_AUTO_GATING_ENABLED', true),
+        // Janela local (cliente) para permitir automações (HH:MM)
+        'auto_gating' => [
+            'window_start' => env('OPENAI_AUTO_WINDOW_START', '10:30'),
+            'window_end'   => env('OPENAI_AUTO_WINDOW_END', '17:00'),
+        ],
     ],
     // Configurações específicas da tela de registros (openai/records)
     'records' => [

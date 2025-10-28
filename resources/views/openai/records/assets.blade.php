@@ -741,6 +741,7 @@
       apply();
     })();
     // Mercado: buscar status atual (NYSE) e pintar badge; expõe para gating (fim de semana/feriado)
+    // Preferir campo explícito de feriado (is_holiday/holiday/isHoliday) quando presente; fallback: regex em reason
     async function fetchAndPaintMarketStatus(){
       try{
         const badge = document.getElementById('market-status-badge');
@@ -762,11 +763,16 @@
         if (data.reason){ badge.title = `${label} — ${data.reason}`; }
         // expõe global para verificação de feriado
         try {
+          const explicitHoliday = (typeof data.is_holiday !== 'undefined') ? !!data.is_holiday
+                                   : (typeof data.holiday !== 'undefined') ? !!data.holiday
+                                   : (typeof data.isHoliday !== 'undefined') ? !!data.isHoliday
+                                   : (typeof data.market_holiday !== 'undefined') ? !!data.market_holiday
+                                   : /holiday|feriado/i.test(String(data.reason||''));
           window.__nyseStatus = {
             status: st,
             label: label,
             reason: String(data.reason||''),
-            isHoliday: /holiday|feriado/i.test(String(data.reason||''))
+            isHoliday: explicitHoliday
           };
         } catch(_e){}
         try { if (typeof updateWindowBadge === 'function') updateWindowBadge(); } catch(_e){}
@@ -1172,11 +1178,29 @@
       const el = document.getElementById('batch-auto-status');
       if (el) el.textContent = typeof msg === 'string' ? msg : '';
     }
-    // Janela local 10:30–17:00 + dias úteis sem feriado (NYSE)
+    // Janela local paramétrica + dias úteis sem feriado (NYSE)
+    const GATE_ENABLED = {{ config('openai.assets.auto_gating_enabled', true) ? 'true' : 'false' }};
+    const GATE_START = '{{ config('openai.assets.auto_gating.window_start','10:30') }}';
+    const GATE_END   = '{{ config('openai.assets.auto_gating.window_end','17:00') }}';
+    function timeToMin(t){
+      try{
+        const m = String(t||'').match(/^(\d{1,2}):(\d{2})$/); if(!m) return null;
+        const hh = Math.max(0, Math.min(23, parseInt(m[1],10)));
+        const mm = Math.max(0, Math.min(59, parseInt(m[2],10)));
+        return hh*60+mm;
+      }catch(_e){ return null; }
+    }
     function isWithinAutoWindow(){
-      try{ const now=new Date(); const m=now.getHours()*60+now.getMinutes(); return m>=(10*60+30) && m<(17*60); }catch(_e){ return true; }
+      if (!GATE_ENABLED) return true;
+      try{
+        const start = timeToMin(GATE_START); const end = timeToMin(GATE_END);
+        const now=new Date(); const cur=now.getHours()*60+now.getMinutes();
+        const s = (start===null)?(10*60+30):start; const e = (end===null)?(17*60):end;
+        return cur>=s && cur<e;
+      }catch(_e){ return true; }
     }
     function isTradingDay(){
+      if (!GATE_ENABLED) return true;
       try{
         const d = new Date().getDay(); // 0 dom, 6 sáb
         if (d===0 || d===6) return false;
@@ -1189,12 +1213,13 @@
     function updateWindowBadge(){
       const b = document.getElementById('assets-auto-window'); if(!b) return;
       const ok=isAutoAllowed();
-      b.className = 'badge ' + (ok ? 'bg-info text-dark' : 'bg-warning text-dark');
+      b.className = 'badge ' + (!GATE_ENABLED ? 'bg-success' : (ok ? 'bg-info text-dark' : 'bg-warning text-dark'));
       const isHol = !!(window.__nyseStatus && window.__nyseStatus.isHoliday);
       const day = new Date().getDay();
       const weekend = (day===0 || day===6);
-      b.textContent = ok ? '⏰ 10:30–17:00' : (isHol ? '⛔ Feriado (NYSE)' : (weekend ? '⛔ Fim de semana' : '⏰ Fora do horário'));
-      b.title = ok ? 'AUTO permitido agora' : 'AUTO permitido apenas em dias úteis sem feriado, entre 10:30 e 17:00 (horário local)';
+      const range = `${GATE_START}–${GATE_END}`;
+      b.textContent = !GATE_ENABLED ? '✔ AUTO livre' : (ok ? `⏰ ${range}` : (isHol ? '⛔ Feriado (NYSE)' : (weekend ? '⛔ Fim de semana' : '⏰ Fora do horário')));
+      b.title = !GATE_ENABLED ? 'Bloqueio desativado por configuração (.env)' : (ok ? `AUTO permitido agora (${range})` : `AUTO permitido apenas em dias úteis sem feriado, entre ${range} (horário local)`);
     }
     function formatMMSS(ms){
       if (!isFinite(ms) || ms < 0) ms = 0;
@@ -1214,7 +1239,7 @@
     function startAutoBatch(){
       updateWindowBadge();
       if(!isAutoAllowed()){
-        alert('AUTO (Consultar) permitido apenas em dias úteis sem feriado, entre 10:30 e 17:00 (horário local).');
+        alert(`AUTO (Consultar) permitido apenas em dias úteis sem feriado, entre ${GATE_START} e ${GATE_END} (horário local).`);
         return;
       }
       localStorage.setItem(AUTO_BATCH_KEY, '1');
@@ -1394,7 +1419,7 @@
     function startAutoPrev(){
       updateWindowBadge();
       if(!isAutoAllowed()){
-        alert('CHECK automático permitido apenas em dias úteis sem feriado, entre 10:30 e 17:00 (horário local).');
+        alert(`CHECK automático permitido apenas em dias úteis sem feriado, entre ${GATE_START} e ${GATE_END} (horário local).`);
         return;
       }
       autoAbort = false;
