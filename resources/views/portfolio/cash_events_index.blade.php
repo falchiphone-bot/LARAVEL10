@@ -1,10 +1,25 @@
 @extends('layouts.bootstrap5')
 @section('content')
 <div class="container-fluid">
+  @php
+    // Cotação do último dólar (USD/BRL) para exibir conversão dos totais em BRL
+    try {
+      $usdQuote = \Illuminate\Support\Facades\Cache::remember('fx.usdbrl.quote', 300, function(){
+        return app(\App\Services\MarketDataService::class)->getQuote('BRL=X'); // Yahoo: BRL=X é USD/BRL
+      });
+    } catch (\Throwable $e) { $usdQuote = ['price'=>null]; }
+    $usdBrl = is_numeric($usdQuote['price'] ?? null) ? (float)$usdQuote['price'] : null;
+    $usdBrlUpdated = $usdQuote['updated_at'] ?? null;
+  @endphp
   <h1 class="h5 mb-3">Eventos de Caixa</h1>
+  <script>
+    // Disponibiliza a cotação USD/BRL para conversões nos totais
+    window.USD_BRL_RATE = {{ $usdBrl !== null ? number_format($usdBrl, 6, '.', '') : 'null' }};
+    window.USD_BRL_UPDATED_AT = '{{ e($usdBrlUpdated ?? "") }}';
+  </script>
   <div class="card mb-3 shadow-sm">
     <div class="card-body">
-  <form method="get" class="row g-2 align-items-end">
+  <form method="get" id="cashFilterForm" class="row g-2 align-items-end">
         <div class="col-md-2">
           <label class="form-label small mb-1">Conta</label>
           <select name="account_id" class="form-select form-select-sm">
@@ -57,7 +72,7 @@
         </div>
         <div class="col-md-2">
           <label class="form-label small mb-1">Tipo</label>
-          <select name="buy_sell" class="form-select form-select-sm">
+          <select name="buy_sell" class="form-select form-select-sm" id="selBuySell">
             <option value="" @selected(($buySell ?? '')==='')>Todos</option>
             <option value="buy" @selected(($buySell ?? '')==='buy')>Somente Compra</option>
             <option value="sell" @selected(($buySell ?? '')==='sell')>Somente Venda</option>
@@ -490,7 +505,16 @@
           @php $cls = $e->amount>0?'text-success':($e->amount<0?'text-danger':'text-secondary'); @endphp
           <tr>
             <td class="text-center align-middle">
-              <input type="checkbox" class="form-check-input form-check-input-sm evt-mark" data-title="{{ e($e->title) }}" data-detail="{{ e($e->detail) }}" data-category="{{ e($e->category) }}" data-amount="{{ number_format($e->amount,6,'.','') }}" data-ymd="{{ optional($e->event_date)->format('Y-m-d') }}">
+    <input type="checkbox"
+      class="form-check-input form-check-input-sm evt-mark"
+      data-title="{{ e($e->title) }}"
+      data-detail="{{ e($e->detail) }}"
+      data-category="{{ e($e->category) }}"
+      data-amount="{{ number_format($e->amount,6,'.','') }}"
+      data-ymd="{{ optional($e->event_date)->format('Y-m-d') }}"
+      data-parsed-symbol="{{ e($e->parsed_symbol ?? '') }}"
+      data-type="{{ ($e->is_buy ?? false) ? 'buy' : (($e->is_sell ?? false) ? 'sell' : '') }}"
+      data-qty="{{ is_numeric($e->parsed_qty ?? null) ? number_format($e->parsed_qty, 6, '.', '') : '' }}">
             </td>
             <td>{{ $e->event_date? $e->event_date->format('d/m/Y'):'—' }}</td>
             <td>{{ $e->settlement_date? $e->settlement_date->format('d/m/Y'):'—' }}</td>
@@ -637,6 +661,21 @@
 </div>
 <script>
 document.addEventListener('DOMContentLoaded', function(){
+  // Utilitário: formata data/hora para pt-BR (dd/mm/aaaa hh:mm:ss), assumindo UTC quando string vier como 'YYYY-MM-DD HH:MM:SS'
+  function formatPtBrDatetime(s){
+    if (!s || typeof s !== 'string') return '';
+    try{
+      let d;
+      if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(s)){
+        d = new Date(s.replace(' ','T') + 'Z'); // trata como UTC
+      } else {
+        d = new Date(s);
+      }
+      if (isNaN(d.getTime())) return s;
+      const opts = { timeZone: 'America/Sao_Paulo', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' };
+      return new Intl.DateTimeFormat('pt-BR', opts).format(d);
+    }catch(_e){ return s; }
+  }
   const modal = document.getElementById('modalTruncateCash');
   if(!modal) return;
   const input = modal.querySelector('input[name="confirm_token"]');
@@ -666,6 +705,17 @@ document.addEventListener('DOMContentLoaded', function(){
     const assetOn = !!(toggleGroupAssetMirror && toggleGroupAssetMirror.checked);
     if (toggleGroupAssetMirror) toggleGroupAssetMirror.disabled = selOn;
     if (toggleGroupSelection) toggleGroupSelection.disabled = assetOn;
+    // Esconde o controle "Agrupar por Ativo" enquanto seleção estiver ativa
+    try{
+      const groupAssetWrap = toggleGroupAssetMirror ? toggleGroupAssetMirror.closest('.form-check') : null;
+      if (groupAssetWrap) groupAssetWrap.style.display = selOn ? 'none' : '';
+    }catch(_e){}
+    // Desabilita o filtro "Tipo" enquanto seleção estiver ativa para evitar inconsistência
+    try{
+      const form = document.getElementById('cashFilterForm');
+      const sel = document.getElementById('selBuySell') || (form ? form.querySelector('select[name="buy_sell"]') : null);
+      if (sel) sel.disabled = selOn;
+    }catch(_e){}
     // Mostrar/ocultar card de seleção
     if (selectionCard) selectionCard.classList.toggle('d-none', !selOn);
     // Quando seleção ativa, esconder o resumo por ativo (se estiver renderizado)
@@ -687,6 +737,18 @@ document.addEventListener('DOMContentLoaded', function(){
         toggleGroupAssetMirror.checked = false;
         if (chkOriginalGroupAsset) chkOriginalGroupAsset.checked = false;
       }
+      // Força filtro "Tipo" para Todos (vazio) quando Agrupar por Seleção estiver ativo
+      try{
+        if (toggleGroupSelection.checked){
+          const form = document.getElementById('cashFilterForm');
+          const sel = document.getElementById('selBuySell') || (form ? form.querySelector('select[name="buy_sell"]') : null);
+          if (form && sel && sel.value !== ''){
+            sel.value = '';
+            form.submit();
+            return; // a página será recarregada
+          }
+        }
+      }catch(_e){}
       applyExclusivity();
       if (toggleGroupSelection.checked) rebuildSelectionSummary();
     });
@@ -724,11 +786,118 @@ document.addEventListener('DOMContentLoaded', function(){
     const txt = String(title||'') + ' ' + String(detail||'');
     const t = txt.toUpperCase().normalize('NFKD');
     const norm = t.replace(/\s+/g,' ').trim();
-    let m = norm.match(/\b(COMPRA|VENDA)\b\s+DE\s+(\d+[\.,]?\d*)\s+([A-Z0-9\.-:_]+)\s+A\s*\$\s*(\d+[\.,]?\d*)/u);
+    // Padrões PT: "VENDA DE 100 LTBR A US$ 10,00" | "VENDA 100 LTBR POR $ 10,00" | variações com @
+    let m = norm.match(/\b(COMPRA|VENDA)\b\s*(?:DE\s+)?(\d+[\.,]?\d*)\s+([A-Z0-9\.-:_]+)\s+(?:A|POR|@)\s*(?:US\$|\$)?\s*(\d+[\.,]?\d*)/u);
     if (m){ return { type: (m[1]==='COMPRA')?'buy':'sell', sym: (m[3]||'').trim(), qty: parseFloat((m[2]||'0').replace(/\./g,'').replace(',','.')) || 0 }; }
-    m = norm.match(/\b(BUY|SELL)\b\s+(\d+[\.,]?\d*)\s+([A-Z0-9\.-:_]+)\s+(@|AT)\s*\$?\s*(\d+[\.,]?\d*)/u);
+    // Padrão PT alternativo: "VENDA LTBR 100 @ US$ 10,00"
+    m = norm.match(/\b(COMPRA|VENDA)\b\s+([A-Z0-9\.-:_]+)\s+(\d+[\.,]?\d*)\s*(?:@|A|POR)?\s*(?:US\$|\$)?\s*(\d+[\.,]?\d*)/u);
+    if (m){ return { type: (m[1]==='COMPRA')?'buy':'sell', sym: (m[2]||'').trim(), qty: parseFloat((m[3]||'0').replace(/\./g,'').replace(',','.')) || 0 }; }
+    // Padrões EN: "SELL 100 LTBR AT $ 10.00" | "SELL LTBR 100 @ 10.00"
+    m = norm.match(/\b(BUY|SELL)\b\s+(\d+[\.,]?\d*)\s+([A-Z0-9\.-:_]+)\s+(?:@|AT)?\s*(?:US\$|\$)?\s*(\d+[\.,]?\d*)/u);
     if (m){ return { type: (m[1]==='BUY')?'buy':'sell', sym: (m[3]||'').trim(), qty: parseFloat((m[2]||'0').replace(/\./g,'').replace(',','.')) || 0 }; }
+    m = norm.match(/\b(BUY|SELL)\b\s+([A-Z0-9\.-:_]+)\s+(\d+[\.,]?\d*)\s*(?:@|AT)?\s*(?:US\$|\$)?\s*(\d+[\.,]?\d*)/u);
+    if (m){ return { type: (m[1]==='BUY')?'buy':'sell', sym: (m[2]||'').trim(), qty: parseFloat((m[3]||'0').replace(/\./g,'').replace(',','.')) || 0 }; }
     return null;
+  }
+  // Extração frouxa apenas do símbolo (sem exigir quantidade/preço), útil quando o parser rígido falha
+  function extractSymbolLoose(title, detail){
+    const txt = String(title||'') + ' ' + String(detail||'');
+    const t = txt.toUpperCase().normalize('NFKD');
+    const norm = t.replace(/\s+/g,' ').trim();
+    // VENDA LTBR ... | COMPRA LTBR ...
+    let m = norm.match(/\b(COMPRA|VENDA)\b\s+([A-Z0-9\.-:_]{2,15})\b/u);
+    if (m){ return (m[2]||'').trim(); }
+    // SELL LTBR ... | BUY LTBR ...
+    m = norm.match(/\b(BUY|SELL)\b\s+([A-Z0-9\.-:_]{2,15})\b/u);
+    if (m){ return (m[2]||'').trim(); }
+    // Entre colchetes ou parênteses, e.g., [LTBR] (LTBR)
+    m = norm.match(/[\[(]([A-Z0-9\.-:_]{2,15})[\])]/u);
+    if (m){ return (m[1]||'').trim(); }
+    return '';
+  }
+  // Indexa eventos por símbolo (toda a lista da página)
+  function buildEventIndexBySymbol(){
+    const idx = {};
+    document.querySelectorAll('input.evt-mark').forEach(cb => {
+      const title = cb.getAttribute('data-title') || '';
+      const detail = cb.getAttribute('data-detail') || '';
+      const amount = parseFloat(cb.getAttribute('data-amount')||'0') || 0;
+      const ymd = cb.getAttribute('data-ymd') || '';
+      // Preferir atributos já parseados do servidor
+      let typeAttr = (cb.getAttribute('data-type')||'').toLowerCase();
+      let symAttr = (cb.getAttribute('data-parsed-symbol')||'').toUpperCase().trim();
+      let qtyAttr = cb.getAttribute('data-qty')||'';
+      let parsed = null;
+      if (typeAttr && symAttr){
+        parsed = { type: typeAttr, sym: symAttr, qty: (parseFloat(qtyAttr||'')||0) };
+      } else {
+        parsed = parseBuySellSymbol(title, detail);
+        // fallback: se ainda não tiver símbolo, tenta extração frouxa mantendo o tipo quando possível
+        if ((!parsed || !parsed.sym) && (typeAttr || /\b(COMPRA|VENDA|BUY|SELL)\b/u.test((title+' '+detail).toUpperCase()))){
+          const symLoose = extractSymbolLoose(title, detail);
+          if (symLoose){
+            const typeLoose = typeAttr || (/\b(VENDA|SELL)\b/u.test((title+' '+detail).toUpperCase()) ? 'sell' : (/\b(COMPRA|BUY)\b/u.test((title+' '+detail).toUpperCase()) ? 'buy' : ''));
+            if (typeLoose){ parsed = { type: typeLoose, sym: symLoose, qty: 0 }; }
+          }
+        }
+      }
+      if (!parsed || !parsed.sym || !parsed.type) return;
+      const sym = parsed.sym.toUpperCase();
+      const qty = Math.abs(parsed.qty || 0);
+      if (!idx[sym]) idx[sym] = { buys: [], sells: [] };
+      const unit = (qty>0) ? (Math.abs(amount)/qty) : null; // preço unitário aproximado
+      const rec = { cb, ymd, qty, amount: Math.abs(amount), unit, marked: !!cb.checked };
+      if (parsed.type === 'buy') idx[sym].buys.push(rec);
+      else if (parsed.type === 'sell') idx[sym].sells.push(rec);
+    });
+    // Ordena compras e vendas pela data (desc)
+    Object.keys(idx).forEach(sym => {
+      idx[sym].buys.sort((a,b)=> (b.ymd||'').localeCompare(a.ymd||''));
+      idx[sym].sells.sort((a,b)=> (b.ymd||'').localeCompare(a.ymd||''));
+    });
+    return idx;
+  }
+  // Completa seleção por LIFO: marca compras mais recentes até cobrir a quantidade de venda marcada
+  function completeSelectionByLifo(){
+    try{
+      const idx = buildEventIndexBySymbol();
+      window.__selQtyOverrides = window.__selQtyOverrides || {};
+      Object.keys(idx).forEach(sym => {
+        const s = idx[sym];
+        const sellReq = s.sells.filter(r=>r.marked).reduce((acc,r)=> acc + (r.qty||0), 0);
+        if (sellReq <= 0) return;
+        let markedBuyQty = s.buys.filter(r=>r.marked).reduce((acc,r)=> acc + (r.qty||0), 0);
+        if (markedBuyQty < sellReq){
+          for (const rec of s.buys){
+            if (markedBuyQty >= sellReq) break;
+            if (!rec.marked){ rec.cb.checked = true; rec.marked = true; markedBuyQty += (rec.qty||0); }
+          }
+        }
+        const ov = window.__selQtyOverrides[sym] || { buy_qty:null, sell_qty:null };
+        ov.buy_qty = Math.min(sellReq, markedBuyQty);
+        ov.sell_qty = sellReq;
+        window.__selQtyOverrides[sym] = ov;
+      });
+      try{ localStorage.setItem('cash.selection.qtyOverrides', JSON.stringify(window.__selQtyOverrides)); }catch(_e){}
+    }catch(_e){ /* noop */ }
+  }
+  // Desmarca compras sem nenhuma venda marcada correspondente
+  function pruneOrphanBuys(){
+    try{
+      const idx = buildEventIndexBySymbol();
+      window.__selQtyOverrides = window.__selQtyOverrides || {};
+      Object.keys(idx).forEach(sym => {
+        const s = idx[sym];
+        const sellMarked = s.sells.some(r => r.marked && (r.qty||0) > 0);
+        if (!sellMarked){
+          s.buys.forEach(r => { if (r.marked){ r.cb.checked = false; r.marked = false; } });
+          const ov = window.__selQtyOverrides[sym] || { buy_qty:null, sell_qty:null };
+          ov.buy_qty = 0;
+          window.__selQtyOverrides[sym] = ov;
+        }
+      });
+      try{ localStorage.setItem('cash.selection.qtyOverrides', JSON.stringify(window.__selQtyOverrides)); }catch(_e){}
+    }catch(_e){ /* noop */ }
   }
   function isFeeCategory(cat){
     const c = String(cat||'').toLowerCase();
@@ -742,7 +911,24 @@ document.addEventListener('DOMContentLoaded', function(){
       const detail = cb.getAttribute('data-detail') || '';
       const cat = cb.getAttribute('data-category') || '';
       const amount = parseFloat(cb.getAttribute('data-amount')||'0') || 0;
-      const p = parseBuySellSymbol(title, detail);
+      // Preferir atributos já parseados do servidor
+      let typeAttr = (cb.getAttribute('data-type')||'').toLowerCase();
+      let symAttr = (cb.getAttribute('data-parsed-symbol')||'').toUpperCase().trim();
+      let qtyAttr = cb.getAttribute('data-qty')||'';
+      let p = null;
+      if (typeAttr && symAttr){
+        p = { type: typeAttr, sym: symAttr, qty: (parseFloat(qtyAttr||'')||0) };
+      } else {
+        p = parseBuySellSymbol(title, detail);
+        // fallback frouxo: se não conseguiu, tenta só extrair o símbolo e o tipo aproximado
+        if ((!p || !p.sym) && (typeAttr || /\b(COMPRA|VENDA|BUY|SELL)\b/u.test((title+' '+detail).toUpperCase()))){
+          const symLoose = extractSymbolLoose(title, detail);
+          if (symLoose){
+            const typeLoose = typeAttr || (/\b(VENDA|SELL)\b/u.test((title+' '+detail).toUpperCase()) ? 'sell' : (/\b(COMPRA|BUY)\b/u.test((title+' '+detail).toUpperCase()) ? 'buy' : ''));
+            if (typeLoose){ p = { type: typeLoose, sym: symLoose, qty: 0 }; }
+          }
+        }
+      }
       const fee = isFeeCategory(cat);
       if (!p || !p.sym) return;
       const sym = p.sym.toUpperCase();
@@ -779,8 +965,8 @@ document.addEventListener('DOMContentLoaded', function(){
       const tr = document.createElement('tr');
       tr.setAttribute('data-sym', sym);
       // Preços unitários base (derivados dos valores originais)
-      const unitBuy = (bqtyCalc>0 ? (buy / bqtyCalc) : 0);
-      const unitSell = (sqtyCalc>0 ? (sell / sqtyCalc) : 0);
+  const unitBuy = (bqtyCalc>0 ? (buy / bqtyCalc) : ((overrides[sym] && overrides[sym].buy_qty>0) ? (buy / overrides[sym].buy_qty) : 0));
+  const unitSell = (sqtyCalc>0 ? (sell / sqtyCalc) : ((overrides[sym] && overrides[sym].sell_qty>0) ? (sell / overrides[sym].sell_qty) : 0));
       // Montantes ajustados conforme overrides
       const buyAdj = unitBuy * (bqty ?? 0);
       const sellAdj = unitSell * (sqty ?? 0);
@@ -813,7 +999,20 @@ document.addEventListener('DOMContentLoaded', function(){
     if (foot){
       const set = (key, val, cls='')=>{
         const el = foot.querySelector(`[data-total="${key}"]`);
-        if (el){ el.textContent = (key==='varpct' && val!==null) ? (fmt2(val)+'%') : fmt2(val); el.className = 'text-end '+cls; }
+        if (!el) return;
+        if (key === 'net' && typeof window.USD_BRL_RATE === 'number' && window.USD_BRL_RATE > 0) {
+          const brl = val!==null ? (val * window.USD_BRL_RATE) : null;
+          const nfRate = (window.Intl && Intl.NumberFormat) ? new Intl.NumberFormat('pt-BR', {minimumFractionDigits:4, maximumFractionDigits:4}) : null;
+          const rateStr = nfRate ? nfRate.format(window.USD_BRL_RATE) : String(window.USD_BRL_RATE);
+          const dtRaw = (typeof window.USD_BRL_UPDATED_AT === 'string') ? window.USD_BRL_UPDATED_AT : '';
+          const dt = (typeof formatPtBrDatetime === 'function') ? formatPtBrDatetime(dtRaw) : dtRaw;
+          const info = ' • USD/BRL ' + rateStr + (dt ? (' em ' + dt) : '');
+          el.innerHTML = fmt2(val) + '<div class="text-muted" style="font-size:.85em;">R$ ' + fmt2(brl) + info + '</div>';
+          el.className = 'text-end '+cls;
+        } else {
+          el.textContent = (key==='varpct' && val!==null) ? (fmt2(val)+'%') : fmt2(val);
+          el.className = 'text-end '+cls;
+        }
       };
       const tVarPct = tBuy>0 ? (tNet/tBuy)*100.0 : null;
       set('buy', tBuy);
@@ -863,8 +1062,9 @@ document.addEventListener('DOMContentLoaded', function(){
         const map = computeSelectionMap();
         Object.keys(map).forEach(sym2 => {
           const s = map[sym2];
-          const unitB = ((s.buy_qty||0)>0) ? ((s.buy||0)/(s.buy_qty||1)) : 0;
-          const unitS = ((s.sell_qty||0)>0) ? ((s.sell||0)/(s.sell_qty||1)) : 0;
+          const ov2 = (window.__selQtyOverrides && window.__selQtyOverrides[sym2]) ? window.__selQtyOverrides[sym2] : null;
+          const unitB = ((s.buy_qty||0)>0) ? ((s.buy||0)/(s.buy_qty||1)) : ((ov2 && ov2.buy_qty>0) ? ((s.buy||0)/(ov2.buy_qty)) : 0);
+          const unitS = ((s.sell_qty||0)>0) ? ((s.sell||0)/(s.sell_qty||1)) : ((ov2 && ov2.sell_qty>0) ? ((s.sell||0)/(ov2.sell_qty)) : 0);
           const ov = (window.__selQtyOverrides && window.__selQtyOverrides[sym2]) ? window.__selQtyOverrides[sym2] : null;
           const bqty = ov && ov.buy_qty!=null ? +ov.buy_qty : +(s.buy_qty||0);
           const sqty = ov && ov.sell_qty!=null ? +ov.sell_qty : +(s.sell_qty||0);
@@ -875,7 +1075,20 @@ document.addEventListener('DOMContentLoaded', function(){
         if (foot){
           const set = (key, val, cls='')=>{
             const el = foot.querySelector(`[data-total="${key}"]`);
-            if (el){ el.textContent = (key==='varpct' && val!==null) ? (fmt2(val)+'%') : fmt2(val); el.className = 'text-end '+cls; }
+            if (!el) return;
+            if (key === 'net' && typeof window.USD_BRL_RATE === 'number' && window.USD_BRL_RATE > 0) {
+              const brl = val!==null ? (val * window.USD_BRL_RATE) : null;
+              const nfRate = (window.Intl && Intl.NumberFormat) ? new Intl.NumberFormat('pt-BR', {minimumFractionDigits:4, maximumFractionDigits:4}) : null;
+              const rateStr = nfRate ? nfRate.format(window.USD_BRL_RATE) : String(window.USD_BRL_RATE);
+              const dtRaw = (typeof window.USD_BRL_UPDATED_AT === 'string') ? window.USD_BRL_UPDATED_AT : '';
+              const dt = (typeof formatPtBrDatetime === 'function') ? formatPtBrDatetime(dtRaw) : dtRaw;
+              const info = ' • USD/BRL ' + rateStr + (dt ? (' em ' + dt) : '');
+              el.innerHTML = fmt2(val) + '<div class="text-muted" style="font-size:.85em;">R$ ' + fmt2(brl) + info + '</div>';
+              el.className = 'text-end '+cls;
+            } else {
+              el.textContent = (key==='varpct' && val!==null) ? (fmt2(val)+'%') : fmt2(val);
+              el.className = 'text-end '+cls;
+            }
           };
           const tVarPct = tBuy>0 ? (tNet/tBuy)*100.0 : null;
           set('buy', tBuy);
@@ -916,7 +1129,23 @@ document.addEventListener('DOMContentLoaded', function(){
   // Ações no header do card de seleção
   const selMarkAll = document.getElementById('selMarkAll');
   const selUnmarkAll = document.getElementById('selUnmarkAll');
-  if (selMarkAll){ selMarkAll.addEventListener('click', function(){ document.querySelectorAll('input.evt-mark').forEach(cb=> cb.checked = true); rebuildSelectionSummary(); }); }
+  if (selMarkAll){ selMarkAll.addEventListener('click', function(){
+    // Se "Agrupar por Seleção" estiver ativo, garanta Tipo = Todos e recarregue se necessário
+    try{
+      if (toggleGroupSelection && toggleGroupSelection.checked){
+        const form = document.getElementById('cashFilterForm');
+        const sel = document.getElementById('selBuySell') || (form ? form.querySelector('select[name="buy_sell"]') : null);
+        if (form && sel && sel.value !== ''){
+          sel.value = '';
+          form.submit();
+          return;
+        }
+      }
+    }catch(_e){}
+    document.querySelectorAll('input.evt-mark').forEach(cb=> cb.checked = true);
+    if (toggleGroupSelection && toggleGroupSelection.checked){ completeSelectionByLifo(); }
+    rebuildSelectionSummary();
+  }); }
   if (selUnmarkAll){ selUnmarkAll.addEventListener('click', function(){ document.querySelectorAll('input.evt-mark').forEach(cb=> cb.checked = false); rebuildSelectionSummary(); }); }
   const selExportCsv = document.getElementById('selExportCsv');
   if (selExportCsv){ selExportCsv.addEventListener('click', function(){
@@ -951,13 +1180,84 @@ document.addEventListener('DOMContentLoaded', function(){
   const selDateYmd = document.getElementById('selDateYmd');
   const selMarkByDate = document.getElementById('selMarkByDate');
   const selUnmarkByDate = document.getElementById('selUnmarkByDate');
+  // Indexa eventos por símbolo (toda a lista da página)
+  function buildEventIndexBySymbol(){
+    const idx = {};
+    document.querySelectorAll('input.evt-mark').forEach(cb => {
+      const title = cb.getAttribute('data-title') || '';
+      const detail = cb.getAttribute('data-detail') || '';
+      const amount = parseFloat(cb.getAttribute('data-amount')||'0') || 0;
+      const ymd = cb.getAttribute('data-ymd') || '';
+      const parsed = parseBuySellSymbol(title, detail);
+      if (!parsed || !parsed.sym || !parsed.type) return;
+      const sym = parsed.sym.toUpperCase();
+      const qty = Math.abs(parsed.qty || 0);
+      if (!idx[sym]) idx[sym] = { buys: [], sells: [] };
+      const unit = (qty>0) ? (Math.abs(amount)/qty) : null; // preço unitário aproximado
+      const rec = { cb, ymd, qty, amount: Math.abs(amount), unit, marked: !!cb.checked };
+      if (parsed.type === 'buy') idx[sym].buys.push(rec);
+      else if (parsed.type === 'sell') idx[sym].sells.push(rec);
+    });
+    // Ordena compras pela data (desc) para LIFO
+    Object.keys(idx).forEach(sym => {
+      idx[sym].buys.sort((a,b)=> (b.ymd||'').localeCompare(a.ymd||''));
+      idx[sym].sells.sort((a,b)=> (b.ymd||'').localeCompare(a.ymd||''));
+    });
+    return idx;
+  }
+  // Completa seleção: para cada símbolo, marca compras mais recentes até cobrir a quantidade de venda marcada (LIFO)
+  function completeSelectionByLifo(){
+    try{
+      const idx = buildEventIndexBySymbol();
+      window.__selQtyOverrides = window.__selQtyOverrides || {};
+      Object.keys(idx).forEach(sym => {
+        const s = idx[sym];
+        const sellReq = s.sells.filter(r=>r.marked).reduce((acc,r)=> acc + (r.qty||0), 0);
+        if (sellReq <= 0) return;
+        let markedBuyQty = s.buys.filter(r=>r.marked).reduce((acc,r)=> acc + (r.qty||0), 0);
+        if (markedBuyQty >= sellReq) {
+          // Garante override de buy_qty == sell_qty para o cálculo ajustado
+          const ov = window.__selQtyOverrides[sym] || { buy_qty:null, sell_qty:null };
+          ov.buy_qty = sellReq;
+          ov.sell_qty = sellReq;
+          window.__selQtyOverrides[sym] = ov;
+          return;
+        }
+        for (const rec of s.buys){
+          if (markedBuyQty >= sellReq) break;
+          if (!rec.marked){ rec.cb.checked = true; rec.marked = true; markedBuyQty += (rec.qty||0); }
+        }
+  const ov = window.__selQtyOverrides[sym] || { buy_qty:null, sell_qty:null };
+  ov.buy_qty = Math.min(sellReq, markedBuyQty); // ajusta bqty até a quantidade realmente disponível
+  ov.sell_qty = sellReq;
+        window.__selQtyOverrides[sym] = ov;
+      });
+      try{ localStorage.setItem('cash.selection.qtyOverrides', JSON.stringify(window.__selQtyOverrides)); }catch(_e){}
+    }catch(_e){ /* silencioso */ }
+  }
   function setByDate(ymd, checked){
     if (!ymd) return;
+    // Se "Agrupar por Seleção" estiver ativo, garantir filtro Tipo=Todos antes de marcar
+    try{
+      if (toggleGroupSelection && toggleGroupSelection.checked){
+        const form = document.getElementById('cashFilterForm');
+        const sel = document.getElementById('selBuySell') || (form ? form.querySelector('select[name="buy_sell"]') : null);
+        if (form && sel && sel.value !== ''){
+          sel.value = '';
+          form.submit();
+          return;
+        }
+      }
+    }catch(_e){}
     document.querySelectorAll('input.evt-mark').forEach(cb => {
       const d = cb.getAttribute('data-ymd') || '';
       if (d === ymd){ cb.checked = !!checked; }
     });
-    if (toggleGroupSelection && toggleGroupSelection.checked) rebuildSelectionSummary();
+    if (toggleGroupSelection && toggleGroupSelection.checked){
+      if (checked) completeSelectionByLifo();
+      pruneOrphanBuys();
+      rebuildSelectionSummary();
+    }
   }
   if (selMarkByDate){ selMarkByDate.addEventListener('click', function(){ setByDate(selDateYmd?.value || '', true); }); }
   if (selUnmarkByDate){ selUnmarkByDate.addEventListener('click', function(){ setByDate(selDateYmd?.value || '', false); }); }
@@ -994,10 +1294,23 @@ document.addEventListener('DOMContentLoaded', function(){
     });
     const varPct = tBuy>0 ? (tNet/tBuy)*100.0 : null;
     const row = document.getElementById('byAssetTotalsRow');
-    if (row){
+        if (row){
       const set = (key, val, cls='')=>{
         const el = row.querySelector(`[data-total="${key}"]`);
-        if (el){ el.textContent = (key==='varpct' && val!==null) ? (fmt(val)+'%') : fmt(val); el.className = 'text-end '+cls; }
+        if (!el) return;
+        if (key === 'net' && typeof window.USD_BRL_RATE === 'number' && window.USD_BRL_RATE > 0){
+          const brl = val!==null ? (val * window.USD_BRL_RATE) : null;
+          const nfRate = (window.Intl && Intl.NumberFormat) ? new Intl.NumberFormat('pt-BR', {minimumFractionDigits:4, maximumFractionDigits:4}) : null;
+          const rateStr = nfRate ? nfRate.format(window.USD_BRL_RATE) : String(window.USD_BRL_RATE);
+          const dtRaw = (typeof window.USD_BRL_UPDATED_AT === 'string') ? window.USD_BRL_UPDATED_AT : '';
+          const dt = (typeof formatPtBrDatetime === 'function') ? formatPtBrDatetime(dtRaw) : dtRaw;
+          const info = ' • USD/BRL ' + rateStr + (dt ? (' em ' + dt) : '');
+          el.innerHTML = fmt(val) + '<div class="text-muted" style="font-size:.85em;">R$ ' + fmt(brl) + info + '</div>';
+          el.className = 'text-end '+cls;
+        } else {
+          el.textContent = (key==='varpct' && val!==null) ? (fmt(val)+'%') : fmt(val);
+          el.className = 'text-end '+cls;
+        }
       };
       set('buy', tBuy);
       set('buy_qty', tBuyQty);
