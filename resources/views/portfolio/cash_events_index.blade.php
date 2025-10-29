@@ -14,7 +14,11 @@
   <h1 class="h5 mb-3">Eventos de Caixa</h1>
   <script>
     // Disponibiliza a cotação USD/BRL para conversões nos totais
-    window.USD_BRL_RATE = {{ $usdBrl !== null ? number_format($usdBrl, 6, '.', '') : 'null' }};
+    // Usa string para não quebrar análise estática do arquivo Blade e converte para número/null em runtime
+    (function(){
+      const s = "{{ $usdBrl !== null ? number_format($usdBrl, 6, '.', '') : '' }}";
+      window.USD_BRL_RATE = s ? parseFloat(s) : null;
+    })();
     window.USD_BRL_UPDATED_AT = '{{ e($usdBrlUpdated ?? "") }}';
   </script>
   <div class="card mb-3 shadow-sm">
@@ -61,6 +65,20 @@
         <div class="col-md-2">
           <label class="form-label small mb-1">Liq. Até</label>
           <input type="date" name="settle_to" value="{{ $filter_settle_to }}" class="form-control form-control-sm" />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small mb-1">Prev. De</label>
+          <input type="date" name="forecast_from" value="{{ $filter_forecast_from }}" class="form-control form-control-sm" />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small mb-1">Prev. Até</label>
+          <input type="date" name="forecast_to" value="{{ $filter_forecast_to }}" class="form-control form-control-sm" />
+        </div>
+        <div class="col-md-2">
+          <div class="form-check mt-4" data-bs-toggle="tooltip" data-bs-title="Exibe apenas eventos com Previsão preenchida">
+            <input class="form-check-input" type="checkbox" value="1" id="chkHasForecast" name="has_forecast" @checked(($filter_has_forecast ?? false)) />
+            <label class="form-check-label small" for="chkHasForecast">Somente com Previsão</label>
+          </div>
         </div>
         <div class="col-md-2">
           <label class="form-label small mb-1">Direção</label>
@@ -510,7 +528,7 @@
             <th>Data</th>
             <th>Liquidação</th>
             <th>Conta</th>
-            <th style="min-width:180px;" title="Previsão de quando deve chegar o valor da COMPRA para este ativo (por símbolo).">
+            <th id="thForecast" style="min-width:180px;" title="Previsão de quando deve chegar o valor da COMPRA para este evento.">
               <button type="button" id="btnSortForecast" class="btn btn-link btn-sm p-0 text-decoration-none" title="Ordenar por previsão (ASC/DESC)">
                 Prev. valor compra <span id="forecastSortIndicator" class="text-muted small">⇅</span>
               </button>
@@ -555,14 +573,13 @@
             <td>{{ $e->account? $e->account->account_name:'—' }}</td>
             <td class="align-middle" style="min-width: 190px;">
               @php
-                $symFE = (string)($e->parsed_symbol ?? '');
                 $isBuyRow = (bool)($e->is_buy ?? false);
                 $forecastVal = $e->forecast_at ? $e->forecast_at->format('Y-m-d\\TH:i') : '';
               @endphp
-              @if($isBuyRow && $symFE !== '')
+              @if($isBuyRow)
                 <div class="input-group input-group-sm">
-                  <input type="datetime-local" class="form-control form-control-sm forecast-input" data-symbol="{{ $symFE }}" value="{{ $forecastVal }}" />
-                  <button type="button" class="btn btn-outline-secondary btn-sm forecast-clear" data-symbol="{{ $symFE }}" title="Limpar previsão">×</button>
+                  <input type="datetime-local" class="form-control form-control-sm forecast-input" data-event-id="{{ $e->id }}" value="{{ $forecastVal }}" />
+                  <button type="button" class="btn btn-outline-secondary btn-sm forecast-clear" data-event-id="{{ $e->id }}" title="Limpar previsão">×</button>
                   <span class="input-group-text forecast-status d-none">✔</span>
                 </div>
               @else
@@ -725,6 +742,8 @@ document.addEventListener('DOMContentLoaded', function(){
   window.SAVE_LIFO_URL = "{{ route('cash.events.saveLifoMatches') }}";
   window.csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || "{{ csrf_token() }}";
   window.SAVE_FORECAST_URL = "{{ route('cash.asset_forecast.save') }}";
+  // Template de URL para Asset Stats (evita quebrar template literal com Blade dentro)
+  window.ASSET_STATS_URL_TEMPLATE = "{{ route('asset-stats.index', ['symbol'=>'__SYM__']) }}";
   // Utilitário: formata data/hora para pt-BR (dd/mm/aaaa hh:mm:ss), assumindo UTC quando string vier como 'YYYY-MM-DD HH:MM:SS'
   function formatPtBrDatetime(s){
     if (!s || typeof s !== 'string') return '';
@@ -754,7 +773,7 @@ document.addEventListener('DOMContentLoaded', function(){
 <script>
 // Marca/Desmarca ativos e filtra a tabela (client-side)
 document.addEventListener('DOMContentLoaded', function(){
-  // Forecast: salvar ao mudar e refletir em todas as linhas do mesmo símbolo
+  // Forecast: salvar ao mudar por evento (sem propagar)
   // Ordenação por "Prev. valor compra" (ASC/DESC) com reset para ordem original
   (function(){
     const btn = document.getElementById('btnSortForecast');
@@ -767,31 +786,14 @@ document.addEventListener('DOMContentLoaded', function(){
     // Guarda a ordem original das linhas para permitir reset sem recarregar
     Array.from(tbody.querySelectorAll('tr')).forEach((tr, idx) => { tr.dataset.origIdx = String(idx); });
     let dir = null; // 'asc' | 'desc' | null
-    function buildForecastMap(){
-      const map = {};
-      document.querySelectorAll('input.forecast-input[data-symbol]').forEach(inp => {
-        const sym = (inp.getAttribute('data-symbol')||'').toUpperCase();
-        const val = inp.value || '';
-        if (!sym) return;
-        // Mantém o primeiro não-vazio encontrado
-        if (val && !map[sym]) map[sym] = val;
-      });
-      return map;
-    }
     function getRowSymbol(tr){
       const cb = tr.querySelector('input.evt-mark');
       const sym = cb ? (cb.getAttribute('data-parsed-symbol')||'') : '';
       return (sym||'').toUpperCase();
     }
-    function keyForRow(tr, map){
-      // 1) Se a própria linha tem input de forecast, usa esse valor
+    function keyForRow(tr){
       const own = tr.querySelector('input.forecast-input');
       let v = own ? (own.value||'') : '';
-      if (!v){
-        // 2) Caso contrário, tenta pelo símbolo (valor compartilhado na página)
-        const s = getRowSymbol(tr);
-        if (s && map[s]) v = map[s] || '';
-      }
       return v || '';
     }
     function resetSort(){
@@ -804,8 +806,7 @@ document.addEventListener('DOMContentLoaded', function(){
     function sortNow(){
       if (dir === null) { resetSort(); return; }
       const rows = Array.from(tbody.querySelectorAll('tr'));
-      const symMap = buildForecastMap();
-      const withIdx = rows.map((tr, idx) => ({ tr, idx, k: keyForRow(tr, symMap) }));
+      const withIdx = rows.map((tr, idx) => ({ tr, idx, k: keyForRow(tr) }));
       withIdx.sort((a,b) => {
         const ak = a.k; const bk = b.k;
         const aEmpty = !ak; const bEmpty = !bk;
@@ -823,7 +824,13 @@ document.addEventListener('DOMContentLoaded', function(){
     }
     function updateIndicator(){
       ind.textContent = dir === 'asc' ? '↑' : (dir === 'desc' ? '↓' : '⇅');
-      ind.classList.toggle('text-primary', !!dir);
+      const active = !!dir;
+      ind.classList.toggle('text-primary', active);
+      // Destaque visual no cabeçalho quando ordenação por previsão estiver ativa
+      const th = document.getElementById('thForecast');
+      const btnSort = document.getElementById('btnSortForecast');
+      if (th){ th.classList.toggle('bg-primary-subtle', active); th.classList.toggle('border', active); th.classList.toggle('rounded-1', active); }
+      if (btnSort){ btnSort.classList.toggle('fw-bold', active); btnSort.classList.toggle('text-primary', active); }
     }
     btn.addEventListener('click', function(){
       dir = (dir === 'asc') ? 'desc' : 'asc';
@@ -842,8 +849,8 @@ document.addEventListener('DOMContentLoaded', function(){
   })();
 
   // Forecast: salvar ao mudar e refletir em todas as linhas do mesmo símbolo
-  async function postForecast(symbol, value, clear){
-    const payload = clear ? { symbol, clear: true } : { symbol, forecast_at: value };
+  async function postForecast(eventId, value, clear){
+    const payload = clear ? { event_id: eventId, clear: true } : { event_id: eventId, forecast_at: value };
     const resp = await fetch(window.SAVE_FORECAST_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': window.csrfToken || '' },
@@ -855,22 +862,17 @@ document.addEventListener('DOMContentLoaded', function(){
     }
     return true;
   }
-  function setForecastInputs(symbol, value){
-    const sel = `input.forecast-input[data-symbol="${CSS.escape(symbol)}"]`;
-    document.querySelectorAll(sel).forEach(inp => { inp.value = value || ''; });
-  }
   document.addEventListener('change', async function(ev){
     const t = ev.target;
     if (t && t.classList && t.classList.contains('forecast-input')){
-      const symbol = t.getAttribute('data-symbol') || '';
+      const eventId = parseInt(t.getAttribute('data-event-id')||'0');
       const val = t.value || '';
-      if (!symbol) return;
+      if (!eventId) return;
       const group = t.closest('.input-group');
       const status = group ? group.querySelector('.forecast-status') : null;
       try{
         if (status){ status.classList.add('d-none'); status.textContent='…'; }
-        await postForecast(symbol, val, false);
-        setForecastInputs(symbol, val);
+        await postForecast(eventId, val, false);
         if (status){ status.textContent='✔'; status.classList.remove('d-none'); setTimeout(()=>status.classList.add('d-none'), 2000); }
       } catch(e){
         alert('Erro ao salvar previsão: '+ (e?.message || e));
@@ -880,14 +882,15 @@ document.addEventListener('DOMContentLoaded', function(){
   document.addEventListener('click', async function(ev){
     const btn = ev.target;
     if (btn && btn.classList && btn.classList.contains('forecast-clear')){
-      const symbol = btn.getAttribute('data-symbol') || '';
-      if (!symbol) return;
+      const eventId = parseInt(btn.getAttribute('data-event-id')||'0');
+      if (!eventId) return;
       const group = btn.closest('.input-group');
       const status = group ? group.querySelector('.forecast-status') : null;
+      const input = group ? group.querySelector('input.forecast-input') : null;
       try{
         if (status){ status.classList.add('d-none'); status.textContent='…'; }
-        await postForecast(symbol, '', true);
-        setForecastInputs(symbol, '');
+        await postForecast(eventId, '', true);
+        if (input) { input.value = ''; }
         if (status){ status.textContent='✔'; status.classList.remove('d-none'); setTimeout(()=>status.classList.add('d-none'), 2000); }
       } catch(e){
         alert('Erro ao limpar previsão: '+ (e?.message || e));
@@ -1182,7 +1185,7 @@ document.addEventListener('DOMContentLoaded', function(){
       tr.setAttribute('data-orig-sell-qty', String(sqtyCalc||0));
       const netQty = (bqty ?? 0) - (sqty ?? 0);
       tr.innerHTML = `
-        <td><a href="${window.location.origin + '{{ route('asset-stats.index', ['symbol'=>'__SYM__']) }}'.replace('%2F','/').replace('__SYM__', encodeURIComponent(sym))}#gsc.tab=0" target="_blank" rel="noopener">${sym}</a></td>
+        <td><a href="${window.location.origin + (window.ASSET_STATS_URL_TEMPLATE||'').replace('%2F','/').replace('__SYM__', encodeURIComponent(sym))}#gsc.tab=0" target="_blank" rel="noopener">${sym}</a></td>
         <td class="text-end text-danger"><span class="cell-buy">${fmt2(buyAdj)}</span></td>
         <td class="text-end text-secondary">
           <input type="number" class="form-control form-control-sm text-end sel-qty-input" data-kind="buy" data-sym="${sym}" value="${(bqty??0).toFixed(6)}" step="0.000001" min="0" style="width: 110px; display: inline-block;" />

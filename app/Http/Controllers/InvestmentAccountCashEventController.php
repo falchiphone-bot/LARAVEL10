@@ -88,8 +88,10 @@ class InvestmentAccountCashEventController extends Controller
         $category = $request->input('category');
         $status = trim((string)$request->input('status'));
     $filterTitle = trim((string)$request->input('title'));
-        $from = $request->input('from');
-        $to = $request->input('to');
+    $from = $request->input('from');
+    $to = $request->input('to');
+    $forecastFrom = $request->input('forecast_from');
+    $forecastTo = $request->input('forecast_to');
         $settleFrom = $request->input('settle_from');
         $settleTo = $request->input('settle_to');
     $direction = $request->input('direction'); // in | out
@@ -129,8 +131,11 @@ class InvestmentAccountCashEventController extends Controller
     if($filterTitle!==''){ $q->where('title','LIKE','%'.$filterTitle.'%'); }
         if($from){ $q->whereDate('event_date','>=',$from); }
         if($to){ $q->whereDate('event_date','<=',$to); }
-        if($settleFrom){ $q->whereDate('settlement_date','>=',$settleFrom); }
-        if($settleTo){ $q->whereDate('settlement_date','<=',$settleTo); }
+    if($settleFrom){ $q->whereDate('settlement_date','>=',$settleFrom); }
+    if($settleTo){ $q->whereDate('settlement_date','<=',$settleTo); }
+    if($forecastFrom){ $q->whereDate('forecast_at','>=',$forecastFrom); }
+    if($forecastTo){ $q->whereDate('forecast_at','<=',$forecastTo); }
+    if($request->boolean('has_forecast')){ $q->whereNotNull('forecast_at'); }
         if($direction==='in') { $q->where('amount','>',0); }
         elseif($direction==='out') { $q->where('amount','<',0); }
         if($valMin !== null && $valMin !== ''){ $q->where('amount','>=',(float)$valMin); }
@@ -287,23 +292,7 @@ class InvestmentAccountCashEventController extends Controller
             }
         }
 
-        // Carregar previsões (forecast) por símbolo do usuário e anexar aos eventos
-        $forecastBySymbol = [];
-        if (!empty($symbolsWanted)) {
-            $codesUpper = array_keys($symbolsWanted);
-            $rowsF = AssetForecast::where('user_id', $userId)
-                ->whereIn(DB::raw('UPPER(symbol)'), $codesUpper)
-                ->get(['symbol','forecast_at']);
-            foreach ($rowsF as $rf) {
-                $forecastBySymbol[strtoupper(trim((string)$rf->symbol))] = $rf->forecast_at; // Carbon|null
-            }
-        }
-        foreach ($events as $e) {
-            $sym = strtoupper(trim((string)($e->parsed_symbol ?? '')));
-            if ($sym !== '' && isset($forecastBySymbol[$sym])) {
-                $e->setAttribute('forecast_at', $forecastBySymbol[$sym]);
-            }
-        }
+        // forecast_at agora é por evento (coluna na própria tabela), nada a carregar por símbolo
 
         // Contadores de compras auditadas vs não auditadas (na página atual)
         $buyAuditedCount = 0;
@@ -556,6 +545,9 @@ class InvestmentAccountCashEventController extends Controller
             'filter_to'=>$to,
             'filter_settle_from'=>$settleFrom,
             'filter_settle_to'=>$settleTo,
+            'filter_forecast_from'=>$forecastFrom,
+            'filter_forecast_to'=>$forecastTo,
+            'filter_has_forecast'=>$request->boolean('has_forecast'),
             'filter_direction'=>$direction,
             'filter_val_min'=>$valMin,
             'filter_val_max'=>$valMax,
@@ -585,51 +577,39 @@ class InvestmentAccountCashEventController extends Controller
     }
 
     /**
-     * Salva (ou limpa) a previsão de chegada de valor de compra por ativo (símbolo).
-     * Upsert por (user_id, symbol). Se forecast_at vazio, remove o registro.
-     * Espera: symbol (string), forecast_at (string datetime-local 'YYYY-MM-DDTHH:MM' ou ISO), optional clear=true.
+     * Salva (ou limpa) a previsão de chegada do valor de compra por evento (linha).
+     * Atualiza o campo forecast_at do próprio evento. Se clear=true ou forecast_at vazio, seta null.
+     * Espera: event_id (int), forecast_at (string datetime-local 'YYYY-MM-DDTHH:MM' ou ISO) ou clear=true.
      */
     public function saveAssetForecast(Request $request)
     {
         $userId = (int) Auth::id();
-        $symbol = strtoupper(trim((string)$request->input('symbol')));
+        $eventId = (int) $request->input('event_id');
         $val = trim((string)$request->input('forecast_at'));
         $clear = $request->boolean('clear', false);
-        if ($symbol === '') {
-            return response()->json(['ok'=>false, 'message'=>'Símbolo ausente'], 422);
+        if ($eventId <= 0) {
+            return response()->json(['ok'=>false, 'message'=>'Evento ausente'], 422);
         }
 
         // Normaliza datetime vindo de input type=datetime-local (sem timezone)
         $dt = null;
         if (!$clear && $val !== '') {
             try {
-                // Aceita formatos: 'YYYY-MM-DDTHH:MM', 'YYYY-MM-DDTHH:MM:SS', ISO
                 $norm = str_replace('/', '-', $val);
                 $norm = preg_replace('/\s+/', 'T', $norm);
-                $dt = \Carbon\Carbon::parse($norm); // timezone padrão da app
+                $dt = \Carbon\Carbon::parse($norm);
             } catch (\Throwable $e) {
                 return response()->json(['ok'=>false, 'message'=>'Data/hora inválida'], 422);
             }
         }
 
+        $row = InvestmentAccountCashEvent::where('user_id', $userId)->where('id', $eventId)->first();
+        if (!$row) {
+            return response()->json(['ok'=>false, 'message'=>'Evento não encontrado'], 404);
+        }
         try {
-            if ($clear || $dt === null) {
-                // Se existir, apaga
-                AssetForecast::where('user_id', $userId)->where('symbol', $symbol)->delete();
-            } else {
-                // Upsert
-                $exists = AssetForecast::where('user_id', $userId)->where('symbol', $symbol)->first();
-                if ($exists) {
-                    $exists->forecast_at = $dt;
-                    $exists->save();
-                } else {
-                    AssetForecast::create([
-                        'user_id' => $userId,
-                        'symbol' => $symbol,
-                        'forecast_at' => $dt,
-                    ]);
-                }
-            }
+            $row->forecast_at = $dt; // pode ser null
+            $row->save();
         } catch (\Throwable $t) {
             return response()->json(['ok'=>false, 'message'=>'Falha ao salvar previsão'], 500);
         }
