@@ -501,7 +501,7 @@
     <form method="POST" action="{{ route('cash.events.update.inline') }}" id="formInlineTargets">
       @csrf
       <div class="table-responsive">
-      <table class="table table-sm table-striped align-middle mb-0">
+  <table id="eventsTable" class="table table-sm table-striped align-middle mb-0">
         <thead class="table-light">
           <tr>
             <th style="width:28px" title="Selecionar evento" class="text-center">
@@ -510,6 +510,12 @@
             <th>Data</th>
             <th>Liquidação</th>
             <th>Conta</th>
+            <th style="min-width:180px;" title="Previsão de quando deve chegar o valor da COMPRA para este ativo (por símbolo).">
+              <button type="button" id="btnSortForecast" class="btn btn-link btn-sm p-0 text-decoration-none" title="Ordenar por previsão (ASC/DESC)">
+                Prev. valor compra <span id="forecastSortIndicator" class="text-muted small">⇅</span>
+              </button>
+              <button type="button" id="btnSortForecastReset" class="btn btn-link btn-sm p-0 ms-2 text-muted text-decoration-none" title="Resetar ordenação (voltar à ordem original)">↺</button>
+            </th>
             <th>Categoria</th>
             <th>Título</th>
             <th>Detalhe</th>
@@ -547,6 +553,22 @@
             <td>{{ $e->event_date? $e->event_date->format('d/m/Y'):'—' }}</td>
             <td>{{ $e->settlement_date? $e->settlement_date->format('d/m/Y'):'—' }}</td>
             <td>{{ $e->account? $e->account->account_name:'—' }}</td>
+            <td class="align-middle" style="min-width: 190px;">
+              @php
+                $symFE = (string)($e->parsed_symbol ?? '');
+                $isBuyRow = (bool)($e->is_buy ?? false);
+                $forecastVal = $e->forecast_at ? $e->forecast_at->format('Y-m-d\\TH:i') : '';
+              @endphp
+              @if($isBuyRow && $symFE !== '')
+                <div class="input-group input-group-sm">
+                  <input type="datetime-local" class="form-control form-control-sm forecast-input" data-symbol="{{ $symFE }}" value="{{ $forecastVal }}" />
+                  <button type="button" class="btn btn-outline-secondary btn-sm forecast-clear" data-symbol="{{ $symFE }}" title="Limpar previsão">×</button>
+                  <span class="input-group-text forecast-status d-none">✔</span>
+                </div>
+              @else
+                —
+              @endif
+            </td>
             <td>{{ $e->category }}</td>
             <td>
               {{ $e->title }}
@@ -702,6 +724,7 @@ document.addEventListener('DOMContentLoaded', function(){
   // URL para salvar alocações LIFO + CSRF
   window.SAVE_LIFO_URL = "{{ route('cash.events.saveLifoMatches') }}";
   window.csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || "{{ csrf_token() }}";
+  window.SAVE_FORECAST_URL = "{{ route('cash.asset_forecast.save') }}";
   // Utilitário: formata data/hora para pt-BR (dd/mm/aaaa hh:mm:ss), assumindo UTC quando string vier como 'YYYY-MM-DD HH:MM:SS'
   function formatPtBrDatetime(s){
     if (!s || typeof s !== 'string') return '';
@@ -731,6 +754,146 @@ document.addEventListener('DOMContentLoaded', function(){
 <script>
 // Marca/Desmarca ativos e filtra a tabela (client-side)
 document.addEventListener('DOMContentLoaded', function(){
+  // Forecast: salvar ao mudar e refletir em todas as linhas do mesmo símbolo
+  // Ordenação por "Prev. valor compra" (ASC/DESC) com reset para ordem original
+  (function(){
+    const btn = document.getElementById('btnSortForecast');
+    const btnReset = document.getElementById('btnSortForecastReset');
+    const ind = document.getElementById('forecastSortIndicator');
+    const tbl = document.getElementById('eventsTable');
+    if (!btn || !ind || !tbl) return;
+    const tbody = tbl.querySelector('tbody');
+    if (!tbody) return;
+    // Guarda a ordem original das linhas para permitir reset sem recarregar
+    Array.from(tbody.querySelectorAll('tr')).forEach((tr, idx) => { tr.dataset.origIdx = String(idx); });
+    let dir = null; // 'asc' | 'desc' | null
+    function buildForecastMap(){
+      const map = {};
+      document.querySelectorAll('input.forecast-input[data-symbol]').forEach(inp => {
+        const sym = (inp.getAttribute('data-symbol')||'').toUpperCase();
+        const val = inp.value || '';
+        if (!sym) return;
+        // Mantém o primeiro não-vazio encontrado
+        if (val && !map[sym]) map[sym] = val;
+      });
+      return map;
+    }
+    function getRowSymbol(tr){
+      const cb = tr.querySelector('input.evt-mark');
+      const sym = cb ? (cb.getAttribute('data-parsed-symbol')||'') : '';
+      return (sym||'').toUpperCase();
+    }
+    function keyForRow(tr, map){
+      // 1) Se a própria linha tem input de forecast, usa esse valor
+      const own = tr.querySelector('input.forecast-input');
+      let v = own ? (own.value||'') : '';
+      if (!v){
+        // 2) Caso contrário, tenta pelo símbolo (valor compartilhado na página)
+        const s = getRowSymbol(tr);
+        if (s && map[s]) v = map[s] || '';
+      }
+      return v || '';
+    }
+    function resetSort(){
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      rows.sort((a,b)=> (parseInt(a.dataset.origIdx||'0',10)) - (parseInt(b.dataset.origIdx||'0',10)));
+      const frag = document.createDocumentFragment();
+      rows.forEach(r => frag.appendChild(r));
+      tbody.appendChild(frag);
+    }
+    function sortNow(){
+      if (dir === null) { resetSort(); return; }
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      const symMap = buildForecastMap();
+      const withIdx = rows.map((tr, idx) => ({ tr, idx, k: keyForRow(tr, symMap) }));
+      withIdx.sort((a,b) => {
+        const ak = a.k; const bk = b.k;
+        const aEmpty = !ak; const bEmpty = !bk;
+        if (aEmpty && bEmpty) return a.idx - b.idx; // estável
+        if (aEmpty && !bEmpty) return 1; // vazios vão para o final
+        if (!aEmpty && bEmpty) return -1;
+        // ambos com valor: comparar lexicograficamente (YYYY-MM-DDTHH:MM é seguro)
+        const cmp = ak.localeCompare(bk);
+        return dir === 'desc' ? -cmp : cmp;
+      });
+      // Reanexa na nova ordem
+      const frag = document.createDocumentFragment();
+      withIdx.forEach(r => frag.appendChild(r.tr));
+      tbody.appendChild(frag);
+    }
+    function updateIndicator(){
+      ind.textContent = dir === 'asc' ? '↑' : (dir === 'desc' ? '↓' : '⇅');
+      ind.classList.toggle('text-primary', !!dir);
+    }
+    btn.addEventListener('click', function(){
+      dir = (dir === 'asc') ? 'desc' : 'asc';
+      updateIndicator();
+      sortNow();
+    });
+    if (btnReset){
+      btnReset.addEventListener('click', function(){
+        dir = null;
+        updateIndicator();
+        resetSort();
+      });
+    }
+    // Inicial: não altera a ordem
+    updateIndicator();
+  })();
+
+  // Forecast: salvar ao mudar e refletir em todas as linhas do mesmo símbolo
+  async function postForecast(symbol, value, clear){
+    const payload = clear ? { symbol, clear: true } : { symbol, forecast_at: value };
+    const resp = await fetch(window.SAVE_FORECAST_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': window.csrfToken || '' },
+      body: JSON.stringify(payload)
+    });
+    if (!resp.ok) {
+      const j = await resp.json().catch(()=>({}));
+      throw new Error(j?.message || ('HTTP '+resp.status));
+    }
+    return true;
+  }
+  function setForecastInputs(symbol, value){
+    const sel = `input.forecast-input[data-symbol="${CSS.escape(symbol)}"]`;
+    document.querySelectorAll(sel).forEach(inp => { inp.value = value || ''; });
+  }
+  document.addEventListener('change', async function(ev){
+    const t = ev.target;
+    if (t && t.classList && t.classList.contains('forecast-input')){
+      const symbol = t.getAttribute('data-symbol') || '';
+      const val = t.value || '';
+      if (!symbol) return;
+      const group = t.closest('.input-group');
+      const status = group ? group.querySelector('.forecast-status') : null;
+      try{
+        if (status){ status.classList.add('d-none'); status.textContent='…'; }
+        await postForecast(symbol, val, false);
+        setForecastInputs(symbol, val);
+        if (status){ status.textContent='✔'; status.classList.remove('d-none'); setTimeout(()=>status.classList.add('d-none'), 2000); }
+      } catch(e){
+        alert('Erro ao salvar previsão: '+ (e?.message || e));
+      }
+    }
+  });
+  document.addEventListener('click', async function(ev){
+    const btn = ev.target;
+    if (btn && btn.classList && btn.classList.contains('forecast-clear')){
+      const symbol = btn.getAttribute('data-symbol') || '';
+      if (!symbol) return;
+      const group = btn.closest('.input-group');
+      const status = group ? group.querySelector('.forecast-status') : null;
+      try{
+        if (status){ status.classList.add('d-none'); status.textContent='…'; }
+        await postForecast(symbol, '', true);
+        setForecastInputs(symbol, '');
+        if (status){ status.textContent='✔'; status.classList.remove('d-none'); setTimeout(()=>status.classList.add('d-none'), 2000); }
+      } catch(e){
+        alert('Erro ao limpar previsão: '+ (e?.message || e));
+      }
+    }
+  });
   // Espelha controle de "Agrupar por Ativo" para o card rosa e aplica exclusividade com "Agrupar por Seleção"
   const chkOriginalGroupAsset = document.getElementById('chkGroupAsset');
   const toggleGroupAssetMirror = document.getElementById('toggleGroupAssetMirror');

@@ -135,6 +135,11 @@ Route::post('/openai/portfolio/cash/events/save-lifo-matches', [\App\Http\Contro
     ->middleware(['auth','verified','can:CASH EVENTS - LISTAR'])
     ->name('cash.events.saveLifoMatches');
 
+// Previsão de chegada do valor de compra por ativo (salvar/limpar)
+Route::post('/openai/portfolio/cash/asset-forecast/save', [\App\Http\Controllers\InvestmentAccountCashEventController::class,'saveAssetForecast'])
+    ->middleware(['auth','verified','can:CASH EVENTS - LISTAR'])
+    ->name('cash.asset_forecast.save');
+
 // Auditoria de alocações (por venda)
 Route::get('/openai/portfolio/cash/allocations', [\App\Http\Controllers\InvestmentAccountCashEventController::class,'allocationsIndex'])
     ->middleware(['auth','verified','can:CASH EVENTS - LISTAR'])

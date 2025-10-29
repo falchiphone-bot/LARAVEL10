@@ -11,6 +11,7 @@ use App\Services\MarketDataService;
 use App\Models\AssetDailyStat;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Models\AssetForecast;
 
 class InvestmentAccountCashEventController extends Controller
 {
@@ -283,6 +284,24 @@ class InvestmentAccountCashEventController extends Controller
                 $e->setAttribute('is_sell', false);
                 $e->setAttribute('parsed_qty', null);
                 $e->setAttribute('parsed_symbol', null);
+            }
+        }
+
+        // Carregar previsões (forecast) por símbolo do usuário e anexar aos eventos
+        $forecastBySymbol = [];
+        if (!empty($symbolsWanted)) {
+            $codesUpper = array_keys($symbolsWanted);
+            $rowsF = AssetForecast::where('user_id', $userId)
+                ->whereIn(DB::raw('UPPER(symbol)'), $codesUpper)
+                ->get(['symbol','forecast_at']);
+            foreach ($rowsF as $rf) {
+                $forecastBySymbol[strtoupper(trim((string)$rf->symbol))] = $rf->forecast_at; // Carbon|null
+            }
+        }
+        foreach ($events as $e) {
+            $sym = strtoupper(trim((string)($e->parsed_symbol ?? '')));
+            if ($sym !== '' && isset($forecastBySymbol[$sym])) {
+                $e->setAttribute('forecast_at', $forecastBySymbol[$sym]);
             }
         }
 
@@ -563,6 +582,59 @@ class InvestmentAccountCashEventController extends Controller
             'buyAuditedCount'=>$buyAuditedCount,
             'buyNotAuditedCount'=>$buyNotAuditedCount,
         ]);
+    }
+
+    /**
+     * Salva (ou limpa) a previsão de chegada de valor de compra por ativo (símbolo).
+     * Upsert por (user_id, symbol). Se forecast_at vazio, remove o registro.
+     * Espera: symbol (string), forecast_at (string datetime-local 'YYYY-MM-DDTHH:MM' ou ISO), optional clear=true.
+     */
+    public function saveAssetForecast(Request $request)
+    {
+        $userId = (int) Auth::id();
+        $symbol = strtoupper(trim((string)$request->input('symbol')));
+        $val = trim((string)$request->input('forecast_at'));
+        $clear = $request->boolean('clear', false);
+        if ($symbol === '') {
+            return response()->json(['ok'=>false, 'message'=>'Símbolo ausente'], 422);
+        }
+
+        // Normaliza datetime vindo de input type=datetime-local (sem timezone)
+        $dt = null;
+        if (!$clear && $val !== '') {
+            try {
+                // Aceita formatos: 'YYYY-MM-DDTHH:MM', 'YYYY-MM-DDTHH:MM:SS', ISO
+                $norm = str_replace('/', '-', $val);
+                $norm = preg_replace('/\s+/', 'T', $norm);
+                $dt = \Carbon\Carbon::parse($norm); // timezone padrão da app
+            } catch (\Throwable $e) {
+                return response()->json(['ok'=>false, 'message'=>'Data/hora inválida'], 422);
+            }
+        }
+
+        try {
+            if ($clear || $dt === null) {
+                // Se existir, apaga
+                AssetForecast::where('user_id', $userId)->where('symbol', $symbol)->delete();
+            } else {
+                // Upsert
+                $exists = AssetForecast::where('user_id', $userId)->where('symbol', $symbol)->first();
+                if ($exists) {
+                    $exists->forecast_at = $dt;
+                    $exists->save();
+                } else {
+                    AssetForecast::create([
+                        'user_id' => $userId,
+                        'symbol' => $symbol,
+                        'forecast_at' => $dt,
+                    ]);
+                }
+            }
+        } catch (\Throwable $t) {
+            return response()->json(['ok'=>false, 'message'=>'Falha ao salvar previsão'], 500);
+        }
+
+        return response()->json(['ok'=>true]);
     }
 
     public function exportCsv(Request $request)
