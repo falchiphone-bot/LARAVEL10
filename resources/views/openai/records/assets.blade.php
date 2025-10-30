@@ -107,6 +107,25 @@
             </div>
           </div>
         </div>
+        <div class="col-12">
+          <div class="card bg-warning-subtle text-dark border-0 shadow-sm">
+            <div class="card-body py-2">
+              <div class="row g-2 align-items-end">
+                <div class="col-sm-3 col-md-2">
+                  <label class="form-label small mb-1" title="Filtra pela variação percentual calculada a partir da Data base">Var (%) de</label>
+                  <input type="number" step="0.01" name="var_min" value="{{ request('var_min', $varMin ?? '') }}" class="form-control form-control-sm" placeholder="ex: -5.00">
+                </div>
+                <div class="col-sm-3 col-md-2">
+                  <label class="form-label small mb-1">até</label>
+                  <input type="number" step="0.01" name="var_max" value="{{ request('var_max', $varMax ?? '') }}" class="form-control form-control-sm" placeholder="ex: 2.50">
+                </div>
+                <div class="col d-flex align-items-center">
+                  <small class="text-muted ms-1">Aceita valores negativos. Requer informar “Data base”. Quando negativo o valor maior em absoluto é antes: Exemplo:-15; -2.</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="col-sm-3 col-md-2">
           <label class="form-label small mb-1">Atraso recarregar (ms)</label>
           <input type="number" min="0" step="50" name="auto_prev_reload_delay" value="{{ request('auto_prev_reload_delay') }}" class="form-control form-control-sm" placeholder="ex: 250">

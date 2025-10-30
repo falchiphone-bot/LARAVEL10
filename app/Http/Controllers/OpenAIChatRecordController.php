@@ -371,7 +371,7 @@ class OpenAIChatRecordController extends Controller
         }
     return view('openai.records.index', compact('records','chats','chatId','selectedChat','from','to','showAll','sort','dir','savedFilters','varMode','codeOrders','investmentAccounts','invAccId','lastInvestmentAccountId','datesReapplied','assetOptions','asset','buy','flagsMap','day','filterExact','dailyMonthComparison','currentMonthParam','previousMonthParam','dayLimitParam','cmpBucket'));
     }
-    
+
     /**
      * Gera comparação diária entre dois meses (mês "current" e mês "previous").
      * Parâmetros:
@@ -830,6 +830,18 @@ class OpenAIChatRecordController extends Controller
     $trendEpsPct = (float) $request->input('trend_epsilon', 0.1); // percentual mínimo para considerar sobe/desce
     if (!is_finite($trendEpsPct)) { $trendEpsPct = 0.1; }
     $trendEps = max(0.0, $trendEpsPct);
+    // Filtro de variação percentual (aceita negativos). Campos: var_min, var_max
+    $varMinRaw = $request->input('var_min');
+    $varMaxRaw = $request->input('var_max');
+    $parsePct = function($v){
+        if ($v === null || $v === '') return null;
+        if (is_numeric($v)) return (float) $v;
+        $v2 = str_replace(['%',' '], '', (string)$v);
+        $v2 = str_replace([','], ['.'], $v2);
+        return is_numeric($v2) ? (float)$v2 : null;
+    };
+    $varMin = $parsePct($varMinRaw);
+    $varMax = $parsePct($varMaxRaw);
 
     // Carregar contas de investimento do usuário para o filtro
         $investmentAccounts = InvestmentAccount::where('user_id', $userId)
@@ -1190,6 +1202,22 @@ class OpenAIChatRecordController extends Controller
         }
 
         // Ordenação dinâmica conforme solicitação
+        // Opcionalmente filtra por faixa de Var (%) quando baseline estiver definida
+        if ($baseline && ($varMin !== null || $varMax !== null)) {
+            $records = $records->filter(function($r) use ($baselines, $varMin, $varMax){
+                $code = trim((string)($r->chat->code ?? '')) ?: trim((string)($r->chat->title ?? ''));
+                $b = $baselines->get($code) ?? null;
+                if (!$b || !isset($b['amount'])) { return false; }
+                $base = (float) $b['amount'];
+                if (abs($base) <= 0.0000001) return false; // evita divisão por zero
+                $cur = (float) ($r->amount ?? 0);
+                $var = ($cur - $base) / $base * 100.0;
+                if ($varMin !== null && $var < $varMin) return false;
+                if ($varMax !== null && $var > $varMax) return false;
+                return true;
+            })->values();
+        }
+
         $recordsSorted = $records->sortBy(function($r) use ($sort, $counts, $baselines, $averages, $baselineStats, $overallStats){
             $code = trim((string)($r->chat->code ?? ''));
             $title = trim((string)($r->chat->title ?? ''));
@@ -1259,6 +1287,9 @@ class OpenAIChatRecordController extends Controller
     'trendsSummary' => $trendsSummary,
     'trendDays' => $trendDays,
     'trendEpsPct' => $trendEps,
+    // Echo back filter values
+    'varMin' => $varMinRaw,
+    'varMax' => $varMaxRaw,
         ]);
     }
 
