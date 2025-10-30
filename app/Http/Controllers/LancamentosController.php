@@ -2119,6 +2119,25 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                                 continue;
                             }
                         }
+                        // Regra específica: TARIFA PIX RECEBIDO QR CHECKOUT (valor negativo) => TARIFAS SOBRE PIX
+                        // Colocada antes de PIX RECEBIDO para evitar classificar como RECEBIMENTO DE VENDAS
+                        {
+                            $valorRaw = null; foreach($rA as $kk=>$vv){ if(mb_strtoupper((string)$kk,'UTF-8')==='VALOR'){ $valorRaw=$vv; break; } }
+                            // Detector robusto de negativo (considera hífen, unicode '−' U+2212 e parênteses)
+                            $isNeg = false; if($valorRaw !== null){
+                                $s = trim((string)$valorRaw);
+                                $hasParens = (bool)preg_match('/^\(.*\)$/u',$s);
+                                $hasMinusStart = (bool)preg_match('/^\s*[-]\s*/u',$s);
+                                $hasMinusEnd = (bool)preg_match('/\s*[-]\s*$/u',$s);
+                                $hasUnicodeMinus = strpos($s, "\xE2\x88\x92") !== false; // U+2212
+                                $isNeg = ($hasParens || $hasMinusStart || $hasMinusEnd || $hasUnicodeMinus);
+                            }
+                            if(isset($contaTarifaPixId) && $contaTarifaPixId && strpos($tu,'TARIFA')!==false && strpos($tu,'PIX')!==false && strpos($tu,'RECEB')!==false && strpos($tu,'CHECKOUT')!==false && $isNeg){
+                                $rA['_class_conta_id'] = (string)$contaTarifaPixId;
+                                $rA['_class_conta_label'] = $contaTarifaPixLabel ?: 'TARIFAS SOBRE PIX';
+                                continue;
+                            }
+                        }
                         // PIX RECEBIDO => RECEBIMENTO DE VENDAS
                         if(isset($contaRecebId) && $contaRecebId && strpos($tu,'PIX RECEB') !== false){
                             $rA['_class_conta_id'] = (string)$contaRecebId;
@@ -2145,6 +2164,34 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                             $rA['_class_conta_id'] = (string)$contaComprasId;
                             $rA['_class_conta_label'] = $contaComprasLabel ?: 'COMPRAS DE MERCADORIAS';
                             continue;
+                        }
+                        // Regra específica: PAGAMENTO CARTAO DE DEBITO (valor positivo) => RECEBIMENTOS DE VENDAS
+                        {
+                            $valorRaw = isset($valorRaw) ? $valorRaw : (function($row){ foreach($row as $kk=>$vv){ if(mb_strtoupper((string)$kk,'UTF-8')==='VALOR'){ return $vv; } } return null; })($rA);
+                            // Detector robusto de negativo (considera hífen, unicode '−' U+2212 e parênteses)
+                            $isNeg = false; if($valorRaw !== null){
+                                $s = trim((string)$valorRaw);
+                                $hasParens = (bool)preg_match('/^\(.*\)$/u',$s);
+                                $hasMinusStart = (bool)preg_match('/^\s*[-]\s*/u',$s);
+                                $hasMinusEnd = (bool)preg_match('/\s*[-]\s*$/u',$s);
+                                $hasUnicodeMinus = strpos($s, "\xE2\x88\x92") !== false; // U+2212
+                                $isNeg = ($hasParens || $hasMinusStart || $hasMinusEnd || $hasUnicodeMinus);
+                            }
+                            $hasPag = strpos($tu,'PAGAMENTO') !== false;
+                            $hasCartao = strpos($tu,'CARTAO') !== false;
+                            $hasDebito = (strpos($tu,'DEBIT') !== false || strpos($tu,'DEB') !== false);
+                            if(($contaRecebPluralId ?? null) || ($contaRecebId ?? null)){
+                                if($hasPag && $hasCartao && $hasDebito && $isNeg === false){
+                                    if(!empty($contaRecebPluralId)){
+                                        $rA['_class_conta_id'] = (string)$contaRecebPluralId;
+                                        $rA['_class_conta_label'] = $contaRecebPluralLabel ?: 'RECEBIMENTOS DE VENDAS';
+                                    } else {
+                                        $rA['_class_conta_id'] = (string)$contaRecebId;
+                                        $rA['_class_conta_label'] = $contaRecebLabel ?: 'RECEBIMENTO DE VENDAS';
+                                    }
+                                    continue;
+                                }
+                            }
                         }
                         // PAGAMENTO CARTAO DE DEBITO/CREDITO => COMPRAS DE MERCADORIAS
                         if(isset($contaComprasId) && $contaComprasId && strpos($tu,'PAGAMENTO') !== false && strpos($tu,'CARTAO') !== false && (strpos($tu,'DEBIT') !== false || strpos($tu,'CRED') !== false)){
@@ -2831,6 +2878,25 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                                 $rA['_class_conta_label'] = $contaRecebLabel ?: 'RECEBIMENTO DE VENDAS';
                                 continue;
                             }
+                            // Regra específica: TARIFA PIX RECEBIDO QR CHECKOUT (valor negativo) => TARIFAS SOBRE PIX
+                            // Colocada antes de PIX RECEBIDO para evitar classificar como RECEBIMENTO DE VENDAS
+                            {
+                                $valorRaw = null; foreach($rA as $kk=>$vv){ if(strpos(mb_strtoupper((string)$kk,'UTF-8'),'VALOR')!==false){ $valorRaw=$vv; break; } }
+                                // Detector robusto de negativo (considera hífen, unicode '−' U+2212 e parênteses)
+                                $isNeg = false; if($valorRaw !== null){
+                                    $s = trim((string)$valorRaw);
+                                    $hasParens = (bool)preg_match('/^\(.*\)$/u',$s);
+                                    $hasMinusStart = (bool)preg_match('/^\s*[-]\s*/u',$s);
+                                    $hasMinusEnd = (bool)preg_match('/\s*[-]\s*$/u',$s);
+                                    $hasUnicodeMinus = strpos($s, "\xE2\x88\x92") !== false; // U+2212
+                                    $isNeg = ($hasParens || $hasMinusStart || $hasMinusEnd || $hasUnicodeMinus);
+                                }
+                                if(isset($contaTarifaPixId) && $contaTarifaPixId && strpos($tu,'TARIFA')!==false && strpos($tu,'PIX')!==false && strpos($tu,'RECEB')!==false && strpos($tu,'CHECKOUT')!==false && $isNeg){
+                                    $rA['_class_conta_id'] = (string)$contaTarifaPixId;
+                                    $rA['_class_conta_label'] = $contaTarifaPixLabel ?: 'TARIFAS SOBRE PIX';
+                                    continue;
+                                }
+                            }
                             if(isset($contaRecebId) && $contaRecebId && strpos($tu,'PIX RECEB') !== false){
                                 $rA['_class_conta_id'] = (string)$contaRecebId;
                                 $rA['_class_conta_label'] = $contaRecebLabel ?: 'RECEBIMENTO DE VENDAS';
@@ -2841,6 +2907,32 @@ $amortizacaofixa = (float) $valorTotalNumero / (int) $parcelas;
                                 $rA['_class_conta_id'] = (string)$contaComprasId;
                                 $rA['_class_conta_label'] = $contaComprasLabel ?: 'COMPRAS DE MERCADORIAS';
                                 continue;
+                            }
+                            // Regra específica: PAGAMENTO CARTAO DE DEBITO (valor positivo) => RECEBIMENTOS DE VENDAS
+                            {
+                                $valorRaw = isset($valorRaw) ? $valorRaw : (function($row){ foreach($row as $kk=>$vv){ if(strpos(mb_strtoupper((string)$kk,'UTF-8'),'VALOR')!==false){ return $vv; } } return null; })($rA);
+                                // Detector robusto de negativo (considera hífen, unicode '−' U+2212 e parênteses)
+                                $isNeg = false; if($valorRaw !== null){
+                                    $s = trim((string)$valorRaw);
+                                    $hasParens = (bool)preg_match('/^\(.*\)$/u',$s);
+                                    $hasMinusStart = (bool)preg_match('/^\s*[-]\s*/u',$s);
+                                    $hasMinusEnd = (bool)preg_match('/\s*[-]\s*$/u',$s);
+                                    $hasUnicodeMinus = strpos($s, "\xE2\x88\x92") !== false; // U+2212
+                                    $isNeg = ($hasParens || $hasMinusStart || $hasMinusEnd || $hasUnicodeMinus);
+                                }
+                                $hasPag = strpos($tu,'PAGAMENTO') !== false;
+                                $hasCartao = strpos($tu,'CARTAO') !== false;
+                                $hasDebito = (strpos($tu,'DEBIT') !== false || strpos($tu,'DEB') !== false);
+                                if((($contaRecebPluralId ?? null) || ($contaRecebId ?? null)) && $hasPag && $hasCartao && $hasDebito && $isNeg === false){
+                                    if(!empty($contaRecebPluralId)){
+                                        $rA['_class_conta_id'] = (string)$contaRecebPluralId;
+                                        $rA['_class_conta_label'] = $contaRecebPluralLabel ?: 'RECEBIMENTOS DE VENDAS';
+                                    } else {
+                                        $rA['_class_conta_id'] = (string)$contaRecebId;
+                                        $rA['_class_conta_label'] = $contaRecebLabel ?: 'RECEBIMENTO DE VENDAS';
+                                    }
+                                    continue;
+                                }
                             }
                             if(isset($contaComprasId) && $contaComprasId && (strpos($tu,'PIX ENVI') !== false || (strpos($tu,'PAGAMENTO') !== false && strpos($tu,'CARTAO') !== false && (strpos($tu,'DEBIT') !== false || strpos($tu,'CRED') !== false)))){
                                 $rA['_class_conta_id'] = (string)$contaComprasId;
