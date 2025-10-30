@@ -171,11 +171,27 @@
           Saídas: <span class="text-danger">{{ number_format($sumOut,2,',','.') }}</span>
           <span class="mx-1">|</span>
           Saldo (∑ filtrado): <strong>{{ number_format($sumTotal,2,',','.') }}</strong>
-          @if(($buySell ?? '')==='buy')
+          @if(($buySell ?? '')==='buy' || !empty($filter_forecast_to))
             <span class="mx-2">|</span>
             <span class="text-muted">Auditadas (pág): <strong>{{ (int)($buyAuditedCount ?? 0) }}</strong></span>
             <span class="mx-1">|</span>
             <span class="text-muted">Não auditadas (pág): <strong>{{ (int)($buyNotAuditedCount ?? 0) }}</strong></span>
+            @if(!empty($filter_forecast_to))
+              @php
+                $fq = $forecastQtySum; $fv = $forecastBuyValueSum; $ft = $forecastTargetValueSum;
+                $diff = (is_numeric($ft) && is_numeric($fv)) ? ($ft - $fv) : null;
+                $diffCls = ($diff!==null) ? ($diff>0 ? 'text-success' : ($diff<0 ? 'text-danger' : 'text-secondary')) : 'text-secondary';
+                $diffPct = (is_numeric($fv) && $fv>0 && $diff!==null) ? (($diff/$fv)*100.0) : null;
+              @endphp
+              <span class="mx-2">|</span>
+              <span class="badge bg-primary-subtle text-primary-emphasis border" title="Soma de quantidades de COMPRA com filtro de Previsão">Qtd (∑): <strong>{{ is_numeric($fq) ? number_format($fq, 6, ',', '.') : '—' }}</strong></span>
+              <span class="mx-2">|</span>
+              <span class="text-muted" title="Soma de valores de COMPRA (qty * preço)">Compras (∑): <strong>{{ is_numeric($fv) ? number_format($fv, 2, ',', '.') : '—' }}</strong></span>
+              <span class="mx-2">|</span>
+              <span class="text-muted" title="Soma de metas (qty * Meta USD)">Meta (∑): <strong>{{ is_numeric($ft) ? number_format($ft, 2, ',', '.') : '—' }}</strong></span>
+              <span class="mx-2">|</span>
+              <span class="{{ $diffCls }}" title="Diferença entre Meta (∑) e Compras (∑)">Dif.: <strong>{{ $diff!==null ? number_format($diff, 2, ',', '.') : '—' }}</strong>@if($diffPct!==null) (<strong>{{ number_format($diffPct, 2, ',', '.') }}%</strong>)@endif</span>
+            @endif
           @endif
         </div>
         <div class="ms-auto d-flex gap-2 align-items-center">

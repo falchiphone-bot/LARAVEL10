@@ -307,6 +307,49 @@ class InvestmentAccountCashEventController extends Controller
             }
         }
 
+        // Resumo quando aplicado filtro de previsão (Prev. Até) em compras
+        $forecastQtySum = null; // soma de quantidades
+        $forecastBuyValueSum = null; // soma de (qty * preço de compra) ~ valor comprado
+        $forecastTargetValueSum = null; // soma de (qty * meta USD)
+        if (!empty($forecastTo)) {
+            $qSum = 0.0; $vBuy = 0.0; $vTarget = 0.0;
+            foreach ($events as $e) {
+                $isBuy = (bool)($e->getAttribute('is_buy'));
+                if (!$isBuy) { continue; }
+                // Quantidade efetiva
+                $qty = null;
+                $parsedQty = $e->getAttribute('parsed_qty');
+                if (is_numeric($parsedQty)) {
+                    $qty = (float)$parsedQty;
+                } else {
+                    $unit = $e->getAttribute('unit_base_price');
+                    $amt = $e->amount;
+                    if (is_numeric($amt) && is_numeric($unit) && $unit > 0) {
+                        $qty = abs((float)$amt) / (float)$unit;
+                    }
+                }
+                if ($qty !== null && $qty > 0) { $qSum += (float)$qty; }
+
+                // Valor comprado (qty * unit_price) ou |amount|
+                $unit = $e->getAttribute('unit_base_price');
+                $amt = $e->amount;
+                if ($qty !== null && is_numeric($unit) && $unit > 0) {
+                    $vBuy += ($qty * (float)$unit);
+                } elseif (is_numeric($amt)) {
+                    $vBuy += abs((float)$amt);
+                }
+
+                // Meta (qty * target_amount)
+                $target = $e->target_amount ?? null;
+                if ($qty !== null && is_numeric($target) && (float)$target > 0) {
+                    $vTarget += ($qty * (float)$target);
+                }
+            }
+            $forecastQtySum = $qSum;
+            $forecastBuyValueSum = $vBuy;
+            $forecastTargetValueSum = $vTarget;
+        }
+
         // Buscar preço atual por código (último OpenAIChatRecord por código do usuário)
         $currentPriceByCode = [];
         if (!empty($symbolsWanted)) {
@@ -573,6 +616,9 @@ class InvestmentAccountCashEventController extends Controller
             'auditedBuySet'=>$auditedBuySet,
             'buyAuditedCount'=>$buyAuditedCount,
             'buyNotAuditedCount'=>$buyNotAuditedCount,
+            'forecastQtySum'=>$forecastQtySum,
+            'forecastBuyValueSum'=>$forecastBuyValueSum,
+            'forecastTargetValueSum'=>$forecastTargetValueSum,
         ]);
     }
 
