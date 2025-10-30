@@ -62,7 +62,7 @@
             >
                 <option value="">Selecione um TÓPICO</option>
                 @foreach ($Irmaos_EmausPia as $id =>$servico)
-                    <option {{ old('idServicos', $model->idServicos ?? '') == $id ? 'selected' : '' }}
+                    <option {{ old('idIrmaos_EmausPia', $model->idIrmaos_EmausPia ?? '') == $id ? 'selected' : '' }}
                         value="{{ $id }}">
                         {{ $servico }}
                     </option>
@@ -83,7 +83,7 @@
                 name="Data"
                 type="date"
                 id="Data"
-                value="{{ old('Data', isset($model->Data) ? $model->data->format('Y-m-d') : '') }}"
+                value="{{ old('Data', isset($model->Data) ? $model->Data->format('Y-m-d') : '') }}"
             >
             @error('Data')
                 <div class="invalid-feedback">{{ $message }}</div>

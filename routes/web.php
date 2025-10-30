@@ -1356,6 +1356,16 @@ Route::delete('ficha-controle/arquivo/{id}', [Irmaos_Emaus_FichaControleArquivoC
     ->name('Irmaos_Emaus_FichaControle.ListaRelatorioPia');
     Route::post('GravaRelatorioPia', [App\Http\Controllers\Irmaos_Emaus_FichaControleController::class, 'GravaRelatorioPia'])
    ->name('Irmaos_Emaus_FichaControle.GravaRelatorioPia');
+    // Edição/Exclusão de registros do Relatório PIA (com permissões)
+    Route::get('Irmaos_Emaus_RelatorioPia/{id}/edit',  [App\Http\Controllers\Irmaos_Emaus_FichaControleController::class, 'editRelatorioPia'])
+        ->middleware(['auth','permission:IRMAOS_EMAUS_FICHA_CONTROLE - EDITAR'])
+        ->name('Irmaos_Emaus_FichaControle.RelatorioPia.edit');
+    Route::match(['put','patch'],'Irmaos_Emaus_RelatorioPia/{id}',  [App\Http\Controllers\Irmaos_Emaus_FichaControleController::class, 'updateRelatorioPia'])
+        ->middleware(['auth','permission:IRMAOS_EMAUS_FICHA_CONTROLE - EDITAR'])
+        ->name('Irmaos_Emaus_FichaControle.RelatorioPia.update');
+    Route::delete('Irmaos_Emaus_RelatorioPia/{id}',  [App\Http\Controllers\Irmaos_Emaus_FichaControleController::class, 'destroyRelatorioPia'])
+        ->middleware(['auth','permission:IRMAOS_EMAUS_FICHA_CONTROLE - EXCLUIR'])
+        ->name('Irmaos_Emaus_FichaControle.RelatorioPia.destroy');
 
 
 

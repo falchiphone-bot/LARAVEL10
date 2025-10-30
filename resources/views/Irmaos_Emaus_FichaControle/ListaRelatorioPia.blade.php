@@ -111,7 +111,7 @@
 
                             <th scope="col" class="px-6 py-4">CADASTRADO POR:</th>
                             <th scope="col" class="px-6 py-4">CADASTRADO EM:</th>
-                            <th scope="col" class="px-6 py-4"></th>
+                            <th scope="col" class="px-6 py-4">AÇÕES</th>
                         </tr>
                     </thead>
 
@@ -139,31 +139,21 @@
                                    {{ $Model->created_at ? \Carbon\Carbon::parse($Model->created_at)->format('d/m/Y H:i:s') : 'Sem data' }}
                                 </td>
 
-                                {{-- @can('IRMAOS_EMAUS_NOME_SERVICO - EDITAR')
-                                    <td>
-                                        <a href="{{ route('Irmaos_EmausServicos.edit', $Model->id) }}" class="btn btn-success" tabindex="-1"
-                                            role="button" aria-disabled="true">Editar</a>
-                                    </td>
-                                @endcan --}}
+                                <td class="d-flex gap-2">
+                                    @can('IRMAOS_EMAUS_FICHA_CONTROLE - EDITAR')
+                                        <a href="{{ route('Irmaos_Emaus_FichaControle.RelatorioPia.edit', $Model->id) }}" class="btn btn-success btn-sm" role="button">Editar</a>
+                                    @endcan
 
-                                {{-- @can('IRMAOS_EMAUS_NOME_SERVICO - VER')
-                                    <td>
-                                        <a href="{{ route('Irmaos_EmausServicos.show', $Model->id) }}" class="btn btn-info" tabindex="-1"
-                                            role="button" aria-disabled="true">Ver</a>
-                                    </td>
-                                @endcan --}}
-
-                                {{-- @can('IRMAOS_EMAUS_NOME_SERVICO - EXCLUIR')
-                                    <td>
-                                        <form method="POST" action="{{ route('Irmaos_EmausServicos.destroy', $Model->id)  }}">
+                                    @can('IRMAOS_EMAUS_FICHA_CONTROLE - EXCLUIR')
+                                        <form method="POST" action="{{ route('Irmaos_Emaus_FichaControle.RelatorioPia.destroy', $Model->id) }}" onsubmit="return confirm('Tem certeza que deseja excluir este registro?');">
                                             @csrf
-                                            <input type="hidden" name="_method" value="DELETE">
-                                            <button type="submit" class="btn btn-danger">
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm">
                                                 Excluir
                                             </button>
                                         </form>
-                                    </td>
-                                @endcan --}}
+                                    @endcan
+                                </td>
                             </tr>
                             <tr>
                                 <td style="background-color: #fff9c4;">

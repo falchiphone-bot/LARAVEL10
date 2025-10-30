@@ -27,6 +27,9 @@ class Irmaos_Emaus_FichaControleController extends Controller
         $this->middleware(['permission:IRMAOS_EMAUS_FICHA_CONTROLE - EXCLUIR'])->only('destroy');
         $this->middleware(['permission:IRMAOS_EMAUS_FICHA_CONTROLE - EXCLUIR'])->only('destroy');
         $this->middleware(['permission:IRMAOS_EMAUS_FICHA_CONTROLE - ENVIAR_ARQUIVOS'])->only('enviarArquivos');
+        // Permissões específicas para RELATÓRIO PIA (reutiliza permissões de FICHA CONTROLE)
+        $this->middleware(['permission:IRMAOS_EMAUS_FICHA_CONTROLE - EDITAR'])->only(['editRelatorioPia', 'updateRelatorioPia']);
+        $this->middleware(['permission:IRMAOS_EMAUS_FICHA_CONTROLE - EXCLUIR'])->only(['destroyRelatorioPia']);
     }
 
     /**
@@ -210,6 +213,46 @@ class Irmaos_Emaus_FichaControleController extends Controller
         // $rl = Irmaos_Emaus_RelatorioPia::find($RelatorioPia['idFichaControle']);
         // dd($rl);
         return redirect(route('Irmaos_Emaus_FichaControle.ListaRelatorioPia', $id = $RelatorioPia['idFichaControle']));
+    }
+
+    /**
+     * Formulário de edição de um registro do Relatório PIA.
+     */
+    public function editRelatorioPia(string $id)
+    {
+        $model = Irmaos_Emaus_RelatorioPia::findOrFail($id);
+        $FichaControle = Irmaos_Emaus_FichaControle::findOrFail($model->idFichaControle);
+        $Irmaos_EmausPia = Irmaos_EmausPia::orderBy('nomePia')->pluck('nomePia', 'id');
+        $idFichaControle = $FichaControle->id;
+
+        return view('Irmaos_Emaus_FichaControle.editRelatorioPia', compact('model', 'FichaControle', 'Irmaos_EmausPia', 'idFichaControle'));
+    }
+
+    /**
+     * Atualiza um registro do Relatório PIA.
+     */
+    public function updateRelatorioPia(Irmaos_Emaus_RelatorioPiaRequest $request, string $id)
+    {
+        $model = Irmaos_Emaus_RelatorioPia::findOrFail($id);
+        $model->fill($request->all());
+        $model->user_updated = auth()->user()->email;
+        $model->save();
+
+        return redirect()->route('Irmaos_Emaus_FichaControle.ListaRelatorioPia', $model->idFichaControle)
+            ->with('success', 'Relatório PIA atualizado com sucesso.');
+    }
+
+    /**
+     * Exclui um registro do Relatório PIA.
+     */
+    public function destroyRelatorioPia(string $id)
+    {
+        $model = Irmaos_Emaus_RelatorioPia::findOrFail($id);
+        $idFicha = $model->idFichaControle;
+        $model->delete();
+
+        return redirect()->route('Irmaos_Emaus_FichaControle.ListaRelatorioPia', $idFicha)
+            ->with('success', 'Relatório PIA excluído com sucesso.');
     }
     public function ListaRelatorioPia(string $id)
     {
