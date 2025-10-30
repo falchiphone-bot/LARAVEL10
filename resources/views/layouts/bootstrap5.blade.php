@@ -419,6 +419,20 @@ if (window.Livewire) {
                 </a>
               </li>
 
+              {{-- Link: IBKR (status / OAuth) --}}
+              @can('IBKR - VER')
+              <li>
+                <a href="{{ route('ibkr.status') }}"
+                   class="nav-link text-white"
+                   data-bs-toggle="tooltip" data-bs-placement="top"
+                   data-bs-custom-class="custom-tooltip"
+                   data-bs-title="Status de conexão com a API Web da IBKR e ações de conexão (OAuth)">
+                  <i class="fa-solid fa-building-columns"></i>
+                  IBKR
+                </a>
+              </li>
+              @endcan
+
 
 
                             {{-- Dropdown: Contabilidade / Financeiro --}}
@@ -882,10 +896,10 @@ if (window.Livewire) {
             </div> --}}
         </header>
 
-        {{-- Toasts de feedback via sessão --}}
+        {{-- Toasts de feedback via sessão (exceto erros, que abrem em modal) --}}
         <div aria-live="polite" aria-atomic="true" class="position-relative">
           <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 2000;">
-            @foreach (['success'=>'success','info'=>'info','warning'=>'warning','error'=>'danger'] as $k => $cls)
+            @foreach (['success'=>'success','info'=>'info','warning'=>'warning'] as $k => $cls)
               @if (session($k))
                 <div class="toast align-items-center text-bg-{{ $cls }} border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000">
                   <div class="d-flex">
@@ -897,6 +911,63 @@ if (window.Livewire) {
                 </div>
               @endif
             @endforeach
+          </div>
+        </div>
+
+        {{-- Modal de Erros (centralizado) --}}
+        @php
+          $hasErrorModal = session('error') || ($errors && $errors->any());
+        @endphp
+        <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true" data-has-errors="{{ $hasErrorModal ? '1' : '0' }}">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-danger">
+              <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="errorModalLabel">
+                  @if(session('error') && !($errors && $errors->any()))
+                    Ocorreu um erro
+                  @elseif($errors && $errors->any())
+                    Ocorreram erros de validação
+                  @else
+                    Erro
+                  @endif
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+              </div>
+              <div class="modal-body" style="max-height: 60vh; overflow:auto;">
+                @if (session('error'))
+                  <div class="alert alert-danger" role="alert">
+                    {{ session('error') }}
+                  </div>
+                @endif
+                @if ($errors && $errors->any())
+                  <div class="alert alert-danger" role="alert">
+                    <ul class="mb-0 ps-3">
+                      @foreach ($errors->all() as $err)
+                        <li>{{ $err }}</li>
+                      @endforeach
+                    </ul>
+                  </div>
+                @endif
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {{-- Modal de "Processando/Aguarde" (para ações como Conectar e Contas JSON) --}}
+        <div class="modal fade" id="busyModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-body text-center py-4">
+                <div class="d-flex flex-column align-items-center gap-3">
+                  <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
+                  <div class="fw-semibold">Aguarde…</div>
+                  <div class="text-muted small">Estamos processando sua solicitação.</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1034,6 +1105,45 @@ if (window.Livewire) {
         });
       }catch(_e){}
     })();
+  </script>
+  <script>
+    // Exibe automaticamente o modal de erros quando houver mensagens
+    document.addEventListener('DOMContentLoaded', function(){
+      try{
+        var modalEl = document.getElementById('errorModal');
+        if (!modalEl) return;
+        var hasErrors = modalEl.getAttribute('data-has-errors') === '1';
+        if (hasErrors && window.bootstrap && bootstrap.Modal) {
+          var m = new bootstrap.Modal(modalEl);
+          m.show();
+        }
+      }catch(_e){}
+    });
+  </script>
+  <script>
+    // Abre o modal de "Aguarde" para elementos marcados com data-busy="1"
+    document.addEventListener('DOMContentLoaded', function(){
+      function showBusy(){
+        try{
+          var el = document.getElementById('busyModal');
+          if (!el) return;
+          var m = new bootstrap.Modal(el);
+          m.show();
+        }catch(_e){}
+      }
+      // Click em links/botões
+      document.querySelectorAll('[data-busy="1"]').forEach(function(node){
+        node.addEventListener('click', function(){
+          showBusy();
+        });
+      });
+      // Submissão de formulários
+      document.querySelectorAll('form[data-busy="1"]').forEach(function(form){
+        form.addEventListener('submit', function(){
+          showBusy();
+        });
+      });
+    });
   </script>
   {{-- Market status desabilitado --}}
   {{-- <script>

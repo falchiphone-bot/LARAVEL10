@@ -852,6 +852,14 @@ Route::any('/radio/liveprf/proxy/{path}', function (\Illuminate\Http\Request $re
     }
 })->where('path', '.*')->name('radio.liveprf.proxy');
 
+// IBKR Web API (base OAuth + exemplos)
+Route::middleware(['auth','verified'])->group(function(){
+    Route::get('/ibkr/connect', [\App\Http\Controllers\IbkrController::class, 'connect'])->name('ibkr.connect');
+    Route::get('/ibkr/callback', [\App\Http\Controllers\IbkrController::class, 'callback'])->name('ibkr.callback');
+    Route::get('/ibkr/status', [\App\Http\Controllers\IbkrController::class, 'status'])->name('ibkr.status');
+    Route::get('/ibkr/accounts', [\App\Http\Controllers\IbkrController::class, 'accounts'])->name('ibkr.accounts');
+});
+
 // Tipo de Esporte - exportação CSV/XLSX
 Route::get('TipoEsporte-export', [App\Http\Controllers\TipoEsporteController::class, 'export'])
     ->name('TipoEsporte.export');
