@@ -58,10 +58,10 @@
     <div class="card extrato-wrapper">
         <div class="card-body">
             <div class="d-flex justify-content-end mb-2">
-                <button type="button" id="btn-toggle-extrato-layout" 
-                class="btn btn-outline-dark btn-sm toggle-extrato-layout" 
-                
-                
+                <button type="button" id="btn-toggle-extrato-layout"
+                class="btn btn-outline-dark btn-sm toggle-extrato-layout"
+
+
                 title="Alterna exibição para ganhar espaço vertical">Modo Compacto</button>
             </div>
             <div class="badge bg-secondary text-wrap" style="width: 100%;
@@ -471,13 +471,13 @@ document.addEventListener('DOMContentLoaded', function(){
                     <div class="row">
                         <div class="form-group col-sm-12 col-md-3">
                             <label for="de" class="pr-1  form-control-label">De</label>
-                            <input type="date" value="" id="de" name="De" wire:model='De'
+                            <input type="date" value="" id="de" name="De" wire:model.defer='De'
                                 class="required form-control " autocomplete="off">
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
                             <label for="ate" class="px-1  form-control-label">Até</label>
                             <input type="date" value="" id="ate" name="Ate" placeholder="Buscar até"
-                                wire:model='Ate' class="required form-control " autocomplete="off">
+                                wire:model.defer='Ate' class="required form-control " autocomplete="off">
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
                             <label for="ate" class="px-1  form-control-label">Conferido/Saidas em geral</label>
@@ -1163,7 +1163,7 @@ document.addEventListener('DOMContentLoaded', function(){
                                     'empresa_id' => $selEmpresa,
                                     'contas' => $contas,
                                     'empresas' => $empresas
-                                ], key('editar-'.$editar_lancamento.'-'.$selEmpresa))
+                                ])
                             </div>
                         </div>
                     </div>

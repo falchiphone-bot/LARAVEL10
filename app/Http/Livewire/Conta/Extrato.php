@@ -48,6 +48,9 @@ class Extrato extends Component
     public $exibicao_pesquisa = '';
     public $editar_lancamento = null;
     public $pdfSelecionado = 'completo';
+    // Datas aplicadas (somente atualizadas ao clicar em "Buscar")
+    public $appliedDe;
+    public $appliedAte;
 
     public function selectedSelEmpresaItem($item)
     {
@@ -144,8 +147,7 @@ class Extrato extends Component
             $this->De = date('Y-m-d');
         }
         session(['Extrato_De' => $this->De]);
-    // Atualiza automaticamente a visualização ao alterar a data inicial
-    $this->search();
+        // Não dispara busca automática ao alterar a data
     }
 
     public function updatedAte($value): void
@@ -154,8 +156,7 @@ class Extrato extends Component
             $this->Ate = date('Y-m-d');
         }
         session(['Extrato_Ate' => $this->Ate]);
-    // Atualiza automaticamente a visualização ao alterar a data final
-    $this->search();
+        // Não dispara busca automática ao alterar a data
     }
 
     // Atualiza lista ao mudar filtro de conferência
@@ -555,6 +556,9 @@ class Extrato extends Component
 
             $ExportarLinha[] = $exportarItem;
         }
+                // Ao montar o componente, as datas aplicadas refletem o estado inicial
+                $this->appliedDe = $this->De;
+                $this->appliedAte = $this->Ate;
 
     $exportarUnir = collect($ExportarLinha);
 
@@ -831,6 +835,9 @@ class Extrato extends Component
             ];
 
             $ExportarLinha[] = $exportarItem;
+                // Travar datas aplicadas somente ao confirmar a busca
+                $this->appliedDe = $this->De;
+                $this->appliedAte = $this->Ate;
         }
 
     $exportarUnir = collect($ExportarLinha);
@@ -1759,6 +1766,8 @@ class Extrato extends Component
         $contaID = session('extrato_ContaID') ?? $this->selConta;
         $empresaID = $this->selEmpresa;
         $deDT = Carbon::parse($this->De)->startOfDay();
+    // Usa datas aplicadas (não as que estão sendo digitadas) para cálculo de saldo anterior
+    $deDT = Carbon::parse($this->appliedDe ?? $this->De)->startOfDay();
         $deSQL = $deDT->format('Y-m-d H:i:s');
 
         // Se faltar empresa ou conta, evita consultas inválidas
@@ -1866,9 +1875,9 @@ class Extrato extends Component
 
         // Cabeçalho de exibição (título) seguro caso filtros não estejam definidos
         $periodo = '';
-        if (!empty($this->De) && !empty($this->Ate)) {
+        if (!empty($this->appliedDe ?? $this->De) && !empty($this->appliedAte ?? $this->Ate)) {
             try {
-                $periodo = Carbon::parse($this->De)->format('d/m/Y') . ' a ' . Carbon::parse($this->Ate)->format('d/m/Y');
+                $periodo = Carbon::parse($this->appliedDe ?? $this->De)->format('d/m/Y') . ' a ' . Carbon::parse($this->appliedAte ?? $this->Ate)->format('d/m/Y');
             } catch (\Throwable $e) {
                 $periodo = '';
             }
