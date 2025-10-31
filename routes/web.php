@@ -1751,6 +1751,9 @@ Route::resource('RedeSocialUsuarios', App\Http\Controllers\RedeSocialUsuarioCont
     Route::post('PlanoContas/BalanceteEmpresa', [App\Http\Controllers\PlanoContaController::class, 'BalanceteEmpresa'])->name('planocontas.balanceteempresa');
     Route::get('PlanoContas/Balancetes', [App\Http\Controllers\PlanoContaController::class, 'Balancetes'])->name('planocontas.balancetes');
     Route::get('PlanoContas/Balancetespdf', [App\Http\Controllers\PlanoContaController::class, 'Balancetesgerarpdf'])->name('planocontas.Balancetesgerarpdf');
+    // Reclassificação em massa (Plano de Contas)
+    Route::post('PlanoContas/reclassificar/preview', [App\Http\Controllers\PlanoContaController::class, 'previewReclassificacao'])->name('planocontas.reclass.preview');
+    Route::post('PlanoContas/reclassificar/aplicar', [App\Http\Controllers\PlanoContaController::class, 'applyReclassificacao'])->name('planocontas.reclass.apply');
     Route::resource('PlanoContas', App\Http\Controllers\PlanoContaController::class);
     Route::post('PlanoContas/FiltroAgrupamento', [App\Http\Controllers\PlanoContaController::class, 'FiltroAgrupamento'])->name('planocontas.FiltroAgrupamento');
 

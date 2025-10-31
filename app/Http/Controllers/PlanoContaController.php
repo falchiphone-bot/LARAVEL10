@@ -91,7 +91,7 @@ class PlanoContaController extends Controller
             ->select(['Lancamentos.ID', 'DataContabilidade', 'Lancamentos.Descricao', 'Lancamentos.EmpresaID', 'Contabilidade.Lancamentos.Valor', 'Historicos.Descricao as DescricaoHistorico', 'Lancamentos.ContaDebitoID', 'Lancamentos.ContaCreditoID'])
             ->orderBy('Lancamentos.ID', 'desc');
 
-           
+
         if ($Request->Texto) {
             $texto = $Request->Texto;
             $pesquisa->where(function ($query) use ($texto) {
@@ -1345,6 +1345,109 @@ $canvas->page_text(270, 770, "Página {PAGE_NUM} de {PAGE_COUNT}", 0 ,12);
         $cadastro = PlanoConta::find($id);
         $cadastro->delete();
         return redirect(route('PlanoContas.index'));
+    }
+
+    /**
+     * Pré-visualiza a reclassificação em massa de códigos (prefixo origem -> prefixo destino).
+     */
+    public function previewReclassificacao(Request $request)
+    {
+        $this->middleware(['permission:PLANO DE CONTAS - EDITAR']);
+
+        $from = trim((string) $request->input('from_prefix'));
+        $to   = trim((string) $request->input('to_prefix'));
+
+        if ($from === '' || $to === '') {
+            return redirect()->back()->with('error', 'Informe os dois prefixos (De e Para).');
+        }
+        if ($from === $to) {
+            return redirect()->back()->with('error', 'Os prefixos De e Para não podem ser iguais.');
+        }
+
+        // Busca todos os PlanoContas cujo Código começa com o prefixo de origem
+        $afetados = PlanoConta::where('Codigo', 'like', $from . '%')
+            ->orderBy('Codigo', 'asc')
+            ->get(['ID','Descricao','Codigo','Grau']);
+
+        $mudancas = [];
+        foreach ($afetados as $pc) {
+            $codigo = (string) $pc->Codigo;
+            if (strpos($codigo, $from) === 0) {
+                $novo = $to . substr($codigo, strlen($from));
+                $mudancas[] = [
+                    'id' => $pc->ID,
+                    'descricao' => $pc->Descricao,
+                    'codigo_atual' => $codigo,
+                    'codigo_novo' => $novo,
+                    'grau' => $pc->Grau,
+                ];
+            }
+        }
+
+        if (empty($mudancas)) {
+            return redirect()->back()->with('info', 'Nenhuma conta encontrada iniciando por "'.$from.'".');
+        }
+
+        // Detecta conflitos (novo código já existente em algum outro registro)
+        $novosCodigos = array_values(array_unique(array_map(fn($m) => $m['codigo_novo'], $mudancas)));
+        $conflitos = PlanoConta::whereIn('Codigo', $novosCodigos)
+            ->pluck('Codigo')
+            ->all();
+
+        return view('PlanoContas.reclass_preview', [
+            'from' => $from,
+            'to' => $to,
+            'mudancas' => $mudancas,
+            'conflitos' => $conflitos,
+        ]);
+    }
+
+    /**
+     * Aplica a reclassificação em massa, com checagem de conflito de códigos.
+     */
+    public function applyReclassificacao(Request $request)
+    {
+        $this->middleware(['permission:PLANO DE CONTAS - EDITAR']);
+
+        $from = trim((string) $request->input('from_prefix'));
+        $to   = trim((string) $request->input('to_prefix'));
+
+        if ($from === '' || $to === '') {
+            return redirect()->route('PlanoContas.index')->with('error', 'Informe os dois prefixos (De e Para).');
+        }
+        if ($from === $to) {
+            return redirect()->route('PlanoContas.index')->with('error', 'Os prefixos De e Para não podem ser iguais.');
+        }
+
+        $afetados = PlanoConta::where('Codigo', 'like', $from.'%')
+            ->orderBy('Codigo','asc')
+            ->get(['ID','Codigo']);
+        if ($afetados->isEmpty()) {
+            return redirect()->route('PlanoContas.index')->with('info', 'Nenhuma conta encontrada iniciando por "'.$from.'".');
+        }
+
+        // Monta mapa de atualizações e detecta conflitos
+        $updates = [];
+        $novos = [];
+        foreach ($afetados as $pc) {
+            $novo = $to . substr((string)$pc->Codigo, strlen($from));
+            $updates[$pc->ID] = $novo;
+            $novos[] = $novo;
+        }
+        $novos = array_values(array_unique($novos));
+        $conflitos = PlanoConta::whereIn('Codigo', $novos)->pluck('Codigo')->all();
+        if (!empty($conflitos)) {
+            return redirect()->route('PlanoContas.index')->with('error', 'Conflito: já existem contas com os códigos de destino: '.implode(', ', $conflitos).'. Ajuste o prefixo de destino.');
+        }
+
+        // Aplica atualização em transação
+        DB::transaction(function() use ($updates) {
+            foreach ($updates as $id => $novoCodigo) {
+                PlanoConta::where('ID', $id)->update(['Codigo' => $novoCodigo]);
+            }
+        });
+
+        return redirect()->route('PlanoContas.index')->with('success', 'Reclassificação aplicada para '.count($updates).' conta(s).');
     }
 
     public function Balancetesgerarpdf(Request $request)

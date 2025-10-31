@@ -45,6 +45,33 @@
                     <a class="btn btn-success" href="/PlanoContas">Plano de Contas - mostrar todas contas</a>
                 </nav>
 
+                                @can('PLANO DE CONTAS - EDITAR')
+                                <div class="card mt-3">
+                                    <div class="card-header">
+                                        <strong>Reclassificação em massa</strong>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="mb-2 small text-muted">Altere o prefixo de classificação de todas as contas cujo código inicia por um valor (ex.: 1.02) para outro (ex.: 3.52). Primeiro exibiremos a pré-visualização; nada será alterado até você confirmar.</p>
+                                        <form method="POST" action="{{ route('planocontas.reclass.preview') }}">
+                                            @csrf
+                                            <div class="row g-2 align-items-end">
+                                                <div class="col-sm-3">
+                                                    <label class="form-label">De (prefixo)</label>
+                                                    <input type="text" name="from_prefix" class="form-control" placeholder="ex.: 1.02" required>
+                                                </div>
+                                                <div class="col-sm-3">
+                                                    <label class="form-label">Para (prefixo)</label>
+                                                    <input type="text" name="to_prefix" class="form-control" placeholder="ex.: 3.52" required>
+                                                </div>
+                                                <div class="col-sm-3">
+                                                    <button class="btn btn-outline-primary" data-busy="1">Pré-visualizar</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                @endcan
+
 
 
                 <p>Total de contas: {{ $linhas }}</p>
@@ -193,7 +220,7 @@
                                         @endcan
 
                                         @can('PLANO DE CONTAS - EXCLUIR')
-                                            <form method="POST" action="{{ route('PlanoContas.destroy', $cadastro->ID) }}">
+                                            <form method="POST" action="{{ route('PlanoContas.destroy', $cadastro->ID) }}" class="js-confirm-delete">
                                                 @csrf
                                                 <input type="hidden" name="_method" value="DELETE">
                                                 <button class="btn btn-danger btn-sm enabled" tabindex="-1" role="button"
@@ -241,34 +268,16 @@
                             });
 
 
-                    $('form').submit(function(e) {
+                    // Confirmação apenas para formulários de exclusão
+                    $(document).on('submit', 'form.js-confirm-delete', function(e) {
                         e.preventDefault();
+                        const form = e.currentTarget;
                         $.confirm({
-                            title: 'Confirmar!',
-                            content: 'Confirma a exclusão? Não terá retorno.',
+                            title: 'Confirmar exclusão',
+                            content: 'Confirma a exclusão? Esta ação não pode ser desfeita.',
                             buttons: {
-                                confirmar: function() {
-                                    // $.alert('Confirmar!');
-                                    $.confirm({
-                                        title: 'Confirmar!',
-                                        content: 'Deseja realmente continuar com a exclusão? Não terá retorno.',
-                                        buttons: {
-                                            confirmar: function() {
-                                                // $.alert('Confirmar!');
-                                                e.currentTarget.submit()
-                                            },
-                                            cancelar: function() {
-                                                // $.alert('Cancelar!');
-                                            },
-
-                                        }
-                                    });
-
-                                },
-                                cancelar: function() {
-                                    // $.alert('Cancelar!');
-                                },
-
+                                confirmar: function() { form.submit(); },
+                                cancelar: function() { /* noop */ }
                             }
                         });
                     });
