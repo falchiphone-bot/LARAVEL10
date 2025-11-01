@@ -732,8 +732,23 @@ if (window.Livewire) {
                       @endcan
                       @can('OPENAI - CHAT')
                       <li>
-                        <a class="dropdown-item" href="{{ route('openai.tools.excel.index') }}#gsc.tab=0" title="Position Sizer (upload, edição e recálculo)">
+                        <a class="dropdown-item" href="{{ route('openai.tools.position-sizer') }}" title="Baixar planilha Position Sizer (XLSX)">
                           <i class="fa-solid fa-file-excel me-1"></i> Position_Sizer
+                        </a>
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="{{ route('openai.tools.position-sizer.preview') }}" title="Visualizar Position Sizer na web (HTML)">
+                          <i class="fa-solid fa-eye me-1"></i> Position_Sizer (ver na web)
+                        </a>
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="{{ route('openai.tools.position-sizer.calculator') }}" title="Calculadora interativa (backend PHP)">
+                          <i class="fa-solid fa-calculator me-1"></i> Position_Sizer (calculadora)
+                        </a>
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="{{ route('openai.tools.excel.index') }}#gsc.tab=0" title="Editor (upload, edição e recálculo)">
+                          <i class="fa-solid fa-table-list me-1"></i> Position_Sizer (editor)
                         </a>
                       </li>
                       @endcan
@@ -791,8 +806,23 @@ if (window.Livewire) {
                   @endcan
                   @can('OPENAI - CHAT')
                   <li class="d-block d-md-none">
-                    <a class="dropdown-item ps-4" href="{{ route('openai.tools.excel.index') }}#gsc.tab=0" title="Position Sizer (upload, edição e recálculo)">
+                    <a class="dropdown-item ps-4" href="{{ route('openai.tools.position-sizer') }}" title="Baixar planilha Position Sizer (XLSX)">
                       <i class="fa-solid fa-file-excel me-1"></i> Position_Sizer
+                    </a>
+                  </li>
+                  <li class="d-block d-md-none">
+                    <a class="dropdown-item ps-4" href="{{ route('openai.tools.position-sizer.preview') }}" title="Visualizar Position Sizer na web (HTML)">
+                      <i class="fa-solid fa-eye me-1"></i> Position_Sizer (ver na web)
+                    </a>
+                  </li>
+                  <li class="d-block d-md-none">
+                    <a class="dropdown-item ps-4" href="{{ route('openai.tools.position-sizer.calculator') }}" title="Calculadora interativa (backend PHP)">
+                      <i class="fa-solid fa-calculator me-1"></i> Position_Sizer (calculadora)
+                    </a>
+                  </li>
+                  <li class="d-block d-md-none">
+                    <a class="dropdown-item ps-4" href="{{ route('openai.tools.excel.index') }}#gsc.tab=0" title="Editor (upload, edição e recálculo)">
+                      <i class="fa-solid fa-table-list me-1"></i> Position_Sizer (editor)
                     </a>
                   </li>
                   @endcan
@@ -1015,7 +1045,7 @@ if (window.Livewire) {
                     <div class="input-group input-group-sm">
                       <span class="input-group-text">{{ $lnk['label'] ?? 'Link' }}</span>
                       <input type="text" class="form-control" value="{{ $lnk['url'] ?? '' }}" readonly>
-                      <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText('{{ $lnk['url'] ?? '' }}').then(()=>{this.textContent='Copiado'; setTimeout(()=>this.textContent='Copiar',1500);})">Copiar</button>
+                      <button class="btn btn-outline-secondary" type="button" data-url="{{ $lnk['url'] ?? '' }}" onclick="navigator.clipboard.writeText(this.getAttribute('data-url')).then(()=>{this.textContent='Copiado'; setTimeout(()=>this.textContent='Copiar',1500);})">Copiar</button>
                       <a class="btn btn-outline-primary" target="_blank" href="{{ $lnk['url'] ?? '' }}">Abrir</a>
                     </div>
                   @endforeach
@@ -1335,9 +1365,13 @@ if (window.Livewire) {
         // Intercepta qualquer formulário legado de logout, se presente
         document.addEventListener('submit', function(ev){
           const form = ev.target;
-          if (form && form.matches('form[action="{{ route('logout') }}"][method="POST"]')){
+          if (!form || form.tagName !== 'FORM') return;
+          const action = (form.getAttribute('action')||'').trim();
+          const method = (form.getAttribute('method')||'GET').toUpperCase();
+          const isLogout = /\/(logout)(\?.*)?$/i.test(action) && method === 'POST';
+          if (isLogout){
             ev.preventDefault();
-            doLogoutAndClose(form.getAttribute('action'));
+            doLogoutAndClose(action);
           }
         }, true);
       })();

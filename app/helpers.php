@@ -63,6 +63,48 @@ function ValidarCPF($cpf) {
         }
 
         return true;
+
+        // Position Sizer helper — cálculo de tamanho de posição e métricas associadas
+        if (! function_exists('positionSizer')) {
+            /**
+             * Calcula tamanho de posição e métricas de risco/retorno.
+             *
+             * Parâmetros esperados em $in:
+             * - equity: float (patrimônio total)
+             * - riskPct: float (fração do risco por trade, ex.: 0.01 = 1%)
+             * - entry: float (preço de entrada)
+             * - stop: float (preço de stop)
+             * - slippage: float (derrapagem por ação)
+             * - feeShare: float (taxa por ação)
+             * - fixed: float (custo fixo por trade)
+             *
+             * Retorna array com chaves: rPerShare, riskAllowed, riskAdj, size, notional, dir, t1, t2, maxLoss, breakeven
+             */
+            function positionSizer(array $in): array {
+                $equity   = (float)($in['equity']   ?? 50000);
+                $riskPct  = (float)($in['riskPct']  ?? 0.01);
+                $entry    = (float)($in['entry']    ?? 371.00);
+                $stop     = (float)($in['stop']     ?? 368.80);
+                $slip     = (float)($in['slippage'] ?? 0.05);
+                $feeShare = (float)($in['feeShare'] ?? 0.00);
+                $fixed    = (float)($in['fixed']    ?? 0.00);
+
+                $rPerShare = abs($entry - $stop) + $slip + $feeShare;
+                $riskAllowed = $equity * $riskPct;
+                $riskAdj = max($riskAllowed - $fixed, 0);
+                $size = $rPerShare > 0 ? (int) floor($riskAdj / $rPerShare) : 0;
+                $notional = $size * $entry;
+                $dir = $entry > $stop ? 'Long' : 'Short';
+                $t1 = $dir === 'Long' ? $entry + $rPerShare : $entry - $rPerShare;
+                $t2 = $dir === 'Long' ? $entry + 2*$rPerShare : $entry - 2*$rPerShare;
+                $maxLoss = $size * $rPerShare + $fixed;
+                $breakeven = $size > 0
+                    ? ($dir === 'Long' ? $entry + $fixed/$size : $entry - $fixed/$size)
+                    : null;
+
+                return compact('rPerShare','riskAllowed','riskAdj','size','notional','dir','t1','t2','maxLoss','breakeven');
+            }
+        }
     }
 
     function validarCNPJ($cnpj) {

@@ -79,6 +79,12 @@ Route::get('/openai/variations/export-csv', [\App\Http\Controllers\AssetVariatio
 Route::middleware(['auth'])->group(function(){
     Route::get('/openai/tools/excel', App\Http\Controllers\ExcelManagerController::class.'@index')->name('openai.tools.excel.index');
     Route::post('/openai/tools/excel/upload', App\Http\Controllers\ExcelManagerController::class.'@upload')->name('openai.tools.excel.upload');
+    // Download direto da planilha Position Sizer
+    Route::get('/openai/tools/position-sizer', App\Http\Controllers\PositionSizerController::class.'@download')->name('openai.tools.position-sizer');
+    // Visualização em HTML (ver na web)
+    Route::get('/openai/tools/position-sizer/preview', App\Http\Controllers\PositionSizerController::class.'@preview')->name('openai.tools.position-sizer.preview');
+    // Calculadora interativa (view) usando a função positionSizer
+    Route::get('/openai/tools/position-sizer/calc', App\Http\Controllers\PositionSizerController::class.'@calculator')->name('openai.tools.position-sizer.calculator');
 });
 Route::get('/openai/variations/export-xlsx', [\App\Http\Controllers\AssetVariationController::class, 'exportXlsx'])->name('openai.variations.exportXlsx');
 Route::post('/openai/variations/import-selected', [\App\Http\Controllers\AssetVariationController::class, 'importSelected'])->name('openai.variations.importSelected');
