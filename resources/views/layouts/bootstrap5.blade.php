@@ -419,17 +419,26 @@ if (window.Livewire) {
                 </a>
               </li>
 
-              {{-- Link: IBKR (status / OAuth) --}}
+              {{-- Dropdown: IBKR --}}
               @can('IBKR - VER')
-              <li>
-                <a href="{{ route('ibkr.status') }}"
-                   class="nav-link text-white"
-                   data-bs-toggle="tooltip" data-bs-placement="top"
-                   data-bs-custom-class="custom-tooltip"
-                   data-bs-title="Status de conexão com a API Web da IBKR e ações de conexão (OAuth)">
-                  <i class="fa-solid fa-building-columns"></i>
+              <li class="nav-item dropdown">
+                <a href="#" class="nav-link dropdown-toggle text-white" id="dropdown-ibkr" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                   data-bs-custom-class="custom-tooltip" data-bs-title="Atalhos IBKR: Status/OAuth e API Web">
+                  <i class="fa-solid fa-building-columns me-1"></i>
                   IBKR
                 </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-ibkr">
+                  <li>
+                    <a class="dropdown-item" href="{{ route('ibkr.status') }}" title="Status de conexão (OAuth)">
+                      <i class="fa-solid fa-signal me-1"></i> Status / OAuth
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="{{ route('ibkr.api-web') }}" title="Atalhos API Web (SSO, contas, status, sessão)">
+                      <i class="fa-solid fa-plug me-1"></i> API Web
+                    </a>
+                  </li>
+                </ul>
               </li>
               @endcan
 

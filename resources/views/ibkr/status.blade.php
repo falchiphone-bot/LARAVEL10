@@ -4,8 +4,9 @@
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="h5 mb-0">IBKR • Status da conexão</h1>
     <div class="d-flex gap-2">
-      <a class="btn btn-sm btn-outline-primary" href="{{ route('ibkr.connect') }}" data-busy="1">Conectar</a>
-      <a class="btn btn-sm btn-outline-secondary" href="{{ route('ibkr.accounts') }}" data-busy="1">Contas (JSON)</a>
+      <a class="btn btn-sm btn-outline-primary" href="{{ ($base ?? null) ? $base.'/sso/Dispatcher' : route('ibkr.connect') }}" data-busy="1" target="_blank" rel="noopener">Conectar</a>
+  <a class="btn btn-sm btn-outline-secondary" href="{{ route('ibkr.accounts') }}" data-busy="1" target="_blank" rel="noopener">Contas</a>
+      <a class="btn btn-sm btn-link text-decoration-none" href="{{ route('ibkr.accounts', ['raw'=>1]) }}" data-busy="1">Ver JSON puro</a>
     </div>
   </div>
 

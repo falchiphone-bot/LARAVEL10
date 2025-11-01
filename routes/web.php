@@ -858,6 +858,10 @@ Route::middleware(['auth','verified'])->group(function(){
     Route::get('/ibkr/callback', [\App\Http\Controllers\IbkrController::class, 'callback'])->name('ibkr.callback');
     Route::get('/ibkr/status', [\App\Http\Controllers\IbkrController::class, 'status'])->name('ibkr.status');
     Route::get('/ibkr/accounts', [\App\Http\Controllers\IbkrController::class, 'accounts'])->name('ibkr.accounts');
+    Route::get('/ibkr/gateway/portfolio/accounts', [\App\Http\Controllers\IbkrController::class, 'gatewayAccounts'])->name('ibkr.gateway.accounts');
+    Route::get('/ibkr/gateway/portfolio/accounts/save', [\App\Http\Controllers\IbkrController::class, 'saveGatewayAccounts'])->name('ibkr.gateway.accounts.save');
+    Route::get('/ibkr/import/accounts', [\App\Http\Controllers\IbkrController::class, 'importAccountsForm'])->name('ibkr.import.accounts.form');
+    Route::post('/ibkr/import/accounts', [\App\Http\Controllers\IbkrController::class, 'importAccountsProcess'])->name('ibkr.import.accounts.process');
 });
 
 // Tipo de Esporte - exportação CSV/XLSX
@@ -1754,6 +1758,9 @@ Route::resource('RedeSocialUsuarios', App\Http\Controllers\RedeSocialUsuarioCont
     // Reclassificação em massa (Plano de Contas)
     Route::post('PlanoContas/reclassificar/preview', [App\Http\Controllers\PlanoContaController::class, 'previewReclassificacao'])->name('planocontas.reclass.preview');
     Route::post('PlanoContas/reclassificar/aplicar', [App\Http\Controllers\PlanoContaController::class, 'applyReclassificacao'])->name('planocontas.reclass.apply');
+
+    // IBKR - API Web (atalhos)
+    Route::get('/ibkr/api-web', [App\Http\Controllers\IbkrController::class, 'apiWeb'])->name('ibkr.api-web');
     Route::resource('PlanoContas', App\Http\Controllers\PlanoContaController::class);
     Route::post('PlanoContas/FiltroAgrupamento', [App\Http\Controllers\PlanoContaController::class, 'FiltroAgrupamento'])->name('planocontas.FiltroAgrupamento');
 

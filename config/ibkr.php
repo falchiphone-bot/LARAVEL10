@@ -21,4 +21,13 @@ return [
     // Timeouts HTTP
     'http_timeout' => (float) env('IBKR_HTTP_TIMEOUT', 10.0),
     'http_connect_timeout' => (float) env('IBKR_HTTP_CONNECT_TIMEOUT', 5.0),
+
+    // Porta do gateway/local proxy da Client Portal Web API (ex.: 5001)
+    'gateway_port' => (int) env('IBKR_GATEWAY_PORT', 5001),
+
+    // Esquema (http/https) usado para montar a base dos links da API Web
+    'gateway_scheme' => env('IBKR_GATEWAY_SCHEME', 'https'),
+
+    // Verificação de certificado TLS ao acessar o gateway local (self-signed normalmente)
+    'gateway_verify' => filter_var(env('IBKR_GATEWAY_VERIFY', false), FILTER_VALIDATE_BOOL),
 ];
