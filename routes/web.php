@@ -74,6 +74,12 @@ Route::post('/openai/records/save-variation', [\App\Http\Controllers\OpenAIChatR
 // Listagem das variações mensais salvas
 Route::get('/openai/variations', [\App\Http\Controllers\AssetVariationController::class, 'index'])->name('openai.variations.index');
 Route::get('/openai/variations/export-csv', [\App\Http\Controllers\AssetVariationController::class, 'exportCsv'])->name('openai.variations.exportCsv');
+
+// Excel Manager (Position_Sizer) — upload/visualização/recalcular (protegido por auth)
+Route::middleware(['auth'])->group(function(){
+    Route::get('/openai/tools/excel', App\Http\Controllers\ExcelManagerController::class.'@index')->name('openai.tools.excel.index');
+    Route::post('/openai/tools/excel/upload', App\Http\Controllers\ExcelManagerController::class.'@upload')->name('openai.tools.excel.upload');
+});
 Route::get('/openai/variations/export-xlsx', [\App\Http\Controllers\AssetVariationController::class, 'exportXlsx'])->name('openai.variations.exportXlsx');
 Route::post('/openai/variations/import-selected', [\App\Http\Controllers\AssetVariationController::class, 'importSelected'])->name('openai.variations.importSelected');
 Route::post('/openai/variations/batch-flags', [\App\Http\Controllers\AssetVariationController::class, 'batchFlags'])->name('openai.variations.batchFlags');

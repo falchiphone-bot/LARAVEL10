@@ -730,6 +730,13 @@ if (window.Livewire) {
                         </a>
                       </li>
                       @endcan
+                      @can('OPENAI - CHAT')
+                      <li>
+                        <a class="dropdown-item" href="{{ route('openai.tools.excel.index') }}#gsc.tab=0" title="Position Sizer (upload, edição e recálculo)">
+                          <i class="fa-solid fa-file-excel me-1"></i> Position_Sizer
+                        </a>
+                      </li>
+                      @endcan
                       @can('HOLDINGS - IMPORTAR')
                       <li><hr class="dropdown-divider"></li>
                       <li>
@@ -779,6 +786,13 @@ if (window.Livewire) {
                   <li class="d-block d-md-none">
                     <a class="dropdown-item ps-4" href="{{ route('cash.events.index') }}#gsc.tab=0" title="Listagem de eventos de caixa (dividendos, impostos, depósitos, retiradas)">
                       <i class="fa-solid fa-coins me-1"></i> Eventos de Caixa
+                    </a>
+                  </li>
+                  @endcan
+                  @can('OPENAI - CHAT')
+                  <li class="d-block d-md-none">
+                    <a class="dropdown-item ps-4" href="{{ route('openai.tools.excel.index') }}#gsc.tab=0" title="Position Sizer (upload, edição e recálculo)">
+                      <i class="fa-solid fa-file-excel me-1"></i> Position_Sizer
                     </a>
                   </li>
                   @endcan
