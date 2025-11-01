@@ -77,8 +77,7 @@ class Extrato extends Component
             $this->dispatchBrowserEvent('limpar-selConta');
             $this->resetErrorBag();
             $this->resetValidation();
-            // Atualiza visualização executando uma busca (sem conta, zera resultado)
-            $this->search();
+            // Não executar busca automática ao trocar a empresa; atualização só via botão.
         } else {
             $this->selEmpresa = null;
             session(['conta.extrato.empresa.id' => $this->selEmpresa]);
@@ -93,7 +92,7 @@ class Extrato extends Component
             $this->dispatchBrowserEvent('limpar-selConta');
             $this->resetErrorBag();
             $this->resetValidation();
-            $this->search();
+            // Não executar busca automática ao trocar a empresa; atualização só via botão.
         }
         $this->updated();
     }
@@ -104,11 +103,21 @@ class Extrato extends Component
             session(['extrato_ContaID' => $item]);
             $this->Conta = Conta::find($item);
             $this->data_bloqueio_conta = $this->Conta->Bloqueiodataanterior?->format('Y-m-d');
-            // $this->emit('search');
-            // Executa busca automaticamente ao selecionar a conta
-            $this->search();
+            // Limpa dados do extrato para que só recarregue quando clicar no botão "Buscar"
+            $this->Lancamentos = null;
+            $this->listaExclusao = [];
+            $this->listaSoma = [];
+            $this->exibicao_pesquisa = 'Extrato — selecione filtros e clique em Buscar';
+            // Importante: não executar busca automática ao selecionar a conta.
+            // A atualização da lista deve ocorrer APENAS quando o usuário clicar
+            // no botão "Buscar informações e atualizar visualização" na view.
         } else {
             $this->selConta = null;
+            // Sem conta selecionada, mantém a visualização limpa
+            $this->Lancamentos = null;
+            $this->listaExclusao = [];
+            $this->listaSoma = [];
+            $this->exibicao_pesquisa = 'Extrato — selecione filtros e clique em Buscar';
         }
         $this->updated();
     }

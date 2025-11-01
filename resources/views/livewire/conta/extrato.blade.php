@@ -467,7 +467,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
 
             <div class="card-body card-block">
-                <form id="idform" method="post" wire:submit.prevent="search">
+                <form id="idform" method="post">
                     <div class="row">
                         <div class="form-group col-sm-12 col-md-3">
                             <label for="de" class="pr-1  form-control-label">De</label>
@@ -506,14 +506,12 @@ document.addEventListener('DOMContentLoaded', function(){
                         <div class="form-group col-sm-12 col-md-3">
                             <label for="de" class="pr-1  form-control-label">Buscar Descrição</label>
                             <input type="text" value="" id="descricao" class="form-control"
-                                autocomplete="off" wire:model.debounce.500ms='Descricao'
-                                wire:keydown.enter.prevent="search">
+                                autocomplete="off" wire:model.debounce.500ms='Descricao'>
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
                             <label for="de" class="pr-1  form-control-label">A partir De:</label>
                             <input type="date" value="" id="a_partir_de" class="form-control"
-                                autocomplete="off" wire:model.debounce.500ms='DescricaoApartirDe'
-                                wire:keydown.enter.prevent="search">
+                                autocomplete="off" wire:model.debounce.500ms='DescricaoApartirDe'>
                         </div>
                         <div class="form-group col-sm-12 col-md-3">
 
@@ -1298,6 +1296,30 @@ document.addEventListener('DOMContentLoaded', function(){
 
     <script>
         // Abre a URL do PDF em nova guia quando o Livewire disparar o evento
+        <script>
+            // Impede submit do formulário ao pressionar Enter (evita buscas acidentais)
+            document.addEventListener('DOMContentLoaded', function(){
+                var form = document.getElementById('idform');
+                if(form && !form._preventEnter){
+                    form.addEventListener('keydown', function(e){
+                        if(e.key === 'Enter' && !(e.target && e.target.tagName === 'TEXTAREA')){
+                            e.preventDefault();
+                        }
+                    });
+                    form._preventEnter = true;
+                }
+                // Em selects com Select2, impedir Enter de submeter o form
+                try{
+                    $(document).on('keydown', '.select2-search__field', function(e){
+                        if(e.key === 'Enter'){
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }
+                    });
+                }catch(e){}
+            });
+        </script>
+
         // Lock simples evita abrir mais de uma aba por evento
         (function(){
             let opening = false;
@@ -1328,13 +1350,12 @@ document.addEventListener('DOMContentLoaded', function(){
                 console.log(e.target.value);
 
                 Livewire.emit('selectedSelEmpresaItem', e.target.value);
-                // Fecha modal (se aberto) e dispara busca automática
+                // Fecha modal (se aberto) e NÃO dispara busca automática
                 var myModalEl = document.getElementById('editarLancamentoModal');
                 if (myModalEl) {
                     var modalInstance = bootstrap.Modal.getInstance(myModalEl);
                     if (modalInstance) modalInstance.hide();
                 }
-                Livewire.emit('search');
                 // Mover foco para o select de conta (e container Select2, se presente)
                 setTimeout(function() {
                     var selConta = document.getElementById('selConta');
@@ -1350,8 +1371,9 @@ document.addEventListener('DOMContentLoaded', function(){
             $('#selConta').on('change', function(e) {
                 Livewire.emit('selectedSelContaItem', e.target.value);
                 // @this.set('selConta', e.target.value);
-                // Dispara uma busca imediata no front também
-                Livewire.emit('search');
+                // Removido: não disparar busca automática ao selecionar conta.
+                // A atualização deve ocorrer apenas ao clicar no botão
+                // "Buscar informações e atualizar visualização".
             });
 
             //scripts para troca de empresa
